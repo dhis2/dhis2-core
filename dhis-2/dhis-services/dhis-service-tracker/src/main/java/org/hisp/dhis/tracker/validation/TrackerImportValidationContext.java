@@ -77,7 +77,8 @@ public class TrackerImportValidationContext
 
     public TrackerImportValidationContext( TrackerBundle bundle )
     {
-        this.bundle = bundle;
+        // Create a copy of the bundle
+        this.bundle = bundle.copy();
 
         Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedMap = this
             .getResolvedStrategyMap();

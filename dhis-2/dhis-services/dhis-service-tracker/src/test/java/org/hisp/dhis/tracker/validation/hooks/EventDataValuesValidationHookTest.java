@@ -32,7 +32,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.ValueType;
@@ -41,8 +40,6 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
@@ -67,9 +64,6 @@ public class EventDataValuesValidationHookTest
 
     private EventDataValuesValidationHook hookToTest;
 
-    @Mock
-    private TrackedEntityAttributeService teAttrService;
-
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -82,7 +76,7 @@ public class EventDataValuesValidationHookTest
     @Before
     public void setUp()
     {
-        hookToTest = new EventDataValuesValidationHook( teAttrService );
+        hookToTest = new EventDataValuesValidationHook( );
 
         DataElement validDataElement = new DataElement();
         validDataElement.setValueType( ValueType.TEXT );
@@ -100,7 +94,7 @@ public class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue() ) );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, this.getClass() );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
         hookToTest.validateEvent( reporter, event );
 
         // Then
@@ -116,7 +110,7 @@ public class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, this.getClass() );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
         hookToTest.validateEvent( reporter, event );
 
         // Then
@@ -132,7 +126,7 @@ public class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, this.getClass() );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
         hookToTest.validateEvent( reporter, event );
 
         // Then
@@ -148,7 +142,7 @@ public class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, this.getClass() );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
         hookToTest.validateEvent( reporter, event );
 
         // Then
@@ -164,7 +158,7 @@ public class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, this.getClass() );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
         hookToTest.validateEvent( reporter, event );
 
         // Then
@@ -180,7 +174,7 @@ public class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, this.getClass() );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
         hookToTest.validateEvent( reporter, event );
 
         // Then
@@ -213,7 +207,7 @@ public class EventDataValuesValidationHookTest
         when( validationContext.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, this.getClass() );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
         hookToTest.validateEvent( reporter, event );
 
         // Then
@@ -245,7 +239,7 @@ public class EventDataValuesValidationHookTest
         when( validationContext.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, this.getClass() );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
         hookToTest.validateEvent( reporter, event );
 
         // Then
@@ -278,7 +272,7 @@ public class EventDataValuesValidationHookTest
         when( validationContext.getDataElement( "de_not_present_in_progam_stage" ) ).thenReturn( notPresentDataElement );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, this.getClass() );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
         hookToTest.validateEvent( reporter, event );
 
         // Then
@@ -301,7 +295,7 @@ public class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue() ) );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, this.getClass() );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
         hookToTest.validateEvent( reporter, event );
 
         // Then
@@ -325,7 +319,7 @@ public class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, this.getClass() );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
         hookToTest.validateEvent( reporter, event );
 
         // Then
@@ -352,7 +346,7 @@ public class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, this.getClass() );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
         hookToTest.validateEvent( reporter, event );
 
         // Then
@@ -394,7 +388,7 @@ public class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, this.getClass() );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
         hookToTest.validateEvent( reporter, event );
 
         // Then
