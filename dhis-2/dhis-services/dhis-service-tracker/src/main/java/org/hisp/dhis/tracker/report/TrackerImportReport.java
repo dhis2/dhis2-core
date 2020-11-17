@@ -30,11 +30,17 @@ package org.hisp.dhis.tracker.report;
 
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.tracker.AtomicMode;
+import org.hisp.dhis.tracker.TrackerImportParams;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.tracker.TrackerType;
+
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -43,7 +49,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TrackerImportReport
 {
-
     private TrackerStatus status = TrackerStatus.OK;
 
     private TrackerTimingsStats timings = new TrackerTimingsStats();
@@ -54,11 +59,14 @@ public class TrackerImportReport
     
     private String message;
 
+    @JsonIgnore
+    private TrackerImportParams params;
+
     @JsonProperty
     public TrackerStats getStats()
     {
         TrackerStats stats = bundleReport.getStats();
-        stats.setIgnored( calculateIgnored() );
+        stats.setIgnored( calculateIgnored( this.params) );
         return stats;
     }
     
@@ -111,15 +119,26 @@ public class TrackerImportReport
         return bundleReport.isEmpty();
     }
     
-    private int calculateIgnored()
+    private int calculateIgnored( TrackerImportParams params )
     {
         if ( getTrackerValidationReport() == null || getTrackerValidationReport().getErrorReports() == null )
         {
             return 0;
         }
-        
-        return (int) getTrackerValidationReport().getErrorReports().stream()
-        .map( TrackerErrorReport::getUid )
-        .distinct().count();
+
+        // In Atomic Mode -> ALL, if any error occurred during the import process, no entity will be saved,
+        // therefore it is safe to return the sum of all entities
+        if ( params.getAtomicMode() == AtomicMode.ALL )
+        {
+            return params.getTrackedEntities().size() + params.getEnrollments().size() + params.getEvents().size()
+                + params.getRelationships().size();
+        }
+        else
+        {
+            final Map<TrackerType, TrackerTypeReport> typeReportMap = bundleReport.getTypeReportMap();
+            return (int) getTrackerValidationReport().getErrorReports().stream()
+                .map( TrackerErrorReport::getUid )
+                .distinct().count();
+        }
     }
 }

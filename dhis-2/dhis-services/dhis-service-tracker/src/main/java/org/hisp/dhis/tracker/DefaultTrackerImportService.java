@@ -104,6 +104,7 @@ public class DefaultTrackerImportService
         }
 
         TrackerImportReport importReport = new TrackerImportReport();
+        importReport.setParams( params );
 
         if ( params.hasJobConfiguration() )
         {
@@ -300,7 +301,7 @@ public class DefaultTrackerImportService
         filteredTrackerImportReport.setBundleReport( importReport.getBundleReport() );
         filteredTrackerImportReport.setStatus( importReport.getStatus() );
         filteredTrackerImportReport.setMessage( importReport.getMessage() );
-
+        filteredTrackerImportReport.setParams( importReport.getParams() );
         switch ( reportMode )
         {
         case ERRORS:
