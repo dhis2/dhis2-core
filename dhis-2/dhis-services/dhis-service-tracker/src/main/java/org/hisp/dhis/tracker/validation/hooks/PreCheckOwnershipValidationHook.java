@@ -172,12 +172,22 @@ public class PreCheckOwnershipValidationHook
         }
         else
         {
-            trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
-                context.getReference( enrollment.getTrackedEntity() ).get().getUid(),
-                context.getOrganisationUnit( getOrgUnitUidFromTei( context,
-                    context.getReference( enrollment.getTrackedEntity() ).get().getUid() ) ) );
-            // We need to retrieve the orgUnit from the Preheat getting the uid from the TEI
-            // in the payload
+            final Optional<ReferenceTrackerEntity> trackedEntity = context
+                .getReference( enrollment.getTrackedEntity() );
+
+            if ( trackedEntity.isPresent() )
+            {
+                // We need to retrieve the orgUnit from the Preheat getting the uid from the TEI
+                // in the payload
+                trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
+                    trackedEntity.get().getUid(),
+                    context.getOrganisationUnit( getOrgUnitUidFromTei( context,
+                        trackedEntity.get().getUid() ) ) );
+            }
+            else
+            {
+                // TODO this should be caught by earlier validator
+            }
         }
     }
 
