@@ -362,12 +362,6 @@ public class TrackerPreheat
     {
         for ( T object : objects )
         {
-            boolean isDefault = isDefault( object );
-            if ( isDefault )
-            {
-                continue;
-            }
-
             put( identifier, object );
         }
 
