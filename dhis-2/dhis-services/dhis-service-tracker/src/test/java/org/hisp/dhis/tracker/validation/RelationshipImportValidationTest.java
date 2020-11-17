@@ -33,6 +33,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -85,7 +86,7 @@ public class RelationshipImportValidationTest
         when( trackerBundle.getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE );
 
         validatorToTest = new RelationshipsValidationHook( teAttrService );
-        reporter = new ValidationErrorReporter( context, Relationship.class );
+        reporter = new ValidationErrorReporter( context, Relationship.class, TrackerType.RELATIONSHIP );
     }
 
     @Test
