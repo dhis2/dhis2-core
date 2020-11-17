@@ -33,6 +33,7 @@ import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.*;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -596,6 +597,7 @@ public abstract class AbstractEventService implements EventService
         }
 
         event.setRelationships( programStageInstance.getRelationshipItems().stream()
+                .filter( Objects::nonNull )
                 .map( ( r ) -> relationshipService.getRelationship( r.getRelationship(), RelationshipParams.FALSE, user ) )
                 .collect( Collectors.toSet() ) );
 
