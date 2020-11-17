@@ -58,6 +58,7 @@ public class ProgramStageInstanceNoteMapper
         comment.setCreator( getValidUsername( note.getStoredBy(), workContext.getImportOptions() ) );
         comment.setCreated( note.getStoredDate() == null ? new Date() : parseDate( note.getStoredDate() ) );
         comment.setLastUpdated( new Date() );
+        comment.setLastUpdatedBy( workContext.getServiceDelegator().getEventImporterUserService().getCurrentUser() );
         return comment;
     }
 }

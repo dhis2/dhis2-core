@@ -86,8 +86,7 @@ public class Module
         
         String defaultAction = app.getLaunchUrl();
 
-        String icon = hasIcon ? icon = app.getBaseUrl() + "/" + app.getUrlFriendlyName() +
-            "/" + app.getIcons().getIcon48() : null;
+        String icon = hasIcon ? app.getBaseUrl() + "/" + app.getIcons().getIcon48() : null;
 
         String description = TextUtils.subString( app.getDescription(), 0, 80 );
         

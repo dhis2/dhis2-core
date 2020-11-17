@@ -28,19 +28,17 @@
 
 package org.hisp.dhis.tracker.converter;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.databind.util.StdConverter;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.*;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.databind.util.StdConverter;
-import com.google.common.collect.Maps;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Converts a {@see TrackerBundleParams} containing a nested Tracked Entity structure into a "flat" structure
@@ -84,174 +82,238 @@ public class TrackerBundleParamsConverter
     extends
     StdConverter<TrackerBundleParams, TrackerBundleParams>
 {
-    @Override
-    public TrackerBundleParams convert( TrackerBundleParams bundle )
-    {
-        // pre assign UIDs to entities, if UIDs are missing
-        generateUid( bundle );
-
-        if ( hasNestedStructure( bundle ) )
-        {
-            flattenPayload( bundle );
-        }
-
-        return bundle;
-    }
-
-    private void flattenPayload( TrackerBundleParams bundle )
-    {
-
-        List<Event> events = new ArrayList<>();
-
-        List<Enrollment> enrollments = new ArrayList<>();
-
-        Set<Relationship> relationships = new HashSet<>();
-
-        // Iterate over **all** enrollments
-        for ( Enrollment enrollment : bundle.getTrackedEntities().stream()
-            .flatMap( l -> l.getEnrollments().stream() ).collect( Collectors.toList() ) )
-        {
-            // collect all events from enrollments and add them to the flattened events collection
-            events.addAll( enrollment.getEvents().stream().map( e -> addParent( e, enrollment.getEnrollment() ) )
-                .collect( Collectors.toList() ) );
-
-            // Extract relationships from enrollment
-            relationships.addAll( enrollment.getRelationships() );
-
-            // Extract relationships from events
-            relationships
-                .addAll( events.stream().flatMap( l -> l.getRelationships().stream() ).collect( Collectors.toSet() ) );
-
-            // remove events and relationships from enrollment
-            enrollment.setEvents( Collections.emptyList() );
-            enrollment.setRelationships( Collections.emptyList() );
-            // remove relationships from events
-            events.forEach( e -> e.setRelationships( Collections.emptyList() ) );
-        }
-
-        for ( TrackedEntity trackedEntity : bundle.getTrackedEntities() )
-        {
-            enrollments.addAll( trackedEntity.getEnrollments().stream()
-                .map( e -> addParent( e, trackedEntity.getTrackedEntity() ) ).collect( Collectors.toList() ) );
-
-            // Extract relationships from Tracked Entity
-            relationships.addAll( trackedEntity.getRelationships() );
-
-            // remove enrollments and relationships from tracked entities
-            trackedEntity.setEnrollments( Collections.emptyList() );
-            trackedEntity.setRelationships( Collections.emptyList() );
-        }
-
-        bundle.getEvents().addAll( events );
-        bundle.getEnrollments().addAll( enrollments );
-        bundle.getRelationships().addAll( relationships );
-    }
 
     /**
-     * Make sure that the Enrollment has the parent ID correctly set
-     */
-    private Enrollment addParent( Enrollment enrollment, String trackerEntityId )
-    {
-        if ( StringUtils.isEmpty( enrollment.getTrackedEntity() ) )
-        {
-            enrollment.setTrackedEntity( trackerEntityId );
-        }
-        return enrollment;
-    }
-
-    /**
-     * Make sure that the Event has the parent ID correctly set
-     */
-    private Event addParent( Event event, String enrollmentId )
-    {
-
-        if ( StringUtils.isEmpty( event.getEnrollment() ) )
-        {
-            event.setEnrollment( enrollmentId );
-        }
-        return event;
-    }
-
-    /**
-     * Check if the {@see TrackerBundleParams} has a nested structure
+     * Iterates over the collections of a dataBundle. If any objects in those collections have objects nested within
+     * them, they are extracted. For each object we process, we make sure all references are valid as well.
      *
-     * @param bundle a {@see TrackerBundleParams}
-     * @return true, if TEIs have nested enrollments
+     * @param dataBundle containing collections to check and update.
+     * @return a dataBundle with a flattened data structure, and valid uid references.
      */
-    private boolean hasNestedStructure( TrackerBundleParams bundle )
+    @Override
+    public TrackerBundleParams convert( TrackerBundleParams dataBundle )
     {
-        return bundle.getEnrollments().isEmpty();
-    }
+        Map<String, TrackedEntity> trackedEntityMap = new HashMap<>();
+        Map<String, Enrollment> enrollmentHashMap = new HashMap<>();
+        Map<String, Event> eventHashMap = new HashMap<>();
+        Map<String, Relationship> relationshipHashMap = new HashMap<>();
 
-    private void generateUid( TrackerBundleParams params )
-    {
-        List<TrackedEntity> trackedEntities = params.getTrackedEntities();
-
-        for ( TrackedEntity trackedEntity : trackedEntities )
+        // Extract all enrollments and relationships, and set parent reference.
+        for ( TrackedEntity te : dataBundle.getTrackedEntities() )
         {
-            if ( StringUtils.isEmpty( trackedEntity.getTrackedEntity() ) )
-            {
-                trackedEntity.setTrackedEntity( CodeGenerator.generateUid() );
-            }
+            updateTrackedEntityReferences( te );
+            trackedEntityMap.put( te.getTrackedEntity(), te );
 
-            Map<Relationship, String> relationshipsWithUid = Maps.newHashMap();
+            extractEnrollments( te )
+                .forEach( enrollment -> enrollmentHashMap.put( enrollment.getEnrollment(), enrollment ) );
 
-            generateRelationshipUids( trackedEntity.getRelationships(), relationshipsWithUid );
-
-            List<Enrollment> enrollments = trackedEntity.getEnrollments();
-
-            generateEnrollmentUids( enrollments, relationshipsWithUid );
-
+            extractRelationships( te )
+                .forEach( relationship -> relationshipHashMap.put( relationship.getRelationship(), relationship ) );
         }
-        Map<Relationship, String> relationshipsWithUid = Maps.newHashMap();
-        generateEnrollmentUids( params.getEnrollments(), relationshipsWithUid );
-        generateEventUids( params.getEvents(), relationshipsWithUid );
-    }
 
-    private void generateEnrollmentUids( List<Enrollment> enrollments, Map<Relationship, String> relationshipsWithUid )
-    {
-        for ( Enrollment enrollment : enrollments )
+        // Set UID for all enrollments and notes
+        dataBundle.getEnrollments().stream()
+            .peek( enrollment -> updateEnrollmentReferences( enrollment, enrollment.getTrackedEntity() ) )
+            .forEach( enrollment -> enrollmentHashMap.put( enrollment.getEnrollment(), enrollment ) );
+
+        // Extract all events and relationships, and set parent references
+        for ( Enrollment enrollment : enrollmentHashMap.values() )
         {
-            // Assign an UID to Enrollment if no UID is present
-            if ( StringUtils.isEmpty( enrollment.getEnrollment() ) )
-            {
-                enrollment.setEnrollment( CodeGenerator.generateUid() );
-            }
+            extractEvents( enrollment )
+                .forEach( event -> eventHashMap.put( event.getEvent(), event ) );
 
-            generateRelationshipUids( enrollment.getRelationships(), relationshipsWithUid );
+            extractRelationships( enrollment )
+                .forEach( relationship -> relationshipHashMap.put( relationship.getRelationship(), relationship ) );
 
-            generateEventUids( enrollment.getEvents(), relationshipsWithUid );
+            enrollment.setNotes( enrollment.getNotes().stream()
+                .filter( note -> !StringUtils.isEmpty( note.getValue() ) )
+                .peek( this::updateNoteReferences )
+                .collect( Collectors.toList() )
+            );
         }
-    }
 
-    private void generateEventUids( List<Event> events, Map<Relationship, String> relationshipsWithUid )
-    {
-        // Assign an UID to Events if no UID is present
-        events
-            .stream()
-            .peek( event -> generateRelationshipUids( event.getRelationships(), relationshipsWithUid ) )
-            .filter( e -> StringUtils.isEmpty( e.getEvent() ) )
-            .forEach( e -> e.setEvent( CodeGenerator.generateUid() ) );
-    }
+        // Set UID for all events and notes
+        dataBundle.getEvents().stream()
+            .peek( event -> updateEventReferences( event, event.getTrackedEntity(), event.getEnrollment() ) )
+            .forEach( event -> eventHashMap.put( event.getEvent(), event ) );
 
-    private void generateRelationshipUids( Collection<Relationship> relationships,
-        Map<Relationship, String> relationshipsWithUid )
-    {
-        for ( Relationship entityRelationship : relationships )
+        // Extract all relationships
+        for ( Event event : eventHashMap.values() )
         {
-            if ( StringUtils.isEmpty( entityRelationship.getRelationship() ) )
-            {
-                String uid = relationshipsWithUid.get( entityRelationship );
-                if ( uid != null )
-                {
-                    entityRelationship.setRelationship( uid );
-                }
-                else
-                {
-                    entityRelationship.setRelationship( CodeGenerator.generateUid() );
-                }
-                relationshipsWithUid.put( entityRelationship, entityRelationship.getRelationship() );
-            }
+            extractRelationships( event )
+                .forEach( relationship -> relationshipHashMap.put( relationship.getRelationship(), relationship ) );
+
+            event.setNotes( event.getNotes().stream()
+                .filter( note -> !StringUtils.isEmpty( note.getValue() ) )
+                .peek( this::updateNoteReferences )
+                .collect( Collectors.toList() )
+            );
         }
+
+        // Set UID for all relationships
+        dataBundle.getRelationships().stream()
+            .peek( this::updateRelationshipReferences )
+            .forEach( relationship -> relationshipHashMap.put( relationship.getRelationship(), relationship ) );
+
+        return TrackerBundleParams.builder()
+            .trackedEntities( new ArrayList<>( trackedEntityMap.values() ) )
+            .enrollments( new ArrayList<>( enrollmentHashMap.values() ) )
+            .events( new ArrayList<>( eventHashMap.values() ) )
+            .relationships( new ArrayList<>( relationshipHashMap.values() ) )
+            .build();
+
+    }
+
+    /**
+     * Takes a trackedEntity and extracts the relationships, if any, and updates the uid references of the relationships
+     *
+     * @param trackedEntity the trackedEntity to extract relationships from
+     * @return a list of relationships
+     */
+    private List<Relationship> extractRelationships( TrackedEntity trackedEntity )
+    {
+        List<Relationship> relationships = trackedEntity.getRelationships().stream()
+            .peek( this::updateRelationshipReferences )
+            .collect( Collectors.toList() );
+
+        trackedEntity.setRelationships( new ArrayList<>() );
+
+        return relationships;
+    }
+
+    /**
+     * Takes an enrollment and extracts the relationships from, if any, and updates the uid references of the relationships
+     *
+     * @param enrollment the enrollment to extract relationships from
+     * @return a list of relationships
+     */
+    private List<Relationship> extractRelationships( Enrollment enrollment )
+    {
+        List<Relationship> relationships = enrollment.getRelationships().stream()
+            .peek( this::updateRelationshipReferences )
+            .collect( Collectors.toList() );
+
+        enrollment.setRelationships( new ArrayList<>() );
+
+        return relationships;
+    }
+
+    /**
+     * Takes an event and extracts the relationships from, if any, and updates the uid references of the relationships
+     *
+     * @param event the event to extract relationships from
+     * @return a list of relationships
+     */
+    private List<Relationship> extractRelationships( Event event )
+    {
+        List<Relationship> relationships = event.getRelationships().stream()
+            .peek( this::updateRelationshipReferences )
+            .collect( Collectors.toList() );
+
+        event.setRelationships( new ArrayList<>() );
+
+        return relationships;
+    }
+
+    /**
+     * Takes an enrollment and extracts the events from, if any, and updates the uid references of the events
+     *
+     * @param enrollment the enrollment to extract events from
+     * @return a list of events
+     */
+    private List<Event> extractEvents( Enrollment enrollment )
+    {
+        List<Event> events = enrollment.getEvents().stream()
+            .peek( event -> updateEventReferences( event, enrollment.getTrackedEntity(), enrollment.getEnrollment() ) )
+            .collect( Collectors.toList() );
+
+        enrollment.setEvents( new ArrayList<>() );
+
+        return events;
+    }
+
+    /**
+     * Takes a trackedEntity and extracts enrollments, if any, and updated the uid references of the enrollments
+     *
+     * @param trackedEntity the trackedEntity to extract enrollments from
+     * @return a list of enrollments
+     */
+    private List<Enrollment> extractEnrollments( TrackedEntity trackedEntity )
+    {
+        List<Enrollment> enrollments = trackedEntity.getEnrollments().stream()
+            .peek( enrollment -> updateEnrollmentReferences( enrollment, trackedEntity.getTrackedEntity() ) )
+            .collect( Collectors.toList() );
+
+        trackedEntity.setEnrollments( new ArrayList<>() );
+
+        return enrollments;
+    }
+
+    /**
+     * Updates a reference (uid). If the String supplied is null or empty, generates and returns a new uid. Otherwise,
+     * return the uid.
+     *
+     * @param uid the uid to check and update
+     * @return a valid uid
+     */
+    private String updateReference( String uid )
+    {
+        return StringUtils.isEmpty( uid ) ? CodeGenerator.generateUid() : uid;
+    }
+
+    /**
+     * Updates uid of references in a relationship
+     *
+     * @param relationship the relationship to update references for
+     */
+    private void updateRelationshipReferences( Relationship relationship )
+    {
+        relationship.setRelationship( updateReference( relationship.getRelationship() ) );
+    }
+
+    /**
+     * Updates uid of references in an event
+     *
+     * @param event         the event to check and update references for
+     * @param trackedEntity the parent trackedEntity uid
+     * @param enrollment    the parent enrollment uid
+     */
+    private void updateEventReferences( Event event, String trackedEntity, String enrollment )
+    {
+        event.setEvent( updateReference( event.getEvent() ) );
+        event.setEnrollment( updateReference( enrollment ) );
+        event.setTrackedEntity( updateReference( trackedEntity ) );
+    }
+
+    /**
+     * Updates uid of references in an enrollment
+     *
+     * @param enrollment    the enrollment to check and update references for
+     * @param trackedEntity the parent trackedEntity uid
+     */
+    private void updateEnrollmentReferences( Enrollment enrollment, String trackedEntity )
+    {
+        enrollment.setEnrollment( updateReference( enrollment.getEnrollment() ) );
+        enrollment.setTrackedEntity( updateReference( trackedEntity ) );
+    }
+
+    /**
+     * Updates uid of references in a trackedEntity
+     *
+     * @param trackedEntity the trackedEntity to check and update references for
+     */
+    private void updateTrackedEntityReferences( TrackedEntity trackedEntity )
+    {
+        trackedEntity.setTrackedEntity( updateReference( trackedEntity.getTrackedEntity() ) );
+    }
+
+    /**
+     * Updates uid of references in a note
+     *
+     * @param note the note to check and update references for
+     */
+    private void updateNoteReferences( Note note )
+    {
+        note.setNote( updateReference( note.getNote() ) );
     }
 }
