@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata;
  */
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dataelement.DataElement;
@@ -60,7 +61,7 @@ import static org.junit.Assert.assertNotNull;
  * @author Lars Helge Overland
  */
 public class CsvMetadataImportTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private DataElementService dataElementService;
@@ -81,6 +82,12 @@ public class CsvMetadataImportTest
     private IdentifiableObjectManager manager;
 
     private InputStream input;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return false;
+    }
 
     @Test
     public void testDataElementImport()

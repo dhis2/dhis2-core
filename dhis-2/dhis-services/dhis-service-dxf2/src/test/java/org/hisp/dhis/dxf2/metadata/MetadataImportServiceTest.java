@@ -42,6 +42,7 @@ import javax.xml.xpath.XPathExpressionException;
 
 import org.hibernate.MappingException;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -80,7 +81,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class MetadataImportServiceTest extends DhisSpringTest
+public class MetadataImportServiceTest extends IntegrationTestBase
 {
     @Autowired
     private MetadataImportService importService;
@@ -108,6 +109,12 @@ public class MetadataImportServiceTest extends DhisSpringTest
 
     @Autowired
     private NodeService nodeService;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest()

@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -81,7 +82,7 @@ import static org.junit.Assert.*;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class ObjectBundleServiceTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -97,6 +98,12 @@ public class ObjectBundleServiceTest
 
     @Autowired
     private UserService _userService;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest() throws Exception
