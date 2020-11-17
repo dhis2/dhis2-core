@@ -110,6 +110,7 @@ public enum TrackerErrorCode
     E1113( "Enrollment: `{0}`, is already deleted." ),
     E1114( "TrackedEntity: `{0}`, is already deleted." ),
     E1118( "Assigned user `{0}` is not a valid uid."),
+    E1119( "A Tracker Note with uid `{0}` already exists."),
 
     //TODO: See TODO on error usage
     E1017( "Attribute: `{0}`, does not exist." ),
@@ -136,14 +137,23 @@ public enum TrackerErrorCode
 
     E1200( "Rule engine error: `{0}`" ),
 
+    E1302( "DataElement `{0}` is not valid: `{1}`" ),
+    E1303( "Mandatory DataElement `{0}` is not present" ),
+    E1304( "DataElement `{0}` is not a valid data element" ),
+    E1305( "DataElement `{0}` is not part of `{1}` program stage" ),
+
     E4000( "Relationship: `{0}` cannot link to itself" ),
-    E4001( "Property `{0}` can not be set when property `{1}` is `{2}`. " ),
-    E4002( "Property `{0}` must be set when property `{1}` is `{2}`. " ),
-    E4003( "There are duplicated relationships. " ),
-    E4004( "Missing required property: 'relationshipType'." ),
+    E4001( "Relationship Item `{0}` for Relationship `{1}` is invalid: an Item can link only one Tracker entity." ),
+    E4003( "There are duplicated relationships." ),
+    E4004( "Missing required relationship property: 'relationshipType'." ),
     E4005( "RelationShip: `{0}`, do not exist." ),
-
-
+    E4006( "Could not find relationship Type: `{0}`."  ),
+    E4007( "Missing required relationship property: 'from'."  ),
+    E4008( "Missing required relationship property: 'to'."  ),
+    E4009( "Relationship Type `{0}` is not valid." ),
+    E4010( "Relationship Type `{0}` constraint requires a {1} but a {2} was found." ),
+    E4011(
+        "Relationship: `{0}` cannot be persisted because {1} {2} referenced by this relationship is not valid." ),
     E9999( "N/A" );
 
     private final String message;

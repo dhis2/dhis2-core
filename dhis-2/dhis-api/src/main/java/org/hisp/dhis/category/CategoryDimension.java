@@ -36,6 +36,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalEmbeddedObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +68,7 @@ public class CategoryDimension
     @JsonProperty( "category" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "category", namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.REFERENCE, required = Property.Value.TRUE )
     public Category getDimension()
     {
         return dimension;
@@ -79,6 +82,7 @@ public class CategoryDimension
     @JsonProperty( "categoryOptions" )
     @JacksonXmlElementWrapper( localName = "categoryOptions", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value=PropertyType.REFERENCE, required = Property.Value.TRUE )
     public List<CategoryOption> getItems()
     {
         return items;

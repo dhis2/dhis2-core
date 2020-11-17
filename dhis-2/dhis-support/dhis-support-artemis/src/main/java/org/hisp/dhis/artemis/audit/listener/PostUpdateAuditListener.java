@@ -29,7 +29,6 @@ package org.hisp.dhis.artemis.audit.listener;
  */
 
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.SessionFactory;
 import org.hibernate.event.spi.PostCommitUpdateEventListener;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
@@ -39,6 +38,7 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -55,9 +55,9 @@ public class PostUpdateAuditListener
         AuditManager auditManager,
         AuditObjectFactory auditObjectFactory,
         UsernameSupplier userNameSupplier,
-        SessionFactory sessionFactory )
+        SchemaService schemaService )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier, sessionFactory );
+        super( auditManager, auditObjectFactory, userNameSupplier, schemaService );
     }
 
     @Override
@@ -69,17 +69,17 @@ public class PostUpdateAuditListener
     @Override
     public void onPostUpdate( PostUpdateEvent postUpdateEvent )
     {
-        Object entity = initHibernateProxy( postUpdateEvent.getPersister().getFactory(), postUpdateEvent.getEntity() );
-
-        getAuditable( entity, "update" ).ifPresent( auditable ->
+        getAuditable( postUpdateEvent.getEntity(), "update" ).ifPresent( auditable ->
             auditManager.send( Audit.builder()
                 .auditType( getAuditType() )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
-                .object( entity )
-                .auditableEntity( new AuditableEntity( entity ) )
-                .build() ) );
+                .object( postUpdateEvent.getEntity() )
+                .attributes( auditManager.collectAuditAttributes( postUpdateEvent.getEntity(), postUpdateEvent.getEntity().getClass() ) )
+                .auditableEntity( new AuditableEntity( postUpdateEvent.getEntity().getClass(), createAuditEntry( postUpdateEvent ) ) )
+                .build() )
+        );
     }
 
     @Override
@@ -94,4 +94,11 @@ public class PostUpdateAuditListener
         log.warn( "onPostUpdateCommitFailed: " + event );
     }
 
+    /**
+     * Create Audit entry for update event
+     */
+    private Object createAuditEntry( PostUpdateEvent postUpdateEvent )
+    {
+        return super.createAuditEntry( postUpdateEvent.getEntity(), postUpdateEvent.getState(), postUpdateEvent.getSession(), postUpdateEvent.getId(), postUpdateEvent.getPersister() );
+    }
 }

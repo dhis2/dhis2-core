@@ -37,10 +37,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
@@ -98,7 +100,7 @@ public class TrackerIdentifierCollector
 
             collectEnrollments( map, params, trackedEntity.getEnrollments() );
 
-            collectTrackedEntityAttribute( map, params, trackedEntity.getAttributes() );
+            collectTrackedEntityAttribute( map, trackedEntity.getAttributes() );
         } );
     }
 
@@ -111,10 +113,25 @@ public class TrackerIdentifierCollector
             addIdentifier( map, Program.class, params.getProgramIdScheme().getIdScheme(), enrollment.getProgram() );
             addIdentifier( map, OrganisationUnit.class, params.getOrgUnitIdScheme().getIdScheme(),
                 enrollment.getOrgUnit() );
-
+            
+            collectNotes( map, enrollment.getNotes());
             collectEvents( map, params, enrollment.getEvents() );
-            collectTrackedEntityAttribute( map, params, enrollment.getAttributes() );
+            collectTrackedEntityAttribute( map, enrollment.getAttributes() );
         } );
+    }
+
+    private static void collectNotes( Map<Class<?>, Set<String>> map, List<Note> notes )
+    {
+        if ( !notes.isEmpty() )
+        {
+            notes.forEach(
+                note -> {
+                    if ( !StringUtils.isEmpty( note.getNote() ) && !StringUtils.isEmpty( note.getValue() ) )
+                    {
+                        addIdentifier( map, TrackedEntityComment.class, TrackerIdScheme.UID, note.getNote() );
+                    }
+                } );
+        }
     }
 
     private static void collectEvents(
@@ -140,6 +157,9 @@ public class TrackerIdentifierCollector
             event.getDataValues()
                 .forEach( dv -> addIdentifier( map, DataElement.class, params.getDataElementIdScheme().getIdScheme(),
                     dv.getDataElement() ) );
+
+            collectNotes( map, event.getNotes() );
+
         } );
     }
 
@@ -165,7 +185,7 @@ public class TrackerIdentifierCollector
     }
 
     private static void collectTrackedEntityAttribute(
-        Map<Class<?>, Set<String>> map, TrackerIdentifierParams params, List<Attribute> attributes )
+        Map<Class<?>, Set<String>> map, List<Attribute> attributes )
     {
         if ( attributes.isEmpty() )
         {

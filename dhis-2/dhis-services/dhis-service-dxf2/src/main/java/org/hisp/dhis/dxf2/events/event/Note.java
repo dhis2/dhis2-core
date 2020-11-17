@@ -28,12 +28,15 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Date;
+import java.util.Objects;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.program.UserInfoSnapshot;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.Objects;
 
 @JacksonXmlRootElement( localName = "note", namespace = DxfNamespaces.DXF_2_0 )
 public class Note
@@ -45,6 +48,10 @@ public class Note
     private String storedBy;
 
     private String storedDate;
+
+    private UserInfoSnapshot lastUpdatedBy;
+
+    private Date lastUpdated;
 
     public Note()
     {
@@ -96,6 +103,30 @@ public class Note
     public void setStoredDate( String storedDate )
     {
         this.storedDate = storedDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty
+    public UserInfoSnapshot getLastUpdatedBy()
+    {
+        return lastUpdatedBy;
+    }
+
+    public void setLastUpdatedBy( UserInfoSnapshot lastUpdatedBy )
+    {
+        this.lastUpdatedBy = lastUpdatedBy;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public Date getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated( Date lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
     }
 
     @Override

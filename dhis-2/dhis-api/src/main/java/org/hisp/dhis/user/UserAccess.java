@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.schema.annotation.Property;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -77,6 +78,7 @@ public class UserAccess
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( required = Property.Value.TRUE )
     public String getAccess()
     {
         return access;
@@ -96,6 +98,7 @@ public class UserAccess
 
     @JsonProperty( "id" )
     @JacksonXmlProperty( localName = "id", namespace = DxfNamespaces.DXF_2_0 )
+    @Property( required = Property.Value.TRUE )
     public String getUid()
     {
         return uid != null ? uid : (user != null ? user.getUid() : null);

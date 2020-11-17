@@ -28,29 +28,32 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.collect.Iterables.concat;
-import static com.google.common.collect.Lists.newArrayList;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.tracker.ValidationMode;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -62,9 +65,6 @@ public class EventNoteValidationHookTest
 {
     // Class under test
     private EventNoteValidationHook hook;
-
-    @Mock
-    private TrackedEntityCommentService commentService;
 
     @Mock
     private TrackedEntityAttributeService teAttrService;
@@ -79,94 +79,82 @@ public class EventNoteValidationHookTest
     @Before
     public void setUp()
     {
-        this.hook = new EventNoteValidationHook( teAttrService, commentService );
+        this.hook = new EventNoteValidationHook( teAttrService );
         rnd = new BeanRandomizer();
         event = rnd.randomObject( Event.class );
     }
 
     @Test
-    public void verifyAllNotesArePersistedWhenNotesAreNotOnDatabase()
+    public void testNoteWithExistingUidFails()
     {
         // Given
-        final List<Note> notes = rnd.randomObjects( Note.class, 5, "newNote" );
-        final List<String> notesUid = notes.stream().map( Note::getNote ).collect( Collectors.toList() );
+        final Note note = rnd.randomObject( Note.class );
 
-        event.setNotes( notes );
+        TrackerBundle trackerBundle = mock( TrackerBundle.class );
+        TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
+        TrackerPreheat preheat = mock( TrackerPreheat.class );
+        when( ctx.getBundle() ).thenReturn( trackerBundle );
+        when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
+        when( trackerBundle.getPreheat() ).thenReturn( preheat );
+        when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, Note.class );
+
+        event.setNotes( Collections.singletonList( note ) );
 
         // When
-        when( commentService.filterExistingNotes( notesUid ) ).thenReturn( notesUid );
-        this.hook.validateEvent( mock( ValidationErrorReporter.class ), event );
+        this.hook.validateEvent( reporter, event );
 
         // Then
-        assertThat( event.getNotes(), hasSize( 5 ) );
+        assertTrue( reporter.hasErrors() );
+        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1119 ) );
+        assertThat( event.getNotes(), hasSize( 0 ) );
     }
 
     @Test
-    public void verifyAllNewNotesArePersisted()
+    public void testNoteWithExistingUidAndNoTextIsIgnored()
+    {
+        // Given
+        final Note note = rnd.randomObject( Note.class );
+        note.setValue( null );
+        TrackerBundle trackerBundle = mock( TrackerBundle.class );
+        TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
+
+        when( ctx.getBundle() ).thenReturn( trackerBundle );
+        when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
+        when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, Note.class );
+
+        event.setNotes( Collections.singletonList( note ) );
+
+        // When
+        this.hook.validateEvent( reporter, event );
+
+        // Then
+        assertFalse( reporter.hasErrors() );
+        assertThat( event.getNotes(), hasSize( 0 ) );
+    }
+
+    @Test
+    public void testNotesAreValidWhenUidDoesNotExist()
     {
         // Given
         final List<Note> notes = rnd.randomObjects( Note.class, 5 );
-        makeAllNotesNew( notes );
-        final List<String> notesUid = notes.stream().map( Note::getNote ).collect( Collectors.toList() );
+        TrackerBundle trackerBundle = mock( TrackerBundle.class );
+        TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
+
+        when( ctx.getBundle() ).thenReturn( trackerBundle );
+        when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, Note.class );
 
         event.setNotes( notes );
 
         // When
-        when( commentService.filterExistingNotes( notesUid ) ).thenReturn( new ArrayList<>() );
-        this.hook.validateEvent( mock( ValidationErrorReporter.class ), event );
+        this.hook.validateEvent( reporter, event );
 
         // Then
+        assertFalse( reporter.hasErrors() );
         assertThat( event.getNotes(), hasSize( 5 ) );
     }
 
-    @Test
-    public void verifyOnlyNonExistingNoteArePersisted()
-    {
-        // Given
-        final List<Note> notes = rnd.randomObjects( Note.class, 3, "newNote" );
-        final List<Note> existingNotes = rnd.randomObjects( Note.class, 2, "newNote" );
 
-        event.setNotes( newArrayList( concat( notes, existingNotes ) ) );
-
-        // When
-        when( commentService.filterExistingNotes( anyList() ) )
-            .thenReturn( notes.stream().map( Note::getNote ).collect( Collectors.toList() ) );
-
-        this.hook.validateEvent( mock( ValidationErrorReporter.class ), event );
-
-        // Then
-        assertThat( event.getNotes(), hasSize( 3 ) );
-    }
-
-    @Test
-    public void verifyOnlyNonExistingAndNonEmptyNoteArePersisted()
-    {
-        // Given
-        ArgumentCaptor<List<String>> argument = ArgumentCaptor.forClass( List.class );
-
-        final List<Note> notes = rnd.randomObjects( Note.class, 5, "newNote" );
-        final List<Note> emptyNotes = rnd.randomObjects( Note.class, 3, "newNote", "value" );
-        final List<Note> existingNotes = rnd.randomObjects( Note.class, 2, "newNote" );
-
-        event.setNotes( newArrayList( concat( notes, emptyNotes, existingNotes ) ) );
-
-        // When
-        when( commentService.filterExistingNotes( argument.capture() ) ).thenReturn(
-                notes.stream().map( Note::getNote ).collect( Collectors.toList() ) );
-
-        this.hook.validateEvent( mock( ValidationErrorReporter.class ), event );
-
-        // Then
-        assertThat( event.getNotes(), hasSize( 5 ) );
-        List<String> value = argument.getValue();
-        // make sure that the filterExistingNotes was called only with uid belonging to notes with text
-        assertThat( value, containsInAnyOrder( newArrayList( concat( notes, existingNotes ) ).stream()
-            .map( Note::getNote ).toArray() ) );
-
-    }
-
-    private void makeAllNotesNew( List<Note> notes )
-    {
-        notes.forEach( n -> n.setNewNote( true ) );
-    }
 }

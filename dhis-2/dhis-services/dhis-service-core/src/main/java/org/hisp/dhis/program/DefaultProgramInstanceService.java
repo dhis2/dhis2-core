@@ -28,7 +28,15 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -52,12 +60,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Abyot Asalefew
@@ -258,7 +261,7 @@ public class DefaultProgramInstanceService
         params.setProgramStartDate( programStartDate );
         params.setProgramEndDate( programEndDate );
         params.setTrackedEntityType( te );
-        params.setTrackedEntityInstance( tei );
+        params.setTrackedEntityInstanceUid( tei.getUid() );
         params.setOrganisationUnitMode( ouMode );
         params.setPage( page );
         params.setPageSize( pageSize );
@@ -287,8 +290,7 @@ public class DefaultProgramInstanceService
         }
         else if ( params.isOrganisationUnitMode( CHILDREN ) )
         {
-            Set<OrganisationUnit> organisationUnits = new HashSet<>();
-            organisationUnits.addAll( params.getOrganisationUnits() );
+            Set<OrganisationUnit> organisationUnits = new HashSet<>( params.getOrganisationUnits() );
 
             for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
             {
@@ -303,9 +305,7 @@ public class DefaultProgramInstanceService
             params.setDefaultPaging();
         }
 
-        List<ProgramInstance> programInstances = programInstanceStore.getProgramInstances( params );
-
-        return programInstances;
+        return programInstanceStore.getProgramInstances( params );
     }
 
     @Override

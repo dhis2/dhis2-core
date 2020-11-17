@@ -47,6 +47,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -285,6 +286,12 @@ public abstract class CompressionSMSListener
         programStageInstance.setDueDate( dueDate );
         programStageInstance.setAttributeOptionCombo( aoc );
         programStageInstance.setStoredBy( user.getUsername() );
+
+        UserInfoSnapshot currentUserInfo = UserInfoSnapshot.from( user );
+
+        programStageInstance.setCreatedByUserInfo( currentUserInfo );
+        programStageInstance.setLastUpdatedByUserInfo( currentUserInfo );
+
         programStageInstance.setStatus( getCoreEventStatus( eventStatus ) );
         programStageInstance.setGeometry( convertGeoPointToGeometry( coordinates ) );
 
@@ -320,7 +327,7 @@ public abstract class CompressionSMSListener
                     continue;
                 }
 
-                EventDataValue eventDataValue = new EventDataValue( deid.getUid(), dv.getValue(), user.getUsername() );
+                EventDataValue eventDataValue = new EventDataValue( deid.getUid(), dv.getValue(), currentUserInfo );
                 eventDataValue.setAutoFields();
                 dataElementsAndEventDataValues.put( de, eventDataValue );
             }

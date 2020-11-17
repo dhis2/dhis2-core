@@ -34,6 +34,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.CustomAttributeSerializer;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -43,7 +46,7 @@ import java.util.Objects;
  */
 @JacksonXmlRootElement( localName = "attributeValues", namespace = DxfNamespaces.DXF_2_0 )
 public class AttributeValue
-    implements Serializable
+    implements Serializable, EmbeddedObject
 {
     /**
      * Determines if a de-serialized file is compatible with this class.
@@ -82,7 +85,7 @@ public class AttributeValue
         if ( this == o ) return true;
         if ( o == null || getClass() != o.getClass() ) return false;
 
-        AttributeValue that = ( AttributeValue ) o;
+        AttributeValue that = (AttributeValue) o;
 
         if ( !Objects.equals( attribute, that.attribute ) ) return false;
         if ( !Objects.equals( value, that.value ) ) return false;
@@ -99,17 +102,19 @@ public class AttributeValue
         return result;
     }
 
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return "AttributeValue{" +
-                "class=" + getClass() +
-                ", value='" + value + '\'' +
+            "class=" + getClass() +
+            ", value='" + value + '\'' +
             ", attribute='" + attribute + '\'' +
-                '}';
+            '}';
     }
 
     @JsonProperty
     @JacksonXmlProperty
+    @Property( required = Property.Value.TRUE )
     public String getValue()
     {
         return value;
@@ -122,6 +127,7 @@ public class AttributeValue
 
     @JsonProperty
     @JsonSerialize( using = CustomAttributeSerializer.class )
+    @Property( value = PropertyType.REFERENCE, required = Property.Value.TRUE )
     public Attribute getAttribute()
     {
         return attribute;

@@ -123,7 +123,7 @@ public class EnrollmentImportValidationTest
             "tracker/validations/enrollments_te_te-data.json" );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
-        assertEquals( 4, trackerBundle.getTrackedEntities().size() );
+        assertEquals( 5, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         assertEquals( 0, report.getErrorReports().size() );
@@ -632,7 +632,6 @@ insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpd
 
         assertEquals( 1, validationReport.getErrorReports().size() );
 
-
         assertThat( validationReport.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1048 ) ) ) );
     }
@@ -652,6 +651,8 @@ insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpd
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
         printReport( validationReport );
 
-        assertEquals( 0, validationReport.getErrorReports().size() );
+        assertEquals( 1, validationReport.getErrorReports().size() );
+        assertThat( validationReport.getErrorReports(),
+                everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1119 ) ) ) );
     }
 }

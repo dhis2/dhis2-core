@@ -99,12 +99,11 @@ public class AuditIntegrationTest
     {
         DataElement dataElement = createDataElement( 'A' );
         dataElementService.addDataElement( dataElement );
-
         AuditQuery query = AuditQuery.builder()
             .uid( Sets.newHashSet( dataElement.getUid() ) )
             .build();
 
-        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) > 0 );
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
 
         List<Audit> audits = auditService.getAudits( query );
 
@@ -129,7 +128,7 @@ public class AuditIntegrationTest
         AuditQuery query = AuditQuery.builder()
             .uid( Sets.newHashSet( tei.getUid() ) )
             .build();
-        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) > 0 );
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
 
         List<Audit> audits = auditService.getAudits( query );
 
@@ -164,7 +163,7 @@ public class AuditIntegrationTest
         AuditQuery query = AuditQuery.builder()
             .auditAttributes( attributes )
             .build();
-        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) > 0 );
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
 
         List<Audit> audits = auditService.getAudits( query );
 
@@ -234,7 +233,7 @@ public class AuditIntegrationTest
         AuditQuery query = AuditQuery.builder()
             .auditAttributes( attributes )
             .build();
-        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) > 0 );
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
 
         List<Audit> audits = auditService.getAudits( query );
 

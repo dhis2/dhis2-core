@@ -74,6 +74,10 @@ public class ProgramStageInstance
 
     private String storedBy;
 
+    private UserInfoSnapshot createdByUserInfo;
+
+    private UserInfoSnapshot lastUpdatedByUserInfo;
+
     private Date dueDate;
 
     private Date executionDate;
@@ -197,6 +201,30 @@ public class ProgramStageInstance
     public void setStoredBy( String storedBy )
     {
         this.storedBy = storedBy;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public UserInfoSnapshot getCreatedByUserInfo()
+    {
+        return createdByUserInfo;
+    }
+
+    public void setCreatedByUserInfo( UserInfoSnapshot createdByUserInfo )
+    {
+        this.createdByUserInfo = createdByUserInfo;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public UserInfoSnapshot getLastUpdatedByUserInfo()
+    {
+        return lastUpdatedByUserInfo;
+    }
+
+    public void setLastUpdatedByUserInfo( UserInfoSnapshot lastUpdatedByUserInfo )
+    {
+        this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
     }
 
     @JsonProperty

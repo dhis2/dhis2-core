@@ -57,7 +57,6 @@ import org.springframework.stereotype.Service;
 public class EnrollmentTrackerConverterService
     implements TrackerConverterService<Enrollment, ProgramInstance>
 {
-
     private final NotesConverterService notesConverterService;
 
     public EnrollmentTrackerConverterService( NotesConverterService notesConverterService )

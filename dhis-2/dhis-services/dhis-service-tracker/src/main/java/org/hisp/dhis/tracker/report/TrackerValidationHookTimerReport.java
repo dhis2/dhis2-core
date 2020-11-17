@@ -48,5 +48,4 @@ public class TrackerValidationHookTimerReport
 
     @JsonProperty
     public String name;
-
 }

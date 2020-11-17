@@ -265,6 +265,28 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         }
     }
 
+    @Override
+    @Transactional( readOnly = true )
+    public boolean hasAccess( User user, String entityInstance, OrganisationUnit organisationUnit, Program program )
+    {
+        if ( canSkipOwnershipCheck( user, program ) || entityInstance == null )
+        {
+            return true;
+        }
+
+        OrganisationUnit ou = getOwnerExpanded( entityInstance, organisationUnit, program );
+
+        if ( program.isOpen() || program.isAudited() )
+        {
+            return organisationUnitService.isInUserSearchHierarchyCached( user, ou );
+        }
+        else
+        {
+            return organisationUnitService.isInUserHierarchyCached( user, ou )
+                || hasTemporaryAccessWithUid( entityInstance, program, user );
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Private Helper Methods
     // -------------------------------------------------------------------------
@@ -307,6 +329,27 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         } ).get();
     }
 
+    private OrganisationUnit getOwnerExpanded( String entityInstance, OrganisationUnit organisationUnit,
+        Program program )
+    {
+        return ownerCache.get( getOwnershipCacheKeyWithUid( entityInstance, program ), s -> {
+            OrganisationUnit ou;
+            TrackedEntityProgramOwner trackedEntityProgramOwner = trackedEntityProgramOwnerService
+                .getTrackedEntityProgramOwner(
+                    entityInstance, program.getUid() );
+
+            if ( trackedEntityProgramOwner == null )
+            {
+                ou = organisationUnit;
+            }
+            else
+            {
+                ou = trackedEntityProgramOwner.getOrganisationUnit();
+            }
+            return ou;
+        } ).get();
+    }
+
     /**
      * Check if the user has temporary access for a specific tei-program
      * combination
@@ -324,6 +367,17 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         }
 
         return temporaryTrackerOwnershipCache.get( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ) ).orElse( false );
+    }
+
+    private boolean hasTemporaryAccessWithUid( String entityInstance, Program program, User user )
+    {
+        if ( canSkipOwnershipCheck( user, program ) || entityInstance == null )
+        {
+            return true;
+        }
+
+        return temporaryTrackerOwnershipCache
+            .get( tempAccessKey( entityInstance, program.getUid(), user.getUsername() ) ).orElse( false );
     }
 
     /**
@@ -346,5 +400,10 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     private String getOwnershipCacheKey( TrackedEntityInstance trackedEntityInstance, Program program )
     {
         return trackedEntityInstance.getUid() + "_" + program.getUid();
+    }
+
+    private String getOwnershipCacheKeyWithUid( String trackedEntityInstance, Program program )
+    {
+        return trackedEntityInstance + "_" + program.getUid();
     }
 }

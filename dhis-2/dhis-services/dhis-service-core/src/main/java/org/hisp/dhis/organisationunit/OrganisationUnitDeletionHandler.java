@@ -28,10 +28,6 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
@@ -39,6 +35,10 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
+
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -69,41 +69,37 @@ public class OrganisationUnitDeletionHandler
     @Override
     public void deleteDataSet( DataSet dataSet )
     {
-        for ( OrganisationUnit unit : dataSet.getSources() )
-        {
+        dataSet.getSources().iterator().forEachRemaining( unit -> {
             unit.getDataSets().remove( dataSet );
             idObjectManager.updateNoAcl( unit );
-        }
+        } );
     }
 
     @Override
     public void deleteUser( User user )
     {
-        for ( OrganisationUnit unit : user.getOrganisationUnits() )
-        {
-            unit.removeUser( user );
+        user.getOrganisationUnits().iterator().forEachRemaining( unit -> {
+            unit.getUsers().remove( user );
             idObjectManager.updateNoAcl( unit );
-        }
+        } );
     }
 
     @Override
     public void deleteProgram( Program program )
     {
-        for ( OrganisationUnit unit : program.getOrganisationUnits() )
-        {
-            unit.removeProgram( program );
+        program.getOrganisationUnits().iterator().forEachRemaining( unit -> {
+            unit.getPrograms().remove( program );
             idObjectManager.updateNoAcl( unit );
-        }
+        } );
     }
 
     @Override
     public void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
     {
-        for ( OrganisationUnit unit : group.getMembers() )
-        {
+        group.getMembers().iterator().forEachRemaining( unit -> {
             unit.getGroups().remove( group );
             idObjectManager.updateNoAcl( unit );
-        }
+        } );
     }
 
     @Override

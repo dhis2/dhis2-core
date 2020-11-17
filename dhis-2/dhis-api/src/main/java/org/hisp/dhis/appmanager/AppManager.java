@@ -69,6 +69,7 @@ public interface AppManager
         "reports",
         "scheduler",
         "settings",
+        "sms-configuration",
         "tracker-capture",
         "translations",
         "usage-analytics",

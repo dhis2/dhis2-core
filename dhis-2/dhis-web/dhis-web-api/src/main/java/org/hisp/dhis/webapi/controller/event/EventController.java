@@ -35,6 +35,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.http.HttpServletRequest;
@@ -98,6 +100,8 @@ import org.springframework.web.bind.annotation.*;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import lombok.SneakyThrows;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -905,52 +909,47 @@ public class EventController
 
     @RequestMapping( method = RequestMethod.POST, consumes = "application/xml" )
     public void postXmlEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-                              HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
+                              HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions )
     {
-        importOptions.setImportStrategy( strategy );
-        InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
+        postEvent( strategy, response, request, importOptions, this::safeAddEventsXml, this::safeGetEventsXml );
+    }
 
-        if ( !importOptions.isAsync() )
-        {
-            ImportSummaries importSummaries = eventService.addEventsXml( inputStream, importOptions );
-            importSummaries.setImportOptions( importOptions );
+    @SneakyThrows
+    private List<Event> safeGetEventsXml( InputStream inputStream )
+    {
+        return eventService.getEventsXml( inputStream );
+    }
 
-            importSummaries.getImportSummaries().stream()
-                    .filter(
-                            importSummary -> !importOptions.isDryRun() &&
-                                    !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
-                                    !importOptions.getImportStrategy().isDelete() &&
-                                    (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
-                    .forEach( importSummary -> importSummary.setHref(
-                            ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() ) );
-
-            if ( importSummaries.getImportSummaries().size() == 1 )
-            {
-                ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
-                importSummary.setImportOptions( importOptions );
-
-                if ( !importOptions.isDryRun() )
-                {
-                    if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
-                    {
-                        response.setHeader( "Location", ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() );
-                    }
-                }
-            }
-
-            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
-        }
-        else
-        {
-            List<Event> events = eventService.getEventsXml( inputStream );
-            startAsyncImport( importOptions, events, request, response );
-        }
+    @SneakyThrows
+    private ImportSummaries safeAddEventsXml( InputStream inputStream, ImportOptions importOptions )
+    {
+        return eventService.addEventsXml( inputStream, importOptions );
     }
 
     @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
     public void postJsonEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-                               HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
+        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions )
+    {
+        postEvent( strategy, response, request, importOptions, this::safeAddEventsJson, this::safeGetEventsJson );
+    }
+
+    @SneakyThrows
+    private List<Event> safeGetEventsJson( InputStream inputStream )
+    {
+        return eventService.getEventsJson( inputStream );
+    }
+
+    @SneakyThrows
+    private ImportSummaries safeAddEventsJson( InputStream inputStream, ImportOptions importOptions )
+    {
+        return eventService.addEventsJson( inputStream, importOptions );
+    }
+
+    @SneakyThrows
+    private void postEvent( ImportStrategy strategy,
+        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions,
+        BiFunction<InputStream, ImportOptions, ImportSummaries> eventAdder,
+        Function<InputStream, List<Event>> eventConverter )
     {
         importOptions.setImportStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -958,7 +957,7 @@ public class EventController
 
         if ( !importOptions.isAsync() )
         {
-            ImportSummaries importSummaries = eventService.addEventsJson( inputStream, importOptions );
+            ImportSummaries importSummaries = eventAdder.apply( inputStream, importOptions );
             importSummaries.setImportOptions( importOptions );
 
             importSummaries.getImportSummaries().stream()
@@ -988,7 +987,7 @@ public class EventController
         }
         else
         {
-            List<Event> events = eventService.getEventsJson( inputStream );
+            List<Event> events = eventConverter.apply( inputStream );
             startAsyncImport( importOptions, events, request, response );
         }
     }

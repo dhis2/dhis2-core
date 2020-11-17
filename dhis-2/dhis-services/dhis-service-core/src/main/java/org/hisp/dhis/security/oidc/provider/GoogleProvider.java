@@ -38,7 +38,6 @@ import java.util.Objects;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_ID;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_SECRET;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_REDIR_BASE_URL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -56,31 +55,29 @@ public class GoogleProvider extends DhisOidcProvider
     {
         Objects.requireNonNull( config, "DhisConfigurationProvider is missing!" );
 
-        String googleClientId = config.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_ID );
-        String googleClientSecret = config.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_SECRET );
-        String googleClientRedirectBaseUri = config.getProperty( OIDC_PROVIDER_GOOGLE_REDIR_BASE_URL );
-        String googleClientMappingClaim = config.getProperty( OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM );
+        String clientId = config.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_ID );
+        String clientSecret = config.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_SECRET );
+        String mappingClaim = config.getProperty( OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM );
 
-        if ( googleClientId.isEmpty() )
+        if ( clientId.isEmpty() )
         {
             return null;
         }
 
-        if ( googleClientSecret.isEmpty() )
+        if ( clientSecret.isEmpty() )
         {
             throw new IllegalArgumentException( "Google client secret is missing!" );
         }
 
-        ClientRegistration google = CommonOAuth2Provider.GOOGLE.getBuilder( REGISTRATION_ID )
-            .clientId( googleClientId )
-            .clientSecret( googleClientSecret )
-            .redirectUriTemplate( googleClientRedirectBaseUri + DEFAULT_CODE_URL_TEMPLATE )
+        ClientRegistration clientRegistration = CommonOAuth2Provider.GOOGLE.getBuilder( REGISTRATION_ID )
+            .clientId( clientId )
+            .clientSecret( clientSecret )
+            .redirectUri( DEFAULT_REDIRECT_TEMPLATE_URL )
             .build();
 
         return DhisOidcClientRegistration.builder()
-            .clientRegistration( google )
-            .mappingClaimKey( googleClientMappingClaim )
-            .registrationId( REGISTRATION_ID )
+            .clientRegistration( clientRegistration )
+            .mappingClaimKey( mappingClaim )
             .loginIcon( "../security/btn_google_light_normal_ios.svg" )
             .loginIconPadding( "0px 0px" )
             .loginText( "login_with_google" )

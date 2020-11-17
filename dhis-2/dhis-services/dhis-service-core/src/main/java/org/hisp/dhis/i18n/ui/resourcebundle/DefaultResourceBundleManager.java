@@ -30,6 +30,9 @@ package org.hisp.dhis.i18n.ui.resourcebundle;
 
 import org.hisp.dhis.common.comparator.LocaleNameComparator;
 import org.hisp.dhis.i18n.locale.LocaleManager;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.commons.util.PathUtils;
 
 import java.io.File;
@@ -51,44 +54,30 @@ import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Torgeir Lorange Ostby
  * @author Pham Thi Thuy
  * @author Nguyen Dang Quang
  */
+@Slf4j
 public class DefaultResourceBundleManager
     implements ResourceBundleManager
 {
     private static final String EXT_RESOURCE_BUNDLE = ".properties";
+    private static final String GLOBAL_RESOURCE_BUNDLE_NAME = "i18n_global";
+    private static final String SPECIFIC_RESOURCE_BUNDLE_NAME = "i18n_module";
 
     // -------------------------------------------------------------------------
     // Configuration
     // -------------------------------------------------------------------------
 
-    private final String globalResourceBundleName;
-
-    private final String specificResourceBundleName;
-
-    public DefaultResourceBundleManager( String globalResourceBundleName, String specificResourceBundleName )
+    public DefaultResourceBundleManager()
     {
-        checkNotNull( globalResourceBundleName );
-        checkNotNull( specificResourceBundleName );
-
-        this.globalResourceBundleName = globalResourceBundleName;
-        this.specificResourceBundleName = specificResourceBundleName;
     }
 
     // -------------------------------------------------------------------------
     // ResourceBundleManager implementation
     // -------------------------------------------------------------------------
-
-    @Override
-    public ResourceBundle getSpecificResourceBundle( Class<?> clazz, Locale locale )
-    {
-        return getSpecificResourceBundle( clazz.getName(), locale );
-    }
 
     @Override
     public ResourceBundle getSpecificResourceBundle( String clazzName, Locale locale )
@@ -97,7 +86,7 @@ public class DefaultResourceBundleManager
 
         for ( String dir = path; dir != null; dir = PathUtils.getParent( dir ) )
         {
-            String baseName = PathUtils.addChild( dir, specificResourceBundleName );
+            String baseName = PathUtils.addChild( dir, SPECIFIC_RESOURCE_BUNDLE_NAME );
 
             try
             {
@@ -117,7 +106,7 @@ public class DefaultResourceBundleManager
     {
         try
         {
-            return ResourceBundle.getBundle( globalResourceBundleName, locale );
+            return ResourceBundle.getBundle( GLOBAL_RESOURCE_BUNDLE_NAME, locale );
         }
         catch ( MissingResourceException e )
         {
@@ -131,7 +120,7 @@ public class DefaultResourceBundleManager
     {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
-        URL url = classLoader.getResource( globalResourceBundleName + EXT_RESOURCE_BUNDLE );
+        URL url = classLoader.getResource( GLOBAL_RESOURCE_BUNDLE_NAME + EXT_RESOURCE_BUNDLE );
 
         if ( url == null )
         {
@@ -151,7 +140,7 @@ public class DefaultResourceBundleManager
             locales = new ArrayList<>( getAvailableLocalesFromDir( dirPath ) );
         }
 
-        locales.sort(LocaleNameComparator.INSTANCE);
+        locales.sort( LocaleNameComparator.INSTANCE );
 
         return locales;
     }
@@ -177,7 +166,7 @@ public class DefaultResourceBundleManager
 
                 String name = entry.getName();
 
-                if ( name.startsWith( globalResourceBundleName ) && name.endsWith( EXT_RESOURCE_BUNDLE ) )
+                if ( name.startsWith( GLOBAL_RESOURCE_BUNDLE_NAME ) && name.endsWith( EXT_RESOURCE_BUNDLE ) )
                 {
                     availableLocales.add( getLocaleFromName( name ) );
                 }
@@ -199,7 +188,7 @@ public class DefaultResourceBundleManager
         Set<Locale> availableLocales = new HashSet<>();
 
         File[] files = dir.listFiles(
-            ( dir1, name ) -> name.startsWith( globalResourceBundleName ) && name.endsWith( EXT_RESOURCE_BUNDLE ) );
+            ( dir1, name ) -> name.startsWith( GLOBAL_RESOURCE_BUNDLE_NAME ) && name.endsWith( EXT_RESOURCE_BUNDLE ) );
 
         if ( files != null )
         {
@@ -212,9 +201,19 @@ public class DefaultResourceBundleManager
         return availableLocales;
     }
 
+    /**
+     * Retrieves a {@link Locale} from the given resource bundle name. The
+     * resource bundle naming follows the Java locale format:
+     * <pre>
+     * [2-3 letter language]_[2 letter country/region]_[variant]
+     * </pre>
+     *
+     * @param name the resource bundle name.
+     * @return a {@link Locale}.
+     */
     private Locale getLocaleFromName( String name )
     {
-        Pattern pattern = Pattern.compile( "^" + globalResourceBundleName
+        Pattern pattern = Pattern.compile( "^" + GLOBAL_RESOURCE_BUNDLE_NAME
             + "(?:_([a-z]{2,3})(?:_([A-Z]{2})(?:_(.+))?)?)?" + EXT_RESOURCE_BUNDLE + "$" );
 
         Matcher matcher = pattern.matcher( name );
@@ -252,8 +251,9 @@ public class DefaultResourceBundleManager
         }
         catch ( Exception ex )
         {
-            ex.printStackTrace();
+            log.error( "Failed to convert URL", ex );
         }
+
         return url;
     }
 }

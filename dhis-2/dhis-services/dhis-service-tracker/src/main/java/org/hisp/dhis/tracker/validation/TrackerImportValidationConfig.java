@@ -29,8 +29,7 @@ package org.hisp.dhis.tracker.validation;
  *
  */
 
-import com.google.common.collect.ImmutableList;
-import org.hisp.dhis.tracker.validation.hooks.*;
+import static java.util.stream.Collectors.toMap;
 
 import java.util.Comparator;
 import java.util.List;
@@ -38,7 +37,9 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
-import static java.util.stream.Collectors.toMap;
+import org.hisp.dhis.tracker.validation.hooks.*;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * Configuration class for the tracker importer validation hook ordering.
@@ -74,6 +75,7 @@ public class TrackerImportValidationConfig
         EventDateValidationHook.class,
         EventGeoValidationHook.class,
         EventNoteValidationHook.class,
+        EventDataValuesValidationHook.class,
 
         RelationshipsValidationHook.class,
 
