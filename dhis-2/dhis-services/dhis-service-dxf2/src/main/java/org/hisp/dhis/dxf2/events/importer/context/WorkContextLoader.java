@@ -33,10 +33,8 @@ import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
-import org.hibernate.jdbc.Work;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.shared.preprocess.ImportOptionsPreProcessor;
 import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -141,32 +139,6 @@ public class WorkContextLoader
             .eventDataValueMap( new EventDataValueAggregator().aggregateDataValues( events, programStageInstanceMap,
                 localImportOptions ) )
             .serviceDelegator( serviceDelegatorSupplier.get() )
-            .build();
-    }
-
-    @Transactional( readOnly = true )
-    public WorkContext reloadContextEvents( WorkContext workContext, List<Event> events )
-    {
-        ImportOptions importOptions = workContext.getImportOptions();
-
-        final Map<String, ProgramStageInstance> programStageInstanceMap = programStageInstanceSupplier
-            .get( importOptions, events );
-
-        final Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = trackedEntityInstanceSupplier
-            .get( importOptions, events );
-
-        return WorkContext.builder().importOptions( importOptions )
-            .programsMap( workContext.getProgramsMap() )
-            .programStageInstanceMap( programStageInstanceMap )
-            .organisationUnitMap( workContext.getOrganisationUnitMap() )
-            .trackedEntityInstanceMap( teiMap )
-            .programInstanceMap( workContext.getProgramInstanceMap() )
-            .categoryOptionComboMap( workContext.getCategoryOptionComboMap() )
-            .dataElementMap( workContext.getDataElementMap() )
-            .notesMap( workContext.getNotesMap() )
-            .assignedUserMap( workContext.getAssignedUserMap() )
-            .eventDataValueMap( workContext.getEventDataValueMap() )
-            .serviceDelegator( workContext.getServiceDelegator() )
             .build();
     }
 
