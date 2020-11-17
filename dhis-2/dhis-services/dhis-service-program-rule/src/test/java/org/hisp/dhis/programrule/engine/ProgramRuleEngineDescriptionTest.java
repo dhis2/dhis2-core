@@ -60,6 +60,7 @@ import static org.junit.Assert.*;
 public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
 {
     private String conditionTextAtt = "A{Program_Rule_Variable_Text_Attr} == 'text_att' || d2:hasValue(V{current_date})";
+    private String conditionWithD2HasValue = "d2:hasValue(A{Program_Rule_Variable_Text_Attr})";
     private String conditionNumericAtt = "A{Program_Rule_Variable_Numeric_Attr} == 12 || d2:hasValue(V{current_date})";
     private String conditionNumericAttWithOR = "A{Program_Rule_Variable_Numeric_Attr} == 12 or d2:hasValue(V{current_date})";
     private String conditionNumericAttWithAND = "A{Program_Rule_Variable_Numeric_Attr} == 12 and d2:hasValue(V{current_date})";
@@ -81,6 +82,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     private Program program;
 
     private ProgramRule programRuleTextAtt;
+    private ProgramRule programRuleWithD2HasValue;
     private ProgramRule programRuleNumericAtt;
     private ProgramRule programRuleTextDE;
     private ProgramRule programRuleNumericDE;
@@ -163,16 +165,19 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
         ruleVariableService.addProgramRuleVariable( programRuleVariableNumericDE );
 
         programRuleTextAtt = createProgramRule( 'P', program );
+        programRuleWithD2HasValue = createProgramRule( 'D', program );
         programRuleNumericAtt = createProgramRule( 'Q', program );
         programRuleTextDE = createProgramRule( 'R', program );
         programRuleNumericDE = createProgramRule( 'S', program );
 
         programRuleTextAtt.setCondition( conditionTextAtt );
+        programRuleWithD2HasValue.setCondition( conditionWithD2HasValue );
         programRuleNumericAtt.setCondition( conditionNumericAtt );
         programRuleTextDE.setCondition( conditionTextDE );
         programRuleNumericDE.setCondition( conditionNumericDE );
 
         programRuleService.addProgramRule( programRuleTextAtt );
+        programRuleService.addProgramRule( programRuleWithD2HasValue );
         programRuleService.addProgramRule( programRuleNumericAtt );
         programRuleService.addProgramRule( programRuleTextDE );
         programRuleService.addProgramRule( programRuleNumericDE );
@@ -183,6 +188,15 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     {
         RuleValidationResult result = validateRuleCondition( programRuleTextAtt.getCondition(), program );
         assertNotNull( result );
+        assertTrue( result.isValid() );
+    }
+
+    @Test
+    public void testProgramRuleWithD2HasValueTrackedEntityAttribute()
+    {
+        RuleValidationResult result = validateRuleCondition( programRuleWithD2HasValue.getCondition(), program );
+        assertNotNull( result );
+        System.out.println( result.getErrorMessage());
         assertTrue( result.isValid() );
     }
 
