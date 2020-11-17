@@ -47,7 +47,7 @@ import lombok.Data;
 public class TrackerObjectReport
 {
     /**
-     * Type of object this @{@link TrackerObjectReport} represents.
+     * Type of object this {@link TrackerObjectReport} represents.
      */
     @JsonProperty
     private final TrackerType trackerType;
@@ -71,7 +71,7 @@ public class TrackerObjectReport
         this.trackerType = trackerType;
     }
 
-    public TrackerObjectReport( TrackerType trackerType, String uid, int index )
+    public TrackerObjectReport( TrackerType trackerType, String uid, Integer index )
     {
         this.trackerType = trackerType;
         this.uid = uid;
@@ -79,7 +79,7 @@ public class TrackerObjectReport
     }
     
     @JsonCreator
-    public TrackerObjectReport( @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid, @JsonProperty( "index" ) int index,
+    public TrackerObjectReport( @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid, @JsonProperty( "index" ) Integer index,
         @JsonProperty( "errorReports" ) List<TrackerErrorReport> errorReports )
     {
         this.trackerType = trackerType;
@@ -87,7 +87,7 @@ public class TrackerObjectReport
         this.index = index;
         if ( errorReports != null )
         {
-            List<TrackerErrorReport> errorCodeReportList = null;
+            List<TrackerErrorReport> errorCodeReportList;
             for ( TrackerErrorReport errorReport : errorReports )
             {
                 errorCodeReportList = this.errorReportsByCode.get( errorReport.getErrorCode() );

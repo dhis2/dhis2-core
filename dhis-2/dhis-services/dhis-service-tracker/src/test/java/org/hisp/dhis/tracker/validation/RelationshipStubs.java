@@ -1,13 +1,15 @@
 package org.hisp.dhis.tracker.validation;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 
-import java.util.List;
+import com.google.common.collect.Lists;
 
 public class RelationshipStubs
 {
@@ -233,6 +235,7 @@ public class RelationshipStubs
         validRelationship.setRelationshipType( TEI_TO_EVENT_RELATIONSHIP_TYPE );
         validRelationship.setFrom( validTEIRelationshipItem );
         validRelationship.setTo( validEventRelationshipItem );
+        validRelationship.setRelationship( CodeGenerator.generateUid() );
 
         return Lists.newArrayList( validRelationship );
     }

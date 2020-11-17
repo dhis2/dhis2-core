@@ -55,6 +55,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.hisp.dhis.tracker.preheat.supplier.ProgramInstanceByTeiSupplier;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -69,7 +70,7 @@ import com.google.common.collect.Lists;
  */
 public class ProgramInstanceByTeiHookTest
 {
-    private ProgramInstanceByTeiHook hook;
+    private ProgramInstanceByTeiSupplier hook;
 
     @Mock
     private ProgramInstanceStore programInstanceStore;
@@ -80,7 +81,7 @@ public class ProgramInstanceByTeiHookTest
     @Before
     public void setUp()
     {
-        this.hook = new ProgramInstanceByTeiHook( programInstanceStore );
+        this.hook = new ProgramInstanceByTeiSupplier( programInstanceStore );
     }
 
     @Test
@@ -130,7 +131,7 @@ public class ProgramInstanceByTeiHookTest
                 .thenReturn( Collections.singletonList( p4 ) );
 
         // When
-        this.hook.preheat( params, trackerPreheat );
+        this.hook.preheatAdd( params, trackerPreheat );
 
         // Then
         final Map<String, List<ProgramInstance>> programInstancesByProgramAndTei = trackerPreheat
@@ -189,7 +190,7 @@ public class ProgramInstanceByTeiHookTest
                 .thenReturn( Collections.singletonList( p4 ) );
 
         // When
-        this.hook.preheat( params, trackerPreheat );
+        this.hook.preheatAdd( params, trackerPreheat );
 
         // Then
         final Map<String, List<ProgramInstance>> programInstancesByProgramAndTei = trackerPreheat
@@ -203,6 +204,7 @@ public class ProgramInstanceByTeiHookTest
     {
         Event event = new Event();
         event.setUid( CodeGenerator.generateUid() );
+        event.setEvent( event.getUid() );
         event.setEnrollment( programInstance == null ? null : programInstance.getUid() );
         event.setTrackedEntity( trackedEntityInstance == null ? null : trackedEntityInstance.getUid() );
         event.setProgram( program == null ? null : program.getUid() );
@@ -213,6 +215,7 @@ public class ProgramInstanceByTeiHookTest
     {
         Event event = new Event();
         event.setUid( CodeGenerator.generateUid() );
+        event.setEvent( event.getUid() );
         event.setEnrollment( programInstance == null ? null : programInstance.getUid() );
         event.setTrackedEntity( trackedEntityInstance == null ? null : trackedEntityInstance.getUid() );
         event.setProgram( programInstance == null ? null : programInstance.getProgram().getUid() );

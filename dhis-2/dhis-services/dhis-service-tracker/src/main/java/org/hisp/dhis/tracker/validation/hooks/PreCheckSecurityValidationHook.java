@@ -34,6 +34,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -125,5 +126,11 @@ public class PreCheckSecurityValidationHook
 
         accessManager
             .checkOrgUnitInCaptureScope( reporter, validationContext.getOrganisationUnit( event.getOrgUnit() ) );
+    }
+
+    @Override
+    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    {
+        // NOTHING TO DO HERE
     }
 }

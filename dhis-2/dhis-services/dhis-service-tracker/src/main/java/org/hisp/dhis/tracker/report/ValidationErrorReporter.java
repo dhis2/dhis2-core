@@ -74,6 +74,12 @@ public class ValidationErrorReporter
         this.invalidDTOs = new ArrayList<>();
     }
 
+    public ValidationErrorReporter( TrackerImportValidationContext context, Class<?> mainKlass, TrackerType dtoType )
+    {
+        this( context, mainKlass );
+        this.dtoType = dtoType;
+    }
+
     private ValidationErrorReporter( TrackerImportValidationContext context, Class<?> mainKlass, boolean isFailFast,
         int listIndex )
     {

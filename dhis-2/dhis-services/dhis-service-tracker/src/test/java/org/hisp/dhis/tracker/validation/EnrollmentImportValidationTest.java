@@ -123,7 +123,7 @@ public class EnrollmentImportValidationTest
             "tracker/validations/enrollments_te_te-data.json" );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
-        assertEquals( 4, trackerBundle.getTrackedEntities().size() );
+        assertEquals( 5, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         assertEquals( 0, report.getErrorReports().size() );
@@ -644,7 +644,6 @@ insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpd
             "tracker/validations/enrollments_bad-note-uuid-exists-part1.json", TrackerImportStrategy.CREATE );
         assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
         assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
-
 
         createAndUpdate = validateAndCommit(
             "tracker/validations/enrollments_bad-note-uuid-exists-part2.json", TrackerImportStrategy.CREATE );
