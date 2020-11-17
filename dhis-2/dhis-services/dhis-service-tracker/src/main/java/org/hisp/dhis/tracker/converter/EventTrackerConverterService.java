@@ -45,6 +45,7 @@ import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -227,6 +228,9 @@ public class EventTrackerConverterService
         {
             programStageInstance.getComments().addAll( notesConverterService.from( preheat, event.getNotes() ) );
         }
+
+        User assignedUser = preheat.get( TrackerIdScheme.UID, User.class, event.getAssignedUser() );
+        programStageInstance.setAssignedUser( assignedUser );
 
         return programStageInstance;
     }
