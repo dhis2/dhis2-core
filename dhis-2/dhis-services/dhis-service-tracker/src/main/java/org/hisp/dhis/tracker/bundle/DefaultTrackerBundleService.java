@@ -29,12 +29,15 @@ package org.hisp.dhis.tracker.bundle;
  */
 
 import com.google.common.collect.ImmutableMap;
+
 import static com.google.api.client.util.Preconditions.checkNotNull;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
+
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
@@ -93,6 +96,7 @@ import java.util.stream.Stream;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
+@Slf4j
 public class DefaultTrackerBundleService
     implements TrackerBundleService
 {
@@ -222,7 +226,8 @@ public class DefaultTrackerBundleService
             // Rule engine can fail because of validation errors in the payload that
             // were not discovered yet.
             // If rule engine fails and the validation pass, a 500 code should be returned
-            e.printStackTrace();
+            log.warn( "An error occured during a Program Rule engine call. " +
+                "Please check the response payload for additional information" );
         }
         return trackerBundle;
     }
