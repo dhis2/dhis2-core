@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 
 import com.google.common.net.MediaType;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.icon.Icon;
@@ -42,7 +43,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -126,6 +126,6 @@ public class IconController
         response.setHeader( "Cache-Control", CacheControl.maxAge( TTL, TimeUnit.DAYS ).getHeaderValue() );
         response.setContentType( MediaType.SVG_UTF_8.toString() );
 
-        StreamUtils.copy( icon.get().getInputStream(), response.getOutputStream() );
+        StreamUtils.copyThenCloseInputStream( icon.get().getInputStream(), response.getOutputStream() );
     }
 }
