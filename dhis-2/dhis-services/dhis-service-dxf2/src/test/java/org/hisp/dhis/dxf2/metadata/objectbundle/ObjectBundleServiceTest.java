@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -81,6 +82,7 @@ import static org.junit.Assert.*;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@org.junit.experimental.categories.Category( IntegrationTest.class )
 public class ObjectBundleServiceTest
     extends IntegrationTestBase
 {
