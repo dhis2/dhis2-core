@@ -27,25 +27,46 @@
  *
  */
 
-package org.hisp.dhis.dxf2.events.importer.update.preprocess;
+package org.hisp.dhis.dxf2.events;
 
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.shared.preprocess.AbstractUserInfoPreProcessor;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.util.DateUtils;
 
-public class UserInfoUpdatePreProcessor extends AbstractUserInfoPreProcessor
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
+public class NoteHelper
 {
 
-    @Override
-    protected void updateDataValueUserInfo( EventDataValue dataValue, UserInfoSnapshot userInfo )
+    public Collection<Note> convertNotes( Collection<TrackedEntityComment> trackedEntityComments )
     {
-        dataValue.setLastUpdatedByUserInfo( userInfo );
+        return Optional.ofNullable( trackedEntityComments )
+            .orElse( Collections.emptySet() )
+            .stream()
+            .map( NoteHelper::toNote )
+            .collect( Collectors.toSet() );
     }
 
-    @Override
-    protected void updateEventUserInfo( Event event, UserInfoSnapshot eventUserInfo )
+    private Note toNote( TrackedEntityComment trackedEntityComment )
     {
-        event.setLastUpdatedByUserInfo( eventUserInfo );
+        Note note = new Note();
+
+        note.setNote( trackedEntityComment.getUid() );
+        note.setValue( trackedEntityComment.getCommentText() );
+        note.setStoredBy( trackedEntityComment.getCreator() );
+        note.setStoredDate( DateUtils.getIso8601NoTz( trackedEntityComment.getCreated() ) );
+
+        note.setLastUpdatedBy( UserInfoSnapshot.from( trackedEntityComment.getLastUpdatedBy() ) );
+        note.setLastUpdated( trackedEntityComment.getLastUpdated() );
+
+        return note;
     }
+
 }

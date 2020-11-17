@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -68,8 +69,9 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
         comment.setAutoFields();
         comment.setCommentText( note.getValue() );
 
-        // FIXME: what about the storedBy and lastUpdatedBy -> currently they are set to
-        // null
+        comment.setLastUpdatedBy( preheat.getUser() );
+        comment.setLastUpdated( new Date() );
+
         return comment;
     }
 
