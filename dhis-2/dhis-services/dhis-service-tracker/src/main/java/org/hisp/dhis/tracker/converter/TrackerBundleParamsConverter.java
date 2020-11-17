@@ -114,11 +114,6 @@ public class TrackerBundleParamsConverter
         // Set UID for all enrollments and notes
         dataBundle.getEnrollments().stream()
             .peek( enrollment -> updateEnrollmentReferences( enrollment, enrollment.getTrackedEntity() ) )
-            .peek( enrollment -> enrollment.setNotes( enrollment.getNotes().stream()
-                    .peek( this::updateNoteReferences )
-                    .collect( Collectors.toList() )
-                )
-            )
             .forEach( enrollment -> enrollmentHashMap.put( enrollment.getEnrollment(), enrollment ) );
 
         // Extract all events and relationships, and set parent references
@@ -129,14 +124,17 @@ public class TrackerBundleParamsConverter
 
             extractRelationships( enrollment )
                 .forEach( relationship -> relationshipHashMap.put( relationship.getRelationship(), relationship ) );
+
+            enrollment.setNotes( enrollment.getNotes().stream()
+                .filter( note -> !StringUtils.isEmpty( note.getValue() ) )
+                .peek( this::updateNoteReferences )
+                .collect( Collectors.toList() )
+            );
         }
 
         // Set UID for all events and notes
         dataBundle.getEvents().stream()
             .peek( event -> updateEventReferences( event, event.getTrackedEntity(), event.getEnrollment() ) )
-            .peek( event -> event.setNotes( event.getNotes().stream()
-                .peek( this::updateNoteReferences )
-                .collect( Collectors.toList() ) ) )
             .forEach( event -> eventHashMap.put( event.getEvent(), event ) );
 
         // Extract all relationships
@@ -144,6 +142,12 @@ public class TrackerBundleParamsConverter
         {
             extractRelationships( event )
                 .forEach( relationship -> relationshipHashMap.put( relationship.getRelationship(), relationship ) );
+
+            event.setNotes( event.getNotes().stream()
+                .filter( note -> !StringUtils.isEmpty( note.getValue() ) )
+                .peek( this::updateNoteReferences )
+                .collect( Collectors.toList() )
+            );
         }
 
         // Set UID for all relationships
@@ -151,28 +155,11 @@ public class TrackerBundleParamsConverter
             .peek( this::updateRelationshipReferences )
             .forEach( relationship -> relationshipHashMap.put( relationship.getRelationship(), relationship ) );
 
-        enrollmentHashMap.values()
-            .forEach( enrollment -> enrollment
-                .setNotes(
-                    enrollment.getNotes().stream()
-                        .filter( note -> !StringUtils.isEmpty( note.getValue() ) )
-                        .collect( Collectors.toList() )
-                ) );
-
-        eventHashMap.values()
-            .forEach(
-                event -> event.setNotes( event.getNotes().stream()
-                    .filter( note -> !StringUtils.isEmpty( note.getValue() ) )
-                    .collect( Collectors.toList() )
-                ) );
-
         return TrackerBundleParams.builder()
             .trackedEntities( new ArrayList<>( trackedEntityMap.values() ) )
             .enrollments( new ArrayList<>( enrollmentHashMap.values() ) )
             .events( new ArrayList<>( eventHashMap.values() ) )
-            .relationships( relationshipHashMap.values().stream()
-                .distinct()
-                .collect( Collectors.toList() ) )
+            .relationships( new ArrayList<>( relationshipHashMap.values() ) )
             .build();
 
     }
