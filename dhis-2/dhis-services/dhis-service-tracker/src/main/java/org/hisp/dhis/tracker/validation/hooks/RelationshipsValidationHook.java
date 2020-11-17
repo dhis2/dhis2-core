@@ -40,6 +40,8 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4008;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4009;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4011;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.getUidFromRelationshipItem;
+import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.relationshipItemValueType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -157,23 +159,6 @@ public class RelationshipsValidationHook
         }
     }
 
-    private TrackerType relationshipItemValueType( RelationshipItem item )
-    {
-        if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
-        {
-            return TrackerType.TRACKED_ENTITY;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEnrollment() ) )
-        {
-            return TrackerType.ENROLLMENT;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEvent() ) )
-        {
-            return TrackerType.EVENT;
-        }
-        return null;
-    }
-
     private List<TrackerErrorReport.TrackerErrorReportBuilder> validateRelationshipConstraint( String relSide,
         RelationshipItem item,
         RelationshipConstraint constraint )
@@ -220,7 +205,7 @@ public class RelationshipsValidationHook
     private void validateReferences( ValidationErrorReporter reporter, RelationshipItem item, String relationship )
     {
         TrackerType trackerType = relationshipItemValueType( item );
-        String itemUid = getUidFromRelationshipItem( item );
+        Optional<String> itemUid = getUidFromRelationshipItem( item );
 
         List<TrackerErrorReport> errors =
             reporter.getReportList()
@@ -229,27 +214,10 @@ public class RelationshipsValidationHook
                 .collect( Collectors.toList() );
         for ( TrackerErrorReport error : errors )
         {
-            if ( itemUid.equals( error.getUid() ) )
+            if ( itemUid.map( uid -> uid.equals( error.getUid() ) ).orElse( false ) )
             {
-                addError( reporter, E4011, relationship, trackerType.getName(), itemUid );
+                addError( reporter, E4011, relationship, trackerType.getName(), itemUid.get() );
             }
         }
-    }
-
-    private String getUidFromRelationshipItem( RelationshipItem item )
-    {
-        if ( item.getTrackedEntity() != null )
-        {
-            return item.getTrackedEntity();
-        }
-        else if ( item.getEnrollment() != null )
-        {
-            return item.getEnrollment();
-        }
-        else if ( item.getEvent() != null )
-        {
-            return item.getEvent();
-        }
-        return null;
     }
 }
