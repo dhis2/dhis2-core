@@ -63,7 +63,7 @@ public class EventWithoutRegistrationPreProcessor
             {
                 ProgramInstance enrollment = bundle.getPreheat().getProgramInstancesWithoutRegistration( event.getProgram() );
 
-                if (enrollment != null ) {
+                if ( enrollment != null ) {
                     event.setEnrollment( enrollment.getUid() );
                 }
             }
