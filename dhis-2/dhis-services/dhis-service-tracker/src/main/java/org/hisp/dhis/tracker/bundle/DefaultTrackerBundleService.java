@@ -521,8 +521,6 @@ public class DefaultTrackerBundleService
             {
                 session.flush();
             }
-
-            typeReport.getStats().incCreated();
         }
 
         session.flush();

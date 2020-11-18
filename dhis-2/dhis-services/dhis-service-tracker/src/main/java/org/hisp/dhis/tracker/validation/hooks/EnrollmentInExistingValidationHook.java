@@ -239,6 +239,11 @@ public class EnrollmentInExistingValidationHook
             note.setStoredBy( comment.getCreator() );
             note.setStoredAt( DateUtils.getIso8601NoTz( comment.getCreated() ) );
 
+            /* TODO: add comment.lastUpdatedBy and comment.lastUpdated to Note
+                it's not part of DHIS2-9835 since it's focused on old tracker
+                and requirements for new one might be different
+             */
+
             enrollment.getNotes().add( note );
         }
 
