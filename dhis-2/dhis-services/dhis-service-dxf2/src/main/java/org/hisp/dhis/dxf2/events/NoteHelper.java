@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 @UtilityClass
 public class NoteHelper {
 
-    public Collection<Note> convertNotes(Collection<TrackedEntityComment> trackedEntityComments )
+    public Collection<Note> convertNotes( Collection<TrackedEntityComment> trackedEntityComments )
     {
         return Optional.ofNullable( trackedEntityComments )
                 .orElse( Collections.emptySet() )

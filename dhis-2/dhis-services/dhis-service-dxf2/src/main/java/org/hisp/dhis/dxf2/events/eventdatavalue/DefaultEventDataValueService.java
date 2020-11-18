@@ -140,7 +140,7 @@ public class DefaultEventDataValueService implements EventDataValueService
             eventDataValue = dataElementToValueMap.get( dataElement.getUid() );
             eventDataValue.setStoredBy( storedBy );
 
-            eventDataValue.setLastUpdatedByUserInfo(userInfo);
+            eventDataValue.setLastUpdatedByUserInfo( userInfo );
 
             if ( dataValue.getValue() != null && !dataValue.getValue().trim().isEmpty() )
             {
@@ -164,8 +164,8 @@ public class DefaultEventDataValueService implements EventDataValueService
             eventDataValue.setAutoFields();
             eventDataValue.setStoredBy( storedBy );
 
-            eventDataValue.setCreatedByUserInfo(userInfo);
-            eventDataValue.setLastUpdatedByUserInfo(userInfo);
+            eventDataValue.setCreatedByUserInfo( userInfo );
+            eventDataValue.setLastUpdatedByUserInfo( userInfo );
 
             eventDataValue.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
 

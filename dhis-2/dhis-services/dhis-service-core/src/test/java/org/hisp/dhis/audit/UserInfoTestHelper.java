@@ -33,9 +33,9 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 
 public class UserInfoTestHelper {
 
-    public static UserInfoSnapshot testUserInfo(String username) {
+    public static UserInfoSnapshot testUserInfo( String username ) {
         UserInfoSnapshot userInfo = new UserInfoSnapshot();
-        userInfo.setUsername(username);
+        userInfo.setUsername( username );
         return userInfo;
     }
 }
