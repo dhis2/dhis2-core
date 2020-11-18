@@ -92,7 +92,7 @@ public class DefaultTrackerProgramRuleService
                 catch ( Exception ex )
                 {
                     log.warn( "An error occured during a Program Rule engine call for enrollment. " +
-                        "Please check the response payload for additional information", e );
+                        "Please check the response payload for additional information" );
                     return Lists.newArrayList();
                 }
             } ) );
@@ -115,7 +115,7 @@ public class DefaultTrackerProgramRuleService
                 catch ( Exception e )
                 {
                     log.warn( "An error occured during a Program Rule engine call for event. " +
-                        "Please check the response payload for additional information", e );
+                        "Please check the response payload for additional information" );
                     return Lists.newArrayList();
                 }
             } ) );
