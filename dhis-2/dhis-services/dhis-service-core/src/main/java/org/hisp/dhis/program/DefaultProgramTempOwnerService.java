@@ -33,7 +33,7 @@ public class DefaultProgramTempOwnerService implements ProgramTempOwnerService
     }
     
     @Override
-    @Transactional
+    @Transactional( readOnly = true )
     public int getValidTempOwnerRecordCount( Program program, TrackedEntityInstance entityInstance, User user )
     {
         return programTempOwnerStore.getValidTempOwnerCount( program, entityInstance, user);
