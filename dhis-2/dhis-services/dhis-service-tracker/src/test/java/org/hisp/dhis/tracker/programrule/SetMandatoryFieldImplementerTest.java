@@ -117,7 +117,7 @@ public class SetMandatoryFieldImplementerTest extends AbstractImportValidationTe
 
         objectBundleService.commit( bundle );
 
-        Program program = bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJne" );
+        Program program = bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJwr" );
         DataElement dataElement = bundle.getPreheat()
             .get( PreheatIdentifier.UID, DataElement.class, "DSKTW8qFP0z" );
         ProgramRuleVariable programRuleVariable = createProgramRuleVariable( 'A', program );
