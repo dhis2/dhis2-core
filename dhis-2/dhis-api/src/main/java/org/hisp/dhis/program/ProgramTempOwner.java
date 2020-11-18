@@ -29,12 +29,13 @@ package org.hisp.dhis.program;
  */
 
 import java.io.Serializable;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -44,59 +45,49 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
-@JacksonXmlRootElement( localName = "programOwnershipHistory", namespace = DxfNamespaces.DXF_2_0 )
-public class ProgramOwnershipHistory implements Serializable
+@JacksonXmlRootElement( localName = "programTempOwner", namespace = DxfNamespaces.DXF_2_0 )
+public class ProgramTempOwner implements Serializable
 {
-    private static final long serialVersionUID = 6713155272099925278L;
 
-    private int id;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -2030234810482111257L;
+
+    private long id;
 
     private Program program;
 
-    private Date startDate;
+    private String reason;
 
-    private Date endDate;
+    private Date validTill;
 
-    private String createdBy;
-
-    private TrackedEntityInstance entityInstance;
+    private User user;
     
-    private OrganisationUnit organisationUnit;
+    private TrackedEntityInstance entityInstance;
 
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
-    public ProgramOwnershipHistory()
+    public ProgramTempOwner()
     {
     }
 
-    public ProgramOwnershipHistory( Program program, TrackedEntityInstance entityInstance, OrganisationUnit organisationUnit, Date startDate,
-        String createdBy )
+    public ProgramTempOwner( Program program, TrackedEntityInstance entityInstance, String reason,
+        User user, int hoursToExpire )
     {
         this.program = program;
-        this.startDate = startDate;
-        this.createdBy = createdBy;
-        this.endDate = new Date();
+        this.reason = reason;
+        this.user = user;
+        this.validTill = addHoursToJavaUtilDate( new Date(), hoursToExpire );
         this.entityInstance = entityInstance;
-        this.organisationUnit = organisationUnit;
-    }
-
-    public ProgramOwnershipHistory( Program program, TrackedEntityInstance entityInstance, OrganisationUnit organisationUnit, Date startDate, Date endDate,
-        String createdBy )
-    {
-        this.program = program;
-        this.startDate = startDate;
-        this.createdBy = createdBy;
-        this.endDate = endDate;
-        this.entityInstance = entityInstance;
-        this.organisationUnit = organisationUnit;
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( program, entityInstance, startDate, createdBy, endDate );
+        return Objects.hash( program, entityInstance, reason, validTill, user );
     }
 
     @Override
@@ -112,29 +103,27 @@ public class ProgramOwnershipHistory implements Serializable
             return false;
         }
 
-        final ProgramOwnershipHistory other = (ProgramOwnershipHistory) obj;
+        final ProgramTempOwner other = (ProgramTempOwner) obj;
 
-        return Objects.equals( this.program, other.program ) && Objects.equals( this.startDate, other.startDate )
-            && Objects.equals( this.createdBy, other.createdBy ) && Objects.equals( this.endDate, other.endDate )
-            && Objects.equals( this.entityInstance, other.entityInstance );
+        return Objects.equals( this.program, other.program )
+            && Objects.equals( this.reason, other.reason ) && Objects.equals( this.validTill, other.validTill )
+            && Objects.equals( this.user, other.user ) && Objects.equals( this.entityInstance, other.entityInstance );
     }
 
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Program getProgram()
     {
         return program;
@@ -145,8 +134,6 @@ public class ProgramOwnershipHistory implements Serializable
         this.program = program;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public TrackedEntityInstance getEntityInstance()
     {
         return entityInstance;
@@ -159,50 +146,46 @@ public class ProgramOwnershipHistory implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getStartDate()
+    public String getReason()
     {
-        return startDate;
+        return reason;
     }
 
-    public void setStartDate( Date startDate )
+    public void setReason( String reason )
     {
-        this.startDate = startDate;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getEndDate()
-    {
-        return endDate;
-    }
-
-    public void setEndDate( Date endDate )
-    {
-        this.endDate = endDate;
+        this.reason = reason;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getCreatedBy()
+    public Date getValidTill()
     {
-        return createdBy;
+        return validTill;
     }
 
-    public void setCreatedBy( String createdBy )
+    public void setValidTill( Date accessedAt )
     {
-        this.createdBy = createdBy;
+        this.validTill = accessedAt;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public User getUser()
+    {
+        return user;
+    }
+
+    public void setUser( User user )
+    {
+        this.user = user;
     }
     
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public OrganisationUnit getOrganisationUnit()
+    public Date addHoursToJavaUtilDate( Date date, int hours )
     {
-        return organisationUnit;
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime( date );
+        calendar.add( Calendar.HOUR_OF_DAY, hours );
+        return calendar.getTime();
     }
     
-    public void setOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        this.organisationUnit = organisationUnit;
-    }
-
 }
