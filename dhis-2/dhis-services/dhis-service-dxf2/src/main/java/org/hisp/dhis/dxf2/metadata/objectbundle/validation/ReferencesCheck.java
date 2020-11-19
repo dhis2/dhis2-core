@@ -78,7 +78,9 @@ public class ReferencesCheck
                 bundle.getPreheatIdentifier(), bundle.isSkipSharing(), ctx );
 
             if ( errorReports.isEmpty() )
+            {
                 continue;
+            }
 
             if ( object != null )
             {
