@@ -238,14 +238,14 @@ public class EventTrackerConverterService
     private ProgramInstance getProgramInstance( TrackerPreheat preheat, TrackerIdScheme identifier, String enrollment,
         Program program )
     {
-        if ( !StringUtils.isEmpty( enrollment ) )
+        if ( ProgramType.WITH_REGISTRATION == program.getProgramType() )
         {
             return preheat.getEnrollment( identifier, enrollment );
         }
 
         if ( ProgramType.WITHOUT_REGISTRATION == program.getProgramType() )
         {
-            return preheat.getEnrollment( identifier, program.getUid() );
+            return preheat.getProgramInstancesWithoutRegistration( program.getUid() );
         }
 
         // no valid enrollment given and program not single event, just return null
