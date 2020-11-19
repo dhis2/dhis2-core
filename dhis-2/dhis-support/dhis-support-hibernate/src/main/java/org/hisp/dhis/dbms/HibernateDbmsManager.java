@@ -367,7 +367,7 @@ public class HibernateDbmsManager
     }
 
     @Override
-    @Transactional
+    @Transactional //TODO need to be fixed as this reduces performance
     public void clearSession()
     {
         sessionFactory.getCurrentSession().flush();
