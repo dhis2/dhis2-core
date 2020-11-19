@@ -178,12 +178,12 @@ public class RelationshipTrackerConverterService
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
             toItem.setProgramInstance(
-                preheat.getEnrollment( TrackerIdScheme.UID, fromRelationship.getFrom().getEnrollment() ) );
+                preheat.getEnrollment( TrackerIdScheme.UID, fromRelationship.getTo().getEnrollment() ) );
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
             toItem.setProgramStageInstance(
-                preheat.getEvent( TrackerIdScheme.UID, fromRelationship.getFrom().getEvent() ) );
+                preheat.getEvent( TrackerIdScheme.UID, fromRelationship.getTo().getEvent() ) );
         }
 
         toRelationship.setFrom( fromItem );
