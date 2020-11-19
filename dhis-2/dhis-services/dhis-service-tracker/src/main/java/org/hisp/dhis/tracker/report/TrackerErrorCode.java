@@ -111,6 +111,7 @@ public enum TrackerErrorCode
     E1114( "TrackedEntity: `{0}`, is already deleted." ),
     E1118( "Assigned user `{0}` is not a valid uid."),
     E1119( "A Tracker Note with uid `{0}` already exists."),
+    E1120( "ProgramStage `{0}` does not allow user assignment"),
 
     //TODO: See TODO on error usage
     E1017( "Attribute: `{0}`, does not exist." ),

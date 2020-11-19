@@ -28,7 +28,13 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1118;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1120;
+
+import java.util.Optional;
+
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
@@ -37,11 +43,10 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.TrackerWarningReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1118;
 
 @Component
 public class AssignedUserValidationHook
@@ -55,18 +60,54 @@ public class AssignedUserValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        if ( event.getAssignedUser() != null &&
-            ( !CodeGenerator.isValidUid( event.getAssignedUser() ) ||
-                reporter.getValidationContext().getBundle().getPreheat().get( TrackerIdScheme.UID, User.class,
-                    event.getAssignedUser() ) == null) )
+        if ( event.getAssignedUser() != null )
         {
-            TrackerErrorReport.TrackerErrorReportBuilder report = TrackerErrorReport.builder()
-                .errorCode( E1118 )
-                .trackerType( TrackerType.EVENT )
-                .addArg( event.getAssignedUser() );
+            if ( isNotValidAssignedUserUid( event ) || userNotPresentInPreheat( reporter, event ) )
+            {
+                TrackerErrorReport.TrackerErrorReportBuilder report = TrackerErrorReport.builder()
+                    .errorCode( E1118 )
+                    .trackerType( TrackerType.EVENT )
+                    .addArg( event.getAssignedUser() );
 
-            reporter.addError( report );
+                reporter.addError( report );
+            }
+            if ( isNotEnabledUserAssignment( reporter, event ) )
+            {
+                reporter.addWarning( TrackerWarningReport.builder()
+                    .warningCode( E1120 )
+                    .trackerType( TrackerType.EVENT )
+                    .addArg( event.getProgramStage() ) );
+            }
         }
+    }
+
+    private Boolean isNotEnabledUserAssignment( ValidationErrorReporter reporter, Event event )
+    {
+        /*
+         * TODO: should we have an helper method in base class (or a dedicated service)
+         * to easily access preheat maps ? this is hard to read
+         */
+
+        Boolean userAssignmentEnabled = ((ProgramStage) reporter.getValidationContext().getBundle().getPreheat().get(
+            TrackerIdScheme.UID, ProgramStage.class, event.getProgramStage() )).isEnableUserAssignment();
+
+        return !Optional.ofNullable( userAssignmentEnabled )
+                .orElse( false );
+    }
+
+    private boolean userNotPresentInPreheat( ValidationErrorReporter reporter, Event event )
+    {
+        /*
+         * TODO: should we have an helper method in base class (or a dedicated service)
+         * to easily access preheat maps ? this is hard to read
+         */
+        return reporter.getValidationContext().getBundle().getPreheat().get( TrackerIdScheme.UID, User.class,
+            event.getAssignedUser() ) == null;
+    }
+
+    private boolean isNotValidAssignedUserUid( Event event )
+    {
+        return !CodeGenerator.isValidUid( event.getAssignedUser() );
     }
 
     @Override

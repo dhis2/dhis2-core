@@ -44,6 +44,7 @@ import lombok.Data;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
+// TODO: should this be "ValidationReporter" since it does not only report errors ?
 public class ValidationErrorReporter
 {
     private final List<TrackerErrorReport> reportList;
