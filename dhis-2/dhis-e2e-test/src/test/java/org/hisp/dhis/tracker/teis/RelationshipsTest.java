@@ -102,7 +102,7 @@ public class RelationshipsTest
 
         metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/relationshipTypes.json" ) );
 
-        JsonObject teiObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/teis/tei.json" ) )
+        JsonObject teiObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/teis/teis.json" ) )
             .replacePropertyValuesWithIds( "trackedEntityInstance" ).get( JsonObject.class );
 
         teis = trackedEntityInstanceActions.post( teiObject ).extractUids();

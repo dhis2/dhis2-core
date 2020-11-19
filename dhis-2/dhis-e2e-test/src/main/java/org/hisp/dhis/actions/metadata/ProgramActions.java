@@ -33,9 +33,9 @@ import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
-import org.hisp.dhis.utils.JsonObjectBuilder;
 
 import java.util.Optional;
 
@@ -165,6 +165,7 @@ public class ProgramActions
         JsonObject object = JsonObjectBuilder.jsonObject()
             .addProperty( "name", "AutoTest program " + random )
             .addProperty( "shortName", "AutoTest program " + random )
+            .addUserGroupAccess()
             .build();
 
         return object;

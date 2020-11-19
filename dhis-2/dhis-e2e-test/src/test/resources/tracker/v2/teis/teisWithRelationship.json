@@ -1,7 +1,7 @@
 {
   "trackedEntities": [
     {
-      "trackedEntity": "JjZ2Nwds91v",
+      "trackedEntity": "JjZ2Nwds89v",
       "trackedEntityType": "Q9GufDoplCL",
       "orgUnit": "g8upMTyEZGZ",
       "attributes": [
@@ -25,7 +25,7 @@
             "trackedEntity": "JjZ2Nwds90v"
           },
           "to": {
-            "trackedEntity": "JjZ2Nwds91v"
+            "trackedEntity": "JjZ2Nwds89v"
           }
         }
       ]
@@ -34,6 +34,17 @@
       "trackedEntity": "JjZ2Nwds90v",
       "trackedEntityType": "Q9GufDoplCL",
       "orgUnit": "g8upMTyEZGZ",
+      "relationships": [
+        {
+          "relationshipType": "xLmPUYJX8Ks",
+          "from": {
+            "trackedEntity": "JjZ2Nwds89v"
+          },
+          "to": {
+            "trackedEntity": "JjZ2Nwds90v"
+          }
+        }
+      ],
       "attributes": [
         {
           "displayName": "TA First name",

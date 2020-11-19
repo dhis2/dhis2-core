@@ -42,7 +42,7 @@ import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.hisp.dhis.utils.JsonObjectBuilder;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -55,9 +55,9 @@ import java.io.File;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasSize;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -107,17 +107,18 @@ public class TrackerImporter_relationshipsTests
 
         metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/relationshipTypes.json" ) );
 
-        JsonObject teiObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/teis/teis.json" ) )
-            .replacePropertyValuesWithIds( "trackedEntityInstance" ).get( JsonObject.class );
+        teis = trackerActions.postAndGetJobReport( new File( "src/test/resources/tracker/v2/teis/teis.json" ))
+            .validateSuccessfulImport().extractImportedTeis();
 
-        teis = teiActions.post( teiObject ).extractUids();
-
-        JsonObject eventObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/events.json" ) )
+        JsonObject eventObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/v2/events/events.json" ) )
             .replacePropertyValuesWithIds( "event" ).get( JsonObject.class );
 
-        ApiResponse response = eventActions.post( eventObject );
-        response.validate().statusCode( 200 );
-        events = response.extractUids();
+        events = trackerActions.postAndGetJobReport( eventObject )
+            .validateSuccessfulImport().extractImportedEvents();
+        //ApiResponse response = eventActions.post( eventObject );
+        //response.validate().statusCode( 200 );
+        //events = response.extractUids();
+
     }
 
     @ParameterizedTest
@@ -136,13 +137,13 @@ public class TrackerImporter_relationshipsTests
 
         response.prettyPrint();
         // TODO more validation when the bug is fixed
-        response.validateSuccessfulImport();
-        //.validate()
-        //.body( "stats.created", equalTo( 3 ) );
+        createdRelationship = response.extractImportedRelationships().get( 0 );
 
-        String relationshipId = response.extractImportedRelationships().get( 0 );
+        response.validateSuccessfulImport()
+            .validate()
+            .body( "stats.total", equalTo( 3 ) );
 
-        relationshipActions.get( relationshipId )
+        relationshipActions.get( createdRelationship )
             .validate().statusCode( 200 )
             .body( "from.trackedEntityInstance", notNullValue() )
             .body( "to.trackedEntityInstance", notNullValue() );
@@ -150,7 +151,7 @@ public class TrackerImporter_relationshipsTests
         response.extractImportedTeis().forEach( tei -> {
             teiActions.get( tei, new QueryParamsBuilder().add( "fields=relationships" ) )
                 .validate().statusCode( 200 )
-                .body( "relationships.relationship", contains( relationshipId ) );
+                .body( "relationships.relationship", contains( createdRelationship ) );
         } );
 
     }
@@ -189,15 +190,14 @@ public class TrackerImporter_relationshipsTests
     {
         JsonObject object = JsonObjectBuilder.jsonObject()
             .addProperty( "relationshipType", relationshipType )
-            .addObject( "from", JsonObjectBuilder.jsonObject().addProperty( "event", "invalid" ) )
-            .addObject( "to", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", "even-more-invalid" ) )
+            .addObject( "from", JsonObjectBuilder.jsonObject().addProperty( "event", events.get( 0 )) )
+            .addObject( "to", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 0 )) )
             .wrapIntoArray( "relationships" );
 
-        //todo more validations when the bug is fixed
         trackerActions.postAndGetJobReport( object )
+            .validateErrorReport()
             .validate()
-            .statusCode( 200 )
-            .body( "status", equalTo( "OK" ) );
+            .body( "trackerValidationReport.errorReports.message[0]", containsString( "constraint requires a trackedEntity but a event was found" ) );
     }
 
     @Test
@@ -205,15 +205,16 @@ public class TrackerImporter_relationshipsTests
     {
         JsonObject object = JsonObjectBuilder.jsonObject()
             .addProperty( "relationshipType", "xLmPUYJX8Ks" )
-            .addObject( "from", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", "hihi" ) )
-            .addObject( "to", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", "haha" ) )
+            .addObject( "from", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", "invalid-tei" ) )
+            .addObject( "to", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", "more-invalid" ) )
             .wrapIntoArray( "relationships" );
 
-        //todo more validations when the bug is fixed
         trackerActions.postAndGetJobReport( object )
+            .validateErrorReport()
             .validate()
-            .statusCode( 200 )
-            .body( "status", equalTo( "ERROR" ) );
+            .rootPath( "trackerValidationReport.errorReports" )
+            .body( "message", hasSize( 2 ))
+            .body( "message[0]", Matchers.both(containsString(  "Could not find `trackedEntity`" )).and(  containsString( "linked to Relationship" ) ) );
 
     }
 

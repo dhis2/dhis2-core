@@ -33,16 +33,21 @@ import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
+import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.metadata.SharingActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.utils.JsonObjectBuilder;
+import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.io.File;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
@@ -72,6 +77,7 @@ public class EventImportDataValueValidationTests
 
     @BeforeAll
     public void beforeAll()
+        throws Exception
     {
         programActions = new ProgramActions();
         eventActions = new EventActions();
@@ -170,14 +176,25 @@ public class EventImportDataValueValidationTests
     }
 
     private void setupData()
+        throws Exception
     {
-        programId = Constants.EVENT_PROGRAM_ID;
-        programStageId = "jKLB23QZS4I";
+        programId = new IdGenerator().generateUniqueId();
+        programStageId = new IdGenerator().generateUniqueId();
+
+        JsonObject jsonObject = new JsonObjectBuilder(new FileReaderUtils().readJsonAndGenerateData( new File( "src/test/resources/tracker/eventProgram.json" ) ))
+            .addPropertyByJsonPath( "programStages[0].program.id", programId )
+            .addPropertyByJsonPath( "programs[0].id", programId )
+            .addPropertyByJsonPath( "programs[0].programStages[0].id", programStageId )
+            .addPropertyByJsonPath( "programStages[0].id", programStageId )
+            .build();
+
+        new MetadataActions().importAndValidateMetadata( jsonObject);
+
         String dataElementId = dataElementActions
             .get( "?fields=id&filter=domainType:eq:TRACKER&filter=valueType:eq:TEXT&pageSize=1" )
             .extractString( "dataElements.id[0]" );
 
-        assertNotNull( dataElementId, "Failed to find data elements" );
+        assertNotNull( dataElementId, "Failed to create data elements" );
         mandatoryDataElementId = dataElementId;
 
         programActions.addDataElement( programStageId, dataElementId, true ).validate().statusCode( 200 );

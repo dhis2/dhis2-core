@@ -215,7 +215,41 @@
         "id": "M5zQapPyTZI"
       },
       "notificationTemplates": [],
-      "programStageDataElements": [],
+      "programStageDataElements": [
+        {
+          "id": "cSc37t1TzTj",
+          "dataElement": {
+            "id": "BuZ5LGNfGEU"
+          }
+        },
+        {
+          "id": "F6AIyOWCnxW",
+          "dataElement": {
+            "id": "ZrqtjjveTFc"
+          }
+        },
+        {
+          "id": "sMP1n58QvwT",
+          "dataElement": {
+            "id": "mB2QHw1tU96"
+          }
+        },
+        {
+          "dataElement": {
+            "id": "ILRgzHhzFkg"
+          }
+        },
+        {
+          "dataElement":  {
+            "id": "z3Z4TD3oBCP"
+          }
+        },
+        {
+          "dataElement": {
+            "id": "inc5BJvr4W5"
+          }
+        }
+      ],
       "translations": [],
       "userGroupAccesses": [
         {
@@ -3412,7 +3446,7 @@
       "name": "TA Comment",
       "shortName": "Comment",
       "aggregationType": "NONE",
-      "domainType": "AGGREGATE",
+      "domainType": "TRACKER",
       "publicAccess": "rw------",
       "valueType": "LONG_TEXT",
       "zeroIsSignificant": false,
@@ -3439,7 +3473,7 @@
       "name": "TA Diabetes",
       "shortName": "TA Diabetes",
       "aggregationType": "COUNT",
-      "domainType": "AGGREGATE",
+      "domainType": "TRACKER",
       "publicAccess": "rw------",
       "valueType": "BOOLEAN",
       "zeroIsSignificant": false,
@@ -3493,7 +3527,7 @@
       "name": "TA Pregnant",
       "shortName": "TA Pregnant",
       "aggregationType": "SUM",
-      "domainType": "AGGREGATE",
+      "domainType": "TRACKER",
       "publicAccess": "rw------",
       "valueType": "TRUE_ONLY",
       "zeroIsSignificant": false,

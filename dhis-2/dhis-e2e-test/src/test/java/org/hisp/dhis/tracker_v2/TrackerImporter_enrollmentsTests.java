@@ -69,41 +69,6 @@ public class TrackerImporter_enrollmentsTests
     }
 
     @Test
-    public void shouldImportEnrollments()
-        throws Exception
-    {
-        String teiId = trackerActions.postAndGetJobReport( new File( "src/test/resources/tracker/v2/teis/tei.json" ) )
-            .validateSuccessfulImport()
-            .extractImportedTeis().get( 0 );
-
-        JsonObject enrollment = new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/v2/enrollments/enrollment.json" ) )
-            .replacePropertyValuesWith( "trackedEntity", teiId )
-            .get( JsonObject.class );
-
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( enrollment );
-
-        response
-            .validateSuccessfulImport()
-            .validate()
-            .body( "bundleReport.typeReportMap.ENROLLMENT", Matchers.notNullValue() )
-            .rootPath( "bundleReport.typeReportMap.ENROLLMENT" )
-            .body( "stats.created", Matchers.equalTo( 1 ) )
-            .body( "objectReports", Matchers.notNullValue() )
-            .body( "objectReports[0].errorReports", empty() );
-
-        // assert that the TEI was imported
-        String enrollmentId = response.extractImportedEnrollments().get( 0 );
-
-        // todo change to the new endpoints once they are ready
-        enrollmentActions.get( enrollmentId )
-            .validate().statusCode( 200 );
-
-        //JSONAssert.assertEquals( enrollment.get( "enrollments" ).getAsJsonArray().get( 0 ).toString(), response.getBody().toString(), false);
-
-    }
-
-    @Test
     public void shouldImportTeisWithEnrollments()
     {
 

@@ -96,9 +96,6 @@ public class TrackerImporter_userAssignmentTests
         String eventId = createEvents( programId, programStageId, loggedInUser )
             .extractImportedEvents().get( 0 );
 
-        // assert
-        assertNotNull( eventId );
-
         ApiResponse response = eventActions.get( eventId );
         if ( !Boolean.parseBoolean( userAssignmentEnabled ) )
         {
@@ -153,6 +150,7 @@ public class TrackerImporter_userAssignmentTests
             .replacePropertyValuesWith( "assignedUser", assignedUserId )
             .get( JsonObject.class );
 
+        System.out.println(body);
         TrackerApiResponse eventResponse = trackerActions.postAndGetJobReport( body );
 
         eventResponse.validateSuccessfulImport();

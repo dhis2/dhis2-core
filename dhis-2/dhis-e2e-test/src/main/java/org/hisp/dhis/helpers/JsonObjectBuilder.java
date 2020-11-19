@@ -1,5 +1,3 @@
-package org.hisp.dhis.utils;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,9 +26,17 @@ package org.hisp.dhis.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.helpers;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.spi.json.GsonJsonProvider;
 import org.hisp.dhis.Constants;
+
+import java.io.File;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -57,6 +63,16 @@ public class JsonObjectBuilder
     public static JsonObjectBuilder jsonObject( JsonObject jsonObject )
     {
         return new JsonObjectBuilder( jsonObject );
+    }
+
+    public JsonObjectBuilder addPropertyByJsonPath( String property, String value )
+    {
+        Configuration conf = Configuration.builder().jsonProvider(new GsonJsonProvider())
+            .options(Option.ALWAYS_RETURN_LIST, Option.SUPPRESS_EXCEPTIONS).build();
+
+        JsonPath.using( conf ).parse(jsonObject).set( property, value);
+
+        return this;
     }
 
     public JsonObjectBuilder addProperty( String property, String value )

@@ -37,7 +37,7 @@ import org.hisp.dhis.actions.tracker_v2.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.hisp.dhis.utils.JsonObjectBuilder;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
