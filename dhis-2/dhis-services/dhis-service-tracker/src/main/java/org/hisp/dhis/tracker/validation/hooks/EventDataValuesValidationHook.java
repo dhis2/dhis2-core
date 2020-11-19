@@ -28,6 +28,12 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -36,20 +42,12 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
-
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
 
 /**
  * @author Enrico Colasante
@@ -58,11 +56,6 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
 public class EventDataValuesValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    public EventDataValuesValidationHook( TrackedEntityAttributeService teAttrService )
-    {
-        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
-    }
-
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
@@ -162,13 +155,8 @@ public class EventDataValuesValidationHook
 
     private boolean needsToValidateMandatoryDataValues( Event event, ProgramStage programStage )
     {
-        if ( event.getStatus().equals( EventStatus.ACTIVE ) &&
-            programStage.getValidationStrategy().equals( ValidationStrategy.ON_COMPLETE ) )
-        {
-            return false;
-        }
-
-        return true;
+        return !event.getStatus().equals( EventStatus.ACTIVE ) ||
+            !programStage.getValidationStrategy().equals( ValidationStrategy.ON_COMPLETE );
     }
 
     private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, DataValue dataValue,

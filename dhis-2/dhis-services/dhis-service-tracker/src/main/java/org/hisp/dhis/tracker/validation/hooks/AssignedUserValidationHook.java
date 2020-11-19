@@ -35,7 +35,6 @@ import java.util.Optional;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -52,11 +51,6 @@ import org.springframework.stereotype.Component;
 public class AssignedUserValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    public AssignedUserValidationHook( TrackedEntityAttributeService teAttrService )
-    {
-        super( teAttrService );
-    }
-
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
@@ -133,4 +127,11 @@ public class AssignedUserValidationHook
          * No implementation.
          */
     }
+
+    @Override
+    public boolean removeOnError()
+    {
+        return true;
+    }
+
 }
