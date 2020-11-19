@@ -29,38 +29,143 @@ package org.hisp.dhis.tracker.report;
  *
  */
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
+
+import org.hisp.dhis.commons.timer.SystemTimer;
+import org.hisp.dhis.commons.timer.Timer;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * This report keeps track of the elapsed time for each stage of the validation
+ * process.
+ *
+ * @author Luciano Fiandesio
  */
 @Data
-@NoArgsConstructor
 public class TrackerTimingsStats
 {
+    public static final String PREHEAT_OPS = "preheat";
+
+    public static final String PROGRAMRULE_OPS = "programrule";
+
+    public static final String COMMIT_OPS = "commit";
+
+    public static final String VALIDATION_OPS = "validation";
+
+    public static final String TOTAL_OPS = "totalImport";
+
+    public static final String PREPARE_REQUEST_OPS = "prepareRequest";
+
+    public static final String TOTAL_REQUEST_OPS = "totalRequest";
 
     @JsonProperty
-    private String prepareRequest;
+    private Map<String, String> timers = new HashMap<>();
 
-    @JsonProperty
-    private String validation;
+    private final static String DEFAULT_VALUE = "0.0 sec.";
 
-    @JsonProperty
-    private String commit;
+    public String getPrepareRequest()
+    {
+        return timers.getOrDefault( PREPARE_REQUEST_OPS, DEFAULT_VALUE );
+    }
 
-    @JsonProperty
-    private String preheat;
+    public String getValidation()
+    {
+        return timers.getOrDefault( VALIDATION_OPS, DEFAULT_VALUE );
+    }
 
-    @JsonProperty
-    private String programrule;
+    public String getCommit()
+    {
+        return timers.getOrDefault( COMMIT_OPS, DEFAULT_VALUE );
+    }
 
-    @JsonProperty
-    private String totalImport;
+    public String getPreheat()
+    {
+        return timers.getOrDefault( PREHEAT_OPS, DEFAULT_VALUE );
+    }
 
-    @JsonProperty
-    private String totalRequest;
+    public String getProgramRule()
+    {
+        return timers.getOrDefault( PROGRAMRULE_OPS, DEFAULT_VALUE );
+    }
 
+    public String getTotalImport()
+    {
+        return timers.getOrDefault( TOTAL_OPS, DEFAULT_VALUE );
+    }
+
+    public String getTotalRequest() {
+
+        return timers.getOrDefault( TOTAL_REQUEST_OPS, DEFAULT_VALUE );
+    }
+
+    private static Timer timer;
+
+    public TrackerTimingsStats()
+    {
+        timer = new SystemTimer().start();
+    }
+
+    public void set( String timedOperation, String elapsed )
+    {
+        this.timers.put( timedOperation, elapsed );
+    }
+
+    /**
+     * Executes the given Supplier and measure the elapsed time.
+     *
+     * @param timedOperation the operation name to place in the timers map
+     * @param supplier ths Supplier to execute
+     *
+     * @return the result of the Supplier invocation
+     */
+    public <T> T exec( String timedOperation, Supplier<T> supplier )
+    {
+        Timer timer = new SystemTimer().start();
+
+        T result = supplier.get();
+
+        timer.stop();
+
+        this.set( timedOperation, timer.toString() );
+
+        return result;
+    }
+
+    /**
+     * Executes the given operation.
+     *
+     * @param timedOperation the operation name to place in the timers map
+     * @param runnable the operation to execute
+     */
+    public void execVoid( String timedOperation, Runnable runnable )
+    {
+        Timer timer = new SystemTimer().start();
+
+        runnable.run();
+
+        timer.stop();
+
+        this.set( timedOperation, timer.toString() );
+    }
+
+    public TrackerTimingsStats stopTimer()
+    {
+        if ( timer != null )
+        {
+            timer.stop();
+            this.timers.put( TOTAL_OPS, timer.toString() );
+        }
+        return this;
+
+    }
+
+    public String get( String validationOps )
+    {
+        return this.timers.getOrDefault( validationOps, DEFAULT_VALUE );
+    }
 }

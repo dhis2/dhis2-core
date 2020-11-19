@@ -171,6 +171,11 @@ public class TrackerBundle
         return this.trackedEntities.stream().filter( t -> t.getTrackedEntity().equals( id ) ).findFirst();
     }
 
+    /**
+     * Clone the current TrackerBundle
+     * 
+     * @return a copy of this TrackerBundle
+     */
     public TrackerBundle copy()
     {
         TrackerBundle bundle = new TrackerBundle();
@@ -191,5 +196,15 @@ public class TrackerBundle
         bundle.setImportMode( this.importMode );
 
         return bundle;
+    }
+
+    /**
+     * Calculates the sum of all objects n this bundle.
+     *
+     */
+    public int getBundleSize()
+    {
+        return this.getTrackedEntities().size() + this.getEnrollments().size() + this.getEvents().size()
+            + this.getRelationships().size();
     }
 }

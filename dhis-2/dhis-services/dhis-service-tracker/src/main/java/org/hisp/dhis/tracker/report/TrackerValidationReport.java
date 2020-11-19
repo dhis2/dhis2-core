@@ -96,4 +96,12 @@ public class TrackerValidationReport
     {
         return !errorReports.isEmpty();
     }
+
+    /**
+     * Returns the size of all the Tracker DTO that did not pass validation
+     */
+    public long size() {
+        
+        return this.getErrorReports().stream().map( TrackerErrorReport::getUid ).distinct().count();
+    }
 }
