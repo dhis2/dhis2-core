@@ -41,6 +41,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.SecondaryMetadataObject;
 import org.hisp.dhis.scheduling.parameters.*;
 import org.hisp.dhis.scheduling.parameters.jackson.JobConfigurationSanitizer;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.SimpleTriggerContext;
@@ -302,7 +303,7 @@ public class JobConfiguration
      */
     @JacksonXmlProperty
     @JsonProperty
-    @Property( required = FALSE )
+    @Property( value = PropertyType.COMPLEX, required = FALSE )
     @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "jobType", defaultImpl = java.lang.Void.class )
     @JsonSubTypes( value = {
         @JsonSubTypes.Type( value = AnalyticsJobParameters.class, name = "ANALYTICS_TABLE" ),

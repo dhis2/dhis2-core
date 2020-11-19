@@ -440,7 +440,7 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public User getUser()
     {
-        return this.user;
+        return user;
     }
 
     public void setUser( User user )

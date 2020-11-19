@@ -28,26 +28,15 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-
-import org.hisp.dhis.DhisSpringTest;
+import com.google.common.collect.Sets;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.mock.MockCurrentUserService;
-import org.hisp.dhis.mock.MockUserService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.Before;
@@ -55,13 +44,20 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Lars Helge Overland
  */
+@Ignore
 public class InterpretationServiceTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTestBase
 {
     @Autowired
     private UserService _userService;
@@ -93,6 +89,12 @@ public class InterpretationServiceTest
     private Interpretation interpretationC;
 
     @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
+    @Override
     protected void setUpTest() throws Exception
     {
         userService = _userService;
@@ -108,11 +110,13 @@ public class InterpretationServiceTest
         userService.addUser( userB );
         userService.addUser( userC );
 
-        setDependency( interpretationService, "currentUserService", new MockCurrentUserService( userA ),
-            CurrentUserService.class );
+        injectSecurityContext( userA );
 
-        setDependency( interpretationService, "userService", new MockUserService( Arrays.asList(userA, userB, userC) ),
-            UserService.class );
+//        setDependency( interpretationService, "currentUserService", new MockCurrentUserService( userA ),
+//            CurrentUserService.class );
+
+//        setDependency( interpretationService, "userService", new MockUserService( Arrays.asList(userA, userB, userC) ),
+//            UserService.class );
 
         visualizationA = createVisualization( 'A' );
         visualizationService.save(visualizationA);

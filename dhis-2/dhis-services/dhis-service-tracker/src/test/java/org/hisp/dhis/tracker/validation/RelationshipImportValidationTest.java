@@ -46,13 +46,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.tracker.validation.RelationshipStubs.*;
+import static org.hisp.dhis.tracker.validation.RelationshipStubs.getMissingToRelationshipItemRelationship;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 /**
@@ -115,116 +113,31 @@ public class RelationshipImportValidationTest
         validatorToTest.validateRelationship( reporter, getValidRelationship() );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4004 ) );
+        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4009 ) );
     }
 
     @Test
     public void validateRelationshipShouldFailForMissingFromRelationshipItem()
     {
-        validatorToTest.validateRelationship( reporter, getMissingFromRelationshipItemRelationship() );
+        Relationship rel = getMissingFromRelationshipItemRelationship();
+
+        reporter.setMainId( rel.getRelationship() );
+        validatorToTest.validateRelationship( reporter, rel );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4004 ) );
+        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4007 ) );
     }
 
     @Test
     public void validateRelationshipShouldFailForMissingToRelationshipItem()
     {
-        validatorToTest.validateRelationship( reporter, getMissingToRelationshipItemRelationship() );
+        Relationship rel = getMissingToRelationshipItemRelationship();
+        reporter.setMainId( rel.getRelationship() );
+
+        validatorToTest.validateRelationship( reporter, rel );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4004 ) );
+        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4008 ) );
     }
 
-    @Test
-    public void validateRelationshipShouldFailForBadTEIRelationshipItem()
-    {
-        validatorToTest.validateRelationship( reporter, getBadTEIRelationshipItemRelationship() );
-
-        assertEquals( 3, reporter.getReportList().size() );
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E4001 ) ) ) );
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E4002 ) ) ) );
-    }
-
-    @Test
-    public void validateRelationshipShouldFailForBadEnrollmentRelationshipItem()
-    {
-        validatorToTest.validateRelationship( reporter, getBadEnrollmentRelationshipItemRelationship() );
-
-        assertEquals( 3, reporter.getReportList().size() );
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E4001 ) ) ) );
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E4002 ) ) ) );
-    }
-
-    @Test
-    public void validateRelationshipShouldFailForBadEventRelationshipItem()
-    {
-        validatorToTest.validateRelationship( reporter, getBadEventRelationshipItemRelationship() );
-
-        assertEquals( 3, reporter.getReportList().size() );
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E4001 ) ) ) );
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E4002 ) ) ) );
-    }
-
-    @Test
-    public void validateDuplicatedRelationshipShouldFail()
-    {
-        when( trackerBundle.getRelationships() ).thenReturn( getDuplicatedRelationships() );
-
-        validatorToTest.validateRelationship( reporter, getDuplicatedRelationships().get( 0 ) );
-
-        assertEquals( 1, reporter.getReportList().size() );
-        assertThat( reporter.getReportList(), hasItem( hasProperty( "errorCode", equalTo(
-            TrackerErrorCode.E4003 ) ) ) );
-    }
-
-    @Test
-    public void validateValidRelationshipInDuplicatedRelationshipsShoulNotdFail()
-    {
-        when( trackerBundle.getRelationships() ).thenReturn( getDuplicatedAndValidRelationships() );
-
-        validatorToTest.validateRelationship( reporter, getValidRelationship() );
-
-        assertEquals( 0, reporter.getReportList().size() );
-    }
-
-    @Test
-    public void validateBidirectionalDuplicatedRelationshipShouldFail()
-    {
-        when( trackerBundle.getRelationships() ).thenReturn( getBidirectionalDuplicatedRelationships() );
-
-        validatorToTest.validateRelationship( reporter, getBidirectionalDuplicatedRelationships().get( 0 ) );
-
-        assertEquals( 1, reporter.getReportList().size() );
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E4003 ) ) ) );
-    }
-
-    @Test
-    public void validateValidRelationshipInBidirectionalDuplicatedRelationshipShouldNotFail()
-    {
-        when( trackerBundle.getRelationships() ).thenReturn( getBidirectionalDuplicatedAndValidRelationships() );
-
-        validatorToTest.validateRelationship( reporter, getValidRelationship() );
-
-        assertEquals( 0, reporter.getReportList().size() );
-    }
-
-    @Test
-    public void validateOnlyOneBidirectionalDuplicatedRelationshipShouldFail()
-    {
-        when( trackerBundle.getRelationships() ).thenReturn( getOnlyOneBidirectionalDuplicatedRelationships() );
-
-        validatorToTest.validateRelationship( reporter, getValidRelationship() );
-
-        assertEquals( 1, reporter.getReportList().size() );
-        assertThat( reporter.getReportList(), hasItem( hasProperty( "errorCode", equalTo(
-            TrackerErrorCode.E4003 ) ) ) );
-    }
 }

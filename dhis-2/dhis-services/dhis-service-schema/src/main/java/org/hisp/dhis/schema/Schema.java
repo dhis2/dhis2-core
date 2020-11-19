@@ -712,6 +712,11 @@ public class Schema implements Ordered, Klass
             .collect( Collectors.toList() );
     }
 
+    public Map<String, Property> getFieldNameMapProperties()
+    {
+         return this.getPersistedProperties().entrySet().stream().collect( Collectors.toMap( p->p.getValue().getFieldName(), p -> p.getValue() ) );
+    }
+
     @Override
     public int hashCode()
     {

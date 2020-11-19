@@ -83,9 +83,8 @@ public interface SecurityService
      * setting up their user account.
      *
      * @param user the user to invite.
-     * @return true if the invitation was sent, otherwise false.
      */
-    boolean prepareUserForInvite( User user );
+    void prepareUserForInvite( User user );
 
     /**
      * Indicates whether a restore/invite is allowed for the given user. The
@@ -119,11 +118,7 @@ public interface SecurityService
 
     /**
      * Invokes the initRestore method and dispatches email messages with
-     * restore information to the user.
-     * <p>
-     * In the case of inviting a user to finish setting up an account,
-     * the user account must already be configured with the profile desired
-     * for the user (e.g., locale, organisation unit(s), role(s), etc.)
+     * restore information to the user, or sends an invite email.
      *
      * @param credentials    the credentials for the user to send restore message.
      * @param rootPath       the root path of the request.
@@ -131,20 +126,28 @@ public interface SecurityService
      * @return false if any of the arguments are null or if the user credentials
      * identified by the user name does not exist, true otherwise.
      */
-    boolean sendRestoreMessage( UserCredentials credentials, String rootPath, RestoreOptions restoreOptions );
+    boolean sendRestoreOrInviteMessage( UserCredentials credentials, String rootPath, RestoreOptions restoreOptions );
 
     /**
-     * Populates the restoreToken property of the given
+     * Populates the restoreToken property and idToken of the given
      * credentials with a hashed version of auto-generated values. Sets the
      * restoreExpiry property with a date time some interval from now depending
      * on the restore type. Changes are persisted.
-     * 
+     *
      * @param credentials    the user credentials.
      * @param restoreOptions restore options, including type of restore.
-     * @return an array where index 0 is the clear-text token and index 1 the
+     * @return an encoded string containing both id token and hashed/restoreToken, delimited with :
      * clear-text code.
      */
-    String[] initRestore( UserCredentials credentials, RestoreOptions restoreOptions );
+    String generateAndPersistTokens( UserCredentials credentials, RestoreOptions restoreOptions );
+
+    /**
+     * Decodes the id and hashed/restore token used for restore or invite.
+     *
+     * @param encodedTokens a Base64 encoded string containing the id token and hashed/restoreToken, delimited with :
+     * @return an array containing the decoded tokens
+     */
+    String[] decodeEncodedTokens( String encodedTokens );
 
     /**
      * Gets the restore options by parsing them from a restore token string.
@@ -177,7 +180,6 @@ public interface SecurityService
      *
      * @param credentials the user credentials.
      * @param token       the token.
-     * @param code        the code.
      * @param restoreType type of restore operation (e.g. pw recovery, invite).
      * @return true or false.
      */
@@ -194,7 +196,7 @@ public interface SecurityService
      * credentials identified by the user name does not exist, null if
      * the arguments are valid.
      */
-    String verifyToken( UserCredentials credentials, String token, RestoreType restoreType );
+    String verifyRestoreToken( UserCredentials credentials, String token, RestoreType restoreType );
 
     /**
      * Indicates whether the given username is an invite. The username is

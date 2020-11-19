@@ -29,14 +29,21 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1012;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.*;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.DATE_STRING_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.GEOMETRY_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.FeatureType;
@@ -46,7 +53,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -73,6 +85,7 @@ public abstract class AbstractTrackerDtoValidationHook
         return order;
     }
 
+    @Override
     public void setOrder( int order )
     {
         this.order = order;
@@ -199,7 +212,7 @@ public abstract class AbstractTrackerDtoValidationHook
                 validateEnrollment( r, (Enrollment) o ), bundle.getEnrollments() ),
             Event.class, Pair.of( ( o, r ) ->
                 validateEvent( r, (Event) o ), bundle.getEvents() ),
-            Relationship.class, Pair.of( ( o, r ) -> 
+            Relationship.class, Pair.of( ( o, r ) ->
                 validateRelationship( r, (Relationship) o ), bundle.getRelationships() ) );
         // @formatter:on
 
@@ -257,22 +270,36 @@ public abstract class AbstractTrackerDtoValidationHook
         checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
         checkNotNull( teAttr, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
 
-        String error;
+        ValueType valueType = teAttr.getValueType();
 
-        // We need to do try/catch here since validateValueType() since validateValueType can cast IllegalArgumentException e.g.
-        // on at org.joda.time.format.DateTimeFormatter.parseDateTime(DateTimeFormatter.java:945)
-        try
+        TrackerImportValidationContext context = errorReporter.getValidationContext();
+
+        String error = null;
+
+        if ( valueType.equals( ValueType.ORGANISATION_UNIT ) )
         {
-            error = teAttrService.validateValueType( teAttr, attr.getValue() );
+            error = context.getOrganisationUnit( attr.getValue() ) == null ? " Value " + attr.getValue() + " is not a valid org unit value" : null;
         }
-        catch ( Exception e )
+        else if ( valueType.equals( ValueType.USERNAME ) )
         {
-            error = e.getMessage();
+            error = context.usernameExists( attr.getValue() ) ? null : " Value " + attr.getValue() + " is not a valid username value";
+        }
+        else
+        {
+            // We need to do try/catch here since validateValueType() since validateValueType can cast IllegalArgumentException e.g.
+            // on at org.joda.time.format.DateTimeFormatter.parseDateTime(DateTimeFormatter.java:945)
+            try
+            {
+                error = teAttrService.validateValueType( teAttr, attr.getValue() );
+            }
+            catch ( Exception e )
+            {
+                error = e.getMessage();
+            }
         }
 
         if ( error != null )
         {
-            ValueType valueType = teAttr.getValueType();
             errorReporter.addError( newReport( TrackerErrorCode.E1007 )
                 .addArg( valueType.toString() )
                 .addArg( error ) );
@@ -316,8 +343,6 @@ public abstract class AbstractTrackerDtoValidationHook
                 return;
             }
         }
-
-        return;
     }
 
     protected void validateGeometry( ValidationErrorReporter errorReporter, Geometry geometry, FeatureType featureType )
@@ -334,8 +359,7 @@ public abstract class AbstractTrackerDtoValidationHook
 
         if ( FeatureType.NONE == featureType || featureType != typeFromName )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1012 )
-                .addArg( featureType.name() ) );
+            addError( errorReporter, E1012, featureType.name() );
         }
     }
 
@@ -349,5 +373,28 @@ public abstract class AbstractTrackerDtoValidationHook
     public boolean isValidDateStringAndNotNull( String dateString )
     {
         return dateString != null && DateUtils.dateIsValid( dateString );
+    }
+
+    protected void addError( ValidationErrorReporter report, TrackerErrorCode errorCode, Object... args )
+    {
+        report.addError( newReport( errorCode ).addArgs( args ) );
+    }
+
+    protected void addErrorIf( Supplier<Boolean> expression, ValidationErrorReporter report, TrackerErrorCode errorCode,
+        Object... args )
+    {
+        if ( expression.get() )
+        {
+            addError( report, errorCode, args );
+        }
+    }
+
+    protected void addErrorIfNull( Object object, ValidationErrorReporter report, TrackerErrorCode errorCode,
+        Object... args )
+    {
+        if ( object == null )
+        {
+            addError( report, errorCode, args );
+        }
     }
 }

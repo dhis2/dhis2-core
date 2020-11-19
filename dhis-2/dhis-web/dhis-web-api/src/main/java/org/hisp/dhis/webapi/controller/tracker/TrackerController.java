@@ -92,7 +92,7 @@ public class TrackerController
     }
 
     @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
+//    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
     public void postJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser )
         throws IOException
     {
@@ -133,19 +133,19 @@ public class TrackerController
 
     @GetMapping( value = "/jobs/{uid}/report", produces = MediaType.APPLICATION_JSON_VALUE )
     public TrackerImportReport getJobReport( @PathVariable String uid,
-        @RequestParam( defaultValue = "basic", required = false ) String reportmode,
+        @RequestParam( defaultValue = "errors", required = false ) String reportMode,
         HttpServletResponse response )
         throws HttpStatusCodeException
     {
         TrackerBundleReportMode trackerBundleReportMode;
         try
         {
-            trackerBundleReportMode = TrackerBundleReportMode.valueOf( reportmode.toUpperCase() );
+            trackerBundleReportMode = TrackerBundleReportMode.valueOf( reportMode.toUpperCase() );
         }
         catch ( IllegalArgumentException e )
         {
             throw new HttpClientErrorException( HttpStatus.BAD_REQUEST,
-                "Value " + reportmode + " is not a valid report mode" );
+                "Value " + reportMode + " is not a valid report mode" );
         }
 
         Object importReport = notifier.getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid );

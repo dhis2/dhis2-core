@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat.hooks;
+package org.hisp.dhis.tracker.preheat.supplier;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,66 +28,66 @@ package org.hisp.dhis.tracker.preheat.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.domain.Attribute;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatHook;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Component
-public class FileResourceTrackerPreheatHook
-    implements TrackerPreheatHook
-{
-    private final FileResourceService fileResourceService;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
-    public FileResourceTrackerPreheatHook( FileResourceService fileResourceService )
-    {
-        this.fileResourceService = fileResourceService;
-    }
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+
+/**
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
+ */
+@RequiredArgsConstructor
+@Component
+public class OrgUnitValueTypeSupplier extends AbstractPreheatSupplier
+{
+    @NonNull
+    private final IdentifiableObjectManager manager;
 
     @Override
-    public void preheat( TrackerPreheatParams params, TrackerPreheat preheat )
+    public void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat )
     {
         List<TrackedEntityAttribute> attributes = preheat.getAll( TrackerIdScheme.UID, TrackedEntityAttribute.class );
 
-        List<String> fileResourceAttributes = attributes.stream()
-            .filter( at -> at.getValueType() == ValueType.FILE_RESOURCE )
+        List<String> orgUnitAttributes = attributes.stream()
+            .filter( at -> at.getValueType() == ValueType.ORGANISATION_UNIT )
             .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toList() );
 
-        List<String> fileResourceIds = new ArrayList<>();
+        List<String> orgUnitIds = new ArrayList<>();
 
         params.getTrackedEntities()
-            .forEach( te -> collectResourceIds( fileResourceAttributes, fileResourceIds, te.getAttributes() ) );
+            .forEach( te -> collectResourceIds( orgUnitAttributes, orgUnitIds, te.getAttributes() ) );
         params.getEnrollments()
-            .forEach( en -> collectResourceIds( fileResourceAttributes, fileResourceIds, en.getAttributes() ) );
+            .forEach( en -> collectResourceIds( orgUnitAttributes, orgUnitIds, en.getAttributes() ) );
 
-        List<FileResource> fileResources = fileResourceService.getFileResources( fileResourceIds );
-        preheat.put( TrackerIdentifier.UID, fileResources );
+        preheat.put( TrackerIdentifier.UID, manager.getByUid( OrganisationUnit.class, orgUnitIds ) );
     }
 
-    private void collectResourceIds( List<String> fileResourceAttributes, List<String> fileResourceIds,
+    private void collectResourceIds( List<String> orgUnitAttributes, List<String> orgUnitIds,
         List<Attribute> attributes )
     {
         attributes.forEach( at -> {
-            if ( fileResourceAttributes.contains( at.getAttribute() ) && !StringUtils.isEmpty( at.getValue() ) )
+            if ( orgUnitAttributes.contains( at.getAttribute() ) && !StringUtils.isEmpty( at.getValue() ) )
             {
-                fileResourceIds.add( at.getValue() );
+                orgUnitIds.add( at.getValue() );
             }
         } );
     }

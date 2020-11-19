@@ -30,11 +30,16 @@ package org.hisp.dhis.programrule.engine;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.when;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
@@ -47,18 +52,33 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.programrule.*;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.rules.DataItem;
-import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.rules.models.Rule;
+import org.hisp.dhis.rules.models.RuleDataValue;
+import org.hisp.dhis.rules.models.RuleEnrollment;
+import org.hisp.dhis.rules.models.RuleEvent;
+import org.hisp.dhis.rules.models.RuleVariable;
+import org.hisp.dhis.rules.models.RuleVariableAttribute;
+import org.hisp.dhis.rules.models.RuleVariableCalculatedValue;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.util.ObjectUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -128,9 +148,6 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
     @org.junit.Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @org.junit.Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @Mock
     private ProgramRuleService programRuleService;
@@ -231,20 +248,17 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     public void testExceptionWhenMandatoryFieldIsMissingInRuleEvent()
     {
-        thrown.expect( IllegalStateException.class );
-
-        subject.toMappedRuleEvent( programStageInstanceC );
+        assertThrows( IllegalStateException.class, () -> subject.toMappedRuleEvent( programStageInstanceC ) );
     }
 
     @Test
     public void testExceptionIfDataElementIsNull()
     {
-        thrown.expect( RuntimeException.class );
-        thrown.expectMessage( "Required DataElement(" + dataElement.getUid() + ") was not found." );
-
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( null );
 
-        subject.toMappedRuleEvent( programStageInstanceA );
+        assertThrows( "Required DataElement(" + dataElement.getUid() + ") was not found.", RuntimeException.class,
+            () -> subject.toMappedRuleEvent( programStageInstanceA ) );
+        
     }
 
     @Test
@@ -309,9 +323,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     public void testExceptionWhenMandatoryValueMissingMappedEnrollment()
     {
-        thrown.expect( IllegalStateException.class );
-
-        subject.toMappedRuleEnrollment( programInstanceB );
+        assertThrows( IllegalStateException.class, () -> subject.toMappedRuleEnrollment( programInstanceB ) );
     }
 
     @Test

@@ -219,7 +219,7 @@ public class JdbcMaintenanceStore
                 .createdAt( LocalDateTime.now() )
                 .object( tei )
                 .uid( teiUid )
-                .auditableEntity( new AuditableEntity( tei ) )
+                .auditableEntity( new AuditableEntity( TrackedEntityInstance.class, tei  ) )
                 .build() );
         });
     }

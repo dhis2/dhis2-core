@@ -31,8 +31,9 @@ package org.hisp.dhis.security.oidc.provider;/*
  */
 public abstract class DhisOidcProvider
 {
-    protected static final String DEFAULT_REDIRECT_URL = "{baseUrl}/{action}/oauth2/code/{registrationId}";
+    protected static final String DEFAULT_REDIRECT_TEMPLATE_URL = "{baseUrl}/oauth2/code/{registrationId}";
 
-    protected static final String DEFAULT_CODE_URL_TEMPLATE = "/oauth2/code/{registrationId}";
+    public static final String DEFAULT_MAPPING_CLAIM = "email";
+
 }
 

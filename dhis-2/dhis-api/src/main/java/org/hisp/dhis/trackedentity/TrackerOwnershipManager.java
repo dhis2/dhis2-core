@@ -31,6 +31,7 @@ package org.hisp.dhis.trackedentity;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.User;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed
@@ -69,6 +70,8 @@ public interface TrackerOwnershipManager
      * @return true if the user has access, false otherwise.
      */
     boolean hasAccess( User user, TrackedEntityInstance entityInstance, Program program );
+
+    boolean hasAccess( User user, String entityInstance, OrganisationUnit organisationUnit, Program program );
 
     /**
      * Grant temporary ownership for a user for a specific tei-program

@@ -86,26 +86,26 @@ public class HibernateIdentifiableObjectStoreTest
     {
         User admin = createAndInjectAdminUser();
         User user1 = new User();
-        user1.setUid( CodeGenerator.generateUid()  );
+        user1.setAutoFields();
 
         User user2 = new User();
-        user2.setUid( CodeGenerator.generateUid()  );
+        user2.setAutoFields();
 
         User user3 = new User();
-        user3.setUid( CodeGenerator.generateUid()  );
+        user3.setAutoFields();
 
         User user4 = new User();
-        user4.setUid( CodeGenerator.generateUid()  );
+        user4.setAutoFields();
 
         UserGroup userGroup1 = new UserGroup();
-        userGroup1.setUid( CodeGenerator.generateUid() );;
+        userGroup1.setAutoFields();
 
         UserGroup userGroup2 = new UserGroup(  );
-        userGroup2.setUid( CodeGenerator.generateUid() );;
+        userGroup2.setAutoFields();
 
-        user1.getGroups().add(userGroup1);
-        user1.getGroups().add(userGroup2);
-        user4.getGroups().add(userGroup2);
+        user1.getGroups().add( userGroup1 );
+        user1.getGroups().add( userGroup2 );
+        user4.getGroups().add( userGroup2 );
 
         Map<String, UserAccess> userSharing = new HashMap<>();
         userSharing.put( user1.getUid(), new UserAccess( user1, AccessStringHelper.DEFAULT ) );
@@ -123,20 +123,20 @@ public class HibernateIdentifiableObjectStoreTest
         dataElement.setUser(admin);
 
         Sharing sharing = Sharing.builder()
-            .external( true )
+            .external( false )
             .publicAccess( AccessStringHelper.DEFAULT )
             .owner( "testOwner" )
             .userGroups( userGroupSharing )
             .users( userSharing ).build();
 
         dataElement.setSharing( sharing );
-        dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
-        dataElement.setExternalAccess(false);
+//        dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
+//        dataElement.setExternalAccess(false);
 
-        dataElementService.addDataElement( dataElement );
+        dataElementStore.save( dataElement, false );
 
-        dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
-        dataElementService.updateDataElement(dataElement);
+//        dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
+//        dataElementService.updateDataElement(dataElement);
         dataElement = dataElementStore.getByUidNoAcl( dataElementUid );
 
         assertNotNull( dataElement.getSharing() );
@@ -152,11 +152,10 @@ public class HibernateIdentifiableObjectStoreTest
         // User4 doesn't have access and it belong to UserGroup2 which also doesn't have access
         assertNull( dataElementStore.getDataElement( dataElement.getUid(), user4 ) );
 
-        System.out.println("===================================");
         dataElementStore.getByUid( dataElementUid );
     }
 
-//    @Test
+    @Test
     public void testDataRead()
     {
         User admin = createAndInjectAdminUser();
@@ -207,19 +206,14 @@ public class HibernateIdentifiableObjectStoreTest
         dataElement.setUser(admin);
 
         Sharing sharing = Sharing.builder()
-            .external( true )
+            .external( false )
             .publicAccess( AccessStringHelper.DEFAULT )
             .owner( "testOwner" )
             .userGroups( userGroupSharing )
             .users( userSharing ).build();
 
         dataElement.setSharing( sharing );
-        dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
-        dataElement.setExternalAccess(false);
-        dataElementService.addDataElement( dataElement );
-
-        dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
-        dataElementService.updateDataElement(dataElement);
+        dataElementStore.save( dataElement, false );
         dataElement = dataElementStore.getByUidNoAcl( dataElementUid );
 
         assertNotNull( dataElement.getSharing() );
@@ -227,14 +221,12 @@ public class HibernateIdentifiableObjectStoreTest
         assertEquals( 4, dataElement.getSharing().getUsers().size() );
 
         // User1 can't access but it belong to UserGroup1 which has access
-//        assertNotNull( dataElementStore.getDataElement( dataElement.getUid(), user1 ) );
+        assertNotNull( dataElementStore.getDataElement( dataElement.getUid(), user1 ) );
         // User2 has access to DEA
-//        assertNotNull( dataElementStore.getDataElement( dataElement.getUid(), user2 ) );
+        assertNotNull( dataElementStore.getDataElement( dataElement.getUid(), user2 ) );
         // User3 doesn't have access and also does't belong to any groups
-//        assertNull( dataElementStore.getDataElement( dataElement.getUid(), user3 ) );
+        assertNull( dataElementStore.getDataElement( dataElement.getUid(), user3 ) );
         // User4 doesn't have access and it belong to UserGroup2 which also doesn't have access
-//        assertNull( dataElementStore.getDataElement( dataElement.getUid(), user4 ) );
-
-
+        assertNull( dataElementStore.getDataElement( dataElement.getUid(), user4 ) );
     }
 }

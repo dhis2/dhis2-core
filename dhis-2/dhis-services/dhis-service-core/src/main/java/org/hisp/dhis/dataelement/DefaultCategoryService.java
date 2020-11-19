@@ -294,6 +294,18 @@ public class DefaultCategoryService
 
     @Override
     @Transactional(readOnly = true)
+    public List<CategoryOption> getDataWriteCategoryOptions( Category category, User user )
+    {
+        if ( user == null )
+        {
+            return Lists.newArrayList();
+        }
+
+        return user.isSuper() ? getCategoryOptions( category ) : categoryOptionStore.getDataWriteCategoryOptions( category, user );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Set<CategoryOption> getCoDimensionConstraints( UserCredentials userCredentials )
     {
         Set<CategoryOption> options = null;

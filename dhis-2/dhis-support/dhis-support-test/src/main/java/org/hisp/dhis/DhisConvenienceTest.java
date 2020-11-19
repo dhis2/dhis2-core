@@ -32,8 +32,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.Matchers;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.attribute.Attribute;
@@ -143,7 +141,6 @@ import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.hisp.dhis.visualization.Visualization;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
-import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.Advised;
@@ -184,6 +181,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 /**
@@ -357,15 +356,12 @@ public abstract class DhisConvenienceTest
      * Asserts that a {@link IllegalQueryException} is thrown with the given
      * {@link ErrorCode}.
      *
-     * @param exception the {@link ExpectedException}.
+     * @param exception the {@link IllegalQueryException}.
      * @param errorCode the {@link ErrorCode}.
      */
-    public static void assertIllegalQueryEx( ExpectedException exception, ErrorCode errorCode )
+    public static void assertIllegalQueryEx( IllegalQueryException exception, ErrorCode errorCode )
     {
-        exception.expect( IllegalQueryException.class );
-        exception.expect( Matchers.hasProperty( "errorCode", CoreMatchers.is( errorCode ) ) );
-        exception.reportMissingExceptionWithMessage( String.format(
-            "Test does not throw an IllegalQueryException with error code: '%s'", errorCode ) );
+        assertThat( errorCode, is( exception.getErrorCode() ) );
     }
 
     // -------------------------------------------------------------------------
@@ -682,8 +678,7 @@ public abstract class DhisConvenienceTest
 
     public static AttributeValue createAttributeValue( Attribute attribute, String value )
     {
-        AttributeValue attributeValue = new AttributeValue( value, attribute );
-        return attributeValue;
+        return new AttributeValue( value, attribute );
     }
 
     /**

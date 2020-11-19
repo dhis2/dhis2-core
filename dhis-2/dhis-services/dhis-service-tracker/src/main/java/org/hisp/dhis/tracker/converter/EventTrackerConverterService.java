@@ -194,8 +194,19 @@ public class EventTrackerConverterService
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setExecutionDate( DateUtils.parseDate( event.getOccurredAt() ) );
         programStageInstance.setDueDate( DateUtils.parseDate( event.getScheduledAt() ) );
-        programStageInstance.setAttributeOptionCombo(
-            preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, event.getAttributeOptionCombo() ) );
+
+        String attributeOptionCombo = event.getAttributeOptionCombo();
+
+        if ( attributeOptionCombo != null )
+        {
+            programStageInstance.setAttributeOptionCombo(
+                preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, event.getAttributeOptionCombo() ) );
+        }
+        else
+        {
+            programStageInstance.setAttributeOptionCombo( (CategoryOptionCombo) preheat.getDefaults().get( CategoryOptionCombo.class ) );
+        }
+
         programStageInstance.setGeometry( event.getGeometry() );
         programStageInstance.setStatus( event.getStatus() );
 

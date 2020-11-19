@@ -28,11 +28,22 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.integration.CacheLoader;
@@ -59,15 +70,12 @@ import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This supplier builds and caches a Map of all the Programs in the system.
@@ -121,6 +129,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private final static String PROGRAM_ID = "programid";
     private final static String PROGRAM_STAGE_ID = "programstageid";
+    private final static String COMPULSORY = "compulsory";
     private final static String TRACKED_ENTITY_TYPE_ID = "trackedentitytypeid";
 
     private final static String USER_ACCESS_SQL = "select eua.${column_name}, eua.useraccessid, ua.useraccessid, ua.access, ua.userid, ui.uid, ui.code, ui.surname, ui.firstname " +
@@ -204,7 +213,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 //            Map<Long, Set<UserGroupAccess>> tetUserGroupAccessMap = loadGroupUserAccessesForTrackedEntityTypes();
 
             aggregateProgramAndAclData( programMap, loadOrgUnits(),
-                loadProgramStageDataElementMandatoryMap() );
+                loadProgramStageDataElementSets() );
 
             programsCache.put( PROGRAM_CACHE_KEY, programMap );
         }
@@ -213,7 +222,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     }
 
     private void aggregateProgramAndAclData( Map<String, Program> programMap, Map<Long, Set<OrganisationUnit>> ouMap,
-        Map<Long, Set<DataElement>> dataElementMandatoryMap )
+        Map<Long, DataElementSets> dataElementSetsMap  )
     {
 
         for ( Program program : programMap.values() )
@@ -238,15 +247,32 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 //                programStage.setUserGroupAccesses(
 //                    programStageUserGroupAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
 
-                Set<DataElement> dataElements = dataElementMandatoryMap.get( programStage.getId() );
-                if ( dataElements != null )
+                DataElementSets dataElementSets = dataElementSetsMap.get( programStage.getId() );
+                if ( dataElementSets != null )
                 {
-                    programStage.setProgramStageDataElements( dataElements.stream()
-                        .map( de -> new ProgramStageDataElement( programStage, de ) )
-                        .collect( Collectors.toSet() ) );
+                    Stream<ProgramStageDataElement> compulsoryProgramStageDataElementsStream = getOrEmpty(
+                        dataElementSets.getCompulsoryDataElements() )
+                            .map( de -> new ProgramStageDataElement( programStage, de, true ) );
+
+                    Stream<ProgramStageDataElement> nonCompulsoryProgramStageDataElementsStream = getOrEmpty(
+                        dataElementSets.getNonCompulsoryDataElements() )
+                            .map( de -> new ProgramStageDataElement( programStage, de, false ) );
+
+                    Set<ProgramStageDataElement> allProgramStageDataElements = Stream
+                        .concat( compulsoryProgramStageDataElementsStream, nonCompulsoryProgramStageDataElementsStream )
+                        .collect( Collectors.toSet() );
+
+                    programStage.setProgramStageDataElements( allProgramStageDataElements );
                 }
             }
         }
+    }
+
+    private Stream<DataElement> getOrEmpty( Set<DataElement> dataElementSet )
+    {
+        return Optional.ofNullable( dataElementSet )
+            .orElse( Collections.emptySet() )
+            .stream();
     }
 
     //
@@ -281,38 +307,64 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     }
 
     //
-    // Load all mandatory DataElements for each Program Stage
+    // Load all DataElements for each Program Stage, partitioned into compulsory and
+    // non-compulsory
     //
-    private Map<Long, Set<DataElement>> loadProgramStageDataElementMandatoryMap()
+    private Map<Long, DataElementSets> loadProgramStageDataElementSets()
     {
-        final String sql = "select psde.programstageid, de.dataelementid, de.uid as de_uid, de.code as de_code "
+        final String sql = "select psde.programstageid, de.dataelementid, de.uid as de_uid, de.code as de_code, psde.compulsory "
             + "from programstagedataelement psde "
-            + "join dataelement de on psde.dataelementid = de.dataelementid where psde.compulsory = true "
+            + "join dataelement de on psde.dataelementid = de.dataelementid "
             + "order by psde.programstageid";
 
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
 
-            Map<Long, Set<DataElement>> results = new HashMap<>();
+            Map<Long, DataElementSets> results = new HashMap<>();
             long programStageId = 0;
             while ( rs.next() )
             {
                 if ( programStageId != rs.getLong( PROGRAM_STAGE_ID ) )
                 {
-                    Set<DataElement> dataElements = new HashSet<>();
+                    DataElementSets dataElementSets = new DataElementSets();
 
                     DataElement dataElement = toDataElement( rs );
-                    dataElements.add( dataElement );
 
-                    results.put( rs.getLong( PROGRAM_STAGE_ID ), dataElements );
+                    if ( rs.getBoolean( COMPULSORY ) )
+                    {
+                        dataElementSets.getCompulsoryDataElements().add( dataElement );
+                    }
+                    else
+                    {
+                        dataElementSets.getNonCompulsoryDataElements().add( dataElement );
+                    }
+
+                    results.put( rs.getLong( PROGRAM_STAGE_ID ), dataElementSets );
                     programStageId = rs.getLong( PROGRAM_STAGE_ID );
                 }
                 else
                 {
-                    results.get( rs.getLong( PROGRAM_STAGE_ID ) ).add( toDataElement( (rs) ) );
+                    DataElementSets dataElementSets = results.get( rs.getLong( PROGRAM_STAGE_ID ) );
+                    DataElement dataElement = toDataElement( rs );
+                    if ( rs.getBoolean( COMPULSORY ) )
+                    {
+                        dataElementSets.getCompulsoryDataElements().add( dataElement );
+                    }
+                    else
+                    {
+                        dataElementSets.getNonCompulsoryDataElements().add( dataElement );
+                    }
                 }
             }
             return results;
         } );
+    }
+
+    @Data
+    static class DataElementSets
+    {
+        private final Set<DataElement> compulsoryDataElements = new HashSet<>();
+
+        private final Set<DataElement> nonCompulsoryDataElements = new HashSet<>();
     }
 
     private Map<String, Program> loadPrograms( IdSchemes idSchemes )

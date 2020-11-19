@@ -30,6 +30,7 @@ package org.hisp.dhis.common.hibernate;
 
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.DetachedCriteria;
@@ -126,46 +127,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     // InternalHibernateGenericStore implementation
     // -------------------------------------------------------------------------
 
-//    public final Criteria getDataSharingCriteria()
-//    {
-//        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA ) );
-//    }
-//
-//    @Override
-//    public final Criteria getSharingCriteria( User user )
-//    {
-//        return getExecutableCriteria( getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA ) );
-//    }
-//
-//    @Override
-//    public final DetachedCriteria getSharingDetachedCriteria()
-//    {
-//        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA );
-//    }
-//
-//    @Override
-//    public final DetachedCriteria getSharingDetachedCriteria( String access )
-//    {
-//        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
-//    }
-//
-//    @Override
-//    public final DetachedCriteria getDataSharingDetachedCriteria( String access )
-//    {
-//        return getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
-//    }
-//
     @Override
     public final DetachedCriteria getSharingDetachedCriteria( User user )
     {
         return getSharingDetachedCriteria(  UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA );
     }
-//
-//    @Override
-//    public final DetachedCriteria getDataSharingDetachedCriteria( User user )
-//    {
-//        return getDataSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
-//    }
 
     // -------------------------------------------------------------------------
     // IdentifiableObjectStore implementation
@@ -205,12 +171,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             {
                 identifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
 
-                if ( identifiableObject.getUserGroupAccesses() != null )
+                if ( !MapUtils.isEmpty( identifiableObject.getSharing().getUserGroups() ) )
                 {
-                    identifiableObject.getSharing().resetUserAccesses();
+                    identifiableObject.getSharing().resetUserGroupAccesses();
                 }
 
-                if ( identifiableObject.getUserAccesses() != null )
+                if ( !MapUtils.isEmpty( identifiableObject.getSharing().getUsers() ) )
                 {
                     identifiableObject.getSharing().resetUserAccesses();
                 }

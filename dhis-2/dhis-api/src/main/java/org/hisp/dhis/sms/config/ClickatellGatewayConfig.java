@@ -41,7 +41,7 @@ public class ClickatellGatewayConfig
 {
     private static final long serialVersionUID = -4286107769356591957L;
 
-    @JsonView( SmsConfigurationViews.Internal.class )
+    @JsonView( SmsConfigurationViews.Public.class )
     private String authToken;
 
     public String getAuthToken()

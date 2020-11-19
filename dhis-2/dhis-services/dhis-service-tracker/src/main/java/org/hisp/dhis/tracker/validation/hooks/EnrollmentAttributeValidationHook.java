@@ -28,7 +28,19 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Maps;
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1017;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1018;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1019;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1075;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_VALUE_MAP_CANT_BE_NULL;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.Authorities;
@@ -39,19 +51,13 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_VALUE_MAP_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
+import com.google.common.collect.Maps;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -70,7 +76,6 @@ public class EnrollmentAttributeValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        Program program = context.getProgram( enrollment.getProgram() );
         TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
         Map<String, String> attributeValueMap = Maps.newHashMap();
@@ -98,47 +103,35 @@ public class EnrollmentAttributeValidationHook
                 tei.getOrganisationUnit() );
         }
 
-        validateMandatoryAttributes( reporter, program, tei, attributeValueMap );
+        Program program = context.getProgram( enrollment.getProgram() );
+        validateMandatoryAttributes( reporter, program, enrollment, attributeValueMap );
     }
 
     protected void validateRequiredProperties( ValidationErrorReporter reporter, Attribute attribute )
     {
-        if ( attribute.getAttribute() == null )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1075 )
-                .addArg( attribute ) );
-        }
-
-        if ( attribute.getValue() == null )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1076 )
-                .addArg( attribute ) );
-        }
+        addErrorIfNull( attribute.getAttribute(), reporter, E1075, attribute );
+        addErrorIfNull( attribute.getValue(), reporter, E1076, attribute );
 
         if ( attribute.getAttribute() != null )
         {
             TrackedEntityAttribute teAttribute = reporter.getValidationContext()
                 .getTrackedEntityAttribute( attribute.getAttribute() );
-            if ( teAttribute == null )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1017 )
-                    .addArg( attribute.getAttribute() ) );
-            }
+
+            addErrorIfNull( teAttribute, reporter, E1017, attribute );
         }
     }
 
     private void validateMandatoryAttributes( ValidationErrorReporter reporter,
-        Program program, TrackedEntityInstance trackedEntityInstance, Map<String, String> attributeValueMap )
+        Program program, Enrollment enrollment, Map<String, String> attributeValueMap )
     {
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
-        checkNotNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+        // checkNotNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+        // -- TODO no need to check it again
         checkNotNull( attributeValueMap, ATTRIBUTE_VALUE_MAP_CANT_BE_NULL );
 
         // 1. Get all tei attributes, map attrValue attr. into set of attr.
-        Set<TrackedEntityAttribute> trackedEntityAttributes = trackedEntityInstance.getTrackedEntityAttributeValues()
-            .stream()
-            .map( TrackedEntityAttributeValue::getAttribute )
-            .collect( Collectors.toSet() );
+        Set<TrackedEntityAttribute> trackedEntityAttributes = getTrackedEntityAttributesFromEnrollment(
+            reporter.getValidationContext(), enrollment );
 
         // 2. Map all program attr. that match tei attr. into map. of attr:is mandatory
         Map<TrackedEntityAttribute, Boolean> mandatoryMap = program.getProgramAttributes().stream()
@@ -153,8 +146,9 @@ public class EnrollmentAttributeValidationHook
             Boolean attributeIsMandatory = entry.getValue();
 
             // TODO: This is quite ugly and should be considered to be solved differently,
-            //  e.i. authorization should be handled in one common place.
-            // NB: ! This authority MUST only be used in SYNC mode! This needs to be added to the check
+            // e.i. authorization should be handled in one common place.
+            // NB: ! This authority MUST only be used in SYNC mode! This needs to be added
+            // to the check
             boolean userIsAuthorizedToIgnoreRequiredValueValidation = !reporter.getValidationContext().getBundle()
                 .getUser()
                 .isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() );
@@ -163,10 +157,7 @@ public class EnrollmentAttributeValidationHook
                 && !userIsAuthorizedToIgnoreRequiredValueValidation
                 && !attributeValueMap.containsKey( attribute.getUid() );
 
-            if ( hasMissingAttribute )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1018 ).addArg( attribute ) );
-            }
+            addErrorIf( () -> hasMissingAttribute, reporter, E1018, attribute );
 
             // Remove program attr. from enrollment attr. list
             attributeValueMap.remove( attribute.getUid() );
@@ -176,10 +167,41 @@ public class EnrollmentAttributeValidationHook
         {
             for ( Map.Entry<String, String> entry : attributeValueMap.entrySet() )
             {
-                //Only Program attributes is allowed for enrollment
-                reporter.addError( newReport( TrackerErrorCode.E1019 )
-                    .addArg( entry.getKey() + "=" + entry.getValue() ) );
+                // Only Program attributes is allowed for enrollment
+                addError( reporter, E1019, entry.getKey() + "=" + entry.getValue() );
             }
         }
+    }
+
+    private Set<TrackedEntityAttribute> getTrackedEntityAttributesFromEnrollment(
+        TrackerImportValidationContext context,
+        Enrollment enrollment )
+    {
+        final TrackedEntityInstance trackedEntityInstance = context
+            .getTrackedEntityInstance( enrollment.getTrackedEntity() );
+        if ( trackedEntityInstance != null )
+        {
+            return trackedEntityInstance.getTrackedEntityAttributeValues()
+                .stream()
+                .map( TrackedEntityAttributeValue::getAttribute )
+                .collect( Collectors.toSet() );
+        }
+        else
+        {
+            final Optional<ReferenceTrackerEntity> reference = context.getReference( enrollment.getTrackedEntity() );
+            if ( reference.isPresent() )
+            {
+                final Optional<TrackedEntity> tei = context.getBundle()
+                    .getTrackedEntity( enrollment.getTrackedEntity() );
+                if ( tei.isPresent() )
+                {
+                    return tei.get().getAttributes()
+                        .stream()
+                        .map( a -> context.getTrackedEntityAttribute( a.getAttribute() ) )
+                        .collect( Collectors.toSet() );
+                }
+            }
+        }
+        return null;
     }
 }

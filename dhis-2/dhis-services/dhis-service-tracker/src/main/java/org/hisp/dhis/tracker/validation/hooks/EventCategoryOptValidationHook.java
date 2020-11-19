@@ -48,6 +48,8 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1056;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1057;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
@@ -58,12 +60,14 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class EventCategoryOptValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    @Autowired
-    protected I18nManager i18nManager;
+    private final I18nManager i18nManager;
 
-    public EventCategoryOptValidationHook( TrackedEntityAttributeService teAttrService )
+    public EventCategoryOptValidationHook( TrackedEntityAttributeService teAttrService, I18nManager i18nManager )
     {
         super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
+        
+        checkNotNull( i18nManager );
+        this.i18nManager = i18nManager;
     }
 
     @Override
@@ -108,18 +112,13 @@ public class EventCategoryOptValidationHook
         {
             if ( option.getStartDate() != null && eventDate.compareTo( option.getStartDate() ) < 0 )
             {
-                reporter.addError( newReport( TrackerErrorCode.E1056 )
-                    .addArg( i18nFormat.formatDate( eventDate ) )
-                    .addArg( i18nFormat.formatDate( option.getStartDate() ) )
-                    .addArg( option.getName() ) );
+                addError( reporter, E1056, i18nFormat.formatDate( eventDate ),
+                    i18nFormat.formatDate( option.getStartDate() ), option.getName() );
             }
 
             if ( option.getEndDate() != null && eventDate.compareTo( option.getEndDate() ) > 0 )
             {
-                reporter.addError( newReport( TrackerErrorCode.E1057 ).
-                    addArg( eventDate )
-                    .addArg( option.getEndDate() )
-                    .addArg( categoryOptionCombo ) );
+                addError( reporter, E1057, eventDate, option.getEndDate(),  categoryOptionCombo );
             }
         }
     }
