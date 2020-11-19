@@ -1,4 +1,7 @@
-package org.hisp.dhis.tracker.preheat.supplier;
+package org.hisp.dhis.program;
+
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.User;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,34 +31,21 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceStore;
-import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
-import org.springframework.stereotype.Component;
-
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
 /**
- * @author Luciano Fiandesio
+ * @author Ameen Mohamed <ameen@dhis2.org>
+ *
  */
-@RequiredArgsConstructor
-@Component
-public class ProgramInstanceSupplier extends AbstractPreheatSupplier
+public interface ProgramTempOwnerService
 {
-    @NonNull
-    private final ProgramInstanceStore programInstanceStore;
 
-    @Override
-    public void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat )
-    {
-        List<ProgramInstance> programInstances = programInstanceStore.getByType( ProgramType.WITHOUT_REGISTRATION );
-        programInstances
-            .forEach( pi -> preheat.putProgramInstancesWithoutRegistration( pi.getProgram().getUid(), pi ) );
-    }
+    String ID = ProgramTempOwnerService.class.getName();
+
+    /**
+     * Adds program temp owner
+     * 
+     * @param programTempOwner the temp owner details to add
+     */
+    void addProgramTempOwner( ProgramTempOwner programTempOwner );
+
+    int getValidTempOwnerRecordCount( Program program, TrackedEntityInstance entityInstance, User user );
 }

@@ -128,7 +128,7 @@ public class ShowErroWarningImplementerTest
 
         objectBundleService.commit( bundle );
 
-        Program program = bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJne" );
+        Program program = bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJwr" );
 
         ProgramRule programRule = createProgramRule( 'B',
             program );
