@@ -138,6 +138,7 @@
       <id>jdk11</id>
       <properties>
         <maven.compiler.release>8</maven.compiler.release>
+        <surefireArgLine>-Xmx1024m --illegal-access=permit</surefireArgLine>
       </properties>
     </profile>
 
@@ -161,7 +162,7 @@
             <configuration>
               <skipTests>false</skipTests>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>-Xmx1024m --illegal-access=permit</argLine>
+              <argLine>${surefireArgLine}</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
             </configuration>
             <dependencies>
@@ -188,7 +189,7 @@
             <configuration>
               <skipTests>false</skipTests>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>-Xmx1024m --illegal-access=permit</argLine>
+              <argLine>${surefireArgLine}</argLine>
               <groups>org.hisp.dhis.IntegrationTest</groups>
             </configuration>
             <dependencies>
@@ -214,7 +215,7 @@
             <configuration>
               <skipTests>false</skipTests>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>${argLine} -Xmx1024m --illegal-access=permit</argLine>
+              <argLine>${argLine}${surefireArgLine}</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
             </configuration>
             <dependencies>
@@ -261,7 +262,7 @@
             <configuration>
               <skipTests>true</skipTests>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>-Xmx1024m --illegal-access=permit</argLine>
+              <argLine>${surefireArgLine}</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
             </configuration>
             <dependencies>
@@ -2102,5 +2103,6 @@
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
     <ow2.asm.version>9.0</ow2.asm.version>
+    <surefireArgLine>-Xmx1024m</surefireArgLine>
   </properties>
 </project>
