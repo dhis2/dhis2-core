@@ -28,10 +28,13 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Sets;
-import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.IdentifiableObject;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -45,12 +48,10 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import com.google.api.client.util.Sets;
+import com.google.common.collect.Lists;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Enrico Colasante
@@ -65,6 +66,9 @@ public class DefaultTrackerProgramRuleService
     private final TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService;
 
     private final TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
+
+    private final String WARN_MESSAGE = "An error occurred during a Program Rule engine call for %s.\n" +
+        " Please check the response payload for additional information";
 
     public DefaultTrackerProgramRuleService(
         @Qualifier( "serviceTrackerRuleEngine" ) ProgramRuleEngine programRuleEngine,
@@ -91,8 +95,14 @@ public class DefaultTrackerProgramRuleService
                 }
                 catch ( Exception ex )
                 {
-                    log.warn( "An error occured during a Program Rule engine call for enrollment. " +
-                        "Please check the response payload for additional information" );
+                    if ( log.isDebugEnabled() )
+                    {
+                        log.debug( String.format( WARN_MESSAGE, "enrollment" ), e );
+                    }
+                    else
+                    {
+                        log.warn( String.format( WARN_MESSAGE, "enrollment" ) );
+                    }
                     return Lists.newArrayList();
                 }
             } ) );
@@ -114,8 +124,14 @@ public class DefaultTrackerProgramRuleService
                 }
                 catch ( Exception e )
                 {
-                    log.warn( "An error occured during a Program Rule engine call for event. " +
-                        "Please check the response payload for additional information" );
+                    if ( log.isDebugEnabled() )
+                    {
+                        log.debug( String.format( WARN_MESSAGE, "event" ), e );
+                    }
+                    else
+                    {
+                        log.warn( String.format( WARN_MESSAGE, "event" ) );
+                    }
                     return Lists.newArrayList();
                 }
             } ) );

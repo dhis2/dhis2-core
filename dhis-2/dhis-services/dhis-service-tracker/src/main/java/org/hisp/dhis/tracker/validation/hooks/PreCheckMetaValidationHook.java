@@ -28,6 +28,20 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1005;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1011;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1035;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1041;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1069;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1070;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1086;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1087;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1088;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1089;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1094;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4006;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -35,7 +49,6 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
@@ -51,21 +64,6 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
-
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1005;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1011;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1035;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1041;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1069;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1070;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1086;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1087;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1088;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1089;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1094;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4006;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -73,12 +71,6 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class PreCheckMetaValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-
-    public PreCheckMetaValidationHook( TrackedEntityAttributeService teAttrService )
-    {
-        super( teAttrService );
-    }
-
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity tei )
     {
@@ -234,4 +226,11 @@ public class PreCheckMetaValidationHook
         event.setProgram( identifier.getIdentifier( program ) );
         return program;
     }
+
+    @Override
+    public boolean removeOnError()
+    {
+        return true;
+    }
+
 }

@@ -47,14 +47,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -72,11 +69,6 @@ import org.springframework.stereotype.Component;
 public class RelationshipsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-
-    public RelationshipsValidationHook( TrackedEntityAttributeService teAttrService )
-    {
-        super( Relationship.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
-    }
 
     public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
     {
@@ -207,17 +199,7 @@ public class RelationshipsValidationHook
         TrackerType trackerType = relationshipItemValueType( item );
         Optional<String> itemUid = getUidFromRelationshipItem( item );
 
-        List<TrackerErrorReport> errors =
-            reporter.getReportList()
-                .stream()
-                .filter( x -> x.getTrackerType().equals( trackerType ) )
-                .collect( Collectors.toList() );
-        for ( TrackerErrorReport error : errors )
-        {
-            if ( itemUid.map( uid -> uid.equals( error.getUid() ) ).orElse( false ) )
-            {
-                addError( reporter, E4011, relationship, trackerType.getName(), itemUid.get() );
-            }
-        }
+        itemUid.ifPresent( s -> addErrorIf( () -> reporter.isInvalid( trackerType, s ), reporter, E4011, relationship,
+            trackerType.getName(), s ) );
     }
 }

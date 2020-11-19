@@ -73,9 +73,6 @@ public class PreCheckDataRelationsValidationHookTest
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
-    private TrackedEntityAttributeService trackedEntityAttributeService;
-
-    @Mock
     private ProgramInstanceService programInstanceService;
 
     @Mock
@@ -92,13 +89,11 @@ public class PreCheckDataRelationsValidationHookTest
     @Before
     public void setUp()
     {
-        validatorToTest = new PreCheckDataRelationsValidationHook( trackedEntityAttributeService,
+        validatorToTest = new PreCheckDataRelationsValidationHook(
             programInstanceService, categoryService );
 
         when( ctx.getBundle() ).thenReturn( bundle );
         when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-
-        reporter = new ValidationErrorReporter( ctx, Relationship.class );
     }
 
     @Test
@@ -117,7 +112,7 @@ public class PreCheckDataRelationsValidationHookTest
             .relationshipType( relType.getUid() )
             .build();
 
-        reporter.setMainId( relationship.getRelationship() );
+        reporter = new ValidationErrorReporter( ctx, relationship );
 
         validatorToTest.validateRelationship( reporter, relationship );
 
@@ -158,7 +153,7 @@ public class PreCheckDataRelationsValidationHookTest
             .relationshipType( relType.getUid() )
             .build();
 
-        reporter.setMainId( relationship.getRelationship() );
+        reporter = new ValidationErrorReporter( ctx, relationship );
 
         validatorToTest.validateRelationship( reporter, relationship );
 
