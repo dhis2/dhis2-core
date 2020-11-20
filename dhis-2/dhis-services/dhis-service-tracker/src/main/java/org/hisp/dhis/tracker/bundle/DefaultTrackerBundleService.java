@@ -80,6 +80,7 @@ import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.sideeffect.SideEffectHandlerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
@@ -209,6 +210,7 @@ public class DefaultTrackerBundleService
     }
 
     @Override
+    @Transactional( propagation = Propagation.NOT_SUPPORTED )
     public TrackerBundle runRuleEngine( TrackerBundle trackerBundle )
     {
         try

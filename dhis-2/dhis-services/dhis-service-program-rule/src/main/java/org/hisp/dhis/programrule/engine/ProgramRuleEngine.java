@@ -57,6 +57,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAuthorityGroup;
 
 import com.google.api.client.util.Lists;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Created by zubair@dhis2.org on 11.10.17.
@@ -100,11 +101,13 @@ public class ProgramRuleEngine
         this.implementableRuleService = implementableRuleService;
     }
 
+    @Transactional( readOnly = true )
     public List<RuleEffect> evaluate( ProgramInstance enrollment, Set<ProgramStageInstance> events )
     {
         return evaluateProgramRules( enrollment, null, events );
     }
 
+    @Transactional( readOnly = true )
     public List<RuleEffect> evaluate( ProgramInstance enrollment, ProgramStageInstance programStageInstance,
         Set<ProgramStageInstance> events )
     {
