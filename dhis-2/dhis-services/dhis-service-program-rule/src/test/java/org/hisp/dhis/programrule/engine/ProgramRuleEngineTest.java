@@ -291,6 +291,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         assertNotNull( template );
         assertEquals(  NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger() );
         assertEquals( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE, template.getNotificationRecipient() );
+        assertEquals( "message_template", template.getMessageTemplate() );
     }
 
     @Test
@@ -312,6 +313,13 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
 
         assertEquals( "PNT-1", ruleActionSendMessage.notification() );
+
+        ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid( "PNT-1" );
+
+        assertNotNull( template );
+        assertEquals(  NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger() );
+        assertEquals( ProgramNotificationRecipient.USER_GROUP, template.getNotificationRecipient() );
+        assertEquals( "message_template", template.getMessageTemplate() );
     }
 
     @Test
