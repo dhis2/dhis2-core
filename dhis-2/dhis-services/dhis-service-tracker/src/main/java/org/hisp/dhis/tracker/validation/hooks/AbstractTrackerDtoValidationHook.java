@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.DATE_STRING_CANT_BE_NULL;
 
 import java.util.Iterator;
@@ -285,6 +286,11 @@ public abstract class AbstractTrackerDtoValidationHook
     protected void addError( ValidationErrorReporter report, TrackerErrorCode errorCode, Object... args )
     {
         report.addError( newReport( errorCode ).addArgs( args ) );
+    }
+
+    protected void addWarning( ValidationErrorReporter report, TrackerErrorCode errorCode, Object... args )
+    {
+        report.addWarning( newWarningReport( errorCode ).addArgs( args ) );
     }
 
     protected void addErrorIf( Supplier<Boolean> expression, ValidationErrorReporter report, TrackerErrorCode errorCode,
