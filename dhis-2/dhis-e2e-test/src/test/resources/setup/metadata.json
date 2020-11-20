@@ -554,6 +554,43 @@
       ],
       "translations": [],
       "userAccesses": []
+    },
+    {
+      "lastUpdated": "2020-11-20T09:06:23.348",
+      "id": "TV9oB9LT3sh",
+      "created": "2020-11-20T09:06:23.348",
+      "name": "TA Parent to Child",
+      "bidirectional": false,
+      "displayName": "TA Parent to Child",
+      "publicAccess": "rw------",
+      "fromToName": "Parent Of",
+      "externalAccess": false,
+      "displayFromToName": "Parent Of",
+      "favorite": false,
+      "toConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "Q9GufDoplCL"
+        }
+      },
+      "fromConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "Q9GufDoplCL"
+        }
+      },
+      "user": {
+        "displayName": "TA Admin",
+        "id": "PQD6wXJ2r5k",
+        "username": "taadmin"
+      },
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ]
     }
   ],
   "trackedEntityTypes": [
