@@ -58,7 +58,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -71,8 +70,7 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class TrackedEntityAttributeValidationHook
-    extends AbstractTrackerDtoValidationHook
+public class TrackedEntityAttributeValidationHook extends AttributeValidationHook
 {
     private static final int MAX_ATTR_VALUE_LENGTH = 1200;
 
@@ -83,7 +81,7 @@ public class TrackedEntityAttributeValidationHook
     public TrackedEntityAttributeValidationHook( TrackedEntityAttributeService teAttrService,
         ReservedValueService reservedValueService, DhisConfigurationProvider dhisConfigurationProvider )
     {
-        super( TrackedEntity.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
+        super( teAttrService );
         checkNotNull( reservedValueService );
         checkNotNull( dhisConfigurationProvider );
         this.reservedValueService = reservedValueService;

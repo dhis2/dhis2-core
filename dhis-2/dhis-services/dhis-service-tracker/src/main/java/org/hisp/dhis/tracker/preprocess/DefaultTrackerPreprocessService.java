@@ -48,15 +48,29 @@ public class DefaultTrackerPreprocessService
 {
     private List<RuleActionApplier> appliers = new ArrayList<>();
 
+    private List<BundlePreProcessor> preProcessors = new ArrayList<>();
+
     @Autowired( required = false )
     public void setAppliers( List<RuleActionApplier> appliers )
     {
         this.appliers = appliers;
     }
 
+    @Autowired( required = false )
+    public void setPreProcessors( List<BundlePreProcessor> preProcessors )
+    {
+        this.preProcessors = preProcessors;
+    }
+
     @Override
     public TrackerBundle preprocess( TrackerBundle bundle )
     {
+        // TODO we may consider "merging" the BundlePreProcessor with the RuleActionApplier, since
+        // they share an identical interface.
+        for ( BundlePreProcessor preProcessor : preProcessors )
+        {
+            preProcessor.process( bundle );
+        }
 
         for ( RuleActionApplier applier : appliers )
         {

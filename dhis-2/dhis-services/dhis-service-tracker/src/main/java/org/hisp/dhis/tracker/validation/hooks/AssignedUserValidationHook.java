@@ -28,8 +28,9 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1118;
+
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -41,17 +42,10 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1118;
-
 @Component
 public class AssignedUserValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    public AssignedUserValidationHook( TrackedEntityAttributeService teAttrService )
-    {
-        super( teAttrService );
-    }
-
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
@@ -92,4 +86,11 @@ public class AssignedUserValidationHook
          * No implementation.
          */
     }
+
+    @Override
+    public boolean removeOnError()
+    {
+        return true;
+    }
+
 }

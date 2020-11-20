@@ -32,20 +32,20 @@ package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.UserInfoUpdatePreProcessor;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
 public class UserInfoInsertPreProcessor extends UserInfoUpdatePreProcessor
 {
 
     @Override
-    protected void updateDataValueUserInfo(EventDataValue dataValue, ProgramStageInstanceUserInfo userInfo )
+    protected void updateDataValueUserInfo( EventDataValue dataValue, UserInfoSnapshot userInfo )
     {
         super.updateDataValueUserInfo( dataValue, userInfo );
         dataValue.setCreatedByUserInfo( userInfo );
     }
 
     @Override
-    protected void updateEventUserInfo( Event event, ProgramStageInstanceUserInfo eventUserInfo )
+    protected void updateEventUserInfo( Event event, UserInfoSnapshot eventUserInfo )
     {
         super.updateEventUserInfo( event, eventUserInfo );
         event.setCreatedByUserInfo( eventUserInfo );

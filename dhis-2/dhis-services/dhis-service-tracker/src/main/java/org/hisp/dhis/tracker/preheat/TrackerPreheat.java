@@ -150,6 +150,11 @@ public class TrackerPreheat
     private Map<String, List<ProgramInstance>> programInstances = new HashMap<>();
 
     /**
+     * A Map of program uid and without registration {@see ProgramInstance}.
+     */
+    private Map<String, ProgramInstance> programInstancesWithoutRegistration = new HashMap<>();
+
+    /**
      * A list of valid usernames that are present in the payload. A username not
      * available in this cache means, payload's username is invalid.
      * These users are primarily used to represent the ValueType.USERNAME of
@@ -362,12 +367,6 @@ public class TrackerPreheat
     {
         for ( T object : objects )
         {
-            boolean isDefault = isDefault( object );
-            if ( isDefault )
-            {
-                continue;
-            }
-
             put( identifier, object );
         }
 
@@ -710,6 +709,16 @@ public class TrackerPreheat
     public void setProgramInstances( Map<String, List<ProgramInstance>> programInstances )
     {
         this.programInstances = programInstances;
+    }
+
+    public ProgramInstance getProgramInstancesWithoutRegistration( String programUid )
+    {
+        return programInstancesWithoutRegistration.get( programUid );
+    }
+
+    public void putProgramInstancesWithoutRegistration( String programUid, ProgramInstance programInstance )
+    {
+        this.programInstancesWithoutRegistration.put( programUid, programInstance );
     }
 
     public List<String> getUsernames()

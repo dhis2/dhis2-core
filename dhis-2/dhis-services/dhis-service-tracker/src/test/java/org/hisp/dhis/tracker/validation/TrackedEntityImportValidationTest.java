@@ -493,7 +493,7 @@ public class TrackedEntityImportValidationTest
 
         params.setImportStrategy( TrackerImportStrategy.DELETE );
         TrackerBundle trackerBundle = trackerBundleService.create( params );
-        assertEquals( 4, trackerBundle.getTrackedEntities().size() );
+        assertEquals( 5, trackerBundle.getTrackedEntities().size() );
 
         report = trackerValidationService.validate( trackerBundle );
         printReport( report );

@@ -29,13 +29,14 @@
 
 package org.hisp.dhis.audit;
 
-import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
-public class UserInfoTestHelper {
-
-    public static ProgramStageInstanceUserInfo testUserInfo(String username) {
-        ProgramStageInstanceUserInfo userInfo = new ProgramStageInstanceUserInfo();
-        userInfo.setUsername(username);
+public class UserInfoTestHelper
+{
+    public static UserInfoSnapshot testUserInfo( String username )
+    {
+        UserInfoSnapshot userInfo = new UserInfoSnapshot();
+        userInfo.setUsername( username );
         return userInfo;
     }
 }

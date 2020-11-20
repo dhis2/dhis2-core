@@ -47,7 +47,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -286,7 +286,7 @@ public abstract class CompressionSMSListener
         programStageInstance.setAttributeOptionCombo( aoc );
         programStageInstance.setStoredBy( user.getUsername() );
 
-        ProgramStageInstanceUserInfo currentUserInfo = ProgramStageInstanceUserInfo.from( user );
+        UserInfoSnapshot currentUserInfo = UserInfoSnapshot.from( user );
 
         programStageInstance.setCreatedByUserInfo( currentUserInfo );
         programStageInstance.setLastUpdatedByUserInfo( currentUserInfo );

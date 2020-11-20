@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -54,7 +53,6 @@ import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -66,9 +64,6 @@ public class EventNoteValidationHookTest
     // Class under test
     private EventNoteValidationHook hook;
 
-    @Mock
-    private TrackedEntityAttributeService teAttrService;
-
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -79,7 +74,7 @@ public class EventNoteValidationHookTest
     @Before
     public void setUp()
     {
-        this.hook = new EventNoteValidationHook( teAttrService );
+        this.hook = new EventNoteValidationHook();
         rnd = new BeanRandomizer();
         event = rnd.randomObject( Event.class );
     }
@@ -97,7 +92,7 @@ public class EventNoteValidationHookTest
         when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( trackerBundle.getPreheat() ).thenReturn( preheat );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, Note.class );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
 
         event.setNotes( Collections.singletonList( note ) );
 
@@ -122,7 +117,7 @@ public class EventNoteValidationHookTest
         when( ctx.getBundle() ).thenReturn( trackerBundle );
         when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, Note.class );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
 
         event.setNotes( Collections.singletonList( note ) );
 
@@ -144,7 +139,7 @@ public class EventNoteValidationHookTest
 
         when( ctx.getBundle() ).thenReturn( trackerBundle );
         when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, Note.class );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
 
         event.setNotes( notes );
 

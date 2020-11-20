@@ -109,7 +109,7 @@ public class TrackerProgramRuleBundleServiceTest extends DhisSpringTest
         objectBundleService.commit( bundle );
 
         ProgramRule programRule = createProgramRule( 'A',
-            bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJne" ) );
+            bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJwr" ) );
         programRuleService.addProgramRule( programRule );
 
         ProgramRuleAction programRuleAction = createProgramRuleAction( 'A', programRule );

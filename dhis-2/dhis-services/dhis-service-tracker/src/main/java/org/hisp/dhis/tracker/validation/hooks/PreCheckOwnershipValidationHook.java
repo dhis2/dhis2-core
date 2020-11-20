@@ -51,7 +51,6 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -76,11 +75,8 @@ public class PreCheckOwnershipValidationHook
 {
     private final TrackerImportAccessManager trackerImportAccessManager;
 
-    public PreCheckOwnershipValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackerImportAccessManager trackerImportAccessManager )
+    public PreCheckOwnershipValidationHook( TrackerImportAccessManager trackerImportAccessManager )
     {
-        super( teAttrService );
-
         checkNotNull( trackerImportAccessManager );
 
         this.trackerImportAccessManager = trackerImportAccessManager;
@@ -143,7 +139,7 @@ public class PreCheckOwnershipValidationHook
         {
             throw new NullPointerException( TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
         }
-        
+
         checkNotNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
 
@@ -168,14 +164,30 @@ public class PreCheckOwnershipValidationHook
                 .checkWriteEnrollmentAccess( reporter, programInstance.getProgram(), tei.getUid(), organisationUnit );
         }
 
-        if (tei != null) {
+        if ( tei != null )
+        {
             trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
-                    tei.getUid(), tei.getOrganisationUnit() );// This orgUnit could not be in the Preheat because is part of an already persisted Entity
-        } else {
-            trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
-                    context.getReference( enrollment.getTrackedEntity() ).get().getUid(),
-                    context.getOrganisationUnit(getOrgUnitUidFromTei(context, context.getReference( enrollment.getTrackedEntity() ).get().getUid()) ));
-            // We need to retrieve the orgUnit from the Preheat getting the uid from the TEI in the payload
+                tei.getUid(), tei.getOrganisationUnit() );// This orgUnit could not be in the Preheat because is part of
+                                                          // an already persisted Entity
+        }
+        else
+        {
+            final Optional<ReferenceTrackerEntity> trackedEntity = context
+                .getReference( enrollment.getTrackedEntity() );
+
+            if ( trackedEntity.isPresent() )
+            {
+                // We need to retrieve the orgUnit from the Preheat getting the uid from the TEI
+                // in the payload
+                trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
+                    trackedEntity.get().getUid(),
+                    context.getOrganisationUnit( getOrgUnitUidFromTei( context,
+                        trackedEntity.get().getUid() ) ) );
+            }
+            else
+            {
+                // TODO this should be caught by earlier validator
+            }
         }
     }
 
@@ -207,7 +219,9 @@ public class PreCheckOwnershipValidationHook
         }
         else
         {
-            if ( programInstance.getEntityInstance() != null ) // TODO luciano: we should add a early check where validation fails if a pi has no TEI and program is with registration
+            if ( programInstance.getEntityInstance() != null ) // TODO luciano: we should add a early check where
+                                                               // validation fails if a pi has no TEI and program is
+                                                               // with registration
             {
                 teiUid = programInstance.getEntityInstance().getUid();
             }
@@ -229,7 +243,7 @@ public class PreCheckOwnershipValidationHook
             programStage,
             teiUid,
             organisationUnit,
-            program, event.isCreatableInSearchScope());
+            program, event.isCreatableInSearchScope() );
     }
 
     @Override
@@ -237,10 +251,10 @@ public class PreCheckOwnershipValidationHook
     {
         // NOTHING TO DO HERE
     }
-    
-    protected void validateCreateEvent(ValidationErrorReporter reporter, User actingUser,
-           CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, String teiUid,
-           OrganisationUnit organisationUnit, Program program, boolean isCreatableInSearchScope)
+
+    protected void validateCreateEvent( ValidationErrorReporter reporter, User actingUser,
+        CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, String teiUid,
+        OrganisationUnit organisationUnit, Program program, boolean isCreatableInSearchScope )
     {
         checkNotNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
         checkNotNull( actingUser, USER_CANT_BE_NULL );
@@ -251,7 +265,7 @@ public class PreCheckOwnershipValidationHook
         programStage = noProgramStageAndProgramIsWithoutReg ? program.getProgramStageByStage( 1 ) : programStage;
 
         trackerImportAccessManager.checkEventWriteAccess( reporter, programStage, organisationUnit, categoryOptionCombo,
-            teiUid,isCreatableInSearchScope ); // TODO: calculate correct isCreatableInSearchScope value
+            teiUid, isCreatableInSearchScope ); // TODO: calculate correct isCreatableInSearchScope value
     }
 
     protected void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter, Event event,
@@ -278,14 +292,14 @@ public class PreCheckOwnershipValidationHook
         }
     }
 
-    private String getOrgUnitUidFromTei( TrackerImportValidationContext context, String teiUid ) {
-
+    private String getOrgUnitUidFromTei( TrackerImportValidationContext context, String teiUid )
+    {
 
         final Optional<ReferenceTrackerEntity> reference = context.getReference( teiUid );
         if ( reference.isPresent() )
         {
             final Optional<TrackedEntity> tei = context.getBundle()
-                    .getTrackedEntity( teiUid );
+                .getTrackedEntity( teiUid );
             if ( tei.isPresent() )
             {
                 return tei.get().getOrgUnit();
@@ -293,4 +307,11 @@ public class PreCheckOwnershipValidationHook
         }
         return null;
     }
+
+    @Override
+    public boolean removeOnError()
+    {
+        return true;
+    }
+
 }

@@ -48,7 +48,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -63,12 +62,12 @@ import com.google.common.collect.Maps;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EnrollmentAttributeValidationHook
-    extends AbstractTrackerDtoValidationHook
+public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 {
+
     public EnrollmentAttributeValidationHook( TrackedEntityAttributeService teAttrService )
     {
-        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
+        super( teAttrService );
     }
 
     @Override
