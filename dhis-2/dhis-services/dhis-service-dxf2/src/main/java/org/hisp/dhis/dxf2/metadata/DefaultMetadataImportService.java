@@ -28,10 +28,9 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.base.Enums;
+import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -41,7 +40,11 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.*;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.Status;
@@ -60,10 +63,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.base.Enums;
-import com.google.common.collect.Lists;
-
-import lombok.extern.slf4j.Slf4j;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -118,10 +120,12 @@ public class DefaultMetadataImportService implements MetadataImportService
             notifier.notify( params.getId(), message );
         }
 
+        preCreateBundle( params );
+
         ObjectBundleParams bundleParams = params.toObjectBundleParams();
         ObjectBundle bundle = objectBundleService.create( bundleParams );
 
-        prepareBundle( bundle, bundleParams );
+        postCreateBundle( bundle, bundleParams );
 
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         importReport.addTypeReports( validationReport.getTypeReportMap() );
@@ -275,31 +279,21 @@ public class DefaultMetadataImportService implements MetadataImportService
         return Enums.getIfPresent( enumKlass, value ).or( defaultValue );
     }
 
-    private void prepareBundle( ObjectBundle bundle, ObjectBundleParams params )
+    private void preCreateBundle( MetadataImportParams params )
     {
-        if ( bundle.getUser() == null )
+        if ( params.getUser() == null )
         {
             return;
         }
 
-        for ( Class<? extends IdentifiableObject> klass : bundle.getObjectMap().keySet() )
+        for ( Class<? extends IdentifiableObject> klass : params.getObjects().keySet() )
         {
-            bundle.getObjectMap().get( klass ).forEach( o -> prepareObject( (BaseIdentifiableObject) o, bundle, params ) );
+            params.getObjects().get( klass ).forEach( o -> preCreateBundleObject( (BaseIdentifiableObject) o, params ) );
         }
     }
 
-    private void prepareObject( BaseIdentifiableObject object, ObjectBundle bundle, ObjectBundleParams params )
+    private void preCreateBundleObject( BaseIdentifiableObject object, MetadataImportParams params )
     {
-        if ( StringUtils.isEmpty( object.getPublicAccess() ) )
-        {
-            aclService.resetSharing( object, bundle.getUser() );
-        }
-
-        if ( object.getUser() == null || bundle.getPreheat().get( params.getPreheatIdentifier(), User.class, object.getUser().getUid() ) == null )
-        {
-            object.setUser( bundle.getUser() );
-        }
-
         if ( object.getUserAccesses() == null )
         {
             object.setUserAccesses( new HashSet<>() );
@@ -310,6 +304,40 @@ public class DefaultMetadataImportService implements MetadataImportService
             object.setUserGroupAccesses( new HashSet<>() );
         }
 
-        object.setLastUpdatedBy( bundle.getUser() );
+        if ( StringUtils.isEmpty( object.getPublicAccess() ) )
+        {
+            aclService.resetSharing( object, params.getUser() );
+        }
+
+        if ( object.getUser() == null )
+        {
+            object.setUser( params.getUser() );
+        }
+
+        object.setLastUpdatedBy( params.getUser() );
+    }
+
+    private void postCreateBundle( ObjectBundle bundle, ObjectBundleParams params )
+    {
+        if ( bundle.getUser() == null )
+        {
+            return;
+        }
+
+        for ( Class<? extends IdentifiableObject> klass : bundle.getObjectMap().keySet() )
+        {
+            bundle.getObjectMap().get( klass ).forEach( o -> postCreateBundleObject( (BaseIdentifiableObject) o, bundle, params ) );
+        }
+    }
+
+    private void postCreateBundleObject( BaseIdentifiableObject object, ObjectBundle bundle, ObjectBundleParams params )
+    {
+        IdentifiableObject userByReference = bundle.getPreheat().get( params.getPreheatIdentifier(),
+            User.class, params.getPreheatIdentifier().getIdentifier( object.getUser() ) );
+
+        if ( userByReference != null )
+        {
+            object.setUser( (User) userByReference );
+        }
     }
 }
