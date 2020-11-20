@@ -120,6 +120,12 @@ public class TrackerImportParams
     private boolean skipSideEffects;
 
     /**
+     * Should rule engine call be skipped or not, default is to skip.
+     */
+    @JsonProperty
+    private boolean skipRuleEngine;
+
+    /**
      * Name of file that was used for import (if available).
      */
     @JsonProperty
@@ -189,6 +195,7 @@ public class TrackerImportParams
             .importStrategy( importStrategy )
             .skipTextPatternValidation( skipPatternValidation )
             .skipSideEffects( skipSideEffects )
+            .skipRuleEngine( skipRuleEngine )
             .identifiers( identifiers )
             .atomicMode( atomicMode )
             .flushMode( flushMode )

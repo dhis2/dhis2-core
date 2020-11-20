@@ -100,6 +100,12 @@ public class TrackerBundle
     private boolean skipSideEffects;
 
     /**
+     * Should rule engine call be skipped or not, default is to skip.
+     */
+    @JsonProperty
+    private boolean skipRuleEngine;
+
+    /**
      * Should import be treated as a atomic import (all or nothing).
      */
     @Builder.Default
