@@ -28,10 +28,12 @@
 
 package org.hisp.dhis.tracker_v2;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.RelationshipActions;
@@ -52,6 +54,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -69,13 +72,15 @@ public class TrackerImporter_relationshipsTests
 
     private static List<String> events;
 
-    private static String relationshipType = "xLmPUYJX8Ks";
+    private static final String relationshipType = "xLmPUYJX8Ks";
 
-    private String createdRelationship;
+    private List<String> createdRelationships = new ArrayList<>();
 
     private TrackerActions trackerActions;
 
     private RelationshipActions relationshipActions;
+
+    private RestApiActions relationshipTypeActions;
 
     private TEIActions teiActions;
 
@@ -102,6 +107,7 @@ public class TrackerImporter_relationshipsTests
         teiActions = new TEIActions();
         metadataActions = new MetadataActions();
         eventActions = new EventActions();
+        relationshipTypeActions = new RestApiActions( "/relationshipTypes" );
 
         new LoginActions().loginAsSuperUser();
 
@@ -137,13 +143,13 @@ public class TrackerImporter_relationshipsTests
 
         response.prettyPrint();
         // TODO more validation when the bug is fixed
-        createdRelationship = response.extractImportedRelationships().get( 0 );
+        createdRelationships = response.extractImportedRelationships();
 
         response.validateSuccessfulImport()
             .validate()
             .body( "stats.total", equalTo( 3 ) );
 
-        relationshipActions.get( createdRelationship )
+        relationshipActions.get( createdRelationships.get( 0 ) )
             .validate().statusCode( 200 )
             .body( "from.trackedEntityInstance", notNullValue() )
             .body( "to.trackedEntityInstance", notNullValue() );
@@ -151,9 +157,8 @@ public class TrackerImporter_relationshipsTests
         response.extractImportedTeis().forEach( tei -> {
             teiActions.get( tei, new QueryParamsBuilder().add( "fields=relationships" ) )
                 .validate().statusCode( 200 )
-                .body( "relationships.relationship", contains( createdRelationship ) );
+                .body( "relationships.relationship", contains( createdRelationships.get( 0 ) ) );
         } );
-
     }
 
     @Test
@@ -235,22 +240,96 @@ public class TrackerImporter_relationshipsTests
 
         //response.prettyPrint();
         response.validateSuccessfulImport();
-        createdRelationship = response.extractImportedRelationships().get( 0 );
+        createdRelationships = response.extractImportedRelationships();
 
-        ApiResponse response1 = relationshipActions.get( createdRelationship );
+        ApiResponse response1 = relationshipActions.get( createdRelationships.get(0) );
 
-        validateRelationship( response1, relType, fromInstance, fromInstanceId, toInstance, toInstanceId, createdRelationship );
+        validateRelationship( response1, relType, fromInstance, fromInstanceId, toInstance, toInstanceId, createdRelationships.get( 0 ) );
 
         //response1.prettyPrint();
         ApiResponse entityResponse = getEntityInRelationship( toInstance, toInstanceId );
 
         //entityResponse.prettyPrint();
         validateRelationship( entityResponse, relType, fromInstance, fromInstanceId, toInstance, toInstanceId,
-            createdRelationship );
+            createdRelationships.get( 0 ) );
 
         entityResponse = getEntityInRelationship( fromInstance, fromInstanceId );
         validateRelationship( entityResponse, relType, fromInstance, fromInstanceId, toInstance, toInstanceId,
-            createdRelationship );
+            createdRelationships.get( 0 ) );
+    }
+
+    @Test
+    public void shouldValidateRelationshipTypeTei()
+        throws Exception
+    {
+        // create two teis with different relationship types
+        JsonObject obj = new FileReaderUtils().read( new File( "src/test/resources/tracker/v2/teis/teis.json" ) ).replacePropertyValuesWithIds( "trackedEntity" ).get(JsonObject.class);
+
+        JsonObject tei1 = obj.getAsJsonArray("trackedEntities").get( 0 ).getAsJsonObject();
+        JsonObject tei2 = obj.getAsJsonArray("trackedEntities").get( 1 ).getAsJsonObject();
+
+        //tei2.addProperty( "trackedEntityType", "pZLWzQaAQ9L" );
+        JsonObject relationships = new JsonObjectBuilder()
+            .addProperty( "relationshipType","FC5HloWtpK3" )
+            .addObject( "from", new JsonObjectBuilder().addProperty( "trackedEntity",  tei2.get( "trackedEntity" ).getAsString() ) )
+            .addObject( "to", new JsonObjectBuilder().addProperty( "trackedEntity",tei1.get( "trackedEntity" ).getAsString()) )
+            .build();
+
+        tei1.add( "relationships", new JsonArray() );
+        tei1.getAsJsonArray("relationships").add( relationships );
+
+        TrackerApiResponse apiResponse = trackerActions.postAndGetJobReport( obj );
+
+        apiResponse.validateErrorReport();
+    }
+
+    private static Stream<Arguments> provideDuplicateRelationshipData() {
+        return Stream.of(
+            Arguments.of( teis.get( 0 ), teis.get(1), teis.get( 1 ), teis.get( 0 ), true, 1, "bi: reversed direction should import 1" ),
+            Arguments.of( teis.get( 0 ), teis.get( 1 ), teis.get( 0 ), teis.get( 1 ), false, 1, "uni: same direction should import 1" ),
+            Arguments.of( teis.get( 0 ), teis.get( 1 ), teis.get( 0 ), teis.get( 1 ), true, 1, "bi: same direction should import 1" ),
+            Arguments.of( teis.get( 0 ), teis.get( 1 ), teis.get( 1 ), teis.get( 0 ), false, 2, "uni: reversed direction should import 2" )
+        );
+    }
+
+    @MethodSource("provideDuplicateRelationshipData")
+    @ParameterizedTest(name = "{index} {6}")
+    public void shouldNotImportDuplicateRelationships(String fromTei1, String toTei1, String fromTei2, String toTei2, boolean bidirectional, int expectedCount, String representation ) {
+        String relationshipTypeId = relationshipTypeActions.get("", new QueryParamsBuilder().addAll( "filter=fromConstraint.relationshipEntity:eq:TRACKED_ENTITY_INSTANCE", "filter=toConstraint.relationshipEntity:eq:TRACKED_ENTITY_INSTANCE", "filter=bidirectional:eq:" + bidirectional ))
+            .extractString( "relationshipTypes.id[0]" );
+
+        //relationshipTypeId = null;
+        JsonObject relationship1 = JsonObjectBuilder.jsonObject()
+            .addProperty( "relationshipType", relationshipTypeId )
+            .addObject( "from", JsonObjectBuilder.jsonObject()
+                .addProperty( "trackedEntity", fromTei1 ))
+            .addObject( "to", JsonObjectBuilder.jsonObject()
+                .addProperty( "trackedEntity", toTei1 ))
+            .build();
+
+        JsonObject relationship2 = JsonObjectBuilder.jsonObject()
+            .addProperty( "relationshipType", relationshipTypeId )
+            .addObject( "from", JsonObjectBuilder.jsonObject()
+                .addProperty( "trackedEntity", fromTei2 ))
+            .addObject( "to", JsonObjectBuilder.jsonObject()
+                .addProperty( "trackedEntity", toTei2 ))
+            .build();
+
+        JsonObject array = JsonObjectBuilder.jsonObject()
+            .addArray( "relationships", relationship1, relationship2 )
+            .build();
+
+        System.out.println(array);
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( array );
+
+        createdRelationships = response.extractImportedRelationships();
+        response.prettyPrint();
+        response
+            .validateSuccessfulImport()
+            .validate().
+            body("stats.created", equalTo( expectedCount ));
+
+
     }
 
     private ApiResponse getEntityInRelationship( String toOrFromInstance, String id )
@@ -287,12 +366,10 @@ public class TrackerImporter_relationshipsTests
         {
             fromInstance = "trackedEntityInstance";
         }
-        ;
         if ( toInstance.equalsIgnoreCase( "trackedEntity" ) )
         {
             toInstance = "trackedEntityInstance";
         }
-        ;
 
         response.validate()
             .statusCode( 200 )
@@ -308,7 +385,9 @@ public class TrackerImporter_relationshipsTests
     @AfterEach
     public void cleanup()
     {
-        new TestCleanUp().deleteEntity( "relationships", createdRelationship );
+        createdRelationships.forEach( rel -> {
+            new TestCleanUp().deleteEntity( "relationships", rel );
+        } );
     }
 
 }

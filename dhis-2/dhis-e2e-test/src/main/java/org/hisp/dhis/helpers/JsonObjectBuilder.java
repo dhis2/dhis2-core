@@ -31,6 +31,7 @@ package org.hisp.dhis.helpers;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.GsonJsonProvider;
@@ -65,12 +66,23 @@ public class JsonObjectBuilder
         return new JsonObjectBuilder( jsonObject );
     }
 
-    public JsonObjectBuilder addPropertyByJsonPath( String property, String value )
+    public JsonObjectBuilder addPropertyByJsonPath( String path, String value )
     {
         Configuration conf = Configuration.builder().jsonProvider(new GsonJsonProvider())
             .options(Option.ALWAYS_RETURN_LIST, Option.SUPPRESS_EXCEPTIONS).build();
 
-        JsonPath.using( conf ).parse(jsonObject).set( property, value);
+        JsonPath.using( conf ).parse(jsonObject).set( path, value);
+
+        return this;
+    }
+
+    public JsonObjectBuilder addObjectByJsonPath( String path, Object obj ) {
+        Configuration conf = Configuration.builder().jsonProvider(new GsonJsonProvider())
+            .options(Option.ALWAYS_RETURN_LIST, Option.SUPPRESS_EXCEPTIONS).build();
+
+        DocumentContext context = JsonPath.using( conf ).parse(jsonObject);
+
+        context.set( path, obj);
 
         return this;
     }
@@ -85,6 +97,24 @@ public class JsonObjectBuilder
     public JsonObjectBuilder addObject( String property, JsonObjectBuilder obj )
     {
         jsonObject.add( property, obj.build() );
+
+        return this;
+    }
+
+    public JsonObjectBuilder addArray ( String property ) {
+        jsonObject.add( property, new JsonArray() );
+
+        return this;
+    }
+
+    public JsonObjectBuilder addArray( String property, JsonObject... objects) {
+        JsonArray array = new JsonArray();
+        for ( int i = 0; i < objects.length; i++ )
+        {
+            array.add( objects[i] );
+        }
+
+        jsonObject.add( property, array);
 
         return this;
     }
