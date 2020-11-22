@@ -254,8 +254,8 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
     private void setPrivateAccess( BaseIdentifiableObject object, UserGroup... userGroups )
     {
-        object.setPublicAccess( ACCESS_NONE );
-        object.setUser( userA ); // Needed for sharing to work
+        object.getSharing().setPublicAccess( ACCESS_NONE );
+        object.getSharing().setOwner( userA ); // Needed for sharing to work
 
         for ( UserGroup group : userGroups )
         {
@@ -264,8 +264,6 @@ public class DataApprovalServiceCategoryOptionGroupTest
             userGroupAccess.setAccess( ACCESS_READ );
 
             userGroupAccess.setUserGroup( group );
-
-            userGroupAccessService.addUserGroupAccess( userGroupAccess );
 
             object.getSharing().addUserGroupAccess( userGroupAccess );
         }

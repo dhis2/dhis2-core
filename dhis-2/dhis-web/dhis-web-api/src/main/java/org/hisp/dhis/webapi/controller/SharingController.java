@@ -46,9 +46,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccessService;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -100,12 +98,6 @@ public class SharingController
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private UserGroupAccessService userGroupAccessService;
-
-    @Autowired
-    private UserAccessService userAccessService;
 
     @Autowired
     private AclService aclService;
@@ -294,14 +286,6 @@ public class SharingController
 
         object.getSharing().getUserGroups().clear();
 
-//        while ( userGroupAccessIterator.hasNext() )
-//        {
-////            UserGroupAccess userGroupAccess = userGroupAccessIterator.next();
-//            userGroupAccessIterator.remove();
-//
-////            userGroupAccessService.deleteUserGroupAccess( userGroupAccess );
-//        }
-
         for ( SharingUserGroupAccess sharingUserGroupAccess : sharing.getObject().getUserGroupAccesses() )
         {
             UserGroupAccess userGroupAccess = new UserGroupAccess();
@@ -326,22 +310,11 @@ public class SharingController
             if ( userGroup != null )
             {
                 userGroupAccess.setUserGroup( userGroup );
-//                userGroupAccessService.addUserGroupAccess( userGroupAccess );
-
                 object.getSharing().addUserGroupAccess( userGroupAccess );
             }
         }
 
         object.getSharing().getUsers().clear();
-//        Iterator<UserAccess> userAccessIterator = object.getUserAccesses().iterator();
-//
-//        while ( userAccessIterator.hasNext() )
-//        {
-//            UserAccess userAccess = userAccessIterator.next();
-//            userAccessIterator.remove();
-//
-//            userAccessService.deleteUserAccess( userAccess );
-//        }
 
         for ( SharingUserAccess sharingUserAccess : sharing.getObject().getUserAccesses() )
         {
@@ -367,8 +340,6 @@ public class SharingController
             if ( sharingUser != null )
             {
                 userAccess.setUser( sharingUser );
-//                userAccessService.addUserAccess( userAccess );
-
                 object.getSharing().addUserAccess( userAccess );
             }
         }
