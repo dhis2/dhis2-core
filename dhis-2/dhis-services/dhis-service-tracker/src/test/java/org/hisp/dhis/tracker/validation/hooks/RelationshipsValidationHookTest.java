@@ -229,7 +229,7 @@ public class RelationshipsValidationHookTest
         assertTrue( reporter.hasErrors() );
         assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4013 ) );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), is(
-            "Relationship Type `from` constraint is missing trackedEntity" ) );
+            "Relationship Type `from` constraint is missing trackedEntity." ) );
     }
 
     @Test
