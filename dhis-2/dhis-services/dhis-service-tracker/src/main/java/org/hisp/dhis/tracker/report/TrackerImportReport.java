@@ -121,7 +121,7 @@ public class TrackerImportReport
 
         TrackerStats stats = new TrackerStats();
         stats.setIgnored( bundleSize );
-
+        report.stats = stats;
         return report;
     }
 
