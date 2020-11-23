@@ -132,8 +132,13 @@ public class DefaultTrackerImportService
 
             if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
             {
-                return TrackerImportReport.withValidationErrors( validationReport, opsTimer.stopTimer(),
-                    trackerBundle.getBundleSize() );
+                TrackerImportReport trackerImportReport = TrackerImportReport
+                    .withValidationErrors( validationReport, opsTimer.stopTimer(),
+                        trackerBundle.getBundleSize() );
+
+                notifier.endImport( trackerImportReport );
+
+                return trackerImportReport;
             }
             else
             {
