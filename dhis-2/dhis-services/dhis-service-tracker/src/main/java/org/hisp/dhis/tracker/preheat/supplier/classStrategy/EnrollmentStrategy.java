@@ -34,9 +34,11 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.hisp.dhis.tracker.preheat.mappers.ProgramInstanceMapper;
 import org.springframework.stereotype.Component;
 
 import lombok.NonNull;
@@ -47,14 +49,14 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( Enrollment.class )
+@StrategyFor( value = Enrollment.class, mapper = ProgramInstanceMapper.class )
 public class EnrollmentStrategy implements ClassBasedSupplierStrategy
 {
     @NonNull
     private final ProgramInstanceStore programInstanceStore;
 
     @Override
-    public void add( TrackerPreheatParams params, List<List<String>> splitList, TrackerPreheat preheat )
+    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
     {
         for ( List<String> ids : splitList )
         {
@@ -63,7 +65,8 @@ public class EnrollmentStrategy implements ClassBasedSupplierStrategy
             final List<String> rootEntities = params.getEnrollments().stream().map( Enrollment::getEnrollment )
                 .collect( Collectors.toList() );
 
-            preheat.putEnrollments( TrackerIdScheme.UID, programInstances,
+            preheat.putEnrollments( TrackerIdScheme.UID,
+                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), programInstances ),
                 params.getEnrollments().stream().filter(
                     e -> RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ).contains( e.getEnrollment() ) )
                     .collect( Collectors.toList() ) );

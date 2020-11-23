@@ -28,7 +28,13 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -38,22 +44,15 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.springframework.util.StringUtils;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
+import com.google.common.base.MoreObjects;
 
 /**
  * This class "collects" identifiers from all input objects.
@@ -65,19 +64,7 @@ import java.util.stream.Stream;
  */
 public class TrackerIdentifierCollector
 {
-    public static Map<Class<?>, Set<String>> collect( TrackerBundleParams params )
-    {
-        Map<Class<?>, Set<String>> map = new HashMap<>();
-
-        collectTrackedEntities( map, params.getIdentifiers(), params.getTrackedEntities() );
-        collectEnrollments( map, params.getIdentifiers(), params.getEnrollments() );
-        collectEvents( map, params.getIdentifiers(), params.getEvents() );
-        collectRelationships( map, params.getIdentifiers(), params.getRelationships() );
-
-        return map;
-    }
-
-    public static Map<Class<?>, Set<String>> collect( TrackerPreheatParams params )
+    public static Map<Class<?>, Set<String>> collect( TrackerImportParams params )
     {
         Map<Class<?>, Set<String>> map = new HashMap<>();
 

@@ -42,7 +42,6 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -323,7 +322,7 @@ public abstract class AbstractTrackerDtoValidationHook
         return false;
     }
 
-    private boolean didNotPassValidation(ValidationErrorReporter reporter, String uid )
+    private boolean didNotPassValidation( ValidationErrorReporter reporter, String uid )
     {
         return reporter.getReportList().stream().anyMatch( r -> r.getUid().equals( uid ) );
     }

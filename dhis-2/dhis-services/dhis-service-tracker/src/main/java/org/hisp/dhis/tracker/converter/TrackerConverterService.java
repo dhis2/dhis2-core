@@ -46,4 +46,9 @@ public interface TrackerConverterService<From, To>
     List<To> from( TrackerPreheat preheat, List<From> objects );
 
     To fromForRuleEngine( TrackerPreheat preheat, From object );
+
+    default boolean isNewEntity( To entity )
+    {
+        return entity == null;
+    }
 }

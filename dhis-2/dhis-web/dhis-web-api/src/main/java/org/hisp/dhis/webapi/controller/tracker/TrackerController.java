@@ -28,6 +28,14 @@ package org.hisp.dhis.webapi.controller.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
@@ -36,8 +44,6 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.job.TrackerJobWebMessageResponse;
 import org.hisp.dhis.tracker.job.TrackerMessageManager;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
@@ -46,16 +52,14 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.List;
-
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -95,16 +99,16 @@ public class TrackerController
     public void postJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser )
         throws IOException
     {
+        // Set the Import Parameters
         TrackerImportParams params = trackerImportService.getParamsFromMap( contextService.getParameterValuesMap() );
 
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson( request.getInputStream(), TrackerBundleParams.class );
-        TrackerBundle trackerBundle = trackerBundleParams.toTrackerBundle();
-        params.setTrackedEntities( trackerBundle.getTrackedEntities() );
-        params.setEnrollments( trackerBundle.getEnrollments() );
-        params.setEvents( trackerBundle.getEvents() );
-        params.setRelationships( trackerBundle.getRelationships() );
-        params.setUser( currentUser );
+        // Set the actual objects to import
+        TrackerBundleParams trackerBundleParams = renderService.fromJson( request.getInputStream(), TrackerBundleParams.class );
+        params.setUserId( currentUser.getUid() );
+        params.setTrackedEntities( trackerBundleParams.getTrackedEntities() );
+        params.setEnrollments( trackerBundleParams.getEnrollments() );
+        params.setEvents( trackerBundleParams.getEvents() );
+        params.setRelationships( trackerBundleParams.getRelationships() );
 
         String jobId = trackerMessageManager.addJob( params );
 

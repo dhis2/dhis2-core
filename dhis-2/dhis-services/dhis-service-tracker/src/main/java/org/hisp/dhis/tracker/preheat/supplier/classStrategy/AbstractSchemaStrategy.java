@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  */
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -42,8 +43,11 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.hisp.dhis.tracker.preheat.mappers.CopyMapper;
+import org.hisp.dhis.tracker.preheat.mappers.PreheatMapper;
+import org.mapstruct.factory.Mappers;
 
 /**
  * Abstract Tracker Preheat strategy that applies to strategies that employ the
@@ -68,12 +72,17 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     }
 
     @Override
-    public void add( TrackerPreheatParams params, List<List<String>> splitList, TrackerPreheat preheat )
+    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
     {
         TrackerIdentifier identifier = params.getIdentifiers().getByClass( getSchemaClass() );
         Schema schema = schemaService.getDynamicSchema( getSchemaClass() );
 
-        queryForIdentifiableObjects( preheat, schema, identifier, splitList );
+        queryForIdentifiableObjects( preheat, schema, identifier, splitList, mapper() );
+    }
+
+    private Class<? extends PreheatMapper> mapper()
+    {
+        return getClass().getAnnotation( StrategyFor.class ).mapper();
     }
 
     protected Class<?> getSchemaClass()
@@ -83,7 +92,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
 
     @SuppressWarnings( "unchecked" )
     protected void queryForIdentifiableObjects( TrackerPreheat preheat, Schema schema, TrackerIdentifier identifier,
-        List<List<String>> splitList )
+        List<List<String>> splitList, Class<? extends PreheatMapper> mapper )
     {
 
         TrackerIdScheme idScheme = identifier.getIdScheme();
@@ -104,7 +113,16 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
                 query.setUser( preheat.getUser() );
                 query.add( generateRestrictionFromIdentifiers( idScheme, ids ) );
                 query.setDefaults( Defaults.INCLUDE );
-                objects = queryService.query( query );
+                if ( mapper.isAssignableFrom( CopyMapper.class ) )
+                {
+                    objects = queryService.query( query );
+                }
+                else
+                {
+                    objects = queryService.query( query ).stream().map( o -> Mappers.getMapper( mapper ).map( o ) )
+                        .map( IdentifiableObject.class::cast ).collect( Collectors.toList() );
+                }
+
             }
 
             preheat.put( identifier, objects );

@@ -28,6 +28,8 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.tracker.preheat.mappers.PreheatMapper;
+
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.ElementType;
@@ -45,4 +47,5 @@ import java.lang.annotation.Target;
 public @interface StrategyFor
 {
     Class<?> value();
+    Class<? extends PreheatMapper> mapper();
 }

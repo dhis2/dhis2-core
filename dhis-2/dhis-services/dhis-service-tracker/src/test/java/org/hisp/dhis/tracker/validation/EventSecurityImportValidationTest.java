@@ -29,20 +29,21 @@ package org.hisp.dhis.tracker.validation;
  *
  */
 
-import org.hisp.dhis.common.IdentifiableObject;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.junit.Assert.assertEquals;
+
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -54,40 +55,23 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -102,19 +86,7 @@ public class EventSecurityImportValidationTest
     private TrackerBundleService trackerBundleService;
 
     @Autowired
-    private ObjectBundleService objectBundleService;
-
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
-
-    @Autowired
     private DefaultTrackerValidationService trackerValidationService;
-
-    @Autowired
-    private RenderService _renderService;
-
-    @Autowired
-    private UserService _userService;
 
     @Autowired
     private ProgramStageInstanceService programStageServiceInstance;
@@ -159,34 +131,16 @@ public class EventSecurityImportValidationTest
     private TrackedEntityType trackedEntityType;
 
     @Override
-    protected void setUpTest()
+    protected void initTest()
         throws IOException
     {
-        renderService = _renderService;
-        userService = _userService;
+        setUpMetadata("tracker/tracker_basic_metadata.json");
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/tracker_basic_metadata.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
-
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        List<ErrorReport> errorReports = validationReport.getErrorReports();
-        assertTrue( errorReports.isEmpty() );
-
-        ObjectBundleCommitReport commit = objectBundleService.commit( bundle );
-        List<ErrorReport> objectReport = commit.getErrorReports();
-        assertTrue( objectReport.isEmpty() );
-
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
-        trackerBundleParams.setUser( user );
+        trackerBundleParams.setUser( user  );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
         assertEquals( 5, trackerBundle.getTrackedEntities().size() );
@@ -200,7 +154,7 @@ public class EventSecurityImportValidationTest
         trackerBundleParams = renderService
             .fromJson(
                 new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+                    TrackerImportParams.class );
 
         trackerBundleParams.setUser( user );
 
@@ -314,7 +268,7 @@ public class EventSecurityImportValidationTest
     {
         setupMetadata();
 
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-no-programStage-access.json" );
 
         User user = userService.getUser( USER_3 );
@@ -356,7 +310,7 @@ public class EventSecurityImportValidationTest
         zwwuwNp6gVd.setStatus( EventStatus.COMPLETED );
         manager.update( zwwuwNp6gVd );
 
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-no-uncomplete.json" );
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
@@ -367,7 +321,7 @@ public class EventSecurityImportValidationTest
 
         User user = userService.getUser( USER_4 );
 
-        trackerBundleParams.setUser( user );
+        trackerBundleParams.setUserId( user.getUid() );
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
