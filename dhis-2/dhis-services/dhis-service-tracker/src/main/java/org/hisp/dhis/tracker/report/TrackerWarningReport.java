@@ -36,6 +36,7 @@ import java.util.List;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Builder;
@@ -58,8 +59,10 @@ public class TrackerWarningReport
 
     private final String uid;
 
-    public TrackerWarningReport( String warningMessage, TrackerErrorCode warningCode, TrackerType trackerType,
-        String uid )
+    @JsonCreator
+    public TrackerWarningReport( @JsonProperty( "message" ) String warningMessage,
+        @JsonProperty( "errorCode" ) TrackerErrorCode warningCode,
+        @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
     {
         this.warningMessage = warningMessage;
         this.warningCode = warningCode;
@@ -77,6 +80,18 @@ public class TrackerWarningReport
     public String getMessage()
     {
         return warningMessage;
+    }
+    
+    @JsonProperty
+    public TrackerType getTrackerType()
+    {
+        return trackerType;
+    }
+    
+    @JsonProperty
+    public String getUid()
+    {
+        return uid;
     }
 
     public static class TrackerWarningReportBuilder
