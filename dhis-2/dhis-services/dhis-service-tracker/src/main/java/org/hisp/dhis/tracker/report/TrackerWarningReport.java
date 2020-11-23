@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.report;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.hisp.dhis.tracker.TrackerType;
@@ -85,6 +86,12 @@ public class TrackerWarningReport
         public TrackerWarningReportBuilder addArg( Object arg )
         {
             this.arguments.add( arg );
+            return this;
+        }
+
+        public TrackerWarningReportBuilder addArgs( Object ... args )
+        {
+            this.arguments.addAll( Arrays.asList( args ) );
             return this;
         }
 

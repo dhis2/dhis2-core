@@ -29,15 +29,16 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1118;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1120;
+
+import java.util.Optional;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -49,18 +50,37 @@ public class AssignedUserValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        if ( event.getAssignedUser() != null &&
-            ( !CodeGenerator.isValidUid( event.getAssignedUser() ) ||
-                reporter.getValidationContext().getBundle().getPreheat().get( TrackerIdScheme.UID, User.class,
-                    event.getAssignedUser() ) == null) )
+        if ( event.getAssignedUser() != null )
         {
-            TrackerErrorReport.TrackerErrorReportBuilder report = TrackerErrorReport.builder()
-                .errorCode( E1118 )
-                .trackerType( TrackerType.EVENT )
-                .addArg( event.getAssignedUser() );
-
-            reporter.addError( report );
+            if ( isNotValidAssignedUserUid( event ) || assignedUserNotPresentInPreheat( reporter, event ) )
+            {
+                addError( reporter, E1118, event.getAssignedUser() );
+            }
+            if ( isNotEnabledUserAssignment( reporter, event ) )
+            {
+                addWarning( reporter, E1120, event.getProgramStage() );
+            }
         }
+    }
+
+    private Boolean isNotEnabledUserAssignment( ValidationErrorReporter reporter, Event event )
+    {
+        Boolean userAssignmentEnabled = reporter.getValidationContext().getProgramStage( event.getProgramStage() )
+            .isEnableUserAssignment();
+
+        return !Optional.ofNullable( userAssignmentEnabled )
+            .orElse( false );
+    }
+
+    private boolean assignedUserNotPresentInPreheat(ValidationErrorReporter reporter, Event event )
+    {
+        return reporter.getValidationContext().getBundle().getPreheat().get( TrackerIdScheme.UID, User.class,
+            event.getAssignedUser() ) == null;
+    }
+
+    private boolean isNotValidAssignedUserUid( Event event )
+    {
+        return !CodeGenerator.isValidUid( event.getAssignedUser() );
     }
 
     @Override
