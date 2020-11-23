@@ -73,13 +73,16 @@ public class TrackerValidationReport
 
     public void add( ValidationErrorReporter validationReporter )
     {
-        this.errorReports.addAll( validationReporter.getReportList() );
+        add( validationReporter.getReportList() );
         this.warningReports.addAll( validationReporter.getWarningsReportList() );
     }
 
     public void add( List<TrackerErrorReport> errorReports )
     {
-        this.errorReports.addAll( errorReports );
+        for ( TrackerErrorReport errorReport : errorReports )
+        {
+            addErrorIfNotExisting( errorReport );
+        }
     }
 
     public void addPerfReports( List<TrackerValidationHookTimerReport> reports )
@@ -103,5 +106,13 @@ public class TrackerValidationReport
     public long size() {
         
         return this.getErrorReports().stream().map( TrackerErrorReport::getUid ).distinct().count();
+    }
+    
+    private void addErrorIfNotExisting( TrackerErrorReport report )
+    {
+        if ( !this.errorReports.contains( report ) )
+        {
+            this.errorReports.add( report );
+        }
     }
 }
