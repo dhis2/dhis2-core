@@ -1,5 +1,4 @@
-package org.hisp.dhis.tracker.domain;
-
+package org.hisp.dhis.tracker.bundle.persister;
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,46 +27,31 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.stereotype.Service;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Facade class for classes implementing the {@link TrackerPersister} interface
+ * 
+ * @author Luciano Fiandesio
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Relationship implements TrackerDto
+@Service
+@RequiredArgsConstructor
+@Getter
+public class CommitService
 {
-    @JsonProperty
-    private String relationship;
+    @NonNull
+    private TrackedEntityPersister trackerPersister;
 
-    @JsonProperty
-    private String relationshipType;
+    @NonNull
+    private EnrollmentPersister enrollmentPersister;
 
-    @JsonProperty
-    private String createdAt;
+    @NonNull
+    private EventPersister eventPersister;
 
-    @JsonProperty
-    private String updatedAt;
-
-    @JsonProperty
-    private boolean bidirectional;
-
-    @JsonProperty
-    private RelationshipItem from;
-
-    @JsonProperty
-    private RelationshipItem to;
-
-    @Override
-    public String getUid()
-    {
-        return relationship;
-    }
+    @NonNull
+    private RelationshipPersister relationshipPersister;
 }

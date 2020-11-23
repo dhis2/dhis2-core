@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.tracker.bundle.persister;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,46 +28,28 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.hibernate.Session;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.report.TrackerTypeReport;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Interface for classes responsible of persisting Tracker objects to the
+ * persistence engine.
+ * 
+ * @author Luciano Fiandesio
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Relationship implements TrackerDto
+public interface TrackerPersister<T extends TrackerDto, V>
 {
-    @JsonProperty
-    private String relationship;
 
-    @JsonProperty
-    private String relationshipType;
-
-    @JsonProperty
-    private String createdAt;
-
-    @JsonProperty
-    private String updatedAt;
-
-    @JsonProperty
-    private boolean bidirectional;
-
-    @JsonProperty
-    private RelationshipItem from;
-
-    @JsonProperty
-    private RelationshipItem to;
-
-    @Override
-    public String getUid()
-    {
-        return relationship;
-    }
+    /**
+     * Persist one of the collections in the provided Tracker Bundle. Each class
+     * implementing this method should be responsible to persist one collection of
+     * the TrackerBundle (e.g. Enrollments)
+     * 
+     * @param session a valid Hibernate Session
+     * @param bundle the Bundle to persist
+     * @return a {@link TrackerTypeReport}
+     */
+    TrackerTypeReport persist( Session session, TrackerBundle bundle );
 }

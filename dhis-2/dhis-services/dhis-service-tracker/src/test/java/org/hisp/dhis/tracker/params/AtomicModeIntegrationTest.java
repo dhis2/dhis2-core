@@ -128,7 +128,7 @@ public class AtomicModeIntegrationTest
 
         assertNotNull( trackerImportTeiReport );
         assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );
-        assertEquals( 1, trackerImportTeiReport.getTrackerValidationReport().getErrorReports().size() );
+        assertEquals( 1, trackerImportTeiReport.getValidationReport().getErrorReports().size() );
         assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( "VALIDTEIAAA" ) );
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "INVALIDTEIA" ) );
     }
@@ -145,7 +145,7 @@ public class AtomicModeIntegrationTest
 
         assertNotNull( trackerImportTeiReport );
         assertEquals( TrackerStatus.ERROR, trackerImportTeiReport.getStatus() );
-        assertEquals( 1, trackerImportTeiReport.getTrackerValidationReport().getErrorReports().size() );
+        assertEquals( 1, trackerImportTeiReport.getValidationReport().getErrorReports().size() );
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "VALIDTEIAAA" ) );
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "INVALIDTEIA" ) );
     }

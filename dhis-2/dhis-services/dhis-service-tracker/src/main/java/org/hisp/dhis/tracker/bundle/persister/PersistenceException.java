@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.tracker.bundle.persister;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,46 +28,31 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * This exception is thrown by a {@link TrackerPersister) to signal an
+ * unrecoverable exception which should roll back the entire transaction.
+ * 
+ * @author Luciano Fiandesio
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Relationship implements TrackerDto
+public class PersistenceException extends RuntimeException
 {
-    @JsonProperty
-    private String relationship;
-
-    @JsonProperty
-    private String relationshipType;
-
-    @JsonProperty
-    private String createdAt;
-
-    @JsonProperty
-    private String updatedAt;
-
-    @JsonProperty
-    private boolean bidirectional;
-
-    @JsonProperty
-    private RelationshipItem from;
-
-    @JsonProperty
-    private RelationshipItem to;
-
-    @Override
-    public String getUid()
+    public PersistenceException()
     {
-        return relationship;
+        super();
+    }
+
+    public PersistenceException( String message )
+    {
+        super( message );
+    }
+
+    public PersistenceException( String message, Throwable cause )
+    {
+        super( message, cause );
+    }
+
+    public PersistenceException( Throwable cause )
+    {
+        super( cause );
     }
 }

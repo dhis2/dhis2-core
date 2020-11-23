@@ -117,7 +117,7 @@ public class ReportSummaryIntegrationTest
 
         assertNotNull( trackerImportTeiReport );
         assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );
-        assertTrue( trackerImportTeiReport.getTrackerValidationReport().getErrorReports().isEmpty() );
+        assertTrue( trackerImportTeiReport.getValidationReport().getErrorReports().isEmpty() );
         assertEquals( 1, trackerImportTeiReport.getStats().getCreated() );
         assertEquals( 0, trackerImportTeiReport.getStats().getUpdated() );
         assertEquals( 0, trackerImportTeiReport.getStats().getIgnored() );
@@ -141,7 +141,7 @@ public class ReportSummaryIntegrationTest
 
         assertNotNull( trackerImportTeiReport );
         assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );
-        assertTrue( trackerImportTeiReport.getTrackerValidationReport().getErrorReports().isEmpty() );
+        assertTrue( trackerImportTeiReport.getValidationReport().getErrorReports().isEmpty() );
         assertEquals( 1, trackerImportTeiReport.getStats().getCreated() );
         assertEquals( 1, trackerImportTeiReport.getStats().getUpdated() );
         assertEquals( 0, trackerImportTeiReport.getStats().getIgnored() );
@@ -169,7 +169,7 @@ public class ReportSummaryIntegrationTest
 
         assertNotNull( trackerImportTeiReport );
         assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );
-        assertEquals( 1, trackerImportTeiReport.getTrackerValidationReport().getErrorReports().size() );
+        assertEquals( 1, trackerImportTeiReport.getValidationReport().getErrorReports().size() );
         assertEquals( 1, trackerImportTeiReport.getStats().getCreated() );
         assertEquals( 1, trackerImportTeiReport.getStats().getUpdated() );
         assertEquals( 1, trackerImportTeiReport.getStats().getIgnored() );
@@ -193,7 +193,7 @@ public class ReportSummaryIntegrationTest
 
         assertNotNull( trackerImportEnrollmentReport );
         assertEquals( TrackerStatus.OK, trackerImportEnrollmentReport.getStatus() );
-        assertTrue( trackerImportEnrollmentReport.getTrackerValidationReport().getErrorReports().isEmpty() );
+        assertTrue( trackerImportEnrollmentReport.getValidationReport().getErrorReports().isEmpty() );
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getCreated() );
         assertEquals( 0, trackerImportEnrollmentReport.getStats().getUpdated() );
         assertEquals( 0, trackerImportEnrollmentReport.getStats().getIgnored() );
@@ -222,7 +222,7 @@ public class ReportSummaryIntegrationTest
 
         assertNotNull( trackerImportEnrollmentReport );
         assertEquals( TrackerStatus.OK, trackerImportEnrollmentReport.getStatus() );
-        assertTrue( trackerImportEnrollmentReport.getTrackerValidationReport().getErrorReports().isEmpty() );
+        assertTrue( trackerImportEnrollmentReport.getValidationReport().getErrorReports().isEmpty() );
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getCreated() );
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getUpdated() );
         assertEquals( 0, trackerImportEnrollmentReport.getStats().getIgnored() );
@@ -256,7 +256,7 @@ public class ReportSummaryIntegrationTest
 
         assertNotNull( trackerImportEnrollmentReport );
         assertEquals( TrackerStatus.OK, trackerImportEnrollmentReport.getStatus() );
-        assertEquals( 1, trackerImportEnrollmentReport.getTrackerValidationReport().getErrorReports().size() );
+        assertEquals( 1, trackerImportEnrollmentReport.getValidationReport().getErrorReports().size() );
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getCreated() );
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getUpdated() );
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getIgnored() );
@@ -284,7 +284,7 @@ public class ReportSummaryIntegrationTest
 
         assertNotNull( trackerImportEventReport );
         assertEquals( TrackerStatus.OK, trackerImportEventReport.getStatus() );
-        assertTrue( trackerImportEventReport.getTrackerValidationReport().getErrorReports().isEmpty() );
+        assertTrue( trackerImportEventReport.getValidationReport().getErrorReports().isEmpty() );
         assertEquals( 1, trackerImportEventReport.getStats().getCreated() );
         assertEquals( 0, trackerImportEventReport.getStats().getUpdated() );
         assertEquals( 0, trackerImportEventReport.getStats().getIgnored() );
@@ -318,7 +318,7 @@ public class ReportSummaryIntegrationTest
 
         assertNotNull( trackerImportEventReport );
         assertEquals( TrackerStatus.OK, trackerImportEventReport.getStatus() );
-        assertTrue( trackerImportEventReport.getTrackerValidationReport().getErrorReports().isEmpty() );
+        assertTrue( trackerImportEventReport.getValidationReport().getErrorReports().isEmpty() );
         assertEquals( 1, trackerImportEventReport.getStats().getCreated() );
         assertEquals( 1, trackerImportEventReport.getStats().getUpdated() );
         assertEquals( 0, trackerImportEventReport.getStats().getIgnored() );
@@ -356,7 +356,7 @@ public class ReportSummaryIntegrationTest
 
         assertNotNull( trackerImportEventReport );
         assertEquals( TrackerStatus.OK, trackerImportEventReport.getStatus() );
-        assertEquals( 1, trackerImportEventReport.getTrackerValidationReport().getErrorReports().size() );
+        assertEquals( 1, trackerImportEventReport.getValidationReport().getErrorReports().size() );
         assertEquals( 1, trackerImportEventReport.getStats().getCreated() );
         assertEquals( 1, trackerImportEventReport.getStats().getUpdated() );
         assertEquals( 1, trackerImportEventReport.getStats().getIgnored() );
