@@ -28,98 +28,199 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * This immutable object collects all the relevant information created during a
+ * Tracker Import process.
+ *
+ * The TrackerImportReport is created at the beginning of a Tracker Import
+ * session and returned to the caller.
+ *
+ * @author Luciano Fiandesio
  */
-@Data
-@NoArgsConstructor
+@Getter
 public class TrackerImportReport
 {
-
+    /**
+     * The global status of the Import operation.
+     *
+     * - OK - no errors ( including validation errors )
+     *
+     * - WARNING - at least one Warning was collected during the Import
+     *
+     * - ERROR - at least on Error was collected during the Import
+     */
+    @JsonProperty
     private TrackerStatus status = TrackerStatus.OK;
 
-    private TrackerTimingsStats timings = new TrackerTimingsStats();
-
-    private TrackerBundleReport bundleReport = new TrackerBundleReport();
-
-    private TrackerValidationReport trackerValidationReport = new TrackerValidationReport();
-    
-    private String message;
-
+    /**
+     * A list of all validation errors occurred during the validation process
+     */
     @JsonProperty
-    public TrackerStats getStats()
-    {
-        TrackerStats stats = bundleReport.getStats();
-        stats.setIgnored( calculateIgnored() );
-        return stats;
-    }
-    
-    @JsonProperty
-    public TrackerStatus getStatus()
-    {
-        return status;
-    }
-    
-    @JsonProperty
-    public TrackerBundleReport getBundleReport()
-    {
-        return bundleReport;
-    }
-
-    @JsonProperty
-    public TrackerTimingsStats getTimings()
-    {
-        return timings;
-    }
-
-    @JsonProperty
-    public TrackerValidationReport getTrackerValidationReport()
-    {
-        return trackerValidationReport;
-    }
-    
-    @JsonProperty
-    public String message()
-    {
-        if ( StringUtils.isEmpty( message ) )
-        {
-            return getStatus().name();
-        }
-        
-        return message;
-    }
-    
-    //-----------------------------------------------------------------------------------
-    // Utility Methods
-    //-----------------------------------------------------------------------------------
+    private TrackerValidationReport validationReport;
 
     /**
-     * Are there any errors present?
-     *
-     * @return true or false depending on any errors found in bundle report
+     * A final summary broken down by operation (Insert, Update, Delete, Ignored)
+     * showing how many entities where processed
      */
-    public boolean isEmpty()
+    @JsonProperty
+    private TrackerStats stats;
+
+    /**
+     * A report object containing the elapsed time for each Import stage
+     */
+    @JsonProperty
+    private TrackerTimingsStats timingsStats;
+
+    /**
+     * A report containing the outcome of the commit stage (e.g. how many entities
+     * were persisted)
+     */
+    @JsonProperty
+    private TrackerBundleReport bundleReport;
+
+    /**
+     * A message to attach to the report. This message is designed to be used only
+     * if a catastrophic error occurs and the Import Process has to stop abruptly.
+     */
+    @JsonProperty
+    private String message;
+
+    private TrackerImportReport()
     {
-        return bundleReport.isEmpty();
     }
-    
-    private int calculateIgnored()
+
+    /**
+     * Factory method to use in case one ore more Validation errors are present in
+     * the {@link TrackerValidationReport} and the Import process needs to exit
+     * without attempting persistence.
+     *
+     * Import statistics are calculated assuming that the persistence stage was
+     * never attempted, therefore all bundle objects were ignored.
+     *
+     * @param validationReport The validation report
+     * @param timingsStats The timing stats
+     * @param bundleSize The sum of all bundle objects
+     *
+     */
+    public static TrackerImportReport withValidationErrors(
+            TrackerValidationReport validationReport,
+            TrackerTimingsStats timingsStats, int bundleSize )
     {
-        if ( getTrackerValidationReport() == null || getTrackerValidationReport().getErrorReports() == null )
+        TrackerImportReport report = new TrackerImportReport();
+        report.status = TrackerStatus.ERROR;
+        report.validationReport = validationReport;
+        report.timingsStats = timingsStats;
+
+        // TrackerBundleReport is missing, nothing was persisted, assume all was ignored
+
+        TrackerStats stats = new TrackerStats();
+        stats.setIgnored( bundleSize );
+
+        return report;
+    }
+
+    /**
+     * Factory method to use in case of an unrecoverable error during the Tracker
+     * Import. This factory method will set the status to ERROR.
+     *
+     * This method should only be used when the Import process has to exit.
+     *
+     * Import statistics are not calculated.
+     *
+     * @param message The error message
+     * @param validationReport The validation report if available
+     * @param timingsStats The timing stats if available
+     *
+     */
+    public static TrackerImportReport withError( String message, TrackerValidationReport validationReport,
+                                                 TrackerTimingsStats timingsStats )
+    {
+        TrackerImportReport report = new TrackerImportReport();
+        report.status = TrackerStatus.ERROR;
+        report.message = message;
+        report.validationReport = validationReport;
+        report.timingsStats = timingsStats;
+
+        // TODO shall we calculate stats in this case?
+
+        return report;
+    }
+
+    /**
+     * Factory method to use when a Tracker Import process completes.
+     *
+     * Import statistics are calculated based on the {@link TrackerBundleReport} and
+     * {@link TrackerValidationReport}.
+     *
+     * @param status The outcome of the process
+     * @param bundleReport The report containing how many bundle objects were
+     *        successfully persisted
+     * @param validationReport The validation report if available
+     * @param timingsStats The timing stats if available
+     *
+     */
+    public static TrackerImportReport withImportCompleted( TrackerStatus status, TrackerBundleReport bundleReport,
+                                                           TrackerValidationReport validationReport,
+                                                           TrackerTimingsStats timingsStats )
+    {
+
+        TrackerImportReport report = new TrackerImportReport();
+        report.status = status;
+        report.validationReport = validationReport;
+        report.timingsStats = timingsStats;
+        report.bundleReport = bundleReport;
+
+        TrackerStats stats = new TrackerStats();
+        stats.merge( bundleReport.getStats() );
+        stats.setIgnored( Math.toIntExact( validationReport.size() ) );
+        report.stats = stats;
+
+        return report;
+    }
+
+    /**
+     * Clone the TrackerImportReport and filters out validation data based on the
+     * provided {@link TrackerBundleReport}.
+     *
+     * @return a copy of the current TrackerImportReport
+     */
+    public TrackerImportReport copy( TrackerBundleReportMode reportMode )
+    {
+        TrackerImportReport trackerImportReport = new TrackerImportReport();
+        trackerImportReport.status = this.status;
+
+        TrackerValidationReport validationReport = new TrackerValidationReport();
+
+        validationReport.setErrorReports( this.validationReport.getErrorReports() );
+        validationReport.setWarningReports( this.validationReport.getWarningReports() );
+        validationReport.setPerformanceReport( this.validationReport.getPerformanceReport() );
+
+        trackerImportReport.validationReport = validationReport;
+        trackerImportReport.stats = this.stats;
+        trackerImportReport.timingsStats = this.timingsStats;
+        trackerImportReport.bundleReport = this.bundleReport;
+
+        switch ( reportMode )
         {
-            return 0;
+            case ERRORS:
+                trackerImportReport.getValidationReport().setPerformanceReport( null );
+                trackerImportReport.getValidationReport().setWarningReports( null );
+                trackerImportReport.timingsStats = null;
+                break;
+            case WARNINGS:
+                trackerImportReport.getValidationReport().setPerformanceReport( null );
+                trackerImportReport.timingsStats = null;
+                break;
+            case FULL:
+                break;
         }
-        
-        return (int) getTrackerValidationReport().getErrorReports().stream()
-        .map( TrackerErrorReport::getUid )
-        .distinct().count();
+
+        return trackerImportReport;
     }
 }

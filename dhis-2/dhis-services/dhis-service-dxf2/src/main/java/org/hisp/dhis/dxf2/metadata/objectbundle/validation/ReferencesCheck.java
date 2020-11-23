@@ -28,10 +28,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
@@ -50,6 +46,10 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Luciano Fiandesio
@@ -78,8 +78,10 @@ public class ReferencesCheck
                 bundle.getPreheatIdentifier(), bundle.isSkipSharing(), ctx );
 
             if ( errorReports.isEmpty() )
+            {
                 continue;
-            
+            }
+
             if ( object != null )
             {
                 ObjectReport objectReport = new ObjectReport( object, bundle );
@@ -108,7 +110,7 @@ public class ReferencesCheck
 
         Schema schema = ctx.getSchemaService().getDynamicSchema( object.getClass() );
         schema.getProperties().stream().filter( p -> p.isPersisted() && p.isOwner()
-            && ( PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType() ) )
+            && (PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType()) )
             .forEach( p -> {
                 if ( skipCheck( p.getKlass() ) || skipCheck( p.getItemKlass() ) )
                 {
@@ -122,8 +124,11 @@ public class ReferencesCheck
 
                     if ( ref == null && refObject != null && !preheat.isDefault( refObject ) )
                     {
-                        if ( !("user".equals( p.getName() ) && User.class.isAssignableFrom( p.getKlass() )
-                            && skipSharing) )
+                        // HACK this needs to be redone when the move to using uuid as user identifiers is ready
+                        boolean isUserReference = User.class.isAssignableFrom( p.getKlass() ) &&
+                            ("user".equals( p.getName() ) || "lastUpdatedBy".equals( p.getName() ));
+
+                        if ( !(isUserReference && skipSharing) )
                         {
                             preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
                                 ErrorCode.E5002, identifier.getIdentifiersWithName( refObject ),
@@ -200,7 +205,6 @@ public class ReferencesCheck
     {
         return klass != null
             && (UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass )
-                || Period.class.isAssignableFrom( klass ) || PeriodType.class.isAssignableFrom( klass ));
+            || Period.class.isAssignableFrom( klass ) || PeriodType.class.isAssignableFrom( klass ));
     }
-
 }

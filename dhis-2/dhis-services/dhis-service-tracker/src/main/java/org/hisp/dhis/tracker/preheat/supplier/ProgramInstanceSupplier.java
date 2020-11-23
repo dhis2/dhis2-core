@@ -55,6 +55,7 @@ public class ProgramInstanceSupplier extends AbstractPreheatSupplier
     public void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat )
     {
         List<ProgramInstance> programInstances = programInstanceStore.getByType( ProgramType.WITHOUT_REGISTRATION );
-        programInstances.forEach( pi -> preheat.putEnrollment( TrackerIdScheme.UID, pi.getProgram().getUid(), pi ) );
+        programInstances
+            .forEach( pi -> preheat.putProgramInstancesWithoutRegistration( pi.getProgram().getUid(), pi ) );
     }
 }

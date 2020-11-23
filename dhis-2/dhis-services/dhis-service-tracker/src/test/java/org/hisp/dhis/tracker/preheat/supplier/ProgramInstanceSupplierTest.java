@@ -3,6 +3,7 @@ package org.hisp.dhis.tracker.preheat.supplier;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -49,12 +50,11 @@ public class ProgramInstanceSupplierTest
         TrackerPreheat preheat = new TrackerPreheat();
         this.supplier.preheatAdd( preheatParams, preheat );
 
-        assertThat( preheat.getEnrollments().get( TrackerIdScheme.UID ).values(), hasSize( 5 ) );
         final List<String> programUids = programInstances.stream().map( pi -> pi.getProgram().getUid() )
             .collect( Collectors.toList() );
         for ( String programUid : programUids )
         {
-            assertTrue( preheat.getEnrollments().get( TrackerIdScheme.UID ).containsKey( programUid ) );
+            assertNotNull( preheat.getProgramInstancesWithoutRegistration( programUid ) );
         }
     }
 

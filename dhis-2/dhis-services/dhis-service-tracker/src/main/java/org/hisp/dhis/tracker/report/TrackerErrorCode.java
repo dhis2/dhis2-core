@@ -72,8 +72,8 @@ public enum TrackerErrorCode
         "An Enrollment cannot be created into Program without registration." ),
     E1020( "Enrollment date: `{0}`, can`t be future date." ),
     E1021( "Incident date: `{0}`, can`t be future date." ),
-    E1023( "DisplayIncidentDate is true but IncidentDate is null or invalid formatted: `{0}`." ),
-    E1025( "Invalid Enrollment date: `{0}`." ),
+    E1023( "DisplayIncidentDate is true but property occurredAt is null or has an invalid format: `{0}`." ),
+    E1025( "Property enrolledAt is null or has an invalid format: `{0}`." ),
     E1041( "Enrollment OrganisationUnit: `{0}`, and Program: `{1}`, OrganisationUnit: `{2}`, don't match." ),
     E1068( "Could not find TrackedEntityInstance: `{0}`, linked to Enrollment." ),
     E1069( "Could not find Program: `{0}`, linked to Enrollment." ),
@@ -111,6 +111,7 @@ public enum TrackerErrorCode
     E1114( "TrackedEntity: `{0}`, is already deleted." ),
     E1118( "Assigned user `{0}` is not a valid uid."),
     E1119( "A Tracker Note with uid `{0}` already exists."),
+    E1120( "ProgramStage `{0}` does not allow user assignment"),
 
     //TODO: See TODO on error usage
     E1017( "Attribute: `{0}`, does not exist." ),
@@ -143,14 +144,18 @@ public enum TrackerErrorCode
     E1305( "DataElement `{0}` is not part of `{1}` program stage" ),
 
     E4000( "Relationship: `{0}` cannot link to itself" ),
-    E4001( "Property `{0}` can not be set when property `{1}` is `{2}`. " ),
-    E4002( "Property `{0}` must be set when property `{1}` is `{2}`. " ),
-    E4003( "There are duplicated relationships. " ),
-    E4004( "Missing required property: 'relationshipType'." ),
+    E4001( "Relationship Item `{0}` for Relationship `{1}` is invalid: an Item can link only one Tracker entity." ),
+    E4003( "There are duplicated relationships." ),
+    E4004( "Missing required relationship property: 'relationshipType'." ),
     E4005( "RelationShip: `{0}`, do not exist." ),
-    E4006( "Could not find RelationShipType: `{0}`."  ),
-
-
+    E4006( "Could not find relationship Type: `{0}`." ),
+    E4007( "Missing required relationship property: 'from'." ),
+    E4008( "Missing required relationship property: 'to'." ),
+    E4009( "Relationship Type `{0}` is not valid." ),
+    E4010( "Relationship Type `{0}` constraint requires a {1} but a {2} was found." ),
+    E4011(
+        "Relationship: `{0}` cannot be persisted because {1} {2} referenced by this relationship is not valid." ),
+    E4012( "Could not find `{0}`: `{1}`, linked to Relationship." ),
     E9999( "N/A" );
 
     private final String message;

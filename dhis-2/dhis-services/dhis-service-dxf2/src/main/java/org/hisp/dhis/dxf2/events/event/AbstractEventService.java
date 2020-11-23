@@ -50,6 +50,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.NoteHelper;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.importer.EventImporter;
@@ -582,19 +583,7 @@ public abstract class AbstractEventService implements EventService
             }
         }
 
-        List<TrackedEntityComment> comments = programStageInstance.getComments();
-
-        for ( TrackedEntityComment comment : comments )
-        {
-            Note note = new Note();
-
-            note.setNote( comment.getUid() );
-            note.setValue( comment.getCommentText() );
-            note.setStoredBy( comment.getCreator() );
-            note.setStoredDate( DateUtils.getIso8601NoTz( comment.getCreated() ) );
-
-            event.getNotes().add( note );
-        }
+        event.getNotes().addAll( NoteHelper.convertNotes( programStageInstance.getComments() ) );
 
         event.setRelationships( programStageInstance.getRelationshipItems().stream()
                 .filter( Objects::nonNull )
@@ -673,7 +662,7 @@ public abstract class AbstractEventService implements EventService
 
         User currentUser = currentUserService.getCurrentUser();
 
-        saveTrackedEntityComment( programStageInstance, event, getValidUsername( event.getStoredBy(), null,
+        saveTrackedEntityComment( programStageInstance, event, currentUser, getValidUsername( event.getStoredBy(), null,
                 currentUser != null ? currentUser.getUsername() : "[Unknown]" ) );
 
         updateTrackedEntityInstance( programStageInstance, currentUser, false );
@@ -826,7 +815,7 @@ public abstract class AbstractEventService implements EventService
         return organisationUnits;
     }
 
-    private void saveTrackedEntityComment( ProgramStageInstance programStageInstance, Event event, String storedBy )
+    private void saveTrackedEntityComment( ProgramStageInstance programStageInstance, Event event, User user, String storedBy )
     {
         for ( Note note : event.getNotes() )
         {
@@ -841,6 +830,9 @@ public abstract class AbstractEventService implements EventService
 
                 Date created = DateUtils.parseDate( note.getStoredDate() );
                 comment.setCreated( created );
+
+                comment.setLastUpdatedBy( user );
+                comment.setLastUpdated( new Date() );
 
                 commentService.addTrackedEntityComment( comment );
 
