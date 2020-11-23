@@ -51,16 +51,17 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.tracker.report.TrackerTimingsStats;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerTimingsStats;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Enums;
+import com.google.common.collect.ImmutableMap;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
@@ -115,6 +116,8 @@ public class DefaultTrackerImportService
             TrackerBundle trackerBundle = opsTimer.exec( PREHEAT_OPS,
                 () -> preheatBundle( params ) );
 
+            Map<TrackerType, Integer> bundleSize = calculatePayloadSize( trackerBundle );
+
             //
             // preprocess
             //
@@ -134,7 +137,7 @@ public class DefaultTrackerImportService
             {
                 TrackerImportReport trackerImportReport = TrackerImportReport
                     .withValidationErrors( validationReport, opsTimer.stopTimer(),
-                        trackerBundle.getBundleSize() );
+                        bundleSize.values().stream().mapToInt( Integer::intValue ).sum() );
 
                 notifier.endImport( trackerImportReport );
 
@@ -155,7 +158,7 @@ public class DefaultTrackerImportService
 
                 TrackerImportReport trackerImportReport = TrackerImportReport.withImportCompleted( TrackerStatus.OK,
                     bundleReport, validationReport,
-                    opsTimer.stopTimer() );
+                    opsTimer.stopTimer(), bundleSize );
 
                 notifier.endImport( trackerImportReport );
 
@@ -173,6 +176,15 @@ public class DefaultTrackerImportService
 
             return report;
         }
+    }
+
+    private Map<TrackerType, Integer> calculatePayloadSize( TrackerBundle bundle )
+    {
+        return ImmutableMap.<TrackerType, Integer> builder()
+            .put( TrackerType.TRACKED_ENTITY, bundle.getTrackedEntities().size() )
+            .put( TrackerType.ENROLLMENT, bundle.getEnrollments().size() )
+            .put( TrackerType.EVENT, bundle.getEvents().size() )
+            .put( TrackerType.RELATIONSHIP, bundle.getRelationships().size() ).build();
     }
 
     protected TrackerBundle preheatBundle( TrackerImportParams params )
