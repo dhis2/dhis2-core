@@ -160,7 +160,7 @@ public class DefaultPreheatService implements PreheatService
         {
             if ( params.getClasses().isEmpty() )
             {
-                schemaService.getMetadataSchemas().stream().filter( Schema::isIdentifiableObject )
+                schemaService.getMetadataSchemas().stream().filter( schema -> schema.isIdentifiableObject() && schema.isPersisted() )
                     .forEach( schema -> params.getClasses().add( (Class<? extends IdentifiableObject>) schema.getKlass() ) );
             }
 
