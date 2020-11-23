@@ -115,6 +115,10 @@ public class DefaultTrackerImportService
             TrackerBundle trackerBundle = opsTimer.exec( PREHEAT_OPS,
                 () -> preheatBundle( params ) );
 
+            // cache the bundle size because the objects in the bundle may get removed
+            // during validation
+            int bundleSize = trackerBundle.getBundleSize();
+
             //
             // preprocess
             //
@@ -133,8 +137,7 @@ public class DefaultTrackerImportService
             if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
             {
                 TrackerImportReport trackerImportReport = TrackerImportReport
-                    .withValidationErrors( validationReport, opsTimer.stopTimer(),
-                        trackerBundle.getBundleSize() );
+                    .withValidationErrors( validationReport, opsTimer.stopTimer(), bundleSize );
 
                 notifier.endImport( trackerImportReport );
 
