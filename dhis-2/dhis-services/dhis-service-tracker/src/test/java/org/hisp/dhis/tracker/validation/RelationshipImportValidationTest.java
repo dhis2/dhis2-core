@@ -28,9 +28,17 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.tracker.validation.RelationshipStubs.getAutoRelationship;
+import static org.hisp.dhis.tracker.validation.RelationshipStubs.getMissingFromRelationshipItemRelationship;
+import static org.hisp.dhis.tracker.validation.RelationshipStubs.getMissingToRelationshipItemRelationship;
+import static org.hisp.dhis.tracker.validation.RelationshipStubs.getRelationshipTypes;
+import static org.hisp.dhis.tracker.validation.RelationshipStubs.getValidRelationship;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
+
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
@@ -47,12 +55,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.tracker.validation.RelationshipStubs.*;
-import static org.hisp.dhis.tracker.validation.RelationshipStubs.getMissingToRelationshipItemRelationship;
-import static org.junit.Assert.assertEquals;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Mockito.when;
+import com.google.common.collect.Lists;
 
 /**
  * @author Enrico Colasante
@@ -69,9 +72,6 @@ public class RelationshipImportValidationTest
     @Mock
     private TrackerPreheat preheat;
 
-    @Mock
-    private TrackedEntityAttributeService teAttrService;
-
     private ValidationErrorReporter reporter;
 
     private RelationshipsValidationHook validatorToTest;
@@ -85,14 +85,15 @@ public class RelationshipImportValidationTest
         when( preheat.getAll( TrackerIdScheme.UID, RelationshipType.class ) ).thenReturn( getRelationshipTypes() );
         when( trackerBundle.getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE );
 
-        validatorToTest = new RelationshipsValidationHook( teAttrService );
-        reporter = new ValidationErrorReporter( context, Relationship.class, TrackerType.RELATIONSHIP );
+        validatorToTest = new RelationshipsValidationHook();
     }
 
     @Test
     public void validateRelationshipShouldSucceed()
     {
-        validatorToTest.validateRelationship( reporter, getValidRelationship() );
+        final Relationship rel = getValidRelationship();
+        reporter = new ValidationErrorReporter( context, rel );
+        validatorToTest.validateRelationship( reporter, rel );
 
         assertEquals( 0, reporter.getReportList().size() );
     }
@@ -100,6 +101,8 @@ public class RelationshipImportValidationTest
     @Test
     public void validateAutoRelationshipShouldFail()
     {
+        Relationship rel = getAutoRelationship();
+        reporter = new ValidationErrorReporter( context, rel );
         validatorToTest.validateRelationship( reporter, getAutoRelationship() );
 
         assertEquals( 1, reporter.getReportList().size() );
@@ -111,7 +114,9 @@ public class RelationshipImportValidationTest
     {
         when( preheat.getAll( TrackerIdScheme.UID, RelationshipType.class ) ).thenReturn( Lists.newArrayList() );
 
-        validatorToTest.validateRelationship( reporter, getValidRelationship() );
+        Relationship rel = getValidRelationship();
+        reporter = new ValidationErrorReporter( context, rel );
+        validatorToTest.validateRelationship( reporter, rel );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4009 ) );
@@ -122,7 +127,7 @@ public class RelationshipImportValidationTest
     {
         Relationship rel = getMissingFromRelationshipItemRelationship();
 
-        reporter.setMainId( rel.getRelationship() );
+        reporter = new ValidationErrorReporter( context, rel );
         validatorToTest.validateRelationship( reporter, rel );
 
         assertEquals( 1, reporter.getReportList().size() );
@@ -133,12 +138,11 @@ public class RelationshipImportValidationTest
     public void validateRelationshipShouldFailForMissingToRelationshipItem()
     {
         Relationship rel = getMissingToRelationshipItemRelationship();
-        reporter.setMainId( rel.getRelationship() );
+        reporter = new ValidationErrorReporter( context, rel );
 
         validatorToTest.validateRelationship( reporter, rel );
 
         assertEquals( 1, reporter.getReportList().size() );
         assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4008 ) );
     }
-
 }

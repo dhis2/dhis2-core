@@ -56,6 +56,7 @@ import java.util.List;
 
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * @author Enrico Colasante
@@ -159,21 +160,27 @@ public class RelationshipTrackerConverterServiceTest
         assertNotNull( from );
         assertEquals( 2, from.size() );
 
-        org.hisp.dhis.relationship.Relationship relationship1 = from.get( 0 );
-        assertNotNull( relationship1 );
-        assertNotNull( relationship1.getFrom() );
-        assertNotNull( relationship1.getTo() );
-        assertEquals( MOTHER_TO_CHILD_RELATIONSHIP_TYPE, relationship1.getRelationshipType().getUid() );
-        assertEquals( MOTHER, relationship1.getFrom().getTrackedEntityInstance().getUid() );
-        assertEquals( CHILD, relationship1.getTo().getTrackedEntityInstance().getUid() );
+        from.forEach( relationship ->
+            {
+                if ( MOTHER_TO_CHILD_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
+                {
+                    assertEquals( MOTHER, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                    assertEquals( CHILD, relationship.getTo().getTrackedEntityInstance().getUid() );
+                }
+                else if ( CHILD_TO_MOTHER_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
+                {
+                    assertEquals( CHILD, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                    assertEquals( MOTHER, relationship.getTo().getTrackedEntityInstance().getUid() );
+                }
+                else
+                {
+                    fail( "Unexpected relationshipType found." );
+                }
 
-        org.hisp.dhis.relationship.Relationship relationship2 = from.get( 1 );
-        assertNotNull( relationship2 );
-        assertNotNull( relationship2.getFrom() );
-        assertNotNull( relationship2.getTo() );
-        assertEquals( CHILD_TO_MOTHER_RELATIONSHIP_TYPE, relationship2.getRelationshipType().getUid() );
-        assertEquals( CHILD, relationship2.getFrom().getTrackedEntityInstance().getUid() );
-        assertEquals( MOTHER, relationship2.getTo().getTrackedEntityInstance().getUid() );
+                assertNotNull( relationship.getFrom() );
+                assertNotNull( relationship.getTo() );
+            }
+        );
     }
 
     @Test
@@ -187,20 +194,26 @@ public class RelationshipTrackerConverterServiceTest
         assertNotNull( to );
         assertEquals( 2, to.size() );
 
-        Relationship relationship1 = to.get( 0 );
-        assertNotNull( relationship1 );
-        assertNotNull( relationship1.getFrom() );
-        assertNotNull( relationship1.getTo() );
-        assertEquals( MOTHER_TO_CHILD_RELATIONSHIP_TYPE, relationship1.getRelationshipType() );
-        assertEquals( MOTHER, relationship1.getFrom().getTrackedEntity() );
-        assertEquals( CHILD, relationship1.getTo().getTrackedEntity() );
+        from.forEach( relationship ->
+            {
+                if ( MOTHER_TO_CHILD_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
+                {
+                    assertEquals( MOTHER, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                    assertEquals( CHILD, relationship.getTo().getTrackedEntityInstance().getUid() );
+                }
+                else if ( CHILD_TO_MOTHER_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
+                {
+                    assertEquals( CHILD, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                    assertEquals( MOTHER, relationship.getTo().getTrackedEntityInstance().getUid() );
+                }
+                else
+                {
+                    fail( "Unexpected relationshipType found." );
+                }
 
-        Relationship relationship2 = to.get( 1 );
-        assertNotNull( relationship2 );
-        assertNotNull( relationship2.getFrom() );
-        assertNotNull( relationship2.getTo() );
-        assertEquals( CHILD_TO_MOTHER_RELATIONSHIP_TYPE, relationship2.getRelationshipType() );
-        assertEquals( CHILD, relationship2.getFrom().getTrackedEntity() );
-        assertEquals( MOTHER, relationship2.getTo().getTrackedEntity() );
+                assertNotNull( relationship.getFrom() );
+                assertNotNull( relationship.getTo() );
+            }
+        );
     }
 }

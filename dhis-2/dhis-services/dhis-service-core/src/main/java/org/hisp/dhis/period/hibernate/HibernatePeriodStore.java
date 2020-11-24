@@ -28,15 +28,6 @@
 
 package org.hisp.dhis.period.hibernate;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -59,6 +50,14 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import javax.annotation.PostConstruct;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Implements the PeriodStore interface.
@@ -316,15 +315,12 @@ public class HibernatePeriodStore
     public Period insertIsoPeriodInStatelessSession( Period period )
     {
         StatelessSession session = sessionFactory.openStatelessSession();
-        session.beginTransaction();
         try
         {
             Serializable id = session.insert( period );
-            Period storedPeriod = (Period) session.get( Period.class, id );
+            PERIOD_ID_CACHE.put( period.getCacheKey(), (Long) id );
 
-            PERIOD_ID_CACHE.put( period.getCacheKey(), storedPeriod.getId() );
-
-            return storedPeriod;
+            return period;
         }
         catch ( Exception exception )
         {

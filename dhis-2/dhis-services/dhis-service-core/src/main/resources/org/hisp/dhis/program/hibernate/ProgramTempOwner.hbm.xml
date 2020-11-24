@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.program.ProgramTempOwner"
+    table="programtempowner">
+
+    <id name="id" column="programtempownerid">
+      <generator class="native" />
+    </id>
+
+    <many-to-one name="program" class="org.hisp.dhis.program.Program"
+      column="programid" foreign-key="fk_programtempowner_programid" />
+
+    <many-to-one name="entityInstance"
+      class="org.hisp.dhis.trackedentity.TrackedEntityInstance" column="trackedentityinstanceid"
+      foreign-key="fk_programtempowner_trackedentityinstanceid" />
+
+    <property name="validTill" type="timestamp" />
+
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid"
+                 foreign-key="fk_programtempowner_userid" />
+
+    <property name="reason" length="50000" />
+
+  </class>
+</hibernate-mapping>

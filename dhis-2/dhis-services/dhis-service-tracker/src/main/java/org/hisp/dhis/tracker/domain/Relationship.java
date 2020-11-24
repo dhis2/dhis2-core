@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.domain;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -63,4 +64,10 @@ public class Relationship implements TrackerDto
 
     @JsonProperty
     private RelationshipItem to;
+
+    @Override
+    public String getUid()
+    {
+        return relationship;
+    }
 }

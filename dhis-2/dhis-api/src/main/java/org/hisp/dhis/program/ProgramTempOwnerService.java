@@ -1,4 +1,7 @@
-package org.hisp.dhis.tracker.validation.hooks;
+package org.hisp.dhis.program;
+
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.User;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,42 +31,21 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.apache.commons.lang3.StringUtils.*;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1119;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.tracker.domain.Note;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-
 /**
- * @author Luciano Fiandesio
+ * @author Ameen Mohamed <ameen@dhis2.org>
+ *
  */
-public class NoteValidationUtils
+public interface ProgramTempOwnerService
 {
-    protected static List<Note> validate( ValidationErrorReporter reporter, List<Note> notesToCheck )
-    {
-        TrackerImportValidationContext context = reporter.getValidationContext();
 
-        final List<Note> notes = new ArrayList<>();
-        for ( Note note : notesToCheck )
-        {
-            if ( isNotEmpty( note.getValue() ) ) // Ignore notes with no text
-            {
-                // If a note having the same UID already exist in the db, raise error
-                if ( isNotEmpty( note.getNote() ) && context.getNote( note.getNote() ).isPresent() )
-                {
-                    reporter.addError( newReport( E1119 ).addArgs( note.getNote() ) );
-                }
-                else
-                {
-                    notes.add( note );
-                }
-            }
-        }
-        return notes;
-    }
+    String ID = ProgramTempOwnerService.class.getName();
+
+    /**
+     * Adds program temp owner
+     * 
+     * @param programTempOwner the temp owner details to add
+     */
+    void addProgramTempOwner( ProgramTempOwner programTempOwner );
+
+    int getValidTempOwnerRecordCount( Program program, TrackedEntityInstance entityInstance, User user );
 }

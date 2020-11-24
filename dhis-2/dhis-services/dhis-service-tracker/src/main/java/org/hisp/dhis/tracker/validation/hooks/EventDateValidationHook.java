@@ -28,23 +28,6 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
-import org.springframework.stereotype.Component;
-
-import java.util.Date;
-
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1042;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1043;
@@ -54,6 +37,21 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1051;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1052;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
+import java.util.Date;
+
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
+import org.springframework.stereotype.Component;
+
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -61,11 +59,6 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class EventDateValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    public EventDateValidationHook( TrackedEntityAttributeService teAttrService )
-    {
-        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
-    }
-
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {

@@ -31,7 +31,11 @@ package org.hisp.dhis.tracker.converter;
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryOption;
@@ -39,12 +43,17 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -228,20 +237,26 @@ public class EventTrackerConverterService
             programStageInstance.getComments().addAll( notesConverterService.from( preheat, event.getNotes() ) );
         }
 
+        if ( programStage.isEnableUserAssignment() )
+        {
+            User assignedUser = preheat.get( TrackerIdScheme.UID, User.class, event.getAssignedUser() );
+            programStageInstance.setAssignedUser( assignedUser );
+        }
+
         return programStageInstance;
     }
 
     private ProgramInstance getProgramInstance( TrackerPreheat preheat, TrackerIdScheme identifier, String enrollment,
         Program program )
     {
-        if ( !StringUtils.isEmpty( enrollment ) )
+        if ( ProgramType.WITH_REGISTRATION == program.getProgramType() )
         {
             return preheat.getEnrollment( identifier, enrollment );
         }
 
         if ( ProgramType.WITHOUT_REGISTRATION == program.getProgramType() )
         {
-            return preheat.getEnrollment( identifier, program.getUid() );
+            return preheat.getProgramInstancesWithoutRegistration( program.getUid() );
         }
 
         // no valid enrollment given and program not single event, just return null

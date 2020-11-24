@@ -33,9 +33,6 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningRep
 
 import java.util.List;
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.RuleActionValidator;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
@@ -43,6 +40,8 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Enrico Colasante
@@ -52,11 +51,6 @@ public class EventRuleValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     private List<RuleActionValidator> validators;
-
-    public EventRuleValidationHook( TrackedEntityAttributeService teAttrService )
-    {
-        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
-    }
 
     @Autowired( required = false )
     public void setValidators( List<RuleActionValidator> validators )
@@ -80,7 +74,7 @@ public class EventRuleValidationHook
 
         validators
             .stream()
-            .filter( v -> v.isWarning() )
+            .filter( RuleActionValidator::isWarning )
             .flatMap( v -> {
                 List<String> warnings = v.validateEvents( context.getBundle() ).get( event.getEvent() );
                 return warnings != null ? warnings.stream() : Lists.newArrayList().stream();
