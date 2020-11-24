@@ -276,32 +276,6 @@ public class TrackerImporter_relationshipsTests
             createdRelationships.get( 0 ) );
     }
 
-    @Test
-    public void shouldValidateRelationshipTypeTei()
-        throws Exception
-    {
-        // create two teis with different relationship types
-        JsonObject obj = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/teis/teis.json" ) )
-            .replacePropertyValuesWithIds( "trackedEntity" ).get( JsonObject.class );
-
-        JsonObject tei1 = obj.getAsJsonArray( "trackedEntities" ).get( 0 ).getAsJsonObject();
-        JsonObject tei2 = obj.getAsJsonArray( "trackedEntities" ).get( 1 ).getAsJsonObject();
-
-        //tei2.addProperty( "trackedEntityType", "pZLWzQaAQ9L" );
-        JsonObject relationships = new JsonObjectBuilder()
-            .addProperty( "relationshipType", "FC5HloWtpK3" )
-            .addObject( "from", new JsonObjectBuilder().addProperty( "trackedEntity", tei2.get( "trackedEntity" ).getAsString() ) )
-            .addObject( "to", new JsonObjectBuilder().addProperty( "trackedEntity", tei1.get( "trackedEntity" ).getAsString() ) )
-            .build();
-
-        tei1.add( "relationships", new JsonArray() );
-        tei1.getAsJsonArray( "relationships" ).add( relationships );
-
-        TrackerApiResponse apiResponse = trackerActions.postAndGetJobReport( obj );
-
-        apiResponse.validateErrorReport();
-    }
-
     @MethodSource( "provideDuplicateRelationshipData" )
     @ParameterizedTest( name = "{index} {6}" )
     public void shouldNotImportDuplicateRelationships( String fromTei1, String toTei1, String fromTei2, String toTei2,
