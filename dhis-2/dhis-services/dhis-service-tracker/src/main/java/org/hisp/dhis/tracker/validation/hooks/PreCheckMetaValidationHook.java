@@ -131,10 +131,11 @@ public class PreCheckMetaValidationHook
 
         Program program = context.getProgram( event.getProgram() );
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-
-        addErrorIf( () -> program.isRegistration() && StringUtils.isEmpty( event.getEnrollment() ), reporter, E1033,
-            event.getEvent() );
-
+        if ( program != null )
+        {
+            addErrorIf( () -> program.isRegistration() && StringUtils.isEmpty( event.getEnrollment() ), reporter, E1033,
+                event.getEvent() );
+        }
         validateEventProgramAndProgramStage( reporter, event, context, strategy, bundle, program, programStage );
         validateDataElementForDataValues( reporter, event, context );
     }
