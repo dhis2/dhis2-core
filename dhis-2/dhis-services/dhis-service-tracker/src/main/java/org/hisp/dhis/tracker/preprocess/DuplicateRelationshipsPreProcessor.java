@@ -128,7 +128,7 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor
         // Create a map where both key and value must be unique
         BidiMap<String, String> map = new DualHashBidiMap<>();
 
-        // Add a pseudo hash of all relationships to the map. If the relationship type is bidirectional, first
+        // Add a pseudo hash of all relationships to the map. If the relationship is bidirectional, first
         // sort the Relationship Items
         bundle.getRelationships().stream().filter( validRelationship )
             .forEach( rel -> map.put( rel.getRelationship(), hash( rel ) ) );
