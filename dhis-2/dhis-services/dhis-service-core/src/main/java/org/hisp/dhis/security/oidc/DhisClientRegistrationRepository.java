@@ -29,80 +29,69 @@ package org.hisp.dhis.security.oidc;
  *
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.oidc.provider.GenericOidcProvider;
+import org.hisp.dhis.security.oidc.provider.GoogleProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
-import org.springframework.security.oauth2.core.AuthenticationMethod;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.HashMap;
-
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_AUTHORIZATION_URI;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_ENDSESSION_URI;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_JWK_URI;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_CLIENT_ID;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_CLIENT_SECRET;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_REDIR_BASE_URL;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_TOKEN_URI;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_USER_INFO_URI;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Slf4j
 @Component( "dhisClientRegistrationRepository" )
 public class DhisClientRegistrationRepository
     implements ClientRegistrationRepository
 {
-    private InMemoryClientRegistrationRepository repository;
-
     @Autowired
-    public DhisConfigurationProvider dhisConfigurationProvider;
+    private DhisConfigurationProvider config;
+
+    private static final Map<String, DhisOidcClientRegistration> registrationHashMap = new LinkedHashMap<>();
 
     @PostConstruct
     public void init()
     {
-        String id = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_CLIENT_ID );
-        String secret = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_CLIENT_SECRET );
-        String redirBaseUri = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_REDIR_BASE_URL );
-        String authorizationUri = dhisConfigurationProvider.getProperty( OIDC_AUTHORIZATION_URI );
-        String tokenUri = dhisConfigurationProvider.getProperty( OIDC_TOKEN_URI );
-        String userInfoUri = dhisConfigurationProvider.getProperty( OIDC_USER_INFO_URI );
-        String jwkSetUri = dhisConfigurationProvider.getProperty( OIDC_JWK_URI );
-        String endSessionUri = dhisConfigurationProvider.getProperty( OIDC_ENDSESSION_URI );
+        List<Map<String, String>> genericOidcProviderConfigs = GenericOidcProviderConfigParser
+            .parse( config.getProperties() );
 
-        HashMap<String, Object> metaDataMap = new HashMap<>();
-        metaDataMap.put( "end_session_endpoint", endSessionUri );
+        genericOidcProviderConfigs.forEach(
+            genericOidcProviderConfig -> addRegistration( GenericOidcProvider.build( genericOidcProviderConfig ) ) );
 
-        ClientRegistration idporten = ClientRegistration.withRegistrationId( "idporten" )
-            .clientId( id )
-            .clientSecret( secret )
-            .clientAuthenticationMethod( ClientAuthenticationMethod.BASIC )
-            .authorizationGrantType( AuthorizationGrantType.AUTHORIZATION_CODE )
-            .redirectUriTemplate( redirBaseUri + "/login/oauth2/code/{registrationId}" )
-            .scope( "openid", "profile" )
-            .authorizationUri( authorizationUri )
-            .tokenUri( tokenUri )
-            .userInfoUri( userInfoUri )
-            .userNameAttributeName( IdTokenClaimNames.SUB )
-            .userInfoAuthenticationMethod( AuthenticationMethod.HEADER )
-            .jwkSetUri( jwkSetUri )
-            .providerConfigurationMetadata( metaDataMap )
-            .clientName( "idporten" )
-            .build();
+        addRegistration( GoogleProvider.build( config ) );
+    }
 
-        repository = new InMemoryClientRegistrationRepository( idporten );
+    public void addRegistration( DhisOidcClientRegistration registration )
+    {
+        if ( registration == null )
+        {
+            return;
+        }
+
+        registrationHashMap.put( registration.getClientRegistration().getRegistrationId(), registration );
     }
 
     @Override
     public ClientRegistration findByRegistrationId( String registrationId )
     {
-        ClientRegistration byRegistrationId = repository.findByRegistrationId( registrationId );
-        return byRegistrationId;
+        return registrationHashMap.get( registrationId ).getClientRegistration();
+    }
+
+    public DhisOidcClientRegistration getDhisOidcClientRegistration( String registrationId )
+    {
+        return registrationHashMap.get( registrationId );
+    }
+
+    public Set<String> getAllRegistrationId()
+    {
+        return registrationHashMap.keySet();
     }
 }

@@ -43,7 +43,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_LOGOUT_URI;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_LOGOUT_REDIRECT_URL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -64,7 +64,7 @@ public class OidcSLOLogoutSuccessHandler
     @PostConstruct
     public void init()
     {
-        String logoutUri = dhisConfigurationProvider.getProperty( OIDC_PROVIDER_LOGOUT_URI );
+        String logoutUri = dhisConfigurationProvider.getProperty( OIDC_LOGOUT_REDIRECT_URL );
         this.handler = new OidcClientInitiatedLogoutSuccessHandler( dhisClientRegistrationRepository );
         this.handler.setPostLogoutRedirectUri( logoutUri );
     }

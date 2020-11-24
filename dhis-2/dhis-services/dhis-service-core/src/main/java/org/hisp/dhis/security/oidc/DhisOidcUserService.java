@@ -56,41 +56,62 @@ public class DhisOidcUserService
     @Autowired
     public UserService userService;
 
+    @Autowired
+    private DhisClientRegistrationRepository clientRegistrationRepository;
+
     @Override
     public OidcUser loadUser( OidcUserRequest userRequest )
         throws OAuth2AuthenticationException
     {
         ClientRegistration clientRegistration = userRequest.getClientRegistration();
+        DhisOidcClientRegistration oidcClientRegistration = clientRegistrationRepository
+            .getDhisOidcClientRegistration( clientRegistration.getRegistrationId() );
+
+        String mappingClaimKey = oidcClientRegistration.getMappingClaimKey();
 
         OidcUser oidcUser = super.loadUser( userRequest );
-        OidcUserInfo userInfo = oidcUser.getUserInfo();
 
+        OidcUserInfo userInfo = oidcUser.getUserInfo();
         Map<String, Object> attributes = oidcUser.getAttributes();
 
-        attributes.forEach( ( key, value )
-            -> log.warn( String.format( "oidcUser.getAttributes() Key: %s Value: %s", key, value ) )
-        );
+        Object claimValue = attributes.get( mappingClaimKey );
 
-        String oidcLink = null;
-        if ( clientRegistration.getRegistrationId().equals( "idporten" ) )
+        if ( claimValue == null && userInfo != null )
         {
-            oidcLink = userInfo.getClaim( "pid" );
+            claimValue = userInfo.getClaim( mappingClaimKey );
         }
 
-        log.warn( "Trying to look up DHIS2 user with mapping id, oidcLink:" + oidcLink );
+        if ( log.isDebugEnabled() )
+        {
+            log.debug( String
+                .format( "Trying to look up DHIS2 user with OidcUser mapping mappingClaimKey='%s', claim value='%s'",
+                    mappingClaimKey, claimValue ) );
+        }
 
-        UserCredentials userCredentials = userService.getUserCredentialsByOpenId( oidcLink );
-        if ( userCredentials != null )
+        if ( claimValue != null )
         {
-            return new DhisOidcUser( userCredentials, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
+            UserCredentials userCredentials = userService.getUserCredentialsByOpenId( (String) claimValue );
+
+            if ( userCredentials != null )
+            {
+                return new DhisOidcUser( userCredentials, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
+            }
         }
-        else
+
+        String errorMessage = String
+            .format( "Failed to look up DHIS2 user with OidcUser mapping mappingClaimKey='%s', claim value='%s'",
+                mappingClaimKey, claimValue );
+
+        if ( log.isDebugEnabled() )
         {
-            OAuth2Error oauth2Error = new OAuth2Error(
-                "could_not_map_dhis2_user",
-                "Failed to map incoming OIDC sub to DHIS user.",
-                null );
-            throw new OAuth2AuthenticationException( oauth2Error, oauth2Error.toString() );
+            log.debug( errorMessage );
         }
+
+        OAuth2Error oauth2Error = new OAuth2Error(
+            "could_not_map_oidc_user_to_dhis2_user",
+            errorMessage,
+            null );
+
+        throw new OAuth2AuthenticationException( oauth2Error, oauth2Error.toString() );
     }
 }

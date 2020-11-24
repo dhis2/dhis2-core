@@ -64,7 +64,7 @@
 
     <sec:oauth2-login authentication-failure-handler-ref="securityExceptionTranslationHandler"
                       authorized-client-repository-ref="authorizedClientRepository"
-                      authorization-request-resolver-ref="dhisOAuth2AuthorizationRequestResolver"
+                      authorization-request-resolver-ref="customAuthorizationRequestResolver"
                       oidc-user-service-ref="dhisOidcUserService" />
 
     <sec:form-login default-target-url="/" always-use-default-target="false"
