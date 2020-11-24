@@ -29,13 +29,10 @@ package org.hisp.dhis.user;
  */
 
 import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -269,5 +266,14 @@ public class DefaultUserGroupService
     public List<UserGroup> getUserGroupsBetweenByName( String name, int first, int max )
     {
         return userGroupStore.getAllLikeName( name, first, max, false );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public void reloadUserGroupCache()
+    {
+        aclService.getUserGroupCache().invalidateAll();
+
+        getAllUserGroups().forEach( group -> aclService.getUserGroupCache().put( group.getUid(), group ) );
     }
 }

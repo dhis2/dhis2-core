@@ -216,6 +216,7 @@ public class DataValueSetExportAccessControlTest
         DataExportParams params = new DataExportParams()
             .setDataSets( Sets.newHashSet( dsA ) )
             .setPeriods( Sets.newHashSet( peA ) )
+            .setAttributeOptionCombos( Sets.newHashSet( cocA, cocB ) )
             .setOrganisationUnits( Sets.newHashSet( ouA ) );
 
         dataValueSetService.writeDataValueSetJson( params, out );

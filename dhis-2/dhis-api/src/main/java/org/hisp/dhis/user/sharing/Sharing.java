@@ -127,10 +127,12 @@ public class Sharing
 
     public void addUserGroupAccess( UserGroupAccess userGroupAccess )
     {
-        if ( userGroupAccess != null )
+        if ( userGroupAccess == null )
         {
-            this.userGroups.put( userGroupAccess.getId(), userGroupAccess );
+            userGroups = new HashMap<>();
         }
+
+        this.userGroups.put( userGroupAccess.getId(), userGroupAccess );
     }
 
     public void resetUserAccesses()

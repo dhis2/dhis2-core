@@ -28,23 +28,37 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.TransactionalIntegrationTestBase;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataelement.DataElementStore;
+import org.hisp.dhis.datavalue.AggregateAccessManager;
+import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueStore;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.hisp.dhis.user.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class HibernateIdentifiableObjectStoreTest
     extends TransactionalIntegrationTestBase
@@ -53,7 +67,13 @@ public class HibernateIdentifiableObjectStoreTest
     private DataElementStore dataElementStore;
 
     @Autowired
-    private DataElementService dataElementService;
+    private DataValueStore dataValueStore;
+
+    @Autowired
+    private AggregateAccessManager accessManager;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     @Autowired
     private UserService _userService;
@@ -82,7 +102,7 @@ public class HibernateIdentifiableObjectStoreTest
      * Can access DEA         |  X    |       |    X       |
      */
     @Test
-    public void testSaveDEWithObjectSharing()
+    public void testMetadataRead()
     {
         User admin = createAndInjectAdminUser();
         User user1 = new User();
@@ -130,13 +150,9 @@ public class HibernateIdentifiableObjectStoreTest
             .users( userSharing ).build();
 
         dataElement.setSharing( sharing );
-//        dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
-//        dataElement.setExternalAccess(false);
 
         dataElementStore.save( dataElement, false );
 
-//        dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
-//        dataElementService.updateDataElement(dataElement);
         dataElement = dataElementStore.getByUidNoAcl( dataElementUid );
 
         assertNotNull( dataElement.getSharing() );
@@ -151,59 +167,35 @@ public class HibernateIdentifiableObjectStoreTest
         assertNull( dataElementStore.getDataElement( dataElement.getUid(), user3 ) );
         // User4 doesn't have access and it belong to UserGroup2 which also doesn't have access
         assertNull( dataElementStore.getDataElement( dataElement.getUid(), user4 ) );
-
-        dataElementStore.getByUid( dataElementUid );
     }
 
     @Test
     public void testDataRead()
     {
-        User admin = createAndInjectAdminUser();
-        User user1 = new User();
-        UserCredentials userCredentials1 = new UserCredentials();
-        userCredentials1.setUid( CodeGenerator.generateUid() );;
-        user1.setUserCredentials( userCredentials1 );
+        User user1 = createUser( "user1", "DATA_READ" );
+        User user2 = createUser( "user2", "DATA_READ" );
+        User user3 = createUser( "user3", "DATA_READ" );
+        User user4 = createUser( "user4", "DATA_READ" );
 
-        User user2 = new User();
-        UserCredentials userCredentials2 = new UserCredentials();
-        userCredentials2.setUid( CodeGenerator.generateUid() );;
-        user2.setUserCredentials( userCredentials2 );
+        UserGroup userGroup1 = createUserGroup( 'A', Sets.newHashSet( user1 ) );
+        manager.save( userGroup1 );
 
-        User user3 = new User();
-        UserCredentials userCredentials3 = new UserCredentials();
-        userCredentials3.setUid( CodeGenerator.generateUid() );;
-        user3.setUserCredentials( userCredentials3 );
+        UserGroup userGroup2 = createUserGroup( 'B', Sets.newHashSet( user1, user4 ) );
+        manager.save( userGroup2 );
 
-        User user4 = new User();
-        UserCredentials userCredentials4 = new UserCredentials();
-        userCredentials3.setUid( CodeGenerator.generateUid() );;
-        user4.setUserCredentials( userCredentials4 );
-
-        UserGroup userGroup1 = new UserGroup();
-        userGroup1.setUid( CodeGenerator.generateUid() );;
-
-        UserGroup userGroup2 = new UserGroup(  );
-        userGroup2.setUid( CodeGenerator.generateUid() );;
-
-        user1.getGroups().add(userGroup1);
-        user1.getGroups().add(userGroup2);
-        user4.getGroups().add(userGroup2);
+        user1.getGroups().add( userGroup1 );
+        user1.getGroups().add( userGroup2 );
+        user4.getGroups().add( userGroup2 );
 
         Map<String, UserAccess> userSharing = new HashMap<>();
         userSharing.put( user1.getUid(), new UserAccess( user1, AccessStringHelper.DEFAULT ) );
-        userSharing.put( user2.getUid(), new UserAccess( user2, AccessStringHelper.DATA_READ_WRITE ) );
+        userSharing.put( user2.getUid(), new UserAccess( user2, AccessStringHelper.DATA_READ ) );
         userSharing.put( user3.getUid(), new UserAccess( user3, AccessStringHelper.DEFAULT ) );
         userSharing.put( user4.getUid(), new UserAccess( user4, AccessStringHelper.DEFAULT ) );
-
 
         Map<String, UserGroupAccess> userGroupSharing = new HashMap<>();
         userGroupSharing.put( userGroup1.getUid() , new UserGroupAccess( userGroup1, AccessStringHelper.DATA_READ_WRITE ) );
         userGroupSharing.put( userGroup2.getUid() , new UserGroupAccess( userGroup2, AccessStringHelper.DEFAULT ) );
-
-        DataElement dataElement = createDataElement( 'A' );
-        String dataElementUid = "deabcdefghA";
-        dataElement.setUid(dataElementUid);
-        dataElement.setUser(admin);
 
         Sharing sharing = Sharing.builder()
             .external( false )
@@ -212,21 +204,33 @@ public class HibernateIdentifiableObjectStoreTest
             .userGroups( userGroupSharing )
             .users( userSharing ).build();
 
-        dataElement.setSharing( sharing );
-        dataElementStore.save( dataElement, false );
-        dataElement = dataElementStore.getByUidNoAcl( dataElementUid );
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setValueType(ValueType.TEXT );
+        CategoryOptionCombo defaultCategoryOptionCombo = createCategoryOptionCombo( 'D' );
+        OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
+        Period period = createPeriod( new Date(), new Date() );
+        period.setPeriodType( PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME ) );
+        manager.save( dataElement );
+        manager.save( organisationUnitA );
+        manager.save( period );
+        manager.save( defaultCategoryOptionCombo );
 
-        assertNotNull( dataElement.getSharing() );
-        assertEquals( 2, dataElement.getSharing().getUserGroups().size() );
-        assertEquals( 4, dataElement.getSharing().getUsers().size() );
+        CategoryOption categoryOption = createCategoryOption( 'A' );
+        categoryOption.setSharing( sharing );
+        categoryOption.setCategoryOptionCombos( Sets.newHashSet( defaultCategoryOptionCombo ) );
+        manager.save( categoryOption, false );
+        defaultCategoryOptionCombo.getCategoryOptions().add( categoryOption );
 
-        // User1 can't access but it belong to UserGroup1 which has access
-        assertNotNull( dataElementStore.getDataElement( dataElement.getUid(), user1 ) );
+        DataValue dataValue = createDataValue( dataElement, period, organisationUnitA, "test", defaultCategoryOptionCombo );
+        dataValueStore.addDataValue( dataValue );
+
+        // User1 can't access but it belongs to UserGroup1 which has access
+        assertEquals(0, accessManager.canRead( user1, dataValue ).size() );
         // User2 has access to DEA
-        assertNotNull( dataElementStore.getDataElement( dataElement.getUid(), user2 ) );
-        // User3 doesn't have access and also does't belong to any groups
-        assertNull( dataElementStore.getDataElement( dataElement.getUid(), user3 ) );
+        assertEquals(0, accessManager.canRead( user2, dataValue ).size() );
+        // User3 doesn't have access and also doesn't belong to any groups
+        assertEquals( 1, accessManager.canRead( user3, dataValue ).size() );
         // User4 doesn't have access and it belong to UserGroup2 which also doesn't have access
-        assertNull( dataElementStore.getDataElement( dataElement.getUid(), user4 ) );
+        assertEquals( 1, accessManager.canRead( user4, dataValue ).size() );
     }
 }

@@ -134,6 +134,8 @@ public class DefaultUserService
 
         userStore.save( user );
 
+        userGroupService.reloadUserGroupCache();
+
         return user.getId();
     }
 
@@ -142,6 +144,8 @@ public class DefaultUserService
     public void updateUser( User user )
     {
         userStore.update( user );
+
+        userGroupService.reloadUserGroupCache();
 
         AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_UPDATE );
     }
