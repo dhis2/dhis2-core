@@ -43,6 +43,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1094;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4006;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -125,7 +126,7 @@ public class PreCheckMetaValidationHook
         TrackerImportStrategy strategy = context.getStrategy( event );
         TrackerBundle bundle = context.getBundle();
 
-        addErrorIfNull( event.getEnrollment(), reporter, E1033, event.getEvent() );
+        addErrorIf( () -> StringUtils.isEmpty( event.getEnrollment() ), reporter, E1033, event.getEvent() );
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
         addErrorIfNull( organisationUnit, reporter, E1011, event.getOrgUnit() );
