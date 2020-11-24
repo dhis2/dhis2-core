@@ -110,8 +110,13 @@ public class EnrollmentSecurityTest
 
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
+
         manager.save( organisationUnitA );
         manager.save( organisationUnitB );
+
+        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
+        trackedEntityType.getSharing().setPublicAccess( AccessStringHelper.FULL );
+        manager.save( trackedEntityType, false );
 
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
@@ -130,6 +135,7 @@ public class EnrollmentSecurityTest
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
+        programA.setTrackedEntityType( trackedEntityType );
         manager.save( programA );
 
         ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
@@ -156,9 +162,6 @@ public class EnrollmentSecurityTest
         manager.update( programStageB );
         manager.update( programA );
 
-        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
-        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-
         maleA = createTrackedEntityInstance( organisationUnitA );
         maleB = createTrackedEntityInstance( organisationUnitB );
         femaleA = createTrackedEntityInstance( organisationUnitA );
@@ -180,14 +183,17 @@ public class EnrollmentSecurityTest
      * orgUnit = Accessible
      * status = SUCCESS
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testUserWithDataReadWrite()
     {
-        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-        manager.update( programA );
+        programA.getSharing().setPublicAccess( AccessStringHelper.FULL );
+        manager.updateNoAcl( programA );
 
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
+
+        userService.addUser( user );
 
         injectSecurityContext( user );
 
@@ -209,11 +215,11 @@ public class EnrollmentSecurityTest
      * orgUnit = Not Accessible
      * status = ERROR
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testUserWithDataReadWriteNoOrgUnit()
     {
-        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-        manager.update( programA );
+        programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        manager.updateNoAcl( programA );
 
         User user = createUser( "user1" );
 
@@ -237,11 +243,11 @@ public class EnrollmentSecurityTest
      * orgUnit = Accessible
      * status = ERROR
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testUserWithDataReadOrgUnit()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
-        manager.update( programA );
+        manager.updateNoAcl( programA );
 
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
@@ -266,11 +272,11 @@ public class EnrollmentSecurityTest
      * orgUnit = Accessible
      * status = ERROR
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testUserNoDataAccessOrgUnit()
     {
-        programA.setPublicAccess( AccessStringHelper.DEFAULT );
-        manager.update( programA );
+        programA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        manager.updateNoAcl( programA );
 
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
@@ -295,7 +301,7 @@ public class EnrollmentSecurityTest
      * orgUnit = Not Accessible
      * status = ERROR
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testUserNoDataAccessNoOrgUnit()
     {
         programA.setPublicAccess( AccessStringHelper.DEFAULT );
@@ -331,8 +337,8 @@ public class EnrollmentSecurityTest
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
-        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-        manager.update( programA );
+        programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        manager.updateNoAcl( programA );
 
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
@@ -357,8 +363,8 @@ public class EnrollmentSecurityTest
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
-        programA.setPublicAccess( AccessStringHelper.DATA_READ );
-        manager.update( programA );
+        programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
+        manager.updateNoAcl( programA );
 
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
@@ -383,7 +389,7 @@ public class EnrollmentSecurityTest
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
-        programA.setPublicAccess( AccessStringHelper.DATA_READ );
+        programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
         manager.update( programA );
 
         User user = createUser( "user1" );
@@ -418,8 +424,8 @@ public class EnrollmentSecurityTest
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
-        programA.setPublicAccess( AccessStringHelper.DATA_READ );
-        manager.update( programA );
+        programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
+        manager.updateNoAcl( programA );
 
         User user = createUser( "user1" );
 
@@ -441,8 +447,8 @@ public class EnrollmentSecurityTest
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
-        programA.setPublicAccess( AccessStringHelper.DATA_READ );
-        manager.update( programA );
+        programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
+        manager.updateNoAcl( programA );
 
         User user = createUser( "user1" );
 
@@ -464,8 +470,8 @@ public class EnrollmentSecurityTest
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
-        programA.setPublicAccess( AccessStringHelper.DEFAULT );
-        manager.update( programA );
+        programA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        manager.updateNoAcl( programA );
 
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
