@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker_v2.events;
+package org.hisp.dhis.tracker.importer.events;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;

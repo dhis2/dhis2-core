@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker_v2.tei;
+package org.hisp.dhis.tracker.importer.tei;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
@@ -82,9 +82,7 @@ public class TrackerImporter_teiImportTests
 
         response
             .validateSuccessfulImport()
-            .validate()
-            .body( "bundleReport.typeReportMap.TRACKED_ENTITY", notNullValue() )
-            .rootPath( "bundleReport.typeReportMap.TRACKED_ENTITY" )
+            .validateTeis()
             .body( "stats.created", equalTo( 1 ) )
             .body( "objectReports", notNullValue() )
             .body( "objectReports[0].errorReports", empty() );
@@ -105,16 +103,14 @@ public class TrackerImporter_teiImportTests
         throws Exception
     {
         JsonObject teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/v2/teis/tei.json" ) );
+            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/tei.json" ) );
 
         // act
         TrackerApiResponse response = trackerActions.postAndGetJobReport( teiBody );
 
         // assert
         response.validateSuccessfulImport()
-            .validate()
-            .body( "bundleReport.typeReportMap.TRACKED_ENTITY", notNullValue() )
-            .rootPath( "bundleReport.typeReportMap.TRACKED_ENTITY" )
+            .validateTeis()
             .body( "stats.created", equalTo( 1 ) )
             .body( "objectReports", notNullValue() )
             .body( "objectReports[0].errorReports", empty() );
@@ -138,7 +134,7 @@ public class TrackerImporter_teiImportTests
     {
         // the file contains 2 teis with 1 enrollment and 1 event each
         JsonObject teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/v2/teis/teisWithEnrollmentsAndEvents.json" ) );
+            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) );
 
         // act
         TrackerApiResponse response = trackerActions.postAndGetJobReport( teiBody );

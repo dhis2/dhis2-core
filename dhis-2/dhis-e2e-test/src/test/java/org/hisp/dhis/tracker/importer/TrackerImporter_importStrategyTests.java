@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker_v2;
+package org.hisp.dhis.tracker.importer;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
@@ -66,7 +66,7 @@ public class TrackerImporter_importStrategyTests
         throws Exception
     {
         JsonObject teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/v2/teis/tei.json" ) );
+            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/tei.json" ) );
 
         ApiResponse response = trackerActions
             .postAndGetJobReport( teiBody, new QueryParamsBuilder().add( String.format( "importStrategy=%s", importStrategy ) ) );
@@ -87,7 +87,7 @@ public class TrackerImporter_importStrategyTests
         String teiId = importTei();
 
         JsonObject teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/v2/teis/tei.json" ) );
+            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/tei.json" ) );
         teiBody.getAsJsonArray( "trackedEntities" ).get( 0 ).getAsJsonObject().addProperty( "trackedEntity", teiId );
 
         ApiResponse response = trackerActions
@@ -105,7 +105,7 @@ public class TrackerImporter_importStrategyTests
         String teiId = importTei();
 
         JsonObject teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/v2/teis/tei.json" ) );
+            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/tei.json" ) );
         teiBody.getAsJsonArray( "trackedEntities" ).get( 0 ).getAsJsonObject().addProperty( "trackedEntity", teiId );
 
         ApiResponse response = trackerActions
@@ -120,7 +120,7 @@ public class TrackerImporter_importStrategyTests
         throws Exception
     {
         JsonObject teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/v2/teis/tei.json" ) );
+            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/tei.json" ) );
 
         return trackerActions.postAndGetJobReport( teiBody ).extractImportedTeis().get( 0 );
 

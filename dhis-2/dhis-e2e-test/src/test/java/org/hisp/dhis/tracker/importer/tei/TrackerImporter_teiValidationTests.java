@@ -26,10 +26,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker_v2.tei;
+package org.hisp.dhis.tracker.importer.tei;
 
 import com.google.gson.JsonObject;
-import com.sun.xml.bind.v2.runtime.reflect.opt.Const;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;

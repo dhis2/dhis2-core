@@ -28,6 +28,7 @@
 
 package org.hisp.dhis.dto;
 
+import io.restassured.response.ValidatableResponse;
 import org.hamcrest.Matchers;
 
 import java.util.List;
@@ -90,5 +91,22 @@ public class TrackerApiResponse
 
         return this;
     }
+
+    public ValidatableResponse validateTeis() {
+        return validate()
+            .body( "bundleReport.typeReportMap.TRACKED_ENTITY", notNullValue() )
+            .rootPath( "bundleReport.typeReportMap.TRACKED_ENTITY" );
+    }
+
+    public ValidatableResponse validateEvents() {
+        return validate()
+            .body( "bundleReport.typeReportMap.EVENT", notNullValue() )
+            .rootPath( "bundleReport.typeReportMap.EVENT" );
+    }
+
+    public ValidatableResponse validateEnrollments() {
+        return validate()
+            .body( "bundleReport.typeReportMap.ENROLLMENT", notNullValue() )
+            .rootPath( "bundleReport.typeReportMap.ENROLLMENT" );
 
 }

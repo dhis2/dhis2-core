@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker_v2;
+package org.hisp.dhis.tracker.importer;
 
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
@@ -59,7 +59,7 @@ public class TrackerImporterTests
     @Test
     public void shouldNotCommitWhenStrategyIsValidate()
     {
-        ApiResponse response = trackerActions.postAndGetJobReport( new File( "src/test/resources/tracker/v2/teis/tei.json" ),
+        ApiResponse response = trackerActions.postAndGetJobReport( new File( "src/test/resources/tracker/importer/teis/tei.json" ),
             new QueryParamsBuilder().add( "importMode=VALIDATE" ) );
 
         response.validate()

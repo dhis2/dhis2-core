@@ -261,6 +261,46 @@
       "attributeValues": [],
       "userAccesses": [],
       "programStageSections": []
+    },
+    {
+      "id": "PaOOjwLVW23",
+      "name": "Second stage - repeatable",
+      "allowGenerateNextVisit": false,
+      "publicAccess": "rwrw----",
+      "formType": "DEFAULT",
+      "generatedByEnrollmentDate": false,
+      "displayFormName": "Second stage - repeatable",
+      "sortOrder": 2,
+      "hideDueDate": false,
+      "enableUserAssignment": false,
+      "minDaysFromStart": 3,
+      "favorite": false,
+      "preGenerateUID": false,
+      "displayName": "Second stage - repeatable",
+      "externalAccess": false,
+      "openAfterEnrollment": false,
+      "repeatable": true,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": false,
+      "blockEntryForm": false,
+      "program": {
+        "id": "f1AyMswryyQ"
+      },
+      "programStageDataElements": [],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "displayName": "TA user group",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "attributeValues": [],
+      "userAccesses": [],
+      "programStageSections": []
     }
   ],
   "programs": [
@@ -454,6 +494,9 @@
       "programStages": [
         {
           "id": "nlXNK4b7LVr"
+        },
+        {
+          "id": "PaOOjwLVW23"
         }
       ],
       "userAccesses": []

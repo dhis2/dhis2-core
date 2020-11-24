@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker_v2;
+package org.hisp.dhis.tracker.importer;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
@@ -85,7 +85,7 @@ public class TrackerImporter_atomicModeTests extends ApiTest
     private JsonObject createWrongPayload()
         throws Exception
     {
-        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/v2/teis/teisAndRelationship.json" ) )
+        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/teis/teisAndRelationship.json" ) )
             .get(JsonObject.class);
 
         object = JsonObjectBuilder.jsonObject(object)

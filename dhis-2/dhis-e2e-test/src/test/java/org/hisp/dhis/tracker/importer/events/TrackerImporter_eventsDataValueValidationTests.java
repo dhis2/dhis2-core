@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker_v2.events;
+package org.hisp.dhis.tracker.importer.events;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -104,9 +104,7 @@ public class TrackerImporter_eventsDataValueValidationTests
         TrackerApiResponse response = trackerActions.postAndGetJobReport( events );
 
         response.validateSuccessfulImport()
-            .validate()
-            .body( "bundleReport.typeReportMap.EVENT", notNullValue() )
-            .rootPath( "bundleReport.typeReportMap.EVENT" )
+            .validateEvents()
             .body( "stats.created", Matchers.equalTo( 1 ) )
             .body( "objectReports", notNullValue() )
             .body( "objectReports[0].errorReports", empty() );
@@ -141,9 +139,7 @@ public class TrackerImporter_eventsDataValueValidationTests
         TrackerApiResponse response = trackerActions.postAndGetJobReport( events );
 
         response.validateSuccessfulImport()
-            .validate()
-            .body( "bundleReport.typeReportMap.EVENT", notNullValue() )
-            .rootPath( "bundleReport.typeReportMap.EVENT" )
+            .validateEvents()
             .body( "stats.created", Matchers.equalTo( 1 ) )
             .body( "objectReports", notNullValue() )
             .body( "objectReports[0].errorReports", empty() );
@@ -187,7 +183,6 @@ public class TrackerImporter_eventsDataValueValidationTests
         mandatoryDataElementId = dataElementId;
 
         programActions.addDataElement( programStageId, dataElementId, true ).validate().statusCode( 200 );
-
     }
 
     private void addDataValue( JsonObject body, String dataElementId, String value )

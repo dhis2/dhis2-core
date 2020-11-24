@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker_v2;
+package org.hisp.dhis.tracker.events;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
@@ -34,87 +34,116 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker.EventActions;
-import org.hisp.dhis.actions.tracker_v2.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImporter_userAssignmentTests
+public class UserAssignmentTests
     extends ApiTest
 {
-    private static String programStageId = "l8oDIfJJhtg";
-
-    private static String programId = "BJ42SUrAvHo";
+    private MetadataActions metadataActions;
 
     private LoginActions loginActions;
 
     private ProgramActions programActions;
 
-    private MetadataActions metadataActions;
-
-    private TrackerActions trackerActions;
-
     private EventActions eventActions;
+
+    private String userAssignmentProperty = "enableUserAssignment";
 
     @BeforeAll
     public void beforeAll()
     {
-        loginActions = new LoginActions();
-        programActions = new ProgramActions();
         metadataActions = new MetadataActions();
-        trackerActions = new TrackerActions();
+        programActions = new ProgramActions();
         eventActions = new EventActions();
+        loginActions = new LoginActions();
 
         loginActions.loginAsSuperUser();
         metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
+    }
 
+    @ParameterizedTest
+    @ValueSource( strings = { "WITHOUT_REGISTRATION", "WITH_REGISTRATION" } )
+    public void shouldBeEnabledOnProgramStage( String programType )
+    {
+        // arrange
+        String programId = programActions.get( "?filter=programStages:ge:1&filter=programType:eq:" + programType )
+            .extractString( "programs.id[0]" );
+
+        String programStageId = programActions.get( programId ).extractString( "programStages.id[0]" );
+
+        // act - enabling user assignment
+        ApiResponse response = programActions.programStageActions.enableUserAssignment( programStageId, true );
+
+        // assert
+        ResponseValidationHelper.validateObjectUpdate( response, 200 );
+
+        response = programActions.programStageActions.get( programStageId );
+
+        response.validate()
+            .statusCode( 200 )
+            .body( userAssignmentProperty, equalTo( true ) );
+
+        // act - disabling user assignment
+        response = programActions.programStageActions.enableUserAssignment( programStageId, false );
+
+        // assert
+        ResponseValidationHelper.validateObjectUpdate( response, 200 );
+
+        response = programActions.programStageActions.get( programStageId );
+
+        response.validate().statusCode( 200 )
+            .body( userAssignmentProperty, equalTo( false ) );
     }
 
     @ParameterizedTest
     @ValueSource( strings = { "true", "false" } )
-    public void shouldImportEventWithUserAssignment( String userAssignmentEnabled )
+    public void eventImportWithUserAssignmentShouldSucceed( String userAssignmentEnabled )
         throws Exception
     {
-        // arrange
+        String programStageId = "l8oDIfJJhtg";
+        String programId = "BJ42SUrAvHo";
         String loggedInUser = loginActions.getLoggedInUserId();
 
         programActions.programStageActions.enableUserAssignment( programStageId, Boolean.parseBoolean( userAssignmentEnabled ) );
 
-        // act
-        String eventId = createEvents( programId, programStageId, loggedInUser )
-            .extractImportedEvents().get( 0 );
+        ApiResponse eventResponse = createEvents( programId, programStageId, loggedInUser );
 
-        ApiResponse response = eventActions.get( eventId );
-        if ( !Boolean.parseBoolean( userAssignmentEnabled ) )
-        {
-            response.validate()
-                .body( "assignedUser", nullValue() );
+        assertNotNull( eventResponse.getImportSummaries(), "No import summaries returned when creating event." );
+        eventResponse.getImportSummaries().forEach( importSummary -> {
+            ApiResponse response = eventActions.get( importSummary.getReference() );
 
-            return;
-        }
+            if ( !Boolean.parseBoolean( userAssignmentEnabled ) )
+            {
+                assertNull( response.getBody().get( "assignedUser" ) );
+                return;
+            }
 
-        response.validate()
-            .body( "assignedUser", equalTo( loggedInUser ) );
+            assertEquals( loggedInUser, response.getBody().get( "assignedUser" ).getAsString() );
+        } );
     }
 
-    // todo should be finalised when exporter is ready
-    /*@Test
-    public void shouldRemoveUserAssignment()
+    @Test
+    public void eventUserAssignmentShouldBeRemoved()
         throws Exception
     {
         // arrange
+        String programStageId = "l8oDIfJJhtg";
+        String programId = "BJ42SUrAvHo";
         String loggedInUser = loginActions.getLoggedInUserId();
 
         programActions.programStageActions.enableUserAssignment( programStageId, true );
@@ -138,24 +167,25 @@ public class TrackerImporter_userAssignmentTests
         eventResponse = eventActions.get( eventId );
 
         assertEquals( null, eventResponse.getBody().get( "assignedUser" ) );
-    }*/
+    }
 
-    private TrackerApiResponse createEvents( String programId, String programStageId, String assignedUserId )
+    private ApiResponse createEvents( String programId, String programStageId, String assignedUserId )
         throws Exception
     {
-        JsonObject body = new FileReaderUtils().read( new File( "src/test/resources/tracker/v2/events/event.json" ) )
+        Object file = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/events.json" ) )
             .replacePropertyValuesWithIds( "event" )
             .replacePropertyValuesWith( "program", programId )
             .replacePropertyValuesWith( "programStage", programStageId )
             .replacePropertyValuesWith( "assignedUser", assignedUserId )
-            .get( JsonObject.class );
+            .get();
 
-        System.out.println(body);
-        TrackerApiResponse eventResponse = trackerActions.postAndGetJobReport( body );
+        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+        queryParamsBuilder.add( "skipCache=true" );
 
-        eventResponse.validateSuccessfulImport();
+        ApiResponse eventResponse = eventActions.post( file, queryParamsBuilder );
+
+        eventResponse.validate().statusCode( 200 );
 
         return eventResponse;
     }
-
 }

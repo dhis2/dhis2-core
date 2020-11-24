@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker_v2.events;
+package org.hisp.dhis.tracker.importer.events;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -114,10 +114,9 @@ public class TrackerImporter_eventIdSchemeTests
         throws Exception
     {
         String ouPropertyValue = orgUnitActions.get( orgUnitId ).extractString( ouProperty );
-
         assertNotNull( ouPropertyValue, String.format( "Org unit property %s was not present.", ouProperty ) );
 
-        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/v2/events/event.json" ) )
+        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/events/event.json" ) )
             .replacePropertyValuesWith( "orgUnit", ouPropertyValue )
             .replacePropertyValuesWithIds( "event" )
             .get( JsonObject.class );
@@ -147,7 +146,7 @@ public class TrackerImporter_eventIdSchemeTests
 
         assertNotNull( programPropertyValue, String.format( "Program property %s was not present.", property ) );
 
-        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/v2/events/event.json" ) )
+        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/events/event.json" ) )
             .replacePropertyValuesWithIds( "event" )
             .replacePropertyValuesWith( "orgUnit", orgUnitId )
             .replacePropertyValuesWith( "program", programPropertyValue )
@@ -160,8 +159,7 @@ public class TrackerImporter_eventIdSchemeTests
         // assert
         String eventId = response.validateSuccessfulImport()
             .extractImportedEvents().get( 0 );
-
-        assertNotNull( eventId );
+        assertNotNull("Event was not created",  eventId );
 
         eventActions.get( eventId ).validate()
             .statusCode( 200 )
