@@ -32,7 +32,6 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.SecondaryMetadataObject;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -30,18 +30,9 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1119;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
  * @author Enrico Colasante

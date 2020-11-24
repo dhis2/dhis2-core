@@ -29,7 +29,6 @@ package org.hisp.dhis.security.oidc;
  *
  */
 
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
@@ -46,7 +45,6 @@ import static org.springframework.security.oauth2.client.web.OAuth2Authorization
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 @Component( "dhisOAuth2AuthorizationRequestResolver" )
 public class DhisOAuth2AuthorizationRequestResolver
     implements OAuth2AuthorizationRequestResolver
