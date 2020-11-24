@@ -134,8 +134,8 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor
             .forEach( rel -> map.put( rel.getRelationship(), hash( rel ) ) );
 
         // Remove duplicated Relationships from the bundle, if any
-        bundle.getRelationships().removeIf( rel -> !map.containsKey( rel.getRelationship() ) );
-
+        bundle.getRelationships()
+            .removeIf( rel -> validRelationship.test( rel ) && !map.containsKey( rel.getRelationship() ) );
     }
 
     private String hash( Relationship rel )
