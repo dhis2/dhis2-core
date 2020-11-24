@@ -32,6 +32,8 @@ import com.google.gson.JsonObject;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
 
+import java.util.List;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
@@ -95,7 +97,8 @@ public class UserActions
     public void addUserToUserGroup( String userId, String userGroupId )
     {
         ApiResponse response = this.get( userId );
-        if ( response.extractList( "userGroups.id" ).contains( userGroupId ) )
+        List<String> userGroups = response.extractList( "userGroups.id" );
+        if ( userGroups != null && userGroups.contains( userGroupId ) )
         {
             return;
         }

@@ -116,6 +116,7 @@ public class MetadataSetupExtension
                 "?filter=userCredentials.username:eq:%s", user ))
                 .extractString( "users.id[0]" );
 
+            if (userId == null) return;
             userActions.addUserToUserGroup( userId, userGroupId );
             TestRunStorage.removeEntity( "users", userId );
         }
