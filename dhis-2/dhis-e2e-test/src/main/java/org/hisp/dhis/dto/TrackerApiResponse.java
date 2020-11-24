@@ -104,9 +104,11 @@ public class TrackerApiResponse
             .rootPath( "bundleReport.typeReportMap.EVENT" );
     }
 
-    public ValidatableResponse validateEnrollments() {
+    public ValidatableResponse validateEnrollments()
+    {
         return validate()
             .body( "bundleReport.typeReportMap.ENROLLMENT", notNullValue() )
             .rootPath( "bundleReport.typeReportMap.ENROLLMENT" );
+    }
 
 }
