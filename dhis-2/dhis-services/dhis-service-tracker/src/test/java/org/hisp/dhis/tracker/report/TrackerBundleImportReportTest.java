@@ -48,8 +48,6 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerTimingsStats;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -170,8 +168,10 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
                 TrackerErrorCode.E1120, TrackerType.EVENT, "BltTZV9HvEZ" ) );
       
         //Create the TrackerImportReport
+        final Map<TrackerType, Integer> bundleSize = new HashMap<>();
+        bundleSize.put( TrackerType.TRACKED_ENTITY, 1 );
         TrackerImportReport toSerializeReport = TrackerImportReport.withImportCompleted( TrackerStatus.ERROR,
-            bundleReport, tvr, timingsStats );
+            bundleReport, tvr, timingsStats, bundleSize);
 
         //Serialize TrackerImportReport into String
         String jsonString = jsonMapper.writeValueAsString( toSerializeReport );
@@ -255,8 +255,10 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
 
     private TrackerImportReport createImportReport()
     {
+        final Map<TrackerType, Integer> bundleSize = new HashMap<>();
+        bundleSize.put( TrackerType.TRACKED_ENTITY, 1 );
         return TrackerImportReport.withImportCompleted( TrackerStatus.OK, createBundleReport(),
-            createValidationReport(), createTimingStats() );
+            createValidationReport(), createTimingStats(), bundleSize );
     }
 
     private TrackerTimingsStats createTimingStats()
