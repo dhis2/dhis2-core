@@ -202,7 +202,7 @@ public class TrackerImporter_relationshipsTests
         trackerActions.postAndGetJobReport( object )
             .validateErrorReport()
             .validate()
-            .body( "trackerValidationReport.errorReports.message[0]", containsString( "constraint requires a trackedEntity but a event was found" ) );
+            .body( "validationReport.errorReports.message[0]", containsString( "constraint requires a trackedEntity but a event was found" ) );
     }
 
     @Test
@@ -217,7 +217,7 @@ public class TrackerImporter_relationshipsTests
         trackerActions.postAndGetJobReport( object )
             .validateErrorReport()
             .validate()
-            .rootPath( "trackerValidationReport.errorReports" )
+            .rootPath( "validationReport.errorReports" )
             .body( "message", hasSize( 2 ))
             .body( "message[0]", Matchers.both(containsString(  "Could not find `trackedEntity`" )).and(  containsString( "linked to Relationship" ) ) );
 
@@ -298,7 +298,6 @@ public class TrackerImporter_relationshipsTests
         String relationshipTypeId = relationshipTypeActions.get("", new QueryParamsBuilder().addAll( "filter=fromConstraint.relationshipEntity:eq:TRACKED_ENTITY_INSTANCE", "filter=toConstraint.relationshipEntity:eq:TRACKED_ENTITY_INSTANCE", "filter=bidirectional:eq:" + bidirectional ))
             .extractString( "relationshipTypes.id[0]" );
 
-        //relationshipTypeId = null;
         JsonObject relationship1 = JsonObjectBuilder.jsonObject()
             .addProperty( "relationshipType", relationshipTypeId )
             .addObject( "from", JsonObjectBuilder.jsonObject()

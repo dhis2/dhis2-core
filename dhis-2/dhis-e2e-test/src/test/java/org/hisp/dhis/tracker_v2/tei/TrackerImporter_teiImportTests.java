@@ -36,6 +36,7 @@ import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.actions.tracker_v2.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.json.JSONException;
@@ -132,21 +133,29 @@ public class TrackerImporter_teiImportTests
     }
 
     @Test
-    public void shouldImportTeisInBulk()
+    public void shouldImportTeisWithEnrollmentsEventsAndRelationship()
         throws Exception
     {
-        // todo add enrollments and events to the payload
+        // the file contains 2 teis with 1 enrollment and 1 event each
         JsonObject teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/v2/teis/teis.json" ) );
+            .readJsonAndGenerateData( new File( "src/test/resources/tracker/v2/teis/teisWithEnrollmentsAndEvents.json" ) );
 
         // act
-        ApiResponse response = trackerActions.postAndGetJobReport( teiBody );
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( teiBody );
 
-        response.validate().statusCode( 200 )
-            .body( "status", equalTo( "OK" ) )
-            .body( "stats.created", equalTo( 2 ) )
-            .body( "bundleReport.typeReportMap.TRACKED_ENTITY", notNullValue() )
-            .body( "bundleReport.typeReportMap.TRACKED_ENTITY.objectReports", hasSize( 2 ) );
+        response.validateSuccessfulImport()
+            .validate()
+            .body( "stats.created", equalTo( 7 ) )
+            .body( "bundleReport.typeReportMap.TRACKED_ENTITY.objectReports", hasSize( 2 ) )
+            .body( "bundleReport.typeReportMap.ENROLLMENT.objectReports", hasSize( 2 ) )
+            .body( "bundleReport.typeReportMap.EVENT.objectReports", hasSize( 2 ) )
+            .body( "bundleReport.typeReportMap.RELATIONSHIP.objectReports", hasSize( 1 ) );
+
+        teiActions.get(response.extractImportedTeis().get( 0 ), new QueryParamsBuilder().addAll( "fields=*" ) )
+            .validate()
+            .statusCode( 200 )
+            .body( "enrollments", notNullValue() )
+            .body( "enrollments.events.", notNullValue() );
     }
 
 }

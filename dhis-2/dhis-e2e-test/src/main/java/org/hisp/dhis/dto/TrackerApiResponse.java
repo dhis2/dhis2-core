@@ -86,7 +86,7 @@ public class TrackerApiResponse
         validate().statusCode( 200 )
             .body( "status", Matchers.equalTo( "ERROR" ) )
             .body( "stats.ignored", greaterThanOrEqualTo( 1 ) )
-            .body( "trackerValidationReport.errorReports", Matchers.notNullValue() );
+            .body( "validationReport.errorReports", Matchers.notNullValue() );
 
         return this;
     }

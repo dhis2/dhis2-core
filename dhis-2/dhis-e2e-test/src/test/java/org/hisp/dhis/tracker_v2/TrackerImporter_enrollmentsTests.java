@@ -125,7 +125,6 @@ public class TrackerImporter_enrollmentsTests
             .validate()
             .statusCode( 200 )
             .body( "trackedEntityInstance", equalTo( teiId ) );
-
     }
 
     @Test

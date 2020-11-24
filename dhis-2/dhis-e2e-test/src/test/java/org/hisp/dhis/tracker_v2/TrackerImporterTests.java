@@ -67,9 +67,9 @@ public class TrackerImporterTests
             .body( "status", equalTo( "OK" ) )
             .body( "stats.created", equalTo( 0 ) )
             .body( "stats.total", equalTo( 0 ) )
-            .body( "trackerValidationReport", notNullValue() )
-            .body( "trackerValidationReport.errorReports", empty() )
-            .body( "trackerValidationReport.warningReports", empty() );
+            .body( "validationReport", notNullValue() )
+            .body( "validationReport.errorReports", empty() )
+            .body( "validationReport.warningReports", empty() );
 
     }
 

@@ -51,7 +51,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImport_eventValidationTests
+public class TrackerImporter_eventValidationTests
     extends ApiTest
 {
     private static String OU_ID = Constants.ORG_UNIT_IDS[0];
@@ -102,7 +102,7 @@ public class TrackerImport_eventValidationTests
         trackerActions.postAndGetJobReport( object )
             .validateErrorReport()
             .validate()
-            .body( "trackerValidationReport.errorReports.message[0]", containsStringIgnoringCase( "OccurredAt date is missing." ) );
+            .body( "validationReport.errorReports.message[0]", containsStringIgnoringCase( "OccurredAt date is missing." ) );
     }
 
     @ParameterizedTest
@@ -111,11 +111,12 @@ public class TrackerImport_eventValidationTests
     {
         JsonObject jsonObject = trackerActions.createEventsBody( ouId, programId, programStageId );
 
+        System.out.println(jsonObject);
         TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
 
         response.validateErrorReport()
             .validate()
-            .body( "trackerValidationReport.errorReports[0].message", containsStringIgnoringCase( message ) );
+            .body( "validationReport.errorReports[0].message", containsStringIgnoringCase( message ) );
     }
 
     private void setupData()

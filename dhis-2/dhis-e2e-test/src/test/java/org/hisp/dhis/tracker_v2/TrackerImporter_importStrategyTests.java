@@ -74,8 +74,8 @@ public class TrackerImporter_importStrategyTests
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "ERROR" ) )
             .body( "stats.ignored", equalTo( 1 ) )
-            .body( "trackerValidationReport.errorReports", notNullValue() )
-            .rootPath( "trackerValidationReport.errorReports[0]" )
+            .body( "validationReport.errorReports", notNullValue() )
+            .rootPath( "validationReport.errorReports[0]" )
             .body( "errorCode", equalTo( "E1063" ) )
             .body( "message", containsStringIgnoringCase( "does not exist" ) );
     }

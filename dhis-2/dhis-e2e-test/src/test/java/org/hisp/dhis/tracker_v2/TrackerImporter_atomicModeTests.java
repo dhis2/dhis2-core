@@ -37,6 +37,7 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -61,19 +62,18 @@ public class TrackerImporter_atomicModeTests extends ApiTest
     public void shouldNotImportWhenErrorsWithoutAtomicMode()
         throws Exception
     {
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( createWrongPayload(), new QueryParamsBuilder().add( "atomicMode=OOAO" ) );
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( createWrongPayload(), new QueryParamsBuilder().add( "atomicMode=ALL" ) );
 
         response.validateErrorReport()
             .validate()
             .body( "stats.ignored", equalTo(3) );
-
     }
 
     @Test
     public void shouldImportWhenErrorsWithAtomicMode()
         throws Exception
     {
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( createWrongPayload(), new QueryParamsBuilder().addAll( "atomicMode=OBJECT", "importStrategy=TEST" ) );
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( createWrongPayload(), new QueryParamsBuilder().addAll( "atomicMode=OBJECT" ) );
 
         //todo add more validation when this is working
         response.validate()
@@ -92,7 +92,9 @@ public class TrackerImporter_atomicModeTests extends ApiTest
             .addPropertyByJsonPath( "trackedEntities[0].trackedEntityType", "" )
             .build();
 
+
         // one TEI will be invalid
+        System.out.println(object);
         return object;
     }
 }

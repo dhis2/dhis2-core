@@ -56,7 +56,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImport_eventsDataValueValidationTests
+public class TrackerImporter_eventsDataValueValidationTests
     extends ApiTest
 {
     private static String OU_ID = Constants.ORG_UNIT_IDS[0];
@@ -127,7 +127,7 @@ public class TrackerImport_eventsDataValueValidationTests
         response.validateErrorReport()
             .validate()
             .body( "bundleReport.typeReportMap.EVENT", nullValue() )
-            .body( "trackerValidationReport.errorReports[0].message",
+            .body( "validationReport.errorReports[0].message",
                 stringContainsInOrder( "Mandatory DataElement", "is not present" ) );
     }
 
