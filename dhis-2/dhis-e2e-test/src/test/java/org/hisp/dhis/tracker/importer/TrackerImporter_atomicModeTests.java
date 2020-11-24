@@ -37,7 +37,6 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -47,12 +46,14 @@ import static org.hamcrest.Matchers.equalTo;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImporter_atomicModeTests extends ApiTest
+public class TrackerImporter_atomicModeTests
+    extends ApiTest
 {
     private TrackerActions trackerActions;
 
     @BeforeAll
-    public void beforeAll() {
+    public void beforeAll()
+    {
         trackerActions = new TrackerActions();
 
         new LoginActions().loginAsSuperUser();
@@ -62,18 +63,20 @@ public class TrackerImporter_atomicModeTests extends ApiTest
     public void shouldNotImportWhenErrorsWithoutAtomicMode()
         throws Exception
     {
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( createWrongPayload(), new QueryParamsBuilder().add( "atomicMode=ALL" ) );
+        TrackerApiResponse response = trackerActions
+            .postAndGetJobReport( createWrongPayload(), new QueryParamsBuilder().add( "atomicMode=ALL" ) );
 
         response.validateErrorReport()
             .validate()
-            .body( "stats.ignored", equalTo(3) );
+            .body( "stats.ignored", equalTo( 3 ) );
     }
 
     @Test
     public void shouldImportWhenErrorsWithAtomicMode()
         throws Exception
     {
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( createWrongPayload(), new QueryParamsBuilder().addAll( "atomicMode=OBJECT" ) );
+        TrackerApiResponse response = trackerActions
+            .postAndGetJobReport( createWrongPayload(), new QueryParamsBuilder().addAll( "atomicMode=OBJECT" ) );
 
         //todo add more validation when this is working
         response.validate()
@@ -85,16 +88,16 @@ public class TrackerImporter_atomicModeTests extends ApiTest
     private JsonObject createWrongPayload()
         throws Exception
     {
-        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/teis/teisAndRelationship.json" ) )
-            .get(JsonObject.class);
+        JsonObject object = new FileReaderUtils()
+            .read( new File( "src/test/resources/tracker/importer/teis/teisAndRelationship.json" ) )
+            .get( JsonObject.class );
 
-        object = JsonObjectBuilder.jsonObject(object)
+        object = JsonObjectBuilder.jsonObject( object )
             .addPropertyByJsonPath( "trackedEntities[0].trackedEntityType", "" )
             .build();
 
-
         // one TEI will be invalid
-        System.out.println(object);
+        System.out.println( object );
         return object;
     }
 }

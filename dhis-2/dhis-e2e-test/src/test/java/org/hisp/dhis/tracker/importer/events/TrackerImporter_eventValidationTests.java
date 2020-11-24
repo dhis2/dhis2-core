@@ -54,7 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class TrackerImporter_eventValidationTests
     extends ApiTest
 {
-    private static String OU_ID = Constants.ORG_UNIT_IDS[0];
+    private static final String OU_ID = Constants.ORG_UNIT_IDS[0];
 
     private static String eventProgramId;
 
@@ -111,7 +111,7 @@ public class TrackerImporter_eventValidationTests
     {
         JsonObject jsonObject = trackerActions.createEventsBody( ouId, programId, programStageId );
 
-        System.out.println(jsonObject);
+        System.out.println( jsonObject );
         TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
 
         response.validateErrorReport()

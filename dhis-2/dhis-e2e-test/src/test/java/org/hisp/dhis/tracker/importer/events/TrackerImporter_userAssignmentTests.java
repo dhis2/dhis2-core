@@ -46,7 +46,6 @@ import java.io.File;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -54,9 +53,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class TrackerImporter_userAssignmentTests
     extends ApiTest
 {
-    private static String programStageId = "l8oDIfJJhtg";
+    private static final String programStageId = "l8oDIfJJhtg";
 
-    private static String programId = "BJ42SUrAvHo";
+    private static final String programId = "BJ42SUrAvHo";
 
     private LoginActions loginActions;
 
@@ -150,7 +149,7 @@ public class TrackerImporter_userAssignmentTests
             .replacePropertyValuesWith( "assignedUser", assignedUserId )
             .get( JsonObject.class );
 
-        System.out.println(body);
+        System.out.println( body );
         TrackerApiResponse eventResponse = trackerActions.postAndGetJobReport( body );
 
         eventResponse.validateSuccessfulImport();

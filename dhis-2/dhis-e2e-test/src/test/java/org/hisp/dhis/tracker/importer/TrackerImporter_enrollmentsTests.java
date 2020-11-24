@@ -35,18 +35,15 @@ import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.tracker_v2.TrackerActions;
-import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import javax.sound.midi.Track;
 import java.io.File;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.empty;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -88,7 +85,7 @@ public class TrackerImporter_enrollmentsTests
             .body( "stats.created", Matchers.equalTo( 1 ) );
 
         // assert that the tei was imported
-        String teiId = response.extractImportedTeis().get(0);
+        String teiId = response.extractImportedTeis().get( 0 );
         String enrollmentId = response.extractImportedEnrollments().get( 0 );
 
         enrollmentActions.get( enrollmentId )
@@ -103,7 +100,8 @@ public class TrackerImporter_enrollmentsTests
         throws Exception
     {
         String id = new IdGenerator().generateUniqueId();
-        JsonObject jsonObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/teis/teiAndEnrollment.json" ) )
+        JsonObject jsonObject = new FileReaderUtils()
+            .read( new File( "src/test/resources/tracker/importer/teis/teiAndEnrollment.json" ) )
             .replacePropertyValuesWith( "trackedEntity", id )
             .get( JsonObject.class );
 

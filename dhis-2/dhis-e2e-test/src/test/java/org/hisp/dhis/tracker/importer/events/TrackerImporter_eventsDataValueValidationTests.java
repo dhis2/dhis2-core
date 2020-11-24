@@ -41,8 +41,8 @@ import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker_v2.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -59,7 +59,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class TrackerImporter_eventsDataValueValidationTests
     extends ApiTest
 {
-    private static String OU_ID = Constants.ORG_UNIT_IDS[0];
+    private static final String OU_ID = Constants.ORG_UNIT_IDS[0];
 
     private TrackerActions trackerActions;
 

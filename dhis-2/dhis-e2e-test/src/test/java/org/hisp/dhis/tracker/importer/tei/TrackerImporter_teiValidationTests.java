@@ -50,7 +50,9 @@ public class TrackerImporter_teiValidationTests
     extends ApiTest
 {
     private TrackerActions trackerActions;
-    private String program = Constants.TRACKER_PROGRAM_ID;
+
+    private final String program = Constants.TRACKER_PROGRAM_ID;
+
     private String mandatoryAttribute;
 
     @BeforeAll
@@ -81,7 +83,8 @@ public class TrackerImporter_teiValidationTests
     }
 
     @Test
-    public void shouldReturnErrorWhenMandatoryAttributesMissing() {
+    public void shouldReturnErrorWhenMandatoryAttributesMissing()
+    {
         setupData();
         JsonObject trackedEntities = new JsonObjectBuilder()
             .addProperty( "trackedEntityType", "Q9GufDoplCL" )
@@ -96,7 +99,8 @@ public class TrackerImporter_teiValidationTests
         //todo add more validation
     }
 
-    private void setupData() {
+    private void setupData()
+    {
         JsonObject attribute = JsonObjectBuilder.jsonObject()
             .addProperty( "name", "TA attribute " + DataGenerator.randomEntityName() )
             .addProperty( "valueType", "TEXT" )
@@ -106,13 +110,13 @@ public class TrackerImporter_teiValidationTests
             .build();
 
         mandatoryAttribute = new RestApiActions( "trackedEntityAttributes" ).create( attribute );
-        JsonObject programPayload = new ProgramActions().get(program).getBody();
+        JsonObject programPayload = new ProgramActions().get( program ).getBody();
 
-        programPayload.getAsJsonArray("programTrackedEntityAttributes")
+        programPayload.getAsJsonArray( "programTrackedEntityAttributes" )
             .add( new JsonObjectBuilder()
                 .addProperty( "mandatory", "true" )
                 .addObject( "trackedEntityAttribute", new JsonObjectBuilder().addProperty( "id", mandatoryAttribute ) )
-            .build())
+                .build() )
         ;
 
         new ProgramActions().update( program, programPayload ).validate().statusCode( 200 );

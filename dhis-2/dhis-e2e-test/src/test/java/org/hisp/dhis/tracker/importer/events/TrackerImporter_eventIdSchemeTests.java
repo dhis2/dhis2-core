@@ -40,10 +40,10 @@ import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker_v2.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.utils.DataGenerator;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -62,13 +62,13 @@ public class TrackerImporter_eventIdSchemeTests
     extends ApiTest
 {
 
-    private static String OU_NAME = "TA EventsImportIdSchemeTests ou name " + DataGenerator.randomString();
+    private static final String OU_NAME = "TA EventsImportIdSchemeTests ou name " + DataGenerator.randomString();
 
-    private static String OU_CODE = "TA EventsImportIdSchemeTests ou code " + DataGenerator.randomString();
+    private static final String OU_CODE = "TA EventsImportIdSchemeTests ou code " + DataGenerator.randomString();
 
-    private static String ATTRIBUTE_VALUE = "TA EventsImportIdSchemeTests attribute " + DataGenerator.randomString();
+    private static final String ATTRIBUTE_VALUE = "TA EventsImportIdSchemeTests attribute " + DataGenerator.randomString();
 
-    private static String PROGRAM_ID = Constants.EVENT_PROGRAM_ID;
+    private static final String PROGRAM_ID = Constants.EVENT_PROGRAM_ID;
 
     private static String ATTRIBUTE_ID;
 
@@ -159,7 +159,7 @@ public class TrackerImporter_eventIdSchemeTests
         // assert
         String eventId = response.validateSuccessfulImport()
             .extractImportedEvents().get( 0 );
-        assertNotNull("Event was not created",  eventId );
+        assertNotNull( "Event was not created", eventId );
 
         eventActions.get( eventId ).validate()
             .statusCode( 200 )
