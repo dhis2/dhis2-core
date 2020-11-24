@@ -260,4 +260,9 @@ public class RelationshipsValidationHook
             .filter( t -> t.getTrackedEntity().equals( uid ) ).findFirst();
         return payloadTei.map( TrackedEntity::getTrackedEntityType );
     }
+
+    public boolean removeOnError()
+    {
+        return true;
+    }
 }
