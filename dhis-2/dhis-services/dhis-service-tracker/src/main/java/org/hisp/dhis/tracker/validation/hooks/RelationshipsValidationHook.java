@@ -119,10 +119,12 @@ public class RelationshipsValidationHook
         getRelationshipType( bundle.getPreheat().getAll( TrackerIdScheme.UID, RelationshipType.class ),
                 relationship.getRelationshipType() ).ifPresent( relationshipType -> {
 
-            validateRelationshipConstraint( "from", relationship.getFrom(), relationshipType.getFromConstraint() )
-                    .forEach( reporter::addError );
-            validateRelationshipConstraint( "to", relationship.getTo(), relationshipType.getToConstraint() )
-                    .forEach( reporter::addError );
+                validateRelationshipConstraint( "from", relationship.getFrom(), relationshipType.getFromConstraint(),
+                    reporter.getValidationContext() )
+                        .forEach( reporter::addError );
+                validateRelationshipConstraint( "to", relationship.getTo(), relationshipType.getToConstraint(),
+                    reporter.getValidationContext() )
+                        .forEach( reporter::addError );
 
         } );
     }
@@ -159,16 +161,16 @@ public class RelationshipsValidationHook
     }
 
     private List<TrackerErrorReport.TrackerErrorReportBuilder> validateRelationshipConstraint( String relSide,
-                                                                                               RelationshipItem item,
-                                                                                               RelationshipConstraint constraint )
+        RelationshipItem item,
+        RelationshipConstraint constraint, TrackerImportValidationContext ctx )
     {
         ArrayList<TrackerErrorReport.TrackerErrorReportBuilder> result = new ArrayList<>();
 
         if ( relationshipItemValueType( item ) == null )
         {
             result.add(
-                    newReport( TrackerErrorCode.E4013 ).addArg( relSide )
-                            .addArg( TrackerType.TRACKED_ENTITY.getName() ) );
+                newReport( TrackerErrorCode.E4013 ).addArg( relSide )
+                    .addArg( TrackerType.TRACKED_ENTITY.getName() ) );
 
             return result;
         }
@@ -178,10 +180,12 @@ public class RelationshipsValidationHook
             if ( item.getTrackedEntity() == null )
             {
                 result.add(
-                        newReport( TrackerErrorCode.E4010 ).addArg( relSide )
-                                .addArg( TrackerType.TRACKED_ENTITY.getName() )
-                                .addArg( relationshipItemValueType( item ).getName() ) );
-            } else {
+                    newReport( TrackerErrorCode.E4010 ).addArg( relSide )
+                        .addArg( TrackerType.TRACKED_ENTITY.getName() )
+                        .addArg( relationshipItemValueType( item ).getName() ) );
+            }
+            else
+            {
 
                 //
                 // Check tracked entity type matches the type specified in the constraint
@@ -191,10 +195,10 @@ public class RelationshipsValidationHook
                     if ( !type.equals( constraint.getTrackedEntityType().getUid() ) )
                     {
                         result.add(
-                                newReport( TrackerErrorCode.E4013 )
-                                        .addArg( relSide )
-                                        .addArg( constraint.getTrackedEntityType().getUid() )
-                                        .addArg( type ) );
+                            newReport( TrackerErrorCode.E4014 )
+                                .addArg( relSide )
+                                .addArg( constraint.getTrackedEntityType().getUid() )
+                                .addArg( type ) );
                     }
 
                 } );
@@ -205,8 +209,8 @@ public class RelationshipsValidationHook
             if ( item.getEnrollment() == null )
             {
                 result.add(
-                        newReport( TrackerErrorCode.E4010 ).addArg( relSide ).addArg( TrackerType.ENROLLMENT.getName() )
-                                .addArg( relationshipItemValueType( item ).getName() ) );
+                    newReport( TrackerErrorCode.E4010 ).addArg( relSide ).addArg( TrackerType.ENROLLMENT.getName() )
+                        .addArg( relationshipItemValueType( item ).getName() ) );
             }
 
         }
@@ -215,8 +219,8 @@ public class RelationshipsValidationHook
             if ( item.getEvent() == null )
             {
                 result.add(
-                        newReport( TrackerErrorCode.E4010 ).addArg( relSide ).addArg( TrackerType.EVENT.getName() )
-                                .addArg( relationshipItemValueType( item ).getName() ) );
+                    newReport( TrackerErrorCode.E4010 ).addArg( relSide ).addArg( TrackerType.EVENT.getName() )
+                        .addArg( relationshipItemValueType( item ).getName() ) );
             }
         }
 

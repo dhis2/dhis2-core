@@ -383,29 +383,29 @@ public class RelationshipsValidationHookTest
         validationHook.validateRelationship( reporter, relationship );
 
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4013 ) );
+        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4014 ) );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
             is( "Relationship Type `to` constraint requires a Tracked Entity having type `"
                 + constraintTrackedEntityType.getUid() + "` but `" + teiTrackedEntityType.getUid() + "` was found." ) );
     }
 
     @Test
-    public void verifyValidationFailsOnInvalidToTrackedEntityType2()
+    public void verifyValidationFailsOnInvalidFromTrackedEntityType()
     {
-        RelationshipType relType = createRelTypeConstraint( PROGRAM_INSTANCE, TRACKED_ENTITY_INSTANCE );
+        RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, PROGRAM_INSTANCE );
         String trackedEntityUid = CodeGenerator.generateUid();
 
         TrackedEntityType constraintTrackedEntityType = new TrackedEntityType();
         constraintTrackedEntityType.setUid( CodeGenerator.generateUid() );
-        relType.getToConstraint().setTrackedEntityType( constraintTrackedEntityType );
+        relType.getFromConstraint().setTrackedEntityType( constraintTrackedEntityType );
 
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
             .from( RelationshipItem.builder()
-                .enrollment( CodeGenerator.generateUid() )
+                .trackedEntity( trackedEntityUid )
                 .build() )
             .to( RelationshipItem.builder()
-                .trackedEntity( trackedEntityUid )
+                .enrollment( CodeGenerator.generateUid() )
                 .build() )
             .relationshipType( relType.getUid() )
             .build();
@@ -426,9 +426,9 @@ public class RelationshipsValidationHookTest
         validationHook.validateRelationship( reporter, relationship );
 
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4013 ) );
+        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4014 ) );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
-            is( "Relationship Type `to` constraint requires a Tracked Entity having type `"
+            is( "Relationship Type `from` constraint requires a Tracked Entity having type `"
                 + constraintTrackedEntityType.getUid() + "` but `" + trackedEntity.getTrackedEntityType()
                 + "` was found." ) );
     }
