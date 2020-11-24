@@ -588,7 +588,7 @@ public class EventImportValidationTest
     }
 
     @Test
-    public void testTeiNotEnrolled()
+    public void testEventHasNoEnrollment()
         throws IOException
     {
         TrackerBundleParams trackerBundleParams = createBundleFromJson(
@@ -602,7 +602,7 @@ public class EventImportValidationTest
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1037 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1033 ) ) ) );
     }
 
     @Test
