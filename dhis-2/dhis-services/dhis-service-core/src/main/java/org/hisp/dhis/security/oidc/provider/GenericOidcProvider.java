@@ -66,6 +66,7 @@ public class GenericOidcProvider extends AbstractOidcProvider
         String userInfoUri = config.get( USERINFO_URI );
         String jwkSetUri = config.get( JWK_URI );
 
+        String redirectUrl = Optional.ofNullable( config.get( REDIRECT_URL ) ).orElse( DEFAULT_REDIRECT_TEMPLATE_URL );
         String mappingClaim = Optional.ofNullable( config.get( MAPPING_CLAIM ) ).orElse( DEFAULT_MAPPING_CLAIM );
         String endSessionUri = Optional.ofNullable( config.get( END_SESSION_URI ) ).orElse( "" );
         String displayAlias = Optional.ofNullable( config.get( DISPLAY_ALIAS ) ).orElse( providerId );
@@ -110,7 +111,7 @@ public class GenericOidcProvider extends AbstractOidcProvider
         builder.tokenUri( tokenUri );
         builder.jwkSetUri( jwkSetUri );
         builder.userInfoUri( userInfoUri );
-        builder.redirectUriTemplate( DEFAULT_REDIRECT_TEMPLATE_URL );
+        builder.redirectUriTemplate( redirectUrl );
         builder.userInfoAuthenticationMethod( AuthenticationMethod.HEADER );
         builder.userNameAttributeName( IdTokenClaimNames.SUB );
         builder.scope( allScopes.build() );

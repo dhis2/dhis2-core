@@ -60,6 +60,7 @@ import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.LOGO_IMA
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.LOGO_IMAGE_PADDING;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.MAPPING_CLAIM;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.PROVIDER_ID;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.REDIRECT_URL;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.SCOPES;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.TOKEN_URI;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.USERINFO_URI;
@@ -91,6 +92,7 @@ public final class GenericOidcProviderConfigParser
         builder.put( USERINFO_URI, Boolean.TRUE );
         builder.put( JWK_URI, Boolean.TRUE );
 
+        builder.put( REDIRECT_URL, Boolean.FALSE );
         builder.put( ENABLE_LOGOUT, Boolean.FALSE );
         builder.put( ENABLE_PKCE, Boolean.FALSE );
         builder.put( DISPLAY_ALIAS, Boolean.FALSE );

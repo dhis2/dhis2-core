@@ -47,6 +47,8 @@ public abstract class AbstractOidcProvider
 
     public final static String MAPPING_CLAIM = "mapping_claim";
 
+    public final static String REDIRECT_URL = "redirect_url";
+
     public final static String AUTHORIZATION_URI = "authorization_uri";
 
     public final static String TOKEN_URI = "token_uri";
