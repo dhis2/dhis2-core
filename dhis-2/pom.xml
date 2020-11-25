@@ -1731,4 +1731,5 @@
     <rule-engine.version>2.0.34.0-SNAPSHOT</rule-engine.version>
     <release.maven.compiler.release>8</release.maven.compiler.release>
   </properties>
+
 </project>
