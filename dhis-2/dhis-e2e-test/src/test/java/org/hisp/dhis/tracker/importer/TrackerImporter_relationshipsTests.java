@@ -284,9 +284,11 @@ public class TrackerImporter_relationshipsTests
         // arrange
         String relationshipTypeId = relationshipTypeActions.get( "", new QueryParamsBuilder()
             .addAll( "filter=fromConstraint.relationshipEntity:eq:TRACKED_ENTITY_INSTANCE",
-                "filter=toConstraint.relationshipEntity:eq:TRACKED_ENTITY_INSTANCE", "filter=bidirectional:eq:" + bidirectional ) )
+                "filter=toConstraint.relationshipEntity:eq:TRACKED_ENTITY_INSTANCE", "filter=bidirectional:eq:" + bidirectional,
+                "filter=name:like:TA" ) )
             .extractString( "relationshipTypes.id[0]" );
 
+        new RestApiActions( "/relationshipTypes" ).get(relationshipTypeId).prettyPrint();
         JsonObject relationship1 = JsonObjectBuilder.jsonObject()
             .addProperty( "relationshipType", relationshipTypeId )
             .addObject( "from", JsonObjectBuilder.jsonObject()

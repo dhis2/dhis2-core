@@ -75,7 +75,6 @@ public class TrackerImporter_eventValidationTests
                 "Could not find OrganisationUnit: `NULL`, linked to Event." ),
             Arguments.arguments( ouIdWithoutAccess, eventProgramId, eventProgramStageId,
                 "Program is not assigned to this organisation unit" ),
-            Arguments.arguments( OU_ID, null, eventProgramStageId, "Event.program does not point to a valid program" ),
             Arguments.arguments( OU_ID, trackerProgramId, null, "Event.programStage does not point to a valid programStage" ) );
     }
 
