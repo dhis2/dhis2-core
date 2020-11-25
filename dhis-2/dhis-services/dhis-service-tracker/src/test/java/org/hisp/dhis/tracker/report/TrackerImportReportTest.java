@@ -69,7 +69,6 @@ public class TrackerImportReportTest
 
     private TrackerTypeReport createTypeReport( TrackerType type, int created, int updated, int deleted )
     {
-        final Map<TrackerType, TrackerTypeReport> map = new HashMap<>();
         final TrackerStats teiStats = new TrackerStats();
         teiStats.setCreated( created );
         teiStats.setUpdated( updated );

@@ -29,7 +29,6 @@ package org.hisp.dhis.security.oidc;
  *
  */
 
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -48,7 +47,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_LOGOUT_REDIRECT_
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 @Component
 public class DhisOidcLogoutSuccessHandler
     implements LogoutSuccessHandler

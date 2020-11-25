@@ -46,12 +46,10 @@ import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-@Slf4j
 public class V2_36_2__normalize_program_rule_names_for_duplicates
     extends BaseJavaMigration
 {
