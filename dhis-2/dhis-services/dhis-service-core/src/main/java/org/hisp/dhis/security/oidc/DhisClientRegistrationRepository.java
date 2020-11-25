@@ -82,7 +82,14 @@ public class DhisClientRegistrationRepository
     @Override
     public ClientRegistration findByRegistrationId( String registrationId )
     {
-        return registrationHashMap.get( registrationId ).getClientRegistration();
+        final DhisOidcClientRegistration dhisOidcClientRegistration = registrationHashMap.get( registrationId );
+
+        if ( dhisOidcClientRegistration == null )
+        {
+            return null;
+        }
+
+        return dhisOidcClientRegistration.getClientRegistration();
     }
 
     public DhisOidcClientRegistration getDhisOidcClientRegistration( String registrationId )
