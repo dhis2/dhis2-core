@@ -41,8 +41,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -50,10 +48,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Kristian Nordal
- * @version $Id: DefaultPeriodService.java 5983 2008-10-17 17:42:44Z larshelg $
  */
 @Service( "org.hisp.dhis.period.PeriodService" )
-@Slf4j
 public class DefaultPeriodService
     implements PeriodService
 {
@@ -63,15 +59,11 @@ public class DefaultPeriodService
 
     private PeriodStore periodStore;
 
-    private SessionFactory sessionFactory;
-
-    public DefaultPeriodService( PeriodStore periodStore, SessionFactory sessionFactory )
+    public DefaultPeriodService( PeriodStore periodStore )
     {
         checkNotNull( periodStore );
-        checkNotNull( sessionFactory );
 
         this.periodStore = periodStore;
-        this.sessionFactory = sessionFactory;
     }
 
     // -------------------------------------------------------------------------
@@ -99,18 +91,18 @@ public class DefaultPeriodService
     {
         return periodStore.get( id );
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public Period getPeriod( String isoPeriod )
     {
         Period period = PeriodType.getPeriodFromIsoString( isoPeriod );
-        
+
         if ( period != null )
-        {        
+        {
             period = periodStore.getPeriod( period.getStartDate(), period.getEndDate(), period.getPeriodType() );
         }
-        
+
         return period;
     }
 
@@ -179,8 +171,8 @@ public class DefaultPeriodService
         for ( Period period : periods )
         {
             intersecting.addAll( getIntersectingPeriods( period.getStartDate(), period.getEndDate() ) );
-        }      
-        
+        }
+
         return new ArrayList<>( intersecting );
     }
 
@@ -320,47 +312,47 @@ public class DefaultPeriodService
 
         return periodStore.insertIsoPeriodInStatelessSession( period );
     }
-    
+
     @Override
     @Transactional
     public Period reloadIsoPeriod( String isoPeriod )
     {
         Period period = PeriodType.getPeriodFromIsoString( isoPeriod );
-        
+
         return period != null ? reloadPeriod( period ) : null;
     }
-    
+
     @Override
     @Transactional
     public List<Period> reloadIsoPeriods( List<String> isoPeriods )
     {
         List<Period> periods = new ArrayList<>();
-        
+
         for ( String iso : isoPeriods )
         {
             Period period = reloadIsoPeriod( iso );
-            
+
             if ( period != null )
             {
                 periods.add( period );
             }
         }
-        
+
         return periods;
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public PeriodHierarchy getPeriodHierarchy( Collection<Period> periods )
     {
         PeriodHierarchy hierarchy = new PeriodHierarchy();
-        
+
         for ( Period period : periods )
         {
             hierarchy.getIntersectingPeriods().put( period.getId(), new HashSet<>( getIdentifiers( getIntersectingPeriods( period.getStartDate(), period.getEndDate() ) ) ) );
             hierarchy.getPeriodsBetween().put( period.getId(), new HashSet<>( getIdentifiers( getPeriodsBetweenDates( period.getStartDate(), period.getEndDate() ) ) ) );
         }
-        
+
         return hierarchy;
     }
 

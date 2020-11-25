@@ -28,9 +28,17 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.tracker.validation.RelationshipStubs.getAutoRelationship;
+import static org.hisp.dhis.tracker.validation.RelationshipStubs.getMissingFromRelationshipItemRelationship;
+import static org.hisp.dhis.tracker.validation.RelationshipStubs.getMissingToRelationshipItemRelationship;
+import static org.hisp.dhis.tracker.validation.RelationshipStubs.getRelationshipTypes;
+import static org.hisp.dhis.tracker.validation.RelationshipStubs.getValidRelationship;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
+
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -46,14 +54,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.tracker.validation.RelationshipStubs.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.when;
+import com.google.common.collect.Lists;
 
 /**
  * @author Enrico Colasante
@@ -70,9 +71,6 @@ public class RelationshipImportValidationTest
     @Mock
     private TrackerPreheat preheat;
 
-    @Mock
-    private TrackedEntityAttributeService teAttrService;
-
     private ValidationErrorReporter reporter;
 
     private RelationshipsValidationHook validatorToTest;
@@ -86,14 +84,15 @@ public class RelationshipImportValidationTest
         when( preheat.getAll( TrackerIdScheme.UID, RelationshipType.class ) ).thenReturn( getRelationshipTypes() );
         when( trackerBundle.getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE );
 
-        validatorToTest = new RelationshipsValidationHook( teAttrService );
-        reporter = new ValidationErrorReporter( context, Relationship.class );
+        validatorToTest = new RelationshipsValidationHook();
     }
 
     @Test
     public void validateRelationshipShouldSucceed()
     {
-        validatorToTest.validateRelationship( reporter, getValidRelationship() );
+        final Relationship rel = getValidRelationship();
+        reporter = new ValidationErrorReporter( context, rel );
+        validatorToTest.validateRelationship( reporter, rel );
 
         assertEquals( 0, reporter.getReportList().size() );
     }
@@ -101,6 +100,8 @@ public class RelationshipImportValidationTest
     @Test
     public void validateAutoRelationshipShouldFail()
     {
+        Relationship rel = getAutoRelationship();
+        reporter = new ValidationErrorReporter( context, rel );
         validatorToTest.validateRelationship( reporter, getAutoRelationship() );
 
         assertEquals( 1, reporter.getReportList().size() );
@@ -112,119 +113,35 @@ public class RelationshipImportValidationTest
     {
         when( preheat.getAll( TrackerIdScheme.UID, RelationshipType.class ) ).thenReturn( Lists.newArrayList() );
 
-        validatorToTest.validateRelationship( reporter, getValidRelationship() );
+        Relationship rel = getValidRelationship();
+        reporter = new ValidationErrorReporter( context, rel );
+        validatorToTest.validateRelationship( reporter, rel );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4004 ) );
+        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4009 ) );
     }
 
     @Test
     public void validateRelationshipShouldFailForMissingFromRelationshipItem()
     {
-        validatorToTest.validateRelationship( reporter, getMissingFromRelationshipItemRelationship() );
+        Relationship rel = getMissingFromRelationshipItemRelationship();
+
+        reporter = new ValidationErrorReporter( context, rel );
+        validatorToTest.validateRelationship( reporter, rel );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4004 ) );
+        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4007 ) );
     }
 
     @Test
     public void validateRelationshipShouldFailForMissingToRelationshipItem()
     {
-        validatorToTest.validateRelationship( reporter, getMissingToRelationshipItemRelationship() );
+        Relationship rel = getMissingToRelationshipItemRelationship();
+        reporter = new ValidationErrorReporter( context, rel );
+
+        validatorToTest.validateRelationship( reporter, rel );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4004 ) );
-    }
-
-    @Test
-    public void validateRelationshipShouldFailForBadTEIRelationshipItem()
-    {
-        validatorToTest.validateRelationship( reporter, getBadTEIRelationshipItemRelationship() );
-
-        assertEquals( 3, reporter.getReportList().size() );
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E4001 ) ) ) );
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E4002 ) ) ) );
-    }
-
-    @Test
-    public void validateRelationshipShouldFailForBadEnrollmentRelationshipItem()
-    {
-        validatorToTest.validateRelationship( reporter, getBadEnrollmentRelationshipItemRelationship() );
-
-        assertEquals( 3, reporter.getReportList().size() );
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E4001 ) ) ) );
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E4002 ) ) ) );
-    }
-
-    @Test
-    public void validateRelationshipShouldFailForBadEventRelationshipItem()
-    {
-        validatorToTest.validateRelationship( reporter, getBadEventRelationshipItemRelationship() );
-
-        assertEquals( 3, reporter.getReportList().size() );
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E4001 ) ) ) );
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E4002 ) ) ) );
-    }
-
-    @Test
-    public void validateDuplicatedRelationshipShouldFail()
-    {
-        when( trackerBundle.getRelationships() ).thenReturn( getDuplicatedRelationships() );
-
-        validatorToTest.validateRelationship( reporter, getDuplicatedRelationships().get( 0 ) );
-
-        assertEquals( 1, reporter.getReportList().size() );
-        assertThat( reporter.getReportList(), hasItem( hasProperty( "errorCode", equalTo(
-            TrackerErrorCode.E4003 ) ) ) );
-    }
-
-    @Test
-    public void validateValidRelationshipInDuplicatedRelationshipsShoulNotdFail()
-    {
-        when( trackerBundle.getRelationships() ).thenReturn( getDuplicatedAndValidRelationships() );
-
-        validatorToTest.validateRelationship( reporter, getValidRelationship() );
-
-        assertEquals( 0, reporter.getReportList().size() );
-    }
-
-    @Test
-    public void validateBidirectionalDuplicatedRelationshipShouldFail()
-    {
-        when( trackerBundle.getRelationships() ).thenReturn( getBidirectionalDuplicatedRelationships() );
-
-        validatorToTest.validateRelationship( reporter, getBidirectionalDuplicatedRelationships().get( 0 ) );
-
-        assertEquals( 1, reporter.getReportList().size() );
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E4003 ) ) ) );
-    }
-
-    @Test
-    public void validateValidRelationshipInBidirectionalDuplicatedRelationshipShouldNotFail()
-    {
-        when( trackerBundle.getRelationships() ).thenReturn( getBidirectionalDuplicatedAndValidRelationships() );
-
-        validatorToTest.validateRelationship( reporter, getValidRelationship() );
-
-        assertEquals( 0, reporter.getReportList().size() );
-    }
-
-    @Test
-    public void validateOnlyOneBidirectionalDuplicatedRelationshipShouldFail()
-    {
-        when( trackerBundle.getRelationships() ).thenReturn( getOnlyOneBidirectionalDuplicatedRelationships() );
-
-        validatorToTest.validateRelationship( reporter, getValidRelationship() );
-
-        assertEquals( 1, reporter.getReportList().size() );
-        assertThat( reporter.getReportList(), hasItem( hasProperty( "errorCode", equalTo(
-            TrackerErrorCode.E4003 ) ) ) );
+        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4008 ) );
     }
 }

@@ -158,6 +158,6 @@ public class ProgramRuleIntegrationTest
 
         assertNotNull( trackerImportEnrollmentReport );
         assertEquals( TrackerStatus.OK, trackerImportEnrollmentReport.getStatus() );
-        assertTrue( trackerImportEnrollmentReport.getTrackerValidationReport().getWarningReports().isEmpty() );
+        assertTrue( trackerImportEnrollmentReport.getValidationReport().getWarningReports().isEmpty() );
     }
 }

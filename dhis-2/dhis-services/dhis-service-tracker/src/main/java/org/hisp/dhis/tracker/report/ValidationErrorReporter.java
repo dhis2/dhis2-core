@@ -29,21 +29,33 @@ package org.hisp.dhis.tracker.report;
  */
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
-import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 
 import lombok.Data;
 
 /**
+ * A class that collects {@link TrackerErrorReport} during the validation
+ * process.
+ * 
+ * Each {@link TrackerErrorReport} collection is connected to a specific Tracker
+ * entity (Tracked Entity, Enrollment, etc.) via the "mainUid" attribute
+ * 
+ * 
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
+// TODO: should this be "ValidationReporter" since it does not only report errors ?
 public class ValidationErrorReporter
 {
     private final List<TrackerErrorReport> reportList;
@@ -54,36 +66,71 @@ public class ValidationErrorReporter
 
     private final TrackerImportValidationContext validationContext;
 
-    private final Class<?> mainKlass;
-
-    private final AtomicInteger listIndex = new AtomicInteger( 0 );
-
+    /*
+     * The Tracker object uid to which this reporter is associated.
+     */
     private String mainId;
 
+    /*
+     * The type of object associated to this report
+     */
     private TrackerType dtoType;
 
-    private List<TrackerDto> invalidDTOs;
+    /*
+     * A map that keep tracks of all the invalid Tracker objects encountered during
+     * the validation process
+     */
+    private Map<TrackerType, List<String>> invalidDTOs;
 
-    public ValidationErrorReporter( TrackerImportValidationContext context, Class<?> mainKlass )
+    public static ValidationErrorReporter emptyReporter()
+    {
+        return new ValidationErrorReporter();
+    }
+
+    private ValidationErrorReporter()
+    {
+        this.warningsReportList = new ArrayList<>();
+        this.reportList = new ArrayList<>();
+        this.isFailFast = false;
+        this.validationContext = null;
+        this.invalidDTOs = new HashMap<>();
+    }
+
+    public ValidationErrorReporter( TrackerImportValidationContext context )
     {
         this.validationContext = context;
         this.reportList = new ArrayList<>();
         this.warningsReportList = new ArrayList<>();
         this.isFailFast = validationContext.getBundle().getValidationMode() == ValidationMode.FAIL_FAST;
-        this.mainKlass = mainKlass;
-        this.invalidDTOs = new ArrayList<>();
+        this.invalidDTOs = new HashMap<>();
     }
 
-    private ValidationErrorReporter( TrackerImportValidationContext context, Class<?> mainKlass, boolean isFailFast,
-        int listIndex )
+    public ValidationErrorReporter( TrackerImportValidationContext context, TrackedEntity trackedEntity )
     {
-        this.validationContext = context;
-        this.reportList = new ArrayList<>();
-        this.warningsReportList = new ArrayList<>();
-        this.isFailFast = isFailFast;
-        this.mainKlass = mainKlass;
-        this.listIndex.set( listIndex );
-        this.invalidDTOs = new ArrayList<>();
+        this( context );
+        this.dtoType = TrackerType.TRACKED_ENTITY;
+        this.mainId = trackedEntity.getTrackedEntity();
+    }
+
+    public ValidationErrorReporter( TrackerImportValidationContext context, Enrollment enrollment )
+    {
+        this( context );
+        this.dtoType = TrackerType.ENROLLMENT;
+        this.mainId = enrollment.getEnrollment();
+    }
+
+    public ValidationErrorReporter( TrackerImportValidationContext context, Event event )
+    {
+        this( context );
+        this.dtoType = TrackerType.EVENT;
+        this.mainId = event.getEvent();
+    }
+
+    public ValidationErrorReporter( TrackerImportValidationContext context, Relationship relationship )
+    {
+        this( context );
+        this.dtoType = TrackerType.RELATIONSHIP;
+        this.mainId = relationship.getRelationship();
     }
 
     public boolean hasErrors()
@@ -129,59 +176,23 @@ public class ValidationErrorReporter
         getWarningsReportList().add( builder.build( this.validationContext.getBundle() ) );
     }
 
-    public ValidationErrorReporter fork()
-    {
-        return fork( null );
-    }
-
-    public <T extends TrackerDto> ValidationErrorReporter fork( T dto )
-    {
-        ValidationErrorReporter fork = new ValidationErrorReporter( this.validationContext, this.mainKlass,
-            isFailFast(),
-            listIndex.incrementAndGet() );
-
-        if ( dto == null )
-        {
-            fork.mainId = this.mainId;
-            return fork;
-        }
-
-        // TODO: Use interface method to build name?
-        if ( dto instanceof TrackedEntity )
-        {
-            TrackedEntity trackedEntity = (TrackedEntity) dto;
-            fork.mainId = trackedEntity.getTrackedEntity();
-            fork.dtoType = TrackerType.TRACKED_ENTITY;
-        }
-        else if ( dto instanceof Enrollment )
-        {
-            Enrollment enrollment = (Enrollment) dto;
-            fork.mainId = enrollment.getEnrollment();
-            fork.dtoType = TrackerType.ENROLLMENT;
-        }
-        else if ( dto instanceof Event )
-        {
-            Event event = (Event) dto;
-            fork.mainId = event.getEvent();
-            fork.dtoType = TrackerType.EVENT;
-        }
-        else if ( dto instanceof Relationship )
-        {
-            Relationship relationship = (Relationship) dto;
-            fork.mainId = relationship.getRelationship();
-            fork.dtoType = TrackerType.RELATIONSHIP;
-        }
-        return fork;
-    }
-
     public void merge( ValidationErrorReporter reporter )
     {
-        this.reportList.addAll( reporter.getReportList() );
+        // add the root invalid object to the map, if invalid
+        if ( reporter.getReportList().size() > 0 )
+        {
+            this.invalidDTOs.computeIfAbsent( reporter.dtoType, k -> new ArrayList<>() ).add( reporter.mainId );
+
+            this.reportList.addAll( reporter.getReportList() );
+        }
         this.warningsReportList.addAll( reporter.getWarningsReportList() );
     }
 
-    public void addDtosWithErrors( List<TrackerDto> notValidDTOs )
+    /**
+     * Checks if the provided uid and Tracker Type is part of the invalid entities
+     */
+    public boolean isInvalid( TrackerType trackerType, String uid )
     {
-        this.invalidDTOs.addAll( notValidDTOs );
+        return this.invalidDTOs.getOrDefault( trackerType, new ArrayList<>() ).contains( uid );
     }
 }

@@ -75,6 +75,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.hisp.dhis.security.DefaultSecurityService.RECOVERY_LOCKOUT_MINS;
+
 /**
  * @author Lars Helge Overland
  */
@@ -135,12 +137,12 @@ public class AccountController
         HttpServletResponse response )
         throws WebMessageException
     {
-        String rootPath = ContextUtils.getContextPath( request );
-
         if ( !systemSettingManager.accountRecoveryEnabled() )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Account recovery is not enabled" ) );
         }
+
+        handleRecoveryLock( username );
 
         UserCredentials credentials = userService.getUserCredentialsByUsername( username );
 
@@ -149,10 +151,16 @@ public class AccountController
             throw new WebMessageException( WebMessageUtils.conflict( "User does not exist: " + username ) );
         }
 
-        boolean recover = securityService
-            .sendRestoreMessage( credentials, rootPath, RestoreOptions.RECOVER_PASSWORD_OPTION );
+        String validRestore = securityService.validateRestore( credentials );
 
-        if ( !recover )
+        if ( validRestore != null )
+        {
+            throw new WebMessageException( WebMessageUtils.error( "Failed to validate recovery attempt" ) );
+        }
+
+        if ( !securityService
+            .sendRestoreOrInviteMessage( credentials, ContextUtils.getContextPath( request ),
+                RestoreOptions.RECOVER_PASSWORD_OPTION ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Account could not be recovered" ) );
         }
@@ -162,15 +170,41 @@ public class AccountController
         webMessageService.send( WebMessageUtils.ok( "Recovery message sent" ), response, request );
     }
 
+    private void handleRecoveryLock( String username )
+        throws WebMessageException
+    {
+        if ( securityService.isRecoveryLocked( username ) )
+        {
+            throw new WebMessageException( WebMessageUtils
+                .forbidden( "The account recovery operation for the given user is temporarily locked due to too " +
+                    "many calls to this endpoint in the last '" + RECOVERY_LOCKOUT_MINS + "' minutes. Username:" +
+                    username ) );
+        }
+        else
+        {
+            securityService.registerRecoveryAttempt( username );
+        }
+    }
+
     @RequestMapping( value = "/restore", method = RequestMethod.POST )
     public void restoreAccount(
-        @RequestParam String username,
         @RequestParam String token,
         @RequestParam String password,
         HttpServletRequest request,
         HttpServletResponse response )
         throws WebMessageException
     {
+        String[] idAndRestoreToken = securityService.decodeEncodedTokens( token );
+        String idToken = idAndRestoreToken[0];
+        String restoreToken = idAndRestoreToken[1];
+
+        UserCredentials credentials = userService.getUserCredentialsByIdToken( idToken );
+
+        if ( credentials == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Account recovery failed" ) );
+        }
+
         if ( !systemSettingManager.accountRecoveryEnabled() )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Account recovery is not enabled" ) );
@@ -181,16 +215,9 @@ public class AccountController
             throw new WebMessageException( WebMessageUtils.badRequest( "Password is not specified or invalid" ) );
         }
 
-        if ( password.trim().equals( username.trim() ) )
+        if ( password.trim().equals( credentials.getUsername() ) )
         {
             throw new WebMessageException( WebMessageUtils.badRequest( "Password cannot be equal to username" ) );
-        }
-
-        UserCredentials credentials = userService.getUserCredentialsByUsername( username );
-
-        if ( credentials == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "User does not exist: " + username ) );
         }
 
         CredentialsInfo credentialsInfo;
@@ -200,11 +227,12 @@ public class AccountController
         if ( user == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.error( String.format( "No user found for username: %s", username ) ) );
+                WebMessageUtils.error( String.format( "No user found for username: %s", credentials.getUsername() ) ) );
         }
         else
         {
-            credentialsInfo = new CredentialsInfo( username, password, user.getEmail() != null ? user.getEmail() : "",
+            credentialsInfo = new CredentialsInfo( credentials.getUsername(), password,
+                user.getEmail() != null ? user.getEmail() : "",
                 false );
         }
 
@@ -215,14 +243,14 @@ public class AccountController
             throw new WebMessageException( WebMessageUtils.badRequest( result.getErrorMessage() ) );
         }
 
-        boolean restore = securityService.restore( credentials, token, password, RestoreType.RECOVER_PASSWORD );
+        boolean restoreSuccess = securityService.restore( credentials, restoreToken, password, RestoreType.RECOVER_PASSWORD );
 
-        if ( !restore )
+        if ( !restoreSuccess )
         {
             throw new WebMessageException( WebMessageUtils.badRequest( "Account could not be restored" ) );
         }
 
-        log.info( "Account restored for user: " + username );
+        log.info( "Account restored for user: " + credentials.getUsername() );
 
         webMessageService.send( WebMessageUtils.ok( "Account restored" ), response, request );
     }
@@ -244,6 +272,7 @@ public class AccountController
         throws WebMessageException, IOException
     {
         UserCredentials credentials = null;
+        String restoreToken = null;
 
         boolean invitedByEmail = (inviteUsername != null && !inviteUsername.isEmpty());
 
@@ -251,23 +280,33 @@ public class AccountController
 
         if ( invitedByEmail )
         {
-            credentials = userService.getUserCredentialsByUsername( inviteUsername );
+            String[] idAndRestoreToken = securityService.decodeEncodedTokens( inviteToken );
+
+            String idToken = idAndRestoreToken[0];
+            restoreToken = idAndRestoreToken[1];
+
+            credentials = userService.getUserCredentialsByIdToken( idToken );
 
             if ( credentials == null )
             {
                 throw new WebMessageException( WebMessageUtils.badRequest( "Invitation link not valid" ) );
             }
 
-            boolean canRestore = securityService.canRestore( credentials, inviteToken, RestoreType.INVITE );
+            boolean canRestore = securityService.canRestore( credentials, restoreToken, RestoreType.INVITE );
 
             if ( !canRestore )
             {
                 throw new WebMessageException( WebMessageUtils.badRequest( "Invitation code not valid" ) );
             }
 
-            RestoreOptions restoreOptions = securityService.getRestoreOptions( inviteToken );
+            RestoreOptions restoreOptions = securityService.getRestoreOptions( restoreToken );
 
             canChooseUsername = restoreOptions.isUsernameChoice();
+
+            if ( !email.equals( credentials.getUserInfo().getEmail() ) )
+            {
+                throw new WebMessageException( WebMessageUtils.badRequest( "Email don't match invited email" ) );
+            }
         }
         else
         {
@@ -375,7 +414,7 @@ public class AccountController
 
         if ( invitedByEmail )
         {
-            boolean restored = securityService.restore( credentials, inviteToken, password, RestoreType.INVITE );
+            boolean restored = securityService.restore( credentials, restoreToken, password, RestoreType.INVITE );
 
             if ( !restored )
             {

@@ -35,6 +35,7 @@ import java.util.Map;
 
 import org.hisp.dhis.tracker.TrackerType;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
@@ -46,7 +47,7 @@ import lombok.Data;
 public class TrackerObjectReport
 {
     /**
-     * Type of object this @{@link TrackerObjectReport} represents.
+     * Type of object this {@link TrackerObjectReport} represents.
      */
     @JsonProperty
     private final TrackerType trackerType;
@@ -70,12 +71,37 @@ public class TrackerObjectReport
         this.trackerType = trackerType;
     }
 
-    public TrackerObjectReport( TrackerType trackerType, String uid, int index )
+    public TrackerObjectReport( TrackerType trackerType, String uid, Integer index )
     {
         this.trackerType = trackerType;
         this.uid = uid;
         this.index = index;
     }
+    
+    @JsonCreator
+    public TrackerObjectReport( @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid, @JsonProperty( "index" ) Integer index,
+        @JsonProperty( "errorReports" ) List<TrackerErrorReport> errorReports )
+    {
+        this.trackerType = trackerType;
+        this.uid = uid;
+        this.index = index;
+        if ( errorReports != null )
+        {
+            List<TrackerErrorReport> errorCodeReportList;
+            for ( TrackerErrorReport errorReport : errorReports )
+            {
+                errorCodeReportList = this.errorReportsByCode.get( errorReport.getErrorCode() );
+
+                if ( errorCodeReportList == null )
+                {
+                    errorCodeReportList = new ArrayList<>();
+                }
+                errorCodeReportList.add( errorReport );
+                this.errorReportsByCode.put( errorReport.getErrorCode(), errorCodeReportList );
+            }
+        }
+    }
+
 
     @JsonProperty
     public List<TrackerErrorReport> getErrorReports()

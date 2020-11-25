@@ -28,6 +28,18 @@ package org.hisp.dhis.dxf2.metadata.jobs;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor;
@@ -42,26 +54,16 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.retry.support.RetryTemplate;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.mockito.Mockito.*;
 
 /**
  * @author aamerm
  */
 public class MetadataSyncJobParametersTest
 {
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-
     @Mock
     private SystemSettingManager systemSettingManager;
 
@@ -97,8 +99,6 @@ public class MetadataSyncJobParametersTest
     @Before
     public void setUp()
     {
-        MockitoAnnotations.initMocks( this );
-
         metadataSyncSummary = mock( MetadataSyncSummary.class );
         metadataVersion = mock( MetadataVersion.class );
         metadataVersions = new ArrayList<>();

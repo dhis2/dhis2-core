@@ -320,6 +320,14 @@ public class DefaultTrackedEntityAttributeService
 
     @Override
     @Transactional( readOnly = true )
+    public List<TrackedEntityAttribute> getAllUniqueTrackedEntityAttributes()
+    {
+        return getAllTrackedEntityAttributes().stream().filter( TrackedEntityAttribute::isUnique )
+            .collect( Collectors.toList() );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes()
     {
         return this.trackedEntityAttributeStore.getTrackedEntityAttributesByTrackedEntityTypes();

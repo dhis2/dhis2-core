@@ -32,7 +32,7 @@ import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
@@ -682,7 +682,6 @@ public class EventImportTest
         return new ByteArrayInputStream( jsonEvents.toString().getBytes() );
     }
 
-    @SuppressWarnings( "unchecked" )
     private InputStream createEventJsonInputStream( String program, String programStage, String orgUnit, String person,
         DataElement dataElement, String value )
     {

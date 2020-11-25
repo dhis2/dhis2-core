@@ -28,22 +28,22 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1020;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1021;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1023;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1025;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
+
+import java.util.Date;
+
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
-
-import java.util.Date;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -52,11 +52,6 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 public class EnrollmentDateValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    public EnrollmentDateValidationHook( TrackedEntityAttributeService teAttrService )
-    {
-        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
-    }
-
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
@@ -71,7 +66,7 @@ public class EnrollmentDateValidationHook
         if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() ) &&
             !isValidDateStringAndNotNull( enrollment.getOccurredAt() ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1023 ).addArg( enrollment.getOccurredAt() ) );
+            addError( reporter, E1023, enrollment.getOccurredAt() );
         }
     }
 
@@ -81,8 +76,7 @@ public class EnrollmentDateValidationHook
 
         if ( !isValidDateStringAndNotNull( enrollment.getEnrolledAt() ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1025 )
-                .addArg( enrollment.getEnrolledAt() ) );
+            addError( reporter, E1025, enrollment.getEnrolledAt() );
         }
     }
 
@@ -96,16 +90,14 @@ public class EnrollmentDateValidationHook
             && Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() )
             && DateUtils.parseDate( enrollment.getEnrolledAt() ).after( new Date() ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1020 )
-                .addArg( enrollment.getEnrolledAt() ) );
+            addError( reporter, E1020, enrollment.getEnrolledAt() );
         }
 
         if ( isValidDateStringAndNotNull( enrollment.getOccurredAt() )
             && Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() )
             && DateUtils.parseDate( enrollment.getOccurredAt() ).after( new Date() ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1021 )
-                .addArg( enrollment.getOccurredAt() ) );
+            addError( reporter, E1021, enrollment.getOccurredAt() );
         }
     }
 }

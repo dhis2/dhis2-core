@@ -74,6 +74,7 @@ public class DefaultTrackerValidationService
             return validationReport;
         }
 
+        // Note that the bundle gets cloned internally, so the original bundle is always available
         TrackerImportValidationContext context = new TrackerImportValidationContext( bundle );
 
         try

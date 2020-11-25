@@ -28,9 +28,6 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
@@ -41,18 +38,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class EventNoteValidationHook extends AbstractTrackerDtoValidationHook
 {
-    private final TrackedEntityCommentService commentService;
-
-    public EventNoteValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackedEntityCommentService commentService )
-    {
-        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
-        this.commentService = commentService;
-    }
-
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        event.setNotes( NoteValidationUtils.getPersistableNotes( commentService, event.getNotes() ) );
+        event.setNotes( ValidationUtils.validateNotes( reporter, event.getNotes() ) );
     }
 }

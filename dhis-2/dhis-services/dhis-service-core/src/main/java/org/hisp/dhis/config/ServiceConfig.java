@@ -92,6 +92,6 @@ public class ServiceConfig
     @Bean( "org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager" )
     public ResourceBundleManager resourceBundleManager()
     {
-        return new DefaultResourceBundleManager( "i18n_global", "i18n_module" );
+        return new DefaultResourceBundleManager();
     }
 }

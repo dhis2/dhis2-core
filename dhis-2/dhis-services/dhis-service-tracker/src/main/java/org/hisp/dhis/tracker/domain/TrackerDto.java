@@ -33,4 +33,5 @@ package org.hisp.dhis.tracker.domain;
  */
 public interface TrackerDto
 {
+    String getUid();
 }

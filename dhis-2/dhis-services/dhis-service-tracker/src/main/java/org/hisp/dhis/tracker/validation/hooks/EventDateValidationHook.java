@@ -28,13 +28,22 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1042;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1043;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1046;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1047;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1051;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1052;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+
+import java.util.Date;
+
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -43,11 +52,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -55,11 +59,6 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class EventDateValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    public EventDateValidationHook( TrackedEntityAttributeService teAttrService )
-    {
-        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
-    }
-
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
@@ -102,17 +101,12 @@ public class EventDateValidationHook
                 completedDate = DateUtils.parseDate( event.getCompletedAt() );
             }
 
-            if ( completedDate == null )
-            {
-                reporter.addError( newReport( TrackerErrorCode.E1042 )
-                    .addArg( event ) );
-            }
+            addErrorIfNull( completedDate, reporter, E1042, event );
 
             if ( completedDate != null && (new Date())
                 .after( DateUtils.getDateAfterAddition( completedDate, program.getCompleteEventsExpiryDays() ) ) )
             {
-                reporter.addError( newReport( TrackerErrorCode.E1043 )
-                    .addArg( event ) );
+                addError( reporter, E1043, event );
             }
         }
     }
@@ -131,18 +125,14 @@ public class EventDateValidationHook
         }
 
         String referenceDate = event.getOccurredAt() != null ? event.getOccurredAt() : event.getScheduledAt();
-        if ( referenceDate == null )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1046 )
-                .addArg( event ) );
-        }
+        
+        addErrorIfNull( referenceDate, reporter, E1046, event );
 
         Period period = periodType.createPeriod( new Date() );
 
         if ( DateUtils.parseDate( referenceDate ).before( period.getStartDate() ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1047 )
-                .addArg( event ) );
+            addError( reporter, E1047, event );
         }
     }
 
@@ -152,14 +142,12 @@ public class EventDateValidationHook
 
         if ( event.getScheduledAt() != null && isNotValidDateString( event.getScheduledAt() ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1051 )
-                .addArg( event.getScheduledAt() ) );
+            addError( reporter, E1051, event.getScheduledAt() );
         }
 
         if ( event.getOccurredAt() != null && isNotValidDateString( event.getOccurredAt() ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1052 )
-                .addArg( event.getOccurredAt() ) );
+            addError( reporter, E1052, event.getScheduledAt() );
         }
     }
 }

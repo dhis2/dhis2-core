@@ -28,200 +28,211 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.tracker.report.TrackerTimingsStats.COMMIT_OPS;
+import static org.hisp.dhis.tracker.report.TrackerTimingsStats.PREHEAT_OPS;
+import static org.hisp.dhis.tracker.report.TrackerTimingsStats.PROGRAMRULE_OPS;
+import static org.hisp.dhis.tracker.report.TrackerTimingsStats.TOTAL_OPS;
+import static org.hisp.dhis.tracker.report.TrackerTimingsStats.VALIDATION_OPS;
+
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.commons.timer.SystemTimer;
-import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.tracker.report.TrackerTimingsStats;
+import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Enums;
+import com.google.common.collect.ImmutableMap;
+
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class DefaultTrackerImportService
     implements TrackerImportService
 {
-    private final TrackerBundleService trackerBundleService;
+    @NonNull private final TrackerBundleService trackerBundleService;
 
-    private final TrackerValidationService trackerValidationService;
+    @NonNull private final TrackerValidationService trackerValidationService;
 
-    private final TrackerPreprocessService trackerPreprocessService;
+    @NonNull private final TrackerPreprocessService trackerPreprocessService;
 
-    private final TrackerUserService trackerUserService;
+    @NonNull private final TrackerUserService trackerUserService;
 
-    private final Notifier notifier;
-
-    public DefaultTrackerImportService(
-        TrackerBundleService trackerBundleService,
-        TrackerValidationService trackerValidationService,
-        TrackerPreprocessService trackerPreprocessService,
-        TrackerUserService trackerUserService,
-        Notifier notifier )
-    {
-        this.trackerBundleService = trackerBundleService;
-        this.trackerValidationService = trackerValidationService;
-        this.trackerPreprocessService = trackerPreprocessService;
-        this.notifier = notifier;
-        this.trackerUserService = trackerUserService;
-    }
+    @NonNull private final Notifier notifier;
 
     @Override
+    @Transactional // TODO: This annotation must be removed. Performance killer.
     public TrackerImportReport importTracker( TrackerImportParams params )
     {
-        Timer requestTimer = new SystemTimer().start();
-
         if ( params.getUser() == null )
         {
             params.setUser( trackerUserService.getUser( params.getUserId() ) );
         }
 
-        TrackerImportReport importReport = new TrackerImportReport();
+        // Init the Notifier
+        ImportNotifier notifier = new ImportNotifier( this.notifier, params );
 
-        if ( params.hasJobConfiguration() )
+        // Keeps track of the elapsed time of each Import stage
+        TrackerTimingsStats opsTimer = new TrackerTimingsStats();
+
+        notifier.startImport();
+
+        TrackerValidationReport validationReport = null;
+
+        TrackerBundleReport bundleReport;
+
+        try
         {
-            notifier.notify( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Start" );
-        }
+            //
+            // pre-heat
+            //
+            TrackerBundle trackerBundle = opsTimer.exec( PREHEAT_OPS,
+                () -> preheatBundle( params ) );
 
-        TrackerBundle trackerBundle = preheatBundle( params, importReport );
+            Map<TrackerType, Integer> bundleSize = calculatePayloadSize( trackerBundle );
 
-        trackerBundle = preProcessBundle( trackerBundle, importReport );
+            //
+            // preprocess
+            //
+            opsTimer.execVoid( PROGRAMRULE_OPS,
+                () -> preProcessBundle( trackerBundle ) );
 
-        TrackerValidationReport validationReport = validateBundle( params, importReport, trackerBundle );
+            //
+            // validate
+            //
+            validationReport = opsTimer.exec( VALIDATION_OPS,
+                () -> validateBundle( trackerBundle ) );
 
-        if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
-        {
-            importReport.setStatus( TrackerStatus.ERROR );
-        }
-        else
-        {
-            if ( TrackerImportStrategy.DELETE == params.getImportStrategy() )
+            notifier.notifyOps( VALIDATION_OPS, opsTimer );
+
+
+            if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
             {
-                deleteBundle( params, importReport, trackerBundle );
+                TrackerImportReport trackerImportReport = TrackerImportReport
+                    .withValidationErrors( validationReport, opsTimer.stopTimer(),
+                        bundleSize.values().stream().mapToInt( Integer::intValue ).sum() );
+
+                notifier.endImport( trackerImportReport );
+
+                return trackerImportReport;
             }
             else
             {
-                commitBundle( params, importReport, trackerBundle );
+                if ( TrackerImportStrategy.DELETE == params.getImportStrategy() )
+                {
+                    bundleReport = opsTimer.exec( COMMIT_OPS, () -> deleteBundle( trackerBundle) );
+                }
+                else
+                {
+                    bundleReport = opsTimer.exec( COMMIT_OPS, () -> commitBundle( trackerBundle) );
+                }
+
+                notifier.notifyOps( COMMIT_OPS, opsTimer );
+
+                TrackerImportReport trackerImportReport = TrackerImportReport.withImportCompleted( TrackerStatus.OK,
+                    bundleReport, validationReport,
+                    opsTimer.stopTimer(), bundleSize );
+
+                notifier.endImport( trackerImportReport );
+
+                return trackerImportReport;
             }
         }
-
-        importReport.getTimings().setTotalImport( requestTimer.toString() );
-
-        if ( params.hasJobConfiguration() )
+        catch ( Exception e )
         {
-            notifier
-                .update( params.getJobConfiguration(),
-                    "(" + params.getUsername() + ") Import:Done took " + requestTimer, true );
+            log.error( "Exception thrown during import.", e );
 
-            notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
+            TrackerImportReport report = TrackerImportReport.withError( "Exception:" + e.getMessage(),
+                validationReport, opsTimer.stopTimer() );
+
+            notifier.endImportWithError( report, e );
+
+            return report;
         }
-
-        long ignored = importReport.getTrackerValidationReport().getErrorReports().stream()
-            .map( TrackerErrorReport::getUid )
-            .distinct().count();
-        importReport.setIgnored( (int) ignored );
-        return importReport;
     }
 
-    protected TrackerBundle preheatBundle( TrackerImportParams params, TrackerImportReport importReport )
+    private Map<TrackerType, Integer> calculatePayloadSize( TrackerBundle bundle )
     {
-        Timer preheatTimer = new SystemTimer().start();
-
-        TrackerBundleParams bundleParams = params.toTrackerBundleParams();
-        TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
-
-        importReport.getTimings().setPreheat( preheatTimer.toString() );
-        return trackerBundle;
+        return ImmutableMap.<TrackerType, Integer> builder()
+            .put( TrackerType.TRACKED_ENTITY, bundle.getTrackedEntities().size() )
+            .put( TrackerType.ENROLLMENT, bundle.getEnrollments().size() )
+            .put( TrackerType.EVENT, bundle.getEvents().size() )
+            .put( TrackerType.RELATIONSHIP, bundle.getRelationships().size() ).build();
     }
 
-    protected TrackerBundle preProcessBundle( TrackerBundle bundle, TrackerImportReport importReport )
+    protected TrackerBundle preheatBundle( TrackerImportParams params )
     {
-        Timer preProcessTimer = new SystemTimer().start();
+        return  trackerBundleService.create( params.toTrackerBundleParams() );
+    }
 
+    protected void preProcessBundle( TrackerBundle bundle )
+    {
         TrackerBundle trackerBundle = trackerBundleService.runRuleEngine( bundle );
-        trackerBundle = trackerPreprocessService.preprocess( trackerBundle );
-
-        importReport.getTimings().setProgramrule( preProcessTimer.toString() );
-        return trackerBundle;
+        trackerPreprocessService.preprocess( trackerBundle );
     }
 
-    protected void commitBundle( TrackerImportParams params, TrackerImportReport importReport,
-        TrackerBundle trackerBundle )
+    protected TrackerBundleReport commitBundle( TrackerBundle trackerBundle )
     {
-        Timer commitTimer = new SystemTimer().start();
-
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
 
-        List<TrackerSideEffectDataBundle> sideEffectDataBundles = ListUtils.union(
-            bundleReport.getTypeReportMap().get( TrackerType.ENROLLMENT ).getSideEffectDataBundles(),
-            bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getSideEffectDataBundles() );
+        List<TrackerSideEffectDataBundle> sideEffectDataBundles = Stream.of( TrackerType.ENROLLMENT, TrackerType.EVENT )
+            .map( trackerType -> safelyGetSideEffectsDataBundles( bundleReport, trackerType ) )
+            .flatMap( Collection::stream )
+            .collect( Collectors.toList() );
 
         trackerBundleService.handleTrackerSideEffects( sideEffectDataBundles );
 
-        importReport.setBundleReport( bundleReport );
-
-        importReport.getTimings().setCommit( commitTimer.toString() );
-
-        if ( params.hasJobConfiguration() )
-        {
-            notifier.update( params.getJobConfiguration(),
-                "(" + params.getUsername() + ") " + "Import:Commit took " + commitTimer );
-        }
+        return bundleReport;
     }
 
-    protected void deleteBundle( TrackerImportParams params, TrackerImportReport importReport,
-        TrackerBundle trackerBundle )
+    List<TrackerSideEffectDataBundle> safelyGetSideEffectsDataBundles( TrackerBundleReport bundleReport,
+        TrackerType trackerType )
     {
-        Timer commitTimer = new SystemTimer().start();
-
-        importReport.setBundleReport( trackerBundleService.delete( trackerBundle ) );
-
-        importReport.getTimings().setCommit( commitTimer.toString() );
-
-        if ( params.hasJobConfiguration() )
-        {
-            notifier.update( params.getJobConfiguration(),
-                "(" + params.getUsername() + ") " + "Import:Commit took " + commitTimer );
-        }
+        return Optional.ofNullable( bundleReport )
+            .map( TrackerBundleReport::getTypeReportMap )
+            .map( reportMap -> reportMap.get( trackerType ) )
+            .map( TrackerTypeReport::getSideEffectDataBundles )
+            .orElse( Collections.emptyList() );
     }
 
-    protected TrackerValidationReport validateBundle( TrackerImportParams params, TrackerImportReport importReport,
-        TrackerBundle trackerBundle )
+    protected TrackerBundleReport deleteBundle( TrackerBundle trackerBundle )
     {
-        Timer validationTimer = new SystemTimer().start();
+        return trackerBundleService.delete( trackerBundle );
+    }
 
+    protected TrackerValidationReport validateBundle( TrackerBundle trackerBundle )
+    {
         TrackerValidationReport validationReport = new TrackerValidationReport();
 
-        // Do all the validation
         validationReport.add( trackerValidationService.validate( trackerBundle ) );
-
-        importReport.getTimings().setValidation( validationTimer.toString() );
-        importReport.setTrackerValidationReport( validationReport );
-
-        if ( params.hasJobConfiguration() )
-        {
-            notifier
-                .update( params.getJobConfiguration(),
-                    "(" + params.getUsername() + ") Import:Validation took " + validationTimer );
-        }
+        
         return validationReport;
     }
 
@@ -249,37 +260,7 @@ public class DefaultTrackerImportService
     @Override
     public TrackerImportReport buildImportReport( TrackerImportReport importReport, TrackerBundleReportMode reportMode )
     {
-
-        TrackerImportReport filteredTrackerImportReport = new TrackerImportReport();
-        TrackerValidationReport trackerValidationReport = new TrackerValidationReport();
-        filteredTrackerImportReport.setTrackerValidationReport( trackerValidationReport );
-        filteredTrackerImportReport.setTimings( importReport.getTimings() );
-        filteredTrackerImportReport.getTrackerValidationReport()
-            .setErrorReports( importReport.getTrackerValidationReport().getErrorReports() );
-        filteredTrackerImportReport.getTrackerValidationReport()
-            .setWarningReports( importReport.getTrackerValidationReport().getWarningReports() );
-        filteredTrackerImportReport.setBundleReport( importReport.getBundleReport() );
-
-        switch ( reportMode )
-        {
-        case BASIC:
-            filteredTrackerImportReport.setTrackerValidationReport( null );
-            filteredTrackerImportReport.setTimings( null );
-            break;
-        case ERRORS:
-            filteredTrackerImportReport.getTrackerValidationReport().setPerformanceReport( null );
-            filteredTrackerImportReport.getTrackerValidationReport().setWarningReports( null );
-            filteredTrackerImportReport.setTimings( null );
-            break;
-        case WARNINGS:
-            filteredTrackerImportReport.getTrackerValidationReport().setPerformanceReport( null );
-            filteredTrackerImportReport.setTimings( null );
-            break;
-        case FULL:
-            break;
-        }
-
-        return filteredTrackerImportReport;
+        return importReport.copy( reportMode );
     }
 
     //-----------------------------------------------------------------------------------
@@ -357,5 +338,51 @@ public class DefaultTrackerImportService
         }
 
         return null;
+    }
+    
+    @AllArgsConstructor
+    static class ImportNotifier
+    {
+
+        private Notifier notifier;
+
+        private TrackerImportParams params;
+
+        public void startImport()
+        {
+            notifier.notify( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Start" );
+        }
+
+        public void notifyOps( String validationOps, TrackerTimingsStats opsTimer )
+        {
+
+            if ( params.hasJobConfiguration() )
+            {
+                notifier
+                    .update( params.getJobConfiguration(),
+                        "(" + params.getUsername() + ") Import:" + validationOps + " took "
+                            + opsTimer.get( validationOps ) );
+            }
+        }
+
+        public void endImport( TrackerImportReport importReport )
+        {
+            if ( params.hasJobConfiguration() )
+            {
+                notifier.update( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Done took " +
+                    importReport.getTimingsStats().get( TOTAL_OPS ), true );
+
+                notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
+            }
+        }
+
+        public void endImportWithError( TrackerImportReport importReport, Exception e) {
+
+            if ( params.hasJobConfiguration() )
+            {
+                notifier.update( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Failed with exception: " + e.getMessage(), true );
+                notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
+            }
+        }
     }
 }

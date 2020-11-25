@@ -28,26 +28,21 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Arrays;
 import java.util.List;
 
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.util.ObjectUtils;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Builder;
 import lombok.Data;
+
+import static org.hisp.dhis.tracker.report.TrackerReportUtils.buildArgumentList;
 
 /**
  * @author Enrico Colasante
@@ -64,8 +59,10 @@ public class TrackerWarningReport
 
     private final String uid;
 
-    public TrackerWarningReport( String warningMessage, TrackerErrorCode warningCode, TrackerType trackerType,
-        String uid )
+    @JsonCreator
+    public TrackerWarningReport( @JsonProperty( "message" ) String warningMessage,
+        @JsonProperty( "errorCode" ) TrackerErrorCode warningCode,
+        @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
     {
         this.warningMessage = warningMessage;
         this.warningCode = warningCode;
@@ -84,6 +81,18 @@ public class TrackerWarningReport
     {
         return warningMessage;
     }
+    
+    @JsonProperty
+    public TrackerType getTrackerType()
+    {
+        return trackerType;
+    }
+    
+    @JsonProperty
+    public String getUid()
+    {
+        return uid;
+    }
 
     public static class TrackerWarningReportBuilder
     {
@@ -95,54 +104,16 @@ public class TrackerWarningReport
             return this;
         }
 
-        public TrackerWarningReport build( TrackerBundle bundle )
+        public TrackerWarningReportBuilder addArgs( Object ... args )
         {
-            TrackerIdScheme scheme = bundle.getIdentifier();
-            TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( scheme ).build();
-
-            List<String> args = new ArrayList<>();
-            for ( Object argument : this.arguments )
-            {
-                String s = parseArgs( identifier, argument );
-                args.add( s );
-            }
-
-            String warningMessage = MessageFormat.format( warningCode.getMessage(), args.toArray( new Object[0] ) );
-
-            return new TrackerWarningReport( warningMessage, this.warningCode, trackerType, uid );
+            this.arguments.addAll( Arrays.asList( args ) );
+            return this;
         }
 
-        public static String parseArgs( TrackerIdentifier identifier, Object argument )
+        public TrackerWarningReport build( TrackerBundle bundle )
         {
-            if ( String.class.isAssignableFrom( ObjectUtils.firstNonNull( argument, "NULL" ).getClass() ) )
-            {
-                return ObjectUtils.firstNonNull( argument, "NULL" ).toString();
-            }
-            else if ( IdentifiableObject.class.isAssignableFrom( argument.getClass() ) )
-            {
-                return identifier.getIdAndName( (IdentifiableObject) argument );
-            }
-            else if ( Date.class.isAssignableFrom( argument.getClass() ) )
-            {
-                return (DateFormat.getInstance().format( argument ));
-            }
-            else if ( Enrollment.class.isAssignableFrom( argument.getClass() ) )
-            {
-                Enrollment enrollment = (Enrollment) argument;
-                return enrollment.getClass().getSimpleName() + " (" + enrollment.getEnrollment() + ")";
-            }
-            else if ( Event.class.isAssignableFrom( argument.getClass() ) )
-            {
-                Event event = (Event) argument;
-                return event.getClass().getSimpleName() + " (" + event.getEvent() + ")";
-            }
-            else if ( TrackedEntity.class.isAssignableFrom( argument.getClass() ) )
-            {
-                TrackedEntity entity = (TrackedEntity) argument;
-                return entity.getClass().getSimpleName() + " (" + entity.getTrackedEntity() + ")";
-            }
-
-            return "";
+            return new TrackerWarningReport( MessageFormat.format( warningCode.getMessage(),
+                buildArgumentList( bundle, arguments ).toArray( new Object[0] ) ), this.warningCode, trackerType, uid );
         }
     }
 

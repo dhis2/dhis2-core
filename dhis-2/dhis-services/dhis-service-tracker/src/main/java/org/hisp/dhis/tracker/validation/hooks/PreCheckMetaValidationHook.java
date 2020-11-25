@@ -28,27 +28,43 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1005;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1011;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1033;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1035;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1041;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1069;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1070;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1086;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1087;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1088;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1089;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1094;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4006;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
-
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -57,12 +73,6 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class PreCheckMetaValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-
-    public PreCheckMetaValidationHook( TrackedEntityAttributeService teAttrService )
-    {
-        super( teAttrService );
-    }
-
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity tei )
     {
@@ -71,15 +81,13 @@ public class PreCheckMetaValidationHook
         OrganisationUnit organisationUnit = context.getOrganisationUnit( tei.getOrgUnit() );
         if ( organisationUnit == null )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1049 )
-                .addArg( reporter ) );
+            addError( reporter, TrackerErrorCode.E1049, tei.getOrgUnit() );
         }
 
         TrackedEntityType entityType = context.getTrackedEntityType( tei.getTrackedEntityType() );
         if ( entityType == null )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1005 )
-                .addArg( tei.getTrackedEntityType() ) );
+            addError( reporter, E1005, tei.getTrackedEntityType() );
         }
     }
 
@@ -90,25 +98,14 @@ public class PreCheckMetaValidationHook
         TrackerImportStrategy strategy = context.getStrategy( enrollment );
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
-        if ( organisationUnit == null )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1070 )
-                .addArg( enrollment.getOrgUnit() ) );
-        }
+        addErrorIfNull( organisationUnit, reporter, E1070, enrollment.getOrgUnit() );
 
         Program program = context.getProgram( enrollment.getProgram() );
-        if ( program == null )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1069 )
-                .addArg( enrollment.getProgram() ) );
-        }
+        addErrorIfNull( program,  reporter, E1069, enrollment.getProgram() );
 
         if ( (program != null && organisationUnit != null) && !program.hasOrganisationUnit( organisationUnit ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1041 )
-                .addArg( organisationUnit )
-                .addArg( program )
-                .addArg( program.getOrganisationUnits() ) );
+            addError( reporter, E1041, organisationUnit, program, program.getOrganisationUnits() );
         }
 
         if ( strategy.isUpdate() )
@@ -117,9 +114,7 @@ public class PreCheckMetaValidationHook
             Program existingProgram = pi.getProgram();
             if ( !existingProgram.equals( program ) )
             {
-                reporter.addError( newReport( TrackerErrorCode.E1094 )
-                    .addArg( pi )
-                    .addArg( existingProgram ) );
+                addError( reporter, E1094, pi, existingProgram );
             }
         }
     }
@@ -132,17 +127,29 @@ public class PreCheckMetaValidationHook
         TrackerBundle bundle = context.getBundle();
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
-        if ( organisationUnit == null )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1011 )
-                .addArg( event.getOrgUnit() ) );
-        }
+        addErrorIfNull( organisationUnit, reporter, E1011, event.getOrgUnit() );
 
         Program program = context.getProgram( event.getProgram() );
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-
+        if ( program != null )
+        {
+            addErrorIf( () -> program.isRegistration() && StringUtils.isEmpty( event.getEnrollment() ), reporter, E1033,
+                event.getEvent() );
+        }
         validateEventProgramAndProgramStage( reporter, event, context, strategy, bundle, program, programStage );
         validateDataElementForDataValues( reporter, event, context );
+    }
+
+    @Override
+    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    {
+        TrackerImportValidationContext context = reporter.getValidationContext();
+
+        RelationshipType relationshipType = context.getRelationShipType( relationship.getRelationshipType() );
+        if ( relationshipType == null )
+        {
+            addError( reporter, E4006, relationship.getRelationshipType() );
+        }
     }
 
     private void validateDataElementForDataValues( ValidationErrorReporter reporter, Event event,
@@ -150,13 +157,13 @@ public class PreCheckMetaValidationHook
     {
         event.getDataValues()
             .stream()
-            .map( dv -> dv.getDataElement() )
+            .map( DataValue::getDataElement )
             .forEach( de -> {
                 DataElement dataElement = context.getBundle().getPreheat().get( TrackerIdScheme.UID, DataElement.class,
                     de );
                 if ( dataElement == null )
                 {
-                    reporter.addError( newReport( TrackerErrorCode.E1087 ).addArg( event.getEvent() ).addArg( de ) );
+                    addError( reporter, E1087, event.getEvent(), de );
                 }
             } );
     }
@@ -167,10 +174,7 @@ public class PreCheckMetaValidationHook
     {
         if ( program == null && programStage == null )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1088 )
-                .addArg( event )
-                .addArg( event.getProgram() )
-                .addArg( event.getProgramStage() ) );
+            addError( reporter, E1088, event, event.getProgram(), event.getProgramStage() );
         }
 
         if ( program == null && programStage != null )
@@ -180,9 +184,7 @@ public class PreCheckMetaValidationHook
 
         if ( program != null && programStage == null && program.isRegistration() )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1086 )
-                .addArg( event )
-                .addArg( program ) );
+            addError( reporter, E1086, event, program );
         }
 
         if ( program != null )
@@ -192,17 +194,11 @@ public class PreCheckMetaValidationHook
                 : programStage;
         }
 
-        if ( programStage == null )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1035 )
-                .addArg( event ) );
-        }
+        addErrorIfNull( programStage, reporter, E1035, event );
 
         if ( program != null && programStage != null && !program.equals( programStage.getProgram() ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1089 )
-                .addArg( program )
-                .addArg( programStage ) );
+            addError( reporter, E1089, event, program, programStage );
         }
 
         if ( strategy.isUpdate() )
@@ -236,4 +232,11 @@ public class PreCheckMetaValidationHook
         event.setProgram( identifier.getIdentifier( program ) );
         return program;
     }
+
+    @Override
+    public boolean removeOnError()
+    {
+        return true;
+    }
+
 }

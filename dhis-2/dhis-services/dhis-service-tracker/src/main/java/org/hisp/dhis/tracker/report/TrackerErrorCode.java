@@ -41,7 +41,7 @@ public enum TrackerErrorCode
     E1038( "TrackedEntityInstance: `{0}`, has multiple active enrollments in Program `{1}`." ),
     E1037( "TrackedEntityInstance: `{0}`, is not enrolled in Program `{1}`." ),
     E1002( "TrackedEntityInstance: `{0}`, already exists." ),
-    E1064( "Error validating attribute, not unique; Error `{0}`" ),
+    E1064( "Non-unique attribute value `{0}` for attribute `{1}`" ),
     E1074( "FeatureType is missing." ),
     E1031( "Event OccurredAt date is missing." ),
     E1036( "Event: `{0}`, TrackedEntityInstance does not point to a existing object." ),
@@ -72,8 +72,8 @@ public enum TrackerErrorCode
         "An Enrollment cannot be created into Program without registration." ),
     E1020( "Enrollment date: `{0}`, can`t be future date." ),
     E1021( "Incident date: `{0}`, can`t be future date." ),
-    E1023( "DisplayIncidentDate is true but IncidentDate is null or invalid formatted: `{0}`." ),
-    E1025( "Invalid Enrollment date: `{0}`." ),
+    E1023( "DisplayIncidentDate is true but property occurredAt is null or has an invalid format: `{0}`." ),
+    E1025( "Property enrolledAt is null or has an invalid format: `{0}`." ),
     E1041( "Enrollment OrganisationUnit: `{0}`, and Program: `{1}`, OrganisationUnit: `{2}`, don't match." ),
     E1068( "Could not find TrackedEntityInstance: `{0}`, linked to Enrollment." ),
     E1069( "Could not find Program: `{0}`, linked to Enrollment." ),
@@ -83,6 +83,7 @@ public enum TrackerErrorCode
     E1030( "Event: `{0}`, already exists." ),
     E1032( "Event: `{0}`, do not exist." ),
     E1035( "Event: `{0}`, ProgramStage value is NULL." ),
+    E1033( "Event: `{0}`, Enrollment value is NULL." ),
     E1086( "Event: `{0}`, has a program: `{1}`, that is a registration but its ProgramStage is not valid or missing." ),
     E1087( "Event: `{0}`, could not find DataElement: `{1}`, linked to a data value." ),
     E1088( "Event: `{0}`, program: `{1}`, and ProgramStage: `{2}`, could not be found." ),
@@ -110,6 +111,8 @@ public enum TrackerErrorCode
     E1113( "Enrollment: `{0}`, is already deleted." ),
     E1114( "TrackedEntity: `{0}`, is already deleted." ),
     E1118( "Assigned user `{0}` is not a valid uid."),
+    E1119( "A Tracker Note with uid `{0}` already exists."),
+    E1120( "ProgramStage `{0}` does not allow user assignment"),
 
     //TODO: See TODO on error usage
     E1017( "Attribute: `{0}`, does not exist." ),
@@ -136,13 +139,26 @@ public enum TrackerErrorCode
 
     E1200( "Rule engine error: `{0}`" ),
 
-    E4000( "Relationship: `{0}` cannot link to itself" ),
-    E4001( "Property `{0}` can not be set when property `{1}` is `{2}`. " ),
-    E4002( "Property `{0}` must be set when property `{1}` is `{2}`. " ),
-    E4003( "There are duplicated relationships. " ),
-    E4004( "Missing required property: 'relationshipType'." ),
-    E4005( "RelationShip: `{0}`, do not exist." ),
+    E1302( "DataElement `{0}` is not valid: `{1}`" ),
+    E1303( "Mandatory DataElement `{0}` is not present" ),
+    E1304( "DataElement `{0}` is not a valid data element" ),
+    E1305( "DataElement `{0}` is not part of `{1}` program stage" ),
 
+    E4000( "Relationship: `{0}` cannot link to itself" ),
+    E4001( "Relationship Item `{0}` for Relationship `{1}` is invalid: an Item can link only one Tracker entity." ),
+    E4003( "There are duplicated relationships." ),
+    E4004( "Missing required relationship property: 'relationshipType'." ),
+    E4005( "RelationShip: `{0}`, do not exist." ),
+    E4006( "Could not find relationship Type: `{0}`." ),
+    E4007( "Missing required relationship property: 'from'." ),
+    E4008( "Missing required relationship property: 'to'." ),
+    E4009( "Relationship Type `{0}` is not valid." ),
+    E4010( "Relationship Type `{0}` constraint requires a {1} but a {2} was found." ),
+    E4011(
+        "Relationship: `{0}` cannot be persisted because {1} {2} referenced by this relationship is not valid." ),
+    E4012( "Could not find `{0}`: `{1}`, linked to Relationship." ),
+    E4013( "Relationship Type `{0}` constraint is missing {1}." ),
+    E4014( "Relationship Type `{0}` constraint requires a Tracked Entity having type `{1}` but `{2}` was found." ),
 
     E9999( "N/A" );
 

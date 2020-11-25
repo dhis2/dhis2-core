@@ -39,11 +39,12 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStage;
 
 /**
- * Remove data elements from event which are not present in the program stage
- * that is linked to it.
+ * Remove data elements from event and context map which are not present in the
+ * program stage that is linked to it.
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
@@ -54,13 +55,30 @@ public class FilteringOutUndeclaredDataElementsProcessor implements Processor
     {
         if ( StringUtils.isNotBlank( event.getProgramStage() ) )
         {
-            Set<String> programStageDataElementUids = getDataElementUidsFromProgramStage( event.getProgramStage(),
-                ctx );
-            event.setDataValues(
-                event.getDataValues().stream()
-                    .filter( dataValue -> programStageDataElementUids.contains( dataValue.getDataElement() ) )
-                    .collect( Collectors.toSet() ) );
+            updateDataValuesInEventAndContext( event, ctx );
         }
+    }
+
+    private void updateDataValuesInEventAndContext( Event event, WorkContext ctx )
+    {
+
+        Set<String> programStageDataElementUids = getDataElementUidsFromProgramStage( event.getProgramStage(),
+            ctx );
+
+        // we're filtering data values in event as well to make it "homogeneus" with the
+        // main logic of preprocessors,
+        // even if these changes are not reflected in database, since data values to be
+        // stored are eventually taken from context
+        event.setDataValues(
+            event.getDataValues().stream()
+                .filter( dataValue -> programStageDataElementUids.contains( dataValue.getDataElement() ) )
+                .collect( Collectors.toSet() ) );
+
+        Set<EventDataValue> ctxEventDataValues = ctx.getEventDataValueMap().get( event.getUid() );
+
+        ctx.getEventDataValueMap().put( event.getUid(), ctxEventDataValues.stream()
+            .filter( eventDataValue -> programStageDataElementUids.contains( eventDataValue.getDataElement() ) )
+            .collect( Collectors.toSet() ) );
     }
 
     private Set<String> getDataElementUidsFromProgramStage( String programStageUid, WorkContext ctx )
@@ -68,11 +86,11 @@ public class FilteringOutUndeclaredDataElementsProcessor implements Processor
         IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
         ProgramStage programStage = ctx.getProgramStage( scheme, programStageUid );
         return Optional.ofNullable( programStage )
-                .map( ProgramStage::getDataElements )
-                .orElse( Collections.emptySet() )
-                .stream()
-                .map( BaseIdentifiableObject::getUid )
-                .collect( Collectors.toSet() );
+            .map( ProgramStage::getDataElements )
+            .orElse( Collections.emptySet() )
+            .stream()
+            .map( BaseIdentifiableObject::getUid )
+            .collect( Collectors.toSet() );
     }
 
 }

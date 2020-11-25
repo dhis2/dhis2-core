@@ -44,6 +44,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.Constants;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.NoteHelper;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -289,19 +290,7 @@ public abstract class AbstractEnrollmentService
         enrollment.setStoredBy( programInstance.getStoredBy() );
         enrollment.setDeleted( programInstance.isDeleted() );
 
-        List<TrackedEntityComment> comments = programInstance.getComments();
-
-        for ( TrackedEntityComment comment : comments )
-        {
-            Note note = new Note();
-
-            note.setNote( comment.getUid() );
-            note.setValue( comment.getCommentText() );
-            note.setStoredBy( comment.getCreator() );
-            note.setStoredDate( DateUtils.getIso8601NoTz( comment.getCreated() ) );
-
-            enrollment.getNotes().add( note );
-        }
+        enrollment.getNotes().addAll( NoteHelper.convertNotes( programInstance.getComments() ) );
 
         if ( params.isIncludeEvents() )
         {
@@ -390,8 +379,9 @@ public abstract class AbstractEnrollmentService
 
                 if ( importSummary.isStatus( ImportStatus.SUCCESS ) )
                 {
-                    events.forEach( e -> e.setEnrollment( enrollment.getEnrollment() ) );
-                    events.addAll( enrollment.getEvents() );
+                    List<Event> enrollmentEvents = enrollment.getEvents();
+                    enrollmentEvents.forEach( e -> e.setEnrollment( enrollment.getEnrollment() ) );
+                    events.addAll( enrollmentEvents );
                 }
             }
 
@@ -534,6 +524,7 @@ public abstract class AbstractEnrollmentService
         saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() );
 
         importSummary.setReference( programInstance.getUid() );
+        enrollment.setEnrollment( programInstance.getUid() );
         importSummary.getImportCount().incrementImported();
 
         if ( handleEvents )
@@ -634,7 +625,7 @@ public abstract class AbstractEnrollmentService
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         params.setSkipPaging( true );
         params.setProgram( program );
-        params.setTrackedEntityInstance( entityInstance );
+        params.setTrackedEntityInstanceUid( entityInstance.getUid() );
 
         // When imported enrollment has status CANCELLED, it is safe to import it, otherwise do additional checks
         // We allow import of CANCELLED and COMPLETED enrollments because the endpoint is used for bulk import and sync purposes as well
@@ -1378,6 +1369,9 @@ public abstract class AbstractEnrollmentService
                 }
 
                 comment.setCreated( created );
+
+                comment.setLastUpdatedBy( user );
+                comment.setLastUpdated( new Date() );
 
                 commentService.addTrackedEntityComment( comment );
 

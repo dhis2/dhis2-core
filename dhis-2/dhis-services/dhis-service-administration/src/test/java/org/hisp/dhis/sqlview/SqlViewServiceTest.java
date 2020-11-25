@@ -32,6 +32,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,7 +46,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.*;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -65,9 +65,6 @@ public class SqlViewServiceTest
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     private String sqlA = "SELECT   *  FROM     _categorystructure;;  ; ;;;  ;; ; ";
 
@@ -189,120 +186,120 @@ public class SqlViewServiceTest
     @Test( expected = IllegalQueryException.class )
     public void testValidateIllegalKeywords()
     {
-        SqlView sqlView = new SqlView( "Name", "delete * from dataelement", SqlViewType.QUERY );
-
-        sqlViewService.validateSqlView( sqlView, null, null );
+        sqlViewService.validateSqlView( getSqlView( "delete * from dataelement" ), null, null );
     }
 
     @Test
     public void testValidateIllegalKeywordsCTE()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E4311 );
-
-        SqlView sqlView = new SqlView( "Name", "WITH foo as (delete FROM dataelement returning *) SELECT * FROM foo;", SqlViewType.QUERY );
-
-        sqlViewService.validateSqlView( sqlView, null, null );
+        SqlView sqlView = getSqlView( "WITH foo as (delete FROM dataelement returning *) SELECT * FROM foo;" );
+        
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> sqlViewService.validateSqlView( sqlView, null, null ) ),
+            ErrorCode.E4311 );
     }
 
     @Test
     public void testValidateIllegalKeywordsAtEnd()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E4311 );
+        SqlView sqlView = getSqlView( "WITH foo as (SELECT * FROM organisationunit) commit" );
 
-        SqlView sqlView = new SqlView( "Name", "WITH foo as (SELECT * FROM organisationunit) commit", SqlViewType.QUERY );
-
-        sqlViewService.validateSqlView( sqlView, null, null );
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> sqlViewService.validateSqlView( sqlView, null, null ) ),
+            ErrorCode.E4311 );
     }
 
     @Test
     public void testValidateIllegalKeywordsAfterSemicolon()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E4311 );
+        SqlView sqlView = getSqlView( "select * from dataelement; delete from dataelement" );
 
-        SqlView sqlView = new SqlView( "Name", "select * from dataelement; delete from dataelement", SqlViewType.QUERY );
-
-        sqlViewService.validateSqlView( sqlView, null, null );
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> sqlViewService.validateSqlView( sqlView, null, null ) ),
+            ErrorCode.E4311 );
     }
 
     @Test
     public void testValidateProtectedTables()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E4310 );
+        SqlView sqlView = getSqlView( "select * from userinfo where userinfoid=1" );
 
-        SqlView sqlView = new SqlView( "Name", "select * from userinfo where userinfoid=1", SqlViewType.QUERY );
-
-        sqlViewService.validateSqlView( sqlView, null, null );
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> sqlViewService.validateSqlView( sqlView, null, null ) ),
+            ErrorCode.E4310 );
     }
 
     @Test
     public void testValidateProtectedTables2()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E4310 );
+        SqlView sqlView = getSqlView( "select * from \"userinfo\" where userinfoid=1" );
 
-        SqlView sqlView = new SqlView( "Name", "select * from \"userinfo\" where userinfoid=1", SqlViewType.QUERY );
-
-        sqlViewService.validateSqlView( sqlView, null, null );
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> sqlViewService.validateSqlView( sqlView, null, null ) ),
+            ErrorCode.E4310 );
     }
 
     @Test
     public void testValidateProtectedTables3()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E4310 );
+        SqlView sqlView = getSqlView( "select users.username \n FROM \"public\".users;" );
 
-        SqlView sqlView = new SqlView( "Name", "select users.username \n FROM \"public\".users;", SqlViewType.QUERY );
-
-        sqlViewService.validateSqlView( sqlView, null, null );
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> sqlViewService.validateSqlView( sqlView, null, null ) ),
+            ErrorCode.E4310 );
     }
 
     @Test
     public void testValidateMissingVariables()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E4307 );
-
-        SqlView sqlView = new SqlView( "Name", "select * from dataelement where valueType = '${valueType}' and aggregationtype = '${aggregationType}'", SqlViewType.QUERY );
+        SqlView sqlView = getSqlView(
+            "select * from dataelement where valueType = '${valueType}' and aggregationtype = '${aggregationType}'" );
 
         Map<String, String> variables = new HashMap<>();
         variables.put( "valueType", "int" );
 
-        sqlViewService.validateSqlView( sqlView, null, variables );
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class,
+                () -> sqlViewService.validateSqlView( sqlView, null, variables ) ),
+            ErrorCode.E4307 );
     }
 
     @Test
     public void testValidateNotSelectQuery()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E4301 );
-
-        SqlView sqlView = new SqlView( "Name", "* from dataelement", SqlViewType.QUERY );
-
-        sqlViewService.validateSqlView( sqlView, null, null );
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class,
+                () -> sqlViewService.validateSqlView( getSqlView( "* from dataelement" ), null, null ) ),
+            ErrorCode.E4301 );
     }
 
     @Test
     public void testValidateTableList()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E4310 );
+        SqlView sqlView = getSqlView( "select username,password from users,dataapprovallevel" );
 
-        SqlView sqlView = new SqlView( "Name", "select username,password from users,dataapprovallevel", SqlViewType.QUERY );
-
-        sqlViewService.validateSqlView( sqlView, null, null );
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> sqlViewService.validateSqlView( sqlView, null, null ) ),
+            ErrorCode.E4310 );
     }
 
     @Test
     public void testGetGridValidationFailure()
     {
-        assertIllegalQueryEx( exception, ErrorCode.E4311 );
-
-        SqlView sqlView = new SqlView( "Name", "select * from dataelement; delete from dataelement", SqlViewType.QUERY );
+        SqlView sqlView = getSqlView( "select * from dataelement; delete from dataelement" );
 
         sqlViewService.saveSqlView( sqlView );
 
-        sqlViewService.getSqlViewGrid( sqlView, null, null, null, null );
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class,
+                () -> sqlViewService.getSqlViewGrid( sqlView, null, null, null, null ) ),
+            ErrorCode.E4311 );
     }
 
     @Test
     public void testValidateSuccessA()
     {
-        SqlView sqlView = new SqlView( "Name", "select * from dataelement where valueType = '${valueType}'", SqlViewType.QUERY );
+        SqlView sqlView = getSqlView( "select * from dataelement where valueType = '${valueType}'" );
 
         Map<String, String> variables = new HashMap<>();
         variables.put( "valueType", "int" );
@@ -313,7 +310,8 @@ public class SqlViewServiceTest
     @Test
     public void testValidateSuccessB()
     {
-        SqlView sqlView = new SqlView( "Name", "select ug.name from usergroup ug where ug.name ~* '^OU\\s(\\w.*)\\sAgency\\s(\\w.*)\\susers$'", SqlViewType.QUERY );
+        SqlView sqlView = getSqlView(
+            "select ug.name from usergroup ug where ug.name ~* '^OU\\s(\\w.*)\\sAgency\\s(\\w.*)\\susers$'" );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
@@ -321,7 +319,8 @@ public class SqlViewServiceTest
     @Test
     public void testValidateSuccessC()
     {
-        SqlView sqlView = new SqlView( "Name", "SELECT a.dataelementid as dsd_id,a.name as dsd_name,b.dataelementid as ta_id,b.ta_name FROM dataelement a", SqlViewType.QUERY );
+        SqlView sqlView = getSqlView(
+            "SELECT a.dataelementid as dsd_id,a.name as dsd_name,b.dataelementid as ta_id,b.ta_name FROM dataelement a" );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
@@ -329,7 +328,7 @@ public class SqlViewServiceTest
     @Test
     public void testValidateSuccessD()
     {
-        SqlView sqlView = new SqlView( "Name", "SELECT name, created, lastupdated FROM dataelement", SqlViewType.QUERY );
+        SqlView sqlView = getSqlView( "SELECT name, created, lastupdated FROM dataelement" );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
@@ -337,7 +336,7 @@ public class SqlViewServiceTest
     @Test
     public void testValidateSuccessE()
     {
-        SqlView sqlView = new SqlView( "Name", "select * from datavalue where storedby = '${_current_username}'", SqlViewType.QUERY );
+        SqlView sqlView = getSqlView( "select * from datavalue where storedby = '${_current_username}'" );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
@@ -345,7 +344,8 @@ public class SqlViewServiceTest
     @Test
     public void testValidateSuccessF()
     {
-        SqlView sqlView = new SqlView( "Name", "select * from dataset where timelydays = ${timelyDays} and userid = ${_current_user_id}", SqlViewType.QUERY );
+        SqlView sqlView = getSqlView(
+            "select * from dataset where timelydays = ${timelyDays} and userid = ${_current_user_id}" );
 
         Map<String, String> variables = new HashMap<>();
         variables.put( "timelyDays", "15" );
@@ -378,5 +378,10 @@ public class SqlViewServiceTest
             "['Mary', 47, 10]\n" +
             "[Mary, 47, 10]\n" +
             "]" );
+    }
+    
+    private SqlView getSqlView( String sqlViewString )
+    {
+        return new SqlView( "Name", sqlViewString, SqlViewType.QUERY );
     }
 }

@@ -28,7 +28,14 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Sets;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
@@ -37,20 +44,20 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import com.google.api.client.util.Sets;
+import com.google.common.collect.Lists;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Enrico Colasante
  */
 @Service
+@Slf4j
 public class DefaultTrackerProgramRuleService
     implements TrackerProgramRuleService
 {
@@ -59,6 +66,9 @@ public class DefaultTrackerProgramRuleService
     private final TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService;
 
     private final TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
+
+    private final String WARN_MESSAGE = "An error occurred during a Program Rule engine call for %s.\n" +
+        " Please check the response payload for additional information";
 
     public DefaultTrackerProgramRuleService(
         @Qualifier( "serviceTrackerRuleEngine" ) ProgramRuleEngine programRuleEngine,
@@ -79,7 +89,22 @@ public class DefaultTrackerProgramRuleService
             .collect( Collectors.toMap( Enrollment::getEnrollment, e -> {
                 ProgramInstance enrollment = enrollmentTrackerConverterService.fromForRuleEngine( bundle.getPreheat(),
                     e );
-                return programRuleEngine.evaluate( enrollment, Sets.newHashSet() );
+                try
+                {
+                    return programRuleEngine.evaluate( enrollment, Sets.newHashSet() );
+                }
+                catch ( Exception ex )
+                {
+                    if ( log.isDebugEnabled() )
+                    {
+                        log.debug( String.format( WARN_MESSAGE, "enrollment" ), e );
+                    }
+                    else
+                    {
+                        log.warn( String.format( WARN_MESSAGE, "enrollment" ) );
+                    }
+                    return Lists.newArrayList();
+                }
             } ) );
     }
 
@@ -88,12 +113,44 @@ public class DefaultTrackerProgramRuleService
     {
         return events
             .stream()
+            .filter( e -> isEventInRegistrationProgram( e, bundle.getPreheat(), bundle.getIdentifier() ) )
             .collect( Collectors.toMap( Event::getEvent, event -> {
                 ProgramInstance enrollment = getEnrollment( bundle, event );
-                return programRuleEngine.evaluate( enrollment,
-                    eventTrackerConverterService.from( bundle.getPreheat(), event ),
-                    getEventsFromEnrollment( enrollment.getUid(), bundle, events ) );
+                try
+                {
+                    return programRuleEngine.evaluate( enrollment,
+                        eventTrackerConverterService.from( bundle.getPreheat(), event ),
+                        getEventsFromEnrollment( enrollment.getUid(), bundle, events ) );
+                }
+                catch ( Exception e )
+                {
+                    if ( log.isDebugEnabled() )
+                    {
+                        log.debug( String.format( WARN_MESSAGE, "event" ), e );
+                    }
+                    else
+                    {
+                        log.warn( String.format( WARN_MESSAGE, "event" ) );
+                    }
+                    return Lists.newArrayList();
+                }
             } ) );
+    }
+
+    private boolean isEventInRegistrationProgram( Event e, TrackerPreheat preheat,
+        TrackerIdScheme identifier )
+    {
+        if ( e.getProgram() == null )
+        {
+            return false;
+        }
+        Program program = preheat.get( identifier, Program.class, e.getProgram() );
+        if ( program == null )
+        {
+            return false;
+        }
+
+        return program.isRegistration();
     }
 
     private ProgramInstance getEnrollment( TrackerBundle bundle, Event event )

@@ -61,6 +61,10 @@ public class SystemInfo
 
     private Date serverDate;
 
+    private String serverTimeZoneId;
+
+    private String serverTimeZoneDisplayName;
+
     private Date lastAnalyticsTableSuccess;
 
     private String intervalSinceLastAnalyticsTableSuccess;
@@ -241,6 +245,30 @@ public class SystemInfo
     public void setServerDate( Date serverDate )
     {
         this.serverDate = serverDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getServerTimeZoneId()
+    {
+        return serverTimeZoneId;
+    }
+
+    public void setServerTimeZoneId( String serverTimeZoneId )
+    {
+        this.serverTimeZoneId = serverTimeZoneId;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getServerTimeZoneDisplayName()
+    {
+        return serverTimeZoneDisplayName;
+    }
+
+    public void setServerTimeZoneDisplayName( String serverTimeZoneDisplayName )
+    {
+        this.serverTimeZoneDisplayName = serverTimeZoneDisplayName;
     }
 
     @JsonProperty

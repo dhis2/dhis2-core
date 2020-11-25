@@ -29,21 +29,28 @@ package org.hisp.dhis.tracker.validation.hooks;
  *
  */
 
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1002;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1030;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1032;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1063;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1080;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1081;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1082;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1113;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1114;
+
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
-
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -52,15 +59,8 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class PreCheckExistenceValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-
-    public PreCheckExistenceValidationHook( TrackedEntityAttributeService teAttrService )
-    {
-        super( teAttrService );
-    }
-
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter,
-        TrackedEntity trackedEntity )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerBundle bundle = context.getBundle();
@@ -82,18 +82,15 @@ public class PreCheckExistenceValidationHook
         }
         else if ( existingTe != null && importStrategy.isCreate() )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1002 )
-                .addArg( trackedEntity.getTrackedEntity() ) );
+            addError( reporter, E1002, trackedEntity.getTrackedEntity() );
         }
         else if ( existingTe != null && existingTe.isDeleted() && importStrategy.isDelete() )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1114 )
-                .addArg( trackedEntity.getTrackedEntity() ) );
+            addError( reporter, E1114, trackedEntity.getTrackedEntity() );
         }
         else if ( existingTe == null && importStrategy.isUpdateOrDelete() )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1063 )
-                .addArg( trackedEntity.getTrackedEntity() ) );
+            addError( reporter, E1063, trackedEntity.getTrackedEntity() );
         }
         else
         {
@@ -123,18 +120,15 @@ public class PreCheckExistenceValidationHook
         }
         else if ( existingPi != null && importStrategy.isCreate() )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1080 )
-                .addArg( enrollment.getEnrollment() ) );
+            addError( reporter, E1080, enrollment.getEnrollment() );
         }
         else if ( existingPi != null && existingPi.isDeleted() && importStrategy.isDelete() )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1113 )
-                .addArg( enrollment.getEnrollment() ) );
+            addError( reporter, E1113, enrollment.getEnrollment() );
         }
         else if ( existingPi == null && importStrategy.isUpdateOrDelete() )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1081 )
-                .addArg( enrollment.getEnrollment() ) );
+            addError( reporter, E1081, enrollment.getEnrollment() );
         }
         else
         {
@@ -164,22 +158,31 @@ public class PreCheckExistenceValidationHook
         }
         else if ( existingPsi != null && importStrategy.isCreate() )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1030 )
-                .addArg( event.getEvent() ) );
+            addError( reporter, E1030, event.getEvent() );
         }
         else if ( existingPsi != null && existingPsi.isDeleted() && importStrategy.isDelete() )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1082 )
-                .addArg( event.getEvent() ) );
+            addError( reporter, E1082, event.getEvent() );
         }
         else if ( existingPsi == null && importStrategy.isUpdateOrDelete() )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1032 )
-                .addArg( event.getEvent() ) );
+            addError( reporter, E1032, event.getEvent() );
         }
         else
         {
             context.setStrategy( event, importStrategy );
         }
+    }
+
+    @Override
+    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    {
+       //TODO need to add existence check for relationship
+    }
+
+    @Override
+    public boolean removeOnError()
+    {
+        return true;
     }
 }

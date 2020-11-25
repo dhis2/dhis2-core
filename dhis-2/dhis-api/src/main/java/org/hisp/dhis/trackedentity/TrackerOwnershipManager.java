@@ -70,6 +70,8 @@ public interface TrackerOwnershipManager
      */
     boolean hasAccess( User user, TrackedEntityInstance entityInstance, Program program );
 
+    boolean hasAccess( User user, String entityInstance, OrganisationUnit organisationUnit, Program program );
+
     /**
      * Grant temporary ownership for a user for a specific tei-program
      * combination

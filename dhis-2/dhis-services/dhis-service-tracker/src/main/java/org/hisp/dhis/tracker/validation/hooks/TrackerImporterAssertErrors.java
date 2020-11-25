@@ -70,7 +70,4 @@ public class TrackerImporterAssertErrors
     public static final String DATE_STRING_CANT_BE_NULL = "Date string can not be null";
 
     public static final String GEOMETRY_CANT_BE_NULL = "Geometry can not be null";
-
-    public static final String IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD =
-        "Implementing class fail to override this method!";
 }

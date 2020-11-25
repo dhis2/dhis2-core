@@ -28,6 +28,15 @@ package org.hisp.dhis.dxf2.metadata.version;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.security.NoSuchAlgorithmException;
+import java.util.Date;
+import java.util.List;
+
 import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -39,18 +48,11 @@ import org.hisp.dhis.keyjsonvalue.MetadataKeyJsonService;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
+import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.security.NoSuchAlgorithmException;
-import java.util.Date;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author sultanm
@@ -69,6 +71,9 @@ public class DefaultMetadataVersionServiceTest
 
     @Autowired
     private MetadataSystemSettingService metadataSystemSettingService;
+
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
 
     private MetadataVersion versionA;
     private MetadataVersion versionB;
@@ -94,7 +99,6 @@ public class DefaultMetadataVersionServiceTest
     @Override
     protected void setUpTest()
     {
-        MockitoAnnotations.initMocks( this );
         versionA = new MetadataVersion( "Version_1", VersionType.ATOMIC );
         versionA.setHashCode( "12345" );
         versionB = new MetadataVersion( "Version_2", VersionType.BEST_EFFORT );

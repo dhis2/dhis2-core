@@ -28,11 +28,8 @@ package org.hisp.dhis.webapi.oprovider;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
-import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsUserDetailsService;
-import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -44,6 +41,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Henning Håkonsen
  */
@@ -51,12 +50,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class DhisOauthAuthenticationProvider extends DaoAuthenticationProvider
 {
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private SecurityService securityService;
-
     @Autowired
     public DhisOauthAuthenticationProvider(
         @Qualifier( "defaultClientDetailsUserDetailsService" ) DefaultClientDetailsUserDetailsService detailsService )

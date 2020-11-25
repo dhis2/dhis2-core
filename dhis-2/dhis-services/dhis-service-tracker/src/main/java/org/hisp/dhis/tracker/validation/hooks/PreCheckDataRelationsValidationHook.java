@@ -28,6 +28,19 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.TrackerType.*;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.getUidFromRelationshipItem;
+import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.relationshipItemValueType;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -40,28 +53,18 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -74,11 +77,9 @@ public class PreCheckDataRelationsValidationHook
 
     private final CategoryService categoryService;
 
-    public PreCheckDataRelationsValidationHook( TrackedEntityAttributeService teAttrService,
+    public PreCheckDataRelationsValidationHook(
         ProgramInstanceService programInstanceService, CategoryService categoryService )
     {
-        super( teAttrService );
-
         checkNotNull( categoryService );
 
         this.programInstanceService = programInstanceService;
@@ -99,26 +100,20 @@ public class PreCheckDataRelationsValidationHook
 
         Program program = context.getProgram( enrollment.getProgram() );
 
-        if ( !program.isRegistration() )
+        addErrorIf( () -> !program.isRegistration(), reporter, E1014, program );
+
+        if ( trackedEntityInstanceExist( context, enrollment.getTrackedEntity() ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1014 )
-                .addArg( program ) );
+            if ( program.getTrackedEntityType() != null
+                && !program.getTrackedEntityType().getUid()
+                    .equals( getTrackedEntityTypeUidFromEnrollment( context, enrollment ) ) )
+            {
+                addError( reporter, E1022, enrollment.getTrackedEntity(), program );
+            }
         }
-
-        TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
-
-        if ( tei == null )
+        else
         {
-            reporter.addError( newReport( TrackerErrorCode.E1068 )
-                .addArg( enrollment.getTrackedEntity() ) );
-        }
-
-        if ( tei != null && program.getTrackedEntityType() != null
-            && !program.getTrackedEntityType().equals( tei.getTrackedEntityType() ) )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1022 )
-                .addArg( tei )
-                .addArg( program ) );
+            addError( reporter, E1068, enrollment.getTrackedEntity() );
         }
     }
 
@@ -132,10 +127,10 @@ public class PreCheckDataRelationsValidationHook
 
         if ( program.isRegistration() )
         {
-            if ( context.getTrackedEntityInstance( event.getTrackedEntity() ) == null )
+            if ( context.getTrackedEntityInstance( event.getTrackedEntity() ) == null &&
+                !context.getReference( event.getTrackedEntity() ).isPresent() )
             {
-                reporter.addError( newReport( TrackerErrorCode.E1036 )
-                    .addArg( event ) );
+                addError( reporter, E1036, event );
             }
 
             if ( strategy.isCreate() )
@@ -149,6 +144,41 @@ public class PreCheckDataRelationsValidationHook
         validateEventCategoryCombo( reporter, event, program );
     }
 
+    @Override
+    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    {
+        validateRelationshipReference( reporter, relationship.getFrom() );
+        validateRelationshipReference( reporter, relationship.getTo() );
+    }
+
+    private void validateRelationshipReference( ValidationErrorReporter reporter, RelationshipItem item )
+    {
+        Optional<String> uid = getUidFromRelationshipItem( item );
+        TrackerType trackerType = relationshipItemValueType( item );
+
+        if ( TRACKED_ENTITY.equals( trackerType ) )
+        {
+            if ( uid.isPresent() && !trackedEntityInstanceExist( reporter.getValidationContext(), uid.get() ) )
+            {
+                addError( reporter, E4012, trackerType.getName(), uid.get() );
+            }
+        }
+        else if ( ENROLLMENT.equals( trackerType ) )
+        {
+            if ( uid.isPresent() && !enrollmentExist( reporter.getValidationContext(), uid.get() ) )
+            {
+                addError( reporter, E4012, trackerType.getName(), uid.get() );
+            }
+        }
+        else if ( EVENT.equals( trackerType ) )
+        {
+            if ( uid.isPresent() && !eventExist( reporter.getValidationContext(), uid.get() ) )
+            {
+                addError( reporter, E4012, trackerType.getName(), uid.get() );
+            }
+        }
+    }
+
     private void validateHasEnrollments( ValidationErrorReporter reporter, Event event )
     {
         TrackerImportValidationContext ctx = reporter.getValidationContext();
@@ -158,7 +188,9 @@ public class PreCheckDataRelationsValidationHook
         {
             ProgramInstance programInstance = ctx.getProgramInstance( event.getEnrollment() );
 
-            if ( programInstance == null )
+            boolean exist = ctx.getReference( event.getEnrollment() ).isPresent();
+
+            if ( programInstance == null && !exist )
             {
                 TrackedEntityInstance tei = ctx.getTrackedEntityInstance( event.getTrackedEntity() );
 
@@ -169,15 +201,11 @@ public class PreCheckDataRelationsValidationHook
 
                 if ( count == 0 )
                 {
-                    reporter.addError( newReport( TrackerErrorCode.E1037 )
-                        .addArg( tei )
-                        .addArg( program ) );
+                    addError( reporter, E1037, tei, program );
                 }
                 else if ( count > 1 )
                 {
-                    reporter.addError( newReport( TrackerErrorCode.E1038 )
-                        .addArg( tei )
-                        .addArg( program ) );
+                    addError( reporter, E1038, tei, program );
                 }
                 else
                 {
@@ -195,15 +223,12 @@ public class PreCheckDataRelationsValidationHook
             params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
             params.setUser( user );
 
-            params.setTrackedEntityInstance( null );
+            params.setTrackedEntityInstanceUid( null );
 
             int count = programInstanceService.countProgramInstances( params );
 
-            if ( count > 1 )
-            {
-                // TODO: this also needs to be changed to match original code.
-                reporter.addError( newReport( TrackerErrorCode.E1040 ).addArg( program ) );
-            }
+            // TODO: this also needs to be changed to match original code.
+            addErrorIf( () -> count > 1, reporter, E1040, program );
         }
     }
 
@@ -218,7 +243,7 @@ public class PreCheckDataRelationsValidationHook
             && !programStage.getRepeatable()
             && programInstance.hasProgramStageInstance( programStage ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1039 ).addArg( programStage ) );
+            addError( reporter, E1039, programStage );
         }
     }
 
@@ -248,14 +273,12 @@ public class PreCheckDataRelationsValidationHook
 
         if ( categoryOptionCombo == null )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1115 )
-                .addArg( event.getAttributeOptionCombo() ) );
+            addError( reporter, E1115, event.getAttributeOptionCombo() );
         }
         else
         {
             reporter.getValidationContext()
                 .cacheEventCategoryOptionCombo( event.getUid(), categoryOptionCombo );
-
         }
     }
 
@@ -323,8 +346,7 @@ public class PreCheckDataRelationsValidationHook
             CategoryOption categoryOption = reporter.getValidationContext().getCategoryOption( uid );
             if ( categoryOption == null )
             {
-                reporter.addError( newReport( TrackerErrorCode.E1116 )
-                    .addArg( uid ) );
+                addError( reporter, E1116, uid );
                 return null;
             }
 
@@ -349,4 +371,51 @@ public class PreCheckDataRelationsValidationHook
 
         return attrOptCombo;
     }
+
+    private boolean trackedEntityInstanceExist( TrackerImportValidationContext context, String teiUid )
+    {
+        return context.getTrackedEntityInstance( teiUid ) != null || context.getReference( teiUid ).isPresent();
+    }
+
+    private boolean enrollmentExist( TrackerImportValidationContext context, String enrollmentUid )
+    {
+        return context.getProgramInstance( enrollmentUid ) != null || context.getReference( enrollmentUid ).isPresent();
+    }
+
+    private boolean eventExist( TrackerImportValidationContext context, String eventUid )
+    {
+        return context.getProgramStageInstance( eventUid ) != null || context.getReference( eventUid ).isPresent();
+    }
+
+    private String getTrackedEntityTypeUidFromEnrollment( TrackerImportValidationContext context,
+        Enrollment enrollment )
+    {
+        final TrackedEntityInstance trackedEntityInstance = context
+            .getTrackedEntityInstance( enrollment.getTrackedEntity() );
+        if ( trackedEntityInstance != null )
+        {
+            return trackedEntityInstance.getTrackedEntityType().getUid();
+        }
+        else
+        {
+            final Optional<ReferenceTrackerEntity> reference = context.getReference( enrollment.getTrackedEntity() );
+            if ( reference.isPresent() )
+            {
+                final Optional<TrackedEntity> tei = context.getBundle()
+                    .getTrackedEntity( enrollment.getTrackedEntity() );
+                if ( tei.isPresent() )
+                {
+                    return tei.get().getTrackedEntityType();
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public boolean removeOnError()
+    {
+        return true;
+    }
+
 }

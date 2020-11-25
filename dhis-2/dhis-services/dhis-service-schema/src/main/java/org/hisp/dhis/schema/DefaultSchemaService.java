@@ -68,6 +68,7 @@ public class DefaultSchemaService
         add( new MetadataVersionSchemaDescriptor() ).
         add( new AnalyticsTableHookSchemaDescriptor() ).
         add( new AttributeSchemaDescriptor() ).
+        add( new AttributeValueSchemaDescriptor() ).
         add( new CategoryComboSchemaDescriptor() ).
         add( new CategoryOptionComboSchemaDescriptor() ).
         add( new CategoryOptionGroupSchemaDescriptor() ).

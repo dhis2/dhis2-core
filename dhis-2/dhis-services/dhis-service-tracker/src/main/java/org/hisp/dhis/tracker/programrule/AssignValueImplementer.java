@@ -50,7 +50,7 @@ public class AssignValueImplementer
     implements RuleActionApplier
 {
     @Override
-    public Class getActionClass()
+    public Class<?> getActionClass()
     {
         return RuleActionAssign.class;
     }

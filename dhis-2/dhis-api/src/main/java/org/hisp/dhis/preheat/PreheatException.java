@@ -38,4 +38,15 @@ public class PreheatException
     {
         super( message );
     }
+
+    public PreheatException( String message, Throwable cause )
+    {
+        super( message, cause );
+    }
+
+    public PreheatException( Throwable cause )
+    {
+        super( cause );
+    }
+
 }

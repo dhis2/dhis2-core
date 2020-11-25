@@ -28,50 +28,59 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1118;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1120;
+
+import java.util.Optional;
+
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1118;
 
 @Component
 public class AssignedUserValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    public AssignedUserValidationHook( TrackedEntityAttributeService teAttrService )
-    {
-        super( teAttrService );
-    }
-
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         if ( event.getAssignedUser() != null )
         {
-            String uid = event.getAssignedUser().getUid();
-
-            if ( !CodeGenerator.isValidUid( event.getAssignedUser().getUid() )
-                ||
-                reporter.getValidationContext().getBundle().getPreheat().get( TrackerIdScheme.UID, User.class, uid ) ==
-                    null )
+            if ( isNotValidAssignedUserUid( event ) || assignedUserNotPresentInPreheat( reporter, event ) )
             {
-                TrackerErrorReport.TrackerErrorReportBuilder report = TrackerErrorReport.builder()
-                    .errorCode( E1118 )
-                    .trackerType( TrackerType.EVENT )
-                    .addArg( uid );
-
-                reporter.addError( report );
+                addError( reporter, E1118, event.getAssignedUser() );
+            }
+            if ( isNotEnabledUserAssignment( reporter, event ) )
+            {
+                addWarning( reporter, E1120, event.getProgramStage() );
             }
         }
+    }
+
+    private Boolean isNotEnabledUserAssignment( ValidationErrorReporter reporter, Event event )
+    {
+        Boolean userAssignmentEnabled = reporter.getValidationContext().getProgramStage( event.getProgramStage() )
+            .isEnableUserAssignment();
+
+        return !Optional.ofNullable( userAssignmentEnabled )
+            .orElse( false );
+    }
+
+    private boolean assignedUserNotPresentInPreheat(ValidationErrorReporter reporter, Event event )
+    {
+        return reporter.getValidationContext().getBundle().getPreheat().get( TrackerIdScheme.UID, User.class,
+            event.getAssignedUser() ) == null;
+    }
+
+    private boolean isNotValidAssignedUserUid( Event event )
+    {
+        return !CodeGenerator.isValidUid( event.getAssignedUser() );
     }
 
     @Override
@@ -97,4 +106,11 @@ public class AssignedUserValidationHook
          * No implementation.
          */
     }
+
+    @Override
+    public boolean removeOnError()
+    {
+        return true;
+    }
+
 }

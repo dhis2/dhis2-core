@@ -29,38 +29,45 @@ package org.hisp.dhis.tracker.validation;
  *
  */
 
-import com.google.common.base.Preconditions;
-import lombok.Data;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.util.StringUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import com.google.common.base.Preconditions;
 
+import lombok.Data;
+// TODO is this class really needed? what is the purpose of this class and why aren't the two caches moved to preheat?
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
 public class TrackerImportValidationContext
 {
-
     private final Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new HashMap<>();
 
     private Map<String, CategoryOptionCombo> eventCocCacheMap = new HashMap<>();
@@ -69,9 +76,15 @@ public class TrackerImportValidationContext
 
     private TrackerBundle bundle;
 
+    /**
+     * Holds the accumulated errors generated during the validation process
+     */
+    private ValidationErrorReporter rootReporter;
+
     public TrackerImportValidationContext( TrackerBundle bundle )
     {
-        this.bundle = bundle;
+        // Create a copy of the bundle
+        this.bundle = bundle.copy();
 
         Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedMap = this
             .getResolvedStrategyMap();
@@ -79,6 +92,7 @@ public class TrackerImportValidationContext
         resolvedMap.put( Event.class, new HashMap<>() );
         resolvedMap.put( Enrollment.class, new HashMap<>() );
         resolvedMap.put( TrackedEntity.class, new HashMap<>() );
+        this.rootReporter = ValidationErrorReporter.emptyReporter();
     }
 
     public TrackerImportStrategy getStrategy( Enrollment enrollment )
@@ -159,9 +173,19 @@ public class TrackerImportValidationContext
         return bundle.getPreheat().get( bundle.getIdentifier(), TrackedEntityAttribute.class, id );
     }
 
+    public DataElement getDataElement( String id )
+    {
+        return bundle.getPreheat().get( bundle.getIdentifier(), DataElement.class, id );
+    }
+
     public TrackedEntityType getTrackedEntityType( String id )
     {
         return bundle.getPreheat().get( bundle.getIdentifier(), TrackedEntityType.class, id );
+    }
+
+    public RelationshipType getRelationShipType(String id )
+    {
+        return bundle.getPreheat().get( bundle.getIdentifier(), RelationshipType.class, id );
     }
 
     public Program getProgram( String id )
@@ -172,6 +196,11 @@ public class TrackerImportValidationContext
     public ProgramInstance getProgramInstance( String id )
     {
         return bundle.getPreheat().getEnrollment( bundle.getIdentifier(), id );
+    }
+
+    public Optional<TrackedEntityComment> getNote( String uid )
+    {
+        return bundle.getPreheat().getNote( uid );
     }
 
     public ProgramStage getProgramStage( String id )
@@ -197,5 +226,20 @@ public class TrackerImportValidationContext
     public Map<String, List<ProgramInstance>> getEventToProgramInstancesMap()
     {
         return bundle.getPreheat().getProgramInstances();
+    }
+
+    public boolean usernameExists( String username )
+    {
+        return bundle.getPreheat().getUsernames().contains( username );
+    }
+
+    public FileResource getFileResource( String id )
+    {
+        return bundle.getPreheat().get( bundle.getIdentifier(), FileResource.class, id );
+    }
+
+    public Optional<ReferenceTrackerEntity> getReference( String uid )
+    {
+        return bundle.getPreheat().getReference( uid );
     }
 }
