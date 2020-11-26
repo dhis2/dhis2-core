@@ -154,7 +154,7 @@ public class SimplisticHttpGetGateWay
             valueStore.put( parameter.getKey(), parameter.getDisplayValue() );
         }
 
-        valueStore.put( KEY_TEXT, text );
+        valueStore.put( KEY_TEXT, encodeUrl( text ) );
         valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
 
         final StringSubstitutor substitutor = new StringSubstitutor( valueStore ); // Matches on ${...}
