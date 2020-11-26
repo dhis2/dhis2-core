@@ -250,7 +250,7 @@ function updateInputType( rowId, type )
 
 function saveSettings ()
 {
-	var url = "../api/gateways?type=http";
+	var url = "../api/gateways/generichttp";
 	var httpFields = jQuery('#genericHTTPFields');
     var data = {
         name: httpFields.find("#name")[0].value,
@@ -261,6 +261,7 @@ function saveSettings ()
         configurationTemplate: httpFields.find("#configurationTemplate")[0].value,
         urlTemplate: httpFields.find("#urlTemplate")[0].value
     };
+
 
 	var newParams = getHttpKeyValueParamsAddedByTheUser(httpFields);
 
