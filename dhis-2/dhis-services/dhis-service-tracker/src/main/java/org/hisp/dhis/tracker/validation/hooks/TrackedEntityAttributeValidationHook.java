@@ -37,17 +37,22 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1077;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1085;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1090;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1112;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -56,6 +61,8 @@ import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -97,6 +104,47 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         OrganisationUnit organisationUnit = context.getOrganisationUnit( trackedEntity.getOrgUnit() );
 
         validateAttributes( reporter, trackedEntity, tei, organisationUnit );
+        validateMandatoryAttributes( reporter, trackedEntity );
+    }
+
+    private void validateMandatoryAttributes( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+    {
+        TrackedEntityType trackedEntityType = reporter.getValidationContext()
+            .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
+
+        if ( trackedEntityType != null )
+        {
+            Set<String> trackedEntityAttributes = Optional.of( trackedEntity )
+                .map( TrackedEntity::getAttributes )
+                .orElse( Collections.emptyList() )
+                .stream()
+                .map( Attribute::getAttribute )
+                .collect( Collectors.toSet() );
+
+            trackedEntityType.getTrackedEntityTypeAttributes()
+                .stream()
+                .filter( this::isMandatory )
+                .map( BaseIdentifiableObject::getUid )
+                .forEach(
+                    attribute -> addErrorIfMissing( reporter, attribute, trackedEntityAttributes, trackedEntity,
+                        trackedEntityType ) );
+        }
+    }
+
+    private boolean isMandatory( TrackedEntityTypeAttribute trackedEntityTypeAttribute )
+    {
+        return Optional.of( trackedEntityTypeAttribute )
+            .map( TrackedEntityTypeAttribute::isMandatory )
+            .orElse( false );
+    }
+
+    private void addErrorIfMissing( ValidationErrorReporter reporter, String attribute,
+        Set<String> trackedEntityAttributes, TrackedEntity trackedEntity, TrackedEntityType trackedEntityType )
+    {
+        if ( !trackedEntityAttributes.contains( attribute ) )
+        {
+            addError( reporter, E1090, attribute, trackedEntityType.getUid(), trackedEntity.getTrackedEntity() );
+        }
     }
 
     protected void validateAttributes( ValidationErrorReporter reporter,
