@@ -129,6 +129,7 @@ public class TrackedEntityCriteriaMapper
         }
 
         validateAssignedUser( criteria );
+        
 
         if ( criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null )
         {
@@ -154,6 +155,7 @@ public class TrackedEntityCriteriaMapper
             .setEventEndDate( criteria.getEventEndDate() )
             .setAssignedUserSelectionMode( criteria.getAssignedUserMode() )
             .setAssignedUsers( criteria.getAssignedUsers() )
+            .setTrackedEntityInstanceUids( criteria.getTrackedEntityInstances() )
             .setSkipMeta( criteria.isSkipMeta() )
             .setPage( criteria.getPage() )
             .setPageSize( criteria.getPageSize() )

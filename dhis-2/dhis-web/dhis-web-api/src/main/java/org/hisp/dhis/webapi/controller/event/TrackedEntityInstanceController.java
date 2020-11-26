@@ -202,27 +202,15 @@ public class TrackedEntityInstanceController
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        if ( !criteria.hasTrackedEntityInstance() )
+        if ( criteria.isUseLegacy() ) // FIXME luciano: this has to be removed!
         {
-            if ( criteria.isUseLegacy() ) // FIXME luciano: this has to be removed!
-            {
-                trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                    getTrackedEntityInstanceParams( fields ), false );
-            }
-            else
-            {
-                trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances2( queryParams,
-                    getTrackedEntityInstanceParams( fields ), false );
-            }
+            trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
+                getTrackedEntityInstanceParams( fields ), false );
         }
         else
         {
-            Set<String> trackedEntityInstanceIds = criteria.getTrackedEntityInstances();
-
-            trackedEntityInstances = trackedEntityInstanceIds.stream()
-                .map( id -> trackedEntityInstanceService.getTrackedEntityInstance( id,
-                    getTrackedEntityInstanceParams( fields ) ) )
-                .collect( Collectors.toList() );
+            trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances2( queryParams,
+                getTrackedEntityInstanceParams( fields ), false );
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
