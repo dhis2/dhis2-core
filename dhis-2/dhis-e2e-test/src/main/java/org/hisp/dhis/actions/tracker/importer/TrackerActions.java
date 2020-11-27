@@ -130,8 +130,8 @@ public class TrackerActions
             {
                 response.extractList( path ).stream()
                     .filter( o -> o != null )
-                    .forEach( tei -> {
-                        this.addCreatedEntity( s.split( "," )[1], tei.toString() );
+                    .forEach( id -> {
+                        this.addCreatedEntity( s.split( "," )[1], id.toString() );
                     } );
             }
         }
