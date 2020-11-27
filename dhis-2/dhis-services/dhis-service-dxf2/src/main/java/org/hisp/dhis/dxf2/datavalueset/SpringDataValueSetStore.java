@@ -376,7 +376,7 @@ public class SpringDataValueSetStore
         String groupAccessCheck =  groupsIds.size() > 0 ?
             "or ( " +
                 "check_user_group_ids( co.sharing, '{"+ String.join( ",", groupsIds ) +"}' ) " +
-                "and check_user_groups_access( co.sharing, '__r_____', '{"+ String.join( ",", groupsIds ) +"}' ) ) )"
+                "and check_user_groups_access( co.sharing, '__r%', '{"+ String.join( ",", groupsIds ) +"}' ) ) )"
             : ") )";
 
         return
@@ -388,10 +388,10 @@ public class SpringDataValueSetStore
                     "select co.categoryoptionid " +
                     "from dataelementcategoryoption co " +
                     // Public access check
-                    "where co.sharing->>'publicaccess' like '__r_____' " +
-                    "or co.publicaccess is null " +
+                    "where co.sharing->>'public' like '__r%' " +
+                    "or co.sharing->>'public' is null " +
                     // User access check
-                " or co.sharing->'users'->'" + user.getId() + "'->>'access' like '__r_____'" +
+                " or co.sharing->'users'->'" + user.getUid() + "'->>'access' like '__r%'" +
                     // User group access check
                     groupAccessCheck
                 ;

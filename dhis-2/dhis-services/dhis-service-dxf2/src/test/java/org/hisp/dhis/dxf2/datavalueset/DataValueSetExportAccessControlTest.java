@@ -132,6 +132,8 @@ public class DataValueSetExportAccessControlTest
     {
         userService = _userService;
 
+        createAndInjectAdminUser();
+
         // Metadata
 
         PeriodType ptA = periodService.getPeriodTypeByName( MonthlyPeriodType.NAME );
@@ -148,7 +150,10 @@ public class DataValueSetExportAccessControlTest
         coC.getSharing().setPublicAccess( DEFAULT );
         coD = createCategoryOption( 'D' );
         coD.getSharing().setPublicAccess( DEFAULT );
-        idObjectManager.save( Lists.newArrayList( coA, coB, coC, coD ) );
+        idObjectManager.save( coA, false );
+        idObjectManager.save( coB, false );
+        idObjectManager.save( coC, false );
+        idObjectManager.save( coD, false );
 
         caA = createCategory( 'A', coA, coB );
         caB = createCategory( 'B', coC, coD );
@@ -167,7 +172,7 @@ public class DataValueSetExportAccessControlTest
         dsA.getSharing().setPublicAccess( DEFAULT );
         dsA.addDataSetElement( deA );
         dsA.addDataSetElement( deB );
-        idObjectManager.save( dsA );
+        idObjectManager.save( dsA, false );
 
         peA = createPeriod( "201901" );
         idObjectManager.save( peA );
@@ -216,8 +221,9 @@ public class DataValueSetExportAccessControlTest
         DataExportParams params = new DataExportParams()
             .setDataSets( Sets.newHashSet( dsA ) )
             .setPeriods( Sets.newHashSet( peA ) )
-            .setAttributeOptionCombos( Sets.newHashSet( cocA, cocB ) )
             .setOrganisationUnits( Sets.newHashSet( ouA ) );
+
+        dbmsManager.flushSession();
 
         dataValueSetService.writeDataValueSetJson( params, out );
 
@@ -268,6 +274,8 @@ public class DataValueSetExportAccessControlTest
             .setPeriods( Sets.newHashSet( peA ) )
             .setOrganisationUnits( Sets.newHashSet( ouA ) );
 
+        dbmsManager.flushSession();
+
         dataValueSetService.writeDataValueSetJson( params, out );
 
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
@@ -313,6 +321,8 @@ public class DataValueSetExportAccessControlTest
             .setPeriods( Sets.newHashSet( peA ) )
             .setOrganisationUnits( Sets.newHashSet( ouA ) );
 
+        dbmsManager.flushSession();
+
         dataValueSetService.writeDataValueSetJson( params, out );
     }
 
@@ -336,6 +346,8 @@ public class DataValueSetExportAccessControlTest
 
         idObjectManager.update( coA );
         idObjectManager.update( dsA );
+
+        dbmsManager.flushSession();
 
         // Test
 

@@ -201,8 +201,6 @@ public class EventSecurityTest
         injectSecurityContext( user );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
-        // make sure data is flushed, so event service can access it
-//        manager.flush();
 
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
