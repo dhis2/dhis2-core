@@ -30,6 +30,8 @@ package org.hisp.dhis.trackedentity;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -385,7 +387,7 @@ public class TrackedEntityInstanceQueryParams
     
     public boolean hasTrackedEntityInstances()
     {
-        return this.trackedEntityInstanceUids != null && !this.trackedEntityInstanceUids.isEmpty();
+        return CollectionUtils.isNotEmpty( this.trackedEntityInstanceUids );
     }
     
     public boolean hasAssignedUsers()
