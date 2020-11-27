@@ -73,8 +73,10 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
         // Given
         final User demo = createUser( "demo" );
         final Program program = createProgram( 'A' );
-        program.setPublicAccess( AccessStringHelper.DEFAULT );
+        program.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        createAndInjectAdminUser();
         manager.save( program, false );
+        dbmsManager.flushSession();
 
         // When
         final Map<String, Program> programs = programSupplier.get( getDefaultImportOptions(), singletonList( event ) );

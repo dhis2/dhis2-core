@@ -28,15 +28,6 @@ package org.hisp.dhis.dxf2.metadata.version;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.security.NoSuchAlgorithmException;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -53,6 +44,15 @@ import org.junit.Test;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.security.NoSuchAlgorithmException;
+import java.util.Date;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author sultanm
@@ -277,6 +277,8 @@ public class DefaultMetadataVersionServiceTest
     public void testShouldStoreSnapshotInMetadataStore()
     {
         versionService.createMetadataVersionInDataStore( "myVersion", "mySnapshot" );
+
+        dbmsManager.flushSession();
 
         assertEquals( "mySnapshot", versionService.getVersionData( "myVersion" ) );
     }
