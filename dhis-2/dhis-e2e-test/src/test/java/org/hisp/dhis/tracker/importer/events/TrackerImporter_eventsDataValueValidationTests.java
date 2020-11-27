@@ -38,7 +38,7 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.metadata.SharingActions;
 import org.hisp.dhis.actions.tracker.EventActions;
-import org.hisp.dhis.actions.tracker_v2.TrackerActions;
+import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;

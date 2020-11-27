@@ -34,7 +34,7 @@ import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.tracker_v2.TrackerActions;
+import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;

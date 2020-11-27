@@ -28,7 +28,6 @@
 
 package org.hisp.dhis.tracker.importer;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
@@ -38,7 +37,7 @@ import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.RelationshipActions;
 import org.hisp.dhis.actions.tracker.TEIActions;
-import org.hisp.dhis.actions.tracker_v2.TrackerActions;
+import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;

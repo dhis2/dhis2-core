@@ -34,7 +34,7 @@ import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.tracker_v2.TrackerActions;
+import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.utils.DataGenerator;
