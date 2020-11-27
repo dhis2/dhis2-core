@@ -39,6 +39,7 @@ import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
+import org.hisp.dhis.system.util.SmsUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -54,7 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component( "org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" )
 public class SimplisticHttpGetGateWay
-    extends SmsGateway
+        extends SmsGateway
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -139,29 +140,38 @@ public class SimplisticHttpGetGateWay
 
     private HttpEntity<String> getRequestEntity( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
-        Map<String, String> valueStore = getValueStore( config, text, recipients );
+        List<GenericGatewayParameter> parameters = config.getParameters();
+
+        Map<String, String> valueStore = new HashMap<>();
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.put( "Content-type", Collections.singletonList( config.getContentType().getValue() ) );
+
+        for ( GenericGatewayParameter parameter : parameters )
+        {
+            if ( parameter.isHeader() )
+            {
+                httpHeaders.put( parameter.getKey(), Collections.singletonList( parameter.getValue() ) );
+                continue;
+            }
+
+            if ( parameter.isEncode() )
+            {
+                valueStore.put( parameter.getKey(), SmsUtils.encode( parameter.getKey() ) );
+                continue;
+            }
+
+            valueStore.put( parameter.getKey(), parameter.getValue() );
+        }
+
+        valueStore.put( KEY_TEXT, SmsUtils.encode( text ) );
+        valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
 
         final StringSubstitutor substitutor = new StringSubstitutor( valueStore ); // Matches on ${...}
 
         String data = substitutor.replace( config.getConfigurationTemplate() );
 
-        return new HttpEntity<>( data, getHeaderParameters( config ) );
-    }
-
-    private HttpHeaders getHeaderParameters( GenericHttpGatewayConfig config )
-    {
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.put( "Content-type", Collections.singletonList( config.getContentType().getValue() ) );
-
-        for ( GenericGatewayParameter parameter : config.getParameters() )
-        {
-            if ( parameter.isHeader() )
-            {
-                httpHeaders.put(parameter.getKey(), Collections.singletonList( parameter.getValue() ) );
-            }
-        }
-
-        return httpHeaders;
+        return new HttpEntity<>( data, httpHeaders );
     }
 
     private Map<String, String> getValueStore( GenericHttpGatewayConfig config, String text, Set<String> recipients )
@@ -182,6 +192,22 @@ public class SimplisticHttpGetGateWay
         valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
 
         return valueStore;
+    }
+
+    private HttpHeaders getHeaderParameters( GenericHttpGatewayConfig config )
+    {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.put( "Content-type", Collections.singletonList( config.getContentType().getValue() ) );
+
+        for ( GenericGatewayParameter parameter : config.getParameters() )
+        {
+            if ( parameter.isHeader() )
+            {
+                httpHeaders.put(parameter.getKey(), Collections.singletonList( parameter.getValue() ) );
+            }
+        }
+
+        return httpHeaders;
     }
 
     private OutboundMessageResponse getResponse( ResponseEntity<String> responseEntity )
