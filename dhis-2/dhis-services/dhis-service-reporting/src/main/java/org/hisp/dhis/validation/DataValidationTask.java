@@ -673,8 +673,14 @@ public class DataValidationTask
         {
             grid = analyticsService.getAggregatedDataValues( params );
         }
-        catch ( PersistenceException ex )
+        catch ( PersistenceException ex ) // No data
         {
+            return map;
+        }
+        catch ( RuntimeException ex ) // Other error
+        {
+            log.error( DebugUtils.getStackTrace( ex ) );
+
             return map;
         }
 
