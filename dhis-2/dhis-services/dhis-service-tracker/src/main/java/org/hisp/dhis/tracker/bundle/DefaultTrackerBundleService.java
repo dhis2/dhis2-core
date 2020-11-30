@@ -43,14 +43,14 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.tracker.ParamsConverter;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerObjectDeletionService;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.TrackerUserService;
 import org.hisp.dhis.tracker.bundle.persister.CommitService;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
@@ -72,8 +72,6 @@ public class DefaultTrackerBundleService
     implements TrackerBundleService
 {
     private final TrackerPreheatService trackerPreheatService;
-
-    private final TrackerUserService trackerUserService;
 
     private final SessionFactory sessionFactory;
 
@@ -130,7 +128,6 @@ public class DefaultTrackerBundleService
     }
 
     public DefaultTrackerBundleService( TrackerPreheatService trackerPreheatService,
-        TrackerUserService trackerUserService,
         SessionFactory sessionFactory,
         HibernateCacheManager cacheManager,
         DbmsManager dbmsManager,
@@ -138,7 +135,6 @@ public class DefaultTrackerBundleService
         TrackerObjectDeletionService deletionService, CommitService commitService )
     {
         this.trackerPreheatService = trackerPreheatService;
-        this.trackerUserService = trackerUserService;
         this.sessionFactory = sessionFactory;
         this.cacheManager = cacheManager;
         this.dbmsManager = dbmsManager;
@@ -148,16 +144,10 @@ public class DefaultTrackerBundleService
     }
 
     @Override
-    public TrackerBundle create( TrackerBundleParams params )
+    public TrackerBundle create( TrackerImportParams params )
     {
-        TrackerBundle trackerBundle = params.toTrackerBundle();
-        TrackerPreheatParams preheatParams = params.toTrackerPreheatParams();
-        if ( preheatParams.getUser() == null )
-        {
-            preheatParams.setUser( trackerUserService.getUser( preheatParams.getUserId() ) );
-        }
-
-        TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
+        TrackerBundle trackerBundle = ParamsConverter.convert( params );
+        TrackerPreheat preheat = trackerPreheatService.preheat( params );
         trackerBundle.setPreheat( preheat );
 
         return trackerBundle;

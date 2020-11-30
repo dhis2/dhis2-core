@@ -322,7 +322,7 @@ public abstract class AbstractTrackerDtoValidationHook
         return false;
     }
 
-    private boolean didNotPassValidation(ValidationErrorReporter reporter, String uid )
+    private boolean didNotPassValidation( ValidationErrorReporter reporter, String uid )
     {
         return reporter.getReportList().stream().anyMatch( r -> r.getUid().equals( uid ) );
     }

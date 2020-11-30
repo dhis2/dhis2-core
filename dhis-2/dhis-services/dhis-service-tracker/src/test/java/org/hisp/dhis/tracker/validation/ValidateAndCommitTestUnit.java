@@ -32,9 +32,9 @@ package org.hisp.dhis.tracker.validation;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
@@ -62,7 +62,7 @@ public class ValidateAndCommitTestUnit
 
     private TrackerBundleReport commitReport;
 
-    private final TrackerBundleParams trackerBundleParams;
+    private final TrackerImportParams trackerImportParams;
 
     private Exception commitException;
 
@@ -78,9 +78,9 @@ public class ValidateAndCommitTestUnit
      */
     public ValidateAndCommitTestUnit invoke()
     {
-        trackerBundleParams.setImportStrategy( trackerImportStrategy );
+        trackerImportParams.setImportStrategy( trackerImportStrategy );
 
-        trackerBundle = trackerBundleService.create( trackerBundleParams );
+        trackerBundle = trackerBundleService.create( trackerImportParams );
 
         validationReport = trackerValidationService.validate( trackerBundle );
 
