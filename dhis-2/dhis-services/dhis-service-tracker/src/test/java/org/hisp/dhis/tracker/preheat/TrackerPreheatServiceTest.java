@@ -69,13 +69,6 @@ public class TrackerPreheatServiceTest extends TrackerTest
     }
 
     @Test
-    public void testEventMetadata()
-        throws IOException
-    {
-        setUpMetadata( "tracker/event_metadata.json" );
-    }
-
-    @Test
     public void testCollectIdentifiersSimple()
     {
         TrackerImportParams params = new TrackerImportParams();
