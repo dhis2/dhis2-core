@@ -827,15 +827,15 @@ public class JdbcEventStore
                         else
                         {
                             eventDataValuesWhereSql += " " + queryCol + " " + filter.getSqlOperator() + " "
-                            + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
+                            + StringUtils.lowerCase( item.isNumeric() ? encodedFilter :
                             filter.getSqlFilter( encodedFilter ) ) + " ";
                         }
                     }
                     else if ( QueryOperator.IN.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
                     {
                         sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
-                            + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
-                            filter.getSqlFilter( encodedFilter ) ) + " ";
+                            + StringUtils.lowerCase( item.isNumeric() ? encodedFilter :
+                            filter.getSqlFilter( encodedFilter ) ) + " " ;
                     }
                     else if ( QueryOperator.LIKE.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
                     {
@@ -845,7 +845,7 @@ public class JdbcEventStore
                     else
                     {
                         sql += "and lower(" + optCol + DOT_NAME + " " + filter.getSqlOperator() + " "
-                            + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
+                            + StringUtils.lowerCase( item.isNumeric() ? encodedFilter :
                             filter.getSqlFilter( encodedFilter ) ) + " ";
                     }
                 }
