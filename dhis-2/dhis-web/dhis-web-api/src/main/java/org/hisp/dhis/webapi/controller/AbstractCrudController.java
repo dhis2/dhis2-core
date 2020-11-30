@@ -1175,7 +1175,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return PaginationUtils.getPaginationData( options );
     }
     
-    protected void restrictToCaptureScope( List<T> entityList, WebOptions options, Map<String, String> parameters )
+    private void restrictToCaptureScope( List<T> entityList, WebOptions options, Map<String, String> parameters )
     {
         if ( !options.isTrue( "restrictToCaptureScope" ) || CollectionUtils.isEmpty( entityList )
             || !( entityList.get( 0 ) instanceof OrganisationUnitAssociable ) )
