@@ -39,6 +39,8 @@ public class ProgramInstanceSupplierTest
     public void verifySupplier()
     {
         final List<ProgramInstance> programInstances = rnd.randomObjects( ProgramInstance.class, 5 );
+        // set the OrgUnit parent to null to avoid recursive errors when mapping
+        programInstances.forEach( p -> p.getOrganisationUnit().setParent( null ) );
         when( store.getByType( WITHOUT_REGISTRATION ) ).thenReturn( programInstances );
 
         final TrackerImportParams params = TrackerImportParams.builder().build();

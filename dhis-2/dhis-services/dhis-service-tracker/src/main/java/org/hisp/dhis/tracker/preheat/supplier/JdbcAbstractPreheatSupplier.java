@@ -28,37 +28,21 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceStore;
-import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.preheat.DetachUtils;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.mappers.ProgramInstanceMapper;
-import org.springframework.stereotype.Component;
-
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**
+ * Allows a {@link PreheatSupplier} to access the database using JDBC.
+ * 
  * @author Luciano Fiandesio
  */
-@RequiredArgsConstructor
-@Component
-public class ProgramInstanceSupplier extends AbstractPreheatSupplier
+public abstract class JdbcAbstractPreheatSupplier extends AbstractPreheatSupplier
 {
-    @NonNull
-    private final ProgramInstanceStore programInstanceStore;
+    protected final NamedParameterJdbcTemplate jdbcTemplate;
 
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
+    protected JdbcAbstractPreheatSupplier( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
-        List<ProgramInstance> programInstances = DetachUtils.detach( ProgramInstanceMapper.INSTANCE,
-            programInstanceStore.getByType( ProgramType.WITHOUT_REGISTRATION ) );
-
-        programInstances
-            .forEach( pi -> preheat.putProgramInstancesWithoutRegistration( pi.getProgram().getUid(), pi ) );
+        this.jdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
     }
 }

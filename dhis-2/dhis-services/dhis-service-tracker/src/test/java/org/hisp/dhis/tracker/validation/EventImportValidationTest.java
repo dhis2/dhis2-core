@@ -415,11 +415,9 @@ public class EventImportValidationTest
     public void testNonRepeatableProgramStage()
         throws IOException
     {
-        TrackerImportParams trackerImportParams = createBundleFromJson(
-            "tracker/validations/events_non-repeatable-programstage_part1.json" );
-
-        User user = userService.getUser( ADMIN_USER_UID );
-        trackerImportParams.setUserId( user.getUid() );
+        TrackerImportParams trackerImportParams = fromJson(
+            "tracker/validations/events_non-repeatable-programstage_part1.json",
+            userService.getUser( ADMIN_USER_UID ) );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerImportParams,
             TrackerImportStrategy.CREATE );
@@ -430,8 +428,9 @@ public class EventImportValidationTest
 
         assertEquals( 0, validationReport.getErrorReports().size() );
 
-        trackerImportParams = createBundleFromJson(
-            "tracker/validations/events_non-repeatable-programstage_part2.json" );
+        trackerImportParams = fromJson(
+            "tracker/validations/events_non-repeatable-programstage_part2.json",
+            userService.getUser( ADMIN_USER_UID ) );
 
         createAndUpdate = validateAndCommit( trackerImportParams, TrackerImportStrategy.CREATE );
         assertEquals( 0, createAndUpdate.getTrackerBundle().getEvents().size() );

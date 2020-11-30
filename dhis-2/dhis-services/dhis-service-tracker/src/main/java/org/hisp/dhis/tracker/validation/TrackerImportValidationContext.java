@@ -197,6 +197,16 @@ public class TrackerImportValidationContext
     {
         return bundle.getPreheat().getEnrollment( bundle.getIdentifier(), id );
     }
+    
+    public boolean programInstanceHasEvents( String programInstanceUid )
+    {
+        return bundle.getPreheat().getProgramInstanceWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
+    }
+
+    public boolean programStageHasEvents( String programStageUid )
+    {
+        return bundle.getPreheat().getProgramStageWithEvents().contains( programStageUid );
+    }
 
     public Optional<TrackedEntityComment> getNote( String uid )
     {

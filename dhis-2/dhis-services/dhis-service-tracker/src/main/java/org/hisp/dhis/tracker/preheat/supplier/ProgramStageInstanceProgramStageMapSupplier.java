@@ -28,37 +28,63 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceStore;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.preheat.DetachUtils;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.mappers.ProgramInstanceMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
 /**
+ * This supplier adds to the pre-heat object a List of all Program Stages UIDs
+ * that have at least ONE Program Stage Instance that is not logically deleted
+ * ('deleted = true') and the status is not 'SKIPPED'
+ *
  * @author Luciano Fiandesio
  */
-@RequiredArgsConstructor
 @Component
-public class ProgramInstanceSupplier extends AbstractPreheatSupplier
+public class ProgramStageInstanceProgramStageMapSupplier extends JdbcAbstractPreheatSupplier
 {
-    @NonNull
-    private final ProgramInstanceStore programInstanceStore;
+    private final static String COLUMN = "uid";
+
+    private final static String SQL = "select " + COLUMN + " from programstage ps " +
+        "where exists( select programstageinstanceid from programstageinstance psi where  psi.deleted = false " +
+        "and psi.status != 'SKIPPED' and ps.programstageid = psi.programstageid) " +
+        "and ps.uid in (:ids)";
+
+    protected ProgramStageInstanceProgramStageMapSupplier( JdbcTemplate jdbcTemplate )
+    {
+        super( jdbcTemplate );
+    }
 
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        List<ProgramInstance> programInstances = DetachUtils.detach( ProgramInstanceMapper.INSTANCE,
-            programInstanceStore.getByType( ProgramType.WITHOUT_REGISTRATION ) );
+        if ( params.getEvents().size() == 0 )
+        {
+            return;
+        }
 
-        programInstances
-            .forEach( pi -> preheat.putProgramInstancesWithoutRegistration( pi.getProgram().getUid(), pi ) );
+        List<String> programStageUids = params.getEvents().stream().map( Event::getProgramStage )
+            .collect( Collectors.toList() );
+
+        if ( !programStageUids.isEmpty() )
+        {
+            List<String> programStageWithEvents = new ArrayList<>();
+
+            MapSqlParameterSource parameters = new MapSqlParameterSource();
+            parameters.addValue( "ids", programStageUids );
+            jdbcTemplate.query( SQL, parameters, rs -> {
+
+                programStageWithEvents.add( rs.getString( COLUMN ) );
+
+            } );
+
+            preheat.setProgramStageWithEvents( programStageWithEvents );
+        }
     }
 }
