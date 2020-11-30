@@ -77,8 +77,7 @@ public class TrackerImporter_teiValidationTests
 
         // assert
         response.validateErrorReport()
-            .validate()
-            .body( "validationReport.errorReports[0].message",
+            .body( "message[0]",
                 containsStringIgnoringCase( "Could not find TrackedEntityType" ) );
     }
 

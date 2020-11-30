@@ -82,14 +82,12 @@ public class TrackerApiResponse
         return this;
     }
 
-    public TrackerApiResponse validateErrorReport()
+    public ValidatableResponse validateErrorReport()
     {
-        validate().statusCode( 200 )
-            .body( "status", Matchers.equalTo( "ERROR" ) )
+        return validate().statusCode( 200 )
             .body( "stats.ignored", greaterThanOrEqualTo( 1 ) )
-            .body( "validationReport.errorReports", Matchers.notNullValue() );
-
-        return this;
+            .body( "validationReport.errorReports", Matchers.notNullValue() )
+            .rootPath( "validationReport.errorReports" );
     }
 
     public ValidatableResponse validateTeis() {

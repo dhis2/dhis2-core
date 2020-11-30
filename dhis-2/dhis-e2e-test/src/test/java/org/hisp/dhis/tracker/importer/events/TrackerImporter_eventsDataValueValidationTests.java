@@ -122,11 +122,12 @@ public class TrackerImporter_eventsDataValueValidationTests
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( event );
 
+        response.validate()
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "bundleReport.typeReportMap.EVENT", nullValue() );
+
         response.validateErrorReport()
-            .validate()
-            .body( "bundleReport.typeReportMap.EVENT", nullValue() )
-            .body( "validationReport.errorReports[0].message",
-                stringContainsInOrder( "Mandatory DataElement", "is not present" ) );
+            .body( "message[0]", stringContainsInOrder( "Mandatory DataElement", "is not present" ) );
     }
 
     @Test

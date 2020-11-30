@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -66,9 +66,13 @@ public class TrackerImporter_atomicModeTests
         TrackerApiResponse response = trackerActions
             .postAndGetJobReport( createWrongPayload(), new QueryParamsBuilder().add( "atomicMode=ALL" ) );
 
-        response.validateErrorReport()
-            .validate()
+        response.validate()
+            .body( "status", equalTo( "ERROR" ) )
             .body( "stats.ignored", equalTo( 3 ) );
+
+        response.validateErrorReport()
+            .body( "", hasSize( 2 ) )
+            .body( "trackerType", contains( "TRACKED_ENTITY", "RELATIONSHIP" ) );
     }
 
     @Test
@@ -78,11 +82,15 @@ public class TrackerImporter_atomicModeTests
         TrackerApiResponse response = trackerActions
             .postAndGetJobReport( createWrongPayload(), new QueryParamsBuilder().addAll( "atomicMode=OBJECT" ) );
 
-        //todo add more validation when this is working
         response.validate()
-            .statusCode( 200 )
+            .body( "status", equalTo( "OK" ) )
             .body( "stats.ignored", equalTo( 2 ) )
             .body( "stats.created", equalTo( 1 ) );
+
+        response.validateErrorReport()
+            .body( "", hasSize( 2 ) )
+            .body( "trackerType", contains( "TRACKED_ENTITY", "RELATIONSHIP" ) );
+
     }
 
     private JsonObject createWrongPayload()

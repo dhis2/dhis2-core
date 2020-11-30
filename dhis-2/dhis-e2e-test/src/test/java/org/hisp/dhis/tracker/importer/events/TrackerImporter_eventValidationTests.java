@@ -100,8 +100,7 @@ public class TrackerImporter_eventValidationTests
 
         trackerActions.postAndGetJobReport( object )
             .validateErrorReport()
-            .validate()
-            .body( "validationReport.errorReports.message[0]", containsStringIgnoringCase( "OccurredAt date is missing." ) );
+            .body( "message[0]", containsStringIgnoringCase( "OccurredAt date is missing." ) );
     }
 
     @ParameterizedTest
@@ -114,8 +113,7 @@ public class TrackerImporter_eventValidationTests
         TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
 
         response.validateErrorReport()
-            .validate()
-            .body( "validationReport.errorReports[0].message", containsStringIgnoringCase( message ) );
+            .body( "message[0]", containsStringIgnoringCase( message ) );
     }
 
     private void setupData()
