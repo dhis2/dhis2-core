@@ -28,6 +28,73 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
+import org.hisp.dhis.dxf2.events.report.EventRow;
+import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
+import org.hisp.dhis.jdbc.BatchPreparedStatementSetterWithKeyHolder;
+import org.hisp.dhis.jdbc.JdbcUtils;
+import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.query.Order;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.env.Environment;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCallback;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Repository;
+
+import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -65,77 +132,9 @@ import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
-import java.io.IOException;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.dxf2.events.report.EventRow;
-import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
-import org.hisp.dhis.jdbc.BatchPreparedStatementSetterWithKeyHolder;
-import org.hisp.dhis.jdbc.JdbcUtils;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.util.ObjectUtils;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.env.Environment;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCallback;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.stereotype.Repository;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
-import org.locationtech.jts.geom.Geometry;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -1811,8 +1810,8 @@ public class JdbcEventStore implements EventStore
     {
         if ( isNotEmpty( events ) )
         {
-            final List<String> psiUids = events.stream().map( Event::getEvent ).collect( toList() );
-            final String uids = "'" + Joiner.on( "," ).join( psiUids ) + "'";
+            final List<String> psiUids = events.stream().map( event-> "'" + event.getEvent() + "'" ).collect( toList() );
+            final String uids = Joiner.on( "," ).join( psiUids ) ;
 
             jdbcTemplate.execute( "DELETE FROM programstageinstancecomments where programstageinstanceid in "
                 + "(select programstageinstanceid from programstageinstance where uid in (" + uids + ") )" );

@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.validation.hooks;
+package org.hisp.dhis.tracker.preprocess;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,42 +28,41 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.apache.commons.lang3.StringUtils.*;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1119;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.tracker.domain.Note;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
- * @author Luciano Fiandesio
+ * This preprocessor is responsible for populating the bidirectional field
+ * with the value from the RelationshipType
+ *
+ * @author Enrico Colasante
  */
-public class NoteValidationUtils
+@Component
+public class BidirectionalRelationshipsPreProcessor
+    implements BundlePreProcessor
 {
-    protected static List<Note> validate( ValidationErrorReporter reporter, List<Note> notesToCheck )
-    {
-        TrackerImportValidationContext context = reporter.getValidationContext();
 
-        final List<Note> notes = new ArrayList<>();
-        for ( Note note : notesToCheck )
-        {
-            if ( isNotEmpty( note.getValue() ) ) // Ignore notes with no text
-            {
-                // If a note having the same UID already exist in the db, raise error
-                if ( isNotEmpty( note.getNote() ) && context.getNote( note.getNote() ).isPresent() )
+    @Override
+    public void process( TrackerBundle bundle )
+    {
+        bundle.getRelationships()
+            .forEach( rel -> {
+                RelationshipType relType = bundle.getPreheat()
+                    .get( bundle.getIdentifier(), RelationshipType.class, rel.getRelationshipType() );
+                if (relType != null)
                 {
-                    reporter.addError( newReport( E1119 ).addArgs( note.getNote() ) );
+                    rel.setBidirectional( relType.isBidirectional() );
                 }
-                else
-                {
-                    notes.add( note );
-                }
-            }
-        }
-        return notes;
+            } );
     }
 }

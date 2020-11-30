@@ -41,6 +41,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
+ * The Bundle Report is responsible for aggregating the outcome of the
+ * persistence stage of the Tracker Import.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
@@ -66,9 +69,9 @@ public class TrackerBundleReport
         return stats;
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Utility Methods
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     /**
      * Are there any errors present?

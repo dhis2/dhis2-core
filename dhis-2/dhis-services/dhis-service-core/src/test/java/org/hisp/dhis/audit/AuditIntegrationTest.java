@@ -28,17 +28,24 @@ package org.hisp.dhis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -48,7 +55,9 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
@@ -81,6 +90,9 @@ public class AuditIntegrationTest
 
     @Autowired
     private IdentifiableObjectManager manager;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     protected void setUpTest()
@@ -242,5 +254,60 @@ public class AuditIntegrationTest
         assertEquals( DataValue.class.getName(), audit.getKlass() );
         assertEquals( dataElementA.getUid(), audit.getAttributes().get( "dataElement" ) );
         assertNotNull( audit.getData() );
+    }
+
+    @Test
+    public void testSaveProgram()
+        throws IOException
+    {
+        Program program = createProgram( 'A' );
+        manager.save( program );
+        DataElement dataElement = createDataElement( 'A' );
+        manager.save( dataElement );
+        ProgramStage programStage = createProgramStage( 'A', program );
+        programStage.addDataElement( dataElement, 0 );
+        manager.save( programStage );
+
+        AuditQuery query = AuditQuery.builder().uid( Sets.newHashSet( programStage.getUid() ) ).build();
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
+
+        List<Audit> audits = auditService.getAudits( query );
+        assertEquals( 1, audits.size() );
+
+        Audit audit = audits.get( 0 );
+        assertEquals( ProgramStage.class.getName(), audit.getKlass() );
+        assertEquals( programStage.getUid(), audit.getUid() );
+
+        Map<String, Object> deserializeProgramStage = objectMapper.readValue( audit.getData(), Map.class );
+        assertNotNull( deserializeProgramStage.get("programStageDataElements") );
+        List uids = (List<String>) deserializeProgramStage.get( "programStageDataElements" );
+        assertEquals( 1, uids.size() );
+    }
+
+    @Test
+    public void testSaveDataSet()
+        throws JsonProcessingException
+    {
+        DataElement dataElement = createDataElement( 'A' );
+        manager.save( dataElement );
+        PeriodType periodType = PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME );
+        DataSet dataSet = createDataSet( 'A', periodType );
+        dataSet.addDataSetElement( dataElement );
+        manager.save( dataSet );
+
+        AuditQuery query = AuditQuery.builder().uid( Sets.newHashSet( dataSet.getUid() ) ).build();
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
+
+        List<Audit> audits = auditService.getAudits( query );
+        assertEquals( 1, audits.size() );
+
+        Audit audit = audits.get( 0 );
+        assertEquals( DataSet.class.getName(), audit.getKlass() );
+        assertEquals( dataSet.getUid(), audit.getUid() );
+
+        Map<String, Object> deserializeProgramStage = objectMapper.readValue( audit.getData(), Map.class );
+        assertNotNull( deserializeProgramStage.get("dataSetElements") );
+        List uids = (List<String>) deserializeProgramStage.get( "dataSetElements" );
+        assertEquals( 1, uids.size() );
     }
 }

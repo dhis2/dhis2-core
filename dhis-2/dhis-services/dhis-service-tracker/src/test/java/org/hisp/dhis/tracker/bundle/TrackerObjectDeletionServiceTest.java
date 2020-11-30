@@ -224,9 +224,9 @@ public class TrackerObjectDeletionServiceTest  extends DhisSpringTest
         TrackerImportReport importReport = trackerImportService.importTracker( params );
 
         assertEquals( TrackerStatus.ERROR, importReport.getStatus() );
-        assertTrue( importReport.getTrackerValidationReport().hasErrors() );
+        assertTrue( importReport.getValidationReport().hasErrors() );
 
-        List<TrackerErrorReport> trackerErrorReports = importReport.getTrackerValidationReport().getErrorReports();
+        List<TrackerErrorReport> trackerErrorReports = importReport.getValidationReport().getErrorReports();
         assertEquals( TrackerErrorCode.E1081, trackerErrorReports.get( 0 ).getErrorCode() );
         // assertEquals( trackerErrorReports.get( 0 ).getErrorKlass(),
         // PreCheckExistenceValidationHook.class );

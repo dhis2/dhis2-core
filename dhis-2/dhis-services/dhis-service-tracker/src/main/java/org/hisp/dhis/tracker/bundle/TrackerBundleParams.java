@@ -94,6 +94,12 @@ public class TrackerBundleParams
     private boolean skipSideEffects;
 
     /**
+     * Should rule engine call be skipped or not, default is to skip.
+     */
+    @JsonProperty
+    private boolean skipRuleEngine;
+
+    /**
      * Sets import strategy (create, update, etc).
      */
     @JsonProperty
@@ -170,6 +176,7 @@ public class TrackerBundleParams
             .importStrategy( importStrategy )
             .skipTextPatternValidation( skipTextPatternValidation )
             .skipSideEffects( skipSideEffects )
+            .skipRuleEngine( skipRuleEngine )
             .flushMode( flushMode )
             .validationMode( validationMode )
             .trackedEntities( trackedEntities )

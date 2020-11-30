@@ -115,14 +115,14 @@ public class EventDataValueTest
         params.setUser( userA );
         TrackerImportReport teiImportReport = trackerImportService.importTracker( build( teiParams ) );
 
-        assertTrue( teiImportReport.getTrackerValidationReport().getErrorReports().isEmpty() );
+        assertTrue( teiImportReport.getValidationReport().getErrorReports().isEmpty() );
 
         TrackerBundleParams enrollmentParams = renderService
             .fromJson( new ClassPathResource( "tracker/single_enrollment.json" ).getInputStream(),
                 TrackerBundleParams.class );
         enrollmentParams.setUser( userA );
         TrackerImportReport enrollmentImportReport = trackerImportService.importTracker( build( enrollmentParams ) );
-        assertTrue( enrollmentImportReport.getTrackerValidationReport().getErrorReports().isEmpty() );
+        assertTrue( enrollmentImportReport.getValidationReport().getErrorReports().isEmpty() );
     }
 
     @Test
