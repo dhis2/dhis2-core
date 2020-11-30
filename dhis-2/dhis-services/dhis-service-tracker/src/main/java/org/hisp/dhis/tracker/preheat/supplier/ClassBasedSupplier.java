@@ -37,8 +37,8 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.supplier.classStrategy.ClassBasedSupplierStrategy;
 import org.hisp.dhis.tracker.preheat.supplier.classStrategy.GenericStrategy;
 import org.springframework.beans.BeansException;
@@ -78,7 +78,7 @@ public class ClassBasedSupplier extends AbstractPreheatSupplier implements Appli
     }
 
     @Override
-    public void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat )
+    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
         /*
          * Collects all references from the payload and create a Map where key is the

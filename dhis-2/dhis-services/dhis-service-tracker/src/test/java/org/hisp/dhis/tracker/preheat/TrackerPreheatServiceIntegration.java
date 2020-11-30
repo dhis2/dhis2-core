@@ -44,6 +44,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.user.UserService;
@@ -133,7 +134,7 @@ public class TrackerPreheatServiceIntegration
             .trackedEntity( TE_UID )
             .build();
 
-        TrackerPreheatParams trackerPreheatParams = TrackerPreheatParams.builder()
+        TrackerImportParams trackerPreheatParams = TrackerImportParams.builder()
             .trackedEntities( Lists.newArrayList( teA ) )
             .enrollments( Lists.newArrayList( enrollmentA ) )
             .identifiers( TrackerIdentifierParams.builder()

@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat;
+package org.hisp.dhis.webapi.controller.tracker;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,24 +28,24 @@ package org.hisp.dhis.tracker.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.tracker.TrackerIdentifierParams;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.user.User;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Used for setting up parameters for tracker preheat service. Normally not created directly, but rather
- * created through {@see org.hisp.dhis.tracker.bundle.TrackerBundleParams#toTrackerPreheatParams}.
+ * Maps the Tracker import payload
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -53,26 +53,9 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrackerPreheatParams
+@JsonDeserialize( converter = TrackerBundleParamsConverter.class )
+public class TrackerBundleParams
 {
-    /**
-     * User uid to use for import job.
-     */
-    @JsonProperty
-    private String userId;
-
-    /**
-     * User to use for import job.
-     */
-    private User user;
-
-    /**
-     * Identifiers to match metadata
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
-
     /**
      * Tracked entities to import.
      */
@@ -100,10 +83,4 @@ public class TrackerPreheatParams
     @JsonProperty
     @Builder.Default
     private List<Relationship> relationships = new ArrayList<>();
-
-    @JsonProperty
-    public String getUsername()
-    {
-        return User.username( user );
-    }
 }
