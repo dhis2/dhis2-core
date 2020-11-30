@@ -64,14 +64,14 @@ public class EventDateValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        if ( event.getOccurredAt() == null && !allowBlankOccuredAtDate(event) )
+        Program program = context.getProgram( event.getProgram() );
+
+        if ( event.getOccurredAt() == null && !allowBlankOccuredAtDate( event, program ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1031 )
                 .addArg( event ) );
             return;
         }
-
-        Program program = context.getProgram( event.getProgram() );
 
         validateDateFormat( reporter, event );
         validateExpiryDays( reporter, event, program );
@@ -151,19 +151,15 @@ public class EventDateValidationHook
         }
     }
 
-    private boolean allowBlankOccuredAtDate( Event event )
+    private boolean allowBlankOccuredAtDate( Event event, Program program )
     {
+        if ( program.isWithoutRegistration() )
+        {
+            return false;
+        }
+
         EventStatus eventStatus = event.getStatus();
 
-        switch ( eventStatus ) {
-            case SCHEDULE:
-                return true;
-            case OVERDUE:
-                return true;
-            case SKIPPED:
-                return true;
-            default:
-                return false;
-        }
+        return eventStatus == EventStatus.SCHEDULE || eventStatus == EventStatus.OVERDUE || eventStatus == EventStatus.SKIPPED ? true : false;
     }
 }
