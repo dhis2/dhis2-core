@@ -36,7 +36,6 @@ import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;

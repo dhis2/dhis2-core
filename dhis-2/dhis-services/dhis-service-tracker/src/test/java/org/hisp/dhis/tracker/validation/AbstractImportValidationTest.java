@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker.validation;
  *
  */
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -48,7 +48,7 @@ import java.io.InputStream;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public abstract class AbstractImportValidationTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTestBase
 {
     @Autowired
     protected TrackerBundleService trackerBundleService;
@@ -75,6 +75,12 @@ public abstract class AbstractImportValidationTest
     public static final String USER_5 = "oajYcE7VMBs";
 
     public static final String USER_6 = "VfaA5WwHLdP";
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     protected TrackerBundleParams createBundleFromJson( String jsonFile )
         throws IOException

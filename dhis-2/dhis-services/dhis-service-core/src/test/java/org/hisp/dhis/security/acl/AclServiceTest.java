@@ -436,6 +436,8 @@ public class AclServiceTest
         userGroup.getMembers().add( user2 );
 
         manager.save( userGroup );
+        user1.getGroups().add( userGroup );
+        user2.getGroups().add( userGroup );
 
         dataElement.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
         manager.update( dataElement );
@@ -462,6 +464,9 @@ public class AclServiceTest
         userGroup.getMembers().add( user2 );
 
         manager.save( userGroup );
+
+        user2.getGroups().add( userGroup );
+        user1.getGroups().add( userGroup );
 
         categoryOption.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
         manager.update( categoryOption );
@@ -599,14 +604,15 @@ public class AclServiceTest
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
         manager.save( userGroup );
 
+        user1.getGroups().add( userGroup );
+        user2.getGroups().add( userGroup );
+
         Dashboard dashboard = new Dashboard( "Dashboard" );
         dashboard.setUser( user1 );
         dashboard.getSharing().setOwner( user1 );
-        manager.save( dashboard );
-
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ );
         dashboard.getSharing().addUserGroupAccess( userGroupAccess );
-        manager.update( dashboard );
+        manager.save( dashboard, false );
 
         assertTrue( aclService.canRead( user1, dashboard ) );
         assertTrue( aclService.canUpdate( user1, dashboard ) );
@@ -636,24 +642,21 @@ public class AclServiceTest
 
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
         manager.save( userGroup );
+        user1.getGroups().add( userGroup );
+        user2.getGroups().add( userGroup );
 
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
         dataElement.setUser( user1 );
         dataElement.getSharing().setOwner( user1 );
-
-        assertTrue( aclService.canWrite( user1, dataElement ) );
-        manager.save( dataElement );
-
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ );
         dataElement.getSharing().addUserGroupAccess( userGroupAccess );
+        manager.save( dataElement, false );
 
-        assertTrue( aclService.canUpdate( user1, dataElement ) );
-        manager.update( dataElement );
 
-        assertTrue( aclService.canRead( user1, dataElement ) );
         assertTrue( aclService.canWrite( user1, dataElement ) );
         assertTrue( aclService.canUpdate( user1, dataElement ) );
+        assertTrue( aclService.canRead( user1, dataElement ) );
         assertFalse( aclService.canDelete( user1, dataElement ) );
         assertTrue( aclService.canManage( user1, dataElement ) );
 
@@ -683,16 +686,16 @@ public class AclServiceTest
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
         manager.save( userGroup );
 
+        user1.getGroups().add( userGroup );
+        user2.getGroups().add( userGroup );
+
         DataElement dataElement = createDataElement( 'A' );
-        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+        dataElement.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         dataElement.setUser( user1 );
         dataElement.getSharing().setOwner( user1 );
-
-        manager.save( dataElement );
-
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ_WRITE );
         dataElement.getSharing().addUserGroupAccess( userGroupAccess );
-        manager.update( dataElement );
+        manager.save( dataElement, false );
 
         assertTrue( aclService.canRead( user1, dataElement ) );
         assertTrue( aclService.canUpdate( user1, dataElement ) );
@@ -725,7 +728,7 @@ public class AclServiceTest
         dataElement.getSharing().setOwner( user1 );
 
         assertTrue( aclService.canWrite( user1, dataElement ) );
-        manager.save( dataElement );
+        manager.save( dataElement, false );
 
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
         assertFalse( aclService.canUpdate( user1, dataElement ) );
@@ -745,7 +748,7 @@ public class AclServiceTest
         dataElement.getSharing().setOwner( user1 );
 
         assertTrue( aclService.canWrite( user1, dataElement ) );
-        manager.save( dataElement );
+        manager.save( dataElement, false );
 
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
         assertTrue( aclService.canUpdate( user2, dataElement ) );
@@ -768,7 +771,7 @@ public class AclServiceTest
         assertTrue( access.isUpdate() );
         assertFalse( access.isDelete() );
 
-        manager.save( dataElement );
+        manager.save( dataElement, false );
 
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
 
@@ -793,7 +796,7 @@ public class AclServiceTest
         dashboard.getSharing().setOwner( user1 );
 
         aclService.canWrite( user1, dashboard );
-        manager.save( dashboard );
+        manager.save( dashboard, false );
 
         dashboard.setPublicAccess( AccessStringHelper.READ_WRITE );
         assertFalse( aclService.canUpdate( user1, dashboard ) );
@@ -812,7 +815,7 @@ public class AclServiceTest
         dashboard.getSharing().setOwner( user1 );
 
         aclService.canWrite( user1, dashboard );
-        manager.save( dashboard );
+        manager.save( dashboard, false );
 
         dashboard.setPublicAccess( AccessStringHelper.READ_WRITE );
         assertTrue( aclService.canUpdate( user1, dashboard ) );
@@ -828,17 +831,18 @@ public class AclServiceTest
 
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
         manager.save( userGroup );
+        user1.getGroups().add( userGroup );
+        user2.getGroups().add( userGroup );
 
         DataElement dataElement = createDataElement( 'A' );
-        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+        dataElement.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         dataElement.setUser( user1 );
         dataElement.getSharing().setOwner( user1 );
 
-        manager.save( dataElement );
-
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ_WRITE );
         dataElement.getSharing().addUserGroupAccess( userGroupAccess );
-        manager.update( dataElement );
+
+        manager.save( dataElement, false );
 
         assertTrue( aclService.canRead( user1, dataElement ) );
         assertTrue( aclService.canUpdate( user1, dataElement ) );

@@ -29,14 +29,15 @@ package org.hisp.dhis.user;
  */
 
 import org.hisp.dhis.cache.HibernateCacheManager;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -51,7 +52,9 @@ public class DefaultUserGroupService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final UserGroupStore userGroupStore;
+    private final HibernateIdentifiableObjectStore<UserGroup> userGroupStore;
+
+    private final UserGroupCacheService userGroupCacheService;
 
     private final CurrentUserService currentUserService;
 
@@ -59,18 +62,20 @@ public class DefaultUserGroupService
 
     private final HibernateCacheManager cacheManager;
 
-    public DefaultUserGroupService( UserGroupStore userGroupStore,
-        CurrentUserService currentUserService, AclService aclService, HibernateCacheManager cacheManager )
+    public DefaultUserGroupService( @Qualifier( "org.hisp.dhis.user.UserGroupStore" ) HibernateIdentifiableObjectStore<UserGroup> userGroupStore,
+        UserGroupCacheService userGroupCacheService, AclService aclService, HibernateCacheManager cacheManager, CurrentUserService currentUserService )
     {
         checkNotNull( userGroupStore );
         checkNotNull( currentUserService );
         checkNotNull( aclService );
         checkNotNull( cacheManager );
+        checkNotNull( userGroupCacheService );
 
         this.userGroupStore = userGroupStore;
-        this.currentUserService = currentUserService;
+        this.userGroupCacheService = userGroupCacheService;
         this.aclService = aclService;
         this.cacheManager = cacheManager;
+        this.currentUserService = currentUserService;
     }
 
     // -------------------------------------------------------------------------
@@ -83,7 +88,7 @@ public class DefaultUserGroupService
     {
         userGroupStore.save( userGroup );
 
-        aclService.getUserGroupCache().put( userGroup.getUid(), userGroup );
+        userGroupCacheService.put( userGroup );
         return userGroup.getId();
     }
 
@@ -92,7 +97,7 @@ public class DefaultUserGroupService
     public void deleteUserGroup( UserGroup userGroup )
     {
         userGroupStore.delete( userGroup );
-        aclService.getUserGroupCache().invalidate( userGroup.getUid() );
+        userGroupCacheService.invalidate( userGroup.getUid() );
     }
 
     @Override
@@ -104,7 +109,7 @@ public class DefaultUserGroupService
         // Clear query cache due to sharing and user group membership
 
         cacheManager.clearQueryCache();
-        aclService.getUserGroupCache().invalidate( userGroup.getUid() );
+        userGroupCacheService.invalidate( userGroup.getUid() );
     }
 
     @Override
@@ -125,12 +130,7 @@ public class DefaultUserGroupService
     @Transactional( readOnly = true )
     public UserGroup getUserGroup( String uid )
     {
-        Optional<UserGroup> userGroup = aclService.getUserGroupCache().get( uid, ug -> {
-            UserGroup group = userGroupStore.getByUid( uid );
-            group.getMembers();
-            return group;
-        } );
-        return userGroup.orElse( null );
+        return userGroupStore.getByUid( uid );
     }
 
     @Override
@@ -175,7 +175,7 @@ public class DefaultUserGroupService
                 UserGroup userGroup = getUserGroup( uid );
                 userGroup.addUser( user );
                 userGroupStore.updateNoAcl( userGroup );
-                aclService.getUserGroupCache().invalidate( uid );
+                userGroupCacheService.invalidate( uid );
             }
         }
     }
@@ -191,7 +191,7 @@ public class DefaultUserGroupService
                 UserGroup userGroup = getUserGroup( uid );
                 userGroup.removeUser( user );
                 userGroupStore.updateNoAcl( userGroup );
-                aclService.getUserGroupCache().invalidate( uid );
+                userGroupCacheService.invalidate( uid );
             }
         }
     }
@@ -223,7 +223,7 @@ public class DefaultUserGroupService
             {
                 userGroup.addUser( user );
                 userGroupStore.updateNoAcl( userGroup );
-                aclService.getUserGroupCache().invalidate( userGroup.getUid() );
+                userGroupCacheService.put( userGroup );
             }
         }
     }
@@ -266,14 +266,5 @@ public class DefaultUserGroupService
     public List<UserGroup> getUserGroupsBetweenByName( String name, int first, int max )
     {
         return userGroupStore.getAllLikeName( name, first, max, false );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public void reloadUserGroupCache()
-    {
-        aclService.getUserGroupCache().invalidateAll();
-
-        getAllUserGroups().forEach( group -> aclService.getUserGroupCache().put( group.getUid(), group ) );
     }
 }

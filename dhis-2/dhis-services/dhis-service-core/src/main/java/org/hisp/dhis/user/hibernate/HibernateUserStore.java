@@ -49,6 +49,7 @@ import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.query.JpaQueryUtils;
@@ -60,6 +61,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroupCacheService;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserStore;
@@ -80,14 +82,25 @@ public class HibernateUserStore
 {
     private final SchemaService schemaService;
 
+    private final UserGroupCacheService userGroupCacheService;
+
     public HibernateUserStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        AclService aclService, SchemaService schemaService )
+        AclService aclService, SchemaService schemaService, UserGroupCacheService userGroupCacheService )
     {
         super( sessionFactory, jdbcTemplate, publisher, User.class, currentUserService, aclService, true );
 
         checkNotNull( schemaService );
         this.schemaService = schemaService;
+        this.userGroupCacheService = userGroupCacheService;
+    }
+
+    @Override
+    public void save( User user, boolean clearSharing )
+    {
+        super.save( user, clearSharing );
+
+        userGroupCacheService.updateUser( user );
     }
 
     @Override

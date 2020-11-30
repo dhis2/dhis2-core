@@ -79,6 +79,4 @@ public interface UserGroupService
     int getUserGroupCount();
 
     int getUserGroupCountByName( String name );
-
-    void reloadUserGroupCache();
 }

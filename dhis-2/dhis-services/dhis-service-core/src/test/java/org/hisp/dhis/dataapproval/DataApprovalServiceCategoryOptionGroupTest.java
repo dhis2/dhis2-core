@@ -539,8 +539,6 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
         systemSettingManager.saveSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD, 0 );
         systemSettingManager.saveSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, true );
-
-        userGroupService.reloadUserGroupCache();
     }
 
     @Override

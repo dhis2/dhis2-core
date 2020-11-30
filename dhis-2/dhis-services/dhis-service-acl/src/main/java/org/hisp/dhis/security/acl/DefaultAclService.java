@@ -28,12 +28,11 @@ package org.hisp.dhis.security.acl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Schema;
@@ -41,16 +40,16 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupCacheService;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.springframework.util.CollectionUtils.containsAny;
@@ -65,26 +64,15 @@ public class DefaultAclService implements AclService
 {
     private final SchemaService schemaService;
 
-    private final CacheProvider cacheProvider;
+    private final UserGroupCacheService userGroupCacheService;
 
-    private Cache<UserGroup> userGroupCache;
-
-    public DefaultAclService( SchemaService schemaService, CacheProvider cacheProvider )
+    public DefaultAclService( SchemaService schemaService, UserGroupCacheService userGroupCacheService  )
     {
         checkNotNull( schemaService );
-        checkNotNull( cacheProvider );
+        checkNotNull( userGroupCacheService );
 
         this.schemaService = schemaService;
-        this.cacheProvider = cacheProvider;
-    }
-
-    @PostConstruct
-    public void init()
-    {
-        userGroupCache = cacheProvider.newCacheBuilder( UserGroup.class )
-            .forRegion( "userGroup" )
-            .expireAfterWrite( 12, TimeUnit.HOURS )
-            .build();
+        this.userGroupCacheService = userGroupCacheService;
     }
 
     @Override
@@ -574,18 +562,6 @@ public class DefaultAclService implements AclService
         return errorReports;
     }
 
-    @Override
-    public Cache<UserGroup> getUserGroupCache()
-    {
-        return userGroupCache;
-    }
-
-    @Override
-    public UserGroup getUserGroupFromCache( String groupId )
-    {
-        return userGroupCache.get( groupId ).orElse( null );
-    }
-
     private <T extends IdentifiableObject> Collection<? extends ErrorReport> verifyImplicitSharing( User user, T object )
     {
         List<ErrorReport> errorReports = new ArrayList<>();
@@ -682,15 +658,13 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-        if ( object.getSharing().getUserGroups() != null )
+        if ( object.getSharing().getUserGroups() != null && !CollectionUtils.isEmpty( user.getGroups() ) )
         {
             for ( UserGroupAccess userGroupAccess : object.getSharing().getUserGroups().values() )
             {
-                UserGroup userGroup = getUserGroupFromCache( userGroupAccess.getId() );
-
                 // Check if user is allowed to read this object through group access
-                if (  userGroup != null && AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
-                    && userGroup.getMembers().contains( user ) )
+                if ( AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
+                    && checkUserGroupAccess( user.getGroups(), userGroupAccess.getId() ) )
                 {
                     return true;
                 }
@@ -755,5 +729,15 @@ public class DefaultAclService implements AclService
 
         return checkSharingAccess(user, object) &&
             ( checkUser(user, object) || checkSharingPermission( user, object, Permission.WRITE ) );
+    }
+
+    private boolean checkUserGroupAccess( Set<UserGroup> userGroups, String userGroupUid )
+    {
+        for ( UserGroup group : userGroups )
+        {
+            if ( group.getUid().equals( userGroupUid ) ) return true;
+        }
+
+        return false;
     }
 }

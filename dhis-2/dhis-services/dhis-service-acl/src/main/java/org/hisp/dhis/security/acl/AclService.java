@@ -28,11 +28,9 @@ package org.hisp.dhis.security.acl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
 
 import java.util.List;
 
@@ -291,12 +289,4 @@ public interface AclService
      * @return List of error reports (if any)
      */
     <T extends IdentifiableObject> List<ErrorReport> verifySharing( T object, User user );
-
-    /**
-     * Get UserGroup cache
-     * @return
-     */
-    Cache<UserGroup> getUserGroupCache();
-
-    UserGroup getUserGroupFromCache( String groupId );
 }

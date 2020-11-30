@@ -29,6 +29,7 @@ package org.hisp.dhis.security.acl;
  */
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.util.Assert;
 
 /**
@@ -66,7 +67,7 @@ public class AccessStringHelper
 
     private char[] access = DEFAULT.toCharArray();
 
-    public static final String DEFAULT = "--------";
+    public static final String DEFAULT = Sharing.DEFAULT;
 
     //This should be used only when creating a default CategoryOption
     public static final String CATEGORY_OPTION_DEFAULT = "rwrw----";

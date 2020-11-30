@@ -27,11 +27,13 @@ public class Sharing
 {
     private static final long serialVersionUID = 6977793211734844477L;
 
+    public static final String DEFAULT = "--------";
+
     @JsonProperty
     private String owner = null;
 
     @JsonProperty("public")
-    private String publicAccess = null;
+    private String publicAccess = DEFAULT;
 
     @JsonProperty
     private boolean external = false;

@@ -85,6 +85,8 @@ public class DefaultUserService
 
     private final UserCredentialsStore userCredentialsStore;
 
+    private final UserGroupCacheService userGroupCacheService;
+
     private final UserAuthorityGroupStore userAuthorityGroupStore;
 
     private final CurrentUserService currentUserService;
@@ -98,7 +100,7 @@ public class DefaultUserService
     public DefaultUserService( UserStore userStore, UserGroupService userGroupService,
         UserCredentialsStore userCredentialsStore, UserAuthorityGroupStore userAuthorityGroupStore,
         CurrentUserService currentUserService, SystemSettingManager systemSettingManager,
-        @Lazy PasswordManager passwordManager, @Lazy SessionRegistry sessionRegistry )
+        @Lazy PasswordManager passwordManager, @Lazy SessionRegistry sessionRegistry, UserGroupCacheService userGroupCacheService )
     {
         checkNotNull( userStore );
         checkNotNull( userGroupService );
@@ -107,6 +109,7 @@ public class DefaultUserService
         checkNotNull( systemSettingManager );
         checkNotNull( passwordManager );
         checkNotNull( sessionRegistry );
+        checkNotNull( userGroupCacheService );
 
         this.userStore = userStore;
         this.userGroupService = userGroupService;
@@ -116,6 +119,7 @@ public class DefaultUserService
         this.systemSettingManager = systemSettingManager;
         this.passwordManager = passwordManager;
         this.sessionRegistry = sessionRegistry;
+        this.userGroupCacheService = userGroupCacheService;
     }
 
     // -------------------------------------------------------------------------
@@ -134,7 +138,7 @@ public class DefaultUserService
 
         userStore.save( user );
 
-        userGroupService.reloadUserGroupCache();
+        userGroupCacheService.updateUser( user );
 
         return user.getId();
     }
@@ -145,14 +149,13 @@ public class DefaultUserService
     {
         userStore.update( user );
 
-        userGroupService.reloadUserGroupCache();
+        userGroupCacheService.updateUser( user );
 
         AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_UPDATE );
     }
 
     @Override
     @Transactional
-
     public void deleteUser( User user )
     {
         AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_DELETE );

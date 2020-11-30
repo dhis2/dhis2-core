@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hamcrest.Matchers;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -101,6 +102,10 @@ public class TrackedEntityImportValidationTest
     {
         renderService = _renderService;
         userService = _userService;
+        User systemUser = createUser( "systemUser", "ALL" );
+        userService.addUser( systemUser );
+        injectSecurityContext( systemUser );
+
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "tracker/tracker_basic_metadata.json" ).getInputStream(), RenderFormat.JSON );
@@ -232,6 +237,8 @@ public class TrackedEntityImportValidationTest
 
         User user = userService.getUser( USER_3 );
         params.setUser( user );
+        user.getUserCredentials().setPassword( "user4password" );
+        injectSecurityContext( user );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
@@ -499,8 +506,7 @@ public class TrackedEntityImportValidationTest
         printReport( report );
         assertEquals( 2, report.getErrorReports().size() );
 
-        assertThat( report.getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1100 ) ) ) );
+        assertThat( report.getErrorReports(), Matchers.hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1100 ) ) ) );
     }
 
     protected void importProgramInstances()
