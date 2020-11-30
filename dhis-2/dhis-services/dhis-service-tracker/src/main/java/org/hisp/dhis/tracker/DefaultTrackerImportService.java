@@ -87,7 +87,6 @@ public class DefaultTrackerImportService
     @NonNull private final Notifier notifier;
 
     @Override
-    //@Transactional // TODO: This annotation must be removed. Performance killer.
     public TrackerImportReport importTracker( TrackerImportParams params )
     {
         params.setUser( trackerUserService.getUser( params.getUserId() ) );
