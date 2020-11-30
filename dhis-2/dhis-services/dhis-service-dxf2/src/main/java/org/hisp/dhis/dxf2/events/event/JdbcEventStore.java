@@ -985,15 +985,15 @@ public class JdbcEventStore implements EventStore
                         else
                         {
                             eventDataValuesWhereSql += " " + queryCol + " " + filter.getSqlOperator() + " "
-                                    + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
-                                    filter.getSqlFilter( encodedFilter ) ) + " ";
+                                + StringUtils.lowerCase( item.isNumeric() ? encodedFilter :
+                                filter.getSqlFilter( encodedFilter ) ) + " ";
                         }
                     }
                     else if ( QueryOperator.IN.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
                     {
                         sqlBuilder.append( "and " + queryCol + " " + filter.getSqlOperator() + " "
-                                + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
-                                filter.getSqlFilter( encodedFilter ) ) + " " );
+                            + StringUtils.lowerCase( item.isNumeric() ? encodedFilter :
+                            filter.getSqlFilter( encodedFilter ) ) + " " );
                     }
                     else if ( QueryOperator.LIKE.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
                     {
@@ -1003,8 +1003,8 @@ public class JdbcEventStore implements EventStore
                     else
                     {
                         sqlBuilder.append( "and lower(" + optCol + DOT_NAME + " " + filter.getSqlOperator() + " "
-                                + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
-                                filter.getSqlFilter( encodedFilter ) ) + " " );
+                            + StringUtils.lowerCase( item.isNumeric() ? encodedFilter :
+                            filter.getSqlFilter( encodedFilter ) ) + " " );
                     }
                 }
             }
