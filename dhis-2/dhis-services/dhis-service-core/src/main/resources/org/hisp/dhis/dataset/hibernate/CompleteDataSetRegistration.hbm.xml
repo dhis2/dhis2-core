@@ -8,13 +8,13 @@
   <class name="org.hisp.dhis.dataset.CompleteDataSetRegistration" table="completedatasetregistration">
 
     <composite-id>
-      <key-many-to-one name="dataSet" class="org.hisp.dhis.dataset.DataSet" column="datasetid"
+      <key-many-to-one lazy="false" name="dataSet" class="org.hisp.dhis.dataset.DataSet" column="datasetid"
         foreign-key="fk_datasetcompleteregistration_datasetid" />
-      <key-many-to-one name="period" class="org.hisp.dhis.period.Period" column="periodid"
+      <key-many-to-one lazy="false" name="period" class="org.hisp.dhis.period.Period" column="periodid"
         foreign-key="fk_datasetcompleteregistration_periodid" />
-      <key-many-to-one name="source" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="sourceid"
+      <key-many-to-one lazy="false" name="source" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="sourceid"
         foreign-key="fk_completedatasetregistration_organisationunitid" />
-      <key-many-to-one name="attributeOptionCombo" class="org.hisp.dhis.category.CategoryOptionCombo"
+      <key-many-to-one lazy="false" name="attributeOptionCombo" class="org.hisp.dhis.category.CategoryOptionCombo"
         column="attributeoptioncomboid" foreign-key="fk_completedatasetregistration_attributeoptioncomboid" />
     </composite-id>
 

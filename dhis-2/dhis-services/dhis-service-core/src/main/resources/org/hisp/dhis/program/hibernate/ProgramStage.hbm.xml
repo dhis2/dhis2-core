@@ -23,7 +23,7 @@
 
     <property name="minDaysFromStart" column="mindaysfromstart" not-null="true" />
 
-    <many-to-one name="program" class="org.hisp.dhis.program.Program" column="programid"
+    <many-to-one lazy="false" name="program" class="org.hisp.dhis.program.Program" column="programid"
       foreign-key="fk_programstage_program" />
 
     <property name="repeatable" column="repeatable" not-null="true" />

@@ -58,6 +58,7 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -185,6 +186,7 @@ public class TeTaValidationTest
     }
 
     @Test
+    @Ignore
     public void testFileAlreadyAssign()
         throws IOException
     {

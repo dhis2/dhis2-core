@@ -7,7 +7,7 @@
   <class name="org.hisp.dhis.datavalue.DataValue" table="datavalue">
 
     <composite-id>
-      <key-many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid" foreign-key="fk_datavalue_dataelementid" />
+      <key-many-to-one lazy="false" name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid" foreign-key="fk_datavalue_dataelementid" />
       <key-many-to-one name="period" class="org.hisp.dhis.period.Period" column="periodid" foreign-key="fk_datavalue_periodid" />
       <key-many-to-one name="source" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="sourceid" foreign-key="fk_datavalue_organisationunitid" />
       <key-many-to-one name="categoryOptionCombo" class="org.hisp.dhis.category.CategoryOptionCombo" column="categoryoptioncomboid" foreign-key="fk_datavalue_categoryoptioncomboid" />

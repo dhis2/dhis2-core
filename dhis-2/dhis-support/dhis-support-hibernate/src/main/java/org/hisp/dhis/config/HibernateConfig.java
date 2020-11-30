@@ -71,7 +71,7 @@ public class HibernateConfig
     public HibernateConfigurationProvider hibernateConfigurationProvider()
     {
         DefaultHibernateConfigurationProvider hibernateConfigurationProvider = new DefaultHibernateConfigurationProvider();
-        hibernateConfigurationProvider.setConfigurationProvider( dhisConfigurationProvider );
+        hibernateConfigurationProvider.setConfigProvider( dhisConfigurationProvider );
         return hibernateConfigurationProvider;
     }
 

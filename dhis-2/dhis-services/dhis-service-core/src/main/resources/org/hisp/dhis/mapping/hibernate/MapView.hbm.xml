@@ -49,7 +49,7 @@
 
     <property name="endDate" />    
 
-    <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
+    <many-to-one lazy="false" name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
       cascade="all-delete-orphan" foreign-key="fk_mapview_relativeperiodsid" />
 
     <list name="categoryDimensions" table="mapview_categorydimensions" cascade="all-delete-orphan">
@@ -137,13 +137,13 @@
       </type>
     </property>
 
-    <many-to-one name="program" class="org.hisp.dhis.program.Program"
+    <many-to-one lazy="false" name="program" class="org.hisp.dhis.program.Program"
       column="programid" foreign-key="fk_mapview_programid" />
 
-    <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
+    <many-to-one lazy="false" name="programStage" class="org.hisp.dhis.program.ProgramStage"
       column="programstageid" foreign-key="fk_mapview_programstageid" />
 
-    <many-to-one name="trackedEntityType" class="org.hisp.dhis.trackedentity.TrackedEntityType"
+    <many-to-one lazy="false" name="trackedEntityType" class="org.hisp.dhis.trackedentity.TrackedEntityType"
       column="trackedentitytypeid" foreign-key="fk_mapview_trackedentitytypeid" />
 
     <property name="programStatus" length="40">
@@ -174,7 +174,7 @@
 
     <property name="colorScale" />
 
-    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
+    <many-to-one lazy="false" name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
       foreign-key="fk_mapview_maplegendsetid" />
       
     <property name="noDataColor" length="7" />
@@ -185,7 +185,7 @@
 
     <property name="opacity" />
 
-    <many-to-one name="organisationUnitGroupSet" class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet"
+    <many-to-one lazy="false" name="organisationUnitGroupSet" class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet"
       column="orgunitgroupsetid" foreign-key="fk_mapview_orgunitgroupsetid" />
 
     <property name="areaRadius" />

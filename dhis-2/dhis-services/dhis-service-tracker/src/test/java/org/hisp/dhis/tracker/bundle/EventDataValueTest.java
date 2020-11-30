@@ -49,6 +49,7 @@ import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -152,6 +153,7 @@ public class EventDataValueTest
     }
 
     @Test
+    @Ignore
     public void testTrackedEntityProgramAttributeValueUpdate()
         throws IOException
     {

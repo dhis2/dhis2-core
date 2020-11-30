@@ -289,7 +289,7 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional()
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T get( Class<T> clazz, String uid )
     {

@@ -14,25 +14,25 @@
 
     <property name="systemId" column="systemid" />
 
-    <many-to-one name="feedbackRecipients" class="org.hisp.dhis.user.UserGroup"
+    <many-to-one lazy="false" name="feedbackRecipients" class="org.hisp.dhis.user.UserGroup"
         column="feedbackrecipientsid" foreign-key="fk_configuration_feedback_recipients" />
 
-    <many-to-one name="offlineOrganisationUnitLevel" class="org.hisp.dhis.organisationunit.OrganisationUnitLevel"
+    <many-to-one lazy="false" name="offlineOrganisationUnitLevel" class="org.hisp.dhis.organisationunit.OrganisationUnitLevel"
         column="offlineorgunitlevelid" foreign-key="fk_configuration_offline_orgunit_level" />
 
-    <many-to-one name="infrastructuralIndicators" class="org.hisp.dhis.indicator.IndicatorGroup"
+    <many-to-one lazy="false" name="infrastructuralIndicators" class="org.hisp.dhis.indicator.IndicatorGroup"
         column="infrastructuralindicatorsid" foreign-key="fk_configuration_infrastructural_indicators" />
 
-    <many-to-one name="infrastructuralDataElements" class="org.hisp.dhis.dataelement.DataElementGroup"
+    <many-to-one lazy="false" name="infrastructuralDataElements" class="org.hisp.dhis.dataelement.DataElementGroup"
         column="infrastructuraldataelementsid" foreign-key="fk_configuration_infrastructural_dataelements" />
 
-    <many-to-one name="infrastructuralPeriodType" class="org.hisp.dhis.period.PeriodType"
+    <many-to-one lazy="false" name="infrastructuralPeriodType" class="org.hisp.dhis.period.PeriodType"
         column="infrastructuralperiodtypeid" foreign-key="fk_configuration_infrastructural_periodtype" />
 
-    <many-to-one name="selfRegistrationRole" class="org.hisp.dhis.user.UserAuthorityGroup"
+    <many-to-one lazy="false" name="selfRegistrationRole" class="org.hisp.dhis.user.UserAuthorityGroup"
         column="selfregistrationrole" foreign-key="fk_configuration_selfregistrationrole" />
 
-    <many-to-one name="selfRegistrationOrgUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
+    <many-to-one lazy="false" name="selfRegistrationOrgUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
         column="selfRegistrationOrgUnit" foreign-key="fk_configuration_selfregistrationorgunit" />
 
     <set name="corsWhitelist" table="configuration_corswhitelist" lazy="false">

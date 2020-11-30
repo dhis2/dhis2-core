@@ -134,8 +134,8 @@ public class HibernateProgramStageInstanceStore
         }
 
         Query query = getSession().createNativeQuery(
-            "select exists(select 1 from programstageinstance where uid=? and deleted is false)" );
-        query.setParameter( 1, uid );
+            "select exists(select 1 from programstageinstance where uid=:uid and deleted is false)" );
+        query.setParameter( "uid", uid );
 
         return ((Boolean) query.getSingleResult()).booleanValue();
     }
@@ -149,8 +149,8 @@ public class HibernateProgramStageInstanceStore
         }
 
         Query query = getSession().createNativeQuery(
-            "select exists(select 1 from programstageinstance where uid=?)" );
-        query.setParameter( 1, uid );
+            "select exists(select 1 from programstageinstance where uid=:uid)" );
+        query.setParameter( "uid", uid );
 
         return ((Boolean) query.getSingleResult()).booleanValue();
     }

@@ -40,10 +40,10 @@
     
     <component name="recipients" class="org.hisp.dhis.program.message.ProgramMessageRecipients">
 
-     <many-to-one name="trackedEntityInstance" class="org.hisp.dhis.trackedentity.TrackedEntityInstance"
+     <many-to-one lazy="false" name="trackedEntityInstance" class="org.hisp.dhis.trackedentity.TrackedEntityInstance"
       column="trackedEntityInstanceId" foreign-key="fk_programmessage_trackedentityinstanceid" not-null="false" />
      
-     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
+     <many-to-one lazy="false" name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
       column="organisationUnitId" foreign-key="fk_programmessage_organisationunitid" not-null="false" />
 
      <set name="phoneNumbers" table="programmessage_phonenumbers" fetch="join">
@@ -58,10 +58,10 @@
 
     </component>
        
-    <many-to-one name="programInstance" class="org.hisp.dhis.program.ProgramInstance"
+    <many-to-one lazy="false" name="programInstance" class="org.hisp.dhis.program.ProgramInstance"
       column="programinstanceid" foreign-key="fk_programmessage_programinstanceid" not-null="false" />
 
-    <many-to-one name="programStageInstance" class="org.hisp.dhis.program.ProgramStageInstance"
+    <many-to-one lazy="false" name="programStageInstance" class="org.hisp.dhis.program.ProgramStageInstance"
       column="programstageinstanceid" foreign-key="fk_programmessage_programstageinstanceid" not-null="false" />
 
   </class>

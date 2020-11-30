@@ -10,13 +10,13 @@
       <generator class="native" />
     </id>
 
-    <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
+    <many-to-one lazy="false" name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
         foreign-key="fk_lockexception_organisationunitid" column="organisationunitid" />
 
-    <many-to-one name="period" class="org.hisp.dhis.period.Period"
+    <many-to-one lazy="false" name="period" class="org.hisp.dhis.period.Period"
         foreign-key="fk_lockexception_periodid" column="periodid" />
 
-    <many-to-one name="dataSet" class="org.hisp.dhis.dataset.DataSet"
+    <many-to-one lazy="false" name="dataSet" class="org.hisp.dhis.dataset.DataSet"
         foreign-key="fk_lockexception_datasetid" column="datasetid" />
 
   </class>

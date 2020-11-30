@@ -33,7 +33,7 @@
             </type>
         </property>
 
-        <many-to-one name="recipientUserGroup" class="org.hisp.dhis.user.UserGroup"
+        <many-to-one lazy="false" name="recipientUserGroup" class="org.hisp.dhis.user.UserGroup"
                      column="usergroupid" foreign-key="fk_datasetnotification_usergroup" not-null="false" />
 
         <property name="dataSetNotificationTrigger" column="datasetnotificationtrigger">

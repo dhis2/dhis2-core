@@ -35,7 +35,9 @@ import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.FlushModeType;
 
+import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
@@ -202,17 +204,25 @@ public class DefaultTrackerBundleService
         }
 
         Session session = sessionFactory.getCurrentSession();
+        final FlushModeType flushMode = session.getFlushMode();
+        final FlushMode hibernateFlushMode = session.getHibernateFlushMode();
 
-        bundleHooks.forEach( hook -> hook.preCommit( bundle ) );
+//        session.setHibernateFlushMode( FlushMode.COMMIT );
 
-        Stream.of( TrackerType.values() )
-            .forEach( t -> bundleReport.getTypeReportMap().put( t, COMMIT_MAPPER.get( t )
-            .apply( session, bundle ) ) );
+        for ( TrackerBundleHook bundleHook : bundleHooks )
+        {
+            bundleHook.preCommit( bundle );
+        }
+
+        for ( TrackerType t : TrackerType.values() )
+        {
+            bundleReport.getTypeReportMap().put( t, COMMIT_MAPPER.get( t ).apply( session, bundle ) );
+        }
 
         bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
 
         dbmsManager.clearSession();
-//        cacheManager.clearCache();
+        cacheManager.clearCache();
 
         return bundleReport;
     }
@@ -237,8 +247,8 @@ public class DefaultTrackerBundleService
             .forEach( t -> bundleReport.getTypeReportMap().put( t, DELETION_MAPPER.get( t )
             .apply( bundle, t ) ) );
 
-//        dbmsManager.clearSession();
-//        cacheManager.clearCache();
+        dbmsManager.clearSession();
+        cacheManager.clearCache();
         dbmsManager.flushSession();
 
         return bundleReport;

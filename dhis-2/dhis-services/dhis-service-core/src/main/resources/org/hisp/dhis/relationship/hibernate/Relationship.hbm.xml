@@ -21,20 +21,20 @@
 
         <property name="style" type="jbObjectStyle" column="style"/>
 
-        <many-to-one name="relationshipType"
+        <many-to-one lazy="false" name="relationshipType"
                      class="org.hisp.dhis.relationship.RelationshipType"
                      column="relationshiptypeid"
                      foreign-key="fk_relationship_relationshiptypeid"
                      not-null="true"/>
 
-        <many-to-one name="from" class="org.hisp.dhis.relationship.RelationshipItem"
+        <many-to-one lazy="false" name="from" class="org.hisp.dhis.relationship.RelationshipItem"
                      column="from_relationshipitemid"
                      foreign-key="fk_relationship_from_relationshipitemid"
                      not-null="false"
                      unique="true"
                      cascade="all-delete-orphan"/>
 
-        <many-to-one name="to" class="org.hisp.dhis.relationship.RelationshipItem"
+        <many-to-one lazy="false" name="to" class="org.hisp.dhis.relationship.RelationshipItem"
                      column="to_relationshipitemid"
                      foreign-key="fk_relationship_to_relationshipitemid"
                      not-null="false"

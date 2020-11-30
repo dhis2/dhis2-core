@@ -15,13 +15,13 @@
     </id>
     &identifiableProperties;
 
-    <many-to-one name="visualization" class="org.hisp.dhis.visualization.Visualization" column="visualizationid" foreign-key="fk_dashboarditem_visualizationid" />
+    <many-to-one lazy="false" name="visualization" class="org.hisp.dhis.visualization.Visualization" column="visualizationid" foreign-key="fk_dashboarditem_visualizationid" />
 
-    <many-to-one name="eventChart" class="org.hisp.dhis.eventchart.EventChart" column="eventchartid" foreign-key="fk_dashboarditem_eventchartid" />
+    <many-to-one lazy="false" name="eventChart" class="org.hisp.dhis.eventchart.EventChart" column="eventchartid" foreign-key="fk_dashboarditem_eventchartid" />
     
-    <many-to-one name="map" class="org.hisp.dhis.mapping.Map" column="mapid" foreign-key="fk_dashboarditem_mapid" />
+    <many-to-one lazy="false" name="map" class="org.hisp.dhis.mapping.Map" column="mapid" foreign-key="fk_dashboarditem_mapid" />
 
-    <many-to-one name="eventReport" class="org.hisp.dhis.eventreport.EventReport" foreign-key="fk_dashboarditem_eventreportid" />
+    <many-to-one lazy="false" name="eventReport" class="org.hisp.dhis.eventreport.EventReport" foreign-key="fk_dashboarditem_eventreportid" />
     
     <property name="text" column="textcontent" type="text" />
 

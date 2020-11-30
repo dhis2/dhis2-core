@@ -89,7 +89,9 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V> implemen
         //
         // Init the report that will hold the results of the persist operation
         //
-        TrackerTypeReport typeReport = new TrackerTypeReport( getType() );
+        final TrackerType type = getType();
+
+        TrackerTypeReport typeReport = new TrackerTypeReport( type );
 
         List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
 
@@ -102,7 +104,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V> implemen
         //
         // Extract the entities to persist from the Bundle
         //
-        List<T> dtos = getByType( getType(), bundle );
+        List<T> dtos = getByType( type, bundle );
 
         for ( int idx = 0; idx < dtos.size(); idx++ )
         {
@@ -111,7 +113,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V> implemen
             //
             final T trackerDto = dtos.get( idx );
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( getType(), trackerDto.getUid(), idx );
+            TrackerObjectReport objectReport = new TrackerObjectReport( type, trackerDto.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
             try
@@ -159,7 +161,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V> implemen
             }
             catch ( Exception e )
             {
-                final String msg = "A Tracker Entity of type '" + getType().getName() + "' (" + trackerDto.getUid()
+                final String msg = "A Tracker Entity of type '" + type.getName() + "' (" + trackerDto.getUid()
                     + ") failed to persist.";
                 
                 if ( bundle.getAtomicMode().equals( AtomicMode.ALL ) )
@@ -314,6 +316,11 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V> implemen
             TrackedEntityAttribute attribute = preheat.get( TrackerIdScheme.UID, TrackedEntityAttribute.class,
                 at.getAttribute() );
 
+            if ( attribute == null )
+            {
+                continue;
+
+            }
             checkNotNull( attribute,
                 "Attribute should never be NULL here if validation is enforced before commit." );
 

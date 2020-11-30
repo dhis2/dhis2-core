@@ -12,22 +12,22 @@
       <generator class="native" />
     </id>
 
-    <many-to-one name="indicator" class="org.hisp.dhis.indicator.Indicator"
+    <many-to-one lazy="false" name="indicator" class="org.hisp.dhis.indicator.Indicator"
       column="indicatorid" foreign-key="fk_datadimensionitem_indicatorid" />
 
-    <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
+    <many-to-one lazy="false" name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
       column="dataelementid" foreign-key="fk_datadimensionitem_dataelementid" />
 
     <component name="dataElementOperand" class="org.hisp.dhis.dataelement.DataElementOperand">
-      <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
+      <many-to-one lazy="false" name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
         column="dataelementoperand_dataelementid" foreign-key="fk_datadimensionitem_dataelementoperand_dataelementid" />
         
-      <many-to-one name="categoryOptionCombo" class="org.hisp.dhis.category.CategoryOptionCombo"
+      <many-to-one lazy="false" name="categoryOptionCombo" class="org.hisp.dhis.category.CategoryOptionCombo"
         column="dataelementoperand_categoryoptioncomboid" foreign-key="fk_datadimensionitem_dataelementoperand_categoryoptioncomboid" />
     </component>
 
     <component name="reportingRate" class="org.hisp.dhis.common.ReportingRate">
-      <many-to-one name="dataSet" class="org.hisp.dhis.dataset.DataSet"
+      <many-to-one lazy="false" name="dataSet" class="org.hisp.dhis.dataset.DataSet"
         column="datasetid" foreign-key="fk_datadimensionitem_datasetid" />
 
       <property name="metric" length="50" column="metric">
@@ -39,11 +39,11 @@
       </property>
     </component>
 
-    <many-to-one name="programIndicator" class="org.hisp.dhis.program.ProgramIndicator"
+    <many-to-one lazy="false" name="programIndicator" class="org.hisp.dhis.program.ProgramIndicator"
       column="programindicatorid" foreign-key="fk_datadimensionitem_programindicatorid" />
 
     <component name="programDataElement" class="org.hisp.dhis.program.ProgramDataElementDimensionItem">
-      <many-to-one name="program"  class="org.hisp.dhis.program.Program"
+      <many-to-one lazy="false" name="program"  class="org.hisp.dhis.program.Program"
         column="programdataelement_programid" foreign-key="fk_datadimensionitem_programdataelement_programid" />
         
       <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"

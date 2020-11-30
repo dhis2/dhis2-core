@@ -46,6 +46,7 @@ public enum ConfigurationKey
     NODE_ID( "node.id", "", false ),
     ENCRYPTION_PASSWORD( "encryption.password", "", true ),
     CONNECTION_DIALECT( "connection.dialect", "", false ),
+    DELAYED_IDENTITY_INSERT( "hibernate.id.disable_delayed_identity_inserts", Constants.TRUE, false ),
     CONNECTION_DRIVER_CLASS( "connection.driver_class", "", false ),
     CONNECTION_URL( "connection.url", "", false ),
     CONNECTION_USERNAME( "connection.username", "", false ),
