@@ -1,24 +1,15 @@
 package org.hisp.dhis.tracker.preprocess;
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 
 import java.util.Collections;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
-import static reactor.core.publisher.Mono.when;
 
 /**
  * @author Luciano Fiandesio

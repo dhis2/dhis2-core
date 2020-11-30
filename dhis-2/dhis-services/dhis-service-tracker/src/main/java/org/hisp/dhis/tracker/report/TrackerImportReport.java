@@ -28,7 +28,10 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Map;
+
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
+import org.hisp.dhis.tracker.TrackerType;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -109,8 +112,8 @@ public class TrackerImportReport
      *
      */
     public static TrackerImportReport withValidationErrors(
-            TrackerValidationReport validationReport,
-            TrackerTimingsStats timingsStats, int bundleSize )
+        TrackerValidationReport validationReport,
+        TrackerTimingsStats timingsStats, int bundleSize )
     {
         TrackerImportReport report = new TrackerImportReport();
         report.status = TrackerStatus.ERROR;
@@ -121,7 +124,7 @@ public class TrackerImportReport
 
         TrackerStats stats = new TrackerStats();
         stats.setIgnored( bundleSize );
-
+        report.stats = stats;
         return report;
     }
 
@@ -139,7 +142,7 @@ public class TrackerImportReport
      *
      */
     public static TrackerImportReport withError( String message, TrackerValidationReport validationReport,
-                                                 TrackerTimingsStats timingsStats )
+        TrackerTimingsStats timingsStats )
     {
         TrackerImportReport report = new TrackerImportReport();
         report.status = TrackerStatus.ERROR;
@@ -157,24 +160,25 @@ public class TrackerImportReport
      *
      * Import statistics are calculated based on the {@link TrackerBundleReport} and
      * {@link TrackerValidationReport}.
-     *
+     * 
      * @param status The outcome of the process
      * @param bundleReport The report containing how many bundle objects were
      *        successfully persisted
      * @param validationReport The validation report if available
      * @param timingsStats The timing stats if available
-     *
+     * @param bundleSize a map containing the size of each entity type in the Bundle
+     *        - before the validation
      */
     public static TrackerImportReport withImportCompleted( TrackerStatus status, TrackerBundleReport bundleReport,
-                                                           TrackerValidationReport validationReport,
-                                                           TrackerTimingsStats timingsStats )
+        TrackerValidationReport validationReport,
+        TrackerTimingsStats timingsStats, Map<TrackerType, Integer> bundleSize )
     {
-
         TrackerImportReport report = new TrackerImportReport();
         report.status = status;
         report.validationReport = validationReport;
         report.timingsStats = timingsStats;
-        report.bundleReport = bundleReport;
+
+        report.bundleReport = processBundleReport( bundleReport, bundleSize );
 
         TrackerStats stats = new TrackerStats();
         stats.merge( bundleReport.getStats() );
@@ -182,6 +186,33 @@ public class TrackerImportReport
         report.stats = stats;
 
         return report;
+    }
+
+    /**
+     * Calculates the 'ignored' value for each type of entity in the
+     * {@link TrackerBundleReport}.
+     * 
+     * The 'ignored' value is calculated by subtracting the sum of all processed
+     * entities from the TrackerBundleReport (by type) from the bundle size
+     * specified in the 'bundleSize' map.
+     */
+    private static TrackerBundleReport processBundleReport( TrackerBundleReport bundleReport,
+        Map<TrackerType, Integer> bundleSize )
+    {
+        for ( final TrackerType value : TrackerType.values() )
+        {
+            final TrackerTypeReport trackerTypeReport = bundleReport.getTypeReportMap().get( value );
+            if ( trackerTypeReport != null )
+            {
+                final TrackerStats stats = trackerTypeReport.getStats();
+                if ( stats != null )
+                {
+                    int statsSize = stats.getDeleted() + stats.getCreated() + stats.getUpdated();
+                    stats.setIgnored( bundleSize.getOrDefault( value,  statsSize) - statsSize );
+                }
+            }
+        }
+        return bundleReport;
     }
 
     /**
@@ -208,17 +239,17 @@ public class TrackerImportReport
 
         switch ( reportMode )
         {
-            case ERRORS:
-                trackerImportReport.getValidationReport().setPerformanceReport( null );
-                trackerImportReport.getValidationReport().setWarningReports( null );
-                trackerImportReport.timingsStats = null;
-                break;
-            case WARNINGS:
-                trackerImportReport.getValidationReport().setPerformanceReport( null );
-                trackerImportReport.timingsStats = null;
-                break;
-            case FULL:
-                break;
+        case ERRORS:
+            trackerImportReport.getValidationReport().setPerformanceReport( null );
+            trackerImportReport.getValidationReport().setWarningReports( null );
+            trackerImportReport.timingsStats = null;
+            break;
+        case WARNINGS:
+            trackerImportReport.getValidationReport().setPerformanceReport( null );
+            trackerImportReport.timingsStats = null;
+            break;
+        case FULL:
+            break;
         }
 
         return trackerImportReport;

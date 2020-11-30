@@ -1,4 +1,4 @@
-package org.hisp.dhis.security.oidc;
+package org.hisp.dhis.tracker.preprocess;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,52 +26,43 @@ package org.hisp.dhis.security.oidc;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_LOGOUT_REDIRECT_URL;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * This preprocessor is responsible for populating the bidirectional field
+ * with the value from the RelationshipType
+ *
+ * @author Enrico Colasante
  */
 @Component
-public class DhisOidcLogoutSuccessHandler
-    implements LogoutSuccessHandler
+public class BidirectionalRelationshipsPreProcessor
+    implements BundlePreProcessor
 {
-    private OidcClientInitiatedLogoutSuccessHandler handler;
-
-    @Autowired
-    private DhisClientRegistrationRepository dhisClientRegistrationRepository;
-
-    @Autowired
-    public DhisConfigurationProvider dhisConfigurationProvider;
-
-    @PostConstruct
-    public void init()
-    {
-        String logoutUri = dhisConfigurationProvider.getProperty( OIDC_LOGOUT_REDIRECT_URL );
-        this.handler = new OidcClientInitiatedLogoutSuccessHandler( dhisClientRegistrationRepository );
-        this.handler.setPostLogoutRedirectUri( logoutUri );
-    }
 
     @Override
-    public void onLogoutSuccess( HttpServletRequest request, HttpServletResponse response,
-        Authentication authentication )
-        throws IOException, ServletException
+    public void process( TrackerBundle bundle )
     {
-        handler.onLogoutSuccess( request, response, authentication );
+        bundle.getRelationships()
+            .forEach( rel -> {
+                RelationshipType relType = bundle.getPreheat()
+                    .get( bundle.getIdentifier(), RelationshipType.class, rel.getRelationshipType() );
+                if (relType != null)
+                {
+                    rel.setBidirectional( relType.isBidirectional() );
+                }
+            } );
     }
 }

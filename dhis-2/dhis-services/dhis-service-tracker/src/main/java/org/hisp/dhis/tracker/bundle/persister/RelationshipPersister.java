@@ -28,12 +28,10 @@ package org.hisp.dhis.tracker.bundle.persister;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
 import java.util.List;
 
 import org.hibernate.Session;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -42,8 +40,6 @@ import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerObjectReport;
-import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.springframework.stereotype.Component;
 
 /**
@@ -60,50 +56,6 @@ public class RelationshipPersister
     {
         super( bundleHooks, reservedValueService );
         this.relationshipConverter = relationshipConverter;
-    }
-
-    @Override
-    public TrackerTypeReport persist( Session session, TrackerBundle bundle )
-    {
-        List<Relationship> relationships = bundle.getRelationships();
-        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.RELATIONSHIP );
-
-        relationships.forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( Relationship.class, o, bundle ) ) );
-
-        for ( int idx = 0; idx < relationships.size(); idx++ )
-        {
-            org.hisp.dhis.relationship.Relationship relationship = relationshipConverter
-                .from( bundle.getPreheat(), relationships.get( idx ) );
-            Date now = new Date();
-            relationship.setLastUpdated( now );
-            relationship.setLastUpdatedBy( bundle.getUser() );
-
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.RELATIONSHIP, relationship.getUid(),
-                idx );
-            typeReport.addObjectReport( objectReport );
-
-            if ( relationship.getId() == 0 )
-            {
-                typeReport.getStats().incCreated();
-            }
-            else
-            {
-                typeReport.getStats().incUpdated();
-            }
-
-            session.persist( relationship );
-
-            if ( FlushMode.OBJECT == bundle.getFlushMode() )
-            {
-                session.flush();
-            }
-        }
-
-        session.flush();
-
-        relationships.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Relationship.class, o, bundle ) ) );
-
-        return typeReport;
     }
 
     @Override

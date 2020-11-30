@@ -34,17 +34,15 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningRep
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.DATE_STRING_CANT_BE_NULL;
 
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -132,38 +130,38 @@ public abstract class AbstractTrackerDtoValidationHook
     {
     }
 
-    private ValidationErrorReporter validateTrackedEntity( Map<TrackerType, List<String>> invalidDtos,
+    private ValidationErrorReporter validateTrackedEntity(
         TrackerImportValidationContext context, TrackedEntity tei )
     {
         ValidationErrorReporter reporter = new ValidationErrorReporter( context, tei );
-        reporter.getInvalidDTOs().putAll( invalidDtos );
+        reporter.getInvalidDTOs().putAll( context.getRootReporter().getInvalidDTOs() );
         validateTrackedEntity( reporter, tei );
         return reporter;
     }
 
-    private ValidationErrorReporter validateEnrollment( Map<TrackerType, List<String>> invalidDtos,
+    private ValidationErrorReporter validateEnrollment(
         TrackerImportValidationContext context, Enrollment enrollment )
     {
         ValidationErrorReporter reporter = new ValidationErrorReporter( context, enrollment );
-        reporter.getInvalidDTOs().putAll( invalidDtos );
+        reporter.getInvalidDTOs().putAll( context.getRootReporter().getInvalidDTOs() );
         validateEnrollment( reporter, enrollment );
         return reporter;
     }
 
-    private ValidationErrorReporter validateEvent( Map<TrackerType, List<String>> invalidDtos,
+    private ValidationErrorReporter validateEvent(
         TrackerImportValidationContext context, Event event )
     {
         ValidationErrorReporter reporter = new ValidationErrorReporter( context, event );
-        reporter.getInvalidDTOs().putAll( invalidDtos );
+        reporter.getInvalidDTOs().putAll( context.getRootReporter().getInvalidDTOs() );
         validateEvent( reporter, event );
         return reporter;
     }
 
-    private ValidationErrorReporter validateRelationship( Map<TrackerType, List<String>> invalidDtos,
+    private ValidationErrorReporter validateRelationship(
         TrackerImportValidationContext context, Relationship relationship )
     {
         ValidationErrorReporter reporter = new ValidationErrorReporter( context, relationship );
-        reporter.getInvalidDTOs().putAll( invalidDtos );
+        reporter.getInvalidDTOs().putAll( context.getRootReporter().getInvalidDTOs() );
         validateRelationship( reporter, relationship );
         return reporter;
     }
@@ -180,7 +178,7 @@ public abstract class AbstractTrackerDtoValidationHook
     {
         TrackerBundle bundle = context.getBundle();
 
-        ValidationErrorReporter rootReporter = ValidationErrorReporter.emptyReporter();
+        ValidationErrorReporter rootReporter = context.getRootReporter();
 
         // If this hook impl. has no strategy set, i.e. (strategy == null)
         // it implies it is for all strategies; create/update/delete
@@ -203,68 +201,72 @@ public abstract class AbstractTrackerDtoValidationHook
          * the bundle.
          */
 
-        validateTrackedEntities( bundle, rootReporter, context );
-        validateEnrollments( bundle, rootReporter, context );
-        validateEvents( bundle, rootReporter, context );
-        validateRelationships( bundle, rootReporter, context );
+        validateTrackedEntities( bundle, context );
+        validateEnrollments( bundle, context );
+        validateEvents( bundle, context );
+        validateRelationships( bundle, context );
 
         return rootReporter;
     }
 
-    private void validateTrackedEntities( TrackerBundle bundle, ValidationErrorReporter rootReporter,
+    private void validateTrackedEntities( TrackerBundle bundle,
         TrackerImportValidationContext context )
     {
         Iterator<TrackedEntity> iter = bundle.getTrackedEntities().iterator();
         while ( iter.hasNext() )
         {
             TrackedEntity tei = iter.next();
-            rootReporter.merge( validateTrackedEntity( rootReporter.getInvalidDTOs(), context, tei ) );
-            if ( removeOnError() && rootReporter.isInvalid( TrackerType.TRACKED_ENTITY, tei.getTrackedEntity() ) )
+            final ValidationErrorReporter reporter = validateTrackedEntity( context, tei );
+            context.getRootReporter().merge( reporter );
+            if ( removeOnError() && didNotPassValidation( reporter, tei.getTrackedEntity() ) )
             {
                 iter.remove();
             }
         }
     }
-
-    private void validateEnrollments( TrackerBundle bundle, ValidationErrorReporter rootReporter,
+    
+    private void validateEnrollments( TrackerBundle bundle,
         TrackerImportValidationContext context )
     {
         Iterator<Enrollment> iterPs = bundle.getEnrollments().iterator();
         while ( iterPs.hasNext() )
         {
             Enrollment ps = iterPs.next();
-            rootReporter.merge( validateEnrollment( rootReporter.getInvalidDTOs(), context, ps ) );
-            if ( removeOnError() && rootReporter.isInvalid( TrackerType.ENROLLMENT, ps.getEnrollment() ) )
+            final ValidationErrorReporter reporter = validateEnrollment(context, ps);
+            context.getRootReporter().merge( reporter );
+            if ( removeOnError() && didNotPassValidation( reporter, ps.getEnrollment() ) )
             {
                 iterPs.remove();
             }
         }
     }
 
-    private void validateEvents( TrackerBundle bundle, ValidationErrorReporter rootReporter,
+    private void validateEvents( TrackerBundle bundle,
         TrackerImportValidationContext context )
     {
         Iterator<Event> iterPsi = bundle.getEvents().iterator();
         while ( iterPsi.hasNext() )
         {
             Event psi = iterPsi.next();
-            rootReporter.merge( validateEvent( rootReporter.getInvalidDTOs(), context, psi ) );
-            if ( removeOnError() && rootReporter.isInvalid( TrackerType.EVENT, psi.getEvent() ) )
+            final ValidationErrorReporter reporter = validateEvent( context, psi );
+            context.getRootReporter().merge( reporter );
+            if ( removeOnError() && didNotPassValidation( reporter, psi.getEvent() ) )
             {
                 iterPsi.remove();
             }
         }
     }
 
-    private void validateRelationships( TrackerBundle bundle, ValidationErrorReporter rootReporter,
+    private void validateRelationships( TrackerBundle bundle,
         TrackerImportValidationContext context )
     {
         Iterator<Relationship> iterRel = bundle.getRelationships().iterator();
         while ( iterRel.hasNext() )
         {
             Relationship rel = iterRel.next();
-            rootReporter.merge( validateRelationship( rootReporter.getInvalidDTOs(), context, rel ) );
-            if ( removeOnError() && rootReporter.isInvalid( TrackerType.RELATIONSHIP, rel.getRelationship() ) )
+            final ValidationErrorReporter reporter = validateRelationship( context, rel );
+            context.getRootReporter().merge( reporter );
+            if ( removeOnError() && didNotPassValidation( reporter, rel.getRelationship() ) )
             {
                 iterRel.remove();
             }
@@ -311,8 +313,18 @@ public abstract class AbstractTrackerDtoValidationHook
         }
     }
 
+    /**
+     * Signal the implementing Validator hook that, upon validation error, the
+     * Tracker entity under validation must be removed from the payload.
+     * 
+     */
     public boolean removeOnError()
     {
         return false;
+    }
+
+    private boolean didNotPassValidation(ValidationErrorReporter reporter, String uid )
+    {
+        return reporter.getReportList().stream().anyMatch( r -> r.getUid().equals( uid ) );
     }
 }

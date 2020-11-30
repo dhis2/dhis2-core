@@ -29,7 +29,6 @@ package org.hisp.dhis.node.types;
  */
 
 import org.hamcrest.Matchers;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;

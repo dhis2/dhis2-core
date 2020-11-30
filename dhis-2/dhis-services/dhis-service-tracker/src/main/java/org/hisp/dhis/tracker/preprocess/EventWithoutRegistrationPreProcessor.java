@@ -30,18 +30,9 @@ package org.hisp.dhis.tracker.preprocess;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
-
-import static java.util.Collections.singletonList;
 
 /**
  * This preprocessor is responsible for setting the ProgramInstance UID on

@@ -281,8 +281,8 @@ public class TrackerBundleParamsConverter
     private void updateEventReferences( Event event, String trackedEntity, String enrollment )
     {
         event.setEvent( updateReference( event.getEvent() ) );
-        event.setEnrollment( updateReference( enrollment ) );
-        event.setTrackedEntity( updateReference( trackedEntity ) );
+        event.setEnrollment( StringUtils.isEmpty( enrollment ) ? null : enrollment );
+        event.setTrackedEntity( StringUtils.isEmpty( trackedEntity ) ? null : trackedEntity  );
     }
 
     /**
@@ -294,7 +294,7 @@ public class TrackerBundleParamsConverter
     private void updateEnrollmentReferences( Enrollment enrollment, String trackedEntity )
     {
         enrollment.setEnrollment( updateReference( enrollment.getEnrollment() ) );
-        enrollment.setTrackedEntity( updateReference( trackedEntity ) );
+        enrollment.setTrackedEntity( StringUtils.isEmpty( trackedEntity ) ? null : trackedEntity );
     }
 
     /**

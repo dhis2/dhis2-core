@@ -30,17 +30,22 @@ package org.hisp.dhis.validation;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.RandomUtils;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.expression.Operator;
@@ -49,7 +54,11 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.ValidationNotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.*;
+import org.hisp.dhis.period.DefaultPeriodService;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.notification.DefaultValidationNotificationService;
@@ -95,9 +104,6 @@ public class ValidationNotificationServiceTest
     @Mock
     private PeriodStore periodStore;
 
-    @Mock
-    private SessionFactory sessionFactory;
-
     private DefaultPeriodService periodService;
 
     private DefaultValidationNotificationService subject;
@@ -139,7 +145,7 @@ public class ValidationNotificationServiceTest
 
         subject = new DefaultValidationNotificationService(renderer, messageService, validationResultService);
 
-        this.periodService = new DefaultPeriodService(periodStore, sessionFactory);
+        this.periodService = new DefaultPeriodService(periodStore);
 
         sentMessages = new ArrayList<>();
 
@@ -449,7 +455,7 @@ public class ValidationNotificationServiceTest
         final Collection<User> recipients;
 
         final String subject;
-        
+
         final String text;
 
         /**
