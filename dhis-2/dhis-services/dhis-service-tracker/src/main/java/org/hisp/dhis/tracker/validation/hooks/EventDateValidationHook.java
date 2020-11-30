@@ -64,7 +64,7 @@ public class EventDateValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        if ( event.getOccurredAt() == null )
+        if ( event.getOccurredAt() == null && !allowBlankOccuredAtDate(event) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1031 )
                 .addArg( event ) );
@@ -125,7 +125,7 @@ public class EventDateValidationHook
         }
 
         String referenceDate = event.getOccurredAt() != null ? event.getOccurredAt() : event.getScheduledAt();
-        
+
         addErrorIfNull( referenceDate, reporter, E1046, event );
 
         Period period = periodType.createPeriod( new Date() );
@@ -148,6 +148,22 @@ public class EventDateValidationHook
         if ( event.getOccurredAt() != null && isNotValidDateString( event.getOccurredAt() ) )
         {
             addError( reporter, E1052, event.getScheduledAt() );
+        }
+    }
+
+    private boolean allowBlankOccuredAtDate( Event event )
+    {
+        EventStatus eventStatus = event.getStatus();
+
+        switch ( eventStatus ) {
+            case SCHEDULE:
+                return true;
+            case OVERDUE:
+                return true;
+            case SKIPPED:
+                return true;
+            default:
+                return false;
         }
     }
 }
