@@ -48,9 +48,9 @@ import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 @JsonInclude( JsonInclude.Include.NON_NULL )
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "type" )
 @JsonSubTypes( { @JsonSubTypes.Type( value = BulkSmsGatewayConfig.class, name = "bulksms" ),
-                 @JsonSubTypes.Type( value = GenericHttpGatewayConfig.class, name = "http" ),
-                 @JsonSubTypes.Type( value = ClickatellGatewayConfig.class, name = "clickatell" ),
-                 @JsonSubTypes.Type( value = SMPPGatewayConfig.class, name = "smpp" ) } )
+     @JsonSubTypes.Type( value = GenericHttpGatewayConfig.class, name = "http" ),
+     @JsonSubTypes.Type( value = ClickatellGatewayConfig.class, name = "clickatell" ),
+     @JsonSubTypes.Type( value = SMPPGatewayConfig.class, name = "smpp" ) } )
 public abstract class SmsGatewayConfig
     implements Serializable
 {
@@ -70,6 +70,9 @@ public abstract class SmsGatewayConfig
 
     @JsonView( SmsConfigurationViews.Public.class )
     private boolean isDefault;
+
+    @JsonView( SmsConfigurationViews.Public.class )
+    private boolean sendUrlParameters;
 
     @JsonView( SmsConfigurationViews.Public.class )
     private String urlTemplate;
@@ -132,6 +135,16 @@ public abstract class SmsGatewayConfig
     public void setUsername( String username )
     {
         this.username = username;
+    }
+
+    public boolean isSendUrlParameters()
+    {
+        return sendUrlParameters;
+    }
+
+    public void setSendUrlParameters( boolean sendUrlParameters )
+    {
+        this.sendUrlParameters = sendUrlParameters;
     }
 
     @Override
