@@ -32,13 +32,14 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.tracker.preheat.mappers.ProgramStageMapper;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor( ProgramStage.class )
+@StrategyFor( value = ProgramStage.class, mapper = ProgramStageMapper.class )
 public class ProgramStageStrategy extends AbstractSchemaStrategy
 {
     public ProgramStageStrategy( SchemaService schemaService, QueryService queryService,

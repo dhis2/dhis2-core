@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 
@@ -44,7 +45,7 @@ public interface TrackerBundleService
      * @param params Params object for this bundle.
      * @return Configured TrackerBundle instance(s) (if bundle splitting is enabled)
      */
-    TrackerBundle create( TrackerBundleParams params );
+    TrackerBundle create( TrackerImportParams params );
 
     /**
      * Call rule engine for tracker bundle.

@@ -67,6 +67,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
@@ -145,7 +146,7 @@ public class DefaultTrackerPreheatServiceTest
         when( manager.get( User.class, getUser().getUid() ) ).thenReturn( getUser() );
         when( trackedEntityInstanceStore.getByUid( anyList(), any( User.class ) ) ).thenReturn( preheatTeis );
 
-        final TrackerPreheatParams preheatParams = TrackerPreheatParams.builder()
+        final TrackerImportParams preheatParams = TrackerImportParams.builder()
             .user( getUser() )
             .trackedEntities( trackedEntities )
             .build();
@@ -172,7 +173,7 @@ public class DefaultTrackerPreheatServiceTest
         when( manager.get( User.class, getUser().getUid() ) ).thenReturn( getUser() );
         when( programInstanceStore.getByUid( anyList(), any( User.class ) ) ).thenReturn( preheatPi );
 
-        final TrackerPreheatParams preheatParams = TrackerPreheatParams.builder()
+        final TrackerImportParams preheatParams = TrackerImportParams.builder()
             .user( getUser() )
             .enrollments( enrollments )
             .build();
@@ -200,7 +201,7 @@ public class DefaultTrackerPreheatServiceTest
         when( programStageInstanceStore.getByUid( anyList(), any( User.class ) ) ).thenReturn( preheatPsi );
 
         // When
-        final TrackerPreheatParams preheatParams = TrackerPreheatParams.builder()
+        final TrackerImportParams preheatParams = TrackerImportParams.builder()
             .user( getUser() )
             .events( events )
             .build();
@@ -233,7 +234,7 @@ public class DefaultTrackerPreheatServiceTest
         doReturn( organisationUnits ).when( queryService ).query( queryCaptor.capture() );
 
         // When
-        final TrackerPreheatParams preheatParams = TrackerPreheatParams.builder()
+        final TrackerImportParams preheatParams = TrackerImportParams.builder()
             .user( getUser() )
             .trackedEntities( trackedEntitiesIithOu )
             .build();
@@ -273,7 +274,7 @@ public class DefaultTrackerPreheatServiceTest
         when( programInstanceStore.getByUid( anyList(), any( User.class ) ) ).thenReturn( preheatPi );
         when( trackedEntityCommentStore.getByUid( anyList(), any( User.class ) ) ).thenReturn( notes );
 
-        final TrackerPreheatParams preheatParams = TrackerPreheatParams.builder()
+        final TrackerImportParams preheatParams = TrackerImportParams.builder()
             .user( getUser() )
             .enrollments( enrollments )
             .build();
@@ -305,7 +306,7 @@ public class DefaultTrackerPreheatServiceTest
         when( programStageInstanceStore.getByUid( anyList(), any( User.class ) ) ).thenReturn( preheatPsi );
         when( trackedEntityCommentStore.getByUid( anyList(), any( User.class ) ) ).thenReturn( notes );
 
-        final TrackerPreheatParams preheatParams = TrackerPreheatParams.builder()
+        final TrackerImportParams preheatParams = TrackerImportParams.builder()
                 .user( getUser() )
                 .events( events )
                 .build();

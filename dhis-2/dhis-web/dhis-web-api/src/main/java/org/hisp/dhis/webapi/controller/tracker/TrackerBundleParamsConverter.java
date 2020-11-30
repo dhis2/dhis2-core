@@ -26,19 +26,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.converter;
-
-import com.fasterxml.jackson.databind.util.StdConverter;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
-import org.hisp.dhis.tracker.domain.*;
-import org.springframework.util.StringUtils;
+package org.hisp.dhis.webapi.controller.tracker;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Note;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.databind.util.StdConverter;
 
 /**
  * Converts a {@see TrackerBundleParams} containing a nested Tracked Entity structure into a "flat" structure

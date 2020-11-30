@@ -106,7 +106,7 @@ public class TrackedEntityTrackerConverterService
         TrackedEntityType trackedEntityType = preheat.get( TrackerIdScheme.UID, TrackedEntityType.class,
             te.getTrackedEntityType() );
 
-        if ( tei == null )
+        if ( isNewEntity( tei ) )
         {
             Date now = new Date();
 
@@ -117,11 +117,6 @@ public class TrackedEntityTrackerConverterService
             tei.setLastUpdated( now );
             tei.setLastUpdatedAtClient( now );
             tei.setStoredBy( te.getStoredBy() );
-        }
-
-        if ( !CodeGenerator.isValidUid( tei.getUid() ) )
-        {
-            tei.setUid( CodeGenerator.generateUid() );
         }
 
         tei.setOrganisationUnit( organisationUnit );
