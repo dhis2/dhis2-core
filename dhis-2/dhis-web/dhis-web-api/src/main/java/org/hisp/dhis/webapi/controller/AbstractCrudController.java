@@ -33,6 +33,8 @@ import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.attribute.AttributeService;
@@ -1175,7 +1177,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     
     protected void restrictToCaptureScope( List<T> entityList, WebOptions options, Map<String, String> parameters )
     {
-        if ( !options.isTrue( "restrictToCaptureScope" ) || !getSchema().haveProperty( "organisationUnits" ) )
+        if ( !options.isTrue( "restrictToCaptureScope" ) || CollectionUtils.isEmpty( entityList )
+            || !( entityList.get( 0 ) instanceof OrganisationUnitAssociable ) )
         {
             return;
         }
