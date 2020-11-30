@@ -254,7 +254,7 @@ public class DefaultTrackerBundleService
         bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
 
         dbmsManager.clearSession();
-        cacheManager.clearCache();
+//        cacheManager.clearCache();
 
         return bundleReport;
     }
@@ -279,8 +279,9 @@ public class DefaultTrackerBundleService
             .forEach( t -> bundleReport.getTypeReportMap().put( t, DELETION_MAPPER.get( t )
             .apply( bundle, t ) ) );
 
-        dbmsManager.clearSession();
-        cacheManager.clearCache();
+//        dbmsManager.clearSession();
+//        cacheManager.clearCache();
+        dbmsManager.flushSession();
 
         return bundleReport;
     }

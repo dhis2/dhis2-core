@@ -37,7 +37,10 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
+
+import java.util.List;
 
 /**
  * Convenience class for creating a tracker bundle and calling validation and commit.
@@ -81,7 +84,8 @@ public class ValidateAndCommitTestUnit
 
         validationReport = trackerValidationService.validate( trackerBundle );
 
-        if ( validationReport.getErrorReports().isEmpty() || forceCommit )
+        List<TrackerErrorReport> errorReports = validationReport.getErrorReports();
+        if ( errorReports.isEmpty() || forceCommit )
         {
             try
             {

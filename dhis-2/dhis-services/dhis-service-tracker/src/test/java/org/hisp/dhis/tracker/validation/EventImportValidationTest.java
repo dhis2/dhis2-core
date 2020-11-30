@@ -67,6 +67,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
@@ -150,6 +151,34 @@ public class EventImportValidationTest
 
         bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+    }
+
+    @Test
+    public void testValidateAndAddNotesToUpdatedEvent() throws IOException {
+
+        Date now = new Date();
+
+        // Given -> Creates an event with 3 notes
+        createEvent("tracker/validations/events-with-notes-data.json");
+
+        // When -> Update the event and adds 3 more notes
+        final ValidateAndCommitTestUnit createAndUpdate = createEvent("tracker/validations/events-with-notes-update-data.json");
+
+        // Then
+        final ProgramStageInstance programStageInstance = getEventFromReport( createAndUpdate );
+
+        assertThat( programStageInstance.getComments(), hasSize( 6 ) );
+
+        // validate note content
+        Stream.of( "first note", "second note", "third note", "4th note", "5th note", "6th note" ).forEach( t -> {
+
+            TrackedEntityComment comment = getByComment( programStageInstance.getComments(), t );
+            assertTrue( CodeGenerator.isValidUid( comment. getUid() ) );
+            assertTrue( comment.getCreated().getTime() > now.getTime() );
+            assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
+            assertNull( comment.getCreator() );
+            assertNull( comment.getLastUpdatedBy() );
+        } );
     }
 
     @Test
@@ -821,34 +850,7 @@ public class EventImportValidationTest
         } );
     }
 
-    @Test
-    public void testValidateAndAddNotesToUpdatedEvent() throws IOException {
 
-        Date now = new Date();
-        
-        // Given -> Creates an event with 3 notes
-        createEvent("tracker/validations/events-with-notes-data.json");
-        
-        // When -> Update the event and adds 3 more notes
-        final ValidateAndCommitTestUnit createAndUpdate = createEvent("tracker/validations/events-with-notes-update-data.json");
-        
-        // Then
-        final ProgramStageInstance programStageInstance = getEventFromReport( createAndUpdate );
-
-        assertThat( programStageInstance.getComments(), hasSize( 6 ) );
-
-        // validate note content
-        Stream.of( "first note", "second note", "third note", "4th note", "5th note", "6th note" ).forEach( t -> {
-
-            TrackedEntityComment comment = getByComment( programStageInstance.getComments(), t );
-            assertTrue( CodeGenerator.isValidUid( comment. getUid() ) );
-            assertTrue( comment.getCreated().getTime() > now.getTime() );
-            assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
-            assertNull( comment.getCreator() );
-            assertNull( comment.getLastUpdatedBy() );
-        } );
-
-    }
 
     private ValidateAndCommitTestUnit createEvent( String jsonPayload )
         throws IOException
@@ -860,9 +862,10 @@ public class EventImportValidationTest
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams, CREATE_AND_UPDATE );
 
         // Then
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+//        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
+        List<TrackerErrorReport> errorReports = report.getErrorReports();
         assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
         assertEquals( 0, report.getErrorReports().size() );
 

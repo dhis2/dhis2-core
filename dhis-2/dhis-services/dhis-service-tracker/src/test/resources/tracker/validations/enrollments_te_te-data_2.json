@@ -1,11 +1,11 @@
 {
   "trackedEntities": [
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "Kj6vYde4LHh",
       "orgUnit": "QfUVllTs6cS",
       "updatedAt": "2019-08-19T13:59:13.706",
       "featureType": "POLYGON",
+      "trackedEntityType": "bPJ0FMtcnEh",
       "programOwners": [
         {
           "ownerOrgUnit": "QfUVllTs6cS",
