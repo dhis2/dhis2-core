@@ -324,6 +324,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 
         for ( Attribute at : payloadAttributes )
         {
+            boolean isNew = false;
             TrackedEntityAttribute attribute = preheat.get( TrackerIdScheme.UID, TrackedEntityAttribute.class,
                 at.getAttribute() );
 
@@ -335,8 +336,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             checkNotNull( attribute,
                 "Attribute should never be NULL here if validation is enforced before commit." );
 
-            TrackedEntityAttributeValue attributeValue = attributeValueDBMap.getOrDefault( at.getAttribute(),
-                new TrackedEntityAttributeValue() );
+            TrackedEntityAttributeValue attributeValue = attributeValueDBMap.get( at.getAttribute() );
+            
+            if ( attributeValue == null )
+            {
+                attributeValue = new TrackedEntityAttributeValue();
+                isNew = true;
+            }
 
             attributeValue
                 .setAttribute( attribute )
@@ -360,7 +366,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 {
                     assignFileResource( session, preheat, attributeValue.getValue() );
                 }
-                session.persist( attributeValue );
+
+                saveOrUpdate( session, isNew, attributeValue );
             }
 
             if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
@@ -371,4 +378,15 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         }
     }
 
+    private void saveOrUpdate( Session session, boolean isNew, Object persistable )
+    {
+        if ( isNew )
+        {
+            session.persist( persistable );
+        }
+        else
+        {
+            session.merge( persistable );
+        }
+    }
 }
