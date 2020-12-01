@@ -55,7 +55,7 @@ public class GenericOidcProviderTest
         properties.put( "oidc.provider.idporten.token_uri", "https://oidc-ver2.difi.no/token" );
         properties.put( "oidc.provider.idporten.user_info_uri", "https://oidc-ver2.difi.no/userinfo" );
         properties.put( "oidc.provider.idporten.jwk_uri", "https://oidc-ver2.difi.no/jwk" );
-        properties.put( "oidc.provider.idporten.end_session_uri", "https://oidc-ver2.difi.no/endsession" );
+        properties.put( "oidc.provider.idporten.end_session_endpoint", "https://oidc-ver2.difi.no/endsession" );
         properties.put( "oidc.provider.idporten.scopes", "pid" );
         properties.put( "oidc.provider.idporten.mapping_claim", "helseid://claims/identity/pid" );
         properties.put( "oidc.provider.idporten.display_alias", "IdPorten" );

@@ -39,8 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -95,7 +95,7 @@ public class GenericOidcProviderConfigParserTest
         properties.put( "oidc.provider.idporten.token_uri", "https://oidc-ver2.difi.no/token" );
         properties.put( "oidc.provider.idporten.user_info_uri", "https://oidc-ver2.difi.no/userinfo" );
         properties.put( "oidc.provider.idporten.jwk_uri", "https://oidc-ver2.difi.no/jwk" );
-        properties.put( "oidc.provider.idporten.end_session_uri", "https://oidc-ver2.difi.no/endsession" );
+        properties.put( "oidc.provider.idporten.end_session_endpoint", "https://oidc-ver2.difi.no/endsession" );
         properties.put( "oidc.provider.idporten.scopes", "pid" );
         properties.put( "oidc.provider.idporten.mapping_claim", "helseid://claims/identity/pid" );
         properties.put( "oidc.provider.idporten.display_alias", "IdPorten" );
@@ -107,7 +107,7 @@ public class GenericOidcProviderConfigParserTest
 
         List<Map<String, String>> parse = GenericOidcProviderConfigParser.parse( properties );
 
-        assertEquals( parse.size(), 1 );
+        assertThat( parse, hasSize( 1 ) );
     }
 
     @Test
@@ -121,11 +121,11 @@ public class GenericOidcProviderConfigParserTest
         properties.put( "oidc.provider.idporten.token_uri", "https://oidc-ver2.difi.no/token" );
         properties.put( "oidc.provider.idporten.user_info_uri", "https://oidc-ver2.difi.no/userinfo" );
         properties.put( "oidc.provider.idporten.jwk_uri", "https://oidc-ver2.difi.no/jwk" );
-        properties.put( "oidc.provider.idporten.end_session_uri", "https://oidc-ver2.difi.no/endsession" );
+        properties.put( "oidc.provider.idporten.end_session_endpoint", "https://oidc-ver2.difi.no/endsession" );
 
         List<Map<String, String>> parse = GenericOidcProviderConfigParser.parse( properties );
 
-        assertEquals( parse.size(), 1 );
+        assertThat( parse, hasSize( 1 ) );
     }
 
     @Test
@@ -138,7 +138,7 @@ public class GenericOidcProviderConfigParserTest
         properties.put( "oidc.provider.idporten.token_uri", "https://oidc-ver2.difi.no/token" );
         properties.put( "oidc.provider.idporten.user_info_uri", "https://oidc-ver2.difi.no/userinfo" );
         properties.put( "oidc.provider.idporten.jwk_uri", "https://oidc-ver2.difi.no/jwk" );
-        properties.put( "oidc.provider.idporten.end_session_uri", "https://oidc-ver2.difi.no/endsession" );
+        properties.put( "oidc.provider.idporten.end_session_endpoint", "https://oidc-ver2.difi.no/endsession" );
 
 //        GenericOidcProviderConfigParser.log = testLogger;
         List<Map<String, String>> parse = GenericOidcProviderConfigParser.parse( properties );
@@ -150,7 +150,7 @@ public class GenericOidcProviderConfigParserTest
 //            "OpenId Connect (OIDC) configuration for provider: 'idporten' is missing a required property: 'authorization_uri'. Failed to configure the provider successfully!",
 //            firstLogMessage );
 
-        assertEquals( parse.size(), 0 );
+        assertThat( parse, hasSize( 0 ) );
     }
 
     @Test
@@ -164,7 +164,7 @@ public class GenericOidcProviderConfigParserTest
         properties.put( "oidc.provider.idporten.token_uri", "https://oidc-ver2.difi.no/token" );
         properties.put( "oidc.provider.idporten.user_info_uri", "https://oidc-ver2.difi.no/userinfo" );
         properties.put( "oidc.provider.idporten.jwk_uri", "https://oidc-ver2.difi.no/jwk" );
-        properties.put( "oidc.provider.idporten.end_session_uri", "https://oidc-ver2.difi.no/endsession" );
+        properties.put( "oidc.provider.idporten.end_session_endpoint", "https://oidc-ver2.difi.no/endsession" );
 
         List<Map<String, String>> parse = GenericOidcProviderConfigParser.parse( properties );
 
@@ -176,7 +176,7 @@ public class GenericOidcProviderConfigParserTest
 //            "OpenID Connect (OIDC) configuration for provider: 'INVALID_PROPERTY_NAME' contains an invalid property: 'idporten', did you mean: 'user_info_uri' instead?",
 //            firstLogMessage );
 
-        assertEquals( parse.size(), 0 );
+        assertThat( parse, hasSize( 0 ) );
     }
 
     @Test
@@ -191,7 +191,7 @@ public class GenericOidcProviderConfigParserTest
         properties.put( "oidc.provider.idporten.token_uri", "https://oidc-ver2.difi.no/token" );
         properties.put( "oidc.provider.idporten.user_info_uri", "https://oidc-ver2.difi.no/userinfo" );
         properties.put( "oidc.provider.idporten.jwk_uri", "https://oidc-ver2.difi.no/jwk" );
-        properties.put( "oidc.provider.idporten.end_session_uri", "https://oidc-ver2.difi.no/endsession" );
+        properties.put( "oidc.provider.idporten.end_session_endpoint", "https://oidc-ver2.difi.no/endsession" );
 
 //        GenericOidcProviderConfigParser.log = testLogger;
         List<Map<String, String>> parse = GenericOidcProviderConfigParser.parse( properties );
@@ -205,6 +205,6 @@ public class GenericOidcProviderConfigParserTest
 //                "with a malformed URI: 'INVALID_URI_SCHEME://oidc-ver2.difi.no/authorize'. Failed to configure the provider successfully!",
 //            firstLogMessage );
 //
-        assertEquals( parse.size(), 0 );
+        assertThat( parse, hasSize( 0 ) );
     }
 }
