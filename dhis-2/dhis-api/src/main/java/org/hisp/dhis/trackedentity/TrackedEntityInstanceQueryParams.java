@@ -30,6 +30,8 @@ package org.hisp.dhis.trackedentity;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -171,6 +173,11 @@ public class TrackedEntityInstanceQueryParams
      * Set of user ids to filter based on events assigned to the users.
      */
     private Set<String> assignedUsers = new HashSet<>();
+    
+    /**
+     * Set of tei uids to explicitly select.
+     */
+    private Set<String> trackedEntityInstanceUids = new HashSet<>();
 
     /**
      * ProgramStage to be used in conjunction with eventstatus.
@@ -380,6 +387,11 @@ public class TrackedEntityInstanceQueryParams
     public boolean hasAssignedUsers()
     {
         return this.assignedUsers != null && !this.assignedUsers.isEmpty();
+    }
+    
+    public boolean hasTrackedEntityInstances()
+    {
+        return CollectionUtils.isNotEmpty( this.trackedEntityInstanceUids );
     }
     
     public boolean isIncludeOnlyUnassignedEvents()
@@ -1161,6 +1173,17 @@ public class TrackedEntityInstanceQueryParams
         return this;
     }
 
+    public Set<String> getTrackedEntityInstanceUids()
+    {
+        return trackedEntityInstanceUids;
+    }
+
+    public TrackedEntityInstanceQueryParams setTrackedEntityInstanceUids( Set<String> trackedEntityInstanceUids )
+    {
+        this.trackedEntityInstanceUids = trackedEntityInstanceUids;
+        return this;
+    }
+        
     public Set<String> getAssignedUsers()
     {
         return assignedUsers;

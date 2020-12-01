@@ -324,8 +324,12 @@ public class HibernateTrackedEntityInstanceStore
             () -> "left join tei.trackedEntityAttributeValues teav1 " +
             "left join teav1.attribute as attr" + hlp.whereAnd() + " attr.skipSynchronization = false" );
 
-        hql += addWhereConditionally( hlp, params.hasTrackedEntityType(), () ->
-            "tei.trackedEntityType.uid='" + params.getTrackedEntityType().getUid() + "'" );
+        hql += addWhereConditionally( hlp, params.hasTrackedEntityType(),
+            () -> " tei.trackedEntityType.uid='" + params.getTrackedEntityType().getUid() + "'" );
+
+        hql += addWhereConditionally( hlp, params.hasTrackedEntityInstances(),
+            () -> " tei.uid in (" + getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) + ")" );
+
 
         if ( params.hasLastUpdatedDuration() )
         {
@@ -584,6 +588,9 @@ public class HibernateTrackedEntityInstanceStore
                 }
             }
         }
+        
+        sql += addWhereConditionally( hlp, params.hasTrackedEntityInstances(),
+            () -> " tei.uid in (" + getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) + ")" );
 
         if ( !params.hasTrackedEntityType() )
         {
