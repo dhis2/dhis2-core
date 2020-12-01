@@ -222,13 +222,7 @@ public class DataApprovalAuditServiceTest
 
         for ( UserGroup group : userGroups )
         {
-            UserGroupAccess userGroupAccess = new UserGroupAccess();
-
-            userGroupAccess.setAccess( ACCESS_READ );
-
-            userGroupAccess.setUserGroup( group );
-
-            object.getSharing().addUserGroupAccess( userGroupAccess );
+            object.getSharing().addUserGroupAccess( new UserGroupAccess( group, ACCESS_READ ) );
         }
 
         identifiableObjectManager.updateNoAcl( object );
@@ -267,6 +261,9 @@ public class DataApprovalAuditServiceTest
 
         UserGroup userGroupC = getUserGroup( "UserGroupA", Sets.newHashSet( userCService.getCurrentUser() ) );
         UserGroup userGroupD = getUserGroup( "UserGroupB", Sets.newHashSet( userDService.getCurrentUser() ) );
+
+        userCService.getCurrentUser().getGroups().add( userGroupC );
+        userDService.getCurrentUser().getGroups().add( userGroupD );
 
         optionA = new CategoryOption( "CategoryOptionA" );
         optionB = new CategoryOption( "CategoryOptionB" );

@@ -121,6 +121,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
 
         UserGroup userGroup = new UserGroup( "test-group", singleton( user ) );
         manager.save( userGroup, true );
+        user.getGroups().add( userGroup );
 
         UserGroupAccess userGroupAccess = new UserGroupAccess();
         userGroupAccess.setUserGroup( userGroup );
@@ -223,6 +224,8 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
 
         UserGroup userGroup = new UserGroup( "test-group-programstage", singleton( user ) );
         manager.save( userGroup, true );
+
+        user.getGroups().add( userGroup );
 
         UserGroupAccess userGroupAccess = new UserGroupAccess();
         userGroupAccess.setUserGroup( userGroup );
@@ -343,6 +346,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
 
         UserGroup userGroup = new UserGroup( "test-group-tet", singleton( user ) );
         manager.save( userGroup, true );
+        user.getGroups().add( userGroup );
 
         UserGroupAccess userGroupAccess = new UserGroupAccess();
         userGroupAccess.setUserGroup( userGroup );

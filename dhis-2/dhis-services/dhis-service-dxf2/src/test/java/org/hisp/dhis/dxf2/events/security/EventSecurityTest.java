@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.security;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.TransactionalIntegrationTestBase;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -88,6 +89,9 @@ public class EventSecurityTest
     @Autowired
     private UserService _userService;
 
+    @Autowired
+    private CategoryService _categoryService;
+
     private OrganisationUnit organisationUnitA;
     private DataElement dataElementA;
     private Program programA;
@@ -103,6 +107,7 @@ public class EventSecurityTest
     protected void setUpTest()
     {
         userService = _userService;
+        categoryService = _categoryService;
 
         createAndInjectAdminUser();
 
@@ -128,7 +133,6 @@ public class EventSecurityTest
         programStageA.getProgramStageDataElements().add( programStageDataElement );
         programStageA.setProgram( programA );
         programA.getProgramStages().add( programStageA );
-        programA.getDataElements().add( dataElementA );
 
         manager.update( programStageA );
         manager.update( programA );
@@ -147,11 +151,13 @@ public class EventSecurityTest
     @Test
     public void testAddEventSuperuser()
     {
-        programA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
-        programStageA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        programA.setPublicAccess( AccessStringHelper.DEFAULT );
+        programStageA.setPublicAccess( AccessStringHelper.DEFAULT );
 
         manager.update( programA );
         manager.update( programStageA );
+
+        createAndInjectAdminUser();
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
@@ -163,8 +169,8 @@ public class EventSecurityTest
     @Test
     public void testAddEventSimpleUser()
     {
-        programA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
-        programStageA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        programA.setPublicAccess( AccessStringHelper.DEFAULT );
+        programStageA.setPublicAccess( AccessStringHelper.DEFAULT );
 
         manager.update( programA );
         manager.update( programStageA );
@@ -187,11 +193,11 @@ public class EventSecurityTest
     @Test
     public void testAddEventSimpleUserFullAccess1()
     {
-        programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-        programStageA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
 
-        manager.update( programA );
-        manager.update( programStageA );
+        manager.updateNoAcl( programA );
+        manager.updateNoAcl( programStageA );
 
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
@@ -201,6 +207,8 @@ public class EventSecurityTest
         injectSecurityContext( user );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
+        // make sure data is flushed, so event service can access it
+        manager.flush();
 
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
@@ -216,8 +224,8 @@ public class EventSecurityTest
     @Test
     public void testAddEventSimpleUserFullAccess2()
     {
-        programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
-        programStageA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.DATA_READ );
+        programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
 
         manager.update( programA );
         manager.update( programStageA );
@@ -242,8 +250,8 @@ public class EventSecurityTest
     @Test
     public void testAddEventSimpleUserFullAccess3()
     {
-        programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-        programStageA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programStageA.setPublicAccess( AccessStringHelper.DATA_READ );
 
         manager.update( programA );
         manager.update( programStageA );
@@ -271,8 +279,8 @@ public class EventSecurityTest
     @Test
     public void testAddEventSimpleUserFullAccess4()
     {
-        programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-        programStageA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
 
         manager.update( programA );
         manager.update( programStageA );
@@ -295,8 +303,8 @@ public class EventSecurityTest
     @Test
     public void testAddEventSimpleUserFullAccess5()
     {
-        programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-        programStageA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
 
         manager.update( programA );
         manager.update( programStageA );
@@ -338,8 +346,8 @@ public class EventSecurityTest
     @Test
     public void testAddEventSimpleUserFullAccess6()
     {
-        programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-        programStageA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
 
         manager.update( programA );
         manager.update( programStageA );
@@ -381,8 +389,8 @@ public class EventSecurityTest
     @Test( expected = IllegalQueryException.class )
     public void testAddEventSimpleUserFullAccess7()
     {
-        programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-        programStageA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
 
         manager.update( programA );
         manager.update( programStageA );
@@ -423,8 +431,8 @@ public class EventSecurityTest
     @Test( expected = IllegalQueryException.class )
     public void testAddEventSimpleUserFullAccess8()
     {
-        programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-        programStageA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
 
         manager.update( programA );
         manager.update( programStageA );
@@ -465,8 +473,8 @@ public class EventSecurityTest
     @Test( expected = IllegalQueryException.class )
     public void testAddEventSimpleUserFullAccess9()
     {
-        programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-        programStageA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
 
         manager.update( programA );
         manager.update( programStageA );
@@ -508,8 +516,8 @@ public class EventSecurityTest
     @Test
     public void testAddEventSimpleUserFullAccess10()
     {
-        programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-        programStageA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
 
         manager.update( programA );
         manager.update( programStageA );
