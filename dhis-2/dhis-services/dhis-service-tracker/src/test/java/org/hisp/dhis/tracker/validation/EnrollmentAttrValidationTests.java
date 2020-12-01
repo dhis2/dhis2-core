@@ -56,6 +56,9 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.isNotNull;
+import static org.mockito.ArgumentMatchers.notNull;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -86,11 +89,18 @@ public class EnrollmentAttrValidationTests
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
         assertEquals( 1, trackerBundle.getTrackedEntities().size() );
 
+        final TrackerPreheat preheat = trackerBundle.getPreheat();
+        final IdentifiableObject sTJvSLN7Kcb1 = preheat
+            .get( trackerBundle.getIdentifier(), TrackedEntityAttribute.class, "sTJvSLN7Kcb" );
+        log.error( "PRE sTJvSLN7Kcb1->" + sTJvSLN7Kcb1 );
+        assertNotNull( sTJvSLN7Kcb1 );
+
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         assertEquals( 0, report.getErrorReports().size() );
 
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+
 
     }
 
