@@ -28,22 +28,23 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.user.User;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -185,25 +186,5 @@ public class TrackerImportParams
     public boolean hasJobConfiguration()
     {
         return jobConfiguration != null;
-    }
-
-    public TrackerBundleParams toTrackerBundleParams()
-    {
-        return TrackerBundleParams.builder()
-            .user( user )
-            .importMode( importMode )
-            .importStrategy( importStrategy )
-            .skipTextPatternValidation( skipPatternValidation )
-            .skipSideEffects( skipSideEffects )
-            .skipRuleEngine( skipRuleEngine )
-            .identifiers( identifiers )
-            .atomicMode( atomicMode )
-            .flushMode( flushMode )
-            .validationMode( validationMode )
-            .trackedEntities( trackedEntities )
-            .enrollments( enrollments )
-            .events( events )
-            .relationships( relationships )
-            .build();
     }
 }

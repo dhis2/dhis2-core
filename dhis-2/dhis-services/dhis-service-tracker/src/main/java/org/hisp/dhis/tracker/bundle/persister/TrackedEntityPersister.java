@@ -64,10 +64,17 @@ public class TrackedEntityPersister extends AbstractTrackerPersister<TrackedEnti
     }
 
     @Override
-    protected void updateEntityValues( Session session, TrackerPreheat preheat,
+    protected void updateAttributes( Session session, TrackerPreheat preheat,
         TrackedEntity trackerDto, TrackedEntityInstance tei )
     {
         handleTrackedEntityAttributeValues( session, preheat, trackerDto.getAttributes(), tei );
+    }
+
+    @Override
+    protected void updateDataValues( Session session, TrackerPreheat preheat,
+        TrackedEntity trackerDto, TrackedEntityInstance tei )
+    {
+        // DO NOTHING - TEI HAVE NO DATA VALUES
     }
 
     @Override

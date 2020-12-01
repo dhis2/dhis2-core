@@ -33,8 +33,10 @@ import java.util.List;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.hisp.dhis.tracker.preheat.mappers.ProgramInstanceMapper;
 import org.springframework.stereotype.Component;
 
 import lombok.NonNull;
@@ -51,9 +53,11 @@ public class ProgramInstanceSupplier extends AbstractPreheatSupplier
     private final ProgramInstanceStore programInstanceStore;
 
     @Override
-    public void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat )
+    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        List<ProgramInstance> programInstances = programInstanceStore.getByType( ProgramType.WITHOUT_REGISTRATION );
+        List<ProgramInstance> programInstances = DetachUtils.detach( ProgramInstanceMapper.INSTANCE,
+            programInstanceStore.getByType( ProgramType.WITHOUT_REGISTRATION ) );
+
         programInstances
             .forEach( pi -> preheat.putProgramInstancesWithoutRegistration( pi.getProgram().getUid(), pi ) );
     }

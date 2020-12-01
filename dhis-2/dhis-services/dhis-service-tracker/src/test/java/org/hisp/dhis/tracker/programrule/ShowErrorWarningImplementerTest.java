@@ -49,8 +49,8 @@ import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.validation.AbstractImportValidationTest;
 import org.hisp.dhis.user.UserService;
@@ -62,10 +62,9 @@ import com.google.common.collect.Sets;
 
 import static org.junit.Assert.*;
 
-public class ShowErroWarningImplementerTest
+public class ShowErrorWarningImplementerTest
     extends AbstractImportValidationTest
 {
-
     private final static String CONTENT = "SHOW ERROR DATA";
 
     private final static String DATA = "2 + 2";
@@ -166,7 +165,7 @@ public class ShowErroWarningImplementerTest
             programRuleActionWarning, programRuleActionWarningOnComplete ) );
         programRuleService.updateProgramRule( programRule );
 
-        TrackerBundleParams bundleParams = createBundleFromJson( "tracker/event_events_and_enrollment.json" );
+        TrackerImportParams bundleParams = createBundleFromJson( "tracker/event_events_and_enrollment.json" );
 
         trackerBundle = trackerBundleService.create( bundleParams );
 

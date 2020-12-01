@@ -28,6 +28,13 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static junit.framework.TestCase.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+import java.io.IOException;
+import java.util.List;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -41,7 +48,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.user.User;
@@ -50,13 +56,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
-import java.util.List;
-
-import static junit.framework.TestCase.assertNotNull;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 /**
  * @author Enrico Colasante
@@ -135,20 +134,14 @@ public class RelationshipTrackerConverterServiceTest
         relationshipTypeService.addRelationshipType( relationshipTypeA );
         relationshipTypeService.addRelationshipType( relationshipTypeB );
 
-        TrackerBundleParams trackerBundleParams = renderService
+        TrackerImportParams trackerImportParams = renderService
             .fromJson( new ClassPathResource( "tracker/relationships.json" ).getInputStream(),
-                TrackerBundleParams.class );
+                TrackerImportParams.class );
 
         User adminUser = createAndInjectAdminUser();
+        trackerImportParams.setUser( adminUser );
 
-        TrackerImportParams trackerImportParams =
-            TrackerImportParams
-                .builder()
-                .relationships( trackerBundleParams.getRelationships() )
-                .user( adminUser )
-                .build();
-
-        trackerBundle = trackerBundleService.create( trackerImportParams.toTrackerBundleParams() );
+        trackerBundle = trackerBundleService.create( trackerImportParams );
     }
 
     @Test

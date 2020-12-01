@@ -1,3 +1,5 @@
+package org.hisp.dhis.tracker.preheat.mappers;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,29 +28,41 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.utils;
+import java.util.Set;
 
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserGroupAccess;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-public class ImportUtils {
-    public static TrackerImportParams build( TrackerBundleParams params )
-    {
-        // @formatter:off
-        return TrackerImportParams.builder()
-                .user( params.getUser() )
-                .importMode( params.getImportMode() )
-                .importStrategy( params.getImportStrategy() )
-                .skipPatternValidation( true )
-                .identifiers( params.getIdentifiers() )
-                .atomicMode( params.getAtomicMode() )
-                .flushMode( params.getFlushMode() )
-                .validationMode( params.getValidationMode() )
-                .trackedEntities( params.getTrackedEntities() )
-                .enrollments( params.getEnrollments() )
-                .events( params.getEvents() )
-                .relationships( params.getRelationships() )
-                .build();
-        // @formatter:on
-    }
+@Mapper( uses = { DebugMapper.class, UserGroupAccessMapper.class, UserAccessMapper.class, ProgramStageMapper.class,
+    OrganisationUnitMapper.class, ProgramInstanceMapper.class } )
+public interface ProgramStageInstanceMapper extends PreheatMapper<ProgramStageInstance>
+{
+    ProgramStageInstanceMapper INSTANCE = Mappers.getMapper( ProgramStageInstanceMapper.class );
+
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "id" )
+    @Mapping( target = "uid" )
+    @Mapping( target = "code" )
+    @Mapping( target = "user" )
+    @Mapping( target = "publicAccess" )
+    @Mapping( target = "externalAccess" )
+    @Mapping( target = "userGroupAccesses" )
+    @Mapping( target = "userAccesses" )
+    @Mapping( target = "programStage" )
+    @Mapping( target = "status" )
+    @Mapping( target = "organisationUnit" )
+    @Mapping( target = "created" )
+    @Mapping( target = "programInstance" )
+    @Mapping( target = "eventDataValues" )
+    @Mapping( target = "comments" )
+    ProgramStageInstance map( ProgramStageInstance programStageInstance );
+
+    Set<UserGroupAccess> mapUserGroupAccessPsi( Set<UserGroupAccess> userGroupAccesses );
+
+    Set<UserAccess> mapUserAccessPsi( Set<UserAccess> userAccesses );
 }

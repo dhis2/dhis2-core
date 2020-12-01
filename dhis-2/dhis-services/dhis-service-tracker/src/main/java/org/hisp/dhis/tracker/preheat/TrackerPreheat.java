@@ -68,6 +68,8 @@ import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
 
 import javassist.util.proxy.ProxyFactory;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -77,11 +79,14 @@ public class TrackerPreheat
     /**
      * User to use for import job (important for threaded imports).
      */
+    @Getter
+    @Setter
     private User user;
 
     /**
      * Internal map of all objects mapped by identifier => class type => uid.
      */
+    @Getter
     private Map<TrackerIdScheme, Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>>> map = new HashMap<>();
 
     /**
@@ -95,46 +100,60 @@ public class TrackerPreheat
     /**
      * Internal map of all default object (like category option combo, etc).
      */
+    @Getter
+    @Setter
     private Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = new HashMap<>();
 
     /**
      * All periods available.
      */
+    @Getter
     private Map<String, Period> periodMap = new HashMap<>();
 
     /**
      * All periodTypes available.
      */
+    @Getter
     private Map<String, PeriodType> periodTypeMap = new HashMap<>();
 
     /**
      * Internal map of all preheated tracked entities, mainly used for confirming existence for updates, and used
      * for object merging.
      */
+    @Getter
+    @Setter
     private Map<TrackerIdScheme, Map<String, TrackedEntityInstance>> trackedEntities = new HashMap<>();
 
     /**
      * Internal map of all preheated tracked entity attributes, mainly used for confirming existence for updates, and used
      * for object merging.
      */
+    @Getter
+    @Setter
     private Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes = new HashMap<>();
 
     /**
      * Internal map of all preheated enrollments, mainly used for confirming existence for updates, and used
      * for object merging.
      */
+    @Getter
+    @Setter
     private Map<TrackerIdScheme, Map<String, ProgramInstance>> enrollments = new HashMap<>();
 
     /**
      * Internal map of all preheated events, mainly used for confirming existence for updates, and used
      * for object merging.
      */
+    @Getter
+    @Setter
     private Map<TrackerIdScheme, Map<String, ProgramStageInstance>> events = new HashMap<>();
 
     /**
      * Internal map of all preheated relationships, mainly used for confirming existence for updates, and used
      * for object merging.
      */
+    @Getter
+    @Setter
     private Map<TrackerIdScheme, Map<String, Relationship>> relationships = new EnumMap<>( TrackerIdScheme.class );
 
     /**
@@ -147,6 +166,8 @@ public class TrackerPreheat
      * because the system may return multiple ProgramInstance, which will be
      * detected by validation
      */
+    @Getter
+    @Setter
     private Map<String, List<ProgramInstance>> programInstances = new HashMap<>();
 
     /**
@@ -160,6 +181,8 @@ public class TrackerPreheat
      * These users are primarily used to represent the ValueType.USERNAME of
      * tracked entity attributes, used in validation and persisting TEIs.
      */
+    @Getter
+    @Setter
     private List<String> usernames = Lists.newArrayList();
 
     /**
@@ -167,30 +190,39 @@ public class TrackerPreheat
      * and in the database. This is going to be used to validate the uniqueness of
      * attribute values in the Validation phase.
      */
+    @Getter
+    @Setter
     private List<UniqueAttributeValue> uniqueAttributeValues = Lists.newArrayList();
 
     /**
+     * A list of all Program Instance UID having at least one Event that is not
+     * deleted.
+     */
+    @Getter
+    @Setter
+    private List<String> programInstanceWithOneOrMoreNonDeletedEvent = Lists.newArrayList();
+
+    /**
+     * A list of Program Stage UID having 1 or more Events
+     */
+    @Getter
+    @Setter
+    private List<String> programStageWithEvents = Lists.newArrayList();
+    
+    /**
      * Identifier map
      */
+    @Getter
+    @Setter
     private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
 
     public TrackerPreheat()
     {
     }
 
-    public User getUser()
-    {
-        return user;
-    }
-
     public String getUsername()
     {
         return User.username( user );
-    }
-
-    public void setUser( User user )
-    {
-        this.user = user;
     }
 
     public <T extends IdentifiableObject> T get( TrackerIdentifier identifier,
@@ -411,41 +443,6 @@ public class TrackerPreheat
         return this;
     }
 
-    public Map<TrackerIdScheme, Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>>> getMap()
-    {
-        return map;
-    }
-
-    public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
-    {
-        return defaults;
-    }
-
-    public void setDefaults( Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults )
-    {
-        this.defaults = defaults;
-    }
-
-    public Map<String, Period> getPeriodMap()
-    {
-        return periodMap;
-    }
-
-    public Map<String, PeriodType> getPeriodTypeMap()
-    {
-        return periodTypeMap;
-    }
-
-    public Map<TrackerIdScheme, Map<String, TrackedEntityInstance>> getTrackedEntities()
-    {
-        return trackedEntities;
-    }
-
-    public void setTrackedEntities( Map<TrackerIdScheme, Map<String, TrackedEntityInstance>> trackedEntities )
-    {
-        this.trackedEntities = trackedEntities;
-    }
-
     public TrackedEntityInstance getTrackedEntity( TrackerIdScheme identifier, String trackedEntity )
     {
         if ( !trackedEntities.containsKey( identifier ) )
@@ -489,27 +486,6 @@ public class TrackerPreheat
         trackedEntities.get( identifier ).put( trackedEntity, trackedEntityInstance );
     }
 
-    public Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> getTrackedEntityAttributes()
-    {
-        return trackedEntityAttributes;
-    }
-
-    public void setTrackedEntityAttributes(
-        Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes )
-    {
-        this.trackedEntityAttributes = trackedEntityAttributes;
-    }
-
-    public Map<TrackerIdScheme, Map<String, ProgramInstance>> getEnrollments()
-    {
-        return enrollments;
-    }
-
-    public void setEnrollments( Map<TrackerIdScheme, Map<String, ProgramInstance>> enrollments )
-    {
-        this.enrollments = enrollments;
-    }
-
     public ProgramInstance getEnrollment( TrackerIdScheme identifier, String enrollment )
     {
         if ( !enrollments.containsKey( identifier ) )
@@ -547,16 +523,6 @@ public class TrackerPreheat
         }
 
         enrollments.get( identifier ).put( enrollment, programInstance );
-    }
-
-    public Map<TrackerIdScheme, Map<String, ProgramStageInstance>> getEvents()
-    {
-        return events;
-    }
-
-    public void setEvents( Map<TrackerIdScheme, Map<String, ProgramStageInstance>> events )
-    {
-        this.events = events;
     }
 
     public ProgramStageInstance getEvent( TrackerIdScheme identifier, String event )
@@ -610,16 +576,6 @@ public class TrackerPreheat
         return Optional.ofNullable( notes.getOrDefault( TrackerIdScheme.UID, new HashMap<>() ).get( uid ) );
     }
 
-    public Map<TrackerIdScheme, Map<String, Relationship>> getRelationships()
-    {
-        return relationships;
-    }
-
-    public void setRelationships( Map<TrackerIdScheme, Map<String, Relationship>> relationships )
-    {
-        this.relationships = relationships;
-    }
-
     public Relationship getRelationship( TrackerIdScheme identifier, String relationship )
     {
         if ( !relationships.containsKey( identifier ) )
@@ -643,16 +599,6 @@ public class TrackerPreheat
         }
 
         relationships.get( identifier ).put( relationshipUid, relationship );
-    }
-
-    public List<UniqueAttributeValue> getUniqueAttributeValues()
-    {
-        return this.uniqueAttributeValues;
-    }
-
-    public void setUniqueAttributeValues( List<UniqueAttributeValue> uniqueAttributeValues )
-    {
-        this.uniqueAttributeValues = uniqueAttributeValues;
     }
 
     public static Class<?> getRealClass( Class<?> klass )
@@ -690,27 +636,7 @@ public class TrackerPreheat
 
         return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
     }
-
-    public TrackerIdentifierParams getIdentifiers()
-    {
-        return identifiers;
-    }
-
-    public void setIdentifiers( TrackerIdentifierParams identifiers )
-    {
-        this.identifiers = identifiers;
-    }
-
-    public Map<String, List<ProgramInstance>> getProgramInstances()
-    {
-        return programInstances;
-    }
-
-    public void setProgramInstances( Map<String, List<ProgramInstance>> programInstances )
-    {
-        this.programInstances = programInstances;
-    }
-
+    
     public ProgramInstance getProgramInstancesWithoutRegistration( String programUid )
     {
         return programInstancesWithoutRegistration.get( programUid );
@@ -719,16 +645,6 @@ public class TrackerPreheat
     public void putProgramInstancesWithoutRegistration( String programUid, ProgramInstance programInstance )
     {
         this.programInstancesWithoutRegistration.put( programUid, programInstance );
-    }
-
-    public List<String> getUsernames()
-    {
-        return this.usernames;
-    }
-
-    public void setUsernames( List<String> usernames )
-    {
-        this.usernames = usernames;
     }
 
     private void addReference( TrackerType trackerType, ReferenceTrackerEntity referenceTrackerEntity )
