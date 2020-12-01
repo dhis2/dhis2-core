@@ -597,7 +597,7 @@ public class DefaultDataQueryService
 
         if ( userOrgUnit != null )
         {
-            units.addAll(DimensionalObjectUtils.getItemsFromParam( userOrgUnit ).stream()
+            units.addAll( DimensionalObjectUtils.getItemsFromParam( userOrgUnit ).stream()
                 .map( ou -> idObjectManager.get( OrganisationUnit.class, ou ) )
                 .filter( Objects::nonNull )
                 .collect( Collectors.toList() ) );

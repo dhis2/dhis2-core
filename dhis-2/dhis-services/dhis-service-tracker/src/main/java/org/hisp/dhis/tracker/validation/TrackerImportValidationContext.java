@@ -55,6 +55,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.util.StringUtils;
 
 import com.google.common.base.Preconditions;
@@ -75,8 +76,14 @@ public class TrackerImportValidationContext
 
     private TrackerBundle bundle;
 
+    /**
+     * Holds the accumulated errors generated during the validation process
+     */
+    private ValidationErrorReporter rootReporter;
+
     public TrackerImportValidationContext( TrackerBundle bundle )
     {
+        // Create a copy of the bundle
         this.bundle = bundle;
 
         Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedMap = this
@@ -85,6 +92,7 @@ public class TrackerImportValidationContext
         resolvedMap.put( Event.class, new HashMap<>() );
         resolvedMap.put( Enrollment.class, new HashMap<>() );
         resolvedMap.put( TrackedEntity.class, new HashMap<>() );
+        this.rootReporter = ValidationErrorReporter.emptyReporter();
     }
 
     public TrackerImportStrategy getStrategy( Enrollment enrollment )
@@ -188,6 +196,16 @@ public class TrackerImportValidationContext
     public ProgramInstance getProgramInstance( String id )
     {
         return bundle.getPreheat().getEnrollment( bundle.getIdentifier(), id );
+    }
+    
+    public boolean programInstanceHasEvents( String programInstanceUid )
+    {
+        return bundle.getPreheat().getProgramInstanceWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
+    }
+
+    public boolean programStageHasEvents( String programStageUid )
+    {
+        return bundle.getPreheat().getProgramStageWithEvents().contains( programStageUid );
     }
 
     public Optional<TrackedEntityComment> getNote( String uid )

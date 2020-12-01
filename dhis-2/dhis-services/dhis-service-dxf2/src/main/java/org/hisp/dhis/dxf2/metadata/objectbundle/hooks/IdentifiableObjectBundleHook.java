@@ -57,14 +57,19 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         checkNotNull( aclService );
         this.aclService = aclService;
     }
+
     @Override
     public void preCreate( IdentifiableObject identifiableObject, ObjectBundle bundle )
     {
-        ( ( BaseIdentifiableObject ) identifiableObject ).setAutoFields();
+        BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) identifiableObject;
 
-        BaseIdentifiableObject identifableObject = ( BaseIdentifiableObject ) identifiableObject;
-        identifableObject.setAutoFields();
-        identifableObject.setLastUpdatedBy( bundle.getUser() );
+        baseIdentifiableObject.setAutoFields();
+        baseIdentifiableObject.setLastUpdatedBy( bundle.getUser() );
+
+        if ( baseIdentifiableObject.getUser() == null )
+        {
+            baseIdentifiableObject.setUser( bundle.getUser() );
+        }
 
         Schema schema = schemaService.getDynamicSchema( identifiableObject.getClass() );
         handleAttributeValues( identifiableObject, bundle, schema );
@@ -74,9 +79,14 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
     @Override
     public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
     {
-        BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
-        identifiableObject.setAutoFields();
-        identifiableObject.setLastUpdatedBy( bundle.getUser() );
+        BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) object;
+        baseIdentifiableObject.setAutoFields();
+        baseIdentifiableObject.setLastUpdatedBy( bundle.getUser() );
+
+        if ( baseIdentifiableObject.getUser() == null )
+        {
+            baseIdentifiableObject.setUser( bundle.getUser() );
+        }
 
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
         handleAttributeValues( object, bundle, schema );
@@ -99,7 +109,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
                 continue;
             }
 
-            Attribute attribute =  bundle.getPreheat().get( bundle.getPreheatIdentifier(), Attribute.class, attributeValue.getAttribute().getUid() );
+            Attribute attribute = bundle.getPreheat().get( bundle.getPreheatIdentifier(), Attribute.class, attributeValue.getAttribute().getUid() );
 
             if ( attribute == null )
             {

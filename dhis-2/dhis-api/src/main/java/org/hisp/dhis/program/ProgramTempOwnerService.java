@@ -1,3 +1,8 @@
+package org.hisp.dhis.program;
+
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.User;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,29 +31,21 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.utils;
+/**
+ * @author Ameen Mohamed <ameen@dhis2.org>
+ *
+ */
+public interface ProgramTempOwnerService
+{
 
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
+    String ID = ProgramTempOwnerService.class.getName();
 
-public class ImportUtils {
-    public static TrackerImportParams build( TrackerBundleParams params )
-    {
-        // @formatter:off
-        return TrackerImportParams.builder()
-                .user( params.getUser() )
-                .importMode( params.getImportMode() )
-                .importStrategy( params.getImportStrategy() )
-                .skipPatternValidation( true )
-                .identifiers( params.getIdentifiers() )
-                .atomicMode( params.getAtomicMode() )
-                .flushMode( params.getFlushMode() )
-                .validationMode( params.getValidationMode() )
-                .trackedEntities( params.getTrackedEntities() )
-                .enrollments( params.getEnrollments() )
-                .events( params.getEvents() )
-                .relationships( params.getRelationships() )
-                .build();
-        // @formatter:on
-    }
+    /**
+     * Adds program temp owner
+     * 
+     * @param programTempOwner the temp owner details to add
+     */
+    void addProgramTempOwner( ProgramTempOwner programTempOwner );
+
+    int getValidTempOwnerRecordCount( Program program, TrackedEntityInstance entityInstance, User user );
 }

@@ -687,7 +687,6 @@ public class EventImportTest
         return new ByteArrayInputStream( jsonEvents.toString().getBytes() );
     }
 
-    @SuppressWarnings( "unchecked" )
     private InputStream createEventJsonInputStream( String program, String programStage, String orgUnit, String person,
         DataElement dataElement, String value )
     {

@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.validation.hooks;
+package org.hisp.dhis.tracker.preheat.mappers;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,42 +28,40 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.apache.commons.lang3.StringUtils.*;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1119;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import java.util.Set;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserGroupAccess;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+import org.mapstruct.factory.Mappers;
 
-import org.hisp.dhis.tracker.domain.Note;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-
-/**
- * @author Luciano Fiandesio
- */
-public class NoteValidationUtils
+@Mapper( uses = { DebugMapper.class, UserGroupAccessMapper.class, UserGroupAccessMapper.class, ProgramMapper.class } )
+public interface ProgramStageMapper extends PreheatMapper<ProgramStage>
 {
-    protected static List<Note> validate( ValidationErrorReporter reporter, List<Note> notesToCheck )
-    {
-        TrackerImportValidationContext context = reporter.getValidationContext();
+    ProgramStageMapper INSTANCE = Mappers.getMapper( ProgramStageMapper.class );
 
-        final List<Note> notes = new ArrayList<>();
-        for ( Note note : notesToCheck )
-        {
-            if ( isNotEmpty( note.getValue() ) ) // Ignore notes with no text
-            {
-                // If a note having the same UID already exist in the db, raise error
-                if ( isNotEmpty( note.getNote() ) && context.getNote( note.getNote() ).isPresent() )
-                {
-                    reporter.addError( newReport( E1119 ).addArgs( note.getNote() ) );
-                }
-                else
-                {
-                    notes.add( note );
-                }
-            }
-        }
-        return notes;
-    }
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "id" )
+    @Mapping( target = "uid" )
+    @Mapping( target = "code" )
+    @Mapping( target = "user" )
+    @Mapping( target = "publicAccess" )
+    @Mapping( target = "externalAccess" )
+    @Mapping( target = "userGroupAccesses", qualifiedByName = "userGroupAccesses" )
+    @Mapping( target = "userAccesses", qualifiedByName = "userAccesses" )
+    @Mapping( target = "program" )
+    @Mapping( target = "name" )
+    @Mapping( target = "repeatable" )
+    @Mapping( target = "programStageDataElements" )
+    ProgramStage map( ProgramStage programStage );
+
+    @Named( "userGroupAccesses" )
+    Set<UserGroupAccess> mapUserGroupAccessPsi( Set<UserGroupAccess> userGroupAccesses );
+
+    @Named( "userAccesses" )
+    Set<UserAccess> mapUserAccessPsi( Set<UserAccess> userAccesses );
 }

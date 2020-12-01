@@ -120,10 +120,12 @@ public class DefaultMetadataImportService implements MetadataImportService
             notifier.notify( params.getId(), message );
         }
 
+        preCreateBundle( params );
+
         ObjectBundleParams bundleParams = params.toObjectBundleParams();
         ObjectBundle bundle = objectBundleService.create( bundleParams );
 
-        prepareBundle( bundle, bundleParams );
+        postCreateBundle( bundle, bundleParams );
 
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         importReport.addTypeReports( validationReport.getTypeReportMap() );
@@ -277,36 +279,21 @@ public class DefaultMetadataImportService implements MetadataImportService
         return Enums.getIfPresent( enumKlass, value ).or( defaultValue );
     }
 
-    private void prepareBundle( ObjectBundle bundle, ObjectBundleParams params )
+    private void preCreateBundle( MetadataImportParams params )
     {
-        if ( bundle.getUser() == null )
+        if ( params.getUser() == null )
         {
             return;
         }
 
-        for ( Class<? extends IdentifiableObject> klass : bundle.getObjectMap().keySet() )
+        for ( Class<? extends IdentifiableObject> klass : params.getObjects().keySet() )
         {
-            bundle.getObjectMap().get( klass ).forEach( o -> prepareObject( (BaseIdentifiableObject) o, bundle, params ) );
+            params.getObjects().get( klass ).forEach( o -> preCreateBundleObject( (BaseIdentifiableObject) o, params ) );
         }
     }
 
-    private void prepareObject( BaseIdentifiableObject object, ObjectBundle bundle, ObjectBundleParams params )
+    private void preCreateBundleObject( BaseIdentifiableObject object, MetadataImportParams params )
     {
-        if ( StringUtils.isEmpty( object.getPublicAccess() ) )
-        {
-            aclService.resetSharing( object, bundle.getUser() );
-        }
-
-        if ( object.getUser() == null || bundle.getPreheat().get( params.getPreheatIdentifier(), User.class, object.getUser() ) == null )
-        {
-            object.setUser( bundle.getUser() );
-        }
-
-        if ( object.getSharing().getOwner() == null )
-        {
-            object.getSharing().setOwner( object.getUser() );
-        }
-
         if ( object.getUserAccesses() == null )
         {
             object.setUserAccesses( new HashSet<>() );
@@ -322,11 +309,40 @@ public class DefaultMetadataImportService implements MetadataImportService
             object.setUserGroupAccesses( new HashSet<>() );
         }
 
-        if ( object.getSharing().getUserGroups() == null )
+        if ( StringUtils.isEmpty( object.getPublicAccess() ) )
         {
-            object.getSharing().setDtoUserGroupAccesses( object.getUserGroupAccesses() );
+            aclService.resetSharing( object, params.getUser() );
         }
 
-        object.setLastUpdatedBy( bundle.getUser() );
+        if ( object.getUser() == null )
+        {
+            object.setUser( params.getUser() );
+        }
+
+        object.setLastUpdatedBy( params.getUser() );
+    }
+
+    private void postCreateBundle( ObjectBundle bundle, ObjectBundleParams params )
+    {
+        if ( bundle.getUser() == null )
+        {
+            return;
+        }
+
+        for ( Class<? extends IdentifiableObject> klass : bundle.getObjectMap().keySet() )
+        {
+            bundle.getObjectMap().get( klass ).forEach( o -> postCreateBundleObject( (BaseIdentifiableObject) o, bundle, params ) );
+        }
+    }
+
+    private void postCreateBundleObject( BaseIdentifiableObject object, ObjectBundle bundle, ObjectBundleParams params )
+    {
+        IdentifiableObject userByReference = bundle.getPreheat().get( params.getPreheatIdentifier(),
+            User.class, params.getPreheatIdentifier().getIdentifier( object.getUser() ) );
+
+        if ( userByReference != null )
+        {
+            object.setUser( (User) userByReference );
+        }
     }
 }

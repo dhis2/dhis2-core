@@ -32,8 +32,10 @@ import java.util.List;
 
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.hisp.dhis.tracker.preheat.mappers.NoteMapper;
 import org.springframework.stereotype.Component;
 
 import lombok.NonNull;
@@ -44,17 +46,18 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( TrackedEntityComment.class )
+@StrategyFor( value = TrackedEntityComment.class, mapper = NoteMapper.class )
 public class NoteStrategy implements ClassBasedSupplierStrategy
 {
     @NonNull
     private final TrackedEntityCommentStore trackedEntityCommentStore;
 
     @Override
-    public void add( TrackerPreheatParams params, List<List<String>> splitList, TrackerPreheat preheat )
+    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
     {
         splitList
-            .forEach( ids -> preheat.putNotes( trackedEntityCommentStore.getByUid( ids,
-                preheat.getUser() ) ) );
+            .forEach( ids -> preheat.putNotes( DetachUtils.detach(
+                this.getClass().getAnnotation( StrategyFor.class ).mapper(), trackedEntityCommentStore.getByUid( ids,
+                    preheat.getUser() ) ) ) );
     }
 }

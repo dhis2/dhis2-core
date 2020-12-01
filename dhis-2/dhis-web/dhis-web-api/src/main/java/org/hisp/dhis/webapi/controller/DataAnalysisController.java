@@ -206,7 +206,8 @@ public class DataAnalysisController
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody
     ValidationRuleExpressionDetails getValidationRuleExpressionDetials( @RequestParam String validationRuleId,
-        @RequestParam String periodId, @RequestParam String organisationUnitId )
+        @RequestParam String periodId, @RequestParam String organisationUnitId,
+        @RequestParam( required = false ) String attributeOptionComboId )
         throws WebMessageException
     {
         ValidationRule validationRule = validationRuleService.getValidationRule( validationRuleId );
@@ -229,11 +230,25 @@ public class DataAnalysisController
             throw new WebMessageException( WebMessageUtils.notFound( "Can't find Period with id =" + periodId ) );
         }
 
+        CategoryOptionCombo attributeOptionCombo;
+        if ( attributeOptionComboId == null )
+        {
+            attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+        }
+        else
+        {
+            attributeOptionCombo = categoryService.getCategoryOptionCombo( attributeOptionComboId );
+            if ( attributeOptionCombo == null )
+            {
+                throw new WebMessageException( WebMessageUtils.notFound( "Can't find AttributeOptionCombo with id = " + attributeOptionComboId ) );
+            }
+        }
+
         ValidationRuleExpressionDetails validationRuleExpressionDetails = new ValidationRuleExpressionDetails();
 
-        processLeftSideDetails( validationRuleExpressionDetails, validationRule, organisationUnit, period );
+        processLeftSideDetails( validationRuleExpressionDetails, validationRule, organisationUnit, period, attributeOptionCombo );
 
-        processRightSideDetails( validationRuleExpressionDetails, validationRule, organisationUnit, period );
+        processRightSideDetails( validationRuleExpressionDetails, validationRule, organisationUnit, period, attributeOptionCombo );
 
         return validationRuleExpressionDetails;
     }
@@ -508,13 +523,13 @@ public class DataAnalysisController
     }
 
     private void processLeftSideDetails( ValidationRuleExpressionDetails validationRuleExpressionDetails,
-        ValidationRule validationRule, OrganisationUnit organisationUnit, Period period )
+        ValidationRule validationRule, OrganisationUnit organisationUnit, Period period, CategoryOptionCombo attributeOptionCombo )
     {
         for ( DataElementOperand operand : expressionService
             .getExpressionOperands( validationRule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION ) )
         {
             DataValue dataValue = dataValueService
-                .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
+                .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo(), attributeOptionCombo );
 
             String value = dataValue != null ? dataValue.getValue() : null;
 
@@ -523,13 +538,13 @@ public class DataAnalysisController
     }
 
     private void processRightSideDetails( ValidationRuleExpressionDetails validationRuleExpressionDetails,
-        ValidationRule validationRule, OrganisationUnit organisationUnit, Period period )
+        ValidationRule validationRule, OrganisationUnit organisationUnit, Period period, CategoryOptionCombo attributeOptionCombo )
     {
         for ( DataElementOperand operand : expressionService
             .getExpressionOperands( validationRule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION ) )
         {
             DataValue dataValue = dataValueService
-                .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
+                .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo(), attributeOptionCombo );
 
             String value = dataValue != null ? dataValue.getValue() : null;
 

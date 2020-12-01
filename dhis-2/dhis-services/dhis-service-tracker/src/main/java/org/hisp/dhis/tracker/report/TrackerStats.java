@@ -41,16 +41,16 @@ import lombok.NoArgsConstructor;
 public class TrackerStats
 {
     @JsonProperty
-    private int created;
+    private int created = 0;
 
     @JsonProperty
-    private int updated;
+    private int updated = 0;
 
     @JsonProperty
-    private int deleted;
+    private int deleted = 0;
 
     @JsonProperty
-    private int ignored;
+    private int ignored = 0;
 
     @JsonProperty
     public int getTotal()
