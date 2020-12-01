@@ -157,8 +157,6 @@ public class EventSecurityTest
         manager.update( programA );
         manager.update( programStageA );
 
-        createAndInjectAdminUser();
-
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
