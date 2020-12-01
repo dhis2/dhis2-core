@@ -252,6 +252,11 @@ public class HibernateTrackedEntityInstanceStore
         {
             hql += hlp.whereAnd() + "tei.trackedEntityType.uid='" + params.getTrackedEntityType().getUid() + "'";
         }
+        
+        if ( params.hasTrackedEntityInstances() )
+        {
+            hql += hlp.whereAnd() + " tei.uid in (" + getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) + ")";
+        }
 
         if ( params.hasLastUpdatedDuration() )
         {
@@ -590,6 +595,11 @@ public class HibernateTrackedEntityInstanceStore
                         + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
                 }
             }
+        }
+        
+        if ( params.hasTrackedEntityInstances() )
+        {
+            sql += hlp.whereAnd() + " tei.uid in (" + getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) + ")" ;
         }
 
         if ( !params.hasTrackedEntityType() )

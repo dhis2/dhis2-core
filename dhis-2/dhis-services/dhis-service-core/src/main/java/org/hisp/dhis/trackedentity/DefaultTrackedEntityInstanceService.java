@@ -670,13 +670,12 @@ public class DefaultTrackedEntityInstanceService
 
     @Override
     @Transactional( readOnly = true )
-    public TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter,
-        Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
-        Boolean followUp, Date lastUpdatedStartDate, Date lastUpdatedEndDate, String lastUpdatedDuration,
-        Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate,
-        Date programIncidentEndDate, String trackedEntityType, String programStage, EventStatus eventStatus, Date eventStartDate,
-        Date eventEndDate, AssignedUserSelectionMode assignedUserSelectionMode, Set<String> assignedUsers,
-        boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging,
+    public TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter, Set<String> ou,
+        OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus, Boolean followUp, Date lastUpdatedStartDate,
+        Date lastUpdatedEndDate, String lastUpdatedDuration, Date programEnrollmentStartDate, Date programEnrollmentEndDate,
+        Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntityType, String programStage, EventStatus eventStatus,
+        Date eventStartDate, Date eventEndDate, AssignedUserSelectionMode assignedUserSelectionMode, Set<String> assignedUsers,
+        Set<String> trackedEntityInstanceUids, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging,
         boolean includeDeleted, boolean includeAllAttributes, List<String> orders )
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
@@ -771,6 +770,13 @@ public class DefaultTrackedEntityInstanceService
                 .collect( Collectors.toSet() );
         }
 
+        if ( trackedEntityInstanceUids != null )
+        {
+            trackedEntityInstanceUids = trackedEntityInstanceUids.stream()
+                .filter( CodeGenerator::isValidUid )
+                .collect( Collectors.toSet() );
+        }
+        
         params.setQuery( queryFilter )
             .setProgram( pr )
             .setProgramStatus( programStatus )
@@ -790,6 +796,7 @@ public class DefaultTrackedEntityInstanceService
             .setEventEndDate( eventEndDate )
             .setAssignedUserSelectionMode( assignedUserSelectionMode )
             .setAssignedUsers( assignedUsers )
+            .setTrackedEntityInstanceUids( trackedEntityInstanceUids )
             .setSkipMeta( skipMeta )
             .setPage( page )
             .setPageSize( pageSize )
