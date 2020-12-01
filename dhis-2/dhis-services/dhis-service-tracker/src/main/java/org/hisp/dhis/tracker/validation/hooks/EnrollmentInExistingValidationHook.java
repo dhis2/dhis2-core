@@ -193,53 +193,7 @@ public class EnrollmentInExistingValidationHook
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( programInstance.getUid() );
 
-        if ( programInstance.getEntityInstance() != null )
-        {
-            enrollment.setTrackedEntityType( programInstance.getEntityInstance().getTrackedEntityType().getUid() );
-            enrollment.setTrackedEntity( programInstance.getEntityInstance().getUid() );
-        }
-
-        if ( programInstance.getOrganisationUnit() != null )
-        {
-            enrollment.setOrgUnit( programInstance.getOrganisationUnit().getUid() );
-        }
-
-        if ( programInstance.getGeometry() != null )
-        {
-            enrollment.setGeometry( programInstance.getGeometry() );
-        }
-
-        enrollment.setCreatedAt( DateUtils.getIso8601NoTz( programInstance.getCreated() ) );
-        enrollment.setUpdatedAt( DateUtils.getIso8601NoTz( programInstance.getLastUpdated() ) );
-        enrollment.setProgram( programInstance.getProgram().getUid() );
         enrollment.setStatus( EnrollmentStatus.fromProgramStatus( programInstance.getStatus() ) );
-        enrollment.setEnrolledAt( getIso8601( programInstance.getEnrollmentDate() ) );
-        enrollment.setOccurredAt( getIso8601( programInstance.getIncidentDate() ) );
-        enrollment.setFollowUp( programInstance.getFollowup() );
-        enrollment.setCreatedAt( getIso8601( programInstance.getEndDate() ) );
-        enrollment.setCompletedBy( programInstance.getCompletedBy() );
-        enrollment.setStoredBy( programInstance.getStoredBy() );
-        enrollment.setDeleted( programInstance.isDeleted() );
-
-        List<TrackedEntityComment> comments = programInstance.getComments();
-
-        for ( TrackedEntityComment comment : comments )
-        {
-            Note note = new Note();
-
-            note.setNote( comment.getUid() );
-            note.setValue( comment.getCommentText() );
-            note.setStoredBy( comment.getCreator() );
-            note.setStoredAt( DateUtils.getIso8601NoTz( comment.getCreated() ) );
-
-            /* TODO: add comment.lastUpdatedBy and comment.lastUpdated to Note
-                it's not part of DHIS2-9835 since it's focused on old tracker
-                and requirements for new one might be different
-             */
-
-            enrollment.getNotes().add( note );
-        }
-
         return enrollment;
     }
 
