@@ -406,7 +406,7 @@ public class JCloudsFileResourceContentStore
         return blobStore.blobBuilder( fileResource.getStorageKey() )
             .payload( bytes )
             .contentLength( bytes.length )
-            .contentMD5( HashCode.fromBytes( fileResource.getContentMd5().getBytes() ) )
+            .contentMD5( HashCode.fromString( fileResource.getContentMd5() ) )
             .contentType( fileResource.getContentType() )
             .contentDisposition( "filename=" + fileResource.getName() )
             .build();
@@ -417,7 +417,7 @@ public class JCloudsFileResourceContentStore
         return blobStore.blobBuilder( StringUtils.join( fileResource.getStorageKey(), fileDimension ) )
             .payload( file )
             .contentLength( file.length() )
-            .contentMD5( HashCode.fromBytes( contentMd5.getBytes() ) )
+            .contentMD5( HashCode.fromString( contentMd5 ) )
             .contentType( fileResource.getContentType() )
             .contentDisposition( "filename=" + fileResource.getName() + fileDimension )
             .build();
