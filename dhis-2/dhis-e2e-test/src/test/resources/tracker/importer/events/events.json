@@ -33,7 +33,11 @@
           "providedElsewhere": false
         }
       ],
-      "notes": []
+      "notes": [
+        {
+          "value": "note"
+        }
+      ]
     },
     {
       "scheduledAt": "2019-03-04T15:13:15.224",

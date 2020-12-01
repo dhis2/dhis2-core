@@ -5,7 +5,12 @@
       "program": "Zd2rkv8FsWq",
       "programStage": "jKLB23QZS4I",
       "occurredAt": "2018-11-01T00:00:00.000",
-      "event": "%id%"
+      "event": "%id%",
+      "notes": [
+        {
+          "value": "note"
+        }
+      ]
     }
   ]
 }

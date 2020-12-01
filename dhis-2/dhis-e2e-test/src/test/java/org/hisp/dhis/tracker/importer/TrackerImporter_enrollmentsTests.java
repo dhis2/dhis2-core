@@ -35,6 +35,7 @@ import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
+import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,6 +45,8 @@ import java.io.File;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -128,18 +131,18 @@ public class TrackerImporter_enrollmentsTests
     public void shouldImportEnrollmentToExistingTei()
         throws Exception
     {
-        JsonObject jsonObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/teis/tei.json" ) )
+        JsonObject teiPayload = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/teis/tei.json" ) )
             .get( JsonObject.class );
 
-        String teiId = trackerActions.postAndGetJobReport( jsonObject ).extractImportedTeis().get( 0 );
+        String teiId = trackerActions.postAndGetJobReport( teiPayload ).extractImportedTeis().get( 0 );
         assertNotNull( "Tei wasn't imported", teiId );
 
-        JsonObject enrollment = new FileReaderUtils()
+        JsonObject enrollmentPayload = new FileReaderUtils()
             .read( new File( "src/test/resources/tracker/importer/enrollments/enrollment.json" ) )
             .replacePropertyValuesWith( "trackedEntity", teiId )
             .get( JsonObject.class );
 
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( enrollment );
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( enrollmentPayload );
 
         response.validateSuccessfulImport()
             .validateEnrollments()
@@ -149,10 +152,21 @@ public class TrackerImporter_enrollmentsTests
 
         String enrollmentId = response.extractImportedEnrollments().get( 0 );
 
-        enrollmentActions.get( enrollmentId )
+        ApiResponse enrollmentResponse = enrollmentActions.get( enrollmentId );
+
+        enrollmentResponse
             .validate()
             .statusCode( 200 )
             .body( "trackedEntityInstance", equalTo( teiId ) );
 
+        // todo change when the exporter is ready
+        JsonObject objToMatch = enrollmentPayload.get( "enrollments" ).getAsJsonArray().get( 0 ).getAsJsonObject();
+        objToMatch.addProperty( "enrollmentDate", objToMatch.get( "enrolledAt" ).getAsString() );
+        objToMatch.addProperty( "incidentDate", objToMatch.get( "occurredAt" ).getAsString() );
+        objToMatch.remove( "enrolledAt" );
+        objToMatch.remove( "occurredAt" );
+        objToMatch.remove( "trackedEntity" );
+
+        assertThat( enrollmentResponse.getBody(), matchesJSON( objToMatch) );
     }
 }

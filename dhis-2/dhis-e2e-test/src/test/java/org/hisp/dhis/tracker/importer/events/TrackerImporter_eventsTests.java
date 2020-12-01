@@ -231,7 +231,7 @@ public class TrackerImporter_eventsTests
         eventActions
             .get( eventId + "?fields=*" )
             .validate().statusCode( 200 )
-            .body( "enrollments.id", containsString( enrollmentId ) )
+            .body( "enrollment", equalTo( enrollmentId ) )
             .body( "trackedEntityInstance", equalTo( teiId ) );
     }
 
