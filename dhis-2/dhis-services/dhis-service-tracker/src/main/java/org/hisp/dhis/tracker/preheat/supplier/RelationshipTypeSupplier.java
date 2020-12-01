@@ -51,7 +51,7 @@ public class RelationshipTypeSupplier extends AbstractPreheatSupplier
     private final IdentifiableObjectManager manager;
 
     @Override
-    public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat )
+    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
         preheat.put( TrackerIdentifier.UID,
             DetachUtils.detach( RelationshipTypeMapper.INSTANCE, manager.getAll( RelationshipType.class ) ) );
