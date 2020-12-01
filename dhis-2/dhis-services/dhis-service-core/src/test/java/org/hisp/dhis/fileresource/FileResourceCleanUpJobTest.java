@@ -30,6 +30,7 @@ package org.hisp.dhis.fileresource;
 
 import static junit.framework.TestCase.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 import org.hisp.dhis.IntegrationTestBase;
@@ -122,15 +123,15 @@ public class FileResourceCleanUpJobTest
     {
         systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS );
 
-        content = "filecontentA".getBytes();
+        content = "filecontentA".getBytes( StandardCharsets.UTF_8 );
         dataValueA = createFileResourceDataValue( 'A', content );
         assertNotNull( fileResourceService.getFileResource( dataValueA.getValue() ) );
 
-        content = "filecontentB".getBytes();
+        content = "filecontentB".getBytes( StandardCharsets.UTF_8 );
         dataValueB = createFileResourceDataValue( 'B', content );
         assertNotNull( fileResourceService.getFileResource( dataValueB.getValue() ) );
 
-        content = "fileResourceC".getBytes();
+        content = "fileResourceC".getBytes( StandardCharsets.UTF_8 );
         FileResource fileResource = createFileResource( 'C', content );
         dataValueB.setValue( fileResource.getUid() );
         dataValueService.updateDataValue( dataValueB );
