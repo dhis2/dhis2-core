@@ -157,9 +157,8 @@ public class DefaultCollectionService
             }
         }
 
-//        dbmsManager.clearSession();
-//        cacheManager.clearCache();
-        dbmsManager.flushSession();
+        dbmsManager.clearSession();
+        cacheManager.clearCache();
     }
 
     @Override

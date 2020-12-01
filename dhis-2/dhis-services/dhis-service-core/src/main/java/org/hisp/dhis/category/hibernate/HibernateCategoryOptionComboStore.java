@@ -105,10 +105,10 @@ public class HibernateCategoryOptionComboStore
         {
             session.update( coc );
 
-//            if ( ( counter % 400 ) == 0 )
-//            {
-//                dbmsManager.clearSession();
-//            }
+            if ( ( counter % 400 ) == 0 )
+            {
+                dbmsManager.clearSession();
+            }
         }
     }
 

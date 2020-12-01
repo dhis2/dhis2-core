@@ -40,7 +40,6 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -151,7 +150,6 @@ public class MappingServiceTest
         params.setObjects( metadata );
 
         ImportReport report = importService.importMetadata( params );
-        List<ErrorReport> errorReports = report.getErrorReports();
         assertEquals( Status.OK, report.getStatus() );
 
         List<Map> maps = idObjectManager.getAll( Map.class );
@@ -168,7 +166,6 @@ public class MappingServiceTest
         params.setObjects( metadata );
 
         report = importService.importMetadata( params );
-        List<ErrorReport> errorReports1 = report.getErrorReports();
         assertEquals( Status.OK, report.getStatus() );
 
         Map map = mappingService.getMap( "LTNgXfzTFTv" );

@@ -196,10 +196,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
             objectBundleHooks.forEach( hook -> hook.postCommit( bundle ) );
         }
 
-//        dbmsManager.clearSession();
-//        cacheManager.clearCache();
-        dbmsManager.flushSession();
-
+        dbmsManager.clearSession();
+        cacheManager.clearCache();
         bundle.setObjectBundleStatus( ObjectBundleStatus.COMMITTED );
 
         return commitReport;

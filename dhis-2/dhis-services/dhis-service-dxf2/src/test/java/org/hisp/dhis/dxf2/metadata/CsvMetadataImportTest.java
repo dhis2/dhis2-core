@@ -29,8 +29,6 @@ package org.hisp.dhis.dxf2.metadata;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dataelement.DataElement;
@@ -46,7 +44,6 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.schema.SchemaService;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
@@ -62,9 +59,8 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author Lars Helge Overland
  */
-@Category( IntegrationTest.class )
 public class CsvMetadataImportTest
-    extends IntegrationTestBase
+    extends DhisSpringTest
 {
     @Autowired
     private DataElementService dataElementService;
@@ -85,12 +81,6 @@ public class CsvMetadataImportTest
     private IdentifiableObjectManager manager;
 
     private InputStream input;
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return false;
-    }
 
     @Test
     public void testDataElementImport()

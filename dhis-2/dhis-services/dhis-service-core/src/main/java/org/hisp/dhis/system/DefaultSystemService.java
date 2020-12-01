@@ -133,7 +133,7 @@ public class DefaultSystemService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional( )
+    @Transactional( readOnly = true )
     public SystemInfo getSystemInfo()
     {
         SystemInfo info = systemInfo != null ? systemInfo.instance() : null;
