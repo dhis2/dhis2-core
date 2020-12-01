@@ -28,8 +28,12 @@ package org.hisp.dhis.tracker.preheat.mappers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 @Mapper( uses = DebugMapper.class )
@@ -37,5 +41,20 @@ public interface RelationshipTypeMapper extends PreheatMapper<RelationshipType>
 {
     RelationshipTypeMapper INSTANCE = Mappers.getMapper( RelationshipTypeMapper.class );
 
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "id" )
+    @Mapping( target = "uid" )
+    @Mapping( target = "code" )
+    @Mapping( target = "fromConstraint", qualifiedByName = "constraintMapper" )
+    @Mapping( target = "toConstraint", qualifiedByName = "constraintMapper" )
+    @Mapping( target = "bidirectional" )
     RelationshipType map( RelationshipType relationshipType );
+
+    @Named( "constraintMapper" )
+    @Mapping( target = "id" )
+    @Mapping( target = "relationshipEntity" )
+    @Mapping( target = "trackedEntityType" )
+    @Mapping( target = "program" )
+    @Mapping( target = "programStage" )
+    RelationshipConstraint mapConstraint( RelationshipConstraint constraint );
 }
