@@ -37,6 +37,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.hibernate.Session;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -63,7 +64,8 @@ import lombok.extern.slf4j.Slf4j;
  * @author Luciano Fiandesio
  */
 @Slf4j
-public abstract class AbstractTrackerPersister<T extends TrackerDto, V> implements TrackerPersister<T, V>
+public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends BaseIdentifiableObject>
+    implements TrackerPersister<T, V>
 {
     protected List<TrackerBundleHook> bundleHooks;
 
@@ -126,21 +128,23 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V> implemen
                 //
                 persistComments( convertedDto );
 
+                updateDataValues( session, bundle.getPreheat(), trackerDto, convertedDto );
+
                 //
                 // Save or update the entity
                 //
-                session.persist( convertedDto );
-
                 if ( isNew( bundle.getPreheat(), trackerDto.getUid() ) )
                 {
+                    session.persist( convertedDto );
                     typeReport.getStats().incCreated();
                 }
                 else
                 {
+                    session.merge( convertedDto );
                     typeReport.getStats().incUpdated();
                 }
 
-                updateEntityValues( session, bundle.getPreheat(), trackerDto, convertedDto );
+                updateAttributes( session, bundle.getPreheat(), trackerDto, convertedDto );
 
                 //
                 // Add the entity to the Preheat
@@ -213,10 +217,17 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V> implemen
     protected abstract void persistComments( V entity );
 
     /**
-     * Execute the persistence of Data Value/Attribute values linked to the entity
+     * Execute the persistence of Data values linked to the entity
      * being processed
      */
-    protected abstract void updateEntityValues( Session session, TrackerPreheat preheat,
+    protected abstract void updateDataValues( Session session, TrackerPreheat preheat,
+        T trackerDto, V hibernateEntity );
+
+    /**
+     * Execute the persistence of Attribute values linked to the entity
+     * being processed
+     */
+    protected abstract void updateAttributes( Session session, TrackerPreheat preheat,
         T trackerDto, V hibernateEntity );
 
     /**

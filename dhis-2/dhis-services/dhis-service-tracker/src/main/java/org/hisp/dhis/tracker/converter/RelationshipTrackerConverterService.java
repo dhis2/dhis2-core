@@ -136,10 +136,6 @@ public class RelationshipTrackerConverterService
             toRelationship.setCreated( now );
             toRelationship.setLastUpdated( now );
         }
-        if ( !CodeGenerator.isValidUid( toRelationship.getUid() ) )
-        {
-            toRelationship.setUid( CodeGenerator.generateUid() );
-        }
 
         toRelationship.setRelationshipType( relationshipType );
 

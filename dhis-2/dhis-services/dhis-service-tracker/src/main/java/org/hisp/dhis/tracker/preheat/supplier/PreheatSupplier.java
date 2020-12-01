@@ -28,8 +28,8 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 
 /**
  * A PreheatSupplier supplies data to the {@link TrackerPreheat} object
@@ -40,10 +40,10 @@ public interface PreheatSupplier
 {
     /**
      * Adds data to the {@link TrackerPreheat} using the supplied
-     * {@link TrackerPreheatParams}
+     * {@link TrackerImportParams}
      * 
-     * @param params {@link TrackerPreheatParams}
+     * @param params {@link TrackerImportParams}
      * @param preheat {@link TrackerPreheat}
      */
-    void add( TrackerPreheatParams params, TrackerPreheat preheat );
+    void add( TrackerImportParams params, TrackerPreheat preheat );
 }

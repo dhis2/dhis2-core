@@ -28,23 +28,14 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.core.IsNot.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -54,7 +45,15 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsNot.not;
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -150,7 +149,7 @@ public class QueryServiceTest
 
     @Test
     public void getAllQueryUrlWithPaginationReturnsNoDataWhenPageNumberHigherThanMaxNumberOfPages()
-            throws QueryParserException
+        throws QueryParserException
     {
         List<? extends IdentifiableObject> resultPage = getResultWithPagination( 10, 3 );
 
@@ -161,7 +160,7 @@ public class QueryServiceTest
     {
         Pagination pagination = new Pagination( page, pageSize );
         Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList(), Lists.newArrayList(),
-                pagination);
+            pagination );
         return queryService.query( query );
     }
 
@@ -664,6 +663,46 @@ public class QueryServiceTest
 
         List<? extends IdentifiableObject> objects = queryService.query( query );
         assertEquals( 1, objects.size() );
+    }
+
+    @Test
+    public void testDefaultSortOrder()
+    {
+        Date date = new Date();
+
+        OrganisationUnit organisationUnitC = createOrganisationUnit( "C" );
+        organisationUnitC.setUid( "ccccccccccc" );
+        organisationUnitC.setName( "orgunit" );
+        organisationUnitC.setCreated( date );
+        organisationUnitC.setLastUpdated( date );
+
+        OrganisationUnit organisationUnitB = createOrganisationUnit( "B" );
+        organisationUnitB.setUid( "bbbbbbbbbbb" );
+        organisationUnitB.setName( "orgunit" );
+        organisationUnitB.setCreated( date );
+        organisationUnitB.setLastUpdated( date );
+
+        OrganisationUnit organisationUnitA = createOrganisationUnit( "A" );
+        organisationUnitA.setUid( "aaaaaaaaaaa" );
+        organisationUnitA.setName( "orgunit" );
+        organisationUnitA.setCreated( date );
+        organisationUnitA.setLastUpdated( date );
+
+        identifiableObjectManager.save( organisationUnitC );
+        identifiableObjectManager.save( organisationUnitB );
+        identifiableObjectManager.save( organisationUnitA );
+
+        Schema schema = schemaService.getDynamicSchema( OrganisationUnit.class );
+
+        Query query = Query.from( schema );
+        query.setDefaultOrder();
+
+        List<? extends IdentifiableObject> objects = queryService.query( query );
+        assertEquals( 3, objects.size() );
+
+        assertEquals( "aaaaaaaaaaa", objects.get( 0 ).getUid() );
+        assertEquals( "bbbbbbbbbbb", objects.get( 1 ).getUid() );
+        assertEquals( "ccccccccccc", objects.get( 2 ).getUid() );
     }
 
     @Test

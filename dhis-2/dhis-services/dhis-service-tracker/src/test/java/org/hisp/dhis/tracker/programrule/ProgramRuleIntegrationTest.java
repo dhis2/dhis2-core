@@ -28,7 +28,6 @@ package org.hisp.dhis.tracker.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.tracker.utils.ImportUtils.build;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -56,8 +55,8 @@ import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
@@ -142,16 +141,16 @@ public class ProgramRuleIntegrationTest
 
         InputStream inputStream = new ClassPathResource( "tracker/single_tei.json" ).getInputStream();
 
-        TrackerBundleParams params = renderService.fromJson( inputStream, TrackerBundleParams.class );
-        params.setUser( userA );
-        TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( build( params ) );
+        TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
+        params.setUserId( userA.getUid() );
+        TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
 
-        TrackerBundleParams enrollmentParams = renderService
+        TrackerImportParams enrollmentParams = renderService
             .fromJson( new ClassPathResource( "tracker/single_enrollment.json" ).getInputStream(),
-                TrackerBundleParams.class );
-        enrollmentParams.setUser( userA );
+                    TrackerImportParams.class );
+        enrollmentParams.setUserId( userA.getUid() );
         TrackerImportReport trackerImportEnrollmentReport = trackerImportService
-            .importTracker( build( enrollmentParams ) );
+            .importTracker( enrollmentParams );
 
         assertNotNull( trackerImportTeiReport );
         assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );

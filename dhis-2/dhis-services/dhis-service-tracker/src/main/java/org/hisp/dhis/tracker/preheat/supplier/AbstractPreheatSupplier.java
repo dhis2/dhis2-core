@@ -31,8 +31,8 @@ package org.hisp.dhis.tracker.preheat.supplier;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.time.StopWatch;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,7 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class AbstractPreheatSupplier implements PreheatSupplier
 {
     @Override
-    public void add( TrackerPreheatParams params, TrackerPreheat preheat )
+    public void add( TrackerImportParams params, TrackerPreheat preheat )
     {
         StopWatch watch = null;
         if ( log.isDebugEnabled() )
@@ -72,5 +72,5 @@ public abstract class AbstractPreheatSupplier implements PreheatSupplier
     /**
      * Template method: executes preheat logic from the subclass
      */
-    public abstract void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat );
+    public abstract void preheatAdd( TrackerImportParams params, TrackerPreheat preheat );
 }
