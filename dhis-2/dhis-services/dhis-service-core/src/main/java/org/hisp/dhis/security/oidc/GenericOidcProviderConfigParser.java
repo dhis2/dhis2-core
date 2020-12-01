@@ -53,7 +53,7 @@ import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_S
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.DISPLAY_ALIAS;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.ENABLE_LOGOUT;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.ENABLE_PKCE;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.END_SESSION_URI;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.END_SESSION_ENDPOINT;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.EXTRA_REQUEST_PARAMETERS;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.JWK_URI;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.LOGO_IMAGE;
@@ -97,7 +97,7 @@ public final class GenericOidcProviderConfigParser
         builder.put( ENABLE_PKCE, Boolean.FALSE );
         builder.put( DISPLAY_ALIAS, Boolean.FALSE );
         builder.put( MAPPING_CLAIM, Boolean.FALSE );
-        builder.put( END_SESSION_URI, Boolean.FALSE );
+        builder.put( END_SESSION_ENDPOINT, Boolean.FALSE );
         builder.put( SCOPES, Boolean.FALSE );
         builder.put( LOGO_IMAGE, Boolean.FALSE );
         builder.put( LOGO_IMAGE_PADDING, Boolean.FALSE );

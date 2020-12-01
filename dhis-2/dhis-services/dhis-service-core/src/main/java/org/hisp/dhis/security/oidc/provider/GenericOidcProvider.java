@@ -68,7 +68,7 @@ public class GenericOidcProvider extends AbstractOidcProvider
 
         String redirectUrl = Optional.ofNullable( config.get( REDIRECT_URL ) ).orElse( DEFAULT_REDIRECT_TEMPLATE_URL );
         String mappingClaim = Optional.ofNullable( config.get( MAPPING_CLAIM ) ).orElse( DEFAULT_MAPPING_CLAIM );
-        String endSessionUri = Optional.ofNullable( config.get( END_SESSION_URI ) ).orElse( "" );
+        String endSessionEndpoint = Optional.ofNullable( config.get( END_SESSION_ENDPOINT ) ).orElse( "" );
         String displayAlias = Optional.ofNullable( config.get( DISPLAY_ALIAS ) ).orElse( providerId );
         String scopes = Optional.ofNullable( config.get( SCOPES ) ).orElse( "" );
         String logoIcon = Optional.ofNullable( config.get( LOGO_IMAGE ) ).orElse( "" );
@@ -121,7 +121,7 @@ public class GenericOidcProvider extends AbstractOidcProvider
 
         if ( enableLogout )
         {
-            metadata.put( END_SESSION_URI, endSessionUri );
+            metadata.put( END_SESSION_ENDPOINT, endSessionEndpoint );
         }
 
         if ( enablePkce )

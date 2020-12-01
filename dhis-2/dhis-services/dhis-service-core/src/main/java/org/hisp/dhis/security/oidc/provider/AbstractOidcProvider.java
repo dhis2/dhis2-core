@@ -57,7 +57,7 @@ public abstract class AbstractOidcProvider
 
     public final static String JWK_URI = "jwk_uri";
 
-    public final static String END_SESSION_URI = "end_session_uri";
+    public final static String END_SESSION_ENDPOINT = "end_session_endpoint";
 
     public final static String DISPLAY_ALIAS = "display_alias";
 
