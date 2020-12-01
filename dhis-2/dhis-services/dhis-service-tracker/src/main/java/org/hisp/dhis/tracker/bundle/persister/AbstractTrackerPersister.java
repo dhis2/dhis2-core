@@ -360,14 +360,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                     assignFileResource( session, preheat, attributeValue.getValue() );
                 }
 
-                if ( isNew )
-                {
-                    session.persist( attributeValue );
-                }
-                else
-                {
-                    session.merge( attributeValue );
-                }
+                saveOrUpdate( session, isNew, attributeValue );
             }
 
             if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
@@ -378,4 +371,15 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         }
     }
 
+    private void saveOrUpdate( Session session, boolean isNew, Object persistable )
+    {
+        if ( isNew )
+        {
+            session.persist( persistable );
+        }
+        else
+        {
+            session.merge( persistable );
+        }
+    }
 }
