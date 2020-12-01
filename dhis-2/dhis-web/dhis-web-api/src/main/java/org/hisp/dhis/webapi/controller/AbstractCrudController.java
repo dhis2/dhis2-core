@@ -44,7 +44,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
-import org.hisp.dhis.common.OrganisationUnitAssociable;
+import org.hisp.dhis.common.OrganisationUnitAssignable;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
@@ -1178,7 +1178,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     private void restrictToCaptureScope( List<T> entityList, WebOptions options, Map<String, String> parameters )
     {
         if ( !options.isTrue( "restrictToCaptureScope" ) || CollectionUtils.isEmpty( entityList )
-            || !( entityList.get( 0 ) instanceof OrganisationUnitAssociable ) )
+            || !( entityList.get( 0 ) instanceof OrganisationUnitAssignable ) )
         {
             return;
         }
@@ -1199,7 +1199,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         for ( T entity : entityList )
         {
-            OrganisationUnitAssociable e = (OrganisationUnitAssociable) entity;
+            OrganisationUnitAssignable e = (OrganisationUnitAssignable) entity;
             if ( e.getOrganisationUnits() != null && e.getOrganisationUnits().size() > 0 )
             {
                 e.setOrganisationUnits(

@@ -35,7 +35,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 /**
  * @author Ameen Mohamed
  */
-public interface OrganisationUnitAssociable
+public interface OrganisationUnitAssignable
 {
     Set<OrganisationUnit> getOrganisationUnits();
 
