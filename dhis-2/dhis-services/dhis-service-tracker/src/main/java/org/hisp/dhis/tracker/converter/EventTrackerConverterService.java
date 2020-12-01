@@ -180,7 +180,7 @@ public class EventTrackerConverterService
         OrganisationUnit organisationUnit = preheat
             .get( TrackerIdScheme.UID, OrganisationUnit.class, event.getOrgUnit() );
 
-        if ( programStageInstance == null )
+        if ( isNewEntity( programStageInstance ) )
         {
             Date now = new Date();
 
@@ -192,11 +192,6 @@ public class EventTrackerConverterService
             programStageInstance.setLastUpdatedAtClient( now );
             programStageInstance.setProgramInstance(
                 getProgramInstance( preheat, TrackerIdScheme.UID, event.getEnrollment(), programStage.getProgram() ) );
-        }
-
-        if ( !CodeGenerator.isValidUid( programStageInstance.getUid() ) )
-        {
-            programStageInstance.setUid( CodeGenerator.generateUid() );
         }
 
         programStageInstance.setProgramStage( programStage );

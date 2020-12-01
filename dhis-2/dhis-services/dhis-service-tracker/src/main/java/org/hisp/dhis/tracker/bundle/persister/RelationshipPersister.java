@@ -31,12 +31,14 @@ package org.hisp.dhis.tracker.bundle.persister;
 import java.util.List;
 
 import org.hibernate.Session;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleHook;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -78,7 +80,14 @@ public class RelationshipPersister
     }
 
     @Override
-    protected void updateEntityValues( Session session, TrackerPreheat preheat, Relationship trackerDto,
+    protected void updateAttributes( Session session, TrackerPreheat preheat, Relationship trackerDto,
+        org.hisp.dhis.relationship.Relationship hibernateEntity )
+    {
+        // NOTHING TO DO
+    }
+
+    @Override
+    protected void updateDataValues( Session session, TrackerPreheat preheat, Relationship trackerDto,
         org.hisp.dhis.relationship.Relationship hibernateEntity )
     {
         // NOTHING TO DO

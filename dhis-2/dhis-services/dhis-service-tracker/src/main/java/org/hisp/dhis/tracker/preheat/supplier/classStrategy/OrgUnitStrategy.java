@@ -32,13 +32,14 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.tracker.preheat.mappers.OrganisationUnitMapper;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor( OrganisationUnit.class )
+@StrategyFor( value = OrganisationUnit.class, mapper = OrganisationUnitMapper.class )
 public class OrgUnitStrategy extends AbstractSchemaStrategy
 {
     public OrgUnitStrategy( SchemaService schemaService, QueryService queryService, IdentifiableObjectManager manager )

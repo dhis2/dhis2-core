@@ -28,6 +28,14 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -46,41 +54,24 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.ParamsConverter;
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class TrackedEntityAttributeTest
-    extends DhisSpringTest
+    extends TrackerTest
 {
-    @Autowired
-    private ObjectBundleService objectBundleService;
-
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
-
-    @Autowired
-    private RenderService _renderService;
-
-    @Autowired
-    private UserService _userService;
-
     @Autowired
     private TrackerPreheatService trackerPreheatService;
 
@@ -94,44 +85,19 @@ public class TrackedEntityAttributeTest
     private IdentifiableObjectManager manager;
 
     @Override
-    protected void setUpTest()
+    protected void initTest()
         throws IOException
     {
-        preCreateInjectAdminUserWithoutPersistence();
-
-        renderService = _renderService;
-        userService = _userService;
-
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/te_with_tea_metadata.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
-
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertTrue( validationReport.getErrorReports().isEmpty() );
-
-        objectBundleService.commit( bundle );
+        setUpMetadata( "tracker/te_with_tea_metadata.json" );
     }
 
     @Test
     public void testTrackedAttributePreheater()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson( new ClassPathResource( "tracker/te_with_tea_data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+        TrackerImportParams trackerImportParams = fromJson(  "tracker/te_with_tea_data.json" );
 
-        TrackerPreheatParams preheatParams = TrackerPreheatParams.builder()
-            .trackedEntities( trackerBundleParams.getTrackedEntities() )
-            .enrollments( trackerBundleParams.getEnrollments() )
-            .events( trackerBundleParams.getEvents() )
-            .build();
-
-        TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
+        TrackerPreheat preheat = trackerPreheatService.preheat( trackerImportParams );
 
         assertNotNull( preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, "cNEZTkdAvmg" ) );
         assertNotNull( preheat.get( TrackerIdScheme.UID, TrackedEntityType.class, "KrYIdvLxkMb" ) );
@@ -145,17 +111,9 @@ public class TrackedEntityAttributeTest
     public void testTrackedAttributeValueBundleImporter()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
-            .fromJson( new ClassPathResource( "tracker/te_with_tea_data.json" ).getInputStream(),
-                TrackerBundleParams.class );
-
-        TrackerBundle trackerBundle = trackerBundleService.create( TrackerBundleParams.builder()
-            .trackedEntities( trackerBundleParams.getTrackedEntities() )
-            .enrollments( trackerBundleParams.getEnrollments() )
-            .events( trackerBundleParams.getEvents() )
-            .build() );
-
-        trackerBundleService.commit( trackerBundle );
+        TrackerImportParams trackerImportParams = fromJson( "tracker/te_with_tea_data.json" );
+        TrackerBundle bundle = trackerBundleService.create( trackerImportParams );
+        trackerBundleService.commit( bundle );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );

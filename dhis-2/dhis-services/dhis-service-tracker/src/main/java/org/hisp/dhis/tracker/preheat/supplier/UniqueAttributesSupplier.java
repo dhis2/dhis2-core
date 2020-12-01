@@ -35,10 +35,10 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
 import org.springframework.stereotype.Component;
 
@@ -59,13 +59,13 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
     private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
     @Override
-    public void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat )
+    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
         preheat.setUniqueAttributeValues( calculateUniqueAttributeValues( params ) );
     }
 
     private List<UniqueAttributeValue> calculateUniqueAttributeValues(
-        TrackerPreheatParams params )
+        TrackerImportParams params )
     {
         List<TrackedEntityAttribute> uniqueTrackedEntityAttributes = trackedEntityAttributeService
             .getAllUniqueTrackedEntityAttributes();

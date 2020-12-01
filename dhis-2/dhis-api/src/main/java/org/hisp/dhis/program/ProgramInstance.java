@@ -208,19 +208,6 @@ public class ProgramInstance
         return false;
     }
 
-    public boolean hasProgramStageInstance( ProgramStage programStage )
-    {
-        for ( ProgramStageInstance programStageInstance : programStageInstances )
-        {
-            if ( !programStageInstance.isDeleted() && programStageInstance.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() ) && programStageInstance.getStatus() != EventStatus.SKIPPED )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     // -------------------------------------------------------------------------
     // equals and hashCode
     // -------------------------------------------------------------------------

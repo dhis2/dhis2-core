@@ -53,8 +53,8 @@ import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.validation.AbstractImportValidationTest;
 import org.hisp.dhis.user.UserService;
@@ -153,7 +153,7 @@ public class SetMandatoryFieldImplementerTest extends AbstractImportValidationTe
     public void testValidateOkMandatoryFieldsForEvents()
         throws IOException
     {
-        TrackerBundleParams bundleParams = createBundleFromJson( "tracker/event_events_and_enrollment.json" );
+        TrackerImportParams bundleParams = createBundleFromJson( "tracker/event_events_and_enrollment.json" );
 
         TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
 
@@ -171,7 +171,7 @@ public class SetMandatoryFieldImplementerTest extends AbstractImportValidationTe
     public void testValidateWithErrorMandatoryFieldsForEvents()
         throws IOException
     {
-        TrackerBundleParams bundleParams = createBundleFromJson(
+        TrackerImportParams bundleParams = createBundleFromJson(
             "tracker/event_events_and_enrollment_with_null_data_element.json" );
 
         TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
