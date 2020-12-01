@@ -41,7 +41,9 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -189,6 +191,7 @@ public class TrackerImporter_eventsTests
         System.out.println( payload );
 
         response = trackerActions.postAndGetJobReport( payload );
+        response.prettyPrint();
         if ( repeatableStage )
         {
             response
@@ -199,7 +202,8 @@ public class TrackerImporter_eventsTests
         //todo add more validation
         else
         {
-            response.validateErrorReport();
+            response.validateErrorReport()
+                .body( "message[0]", containsString( "Program stage is not repeatable" ));
         }
     }
 
@@ -247,5 +251,10 @@ public class TrackerImporter_eventsTests
         TrackerApiResponse response = trackerActions.postAndGetJobReport( teiWithEnrollment );
 
         return response;
+    }
+
+    @AfterEach
+    public void afterEach() {
+        new TestCleanUp().deleteCreatedEntities("/events");
     }
 }
