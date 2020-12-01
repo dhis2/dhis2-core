@@ -66,9 +66,16 @@ public class EventDateValidationHook
 
         Program program = context.getProgram( event.getProgram() );
 
-        if ( event.getOccurredAt() == null && !allowBlankOccuredAtDate( event, program ) )
+        if ( event.getOccurredAt() == null && occuredAtDateIsMandatory( event, program ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1031 )
+                .addArg( event ) );
+            return;
+        }
+
+        if ( event.getScheduledAt() == null && EventStatus.SCHEDULE == event.getStatus() )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1050 )
                 .addArg( event ) );
             return;
         }
@@ -151,15 +158,15 @@ public class EventDateValidationHook
         }
     }
 
-    private boolean allowBlankOccuredAtDate( Event event, Program program )
+    private boolean occuredAtDateIsMandatory( Event event, Program program )
     {
         if ( program.isWithoutRegistration() )
         {
-            return false;
+            return true;
         }
 
         EventStatus eventStatus = event.getStatus();
 
-        return eventStatus == EventStatus.SCHEDULE || eventStatus == EventStatus.OVERDUE || eventStatus == EventStatus.SKIPPED ? true : false;
+        return eventStatus == EventStatus.ACTIVE || eventStatus == EventStatus.COMPLETED;
     }
 }
