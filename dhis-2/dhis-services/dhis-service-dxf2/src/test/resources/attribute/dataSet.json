@@ -1,4 +1,30 @@
-{"dataSets": [
+{
+  "dataSets": [
     {
-      "id":"sPnR8BCInMV",
-      "attributeValues":[{"value":true,"attribute":{"id":"PtyV6lLcmol","name":"testAttribute"}}],"timelyDays":15,"name":"TestDataSet","periodType":"Monthly","openFuturePeriods":0,"expiryDays":0,"categoryCombo":{"id":"bjDvmb4bfuf"},"indicators":[],"legendSets":[],"organisationUnits":[],"dataSetElements":[]}]}
+      "id": "sPnR8BCInMV",
+      "attributeValues": [
+        {
+          "value": true,
+          "attribute": {
+            "id": "PtyV6lLcmol",
+            "name": "testAttribute"
+          }
+        }
+      ],
+      "timelyDays": 15,
+      "name": "TestDataSet",
+      "periodType": "Monthly",
+      "openFuturePeriods": 0,
+      "expiryDays": 0,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "indicators": [],
+      "legendSets": [],
+      "organisationUnits": [],
+      "dataSetElements": [],
+      "created": "2016-03-04T03:37:12.714+0000",
+      "lastUpdated": "2016-03-04T03:37:12.733+0000"
+    }
+  ]
+}

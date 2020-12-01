@@ -194,10 +194,6 @@ public class DefaultTrackerBundleService
         }
 
         Session session = sessionFactory.getCurrentSession();
-        final FlushModeType flushMode = session.getFlushMode();
-        final FlushMode hibernateFlushMode = session.getHibernateFlushMode();
-
-//        session.setHibernateFlushMode( FlushMode.COMMIT );
 
         for ( TrackerBundleHook bundleHook : bundleHooks )
         {
@@ -206,7 +202,13 @@ public class DefaultTrackerBundleService
 
         for ( TrackerType t : TrackerType.values() )
         {
-            bundleReport.getTypeReportMap().put( t, COMMIT_MAPPER.get( t ).apply( session, bundle ) );
+            final BiFunction<Session, TrackerBundle, TrackerTypeReport> sessionTrackerBundleTrackerTypeReportBiFunction = COMMIT_MAPPER
+                .get( t );
+            final TrackerTypeReport apply = sessionTrackerBundleTrackerTypeReportBiFunction.apply( session, bundle );
+
+            final Map<TrackerType, TrackerTypeReport> typeReportMap = bundleReport.getTypeReportMap();
+
+            typeReportMap.put( t, apply );
         }
 
         bundleHooks.forEach( hook -> hook.postCommit( bundle ) );

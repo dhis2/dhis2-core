@@ -224,6 +224,7 @@ public class HibernateDbmsManager
 
         emptyTable( "lockexception" );
 
+        emptyTable( "sectiongreyedfields" );
         emptyTable( "sectiondataelements" );
         emptyTable( "section" );
 

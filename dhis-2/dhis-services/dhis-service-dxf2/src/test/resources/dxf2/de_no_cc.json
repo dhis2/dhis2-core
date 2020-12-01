@@ -9,7 +9,9 @@
       "domainType": "AGGREGATE",
       "zeroIsSignificant": false,
       "name": "CCCC",
-      "aggregationLevels": [ ]
+      "aggregationLevels": [ ],
+      "created": "2016-03-04T03:37:12.714+0000",
+      "lastUpdated": "2016-03-04T03:37:12.733+0000"
     }
   ]
 }

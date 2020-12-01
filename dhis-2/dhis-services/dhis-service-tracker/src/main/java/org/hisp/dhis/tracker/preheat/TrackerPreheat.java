@@ -124,13 +124,22 @@ public class TrackerPreheat
     @Setter
     private Map<TrackerIdScheme, Map<String, TrackedEntityInstance>> trackedEntities = new HashMap<>();
 
-    /**
-     * Internal map of all preheated tracked entity attributes, mainly used for confirming existence for updates, and used
-     * for object merging.
-     */
-    @Getter
-    @Setter
-    private Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes = new HashMap<>();
+//    /**
+//     * Internal map of all preheated tracked entity attributes, mainly used for confirming existence for updates, and used
+//     * for object merging.
+//     */
+//    private Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes = new HashMap<>();
+//
+//    public Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> getTrackedEntityAttributes()
+//    {
+//        return trackedEntityAttributes;
+//    }
+//
+//    public void setTrackedEntityAttributes(
+//        Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes )
+//    {
+//        this.trackedEntityAttributes = trackedEntityAttributes;
+//    }
 
     /**
      * Internal map of all preheated enrollments, mainly used for confirming existence for updates, and used

@@ -1,3 +1,10 @@
 {
-"attributes":[{"id":"PtyV6lLcmol","valueType":"BOOLEAN","dataSetAttribute":true,"name":"testAttribute"}]
+  "attributes": [
+    {
+      "id": "PtyV6lLcmol",
+      "valueType": "BOOLEAN",
+      "dataSetAttribute": true,
+      "name": "testAttribute"
+    }
+  ]
 }

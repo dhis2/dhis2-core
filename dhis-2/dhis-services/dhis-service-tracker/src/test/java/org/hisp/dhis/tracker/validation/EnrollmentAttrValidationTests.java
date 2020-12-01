@@ -29,21 +29,17 @@ package org.hisp.dhis.tracker.validation;
  *
  */
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.core.Every.everyItem;
-import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerStatus;
@@ -51,6 +47,15 @@ import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.IOException;
+import java.util.Map;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.core.Every.everyItem;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -86,19 +91,52 @@ public class EnrollmentAttrValidationTests
 
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+
     }
 
     @Test
     public void testAttributesMissingUid()
         throws IOException
     {
-        TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_te_attr-missing-uuid.json" );
+        TrackerImportParams params = createBundleFromJson(
+            "tracker/validations/enrollments_te_attr-missing-uuid.json" );
+
+        final TrackerBundle trackerBundle = trackerBundleService.create( params );
+        final TrackerPreheat preheat = trackerBundle.getPreheat();
+        final IdentifiableObject sTJvSLN7Kcb1 = preheat
+            .get( trackerBundle.getIdentifier(), TrackedEntityAttribute.class, "sTJvSLN7Kcb" );
+
+        log.error( "1 sTJvSLN7Kcb1->" + sTJvSLN7Kcb1 );
+//        final Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes = preheat
+//            .getTrackedEntityAttributes();
+//        for ( TrackerIdScheme trackerIdScheme : trackedEntityAttributes.keySet() )
+//        {
+//            log.error( "trackerIdScheme->" + trackerIdScheme );
+//            final Map<String, TrackedEntityAttributeValue> stringTrackedEntityAttributeValueMap = trackedEntityAttributes
+//                .get( trackerIdScheme );
+//            for ( String s : stringTrackedEntityAttributeValueMap.keySet() )
+//            {
+//                final TrackedEntityAttributeValue trackedEntityAttributeValue = stringTrackedEntityAttributeValueMap
+//                    .get( s );
+//                log.error( "trackedEntityAttributeValue->" + trackedEntityAttributeValue );
+//            }
+//        }
+        TrackerImportValidationContext context = new TrackerImportValidationContext( trackerBundle );
+        final TrackedEntityAttribute sTJvSLN7Kcb = context.getTrackedEntityAttribute( "sTJvSLN7Kcb" );
+
+        log.error( "sTJvSLN7Kcb->" + sTJvSLN7Kcb );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
         assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
 
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
         printReport( validationReport );
+
+        final TrackerBundle trackerBundle1 = createAndUpdate.getTrackerBundle();
+        TrackerImportValidationContext context2 = new TrackerImportValidationContext( trackerBundle1 );
+        final TrackedEntityAttribute sTJvSLN7Kcb_2 = context2.getTrackedEntityAttribute( "sTJvSLN7Kcb" );
+
+        log.error( "sTJvSLN7Kcb_2->" + sTJvSLN7Kcb_2 );
 
         assertEquals( 1, validationReport.getErrorReports().size() );
 
