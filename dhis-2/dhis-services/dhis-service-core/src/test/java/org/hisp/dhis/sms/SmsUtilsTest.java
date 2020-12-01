@@ -55,4 +55,11 @@ public class SmsUtilsTest
         assertEquals( "4740123456", SmsUtils.removePhoneNumberPrefix( "004740123456" ) );
         assertEquals( "4740123456", SmsUtils.removePhoneNumberPrefix( "+4740123456" ) );
     }
+
+    @Test
+    public void testBase64Compression()
+    {
+        assertTrue( SmsUtils.isBase64( "c2FtcGxlIHNtcyB0ZXh0" ) );
+        assertFalse( SmsUtils.isBase64( "sample sms text" ) );
+    }
 }

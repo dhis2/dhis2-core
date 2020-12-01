@@ -91,9 +91,14 @@ public class SmsUtils
 
     public static boolean isBase64( IncomingSms sms )
     {
+        return isBase64( sms.getText() );
+    }
+
+    public static boolean isBase64( String text )
+    {
         try
         {
-            Base64.getDecoder().decode( sms.getText() );
+            Base64.getDecoder().decode( text );
             return true;
         }
         catch ( IllegalArgumentException e )
