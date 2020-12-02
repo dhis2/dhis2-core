@@ -61,6 +61,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
         throws Exception
     {
         userService = _userService;
+        createAndInjectAdminUser();
     }
 
     //
@@ -74,7 +75,6 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
         final User demo = createUser( "demo" );
         final Program program = createProgram( 'A' );
         program.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
-        createAndInjectAdminUser();
         manager.save( program, false );
         dbmsManager.flushSession();
 
