@@ -39,13 +39,14 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +78,7 @@ public class AnalyticsSecurityManagerTest
     private UserService _userService;
 
     @Autowired
-    private CurrentUserService currentUserService;
+    private IdentifiableObjectManager manager;
 
     private CategoryOption coA;
     private CategoryOption coB;
@@ -100,7 +101,8 @@ public class AnalyticsSecurityManagerTest
     @Override
     public void setUpTest()
     {
-
+        userService = _userService;
+        createAndInjectAdminUser();
         coA = createCategoryOption( 'A' );
         coB = createCategoryOption( 'B' );
 
@@ -127,8 +129,14 @@ public class AnalyticsSecurityManagerTest
 
         userOrgUnits = Sets.newHashSet( ouB, ouC );
 
-        userService = _userService;
-        createUserAndInjectSecurityContext( userOrgUnits, userOrgUnits, catDimensionConstraints, false, "F_VIEW_EVENT_ANALYTICS" );
+        User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
+        user.setOrganisationUnits( userOrgUnits );
+        user.setDataViewOrganisationUnits( userOrgUnits );
+        user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
+
+        userService.addUser( user );
+        injectSecurityContext( user );
+
     }
 
     @Test
