@@ -43,6 +43,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
+import org.hisp.dhis.system.util.SmsUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -160,14 +161,14 @@ public class SimplisticHttpGetGateWay
 
             if ( parameter.isEncode() )
             {
-                valueStore.put( parameter.getKey(), encodeUrl( parameter.getDisplayValue() ) );
+                valueStore.put( parameter.getKey(), SmsUtils.encode( parameter.getDisplayValue() ) );
                 continue;
             }
 
             valueStore.put( parameter.getKey(), parameter.getDisplayValue() );
         }
 
-        valueStore.put( KEY_TEXT, text );
+        valueStore.put( KEY_TEXT, SmsUtils.encode( text ) );
         valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
 
         final StringSubstitutor substitutor = new StringSubstitutor( valueStore ); // Matches on ${...}
@@ -175,21 +176,6 @@ public class SimplisticHttpGetGateWay
         String data = substitutor.replace( config.getConfigurationTemplate() );
 
         return new HttpEntity<>( data, httpHeaders );
-    }
-
-    private String encodeUrl( String value )
-    {
-        String v = "";
-        try
-        {
-            v = URLEncoder.encode( value, StandardCharsets.UTF_8.toString() );
-        }
-        catch( UnsupportedEncodingException e )
-        {
-            DebugUtils.getStackTrace( e );
-        }
-
-        return v;
     }
 
     private Map<String, String> getValueStore( GenericHttpGatewayConfig config, String text, Set<String> recipients )
