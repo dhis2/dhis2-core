@@ -30,16 +30,12 @@ package org.hisp.dhis.sms.config;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
