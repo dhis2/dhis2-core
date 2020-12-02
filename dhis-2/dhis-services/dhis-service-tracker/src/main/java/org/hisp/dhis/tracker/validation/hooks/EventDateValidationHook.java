@@ -35,7 +35,8 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1046;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1047;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1051;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1052;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1031;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1050;
 
 import java.util.Date;
 
@@ -45,7 +46,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
@@ -68,15 +68,13 @@ public class EventDateValidationHook
 
         if ( event.getOccurredAt() == null && occuredAtDateIsMandatory( event, program ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1031 )
-                .addArg( event ) );
+            addError( reporter, E1031, event );
             return;
         }
 
         if ( event.getScheduledAt() == null && EventStatus.SCHEDULE == event.getStatus() )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1050 )
-                .addArg( event ) );
+            addError( reporter, E1050, event );
             return;
         }
 
