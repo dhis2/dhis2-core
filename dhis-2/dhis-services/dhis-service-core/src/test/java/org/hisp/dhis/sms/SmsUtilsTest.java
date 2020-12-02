@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat.mappers;
+package org.hisp.dhis.sms;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,42 +28,38 @@ package org.hisp.dhis.tracker.preheat.mappers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
+import org.hisp.dhis.system.util.SmsUtils;
+import org.junit.Test;
 
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.factory.Mappers;
+import static org.junit.Assert.*;
 
-@Mapper( uses = { DebugMapper.class, UserGroupAccessMapper.class, UserGroupAccessMapper.class, ProgramMapper.class } )
-public interface ProgramStageMapper extends PreheatMapper<ProgramStage>
+/**
+ * @author Zubair Asghar
+ */
+public class SmsUtilsTest
 {
-    ProgramStageMapper INSTANCE = Mappers.getMapper( ProgramStageMapper.class );
+    @Test
+    public void testSMSTextEncoding()
+    {
+        assertEquals( "Hi+User", SmsUtils.encode( "Hi User" ) );
+        assertEquals( "Jeg+er+p%C3%A5+universitetet", SmsUtils.encode( "Jeg er på universitetet" ) );
+        assertEquals( "endelig+oppn%C3%A5+m%C3%A5let", SmsUtils.encode( "endelig oppnå målet" ) );
+        assertEquals( "%D8%B4%D9%83%D8%B1%D8%A7+%D9%84%D9%83%D9%85", SmsUtils.encode( "شكرا لكم" ) );
+        assertEquals( " ", SmsUtils.encode( " " ) );
+        assertNull( SmsUtils.encode( null ) );
+    }
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "user" )
-    @Mapping( target = "publicAccess" )
-    @Mapping( target = "externalAccess" )
-    @Mapping( target = "userGroupAccesses", qualifiedByName = "userGroupAccesses" )
-    @Mapping( target = "userAccesses", qualifiedByName = "userAccesses" )
-    @Mapping( target = "program" )
-    @Mapping( target = "name" )
-    @Mapping( target = "repeatable" )
-    @Mapping( target = "programStageDataElements" )
-    @Mapping( target = "enableUserAssignment" )
-    @Mapping( target = "validationStrategy" )
-    ProgramStage map( ProgramStage programStage );
+    @Test
+    public void testRemovePhoneNumberPrefix()
+    {
+        assertEquals( "4740123456", SmsUtils.removePhoneNumberPrefix( "004740123456" ) );
+        assertEquals( "4740123456", SmsUtils.removePhoneNumberPrefix( "+4740123456" ) );
+    }
 
-    @Named( "userGroupAccesses" )
-    Set<UserGroupAccess> mapUserGroupAccessPsi( Set<UserGroupAccess> userGroupAccesses );
-
-    @Named( "userAccesses" )
-    Set<UserAccess> mapUserAccessPsi( Set<UserAccess> userAccesses );
+    @Test
+    public void testBase64Compression()
+    {
+        assertTrue( SmsUtils.isBase64( "c2FtcGxlIHNtcyB0ZXh0" ) );
+        assertFalse( SmsUtils.isBase64( "sample sms text" ) );
+    }
 }
