@@ -128,8 +128,8 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         if ( !query.getOrders().isEmpty() )
         {
             criteriaQuery.orderBy( query.getOrders().stream()
-                .map( o -> o.isAscending() ? builder.asc( root.get( o.getProperty().getName() ) )
-                    : builder.desc( root.get( o.getProperty().getName() ) ) ).collect( Collectors.toList() ) );
+                .map( o -> o.isAscending() ? builder.asc( root.get( o.getProperty().getFieldName() ) )
+                    : builder.desc( root.get( o.getProperty().getFieldName() ) ) ).collect( Collectors.toList() ) );
         }
 
         TypedQuery<T> typedQuery = sessionFactory.getCurrentSession().createQuery( criteriaQuery );
