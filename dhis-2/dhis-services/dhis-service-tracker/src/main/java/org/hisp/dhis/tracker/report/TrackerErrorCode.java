@@ -44,6 +44,7 @@ public enum TrackerErrorCode
     E1064( "Non-unique attribute value `{0}` for attribute `{1}`" ),
     E1074( "FeatureType is missing." ),
     E1031( "Event OccurredAt date is missing." ),
+    E1050( "Event ScheduledAt date is missing." ),
     E1036( "Event: `{0}`, TrackedEntityInstance does not point to a existing object." ),
     E1042( "Event: `{0}`, needs to have completed date." ),
     E1056( "Event date: `{0}`, is before start date: `{1}`, for AttributeOption: `{2}`." ),
