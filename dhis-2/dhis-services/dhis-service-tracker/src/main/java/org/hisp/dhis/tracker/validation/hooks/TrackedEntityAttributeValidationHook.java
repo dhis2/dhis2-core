@@ -44,11 +44,9 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -62,7 +60,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -114,36 +111,19 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
         if ( trackedEntityType != null )
         {
-            Set<String> trackedEntityAttributes = Optional.of( trackedEntity )
-                .map( TrackedEntity::getAttributes )
-                .orElse( Collections.emptyList() )
+            Set<String> trackedEntityAttributes = trackedEntity.getAttributes()
                 .stream()
                 .map( Attribute::getAttribute )
                 .collect( Collectors.toSet() );
 
             trackedEntityType.getTrackedEntityTypeAttributes()
                 .stream()
-                .filter( this::isMandatory )
+                .filter( trackedEntityTypeAttribute -> Boolean.TRUE.equals( trackedEntityTypeAttribute.isMandatory() ) )
                 .map( BaseIdentifiableObject::getUid )
+                .filter( mandatoryAttributeUid -> !trackedEntityAttributes.contains( mandatoryAttributeUid ) )
                 .forEach(
-                    attribute -> addErrorIfMissing( reporter, attribute, trackedEntityAttributes, trackedEntity,
-                        trackedEntityType ) );
-        }
-    }
-
-    private boolean isMandatory( TrackedEntityTypeAttribute trackedEntityTypeAttribute )
-    {
-        return Optional.of( trackedEntityTypeAttribute )
-            .map( TrackedEntityTypeAttribute::isMandatory )
-            .orElse( false );
-    }
-
-    private void addErrorIfMissing( ValidationErrorReporter reporter, String attribute,
-        Set<String> trackedEntityAttributes, TrackedEntity trackedEntity, TrackedEntityType trackedEntityType )
-    {
-        if ( !trackedEntityAttributes.contains( attribute ) )
-        {
-            addError( reporter, E1090, attribute, trackedEntityType.getUid(), trackedEntity.getTrackedEntity() );
+                    attribute -> addError( reporter, E1090, attribute, trackedEntityType.getUid(),
+                        trackedEntity.getTrackedEntity() ) );
         }
     }
 
