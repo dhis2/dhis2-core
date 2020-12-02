@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.sms;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,31 +28,38 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.system.util.SmsUtils;
+import org.junit.Test;
 
-import java.util.List;
-import java.util.Map;
+import static org.junit.Assert.*;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Zubair Asghar
  */
-public interface TrackerImportService
+public class SmsUtilsTest
 {
-    /**
-     * Import object using provided params. Takes the objects through all phases of the importer
-     * from preheating to validation, and then finished with a commit (unless its validate only)
-     *
-     * @param params Parameters for import, including objects
-     * @return Report giving status of import (and any errors)
-     */
-    TrackerImportReport importTracker( TrackerImportParams params );
+    @Test
+    public void testSMSTextEncoding()
+    {
+        assertEquals( "Hi+User", SmsUtils.encode( "Hi User" ) );
+        assertEquals( "Jeg+er+p%C3%A5+universitetet", SmsUtils.encode( "Jeg er på universitetet" ) );
+        assertEquals( "endelig+oppn%C3%A5+m%C3%A5let", SmsUtils.encode( "endelig oppnå målet" ) );
+        assertEquals( "%D8%B4%D9%83%D8%B1%D8%A7+%D9%84%D9%83%D9%85", SmsUtils.encode( "شكرا لكم" ) );
+        assertEquals( " ", SmsUtils.encode( " " ) );
+        assertNull( SmsUtils.encode( null ) );
+    }
 
-    /**
-     * Build the report based on the mode selected by the client.
-     *
-     * @param importReport report with all the data collected during import
-     * @param reportMode type of report to be created
-     * @return TrackerImportReport report with filtered data based on reportMode
-     */
-    TrackerImportReport buildImportReport( TrackerImportReport importReport, TrackerBundleReportMode reportMode );
+    @Test
+    public void testRemovePhoneNumberPrefix()
+    {
+        assertEquals( "4740123456", SmsUtils.removePhoneNumberPrefix( "004740123456" ) );
+        assertEquals( "4740123456", SmsUtils.removePhoneNumberPrefix( "+4740123456" ) );
+    }
+
+    @Test
+    public void testBase64Compression()
+    {
+        assertTrue( SmsUtils.isBase64( "c2FtcGxlIHNtcyB0ZXh0" ) );
+        assertFalse( SmsUtils.isBase64( "sample sms text" ) );
+    }
 }

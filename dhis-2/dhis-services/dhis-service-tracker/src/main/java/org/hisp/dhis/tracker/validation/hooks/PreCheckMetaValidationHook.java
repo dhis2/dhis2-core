@@ -198,7 +198,7 @@ public class PreCheckMetaValidationHook
 
         if ( program != null && programStage != null && !program.equals( programStage.getProgram() ) )
         {
-            addError( reporter, E1089, event, program, programStage );
+            addError( reporter, E1089, event, programStage, program );
         }
 
         if ( strategy.isUpdate() )

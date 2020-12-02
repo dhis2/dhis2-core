@@ -466,6 +466,43 @@ public class EventImportValidationTest
     }
 
     @Test
+    public void testMissingAndAssignScheduleDate()
+        throws IOException
+    {
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-missing-schedule-date_part1.json" );
+
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
+            TrackerImportStrategy.CREATE );
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1050 ) ) ) );
+
+        trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-missing-schedule-date_part2.json" );
+
+        createAndUpdate = validateAndCommit( trackerBundleParams,
+            TrackerImportStrategy.CREATE );
+
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
+        report = createAndUpdate.getValidationReport();
+
+        printReport( report );
+
+        assertEquals( 0, report.getErrorReports().size() );
+
+        ProgramStageInstance psi = programStageServiceInstance.getProgramStageInstance( "ZwwuwNp6gVd" );
+
+        assertEquals( psi.getExecutionDate(), psi.getDueDate() );
+    }
+
+    @Test
     public void testWrongScheduledDateString()
         throws IOException
     {
@@ -797,13 +834,13 @@ public class EventImportValidationTest
         throws IOException
     {
         Date now = new Date();
-        
+
         // When
-        
+
         ValidateAndCommitTestUnit createAndUpdate = createEvent("tracker/validations/events-with-notes-data.json");
-        
+
         // Then
-        
+
         // Fetch the UID of the newly created event
         final ProgramStageInstance programStageInstance = getEventFromReport( createAndUpdate );
 
@@ -882,7 +919,7 @@ public class EventImportValidationTest
         fail( "Can't find a comment starting or ending with " + commentText );
         return null;
     }
-    
+
     private ProgramStageInstance getEventFromReport( ValidateAndCommitTestUnit createAndUpdate )
     {
         final Map<TrackerType, TrackerTypeReport> typeReportMap = createAndUpdate.getCommitReport().getTypeReportMap();
