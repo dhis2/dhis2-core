@@ -33,6 +33,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.*;
@@ -47,6 +48,7 @@ import javax.annotation.PostConstruct;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 /**
  * @author Ameen Mohamed
@@ -76,19 +78,24 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
     private final OrganisationUnitService organisationUnitService;
 
+    private final DhisConfigurationProvider config;
+
     private final Environment env;
 
     public DefaultTrackerOwnershipManager( CurrentUserService currentUserService,
         TrackedEntityProgramOwnerService trackedEntityProgramOwnerService, CacheProvider cacheProvider,
         ProgramTempOwnershipAuditService programTempOwnershipAuditService,
         ProgramOwnershipHistoryService programOwnershipHistoryService,
-        OrganisationUnitService organisationUnitService, Environment env )
+        OrganisationUnitService organisationUnitService, DhisConfigurationProvider config, Environment env )
     {
         checkNotNull( currentUserService );
         checkNotNull( trackedEntityProgramOwnerService );
         checkNotNull( cacheProvider );
         checkNotNull( programTempOwnershipAuditService );
         checkNotNull( programOwnershipHistoryService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( config );
+        checkNotNull( env );
 
         this.currentUserService = currentUserService;
         this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
@@ -96,6 +103,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         this.programTempOwnershipAuditService = programTempOwnershipAuditService;
         this.programOwnershipHistoryService = programOwnershipHistoryService;
         this.organisationUnitService = organisationUnitService;
+        this.config = config;
         this.env = env;
     }
 
@@ -226,8 +234,11 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
         if ( program.isProtected() )
         {
-            programTempOwnershipAuditService
-                .addProgramTempOwnershipAudit( new ProgramTempOwnershipAudit( program, entityInstance, reason, user.getUsername() ) );
+            if ( config.isEnabled( CHANGELOG_TRACKER ) )
+            {
+                programTempOwnershipAuditService
+                    .addProgramTempOwnershipAudit( new ProgramTempOwnershipAudit( program, entityInstance, reason, user.getUsername() ) );
+            }
 
             temporaryTrackerOwnershipCache.put( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ), true );
         }

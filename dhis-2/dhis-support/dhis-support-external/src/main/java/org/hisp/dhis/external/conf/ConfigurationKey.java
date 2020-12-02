@@ -94,7 +94,9 @@ public enum ConfigurationKey
     MONITORING_DBPOOL_ENABLED( "monitoring.dbpool.enabled", "off", false ),
     MONITORING_HIBERNATE_ENABLED( "monitoring.hibernate.enabled", "off", false ),
     MONITORING_UPTIME_ENABLED( "monitoring.uptime.enabled", "off", false ),
-    MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", "off", false );
+    MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", "off", false ),
+    CHANGELOG_AGGREGATE( "changelog.aggregate", "on" ),
+    CHANGELOG_TRACKER( "changelog.tracker", "on" );
 
     private final String key;
 
