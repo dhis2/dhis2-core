@@ -227,11 +227,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
 
         user.getGroups().add( userGroup );
 
-        UserGroupAccess userGroupAccess = new UserGroupAccess();
-        userGroupAccess.setUserGroup( userGroup );
-        userGroupAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
-
-        programStage.setUserGroupAccesses( singleton( userGroupAccess ) );
+        programStage.getSharing().addUserGroupAccess( new org.hisp.dhis.user.sharing.UserGroupAccess( userGroup, AccessStringHelper.DATA_READ_WRITE ) );
         manager.save( programStage, false );
 
         final Program program = createProgram( 'A' );
