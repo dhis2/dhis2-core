@@ -2344,7 +2344,7 @@ public abstract class AbstractEventService
 
             PeriodType periodType = program.getExpiryPeriodType();
 
-            if ( periodType != null && program.getExpiryDays() > 0 )
+            if ( periodType != null && program.getExpiryDays() >= 0 )
             {
                 if ( programStageInstance != null )
                 {
