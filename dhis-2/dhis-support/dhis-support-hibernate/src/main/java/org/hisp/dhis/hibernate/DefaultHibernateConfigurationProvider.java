@@ -32,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.cfg.Environment;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -55,6 +54,8 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
+
+import static org.hibernate.cfg.AvailableSettings.*;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -188,8 +189,8 @@ public class DefaultHibernateConfigurationProvider
 
         log.info( String.format(
             "Hibernate configuration loaded: dialect: '%s', region factory: '%s', connection pool max size: %s",
-            config.getProperty( Environment.DIALECT ), config.getProperty( Environment.CACHE_REGION_FACTORY ),
-            config.getProperty( Environment.C3P0_MAX_SIZE ) ) );
+            config.getProperty( DIALECT ), config.getProperty( CACHE_REGION_FACTORY ),
+            config.getProperty( C3P0_MAX_SIZE ) ) );
 
         this.configuration = config;
     }
@@ -230,18 +231,16 @@ public class DefaultHibernateConfigurationProvider
     {
         Properties p = new Properties();
 
-        set( "hibernate.id.disable_delayed_identity_inserts", "true", p );
-        set( "hibernate.query.sql.jdbc_style_params_base", "true", p );
-        set( "hibernate.id.generator.stored_last_used", "true", p );
+//        set( "hibernate.id.disable_delayed_identity_inserts", "true", p );
+        set( JDBC_TYLE_PARAMS_ZERO_BASE, "true", p );
+        set( TABLE_GENERATOR_STORE_LAST_USED, "true", p );
 
-
-
-        set( Environment.DIALECT, configProvider.getProperty( ConfigurationKey.CONNECTION_DIALECT ), p );
-        set( Environment.DRIVER, configProvider.getProperty( ConfigurationKey.CONNECTION_DRIVER_CLASS ), p );
-        set( Environment.URL, configProvider.getProperty( ConfigurationKey.CONNECTION_URL ), p );
-        set( Environment.USER, configProvider.getProperty( ConfigurationKey.CONNECTION_USERNAME ), p );
-        set( Environment.PASS, configProvider.getProperty( ConfigurationKey.CONNECTION_PASSWORD ), p );
-        set( Environment.C3P0_MAX_SIZE, configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE ), p );
+        set( DIALECT, configProvider.getProperty( ConfigurationKey.CONNECTION_DIALECT ), p );
+        set( DRIVER, configProvider.getProperty( ConfigurationKey.CONNECTION_DRIVER_CLASS ), p );
+        set( URL, configProvider.getProperty( ConfigurationKey.CONNECTION_URL ), p );
+        set( USER, configProvider.getProperty( ConfigurationKey.CONNECTION_USERNAME ), p );
+        set( PASS, configProvider.getProperty( ConfigurationKey.CONNECTION_PASSWORD ), p );
+        set( C3P0_MAX_SIZE, configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE ), p );
         set( ConfigurationKey.CONNECTION_POOL_MIN_SIZE.getKey(),
             configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MIN_SIZE ), p );
         set( ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE.getKey(),
@@ -263,16 +262,15 @@ public class DefaultHibernateConfigurationProvider
 
         if ( SystemUtils.isTestRun( environment.getActiveProfiles() ) )
         {
-            set( Environment.HBM2DDL_AUTO, configProvider.getProperty( ConfigurationKey.CONNECTION_SCHEMA ),
-                p );
-            set( "hibernate.cache.use_second_level_cache", "false", p );
-            set( "hibernate.cache.use_query_cache", "false", p );
+            set( HBM2DDL_AUTO, configProvider.getProperty( ConfigurationKey.CONNECTION_SCHEMA ), p );
+            set( USE_SECOND_LEVEL_CACHE, "false", p );
+            set( USE_QUERY_CACHE, "false", p );
         }
 
         // Enable Hibernate statistics if Hibernate Monitoring is enabled
         if ( configProvider.isEnabled( ConfigurationKey.MONITORING_HIBERNATE_ENABLED ) )
         {
-            p.put( Environment.GENERATE_STATISTICS, true );
+            p.put( GENERATE_STATISTICS, true );
         }
 
         return p;

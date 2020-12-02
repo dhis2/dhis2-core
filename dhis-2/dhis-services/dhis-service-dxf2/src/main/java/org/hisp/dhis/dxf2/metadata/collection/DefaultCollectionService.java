@@ -229,9 +229,9 @@ public class DefaultCollectionService
 
         manager.update( object );
 
-//        dbmsManager.clearSession();
-//        cacheManager.clearCache();
-        dbmsManager.flushSession();
+        dbmsManager.clearSession();
+        cacheManager.clearCache();
+        //dbmsManager.flushSession();
     }
 
     @Override

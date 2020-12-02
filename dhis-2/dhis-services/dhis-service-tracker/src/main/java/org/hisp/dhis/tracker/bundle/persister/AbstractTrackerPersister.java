@@ -328,11 +328,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             TrackedEntityAttribute attribute = preheat.get( TrackerIdScheme.UID, TrackedEntityAttribute.class,
                 at.getAttribute() );
 
-//            if ( attribute == null )
-//            {
-//                continue;
-//
-//            }
             checkNotNull( attribute,
                 "Attribute should never be NULL here if validation is enforced before commit." );
 
