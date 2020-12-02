@@ -87,7 +87,7 @@ public enum TrackerErrorCode
     E1086( "Event: `{0}`, has a program: `{1}`, that is a registration but its ProgramStage is not valid or missing." ),
     E1087( "Event: `{0}`, could not find DataElement: `{1}`, linked to a data value." ),
     E1088( "Event: `{0}`, program: `{1}`, and ProgramStage: `{2}`, could not be found." ),
-    E1089( "Event: `{0}`, ProgramStage Program and Event Program don't match." ),
+    E1089( "Event: `{0}`, references a Program Stage `{1}` that does not belong to Program `{2}`." ),
     E1000( "User: `{0}`, has no write access to OrganisationUnit: `{1}`." ),
     E1001( "User: `{0}`, has no data write access to TrackedEntityType: `{1}`." ),
     E1091( "User: `{0}`, has no data write access to Program: `{1}`." ),
