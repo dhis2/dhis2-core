@@ -228,7 +228,7 @@ public class TrackedEntityInstanceStoreTest
         List<TrackedEntityInstance> teis = teiStore.getTrackedEntityInstances( params );
 
         assertEquals( 6, teis.size() );
-
+        
         // Filter by attribute
 
         params = new TrackedEntityInstanceQueryParams()
@@ -287,6 +287,32 @@ public class TrackedEntityInstanceStoreTest
         assertEquals( 2, teis.size() );
         assertTrue( teis.contains( teiB ) );
         assertTrue( teis.contains( teiE ) );
+        
+        // Filter explicitly by uids
+        params = new TrackedEntityInstanceQueryParams();
+        params.getTrackedEntityInstanceUids().add( teiC.getUid() );
+        params.getTrackedEntityInstanceUids().add( teiB.getUid() );
+        params.getTrackedEntityInstanceUids().add( teiD.getUid() );
+
+        teis = teiStore.getTrackedEntityInstances( params );
+
+        assertEquals( 3, teis.size() );
+        
+        assertTrue( teis.contains( teiC ) );
+        assertTrue( teis.contains( teiB ) );
+        assertTrue( teis.contains( teiD ) );
+        
+        // Filter explicitly by uids and an additional filter (program in this case)
+        params = new TrackedEntityInstanceQueryParams();
+        params.getTrackedEntityInstanceUids().add( teiC.getUid() );
+        params.getTrackedEntityInstanceUids().add( teiB.getUid() );
+        params.getTrackedEntityInstanceUids().add( teiD.getUid() );
+        params.setProgram( prA );
+
+        teis = teiStore.getTrackedEntityInstances( params );
+
+        assertEquals( 1, teis.size() );
+        assertTrue( teis.contains( teiB ) );
     }
 
     @Test
