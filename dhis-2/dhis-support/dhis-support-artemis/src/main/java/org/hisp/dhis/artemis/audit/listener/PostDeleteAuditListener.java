@@ -28,10 +28,7 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.persister.entity.EntityPersister;
@@ -41,13 +38,10 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Luciano Fiandesio
@@ -55,12 +49,15 @@ import java.util.Map;
 @Slf4j
 @Component
 public class PostDeleteAuditListener
-    extends AbstractHibernateListener implements PostCommitDeleteEventListener
+        extends AbstractHibernateListener implements PostCommitDeleteEventListener
 {
-    public PostDeleteAuditListener( AuditManager auditManager, AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier, ObjectMapper objectMapper )
+    public PostDeleteAuditListener(
+            AuditManager auditManager,
+            AuditObjectFactory auditObjectFactory,
+            UsernameSupplier userNameSupplier,
+            SchemaService schemaService )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier, objectMapper );
+        super( auditManager, auditObjectFactory, userNameSupplier, schemaService );
     }
 
     @Override
@@ -72,15 +69,14 @@ public class PostDeleteAuditListener
     @Override
     public void onPostDelete( PostDeleteEvent postDeleteEvent )
     {
-        Object entity = postDeleteEvent.getEntity();
-        getAuditable( entity, "delete" ).ifPresent( auditable ->
-            auditManager.send( Audit.builder()
+        getAuditable( postDeleteEvent.getEntity(), "delete" ).ifPresent( auditable ->
+                auditManager.send( Audit.builder()
                 .auditType( getAuditType() )
                 .auditScope( auditable.scope() )
                 .createdAt( LocalDateTime.now() )
                 .createdBy( getCreatedBy() )
-                .object( entity )
-                .auditableEntity( new AuditableEntity( entity ) )
+                .object( postDeleteEvent.getEntity() )
+                .auditableEntity( new AuditableEntity( postDeleteEvent.getEntity().getClass(), createAuditEntry( postDeleteEvent ) ) )
                 .build() ) );
     }
 
@@ -93,8 +89,6 @@ public class PostDeleteAuditListener
     @Override
     public void onPostDeleteCommitFailed( PostDeleteEvent event )
     {
-        log.warn( "onPostDeleteCommitFailed: "+ event );
+        log.warn( "onPostDeleteCommitFailed: " + event );
     }
-
-
 }

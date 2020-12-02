@@ -1,16 +1,51 @@
 package org.hisp.dhis.audit;
 
+/*
+ * Copyright (c) 2004-2020, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -20,7 +55,9 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
@@ -31,7 +68,7 @@ import static org.junit.Assert.assertNotNull;
 public class AuditIntegrationTest
     extends IntegrationTestBase
 {
-    private static final int TIMEOUT = 5;
+    private static final int TIMEOUT = 10;
 
     @Autowired
     private AuditService auditService;
@@ -54,6 +91,9 @@ public class AuditIntegrationTest
     @Autowired
     private IdentifiableObjectManager manager;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Override
     protected void setUpTest()
         throws Exception
@@ -71,12 +111,11 @@ public class AuditIntegrationTest
     {
         DataElement dataElement = createDataElement( 'A' );
         dataElementService.addDataElement( dataElement );
-
         AuditQuery query = AuditQuery.builder()
             .uid( Sets.newHashSet( dataElement.getUid() ) )
             .build();
 
-        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) > 0 );
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
 
         List<Audit> audits = auditService.getAudits( query );
 
@@ -101,7 +140,7 @@ public class AuditIntegrationTest
         AuditQuery query = AuditQuery.builder()
             .uid( Sets.newHashSet( tei.getUid() ) )
             .build();
-        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) > 0 );
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
 
         List<Audit> audits = auditService.getAudits( query );
 
@@ -136,7 +175,7 @@ public class AuditIntegrationTest
         AuditQuery query = AuditQuery.builder()
             .auditAttributes( attributes )
             .build();
-        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) > 0 );
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
 
         List<Audit> audits = auditService.getAudits( query );
 
@@ -206,7 +245,7 @@ public class AuditIntegrationTest
         AuditQuery query = AuditQuery.builder()
             .auditAttributes( attributes )
             .build();
-        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) > 0 );
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
 
         List<Audit> audits = auditService.getAudits( query );
 
@@ -215,5 +254,60 @@ public class AuditIntegrationTest
         assertEquals( DataValue.class.getName(), audit.getKlass() );
         assertEquals( dataElementA.getUid(), audit.getAttributes().get( "dataElement" ) );
         assertNotNull( audit.getData() );
+    }
+
+    @Test
+    public void testSaveProgram()
+        throws IOException
+    {
+        Program program = createProgram( 'A' );
+        manager.save( program );
+        DataElement dataElement = createDataElement( 'A' );
+        manager.save( dataElement );
+        ProgramStage programStage = createProgramStage( 'A', program );
+        programStage.addDataElement( dataElement, 0 );
+        manager.save( programStage );
+
+        AuditQuery query = AuditQuery.builder().uid( Sets.newHashSet( programStage.getUid() ) ).build();
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
+
+        List<Audit> audits = auditService.getAudits( query );
+        assertEquals( 1, audits.size() );
+
+        Audit audit = audits.get( 0 );
+        assertEquals( ProgramStage.class.getName(), audit.getKlass() );
+        assertEquals( programStage.getUid(), audit.getUid() );
+
+        Map<String, Object> deserializeProgramStage = objectMapper.readValue( audit.getData(), Map.class );
+        assertNotNull( deserializeProgramStage.get("programStageDataElements") );
+        List uids = (List<String>) deserializeProgramStage.get( "programStageDataElements" );
+        assertEquals( 1, uids.size() );
+    }
+
+    @Test
+    public void testSaveDataSet()
+        throws JsonProcessingException
+    {
+        DataElement dataElement = createDataElement( 'A' );
+        manager.save( dataElement );
+        PeriodType periodType = PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME );
+        DataSet dataSet = createDataSet( 'A', periodType );
+        dataSet.addDataSetElement( dataElement );
+        manager.save( dataSet );
+
+        AuditQuery query = AuditQuery.builder().uid( Sets.newHashSet( dataSet.getUid() ) ).build();
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
+
+        List<Audit> audits = auditService.getAudits( query );
+        assertEquals( 1, audits.size() );
+
+        Audit audit = audits.get( 0 );
+        assertEquals( DataSet.class.getName(), audit.getKlass() );
+        assertEquals( dataSet.getUid(), audit.getUid() );
+
+        Map<String, Object> deserializeProgramStage = objectMapper.readValue( audit.getData(), Map.class );
+        assertNotNull( deserializeProgramStage.get("dataSetElements") );
+        List uids = (List<String>) deserializeProgramStage.get( "dataSetElements" );
+        assertEquals( 1, uids.size() );
     }
 }
