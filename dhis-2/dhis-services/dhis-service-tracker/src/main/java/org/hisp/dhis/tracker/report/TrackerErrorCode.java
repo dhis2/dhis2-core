@@ -59,6 +59,8 @@ public enum TrackerErrorCode
     E1076( "Attribute: `{0}`, value is null." ),
     E1077( "Attribute: `{0}`, text value exceed the maximum allowed length: `{0}`." ),
     E1085( "Attribute: `{0}`, value does not match value type: `{1}`." ),
+    E1090( "Attribute: `{0}`, is mandatory in tracked entity type `{1}` but not declared in tracked entity `{2}`." ),
+
     E1083( "User: `{0}`, is not authorized to modify completed events." ),
     E1009( "File resource: `{0}`, has already been assigned to a different object." ),
     E1084( "File resource: `{0}`, reference could not be found." ),
