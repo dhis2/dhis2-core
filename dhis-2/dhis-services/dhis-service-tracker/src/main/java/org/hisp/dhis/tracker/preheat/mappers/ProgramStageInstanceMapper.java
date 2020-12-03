@@ -60,6 +60,11 @@ public interface ProgramStageInstanceMapper extends PreheatMapper<ProgramStageIn
     @Mapping( target = "programInstance" )
     @Mapping( target = "eventDataValues" )
     @Mapping( target = "comments" )
+    @Mapping( target = "dueDate" )
+    @Mapping( target = "executionDate" )
+    @Mapping( target = "completedDate" )
+    @Mapping( target = "completedBy" )
+    @Mapping( target = "deleted" )
     ProgramStageInstance map( ProgramStageInstance programStageInstance );
 
     Set<UserGroupAccess> mapUserGroupAccessPsi( Set<UserGroupAccess> userGroupAccesses );
