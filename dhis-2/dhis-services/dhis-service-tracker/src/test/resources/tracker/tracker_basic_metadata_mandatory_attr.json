@@ -1272,7 +1272,7 @@
           "userGroupAccesses": [],
           "externalAccess": false,
           "attributeValues": [],
-          "mandatory": true,
+          "mandatory": false,
           "trackedEntityAttribute": {
             "id": "fmBIpOStKkF"
           },
@@ -1290,7 +1290,7 @@
           "userAccesses": [],
           "externalAccess": false,
           "attributeValues": [],
-          "mandatory": true,
+          "mandatory": false,
           "displayName": "Person Address",
           "favorites": [],
           "translations": [],

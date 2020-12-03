@@ -100,7 +100,7 @@ public class TrackerController
         throws IOException
     {
         // Set the Import Parameters
-        TrackerImportParams params = trackerImportService.getParamsFromMap( contextService.getParameterValuesMap() );
+        TrackerImportParams params = TrackerImportParamsBuilder.build( contextService.getParameterValuesMap() );
 
         // Set the actual objects to import
         TrackerBundleParams trackerBundleParams = renderService.fromJson( request.getInputStream(), TrackerBundleParams.class );
