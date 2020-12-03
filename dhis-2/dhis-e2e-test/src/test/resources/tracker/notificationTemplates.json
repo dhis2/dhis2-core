@@ -1,0 +1,63 @@
+{
+  "programNotificationTemplates": [
+    {
+      "id": "L3R1INpzNNR",
+      "name": "TA Test notification",
+      "displayName": "TA Test notification",
+      "externalAccess": false,
+      "notificationTrigger": "COMPLETION",
+      "notificationRecipient": "USER_GROUP",
+      "favorite": false,
+      "messageTemplate": "V{program_stage_name} was completed",
+      "recipientUserGroup": {
+        "id": "OPVIvvXzNTw"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
+      "deliveryChannels": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "subjectTemplate": "TA program stage completion"
+    },
+    {
+      "id": "q7hPW1o1Exf",
+      "name": "TA program notification - due dates",
+      "displayName": "TA program notification - due dates",
+      "externalAccess": false,
+      "notificationTrigger": "SCHEDULED_DAYS_DUE_DATE",
+      "subjectTemplate": "TA program notification - due dates",
+      "relativeScheduledDays": 0,
+      "notificationRecipient": "USER_GROUP",
+      "favorite": false,
+      "messageTemplate": "V{due_date} is now ",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "recipientUserGroup": {
+        "id": "OPVIvvXzNTw"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
+      "deliveryChannels": [],
+      "attributeValues": [],
+      "userAccesses": []
+    }
+  ]
+}
