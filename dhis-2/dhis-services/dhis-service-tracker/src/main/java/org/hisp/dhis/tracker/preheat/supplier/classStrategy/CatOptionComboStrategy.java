@@ -32,24 +32,19 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.tracker.preheat.mappers.CategoryOptionComboMapper;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor( CategoryOptionCombo.class )
+@StrategyFor( value = CategoryOptionCombo.class, mapper = CategoryOptionComboMapper.class )
 public class CatOptionComboStrategy extends AbstractSchemaStrategy
 {
     public CatOptionComboStrategy( SchemaService schemaService, QueryService queryService,
         IdentifiableObjectManager manager )
     {
         super( schemaService, queryService, manager );
-    }
-
-    @Override
-    protected Class<?> getSchemaClass()
-    {
-        return getClass().getAnnotation( StrategyFor.class ).value();
     }
 }

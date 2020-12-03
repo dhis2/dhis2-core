@@ -32,13 +32,14 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.tracker.preheat.mappers.CategoryOptionMapper;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor( CategoryOption.class )
+@StrategyFor( value = CategoryOption.class, mapper = CategoryOptionMapper.class)
 public class CatOptionStrategy extends AbstractSchemaStrategy
 {
     public CatOptionStrategy( SchemaService schemaService, QueryService queryService,

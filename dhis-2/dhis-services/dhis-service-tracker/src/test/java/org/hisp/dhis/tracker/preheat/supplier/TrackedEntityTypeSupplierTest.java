@@ -4,8 +4,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -40,10 +40,10 @@ public class TrackedEntityTypeSupplierTest {
         final List<TrackedEntityType> trackedEntityTypes = rnd.randomObjects( TrackedEntityType.class, 5 );
         when( manager.getAll( TrackedEntityType.class  ) ).thenReturn( trackedEntityTypes );
 
-        final TrackerPreheatParams preheatParams = TrackerPreheatParams.builder().build();
+        final TrackerImportParams params = TrackerImportParams.builder().build();
 
         TrackerPreheat preheat = new TrackerPreheat();
-        this.supplier.preheatAdd( preheatParams, preheat );
+        this.supplier.preheatAdd( params, preheat );
 
         assertThat( preheat.getAll( TrackerIdScheme.UID, TrackedEntityType.class ), hasSize( 5 ) );
     }

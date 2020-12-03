@@ -208,7 +208,7 @@ public class JCloudsFileResourceContentStore
             return null;
         }
     }
-    
+
     @Override
     public long getFileResourceContentLength( String key )
     {
@@ -291,7 +291,7 @@ public class JCloudsFileResourceContentStore
 
             try
             {
-                HashCode hash = com.google.common.io.Files.hash( file, Hashing.md5() );
+                HashCode hash = com.google.common.io.Files.asByteSource( file ).hash( Hashing.md5() );
                 contentMd5 = hash.toString();
             }
             catch ( IOException e )

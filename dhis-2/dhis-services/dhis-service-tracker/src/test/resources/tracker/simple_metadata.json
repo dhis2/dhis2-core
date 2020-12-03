@@ -34,7 +34,7 @@
       "aggregationType": "SUM",
       "domainType": "TRACKER",
       "publicAccess": "rw------",
-      "valueType": "NUMBER",
+      "valueType": "TEXT",
       "zeroIsSignificant": false,
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
@@ -61,7 +61,7 @@
       "aggregationType": "SUM",
       "domainType": "TRACKER",
       "publicAccess": "rw------",
-      "valueType": "NUMBER",
+      "valueType": "TEXT",
       "zeroIsSignificant": false,
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
@@ -88,7 +88,7 @@
       "aggregationType": "SUM",
       "domainType": "TRACKER",
       "publicAccess": "rw------",
-      "valueType": "NUMBER",
+      "valueType": "TEXT",
       "zeroIsSignificant": false,
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
@@ -115,7 +115,7 @@
       "aggregationType": "SUM",
       "domainType": "TRACKER",
       "publicAccess": "rw------",
-      "valueType": "NUMBER",
+      "valueType": "TEXT",
       "zeroIsSignificant": false,
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
@@ -199,7 +199,141 @@
       "userGroupAccesses": [],
       "attributeValues": [],
       "userAccesses": [],
-      "programStageSections": []
+      "programStageSections": [],
+      "programStageDataElements": [
+        {
+          "lastUpdated": "2019-01-28T11:23:20.855",
+          "id": "PSDE0000001",
+          "created": "2019-01-28T11:23:20.855",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 1,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "DATAEL00001"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.855",
+          "id": "PSDE0000002",
+          "created": "2019-01-28T11:23:20.855",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 1,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "DATAEL00002"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.855",
+          "id": "PSDE0000003",
+          "created": "2019-01-28T11:23:20.855",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 1,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "DATAEL00003"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.855",
+          "id": "PSDE0000004",
+          "created": "2019-01-28T11:23:20.855",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 1,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "DATAEL00004"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        }
+      ]
     }
   ],
   "users": [

@@ -127,7 +127,7 @@ public class EnrollmentTrackerConverterService
         TrackedEntityInstance trackedEntityInstance = preheat
             .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
 
-        if ( programInstance == null )
+        if ( isNewEntity( programInstance ) )
         {
             Date now = new Date();
 
@@ -137,11 +137,6 @@ public class EnrollmentTrackerConverterService
             programInstance.setCreatedAtClient( now );
             programInstance.setLastUpdated( now );
             programInstance.setLastUpdatedAtClient( now );
-
-            if ( !CodeGenerator.isValidUid( programInstance.getUid() ) )
-            {
-                programInstance.setUid( CodeGenerator.generateUid() );
-            }
 
             programInstance.setEnrollmentDate( DateUtils.parseDate( enrollment.getEnrolledAt() ) );
             programInstance.setIncidentDate( DateUtils.parseDate( enrollment.getOccurredAt() ) );

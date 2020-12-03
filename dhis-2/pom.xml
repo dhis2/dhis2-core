@@ -314,6 +314,18 @@
             <source>1.8</source>
             <target>1.8</target>
             <encoding>${project.build.sourceEncoding}</encoding>
+            <annotationProcessorPaths>
+              <path>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+              </path>
+              <path>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
+              </path>
+            </annotationProcessorPaths>
           </configuration>
           <dependencies>
             <dependency>
@@ -439,7 +451,7 @@
         <plugin>
           <groupId>org.projectlombok</groupId>
           <artifactId>lombok-maven-plugin</artifactId>
-          <version>1.18.10.0</version>
+          <version>${lombok.version}</version>
         </plugin>
 
         <plugin>
@@ -1862,7 +1874,7 @@
       <dependency>
         <groupId>org.projectlombok</groupId>
         <artifactId>lombok</artifactId>
-        <version>1.18.10</version>
+        <version>${lombok.version}</version>
         <scope>provided</scope>
       </dependency>
       <!-- SMPP -->
@@ -2067,6 +2079,12 @@
         <version>2.12.0</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.mapstruct</groupId>
+        <artifactId>mapstruct</artifactId>
+        <version>${mapstruct.version}</version>
+      </dependency>
+
     </dependencies>
 
 
@@ -2105,5 +2123,7 @@
     <ow2.asm.version>9.0</ow2.asm.version>
     <surefireArgLine>-Xmx1024m</surefireArgLine>
     <dependency-check-maven.version>6.0.3</dependency-check-maven.version>
+    <lombok.version>1.18.10</lombok.version>
+    <mapstruct.version>1.4.1.Final</mapstruct.version>
   </properties>
 </project>

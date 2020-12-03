@@ -28,7 +28,6 @@ package org.hisp.dhis.tracker.params;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.tracker.utils.ImportUtils.build;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -52,8 +51,8 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.AtomicMode;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
@@ -121,10 +120,10 @@ public class AtomicModeIntegrationTest
 
         InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" ).getInputStream();
 
-        TrackerBundleParams params = renderService.fromJson( inputStream, TrackerBundleParams.class );
-        params.setUser( userA );
+        TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
+        params.setUserId( userA.getUid() );
         params.setAtomicMode(AtomicMode.OBJECT);
-        TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( build( params ) );
+        TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportTeiReport );
         assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );
@@ -138,10 +137,10 @@ public class AtomicModeIntegrationTest
 
         InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" ).getInputStream();
 
-        TrackerBundleParams params = renderService.fromJson( inputStream, TrackerBundleParams.class );
-        params.setUser( userA );
+        TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
+        params.setUserId( userA.getUid() );
         params.setAtomicMode(AtomicMode.ALL);
-        TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( build( params ) );
+        TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportTeiReport );
         assertEquals( TrackerStatus.ERROR, trackerImportTeiReport.getStatus() );

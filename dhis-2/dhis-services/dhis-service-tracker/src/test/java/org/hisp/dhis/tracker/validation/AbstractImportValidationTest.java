@@ -29,11 +29,14 @@ package org.hisp.dhis.tracker.validation;
  *
  */
 
-import org.hisp.dhis.DhisSpringTest;
+import java.io.IOException;
+import java.io.InputStream;
+
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
+import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
@@ -41,14 +44,11 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public abstract class AbstractImportValidationTest
-    extends DhisSpringTest
+    extends TrackerTest
 {
     @Autowired
     protected TrackerBundleService trackerBundleService;
@@ -76,17 +76,21 @@ public abstract class AbstractImportValidationTest
 
     public static final String USER_6 = "VfaA5WwHLdP";
 
-    protected TrackerBundleParams createBundleFromJson( String jsonFile )
+    protected TrackerImportParams createBundleFromJson( String jsonFile )
         throws IOException
     {
         InputStream inputStream = new ClassPathResource( jsonFile ).getInputStream();
 
-        TrackerBundleParams params = renderService.fromJson( inputStream, TrackerBundleParams.class );
+        TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
 
         User user = userService.getUser( ADMIN_USER_UID );
         params.setUser( user );
 
         return params;
+    }
+
+    @Override
+    protected void initTest() throws IOException {
     }
 
     protected void printReport( TrackerValidationReport report )
@@ -103,25 +107,20 @@ public abstract class AbstractImportValidationTest
         return ValidateAndCommitTestUnit.builder()
             .trackerBundleService( trackerBundleService )
             .trackerValidationService( trackerValidationService )
-            .trackerBundleParams( createBundleFromJson( jsonFileName ) )
+            .trackerImportParams( createBundleFromJson( jsonFileName ) )
             .trackerImportStrategy( strategy )
             .build()
             .invoke();
     }
 
-    protected ValidateAndCommitTestUnit validateAndCommit( TrackerBundleParams params, TrackerImportStrategy strategy )
+    protected ValidateAndCommitTestUnit validateAndCommit( TrackerImportParams params, TrackerImportStrategy strategy )
     {
         return ValidateAndCommitTestUnit.builder()
             .trackerBundleService( trackerBundleService )
             .trackerValidationService( trackerValidationService )
-            .trackerBundleParams( params )
+            .trackerImportParams( params )
             .trackerImportStrategy( strategy )
             .build()
             .invoke();
-    }
-
-    protected ValidateAndCommitTestUnit validateAndCommit( TrackerBundleParams params )
-    {
-        return validateAndCommit( params, TrackerImportStrategy.CREATE_AND_UPDATE );
     }
 }

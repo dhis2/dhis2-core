@@ -1,3 +1,5 @@
+package org.hisp.dhis.tracker.programrule;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,21 +28,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.programrule;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -51,41 +45,23 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.validation.AbstractImportValidationTest;
-import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 
 import com.google.common.collect.Sets;
-
-import static org.junit.Assert.*;
 
 public class AssignValueImplementerTest
     extends AbstractImportValidationTest
 {
-    @Autowired
-    private ObjectBundleService objectBundleService;
-
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
-
-    @Autowired
-    private RenderService _renderService;
-
-    @Autowired
-    private UserService _userService;
-
     @Autowired
     private TrackerBundleService trackerBundleService;
 
@@ -106,25 +82,10 @@ public class AssignValueImplementerTest
     private final static String TEI_ATTRIBUTE_NEW_VALUE = "24.0";
 
     @Override
-    protected void setUpTest()
+    protected void initTest()
         throws IOException
     {
-        renderService = _renderService;
-        userService = _userService;
-
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
-            .fromMetadata( new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
-
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertTrue( validationReport.getErrorReports().isEmpty() );
-
-        objectBundleService.commit( bundle );
+        ObjectBundle bundle = setUpMetadata( "tracker/event_metadata.json");
 
         Program program = bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJwr" );
         DataElement dataElement = bundle.getPreheat()
@@ -172,7 +133,7 @@ public class AssignValueImplementerTest
     public void testAssignDataElementValueForEvents()
         throws IOException
     {
-        TrackerBundleParams bundleParams = createBundleFromJson( "tracker/event_events_and_enrollment.json" );
+        TrackerImportParams bundleParams = createBundleFromJson( "tracker/event_events_and_enrollment.json" );
 
         TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
 
@@ -192,7 +153,7 @@ public class AssignValueImplementerTest
     public void testAssignAttributeValueForEnrollment()
         throws IOException
     {
-        TrackerBundleParams bundleParams = createBundleFromJson( "tracker/enrollment.json" );
+        TrackerImportParams bundleParams = createBundleFromJson( "tracker/enrollment.json" );
 
         TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
 

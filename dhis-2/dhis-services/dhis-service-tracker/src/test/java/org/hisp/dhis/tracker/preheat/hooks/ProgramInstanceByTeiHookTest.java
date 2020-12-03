@@ -52,9 +52,9 @@ import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.supplier.ProgramInstanceByTeiSupplier;
 import org.junit.Before;
 import org.junit.Rule;
@@ -101,7 +101,7 @@ public class ProgramInstanceByTeiHookTest
         ProgramInstance p2 = createProgramInstance( program1 );
         ProgramInstance p3 = createProgramInstance( program1 );
 
-        TrackerPreheatParams params = TrackerPreheatParams.builder().build();
+        TrackerImportParams params = TrackerImportParams.builder().build();
 
         Event e1 = createEvent( p1, t1 );
         Event e2 = createEvent( p2, t2 );
@@ -138,7 +138,7 @@ public class ProgramInstanceByTeiHookTest
                 .getProgramInstances();
         assertThat( programInstancesByProgramAndTei, is( notNullValue() ) );
         assertThat( programInstancesByProgramAndTei.get( e4.getUid() ), hasSize( 1 ) );
-        assertThat( programInstancesByProgramAndTei.get( e4.getUid() ).get( 0 ), is( p4 ) );
+        assertThat( programInstancesByProgramAndTei.get( e4.getUid() ).get( 0 ).getUid(), is( p4.getUid() ) );
     }
 
     @Test
@@ -158,7 +158,7 @@ public class ProgramInstanceByTeiHookTest
         ProgramInstance p2 = createProgramInstance( program1 );
         ProgramInstance p3 = createProgramInstance( program1 );
 
-        TrackerPreheatParams params = TrackerPreheatParams.builder().build();
+        TrackerImportParams params = TrackerImportParams.builder().build();
 
         Event e1 = createEvent( p1, t1 );
         Event e2 = createEvent( p2, t2 );

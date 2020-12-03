@@ -30,8 +30,8 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
 import java.util.List;
 
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 
 /**
  * 
@@ -39,5 +39,5 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
  */
 public interface ClassBasedSupplierStrategy
 {
-    void add( TrackerPreheatParams params, List<List<String>> splitList, TrackerPreheat preheat );
+    void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat );
 }
