@@ -28,6 +28,7 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,13 +65,16 @@ public class GatewayAdministrationServiceTest
     @Mock
     private SmsConfigurationManager smsConfigurationManager;
 
+    @Mock
+    private PBEStringEncryptor pbeStringEncryptor;
+
     private DefaultGatewayAdministrationService subject;
 
     @Before
     public void setUp()
     {
 
-        subject = new DefaultGatewayAdministrationService( smsConfigurationManager );
+        subject = new DefaultGatewayAdministrationService( smsConfigurationManager, pbeStringEncryptor );
 
         spyConfiguration = new SmsConfiguration();
         bulkConfig = new BulkSmsGatewayConfig();
