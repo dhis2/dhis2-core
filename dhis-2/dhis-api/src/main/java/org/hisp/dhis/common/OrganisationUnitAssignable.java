@@ -1,4 +1,5 @@
-package org.hisp.dhis.webapi.controller.category;
+package org.hisp.dhis.common;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -27,18 +28,17 @@ package org.hisp.dhis.webapi.controller.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import java.util.Set;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Ameen Mohamed
  */
-@Controller
-@RequestMapping( value = CategoryOptionSchemaDescriptor.API_ENDPOINT )
-public class CategoryOptionController extends AbstractCrudController<CategoryOption>
+public interface OrganisationUnitAssignable
 {
+    Set<OrganisationUnit> getOrganisationUnits();
+
+    void setOrganisationUnits( Set<OrganisationUnit> organisationUnits );
 
 }
