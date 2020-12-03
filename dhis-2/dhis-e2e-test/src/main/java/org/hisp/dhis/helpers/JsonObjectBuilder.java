@@ -101,12 +101,6 @@ public class JsonObjectBuilder
         return this;
     }
 
-    public JsonObjectBuilder addArray ( String property ) {
-        jsonObject.add( property, new JsonArray() );
-
-        return this;
-    }
-
     public JsonObjectBuilder addArray( String property, JsonObject... objects) {
         JsonArray array = new JsonArray();
         for ( int i = 0; i < objects.length; i++ )
@@ -115,6 +109,21 @@ public class JsonObjectBuilder
         }
 
         jsonObject.add( property, array);
+
+        return this;
+    }
+
+    public JsonObjectBuilder addOrAppendToArray( String property, JsonObject... objects) {
+        if (jsonObject.has(property) ) {
+            for ( int i = 0; i < objects.length; i++ )
+            {
+                jsonObject.getAsJsonArray(property).add( objects[i] );
+            }
+        }
+
+        else {
+            addArray( property, objects );
+        }
 
         return this;
     }
