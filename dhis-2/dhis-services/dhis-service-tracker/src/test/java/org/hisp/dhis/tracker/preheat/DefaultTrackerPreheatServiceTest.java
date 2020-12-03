@@ -322,7 +322,7 @@ public class DefaultTrackerPreheatServiceTest
 
     private <T extends IdentifiableObject> T getGeneric( TrackerPreheat preheat, Class<T> klazz, String uid )
     {
-        return preheat.get( TrackerIdScheme.UID, klazz, uid );
+        return preheat.get( klazz, uid );
     }
 
     private User getUser()
