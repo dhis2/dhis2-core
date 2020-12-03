@@ -110,7 +110,7 @@ public enum TrackerErrorCode
     E1048( "Object: `{0}`, uid: `{1}`, has an invalid uid format." ),
     E1049( "Could not find OrganisationUnit: `{0}`, linked to Tracked Entity." ),
     // TODO: Delete not working yet
-    E1082( "Event: `{0}`, is already deleted." ),
+    E1082( "Event: `{0}`, is already deleted and can't be modified." ),
     E1113( "Enrollment: `{0}`, is already deleted." ),
     E1114( "TrackedEntity: `{0}`, is already deleted." ),
     E1118( "Assigned user `{0}` is not a valid uid."),
