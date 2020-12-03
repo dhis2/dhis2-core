@@ -28,6 +28,20 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
@@ -35,6 +49,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.config.*;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,14 +64,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Zubair Asghar.
@@ -77,6 +84,9 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
 
     @Mock
     private RestTemplate restTemplate;
+
+    @Mock
+    private PBEStringEncryptor pbeStringEncryptor;
 
     @InjectMocks
     private BulkSmsHttpGateway bulkSmsGateway;
@@ -104,6 +114,8 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
         outboundMessageList.add( new OutboundMessage( SUBJECT,MESSAGE, recipients ) );
 
         batch = new OutboundMessageBatch( outboundMessageList, DeliveryChannel.SMS );
+
+        when( pbeStringEncryptor.decrypt( anyString() ) ).thenReturn( smsGatewayConfig.getPassword() );
     }
 
     @Test
