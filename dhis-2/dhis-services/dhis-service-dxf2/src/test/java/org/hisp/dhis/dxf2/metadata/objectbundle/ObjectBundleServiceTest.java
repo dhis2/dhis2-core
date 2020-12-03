@@ -47,10 +47,12 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
+import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.option.OptionSet;
@@ -870,7 +872,9 @@ public class ObjectBundleServiceTest
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
         assertTrue( validate.getErrorReports().isEmpty() );
 
-        objectBundleService.commit( bundle );
+        final ObjectBundleCommitReport commitReport = objectBundleService.commit( bundle );
+        final List<ErrorReport> errorReports1 = commitReport.getErrorReports();
+        assertTrue( errorReports1.isEmpty() );
 
         Section section1 = manager.get( Section.class, "JwcV2ZifEQf" );
         assertNotNull( section1.getDataSet() );
@@ -886,7 +890,7 @@ public class ObjectBundleServiceTest
         assertEquals( 1, section2.getDataElements().size() );
         assertNotNull( section2.getDataSet() );
 
-        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/dataset_with_sections_gf_update.json" ).getInputStream(), RenderFormat.JSON );
+        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/dataset_with_sections_gf.json" ).getInputStream(), RenderFormat.JSON );
 
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -899,7 +903,7 @@ public class ObjectBundleServiceTest
 //        0 = {ErrorReport@20289} "ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Male [p99yaU6mweU] (CategoryOptionCombo)., errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryOptionCombo, errorKlass=null, value=null}"
 //        1 = {ErrorReport@20290} "ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Gender [faV8QvLgIwB] (CategoryCombo)., errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryCombo, errorKlass=null, value=null}"
         // TODO: FAILS WITH HIBERNATE 5.4!!!
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertTrue( errorReports.isEmpty() );
 
         objectBundleService.commit( bundle );
 

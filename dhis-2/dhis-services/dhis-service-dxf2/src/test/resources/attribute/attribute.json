@@ -4,7 +4,9 @@
       "id": "PtyV6lLcmol",
       "valueType": "BOOLEAN",
       "dataSetAttribute": true,
-      "name": "testAttribute"
+      "name": "testAttribute",
+      "created": "2016-02-27T03:17:51.892+0000",
+      "lastUpdated": "2016-02-27T03:17:51.965+0000"
     }
   ]
 }

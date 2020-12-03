@@ -255,7 +255,6 @@ public class CsvMetadataImportTest
     }
 
     @Test
-    @Ignore // TODO: FAILS WITH HIBERNATE 5.4!!!
     public void testImportOptionGroupSet()
         throws IOException
     {
@@ -309,7 +308,6 @@ public class CsvMetadataImportTest
 
         importReport = importService.importMetadata( params );
 
-        // TODO: FAILS WITH HIBERNATE 5.4!!!
         assertEquals( 2, importReport.getStats().getCreated() );
 
         OptionGroupSet optionGroupSetA = manager.get( OptionGroupSet.class, "FB9i0Jl2R80" );

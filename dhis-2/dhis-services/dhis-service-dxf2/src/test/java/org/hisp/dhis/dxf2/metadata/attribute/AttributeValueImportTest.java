@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.metadata.attribute;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -42,7 +41,6 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -51,25 +49,19 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class AttributeValueImportTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private RenderService renderService;
-
     @Autowired
     private MetadataImportService importService;
-
     @Autowired
     private IdentifiableObjectManager manager;
 
     @Test
-    @Ignore // TODO: FAILS WITH HIBERNATE 5.4!!!
     public void testSaveAttributeValueAfterUpdateAttribute()
         throws IOException
     {
@@ -81,7 +73,8 @@ public class AttributeValueImportTest
         params.setImportStrategy( ImportStrategy.CREATE );
         params.setObjects( attributes );
 
-        importService.importMetadata( params );
+        final ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> dataSets = renderService.fromMetadata(
             new ClassPathResource( "attribute/dataSet.json" ).getInputStream(), RenderFormat.JSON );
@@ -92,27 +85,23 @@ public class AttributeValueImportTest
         params.setObjects( dataSets );
 
         final ImportReport importReport = importService.importMetadata( params );
-        final List<ErrorReport> errorReports = importReport.getErrorReports();
-        // TODO: FAILS WITH HIBERNATE 5.4!!!
-        // PreheatErrorReport{message=Invalid reference testAttribute [PtyV6lLcmol] (Attribute) on object TestDataSet [sPnR8BCInMV] (DataSet) for association `attributeValues`., errorCode=E5002, mainKlass=class org.hisp.dhis.dataset.DataSet, errorKlass=null, value=null}
-        assertThat( importReport.getStatus(), is( Status.OK ) );
+        assertEquals( Status.OK, importReport.getStatus() );
 
-//        manager.flush();
+        manager.flush();
 
         DataSet dataSet = manager.get( DataSet.class, "sPnR8BCInMV" );
-        assertNotNull( dataSet );
         assertEquals( "true", dataSet.getAttributeValue( "PtyV6lLcmol" ).getValue() );
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> attributesUpdate = renderService
-            .fromMetadata(
-                new ClassPathResource( "attribute/attribute_update.json" ).getInputStream(), RenderFormat.JSON );
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> attributesUpdate = renderService.fromMetadata(
+            new ClassPathResource( "attribute/attribute_update.json" ).getInputStream(), RenderFormat.JSON );
 
         params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.setObjects( attributesUpdate );
 
-        importService.importMetadata( params );
+        final ImportReport importReport1 = importService.importMetadata( params );
+        assertEquals( Status.OK, importReport1.getStatus() );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> dataSetUpdate = renderService.fromMetadata(
             new ClassPathResource( "attribute/dataSet_update.json" ).getInputStream(), RenderFormat.JSON );
@@ -122,16 +111,17 @@ public class AttributeValueImportTest
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.setObjects( dataSetUpdate );
 
-        importService.importMetadata( params );
+        final ImportReport importReport2 = importService.importMetadata( params );
+        assertEquals( Status.OK, importReport2.getStatus() );
 
         DataSet updatedDataSet = manager.get( DataSet.class, "sPnR8BCInMV" );
 
         assertEquals( "false", updatedDataSet.getAttributeValue( "PtyV6lLcmol" ).getValue() );
     }
 
-//    @Override
-//    public boolean emptyDatabaseAfterTest()
-//    {
-//        return true;
-//    }
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 }

@@ -791,6 +791,7 @@ public class DefaultCsvImportService
             if ( values != null && values.length > 0 )
             {
                 OptionGroupSet optionGroupSet = new OptionGroupSet();
+                optionGroupSet.setAutoFields();
                 setIdentifiableObject( optionGroupSet, values );
                 optionGroupSet.setDescription( getSafe( values, 4, null, null ) );
                 optionGroupSet.setDataDimension( Boolean.valueOf( getSafe( values, 3,  Boolean.FALSE.toString(), 40 ) ) ); // boolean
@@ -838,7 +839,6 @@ public class DefaultCsvImportService
         CachingMap<String, OptionGroupSet> uidMap = new CachingMap<>();
         CachingMap<String, OptionGroupSet> persistedGroupSetMap = new CachingMap<>();
 
-
         while ( reader.readRecord() )
         {
             String[] values = reader.getValues();
@@ -858,12 +858,14 @@ public class DefaultCsvImportService
                 {
                     OptionGroupSet optionSetGroup = uidMap.get( groupSetUid, () -> {
                         OptionGroupSet nonPersistedGroup = new OptionGroupSet();
+                        nonPersistedGroup.setAutoFields();
                         nonPersistedGroup.setUid( persistedGroupSet.getUid() );
                         nonPersistedGroup.setName( persistedGroupSet.getName() );
                         return nonPersistedGroup;
                     } );
 
                     OptionGroup member = new OptionGroup();
+                    member.setAutoFields();
                     member.setUid( groupUid );
                     optionSetGroup.addOptionGroup( member );
                 }

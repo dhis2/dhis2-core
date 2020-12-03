@@ -416,7 +416,6 @@ public class MetadataImportServiceTest extends DhisSpringTest
     }
 
     @Test
-    @Ignore // TODO: FAILS WITH HIBERNATE 5.4!!!
     public void testMetadataSyncWithDeletedDataSetSection()
         throws IOException
     {
@@ -471,7 +470,6 @@ public class MetadataImportServiceTest extends DhisSpringTest
     }
 
     @Test
-    @Ignore // TODO: FAILS WITH HIBERNATE 5.4!!!
     public void testMetadataImportWithDeletedProgramStageSection()
         throws IOException
     {
