@@ -179,6 +179,8 @@ public class DashboardController
                     case STACKED_COLUMN:
                     case YEAR_OVER_YEAR_COLUMN:
                     case YEAR_OVER_YEAR_LINE:
+                    case SCATTER:
+                    case BUBBLE:
                         dashboardItem.setChart( convertToChart ( dashboardItem.getVisualization() ) );
                         break;
                     }
