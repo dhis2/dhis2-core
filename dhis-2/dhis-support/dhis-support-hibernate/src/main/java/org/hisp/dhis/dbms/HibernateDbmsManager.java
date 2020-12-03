@@ -362,6 +362,8 @@ public class HibernateDbmsManager
         emptyTable( "users" );
         emptyTable( "useraccess" );
         emptyTable( "usersetting" );
+        emptyTable( "fileresource" );
+        emptyTable( "trackedentitycomment" );
         emptyTable( "userinfo" );
 
         dropTable( "_orgunitstructure" );
