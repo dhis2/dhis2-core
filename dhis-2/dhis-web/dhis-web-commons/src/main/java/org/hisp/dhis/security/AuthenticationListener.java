@@ -28,9 +28,9 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Objects;
-
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
@@ -41,9 +41,11 @@ import org.springframework.security.authentication.event.AbstractAuthenticationF
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.Objects;
 
 /**
  * @author Henning Håkonsen
@@ -65,33 +67,68 @@ public class AuthenticationListener
     public void handleAuthenticationFailure( AbstractAuthenticationFailureEvent event )
     {
         Authentication auth = event.getAuthentication();
+        String username = event.getAuthentication().getName();
 
         if ( TwoFactorWebAuthenticationDetails.class.isAssignableFrom( auth.getDetails().getClass() ) )
         {
             TwoFactorWebAuthenticationDetails authDetails =
-                ( TwoFactorWebAuthenticationDetails ) auth.getDetails();
+                (TwoFactorWebAuthenticationDetails) auth.getDetails();
 
             log.info( String.format( "Login attempt failed for remote IP: %s", authDetails.getIp() ) );
         }
 
-        securityService.registerFailedLogin( auth.getName() );
+        if ( OAuth2LoginAuthenticationToken.class.isAssignableFrom( auth.getClass() ) )
+        {
+            OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) auth;
+            DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
+
+            if ( principal != null )
+            {
+                UserCredentials userCredentials = principal.getUserCredentials();
+                username = userCredentials.getUsername();
+            }
+
+            WebAuthenticationDetails details = (WebAuthenticationDetails) authenticationToken.getDetails();
+            String remoteAddress = details.getRemoteAddress();
+
+            log.info( String.format( "OIDC login attempt failed for remote IP: %s", remoteAddress ) );
+        }
+
+        securityService.registerFailedLogin( username );
     }
 
-    @EventListener({ InteractiveAuthenticationSuccessEvent.class, AuthenticationSuccessEvent.class })
+    @EventListener( { InteractiveAuthenticationSuccessEvent.class, AuthenticationSuccessEvent.class } )
     public void handleAuthenticationSuccess( AbstractAuthenticationEvent event )
     {
         Authentication auth = event.getAuthentication();
+        String username = event.getAuthentication().getName();
 
         if ( TwoFactorWebAuthenticationDetails.class.isAssignableFrom( auth.getDetails().getClass() ) )
         {
             TwoFactorWebAuthenticationDetails authDetails =
-                ( TwoFactorWebAuthenticationDetails ) auth.getDetails();
+                (TwoFactorWebAuthenticationDetails) auth.getDetails();
 
             log.debug( String.format( "Login attempt succeeded for remote IP: %s", authDetails.getIp() ) );
         }
 
-        final String username = event.getAuthentication().getName();
+        if ( OAuth2LoginAuthenticationToken.class.isAssignableFrom( auth.getClass() ) )
+        {
+            OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) auth;
+            DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
+            UserCredentials userCredentials = principal.getUserCredentials();
+            username = userCredentials.getUsername();
 
+            WebAuthenticationDetails details = (WebAuthenticationDetails) authenticationToken.getDetails();
+            String remoteAddress = details.getRemoteAddress();
+
+            log.debug( String.format( "OIDC login attempt succeeded for remote IP: %s", remoteAddress ) );
+        }
+
+        registerSuccessfulLogin( username );
+    }
+
+    private void registerSuccessfulLogin( String username )
+    {
         UserCredentials credentials = userService.getUserCredentialsByUsername( username );
 
         boolean readOnly = config.isReadOnlyMode();
