@@ -54,8 +54,6 @@ public class DefaultUserGroupService
 
     private final HibernateIdentifiableObjectStore<UserGroup> userGroupStore;
 
-    private final UserGroupCacheService userGroupCacheService;
-
     private final CurrentUserService currentUserService;
 
     private final AclService aclService;
@@ -63,16 +61,14 @@ public class DefaultUserGroupService
     private final HibernateCacheManager cacheManager;
 
     public DefaultUserGroupService( @Qualifier( "org.hisp.dhis.user.UserGroupStore" ) HibernateIdentifiableObjectStore<UserGroup> userGroupStore,
-        UserGroupCacheService userGroupCacheService, AclService aclService, HibernateCacheManager cacheManager, CurrentUserService currentUserService )
+        AclService aclService, HibernateCacheManager cacheManager, CurrentUserService currentUserService )
     {
         checkNotNull( userGroupStore );
         checkNotNull( currentUserService );
         checkNotNull( aclService );
         checkNotNull( cacheManager );
-        checkNotNull( userGroupCacheService );
 
         this.userGroupStore = userGroupStore;
-        this.userGroupCacheService = userGroupCacheService;
         this.aclService = aclService;
         this.cacheManager = cacheManager;
         this.currentUserService = currentUserService;
@@ -88,7 +84,6 @@ public class DefaultUserGroupService
     {
         userGroupStore.save( userGroup );
 
-        userGroupCacheService.put( userGroup );
         return userGroup.getId();
     }
 
@@ -97,7 +92,6 @@ public class DefaultUserGroupService
     public void deleteUserGroup( UserGroup userGroup )
     {
         userGroupStore.delete( userGroup );
-        userGroupCacheService.invalidate( userGroup.getUid() );
     }
 
     @Override
@@ -109,7 +103,6 @@ public class DefaultUserGroupService
         // Clear query cache due to sharing and user group membership
 
         cacheManager.clearQueryCache();
-        userGroupCacheService.invalidate( userGroup.getUid() );
     }
 
     @Override
@@ -175,7 +168,6 @@ public class DefaultUserGroupService
                 UserGroup userGroup = getUserGroup( uid );
                 userGroup.addUser( user );
                 userGroupStore.updateNoAcl( userGroup );
-                userGroupCacheService.invalidate( uid );
             }
         }
     }
@@ -191,7 +183,6 @@ public class DefaultUserGroupService
                 UserGroup userGroup = getUserGroup( uid );
                 userGroup.removeUser( user );
                 userGroupStore.updateNoAcl( userGroup );
-                userGroupCacheService.invalidate( uid );
             }
         }
     }
@@ -223,7 +214,6 @@ public class DefaultUserGroupService
             {
                 userGroup.addUser( user );
                 userGroupStore.updateNoAcl( userGroup );
-                userGroupCacheService.put( userGroup );
             }
         }
     }

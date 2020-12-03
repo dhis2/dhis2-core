@@ -41,7 +41,6 @@ import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupCacheService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.springframework.stereotype.Service;
@@ -64,15 +63,11 @@ public class DefaultAclService implements AclService
 {
     private final SchemaService schemaService;
 
-    private final UserGroupCacheService userGroupCacheService;
-
-    public DefaultAclService( SchemaService schemaService, UserGroupCacheService userGroupCacheService  )
+    public DefaultAclService( SchemaService schemaService )
     {
         checkNotNull( schemaService );
-        checkNotNull( userGroupCacheService );
 
         this.schemaService = schemaService;
-        this.userGroupCacheService = userGroupCacheService;
     }
 
     @Override

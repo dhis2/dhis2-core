@@ -85,8 +85,6 @@ public class DefaultUserService
 
     private final UserCredentialsStore userCredentialsStore;
 
-    private final UserGroupCacheService userGroupCacheService;
-
     private final UserAuthorityGroupStore userAuthorityGroupStore;
 
     private final CurrentUserService currentUserService;
@@ -100,7 +98,7 @@ public class DefaultUserService
     public DefaultUserService( UserStore userStore, UserGroupService userGroupService,
         UserCredentialsStore userCredentialsStore, UserAuthorityGroupStore userAuthorityGroupStore,
         CurrentUserService currentUserService, SystemSettingManager systemSettingManager,
-        @Lazy PasswordManager passwordManager, @Lazy SessionRegistry sessionRegistry, UserGroupCacheService userGroupCacheService )
+        @Lazy PasswordManager passwordManager, @Lazy SessionRegistry sessionRegistry )
     {
         checkNotNull( userStore );
         checkNotNull( userGroupService );
@@ -109,7 +107,6 @@ public class DefaultUserService
         checkNotNull( systemSettingManager );
         checkNotNull( passwordManager );
         checkNotNull( sessionRegistry );
-        checkNotNull( userGroupCacheService );
 
         this.userStore = userStore;
         this.userGroupService = userGroupService;
@@ -119,7 +116,6 @@ public class DefaultUserService
         this.systemSettingManager = systemSettingManager;
         this.passwordManager = passwordManager;
         this.sessionRegistry = sessionRegistry;
-        this.userGroupCacheService = userGroupCacheService;
     }
 
     // -------------------------------------------------------------------------
@@ -138,8 +134,6 @@ public class DefaultUserService
 
         userStore.save( user );
 
-        userGroupCacheService.updateUser( user );
-
         return user.getId();
     }
 
@@ -148,8 +142,6 @@ public class DefaultUserService
     public void updateUser( User user )
     {
         userStore.update( user );
-
-        userGroupCacheService.updateUser( user );
 
         AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_UPDATE );
     }
