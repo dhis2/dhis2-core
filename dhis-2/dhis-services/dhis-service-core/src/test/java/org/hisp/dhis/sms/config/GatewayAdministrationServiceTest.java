@@ -48,6 +48,7 @@ public class GatewayAdministrationServiceTest
 {
     private static final String BULKSMS = "bulksms";
     private static final String CLICKATELL = "clickatell";
+    private static final String CLICKATELL_UPDATED = "clickatell-updated";
     private static final String GENERIC_GATEWAY = "generic";
 
     private BulkSmsGatewayConfig bulkConfig;
@@ -141,7 +142,6 @@ public class GatewayAdministrationServiceTest
         assertTrue( subject.addGateway( bulkConfig ) );
         assertEquals( bulkConfig, subject.getDefaultGateway() );
         assertEquals( BULKSMS, subject.getDefaultGateway().getName() );
-        assertEquals( bulkConfig, subject.getDefaultGateway() );
 
         BulkSmsGatewayConfig updated = new BulkSmsGatewayConfig();
         updated.setName( "changedbulksms" );
@@ -159,22 +159,21 @@ public class GatewayAdministrationServiceTest
         assertTrue( subject.addGateway( bulkConfig ) );
         assertEquals( bulkConfig, subject.getDefaultGateway() );
         assertEquals( BULKSMS, subject.getDefaultGateway().getName() );
-        assertEquals( bulkConfig, subject.getDefaultGateway() );
 
         subject.addGateway( clickatellConfig );
 
         assertEquals( 2, spyConfiguration.getGateways().size() );
 
         ClickatellGatewayConfig updated = new ClickatellGatewayConfig();
-        updated.setName( "changedclickatell" );
+        updated.setName( CLICKATELL_UPDATED );
         updated.setUid( "tempUId" );
 
         subject.updateGateway( clickatellConfig, updated );
 
         assertEquals( 2, subject.getGatewayConfigurationMap().size() );
         assertTrue( subject.getGatewayConfigurationMap().get( BULKSMS ).isDefault() );
-        assertFalse( subject.getGatewayConfigurationMap().get( CLICKATELL ).isDefault() );
-        assertNotEquals( "tempUId", subject.getGatewayConfigurationMap().get( CLICKATELL ).getUid() );
+        assertFalse( subject.getGatewayConfigurationMap().get( CLICKATELL_UPDATED ).isDefault() );
+        assertNotEquals( "tempUId", subject.getGatewayConfigurationMap().get( CLICKATELL_UPDATED ).getUid() );
     }
 
     @Test
