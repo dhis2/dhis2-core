@@ -28,11 +28,6 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
@@ -40,6 +35,10 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This supplier adds to the pre-heat object a List of all Program Stages UIDs
@@ -52,11 +51,11 @@ import org.springframework.stereotype.Component;
 public class ProgramStageInstanceProgramStageMapSupplier
     extends JdbcAbstractPreheatSupplier
 {
-    private final static String PS_UID = "programStageUid";
+    private static final String PS_UID = "programStageUid";
 
-    private final static String PI_UID = "programInstanceUid";
+    private static final String PI_UID = "programInstanceUid";
 
-    private final static String SQL = "select ps.uid as " + PS_UID + ", pi.uid as " + PI_UID + " " +
+    private static final String SQL = "select ps.uid as " + PS_UID + ", pi.uid as " + PI_UID + " " +
         " from programstage AS ps " +
         " JOIN programinstance AS pi ON pi.programid = ps.programid " +
         " where exists( select programstageinstanceid from programstageinstance psi where  psi.deleted = false " +

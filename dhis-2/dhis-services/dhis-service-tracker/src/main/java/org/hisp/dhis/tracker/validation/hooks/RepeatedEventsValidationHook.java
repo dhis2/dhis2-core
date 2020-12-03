@@ -81,6 +81,7 @@ public class RepeatedEventsValidationHook
         return rootReporter;
     }
 
+    @Override
     public boolean removeOnError()
     {
         return true;
