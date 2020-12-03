@@ -96,8 +96,6 @@ public class TrackerImporter_teiValidationTests
 
         // assert
         TrackerApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
-
-        response.prettyPrint();
         response
             .validateSuccessfulImport();
     }
@@ -113,7 +111,6 @@ public class TrackerImporter_teiValidationTests
         // assert
         TrackerApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
 
-        response.prettyPrint();
         response
             .validateErrorReport()
             .body( "message[0]",
@@ -137,7 +134,7 @@ public class TrackerImporter_teiValidationTests
 
         JsonObject trackedEntityTypePayload = trackedEntityTypeActions.get( trackedEntityType ).getBody();
 
-        trackedEntityTypePayload = new JsonObjectBuilder(trackedEntityTypePayload)
+        new JsonObjectBuilder(trackedEntityTypePayload)
             .addOrAppendToArray( "trackedEntityTypeAttributes",
                 new JsonObjectBuilder()
                 .addProperty( "mandatory", "true" )
@@ -147,7 +144,5 @@ public class TrackerImporter_teiValidationTests
 
         trackedEntityTypeActions.update( trackedEntityType, trackedEntityTypePayload ).validate().statusCode( 200 );
 
-        mandatoryAttribute = trackedEntityTypeActions.get(trackedEntityType, new QueryParamsBuilder().addAll( "fields=trackedEntityTypeAttributes", "filter=trackedEntityTypeAttributes.mandatory:eq:true" ) )
-            .extractString( "trackedEntityTypeAttributes.trackedEntityAttribute.id[0]" );
     }
 }
