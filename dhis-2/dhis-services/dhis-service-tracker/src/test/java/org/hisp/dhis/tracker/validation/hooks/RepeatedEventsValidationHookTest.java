@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.program.ProgramStage;
@@ -47,6 +48,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.util.List;
+import java.util.function.Function;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -114,9 +116,13 @@ public class RepeatedEventsValidationHookTest
 
         ValidationErrorReporter errorReporter = validatorToTest.validate( ctx );
 
-        assertEquals( 1, errorReporter.getReportList().size() );
+        assertEquals( 2, errorReporter.getReportList().size() );
         assertThat( errorReporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1039 ) );
         assertThat( errorReporter.getReportList().get( 0 ).getErrorMessage(),
+            is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE +
+                "`, is not repeatable and an event already exists." ) );
+        assertThat( errorReporter.getReportList().get( 1 ).getErrorCode(), is( TrackerErrorCode.E1039 ) );
+        assertThat( errorReporter.getReportList().get( 1 ).getErrorMessage(),
             is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE +
                 "`, is not repeatable and an event already exists." ) );
     }

@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
@@ -38,9 +39,14 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * This validator checks if in the payload there is more than one valid event per enrollment
+ * based on a ProgramStage that is not repeatable.
+ *
+ * @author Enrico Colasante
+ */
 @Component
 public class RepeatedEventsValidationHook
     extends AbstractTrackerDtoValidationHook
@@ -49,29 +55,34 @@ public class RepeatedEventsValidationHook
     public ValidationErrorReporter validate( TrackerImportValidationContext context )
     {
         TrackerBundle bundle = context.getBundle();
-        final ValidationErrorReporter reporter = new ValidationErrorReporter( context );
 
         ValidationErrorReporter rootReporter = context.getRootReporter();
 
-        Map<String, List<Event>> eventsByNotRepeatableProgramStage = bundle.getEvents()
+        Map<Pair<String, String>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage = bundle.getEvents()
             .stream()
             .filter( e -> !rootReporter.isInvalid( TrackerType.EVENT, e.getEvent() ) )
             .filter( e -> !context.getProgramStage( e.getProgramStage() ).getRepeatable() )
-            .collect( Collectors.groupingBy( Event::getProgramStage ) );
+            .collect( Collectors.groupingBy( e -> Pair.of( e.getProgramStage(), e.getEnrollment() ) ) );
 
-        for ( Map.Entry<String, List<Event>> mapEntry : eventsByNotRepeatableProgramStage.entrySet() )
+        for ( Map.Entry<Pair<String, String>, List<Event>> mapEntry : eventsByEnrollmentAndNotRepeatableProgramStage
+            .entrySet() )
         {
-            Map<String, List<Event>> eventsByEnrollment = mapEntry.getValue()
-                .stream()
-                .collect( Collectors.groupingBy( Event::getEnrollment ) );
-            for ( Map.Entry<String, List<Event>> entry : eventsByEnrollment.entrySet() ) {
-                if (entry.getValue().size() > 1) {
-                    addError( reporter, TrackerErrorCode.E1039, mapEntry.getKey() );
+            if ( mapEntry.getValue().size() > 1 )
+            {
+                for ( Event event : mapEntry.getValue() )
+                {
+                    final ValidationErrorReporter reporter = new ValidationErrorReporter( context, event );
+                    addError( reporter, TrackerErrorCode.E1039, mapEntry.getKey().getLeft() );
+                    context.getRootReporter().merge( reporter );
                 }
             }
         }
 
-        context.getRootReporter().merge( reporter );
         return rootReporter;
+    }
+
+    public boolean removeOnError()
+    {
+        return true;
     }
 }
