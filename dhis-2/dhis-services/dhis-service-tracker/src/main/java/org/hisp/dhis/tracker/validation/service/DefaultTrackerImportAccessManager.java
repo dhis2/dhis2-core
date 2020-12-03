@@ -37,6 +37,8 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -57,26 +59,15 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
+@RequiredArgsConstructor
 public class DefaultTrackerImportAccessManager
     implements TrackerImportAccessManager
 {
-    private final AclService aclService;
+    @NonNull private final AclService aclService;
 
-    private final TrackerOwnershipManager ownershipAccessManager;
+    @NonNull private final TrackerOwnershipManager ownershipAccessManager;
 
-    private final OrganisationUnitService organisationUnitService;
-
-    public DefaultTrackerImportAccessManager( AclService aclService, TrackerOwnershipManager ownershipAccessManager,
-        OrganisationUnitService organisationUnitService )
-    {
-        checkNotNull( aclService );
-        checkNotNull( ownershipAccessManager );
-        checkNotNull( organisationUnitService );
-
-        this.aclService = aclService;
-        this.ownershipAccessManager = ownershipAccessManager;
-        this.organisationUnitService = organisationUnitService;
-    }
+    @NonNull private final OrganisationUnitService organisationUnitService;
 
     public void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, OrganisationUnit orgUnit )
     {

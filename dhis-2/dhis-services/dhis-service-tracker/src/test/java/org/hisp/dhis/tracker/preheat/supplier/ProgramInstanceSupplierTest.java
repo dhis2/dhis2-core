@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -39,12 +39,14 @@ public class ProgramInstanceSupplierTest
     public void verifySupplier()
     {
         final List<ProgramInstance> programInstances = rnd.randomObjects( ProgramInstance.class, 5 );
+        // set the OrgUnit parent to null to avoid recursive errors when mapping
+        programInstances.forEach( p -> p.getOrganisationUnit().setParent( null ) );
         when( store.getByType( WITHOUT_REGISTRATION ) ).thenReturn( programInstances );
 
-        final TrackerPreheatParams preheatParams = TrackerPreheatParams.builder().build();
+        final TrackerImportParams params = TrackerImportParams.builder().build();
 
         TrackerPreheat preheat = new TrackerPreheat();
-        this.supplier.preheatAdd( preheatParams, preheat );
+        this.supplier.preheatAdd( params, preheat );
 
         final List<String> programUids = programInstances.stream().map( pi -> pi.getProgram().getUid() )
             .collect( Collectors.toList() );

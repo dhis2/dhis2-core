@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.CodeGenerator;
@@ -100,7 +101,15 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         assertThat( trackedEntityInstances, hasSize( 4 ) );
         assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 0 ) );
-
+        
+        //Check further for explicit uid in param
+        queryParams.getTrackedEntityInstanceUids()
+            .addAll( trackedEntityInstances.stream().limit( 2 ).map( t -> t.getTrackedEntityInstance() ).collect( Collectors.toSet() ) );
+        
+        final List<TrackedEntityInstance> limitedTTrackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances2( queryParams, params, false );
+ 
+        assertThat( limitedTTrackedEntityInstances, hasSize( 2 ) );
     }
 
     @Test

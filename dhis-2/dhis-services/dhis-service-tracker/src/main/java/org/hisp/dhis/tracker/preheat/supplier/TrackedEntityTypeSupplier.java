@@ -31,8 +31,10 @@ package org.hisp.dhis.tracker.preheat.supplier;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.hisp.dhis.tracker.preheat.mappers.TrackedEntityTypeMapper;
 import org.springframework.stereotype.Component;
 
 import lombok.NonNull;
@@ -43,14 +45,16 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 @Component
-public class TrackedEntityTypeSupplier extends AbstractPreheatSupplier
+public class TrackedEntityTypeSupplier
+    extends AbstractPreheatSupplier
 {
     @NonNull
     private final IdentifiableObjectManager manager;
 
     @Override
-    public void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat )
+    public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat )
     {
-        preheat.put( TrackerIdentifier.UID, manager.getAll( TrackedEntityType.class ) );
+        preheat.put( TrackerIdentifier.UID,
+            DetachUtils.detach( TrackedEntityTypeMapper.INSTANCE, manager.getAll( TrackedEntityType.class ) ) );
     }
 }

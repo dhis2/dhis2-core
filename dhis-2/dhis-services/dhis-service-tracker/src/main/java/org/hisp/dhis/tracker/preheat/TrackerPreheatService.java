@@ -28,6 +28,8 @@ package org.hisp.dhis.tracker.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.tracker.TrackerImportParams;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -38,12 +40,12 @@ public interface TrackerPreheatService
      *
      * @param params Params for preheating
      */
-    TrackerPreheat preheat( TrackerPreheatParams params );
+    TrackerPreheat preheat( TrackerImportParams params );
 
     /**
      * Validate PreheatParams.
      *
      * @param params PreheatParams
      */
-    void validate( TrackerPreheatParams params );
+    void validate( TrackerImportParams params );
 }

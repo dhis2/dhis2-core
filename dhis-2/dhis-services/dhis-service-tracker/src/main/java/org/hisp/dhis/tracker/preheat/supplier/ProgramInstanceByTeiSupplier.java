@@ -45,9 +45,11 @@ import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.hisp.dhis.tracker.preheat.mappers.ProgramInstanceMapper;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
@@ -64,7 +66,7 @@ public class ProgramInstanceByTeiSupplier extends AbstractPreheatSupplier
     private static final String KEY_SEPARATOR = "-";
 
     @Override
-    public void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat )
+    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
         final Map<TrackerIdScheme, Map<String, ProgramInstance>> enrollmentsMap = preheat.getEnrollments();
         final Map<String, ProgramInstance> enrollments = enrollmentsMap.getOrDefault( TrackerIdScheme.UID,
@@ -84,7 +86,7 @@ public class ProgramInstanceByTeiSupplier extends AbstractPreheatSupplier
         }
     }
 
-    private List<Event> getEventsWithoutProgramInstance( TrackerPreheatParams params, List<String> enrollmentsUid )
+    private List<Event> getEventsWithoutProgramInstance( TrackerImportParams params, List<String> enrollmentsUid )
     {
         return params.getEvents().stream().filter( e -> !enrollmentsUid.contains( e.getEnrollment() ) )
             .collect( Collectors.toList() );
@@ -121,7 +123,7 @@ public class ProgramInstanceByTeiSupplier extends AbstractPreheatSupplier
             {
                 final List<ProgramInstance> programInstances = result.getOrDefault( event.getUid(), new ArrayList<>() );
                 programInstances.add( pi );
-                result.put( event.getEvent(), programInstances );
+                result.put( event.getEvent(), DetachUtils.detach( ProgramInstanceMapper.INSTANCE, programInstances ) );
             }
         }
 

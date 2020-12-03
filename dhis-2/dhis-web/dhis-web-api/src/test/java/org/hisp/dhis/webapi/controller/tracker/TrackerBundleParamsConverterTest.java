@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.converter;
+package org.hisp.dhis.webapi.controller.tracker;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -39,8 +39,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.tracker.AtomicMode;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -90,8 +88,7 @@ public class TrackerBundleParamsConverterTest
         trackedEntity.setRelationships( relationships1 );
 
         TrackerBundleParams build = TrackerBundleParams.builder()
-            .trackedEntities( Collections.singletonList( trackedEntity ) )
-            .atomicMode( AtomicMode.ALL ).build();
+            .trackedEntities( Collections.singletonList( trackedEntity ) ).build();
 
         String jsonPayload = toJson( build );
         TrackerBundleParams b2 = this.objectMapper.readValue( jsonPayload, TrackerBundleParams.class );
@@ -126,7 +123,7 @@ public class TrackerBundleParamsConverterTest
 
         TrackerBundleParams build = TrackerBundleParams.builder()
             .trackedEntities( Collections.singletonList( trackedEntity ) )
-            .atomicMode( AtomicMode.ALL ).build();
+            .build();
 
         String jsonPayload = toJson( build );
         TrackerBundleParams b2 = this.objectMapper.readValue( jsonPayload, TrackerBundleParams.class );
@@ -162,7 +159,7 @@ public class TrackerBundleParamsConverterTest
 
         TrackerBundleParams build = TrackerBundleParams.builder()
             .trackedEntities( Collections.singletonList( trackedEntity ) )
-            .atomicMode( AtomicMode.ALL ).build();
+            .build();
 
         String jsonPayload = toJson( build );
         TrackerBundleParams b2 = this.objectMapper.readValue( jsonPayload, TrackerBundleParams.class );

@@ -29,8 +29,8 @@ package org.hisp.dhis.tracker.preheat.supplier;
  */
 
 import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.springframework.stereotype.Component;
 
 import lombok.NonNull;
@@ -47,7 +47,7 @@ public class PeriodTypeSupplier extends AbstractPreheatSupplier
     private final PeriodStore periodStore;
 
     @Override
-    public void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat )
+    public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat )
     {
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
         periodStore.getAllPeriodTypes()
