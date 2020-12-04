@@ -64,7 +64,10 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.common.ReportingRateMetric.*;
+import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS;
+import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS_ON_TIME;
+import static org.hisp.dhis.common.ReportingRateMetric.EXPECTED_REPORTS;
+import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE_ON_TIME;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
@@ -142,7 +145,6 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.util.Timer;
 import org.hisp.dhis.visualization.Visualization;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -758,8 +760,34 @@ public class DefaultAnalyticsService
 
                     if ( dataSetPt.equalsName( DailyPeriodType.NAME ) )
                     {
-                        Period period = PeriodType.getPeriodFromIsoString( dataRow.get( periodIndex ) );
-                        target = target * period.getDaysInPeriod() * timeUnits;
+                        boolean hasPeriodInDimension = periodIndex != -1;
+
+                        // If we enter here, it means there is a "pe" in the dimension parameter.
+                        if ( hasPeriodInDimension )
+                        {
+                            final Period period = PeriodType.getPeriodFromIsoString( dataRow.get( periodIndex ) );
+
+                            target = target * period.getDaysInPeriod() * timeUnits;
+                        }
+                        else
+                        {
+                            // If we reach here, it means that we should have a "pe" dimension in the filter
+                            // parameter.
+                            final List<DimensionalItemObject> periods = params.getFilterPeriods();
+
+                            if ( isNotEmpty( periods ) )
+                            {
+                                int totalOfDayInPeriod = 0;
+
+                                for ( final DimensionalItemObject itemObject : periods )
+                                {
+                                    final Period period = (Period) itemObject;
+                                    totalOfDayInPeriod += period.getDaysInPeriod();
+                                }
+
+                                target += target * totalOfDayInPeriod;
+                            }
+                        }
                     }
                     else
                     {
@@ -1164,7 +1192,7 @@ public class DefaultAnalyticsService
     }
 
     /**
-     * Generates a mapping between the the data set dimension key and the count
+     * Generates a mapping between the data set dimension key and the count
      * of expected data sets to report.
      *
      * @param params the {@link DataQueryParams}.
