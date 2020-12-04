@@ -63,7 +63,7 @@ public class RepeatedEventsValidationHook
         Map<Pair<String, String>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage = bundle.getEvents()
             .stream()
             .filter( e -> !rootReporter.isInvalid( TrackerType.EVENT, e.getEvent() ) )
-            .filter( e -> !StringUtils.isEmpty( e.getEnrollment() ) )
+            .filter( e -> context.getProgram( e.getProgram() ).isRegistration() )
             .filter( e -> !context.getProgramStage( e.getProgramStage() ).getRepeatable() )
             .collect( Collectors.groupingBy( e -> Pair.of( e.getProgramStage(), e.getEnrollment() ) ) );
 

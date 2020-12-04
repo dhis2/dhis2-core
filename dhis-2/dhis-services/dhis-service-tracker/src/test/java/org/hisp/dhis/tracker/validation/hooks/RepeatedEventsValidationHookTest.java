@@ -28,10 +28,11 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -48,7 +49,6 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.util.List;
-import java.util.function.Function;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -65,6 +65,10 @@ public class RepeatedEventsValidationHookTest
     private final static String NOT_REPEATABLE_PROGRAM_STAGE = "NOT_REPEATABLE_PROGRAM_STAGE";
 
     private final static String REPEATABLE_PROGRAM_STAGE = "REPEATABLE_PROGRAM_STAGE";
+
+    private final static String PROGRAM_WITH_REGISTRATION = "PROGRAM_WITH_REGISTRATION";
+
+    private final static String PROGRAM_WITHOUT_REGISTRATION = "PROGRAM_WITHOUT_REGISTRATION";
 
     private final static String ENROLLMENT_A = "ENROLLMENT_A";
 
@@ -95,6 +99,10 @@ public class RepeatedEventsValidationHookTest
             .thenReturn( notRepeatebleProgramStage() );
         when( preheat.get( TrackerIdScheme.UID, ProgramStage.class, REPEATABLE_PROGRAM_STAGE ) )
             .thenReturn( repeatebleProgramStage() );
+        when( preheat.get( TrackerIdScheme.UID, Program.class, PROGRAM_WITH_REGISTRATION ) )
+            .thenReturn( programWithRegistration() );
+        when( preheat.get( TrackerIdScheme.UID, Program.class, PROGRAM_WITHOUT_REGISTRATION ) )
+            .thenReturn( programWithoutRegistration() );
     }
 
     @Test
@@ -192,11 +200,26 @@ public class RepeatedEventsValidationHookTest
         return programStage;
     }
 
+    private Program programWithRegistration()
+    {
+        Program program = createProgram( 'A' );
+        program.setProgramType( ProgramType.WITH_REGISTRATION );
+        return program;
+    }
+
+    private Program programWithoutRegistration()
+    {
+        Program program = createProgram( 'B' );
+        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+        return program;
+    }
+
     private Event programEvent( String uid )
     {
         Event event = new Event();
         event.setEvent( uid );
         event.setUid( uid );
+        event.setProgram( PROGRAM_WITHOUT_REGISTRATION );
         event.setProgramStage( NOT_REPEATABLE_PROGRAM_STAGE );
         return event;
     }
@@ -206,6 +229,7 @@ public class RepeatedEventsValidationHookTest
         Event event = new Event();
         event.setEvent( uid );
         event.setUid( uid );
+        event.setProgram( PROGRAM_WITH_REGISTRATION );
         event.setEnrollment( ENROLLMENT_A );
         event.setProgramStage( NOT_REPEATABLE_PROGRAM_STAGE );
         return event;
@@ -216,6 +240,7 @@ public class RepeatedEventsValidationHookTest
         Event event = new Event();
         event.setEvent( uid );
         event.setUid( uid );
+        event.setProgram( PROGRAM_WITH_REGISTRATION );
         event.setEnrollment( ENROLLMENT_A );
         event.setProgramStage( REPEATABLE_PROGRAM_STAGE );
         return event;
