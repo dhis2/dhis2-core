@@ -248,13 +248,10 @@ public class EventImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
-        assertEquals( 2, report.getErrorReports().size() );
+        assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1088 ) ) ) );
-
-        assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1035 ) ) ) );
     }
 
     @Test
@@ -269,10 +266,25 @@ public class EventImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
-        assertEquals( 2, report.getErrorReports().size() );
+        assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1086 ) ) ) );
+    }
+
+    @Test
+    public void testEventMissingProgramStageProgramIsWithoutRegistration()
+        throws IOException
+    {
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-pstage-missing-withoutreg.json" );
+
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
+            TrackerImportStrategy.CREATE );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1035 ) ) ) );

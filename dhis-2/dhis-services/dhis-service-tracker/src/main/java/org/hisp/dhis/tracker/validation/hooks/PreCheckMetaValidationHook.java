@@ -187,14 +187,10 @@ public class PreCheckMetaValidationHook
             addError( reporter, E1086, event, program );
         }
 
-        if ( program != null )
+        if ( program != null && programStage == null && program.isWithoutRegistration() )
         {
-            programStage = (programStage == null && program.isWithoutRegistration())
-                ? program.getProgramStageByStage( 1 )
-                : programStage;
+            addErrorIfNull( program.getProgramStageByStage( 1 ), reporter, E1035, event );
         }
-
-        addErrorIfNull( programStage, reporter, E1035, event );
 
         if ( program != null && programStage != null && !program.equals( programStage.getProgram() ) )
         {
