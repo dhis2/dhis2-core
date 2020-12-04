@@ -39,6 +39,7 @@ import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -207,7 +208,7 @@ public class TrackerPreheat
      */
     @Getter
     @Setter
-    private List<String> programStageWithEvents = Lists.newArrayList();
+    private List<Pair<String, String>> programStageWithEvents = Lists.newArrayList();
     
     /**
      * Identifier map
