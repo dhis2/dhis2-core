@@ -3,7 +3,7 @@
     {
       "scheduledAt": "2019-08-19T13:59:13.688",
       "program": "E8o1E9tAppy",
-      "event": "uLxFbxfYDQE",
+      "event": "MYj8T7AyyH2",
       "programStage": "Qmqxq907VNz",
       "orgUnit": "QfUVllTs6cS",
       "trackedEntity": "Kj6vYde4LHh",
@@ -17,13 +17,13 @@
       "dataValues": [],
       "notes": [
         {
-          "value": "this is the 4th note"
+          "value": "this is the first note"
         },
         {
-          "value": "this is the 5th note"
+          "value": "this is the second note"
         },
         {
-          "value": "this is the 6th note"
+          "value": "this is the third note"
         },
         {
           "value": ""

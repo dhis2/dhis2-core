@@ -167,6 +167,7 @@ public abstract class TrackerTest extends TransactionalIntegrationTestBase
         assertTrue( report.getValidationReport().getErrorReports().isEmpty() );
     }
 
+    @Override
     public boolean emptyDatabaseAfterTest()
     {
         return true;

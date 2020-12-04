@@ -73,6 +73,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Every.everyItem;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -95,6 +96,12 @@ public class EventImportValidationTest
 
     @Autowired
     private ProgramStageInstanceService programStageServiceInstance;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest()
@@ -800,7 +807,7 @@ public class EventImportValidationTest
 
         // When
         
-        ValidateAndCommitTestUnit createAndUpdate = createEvent("tracker/validations/events-with-notes-data.json");
+        ValidateAndCommitTestUnit createAndUpdate = createEvent("tracker/validations/events-with-notes-data-add.json");
         
         // Then
         
@@ -816,7 +823,7 @@ public class EventImportValidationTest
             assertTrue( comment.getCreated().getTime() > now.getTime() );
             assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
             assertNull( comment.getCreator() );
-            assertNull( comment.getLastUpdatedBy() );
+            assertNotNull( comment.getLastUpdatedBy() );
         } );
     }
 
@@ -846,7 +853,8 @@ public class EventImportValidationTest
             assertTrue( comment.getCreated().getTime() > now.getTime() );
             assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
             assertNull( comment.getCreator() );
-            assertNull( comment.getLastUpdatedBy() );
+            assertNotNull( comment.getLastUpdatedBy() );
+
         } );
     }
 

@@ -28,12 +28,12 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -83,14 +83,6 @@ public class UserGroupDeletionHandler
         }
     }
     
-    @Override
-    public String allowDeleteUserGroup( UserGroup group )
-    {
-        int count = jdbcTemplate.queryForObject( "select count(*) from usergroupaccess where usergroupid=" + group.getId(), Integer.class );
-        
-        return count == 0 ? null : "";
-    }
-
     @Override
     public void deleteUserGroup( UserGroup userGroup )
     {
