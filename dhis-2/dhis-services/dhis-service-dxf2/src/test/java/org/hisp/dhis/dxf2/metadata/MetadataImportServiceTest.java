@@ -28,18 +28,7 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.xml.xpath.XPathExpressionException;
-
+import com.google.common.collect.Sets;
 import org.hibernate.MappingException;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -75,7 +64,21 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import com.google.common.collect.Sets;
+import javax.xml.xpath.XPathExpressionException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -262,7 +265,6 @@ public class MetadataImportServiceTest extends DhisSpringTest
     }
 
     @Test
-    @Ignore // TODO: FAILS WITH HIBERNATE 5.4!!!
     public void testImportEmbeddedObjectWithSkipSharingIsTrue()
         throws IOException
     {
@@ -294,12 +296,7 @@ public class MetadataImportServiceTest extends DhisSpringTest
         assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUserUid() );
         assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
 
-        Visualization dataElementOperandVisualization = manager.get( Visualization.class, "qD72aBqsHvt" );
-        assertNotNull( dataElementOperandVisualization );
-        assertEquals( 2, dataElementOperandVisualization.getDataDimensionItems().size() );
-        dataElementOperandVisualization.getDataDimensionItems()
-            .stream()
-            .forEach( item -> assertNotNull( item.getDataElementOperand() ) );
+        manager.flush();
 
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(),
@@ -311,11 +308,18 @@ public class MetadataImportServiceTest extends DhisSpringTest
         params.setObjects( metadata );
         params.setSkipSharing( true );
 
+        manager.flush();
+
         report = importService.importMetadata( params );
         final List<ErrorReport> errorReports = report.getErrorReports();
-        // TODO: FAILS WITH HIBERNATE 5.4!!!
-        // 1 error: ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Gender [v7n8H4aj8Cg] (CategoryCombo)., errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryCombo, errorKlass=null, value=null}
+        for ( ErrorReport errorReport : errorReports )
+        {
+            log.error( "Error report:"+errorReport );
+        }
+        // TODO: FAILS WITH HIBERNATE 5.4!!! ONLY SOMETIMES..... not failing when using debugger
+        // * ERROR 13:26:43,008 Error report:ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Gender [v7n8H4aj8Cg] (CategoryCombo)., errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryCombo, errorKlass=null, value=null} (MetadataImportServiceTest.java [main])
         assertEquals( Status.OK, report.getStatus() );
+
         visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
         assertNotNull( visualization );
         assertEquals( 1, visualization.getUserGroupAccesses().size() );
@@ -325,11 +329,9 @@ public class MetadataImportServiceTest extends DhisSpringTest
     }
 
     @Test
-    @Ignore // TODO: FAILS WITH HIBERNATE 5.4!!!
     public void testImportEmbeddedObjectWithSkipSharingIsFalse()
         throws IOException
     {
-
         User user = createUser( 'A' );
         manager.save( user );
 
@@ -358,6 +360,8 @@ public class MetadataImportServiceTest extends DhisSpringTest
         assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUserUid() );
         assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
 
+        manager.flush();
+
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(),
             RenderFormat.JSON );
@@ -367,6 +371,8 @@ public class MetadataImportServiceTest extends DhisSpringTest
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.setObjects( metadata );
         params.setSkipSharing( false );
+
+        manager.flush();
 
         report = importService.importMetadata( params );
         final List<ErrorReport> errorReports = report.getErrorReports();
