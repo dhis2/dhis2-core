@@ -28,17 +28,26 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.query.operators.EqualOperator;
-import org.hisp.dhis.query.operators.NullOperator;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Arrays;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.mock.MockCurrentUserService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.query.operators.EmptyOperator;
+import org.hisp.dhis.query.operators.EqualOperator;
+import org.hisp.dhis.query.operators.InOperator;
+import org.hisp.dhis.query.operators.NullOperator;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.user.User;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -46,8 +55,26 @@ import static org.junit.Assert.assertTrue;
 public class QueryParserTest
     extends DhisSpringTest
 {
-    @Autowired
     private QueryParser queryParser;
+    
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
+    
+    @Autowired
+    private SchemaService schemaService;
+    
+  
+    @Override
+    protected void setUpTest()
+        throws Exception
+    {
+        
+        OrganisationUnit orgUnitA =  createOrganisationUnit( 'A' ) ;
+        organisationUnitService.addOrganisationUnit( orgUnitA ); 
+        User user = createUser( 'A' );
+        user.addOrganisationUnit( orgUnitA );
+        queryParser = new DefaultQueryParser( schemaService, new MockCurrentUserService( user ), organisationUnitService );
+    }
 
     @Test( expected = QueryParserException.class )
     public void failedFilters() throws QueryParserException
@@ -93,6 +120,35 @@ public class QueryParserTest
     public void eqOperatorDeepPathFail() throws QueryParserException
     {
         queryParser.parse( DataElement.class, Arrays.asList( "dataElementGroups.id.name:eq:1", "dataElementGroups.id.abc:eq:2" ) );
+    }
+    
+    @Test
+    public void restrictToCaptureScopeCriterions()
+    {
+        Query query = queryParser.parse( Program.class, Arrays.asList( "name:eq:1", "name:eq:2" ), Junction.Type.AND, true );
+        assertEquals( 3, query.getCriterions().size() );
+
+        Restriction restriction = (Restriction) query.getCriterions().get( 0 );
+        assertEquals( "name", restriction.getPath() );
+        assertEquals( "1", restriction.getOperator().getArgs().get( 0 ) );
+        assertTrue( restriction.getOperator() instanceof EqualOperator );
+
+        restriction = (Restriction) query.getCriterions().get( 1 );
+        assertEquals( "name", restriction.getPath() );
+        assertEquals( "2", restriction.getOperator().getArgs().get( 0 ) );
+        assertTrue( restriction.getOperator() instanceof EqualOperator );
+        
+        Disjunction disjunction = (Disjunction) query.getCriterions().get( 2 );
+        assertEquals( 2, disjunction.getCriterions().size() );
+
+        restriction = (Restriction) disjunction.getCriterions().get( 0 );
+        assertEquals( "organisationUnits.id", restriction.getPath() );
+        assertEquals( "ouabcdefghA", ((List)restriction.getOperator().getArgs().get( 0 )).get( 0 ) );
+        assertTrue( restriction.getOperator() instanceof InOperator );
+
+        restriction = (Restriction) disjunction.getCriterions().get( 1 );
+        assertEquals( "organisationUnits", restriction.getPath() );
+        assertTrue( restriction.getOperator() instanceof EmptyOperator );
     }
 
     @Test
