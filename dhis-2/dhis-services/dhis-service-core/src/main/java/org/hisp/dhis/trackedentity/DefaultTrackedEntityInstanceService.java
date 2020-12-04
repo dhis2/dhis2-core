@@ -36,6 +36,7 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -706,7 +707,7 @@ public class DefaultTrackedEntityInstanceService
         Boolean followUp, Date lastUpdatedStartDate, Date lastUpdatedEndDate, String lastUpdatedDuration,
         Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate,
         Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus, Date eventStartDate,
-        Date eventEndDate, AssignedUserSelectionMode assignedUserSelectionMode, Set<String> assignedUsers,
+        Date eventEndDate, AssignedUserSelectionMode assignedUserSelectionMode, Set<String> assignedUsers, Set<String> trackedEntityInstanceUids,
         boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging,
         boolean includeDeleted, boolean includeAllAttributes, List<String> orders )
     {
@@ -787,6 +788,14 @@ public class DefaultTrackedEntityInstanceService
         {
             throw new IllegalQueryException( "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
         }
+        
+        if ( trackedEntityInstanceUids != null )
+        {
+            trackedEntityInstanceUids = trackedEntityInstanceUids.stream()
+                .filter( CodeGenerator::isValidUid )
+                .collect( Collectors.toSet() );
+        }
+
 
         params.setQuery( queryFilter )
             .setProgram( pr )
@@ -806,6 +815,7 @@ public class DefaultTrackedEntityInstanceService
             .setEventEndDate( eventEndDate )
             .setAssignedUserSelectionMode( assignedUserSelectionMode )
             .setAssignedUsers( assignedUsers )
+            .setTrackedEntityInstanceUids( trackedEntityInstanceUids )
             .setSkipMeta( skipMeta )
             .setPage( page )
             .setPageSize( pageSize )

@@ -151,6 +151,7 @@ public interface TrackedEntityInstanceService
      * @param eventEndDate               the event end date for the given Program.
      * @param assignedUserMode           the selection mode for assigned users of events.
      * @param assignedUsers              list of userids for events assigned.
+     * @param trackedEntityInstanceUids  list of tei uids for defining the outer boundary of the query.
      * @param skipMeta                   indicates whether to include meta data in the response.
      * @param page                       the page number.
      * @param pageSize                   the page size.
@@ -166,7 +167,7 @@ public interface TrackedEntityInstanceService
         Boolean followUp, Date lastUpdatedStart, Date lastUpdatedEndDate, String lastUpdatedDuration,
         Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate,
         Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus, Date eventStartDate,
-        Date eventEndDate, AssignedUserSelectionMode assignedUserMode, Set<String> assignedUsers,
+        Date eventEndDate, AssignedUserSelectionMode assignedUserMode, Set<String> assignedUsers, Set<String> trackedEntityInstanceUids,
         boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging,
         boolean includeDeleted, boolean includeAllAttributes, List<String> orders );
 
