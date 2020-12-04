@@ -165,6 +165,19 @@ public class RepeatedEventsValidationHookTest
         assertTrue( errorReporter.getReportList().isEmpty() );
     }
 
+    @Test
+    public void testTwoProgramEventsInSameProgramStageArePassingValidation()
+    {
+        Event eventProgramA = programEvent( "A" );
+        Event eventProgramB = programEvent( "B" );
+        List<Event> events = Lists.newArrayList( eventProgramA, eventProgramB );
+        bundle.setEvents( events );
+
+        ValidationErrorReporter errorReporter = validatorToTest.validate( ctx );
+
+        assertTrue( errorReporter.getReportList().isEmpty() );
+    }
+
     private ProgramStage notRepeatebleProgramStage()
     {
         ProgramStage programStage = createProgramStage( 'A', 1, false );
@@ -177,6 +190,15 @@ public class RepeatedEventsValidationHookTest
         ProgramStage programStage = createProgramStage( 'A', 1, true );
         programStage.setUid( REPEATABLE_PROGRAM_STAGE );
         return programStage;
+    }
+
+    private Event programEvent( String uid )
+    {
+        Event event = new Event();
+        event.setEvent( uid );
+        event.setUid( uid );
+        event.setProgramStage( NOT_REPEATABLE_PROGRAM_STAGE );
+        return event;
     }
 
     private Event notRepeatableEvent( String uid )

@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -39,6 +40,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -61,6 +63,7 @@ public class RepeatedEventsValidationHook
         Map<Pair<String, String>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage = bundle.getEvents()
             .stream()
             .filter( e -> !rootReporter.isInvalid( TrackerType.EVENT, e.getEvent() ) )
+            .filter( e -> !StringUtils.isEmpty( e.getEnrollment() ) )
             .filter( e -> !context.getProgramStage( e.getProgramStage() ).getRepeatable() )
             .collect( Collectors.groupingBy( e -> Pair.of( e.getProgramStage(), e.getEnrollment() ) ) );
 
