@@ -145,33 +145,12 @@ public class TrackerImporter_eventsTests
             .body( "status", equalTo( "OK" ) );
     }
 
-    @Test
-    public void shouldNotImportDeletedEvents()
-        throws Exception
-    {
-        JsonObject eventBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/events/event.json" ) );
-
-        String eventId = trackerActions.postAndGetJobReport( eventBody )
-            .validateSuccessfulImport()
-            .extractImportedEvents().get( 0 );
-
-        eventActions.softDelete( eventId );
-
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( eventBody );
-
-        response.validate().statusCode( 200 )
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "stats.created", equalTo( 0 ) )
-            .body( "stats.ignored", equalTo( 1 ) )
-            .body( "message", containsStringIgnoringCase( "This event can not be modified." ) );
-    }
-
     @ParameterizedTest
     @ValueSource( strings = { "true", "false" } )
     public void shouldImportToRepeatableStage( Boolean repeatableStage )
         throws Exception
     {
+        //arrange
         String program = Constants.TRACKER_PROGRAM_ID;
         String programStage = new ProgramStageActions().get( "",
             new QueryParamsBuilder().addAll( "filter=program.id:eq:" + program, "filter=repeatable:eq:" + repeatableStage ) )
@@ -188,10 +167,10 @@ public class TrackerImporter_eventsTests
 
         JsonObject payload = new JsonObjectBuilder().addArray( "events", event, event ).build();
 
-        System.out.println( payload );
-
+        // act
         response = trackerActions.postAndGetJobReport( payload );
-        response.prettyPrint();
+
+        // assert
         if ( repeatableStage )
         {
             response
@@ -199,11 +178,10 @@ public class TrackerImporter_eventsTests
                 .validate().body( "stats.created", equalTo( 2 ) );
         }
 
-        //todo add more validation
         else
         {
             response.validateErrorReport()
-                .body( "message[0]", containsString( "Program stage is not repeatable" ));
+                .body( "message[0]", containsString( "is not repeatable and an event already exists." ));
         }
     }
 
@@ -250,6 +228,7 @@ public class TrackerImporter_eventsTests
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( teiWithEnrollment );
 
+        response.validateSuccessfulImport();
         return response;
     }
 

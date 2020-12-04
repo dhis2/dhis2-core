@@ -32,20 +32,26 @@ import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
+import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.File;
 import java.util.stream.Stream;
 
-import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -62,20 +68,28 @@ public class TrackerImporter_eventValidationTests
 
     private static String trackerProgramId;
 
+    private static String trackerProgramStageId;
+
     private static String ouIdWithoutAccess;
 
     private ProgramActions programActions;
 
     private TrackerActions trackerActions;
 
+    private EventActions eventActions;
+
+    private String enrollment;
+
     private static Stream<Arguments> provideValidationArguments()
     {
         return Stream.of(
+            Arguments.of( OU_ID, trackerProgramId, trackerProgramStageId, "E1033" ),
             Arguments.arguments( null, eventProgramId, eventProgramStageId,
-                "Could not find OrganisationUnit: `NULL`, linked to Event." ),
+                "E1011" ),
             Arguments.arguments( ouIdWithoutAccess, eventProgramId, eventProgramStageId,
                 "Program is not assigned to this organisation unit" ),
-            Arguments.arguments( OU_ID, trackerProgramId, null, "Event.programStage does not point to a valid programStage" ) );
+            Arguments.arguments( OU_ID, trackerProgramId, null, "E1086" ),
+            Arguments.arguments( OU_ID, trackerProgramId, eventProgramStageId, "E1089" ) );
     }
 
     @BeforeAll
@@ -83,29 +97,64 @@ public class TrackerImporter_eventValidationTests
     {
         programActions = new ProgramActions();
         trackerActions = new TrackerActions();
+        eventActions = new EventActions();
 
-        new LoginActions().loginAsAdmin();
-
+        new LoginActions().loginAsSuperUser();
         setupData();
     }
 
     @Test
-    public void shouldValidateEventDate()
+    public void shouldNotImportDeletedEvents()
+        throws Exception
     {
-        JsonObject object = trackerActions.createEventsBody( OU_ID, eventProgramId, eventProgramStageId );
+        JsonObject eventBody = new FileReaderUtils()
+            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/events/event.json" ) );
+
+        String eventId = trackerActions.postAndGetJobReport( eventBody )
+            .validateSuccessfulImport()
+            .extractImportedEvents().get( 0 );
+
+        eventActions.softDelete( eventId );
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( eventBody );
+
+        response.validateErrorReport()
+            .body( "message[0]", containsStringIgnoringCase( "is already deleted and cant be modified" ) );
+    }
+
+    @CsvSource( { "ACTIVE,,OccurredAt date is missing.", "SCHEDULE,,ScheduledAt date is missing." } )
+    @ParameterizedTest
+    public void shouldValidateEventDate( String status, String occurredAt, String error )
+    {
+        JsonObject object = trackerActions.createEventsBody( OU_ID, trackerProgramId, trackerProgramStageId );
 
         JsonObject event = object.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject();
-        event.addProperty( "occurredAt", "" );
-        event.addProperty( "status", "ACTIVE" );
+        event.addProperty( "occurredAt", occurredAt );
+        event.addProperty( "status", status );
+        event.addProperty( "enrollment", enrollment );
 
-        trackerActions.postAndGetJobReport( object )
-            .validateErrorReport()
-            .body( "message[0]", containsStringIgnoringCase( "OccurredAt date is missing." ) );
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( object );
+        response.validateErrorReport()
+            .body( "message[0]", containsStringIgnoringCase( error ) );
+    }
+
+    @Test
+    public void shouldSetDueDate()
+    {
+        JsonObject object = trackerActions.createEventsBody( OU_ID, trackerProgramId, trackerProgramStageId );
+        object.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject().addProperty( "enrollment", enrollment );
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( object );
+
+        String eventId = response.validateSuccessfulImport().extractImportedEvents().get( 0 );
+        JsonObject obj = eventActions.get( eventId ).getBody();
+
+        assertEquals( obj.get( "eventDate" ), obj.get( "dueDate" ) );
     }
 
     @ParameterizedTest
     @MethodSource( "provideValidationArguments" )
-    public void eventImportShouldValidateReferences( String ouId, String programId, String programStageId, String message )
+    public void eventImportShouldValidateReferences( String ouId, String programId, String programStageId, String errorCode )
     {
         JsonObject jsonObject = trackerActions.createEventsBody( ouId, programId, programStageId );
 
@@ -113,7 +162,7 @@ public class TrackerImporter_eventValidationTests
         TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
 
         response.validateErrorReport()
-            .body( "message[0]", containsStringIgnoringCase( message ) );
+            .body( "errorCode", hasItem( equalTo( errorCode ) ) );
     }
 
     private void setupData()
@@ -128,6 +177,16 @@ public class TrackerImporter_eventValidationTests
 
         trackerProgramId = Constants.TRACKER_PROGRAM_ID;
 
+        trackerProgramStageId = programActions.programStageActions
+            .get( "", new QueryParamsBuilder().addAll( "filter=program.id:eq:" +
+                trackerProgramId, "filter=repeatable:eq:true" ) )
+            .extractString( "programStages.id[0]" );
+
         ouIdWithoutAccess = new OrgUnitActions().createOrgUnit();
+        new UserActions().grantCurrentUserAccessToOrgUnit( ouIdWithoutAccess );
+
+        enrollment = trackerActions.postAndGetJobReport( trackerActions.createTeiAndEnrollmentBody( OU_ID, trackerProgramId ) )
+            .validateSuccessfulImport().extractImportedEnrollments().get( 0 );
+
     }
 }

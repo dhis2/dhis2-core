@@ -36,6 +36,7 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 import java.io.File;
+import java.time.Instant;
 import java.util.logging.Logger;
 
 import static org.hamcrest.Matchers.notNullValue;
@@ -158,9 +159,24 @@ public class TrackerActions
             .addProperty( "programStage", programStageId )
             .addProperty( "program", programId )
             .addProperty( "orgUnit", ouId )
-            .addProperty( "occurredAt", "2018-12-01T00:00:00.000" )
+            .addProperty( "occurredAt", Instant.now().toString())
             .wrapIntoArray( "events" );
 
         return object;
+    }
+
+    public JsonObject createTeiAndEnrollmentBody(String ouId, String programId) {
+        JsonObject jsonObject = new JsonObjectBuilder()
+            .addProperty( "trackedEntityType", "Q9GufDoplCL" )
+            .addProperty( "orgUnit", ouId )
+            .addArray( "enrollments", new JsonObjectBuilder()
+                .addProperty( "program", programId )
+                .addProperty( "orgUnit", ouId )
+                .addProperty( "enrolledAt", Instant.now().toString() )
+                .addProperty( "occurredAt", Instant.now().toString() )
+                .build())
+            .wrapIntoArray("trackedEntities");
+
+        return jsonObject;
     }
 }

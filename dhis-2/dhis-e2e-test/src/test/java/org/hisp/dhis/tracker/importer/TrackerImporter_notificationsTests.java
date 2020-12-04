@@ -64,7 +64,7 @@ import static org.hamcrest.Matchers.*;
  */
 public class TrackerImporter_notificationsTests extends ApiTest
 {
-    private String trackerProgramStageId = "nlXNK4b7LVr";
+    private String trackerProgramStageId = "PaOOjwLVW23";
     private String trackerProgramId = Constants.TRACKER_PROGRAM_ID;
     private String enrollmentId;
     private TrackerActions trackerActions;
@@ -85,7 +85,7 @@ public class TrackerImporter_notificationsTests extends ApiTest
         JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/events/event.json" ) )
             .replacePropertyValuesWithIds( "event" )
             .replacePropertyValuesWith( "programStage", trackerProgramStageId )
-            //.replacePropertyValuesWith( "program", trackerProgramId )
+            .replacePropertyValuesWith( "program", trackerProgramId )
             .replacePropertyValuesWith( "status", "COMPLETED" )
             .replacePropertyValuesWith( "enrollment", enrollmentId )
             .get(JsonObject.class);
@@ -102,7 +102,7 @@ public class TrackerImporter_notificationsTests extends ApiTest
         response
             .validate()
             .statusCode( 200 )
-            .body( "messageConversations", arrayWithSize( size + 1 ) )
+            .body( "messageConversations", hasSize( size + 1 ) )
             .body( "messageConversations.subject", hasItem(   "TA program stage completion"  ));
     }
 

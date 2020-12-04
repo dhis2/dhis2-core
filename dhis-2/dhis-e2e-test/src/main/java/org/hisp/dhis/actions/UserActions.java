@@ -34,6 +34,8 @@ import org.hisp.dhis.dto.ApiResponse;
 
 import java.util.List;
 
+import static org.hamcrest.Matchers.equalTo;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
@@ -124,7 +126,8 @@ public class UserActions
         object.get( "teiSearchOrganisationUnits" ).getAsJsonArray().add( orgUnit );
 
         ApiResponse response = this.update( userId, object );
-        response.validate().statusCode( 200 );
+        response.validate().statusCode( 200 )
+            .body( "status", equalTo("OK" ));
     }
 
     public void grantCurrentUserAccessToOrgUnit( String orgUnitId )

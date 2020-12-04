@@ -29,10 +29,13 @@
 package org.hisp.dhis.tracker.importer.tei;
 
 import com.google.gson.JsonObject;
+import com.sun.xml.bind.v2.runtime.reflect.opt.Const;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.metadata.ProgramActions;
+import org.hisp.dhis.actions.metadata.ProgramStageActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -40,6 +43,8 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.time.Instant;
 
 import static org.hamcrest.Matchers.*;
 
@@ -51,9 +56,14 @@ public class TrackerImporter_teiValidationTests
 {
     private TrackerActions trackerActions;
 
-    private final String trackedEntityType = "Q9GufDoplCL";
+    private String trackedEntityType;
 
-    private String mandatoryAttribute;
+    private final String program = Constants.TRACKER_PROGRAM_ID;
+    private final String programStageId = "nlXNK4b7LVr";
+
+    private String mandatoryTetAttribute;
+
+    private String mandatoryProgramAttribute;
 
     @BeforeAll
     public void beforeAll()
@@ -89,9 +99,9 @@ public class TrackerImporter_teiValidationTests
             .addProperty( "trackedEntityType", trackedEntityType )
             .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[0] )
             .addArray( "attributes", new JsonObjectBuilder()
-                .addProperty( "attribute", mandatoryAttribute )
-                .addProperty( "value", "TETSTS" )
-                .build() )
+                .addProperty( "attribute", mandatoryTetAttribute )
+                .addProperty( "value", DataGenerator.randomString() )
+                .build())
             .wrapIntoArray( "trackedEntities" );
 
         // assert
@@ -118,31 +128,81 @@ public class TrackerImporter_teiValidationTests
             .body( "errorCode[0]", equalTo( "E1090" ) );
     }
 
+    @Test
+    public void shouldReturnErrorWhenMandatoryProgramAttributeMissing() {
+        // arrange
+        JsonObject trackedEntities = new JsonObjectBuilder()
+            .addProperty( "trackedEntityType", trackedEntityType )
+            .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[0] )
+            .addOrAppendToArray( "enrollments",
+                new JsonObjectBuilder()
+                    .addProperty( "program", program )
+                    .addProperty( "programStage", programStageId )
+                    .addProperty( "enrolledAt", Instant.now().toString() )
+                    .addProperty( "occurredAt", Instant.now().toString() )
+                    .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[0] )
+                    .build())
+
+            .wrapIntoArray( "trackedEntities" );
+
+        // assert
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
+
+        response
+            .validateErrorReport()
+            .body( "", hasSize( 2 ) )
+            .body( "message[0]",
+                stringContainsInOrder( "Attribute", "is mandatory in tracked entity type", "but not declared in tracked entity" ) )
+            .body( "errorCode[0]", equalTo( "E1090" ) );
+    }
+
     private void setupData()
     {
-        RestApiActions trackedEntityTypeActions = new RestApiActions( "trackedEntityTypes" );
+        // create attributes
         RestApiActions trackedEntityAttributeActions = new RestApiActions( "trackedEntityAttributes" );
-        JsonObject attribute = JsonObjectBuilder.jsonObject()
+        ProgramActions programActions = new ProgramActions();
+
+        mandatoryTetAttribute = trackedEntityAttributeActions.create( dummyTeiAttribute() );
+        mandatoryProgramAttribute = trackedEntityAttributeActions.create( dummyTeiAttribute() );
+
+        RestApiActions trackedEntityTypeActions = new RestApiActions( "trackedEntityTypes" );
+
+        // create a TET
+        JsonObject trackedEntityTypePayload = JsonObjectBuilder.jsonObject()
+            .addProperty( "name", DataGenerator.randomEntityName() )
+            .addProperty( "shortName", DataGenerator.randomEntityName() )
+            .addUserGroupAccess()
+            .addOrAppendToArray( "trackedEntityTypeAttributes",
+                new JsonObjectBuilder()
+                    .addProperty( "mandatory", "true" )
+                    .addObject( "trackedEntityAttribute", new JsonObjectBuilder()
+                        .addProperty( "id", mandatoryTetAttribute ) )
+                    .build() )
+            .build();
+
+        trackedEntityType = trackedEntityTypeActions.create( trackedEntityTypePayload );
+
+        JsonObject programPayload = programActions.get(program).getBody();
+
+        new JsonObjectBuilder(programPayload)
+            .addOrAppendToArray( "programTrackedEntityAttributes",
+                new JsonObjectBuilder()
+                    .addProperty( "mandatory", "true" )
+                    .addObject( "trackedEntityAttribute", new JsonObjectBuilder().addProperty( "id", mandatoryProgramAttribute ) )
+                    .build() )
+            .build();
+
+        trackedEntityTypeActions.update( trackedEntityType, trackedEntityTypePayload ).validate().statusCode( 200 );
+        programActions.update( program, programPayload ).validate().statusCode( 200 );
+    }
+
+    private JsonObject dummyTeiAttribute() {
+        return JsonObjectBuilder.jsonObject()
             .addProperty( "name", "TA attribute " + DataGenerator.randomEntityName() )
             .addProperty( "valueType", "TEXT" )
             .addProperty( "aggregationType", "NONE" )
             .addProperty( "shortName", "TA attribute" + DataGenerator.randomString() )
             .addUserGroupAccess()
             .build();
-
-        mandatoryAttribute = trackedEntityAttributeActions.create( attribute );
-
-        JsonObject trackedEntityTypePayload = trackedEntityTypeActions.get( trackedEntityType ).getBody();
-
-        new JsonObjectBuilder(trackedEntityTypePayload)
-            .addOrAppendToArray( "trackedEntityTypeAttributes",
-                new JsonObjectBuilder()
-                .addProperty( "mandatory", "true" )
-                .addObject( "trackedEntityAttribute", new JsonObjectBuilder().addProperty( "id", mandatoryAttribute ) )
-                .build() )
-        .build();
-
-        trackedEntityTypeActions.update( trackedEntityType, trackedEntityTypePayload ).validate().statusCode( 200 );
-
     }
 }
