@@ -82,7 +82,10 @@ public class TrackerImportValidationConfig
         EnrollmentRuleValidationHook.class,
         EventRuleValidationHook.class,
 
-        AssignedUserValidationHook.class
+        AssignedUserValidationHook.class,
+
+        RepeatedEventsValidationHook.class // This validation must be run after all the Event validations
+        // because it needs to consider all and only the valid events
     );
 
     /**

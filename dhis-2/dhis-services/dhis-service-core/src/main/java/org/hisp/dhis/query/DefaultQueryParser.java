@@ -28,8 +28,7 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-
+import org.hisp.dhis.common.OrganisationUnitAssignable;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.operators.MatchMode;
@@ -39,7 +38,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.List;
@@ -50,7 +48,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component( "org.hisp.dhis.query.QueryParser" )
 public class DefaultQueryParser implements QueryParser
 {
     private static final String IDENTIFIABLE = "identifiable";
@@ -118,8 +115,8 @@ public class DefaultQueryParser implements QueryParser
                 query.add( getRestriction( schema, split[0], split[1], null ) );
             }
         }
-
-        if ( restrictToCaptureScope && schema.haveProperty( ORGANISATION_UNITS ) )
+        
+        if ( restrictToCaptureScope && OrganisationUnitAssignable.class.isAssignableFrom( klass ) )
         {
             User user = currentUserService.getCurrentUser();
 

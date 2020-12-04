@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -203,9 +204,9 @@ public class TrackerImportValidationContext
         return bundle.getPreheat().getProgramInstanceWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
     }
 
-    public boolean programStageHasEvents( String programStageUid )
+    public boolean programStageHasEvents( String programStageUid, String enrollmentUid )
     {
-        return bundle.getPreheat().getProgramStageWithEvents().contains( programStageUid );
+        return bundle.getPreheat().getProgramStageWithEvents().contains( Pair.of( programStageUid, enrollmentUid ) );
     }
 
     public Optional<TrackedEntityComment> getNote( String uid )

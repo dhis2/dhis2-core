@@ -234,6 +234,8 @@ public interface IdentifiableObjectStore<T>
 
     /**
      * Retrieves a list of objects referenced by the given collection of uids.
+     * 
+     * Objects which are soft-deleted (deleted=true) are filtered out
      *
      * @param uids a collection of uids.
      * @return a list of objects.

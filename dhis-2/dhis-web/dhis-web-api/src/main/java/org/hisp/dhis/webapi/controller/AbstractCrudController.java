@@ -33,6 +33,8 @@ import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.attribute.AttributeService;
@@ -42,6 +44,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
+import org.hisp.dhis.common.OrganisationUnitAssignable;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
@@ -77,6 +80,8 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
+import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
 import org.hisp.dhis.patch.PatchService;
@@ -128,6 +133,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -154,6 +160,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @Autowired
     protected CurrentUserService currentUserService;
+    
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
 
     @Autowired
     protected FieldFilterService fieldFilterService;
@@ -259,6 +268,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             pager = new Pager( options.getPage(), count, options.getPageSize() );
         }
 
+        restrictToCaptureScope( entities, options, rpParameters );
+        
         postProcessResponseEntities( entities, options, rpParameters );
 
         handleLinksAndAccess( entities, fields, false );
@@ -1168,6 +1179,39 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected Pagination getPaginationData( WebOptions options )
     {
         return PaginationUtils.getPaginationData( options );
+    }
+    
+    private void restrictToCaptureScope( List<T> entityList, WebOptions options, Map<String, String> parameters )
+    {
+        if ( !options.isTrue( "restrictToCaptureScope" ) || CollectionUtils.isEmpty( entityList )
+            || !( entityList.get( 0 ) instanceof OrganisationUnitAssignable ) )
+        {
+            return;
+        }
+
+        User user = currentUserService.getCurrentUser();
+
+        if ( user == null )
+        {
+            return;
+        }
+        
+        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
+        params.setParents( user.getOrganisationUnits() );
+        params.setFetchChildren( true );
+
+        Set<String> orgUnits = organisationUnitService.getOrganisationUnitsByQuery( params ).stream().map( orgUnit -> orgUnit.getUid() ).collect(
+            Collectors.toSet() );
+
+        for ( T entity : entityList )
+        {
+            OrganisationUnitAssignable e = (OrganisationUnitAssignable) entity;
+            if ( e.getOrganisationUnits() != null && e.getOrganisationUnits().size() > 0 )
+            {
+                e.setOrganisationUnits(
+                    e.getOrganisationUnits().stream().filter( ou -> orgUnits.contains( ou.getUid() ) ).collect( Collectors.toSet() ) );
+            }
+        }
     }
 
     @SuppressWarnings( "unchecked" )

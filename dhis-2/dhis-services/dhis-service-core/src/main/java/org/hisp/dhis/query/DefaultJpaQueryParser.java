@@ -28,6 +28,7 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.OrganisationUnitAssignable;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.operators.MatchMode;
@@ -36,6 +37,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.List;
@@ -43,6 +45,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+@Component( "org.hisp.dhis.query.QueryParser" )
 public class DefaultJpaQueryParser
     implements QueryParser
 {
@@ -111,7 +114,7 @@ public class DefaultJpaQueryParser
             }
         }
 
-        if ( restrictToCaptureScope && schema.haveProperty( ORGANISATION_UNITS ) )
+        if ( restrictToCaptureScope && OrganisationUnitAssignable.class.isAssignableFrom( klass )  )
         {
             User user = currentUserService.getCurrentUser();
 
@@ -126,6 +129,7 @@ public class DefaultJpaQueryParser
 
     private void handleCaptureScopeOuFiltering( Schema schema, User user, Disjunction disjunction )
     {
+
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
         params.setParents( user.getOrganisationUnits() );
         params.setFetchChildren( true );
@@ -135,6 +139,16 @@ public class DefaultJpaQueryParser
 
         disjunction.add( getRestriction( schema, "organisationUnits.id", "in", "[" + String.join( ",", orgUnits ) + "]" ) );
         disjunction.add( getRestriction( schema, ORGANISATION_UNITS, "empty", null ) );
+
+//        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
+//        params.setParents( user.getOrganisationUnits() );
+//        params.setFetchChildren( true );
+//
+//        List<String> orgUnits = organisationUnitService.getOrganisationUnitsByQuery( params ).stream().map( orgUnit -> orgUnit.getUid() ).collect(
+//            Collectors.toList() );
+//
+//        disjunction.add( getRestriction( schema, "organisationUnits.id", "in", "[" + String.join( ",", orgUnits ) + "]" ) );
+//        disjunction.add( getRestriction( schema, ORGANISATION_UNITS, "empty", null ) );
     }
 
     private void handleIdentifiablePath( Schema schema, String operator, Object arg, Disjunction disjunction )

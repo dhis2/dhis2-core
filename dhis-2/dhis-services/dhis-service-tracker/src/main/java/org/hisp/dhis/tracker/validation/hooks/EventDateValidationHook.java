@@ -35,7 +35,8 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1046;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1047;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1051;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1052;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1031;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1050;
 
 import java.util.Date;
 
@@ -45,7 +46,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
@@ -64,14 +64,19 @@ public class EventDateValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        if ( event.getOccurredAt() == null )
+        Program program = context.getProgram( event.getProgram() );
+
+        if ( event.getOccurredAt() == null && occuredAtDateIsMandatory( event, program ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1031 )
-                .addArg( event ) );
+            addError( reporter, E1031, event );
             return;
         }
 
-        Program program = context.getProgram( event.getProgram() );
+        if ( event.getScheduledAt() == null && EventStatus.SCHEDULE == event.getStatus() )
+        {
+            addError( reporter, E1050, event );
+            return;
+        }
 
         validateDateFormat( reporter, event );
         validateExpiryDays( reporter, event, program );
@@ -125,7 +130,7 @@ public class EventDateValidationHook
         }
 
         String referenceDate = event.getOccurredAt() != null ? event.getOccurredAt() : event.getScheduledAt();
-        
+
         addErrorIfNull( referenceDate, reporter, E1046, event );
 
         Period period = periodType.createPeriod( new Date() );
@@ -149,5 +154,17 @@ public class EventDateValidationHook
         {
             addError( reporter, E1052, event.getScheduledAt() );
         }
+    }
+
+    private boolean occuredAtDateIsMandatory( Event event, Program program )
+    {
+        if ( program.isWithoutRegistration() )
+        {
+            return true;
+        }
+
+        EventStatus eventStatus = event.getStatus();
+
+        return eventStatus == EventStatus.ACTIVE || eventStatus == EventStatus.COMPLETED;
     }
 }

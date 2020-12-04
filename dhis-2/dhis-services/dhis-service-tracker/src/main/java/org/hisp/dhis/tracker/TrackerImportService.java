@@ -48,14 +48,6 @@ public interface TrackerImportService
     TrackerImportReport importTracker( TrackerImportParams params );
 
     /**
-     * Parses, and creates a TrackerImportParams instance based on given map of parameters.
-     *
-     * @param parameters Key-Value map of wanted parameters
-     * @return MetadataImportParams instance created based on input parameters
-     */
-    TrackerImportParams getParamsFromMap( Map<String, List<String>> parameters );
-
-    /**
      * Build the report based on the mode selected by the client.
      *
      * @param importReport report with all the data collected during import

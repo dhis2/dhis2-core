@@ -238,6 +238,11 @@ public class EventTrackerConverterService
             programStageInstance.setAssignedUser( assignedUser );
         }
 
+        if ( programStage.getProgram().isRegistration() && programStageInstance.getDueDate() == null && programStageInstance.getExecutionDate() != null )
+        {
+            programStageInstance.setDueDate( programStageInstance.getExecutionDate() );
+        }
+
         return programStageInstance;
     }
 

@@ -145,6 +145,13 @@ public class PreCheckExistenceValidationHook
 
         ProgramStageInstance existingPsi = context.getProgramStageInstance( event.getEvent() );
 
+        // If the event is soft-deleted no operation is allowed
+        if ( existingPsi != null && existingPsi.isDeleted() )
+        {
+            addError( reporter, E1082, event.getEvent() );
+            return;
+        }
+
         if ( importStrategy.isCreateAndUpdate() )
         {
             if ( existingPsi == null )
@@ -159,10 +166,6 @@ public class PreCheckExistenceValidationHook
         else if ( existingPsi != null && importStrategy.isCreate() )
         {
             addError( reporter, E1030, event.getEvent() );
-        }
-        else if ( existingPsi != null && existingPsi.isDeleted() && importStrategy.isDelete() )
-        {
-            addError( reporter, E1082, event.getEvent() );
         }
         else if ( existingPsi == null && importStrategy.isUpdateOrDelete() )
         {

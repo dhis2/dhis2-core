@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.category;
+package org.hisp.dhis.sms;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,18 +28,38 @@ package org.hisp.dhis.webapi.controller.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.system.util.SmsUtils;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Zubair Asghar
  */
-@Controller
-@RequestMapping( value = CategoryOptionSchemaDescriptor.API_ENDPOINT )
-public class CategoryOptionController extends AbstractCrudController<CategoryOption>
+public class SmsUtilsTest
 {
-    
+    @Test
+    public void testSMSTextEncoding()
+    {
+        assertEquals( "Hi+User", SmsUtils.encode( "Hi User" ) );
+        assertEquals( "Jeg+er+p%C3%A5+universitetet", SmsUtils.encode( "Jeg er på universitetet" ) );
+        assertEquals( "endelig+oppn%C3%A5+m%C3%A5let", SmsUtils.encode( "endelig oppnå målet" ) );
+        assertEquals( "%D8%B4%D9%83%D8%B1%D8%A7+%D9%84%D9%83%D9%85", SmsUtils.encode( "شكرا لكم" ) );
+        assertEquals( " ", SmsUtils.encode( " " ) );
+        assertNull( SmsUtils.encode( null ) );
+    }
+
+    @Test
+    public void testRemovePhoneNumberPrefix()
+    {
+        assertEquals( "4740123456", SmsUtils.removePhoneNumberPrefix( "004740123456" ) );
+        assertEquals( "4740123456", SmsUtils.removePhoneNumberPrefix( "+4740123456" ) );
+    }
+
+    @Test
+    public void testBase64Compression()
+    {
+        assertTrue( SmsUtils.isBase64( "c2FtcGxlIHNtcyB0ZXh0" ) );
+        assertFalse( SmsUtils.isBase64( "sample sms text" ) );
+    }
 }

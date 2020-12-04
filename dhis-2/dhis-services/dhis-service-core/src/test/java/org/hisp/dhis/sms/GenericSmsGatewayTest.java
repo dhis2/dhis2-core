@@ -50,6 +50,7 @@ import org.hisp.dhis.sms.config.GenericGatewayParameter;
 import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
 import org.hisp.dhis.sms.config.SimplisticHttpGetGateWay;
 import org.hisp.dhis.sms.config.SmsGateway;
+import org.hisp.dhis.system.util.SmsUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -135,7 +136,7 @@ public class GenericSmsGatewayTest
         password.setHeader( true );
         password.setConfidential( true );
 
-        valueStore.put( SmsGateway.KEY_TEXT, TEXT );
+        valueStore.put( SmsGateway.KEY_TEXT, SmsUtils.encode( TEXT ) );
         valueStore.put( SmsGateway.KEY_RECIPIENT, StringUtils.join( RECIPIENTS, "," ) );
     }
 
