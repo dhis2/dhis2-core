@@ -70,7 +70,7 @@ public class GenericGatewayParameter
 
     public String getValue()
     {
-        return confidential ? "" : value;
+        return value;
     }
 
     @JsonIgnore

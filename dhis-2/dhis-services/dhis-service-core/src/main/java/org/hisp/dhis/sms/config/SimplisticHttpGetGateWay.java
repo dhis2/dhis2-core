@@ -40,6 +40,8 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.system.util.SmsUtils;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -55,18 +57,24 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component( "org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" )
 public class SimplisticHttpGetGateWay
-    extends SmsGateway
+        extends SmsGateway
 {
+    private final PBEStringEncryptor pbeStringEncryptor;
+
+    private final RestTemplate restTemplate;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final RestTemplate restTemplate;
 
-    public SimplisticHttpGetGateWay( RestTemplate restTemplate )
+    public SimplisticHttpGetGateWay( RestTemplate restTemplate, @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor )
     {
         checkNotNull( restTemplate );
+        checkNotNull( pbeStringEncryptor );
+
         this.restTemplate = restTemplate;
+        this.pbeStringEncryptor = pbeStringEncryptor;
     }
 
     // -------------------------------------------------------------------------
@@ -83,9 +91,9 @@ public class SimplisticHttpGetGateWay
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
         return batch.getMessages()
-            .parallelStream()
-            .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
-            .collect( Collectors.toList() );
+                .parallelStream()
+                .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
+                .collect( Collectors.toList() );
     }
 
     @Override
@@ -149,19 +157,24 @@ public class SimplisticHttpGetGateWay
 
         for ( GenericGatewayParameter parameter : parameters )
         {
+            if ( parameter.isConfidential() )
+            {
+                parameter.setValue( pbeStringEncryptor.decrypt( parameter.getValue() ) );
+            }
+
             if ( parameter.isHeader() )
             {
-                httpHeaders.put( parameter.getKey(), Collections.singletonList( parameter.getDisplayValue() ) );
+                httpHeaders.put( parameter.getKey(), Collections.singletonList( parameter.getValue() ) );
                 continue;
             }
 
             if ( parameter.isEncode() )
             {
-                valueStore.put( parameter.getKey(), SmsUtils.encode( parameter.getDisplayValue() ) );
+                valueStore.put( parameter.getKey(), SmsUtils.encode( parameter.getValue() ) );
                 continue;
             }
 
-            valueStore.put( parameter.getKey(), parameter.getDisplayValue() );
+            valueStore.put( parameter.getKey(), parameter.getValue() );
         }
 
         valueStore.put( KEY_TEXT, SmsUtils.encode( text ) );
@@ -182,9 +195,14 @@ public class SimplisticHttpGetGateWay
 
         for ( GenericGatewayParameter parameter : parameters )
         {
+            if ( parameter.isConfidential() )
+            {
+                parameter.setValue( pbeStringEncryptor.decrypt( parameter.getValue() ) );
+            }
+
             if ( !parameter.isHeader() )
             {
-                valueStore.put( parameter.getKey(), parameter.getDisplayValue() );
+                valueStore.put( parameter.getKey(), parameter.getValue() );
             }
         }
 
@@ -203,7 +221,7 @@ public class SimplisticHttpGetGateWay
         {
             if ( parameter.isHeader() )
             {
-                httpHeaders.put(parameter.getKey(), Collections.singletonList( parameter.getDisplayValue() ) );
+                httpHeaders.put(parameter.getKey(), Collections.singletonList( parameter.getValue() ) );
             }
         }
 
