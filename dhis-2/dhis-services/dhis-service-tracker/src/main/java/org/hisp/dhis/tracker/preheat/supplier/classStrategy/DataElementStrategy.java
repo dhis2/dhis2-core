@@ -32,6 +32,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.preheat.mappers.DataElementMapper;
 import org.springframework.stereotype.Component;
 
@@ -43,8 +44,8 @@ import org.springframework.stereotype.Component;
 public class DataElementStrategy extends AbstractSchemaStrategy
 {
     public DataElementStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager )
+        IdentifiableObjectManager manager, PreheatCacheService cacheService )
     {
-        super( schemaService, queryService, manager );
+        super( schemaService, queryService, manager, cacheService );
     }
 }
