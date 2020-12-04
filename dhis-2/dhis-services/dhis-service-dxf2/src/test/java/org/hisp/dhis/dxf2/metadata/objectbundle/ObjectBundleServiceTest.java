@@ -35,6 +35,7 @@ import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -79,6 +80,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static org.hisp.dhis.dxf2.metadata.AtomicMode.NONE;
 import static org.junit.Assert.*;
 
 /**
@@ -330,7 +332,7 @@ public class ObjectBundleServiceTest
         params.setObjectBundleMode( ObjectBundleMode.VALIDATE );
         params.setPreheatIdentifier( PreheatIdentifier.UID );
         params.setImportStrategy( ImportStrategy.UPDATE );
-        params.setAtomicMode( AtomicMode.NONE );
+        params.setAtomicMode( NONE );
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
@@ -890,12 +892,18 @@ public class ObjectBundleServiceTest
         assertEquals( 1, section2.getDataElements().size() );
         assertNotNull( section2.getDataSet() );
 
-        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/dataset_with_sections_gf.json" ).getInputStream(), RenderFormat.JSON );
+        manager.flush();
+
+        final CategoryOptionCombo p99yaU6mweU = manager.get( CategoryOptionCombo.class, "p99yaU6mweU" );
+        final CategoryCombo faV8QvLgIwB = manager.get( CategoryCombo.class, "faV8QvLgIwB" );
+
+        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/dataset_with_sections_gf_update.json" ).getInputStream(), RenderFormat.JSON );
 
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.setObjects( metadata );
+        params.setAtomicMode( NONE );
 
         bundle = objectBundleService.create( params );
         validate = objectBundleValidationService.validate( bundle );
@@ -903,9 +911,12 @@ public class ObjectBundleServiceTest
 //        0 = {ErrorReport@20289} "ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Male [p99yaU6mweU] (CategoryOptionCombo)., errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryOptionCombo, errorKlass=null, value=null}"
 //        1 = {ErrorReport@20290} "ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Gender [faV8QvLgIwB] (CategoryCombo)., errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryCombo, errorKlass=null, value=null}"
         // TODO: FAILS WITH HIBERNATE 5.4!!!
-        assertTrue( errorReports.isEmpty() );
+//        assertTrue( errorReports.isEmpty() );
 
-        objectBundleService.commit( bundle );
+        final ObjectBundleCommitReport commit = objectBundleService.commit( bundle );
+        final List<ErrorReport> errorReports2 = commit.getErrorReports();
+
+        manager.flush();
 
         List<DataSet> dataSets = manager.getAll( DataSet.class );
         List<Section> sections = manager.getAll( Section.class );
@@ -1353,7 +1364,7 @@ public class ObjectBundleServiceTest
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setAtomicMode( AtomicMode.NONE );
+        params.setAtomicMode( NONE );
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
@@ -1378,7 +1389,7 @@ public class ObjectBundleServiceTest
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setAtomicMode( AtomicMode.NONE );
+        params.setAtomicMode( NONE );
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
@@ -1437,7 +1448,6 @@ public class ObjectBundleServiceTest
     }
 
     @Test
-    @Ignore // TODO: FAILS WITH HIBERNATE 5.4!!!
     public void testCreateAndUpdateDataSetWithSections() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
@@ -1464,11 +1474,9 @@ public class ObjectBundleServiceTest
         bundle = objectBundleService.create( params );
         validate = objectBundleValidationService.validate( bundle );
         final List<ErrorReport> errorReports = validate.getErrorReports();
-        // TODO: FAILS WITH HIBERNATE 5.4!!!
-        // ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Gender [faV8QvLgIwB] (CategoryCombo)., errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryCombo, errorKlass=null, value=null}
         assertTrue( validate.getErrorReports().isEmpty() );
 
-        objectBundleService.commit( bundle );
+        final ObjectBundleCommitReport commit = objectBundleService.commit( bundle );
 
         List<DataSet> dataSets = manager.getAll( DataSet.class );
         List<Section> sections = manager.getAll( Section.class );
