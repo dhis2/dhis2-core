@@ -74,6 +74,7 @@ import static org.hamcrest.core.Every.everyItem;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -872,7 +873,7 @@ public class EventImportValidationTest
             assertTrue( comment.getCreated().getTime() > now.getTime() );
             assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
             assertNull( comment.getCreator() );
-            assertNull( comment.getLastUpdatedBy() );
+            assertNotNull( comment.getLastUpdatedBy() );
         } );
     }
 
@@ -902,7 +903,7 @@ public class EventImportValidationTest
             assertTrue( comment.getCreated().getTime() > now.getTime() );
             assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
             assertNull( comment.getCreator() );
-            assertNull( comment.getLastUpdatedBy() );
+            assertNotNull( comment.getLastUpdatedBy() );
         } );
     }
 
@@ -915,7 +916,7 @@ public class EventImportValidationTest
 
         // When -> Soft-delete the event
         programStageServiceInstance
-            .deleteProgramStageInstance( programStageServiceInstance.getProgramStageInstance( "ZwwuwNp6gVd" ) );
+            .deleteProgramStageInstance( programStageServiceInstance.getProgramStageInstance( "uLxFbxfYDQE" ) );
 
         TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events-with-notes-data.json" );
@@ -941,7 +942,7 @@ public class EventImportValidationTest
 
         // When -> Soft-delete the event
         programStageServiceInstance
-                .deleteProgramStageInstance( programStageServiceInstance.getProgramStageInstance( "ZwwuwNp6gVd" ) );
+                .deleteProgramStageInstance( programStageServiceInstance.getProgramStageInstance( "uLxFbxfYDQE" ) );
 
         TrackerImportParams trackerBundleParams = createBundleFromJson(
                 "tracker/validations/events-with-notes-data.json" );
