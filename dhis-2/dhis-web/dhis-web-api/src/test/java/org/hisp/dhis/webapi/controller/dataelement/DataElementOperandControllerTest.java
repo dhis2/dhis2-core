@@ -169,16 +169,17 @@ public class DataElementOperandControllerTest
         throws Exception
     {
         int pageSize = 15;
-        int totalSize = 150;
+        long totalSize = 150;
 
         // Given
         final List<DataElement> dataElements = rnd.randomObjects( DataElement.class, 1 );
 
         when( manager.getAllSorted( DataElement.class ) ).thenReturn( dataElements );
 
-        final List<DataElementOperand> dataElementOperands = rnd.randomObjects( DataElementOperand.class, totalSize );
+        final List<DataElementOperand> dataElementOperands = rnd.randomObjects( DataElementOperand.class,
+            (int) totalSize );
         when( dataElementCategoryService.getOperands( dataElements, true ) )
-            .thenReturn( rnd.randomObjects( DataElementOperand.class, totalSize ) );
+            .thenReturn( rnd.randomObjects( DataElementOperand.class, (int) totalSize ) );
 
         final List<DataElementOperand> first50elements = dataElementOperands.subList( 0, pageSize );
         ArgumentCaptor<FieldFilterParams> filterParamsArgumentCaptor = ArgumentCaptor
@@ -198,8 +199,8 @@ public class DataElementOperandControllerTest
             .andExpect( content().contentType( "application/json" ) )
             .andExpect( jsonPath( "$.pager.pageSize" ).value( Integer.toString( pageSize ) ) )
             .andExpect( jsonPath( "$.pager.page" ).value( "1" ) )
-            .andExpect( jsonPath( "$.pager.total" ).value( Integer.toString( totalSize ) ) )
-            .andExpect( jsonPath( "$.pager.pageCount" ).value( Integer.toString( totalSize / pageSize ) ) )
+            .andExpect( jsonPath( "$.pager.total" ).value( Long.toString( totalSize ) ) )
+            .andExpect( jsonPath( "$.pager.pageCount" ).value( Long.toString( totalSize / pageSize ) ) )
             .andExpect( jsonPath( "$.dataElementOperands", hasSize( pageSize ) ) );
 
         final FieldFilterParams fieldFilterParams = filterParamsArgumentCaptor.getValue();
@@ -221,16 +222,17 @@ public class DataElementOperandControllerTest
         throws Exception
     {
         int pageSize = 25;
-        int totalSize = 100;
+        long totalSize = 100;
 
         // Given
         final List<DataElement> dataElements = rnd.randomObjects( DataElement.class, 1 );
 
         when( manager.getAllSorted( DataElement.class ) ).thenReturn( dataElements );
 
-        final List<DataElementOperand> dataElementOperands = rnd.randomObjects( DataElementOperand.class, totalSize );
+        final List<DataElementOperand> dataElementOperands = rnd.randomObjects( DataElementOperand.class,
+            (int) totalSize );
         when( dataElementCategoryService.getOperands( dataElements, true ) )
-            .thenReturn( rnd.randomObjects( DataElementOperand.class, totalSize ) );
+            .thenReturn( rnd.randomObjects( DataElementOperand.class, (int) totalSize ) );
 
         final List<DataElementOperand> thirdPageElements = dataElementOperands.subList( 50, 50 + pageSize );
         ArgumentCaptor<FieldFilterParams> filterParamsArgumentCaptor = ArgumentCaptor
@@ -251,8 +253,8 @@ public class DataElementOperandControllerTest
             .andExpect( content().contentType( "application/json" ) )
             .andExpect( jsonPath( "$.pager.pageSize" ).value( Integer.toString( pageSize ) ) )
             .andExpect( jsonPath( "$.pager.page" ).value( "3" ) )
-            .andExpect( jsonPath( "$.pager.total" ).value( Integer.toString( totalSize ) ) )
-            .andExpect( jsonPath( "$.pager.pageCount" ).value( Integer.toString( totalSize / pageSize ) ) )
+            .andExpect( jsonPath( "$.pager.total" ).value( Long.toString( totalSize ) ) )
+            .andExpect( jsonPath( "$.pager.pageCount" ).value( Long.toString( totalSize / pageSize ) ) )
             .andExpect( jsonPath( "$.dataElementOperands", hasSize( pageSize ) ) );
 
         final FieldFilterParams fieldFilterParams = filterParamsArgumentCaptor.getValue();
