@@ -65,6 +65,6 @@ public class UserSupplier extends AbstractPreheatSupplier
             .collect( Collectors.toSet() );
 
         preheat.put( TrackerIdentifier.UID,
-            DetachUtils.detach( UserMapper.INSTANCE, manager.getNoAcl( User.class, userUids ) ) );
+            DetachUtils.detach( UserMapper.INSTANCE, manager.getByUid( User.class, userUids ) ) );
     }
 }
