@@ -761,8 +761,34 @@ public class DefaultAnalyticsService
 
                     if ( dataSetPt.equalsName( DailyPeriodType.NAME ) )
                     {
-                        Period period = PeriodType.getPeriodFromIsoString( dataRow.get( periodIndex ) );
-                        target = target * period.getDaysInPeriod() * timeUnits;
+                        boolean hasPeriodInDimension = periodIndex != -1;
+
+                        // If we enter here, it means there is a "pe" in the dimension parameter.
+                        if ( hasPeriodInDimension )
+                        {
+                            final Period period = PeriodType.getPeriodFromIsoString( dataRow.get( periodIndex ) );
+
+                            target = target * period.getDaysInPeriod() * timeUnits;
+                        }
+                        else
+                        {
+                            // If we reach here, it means that we should have a "pe" dimension in the filter
+                            // parameter.
+                            final List<DimensionalItemObject> periods = params.getFilterPeriods();
+
+                            if ( isNotEmpty( periods ) )
+                            {
+                                int totalOfDayInPeriod = 0;
+
+                                for ( final DimensionalItemObject itemObject : periods )
+                                {
+                                    final Period period = (Period) itemObject;
+                                    totalOfDayInPeriod += period.getDaysInPeriod();
+                                }
+
+                                target += target * totalOfDayInPeriod;
+                            }
+                        }
                     }
                     else
                     {
@@ -1168,11 +1194,11 @@ public class DefaultAnalyticsService
     }
 
     /**
-     * Generates a mapping between the the data set dimension key and the count
+     * Generates a mapping between the data set dimension key and the count
      * of expected data sets to report.
      *
      * @param params the {@link DataQueryParams}.
-     * @return a mapping between the the data set dimension key and the count of
+     * @return a mapping between the data set dimension key and the count of
      *         expected data sets to report.
      */
     private Map<String, Double> getAggregatedCompletenessTargetMap( DataQueryParams params )
@@ -1184,12 +1210,12 @@ public class DefaultAnalyticsService
     }
 
     /**
-     * Generates a mapping between the the organisation unit dimension key and the
+     * Generates a mapping between the organisation unit dimension key and the
      * count of organisation units inside the subtree of the given organisation units and
      * members of the given organisation unit groups.
      *
      * @param params the {@link DataQueryParams}.
-     * @return a mapping between the the data set dimension key and the count of
+     * @return a mapping between the data set dimension key and the count of
      *         expected data sets to report.
      */
     private Map<String, Double> getAggregatedOrganisationUnitTargetMap( DataQueryParams params )
