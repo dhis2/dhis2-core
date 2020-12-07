@@ -51,6 +51,8 @@ public class TrackerIdentifier
 
     public final static TrackerIdentifier CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
 
+    public final static TrackerIdentifier NAME = builder().idScheme( TrackerIdScheme.NAME ).build();
+
     public final static TrackerIdentifier AUTO = builder().idScheme( TrackerIdScheme.AUTO ).build();
 
     @JsonProperty
@@ -69,6 +71,8 @@ public class TrackerIdentifier
             return object.getUid();
         case CODE:
             return object.getCode();
+        case NAME:
+            return object.getName();
         case ATTRIBUTE:
             return object.getAttributeValues()
                 .stream()

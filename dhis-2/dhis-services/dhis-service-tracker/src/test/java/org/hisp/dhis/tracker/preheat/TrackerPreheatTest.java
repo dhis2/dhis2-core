@@ -98,7 +98,7 @@ public class TrackerPreheatTest
         DataElement de1 = new DataElement( "dataElementA" );
         de1.setCode( "CODE1" );
         DataElement de2 = new DataElement( "dataElementB" );
-        de2.setCode( "CODE12" );
+        de2.setCode( "CODE2" );
 
         preheat.put( TrackerIdentifier.CODE, de1 );
         preheat.put( TrackerIdentifier.CODE, de2 );
@@ -106,6 +106,24 @@ public class TrackerPreheatTest
         assertEquals( 2, preheat.getAll( DataElement.class ).size() );
         assertThat( preheat.get( DataElement.class, de1.getCode() ), is( notNullValue() ) );
         assertThat( preheat.get( DataElement.class, de2.getCode() ), is( notNullValue() ) );
+    }
+
+    @Test
+    public void testPutAndGetByName()
+    {
+        TrackerPreheat preheat = new TrackerPreheat();
+
+        DataElement de1 = new DataElement( "dataElementA" );
+        de1.setName( "DATA_ELEM1" );
+        DataElement de2 = new DataElement( "dataElementB" );
+        de2.setName( "DATA_ELEM2" );
+
+        preheat.put( TrackerIdentifier.NAME, de1 );
+        preheat.put( TrackerIdentifier.NAME, de2 );
+
+        assertEquals( 2, preheat.getAll( DataElement.class ).size() );
+        assertThat( preheat.get( DataElement.class, de1.getName() ), is( notNullValue() ) );
+        assertThat( preheat.get( DataElement.class, de2.getName() ), is( notNullValue() ) );
     }
 
     @Test
