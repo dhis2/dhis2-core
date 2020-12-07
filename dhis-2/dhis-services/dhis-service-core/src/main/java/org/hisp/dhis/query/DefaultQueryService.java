@@ -117,7 +117,14 @@ public class DefaultQueryService
     @Override
     public Query getQueryFromUrl(Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination, Junction.Type rootJunction ) throws QueryParserException
     {
-        Query query = queryParser.parse( klass, filters, rootJunction );
+        return getQueryFromUrl( klass, filters, orders, pagination, rootJunction, false );
+    }
+
+    @Override
+    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination, Junction.Type rootJunction, boolean restrictToCaptureScope ) throws QueryParserException
+    {
+        Query query = queryParser.parse( klass, filters, rootJunction, restrictToCaptureScope );
+
         query.addOrders( orders );
         if ( pagination.hasPagination() )
         {
