@@ -111,7 +111,7 @@ public class PreCheckMetaValidationHook
         {
             ProgramInstance pi = context.getProgramInstance( enrollment.getEnrollment() );
             Program existingProgram = pi.getProgram();
-            if ( !existingProgram.getUid().equals( program.getUid() ) )
+            if ( program != null && !existingProgram.getUid().equals( program.getUid() ) )
             {
                 addError( reporter, E1094, pi, existingProgram );
             }
