@@ -147,9 +147,12 @@ public class DefaultGatewayAdministrationService
                 updatedConfig.setUid( persistedConfig.getUid() );
                 updatedConfig.setDefault( persistedConfig.isDefault() );
 
-                if ( persistedConfig.getPassword() != updatedConfig.getPassword() )
+                if ( persistedConfig.getPassword() != null )
                 {
-                    updatedConfig.setPassword( pbeStringEncryptor.encrypt( updatedConfig.getPassword() ) );
+                    if ( persistedConfig.getPassword().equals( updatedConfig.getPassword() ) )
+                    {
+                        updatedConfig.setPassword( pbeStringEncryptor.encrypt( updatedConfig.getPassword() ) );
+                    }
                 }
 
                 if ( persistedConfig instanceof GenericHttpGatewayConfig )
