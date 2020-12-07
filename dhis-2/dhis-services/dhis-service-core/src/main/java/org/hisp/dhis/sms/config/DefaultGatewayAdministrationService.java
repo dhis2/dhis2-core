@@ -169,7 +169,7 @@ public class DefaultGatewayAdministrationService
         updatedConfig.setUid( persistedConfig.getUid() );
         updatedConfig.setDefault( persistedConfig.isDefault() );
 
-        if ( persistedConfig.getPassword() != updatedConfig.getPassword() )
+        if ( persistedConfig.getPassword().equals( updatedConfig.getPassword() ) )
         {
             updatedConfig.setPassword( pbeStringEncryptor.encrypt( updatedConfig.getPassword() ) );
         }
@@ -179,15 +179,15 @@ public class DefaultGatewayAdministrationService
             List<GenericGatewayParameter> newList = new ArrayList<>();
 
             GenericHttpGatewayConfig persistedGenericConfig = (GenericHttpGatewayConfig) persistedConfig;
-            GenericHttpGatewayConfig updatedConfigGenericConfig = (GenericHttpGatewayConfig) updatedConfig;
+            GenericHttpGatewayConfig updatedGenericConfig = (GenericHttpGatewayConfig) updatedConfig;
 
             List<GenericGatewayParameter> persistedList = persistedGenericConfig.getParameters()
-                    .stream().filter( GenericGatewayParameter::isConfidential )
-                    .collect( Collectors.toList() );
+                .stream().filter( GenericGatewayParameter::isConfidential )
+                .collect( Collectors.toList() );
 
-            List<GenericGatewayParameter> updatedList = updatedConfigGenericConfig.getParameters()
-                    .stream().filter( GenericGatewayParameter::isConfidential )
-                    .collect( Collectors.toList() );
+            List<GenericGatewayParameter> updatedList = updatedGenericConfig.getParameters()
+                .stream().filter( GenericGatewayParameter::isConfidential )
+                .collect( Collectors.toList() );sudo k
 
             for ( GenericGatewayParameter p: updatedList )
             {
@@ -199,11 +199,11 @@ public class DefaultGatewayAdministrationService
                 newList.add( p );
             }
 
-            updatedConfigGenericConfig.setParameters( Stream
-                .concat( updatedConfigGenericConfig.getParameters().stream(), newList.stream() )
+            updatedGenericConfig.setParameters( Stream
+                .concat( updatedGenericConfig.getParameters().stream(), newList.stream() )
                 .distinct().collect( Collectors.toList() ) );
 
-            updatedConfig = updatedConfigGenericConfig;
+            updatedConfig = updatedGenericConfig;
         }
 
         SmsConfiguration configuration = getSmsConfiguration();
