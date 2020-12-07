@@ -40,7 +40,6 @@ import org.springframework.util.StringUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -63,7 +62,7 @@ public class OrgUnitValueTypeSupplier extends AbstractPreheatSupplier
     @Override
     public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat )
     {
-        List<TrackedEntityAttribute> attributes = preheat.getAll( TrackerIdScheme.UID, TrackedEntityAttribute.class );
+        List<TrackedEntityAttribute> attributes = preheat.getAll( TrackedEntityAttribute.class );
 
         List<String> orgUnitAttributes = attributes.stream()
             .filter( at -> at.getValueType() == ValueType.ORGANISATION_UNIT )

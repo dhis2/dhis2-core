@@ -116,11 +116,11 @@ public class EnrollmentTrackerConverterService
     private ProgramInstance from( TrackerPreheat preheat, Enrollment enrollment, ProgramInstance programInstance )
     {
         OrganisationUnit organisationUnit = preheat
-            .get( TrackerIdScheme.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
+            .get( OrganisationUnit.class, enrollment.getOrgUnit() );
 
         checkNotNull( organisationUnit, TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL );
 
-        Program program = preheat.get( TrackerIdScheme.UID, Program.class, enrollment.getProgram() );
+        Program program = preheat.get( Program.class, enrollment.getProgram() );
 
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 

@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -52,9 +53,11 @@ public class TrackerIdentifier
 
     public final static TrackerIdentifier AUTO = builder().idScheme( TrackerIdScheme.AUTO ).build();
 
+    @JsonProperty
     @Builder.Default
     private TrackerIdScheme idScheme = TrackerIdScheme.UID;
 
+    @JsonProperty
     @Builder.Default
     private String value = null;
 

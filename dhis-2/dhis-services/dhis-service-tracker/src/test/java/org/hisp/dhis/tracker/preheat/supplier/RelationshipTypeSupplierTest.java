@@ -9,7 +9,6 @@ import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.Rule;
@@ -46,6 +45,6 @@ public class RelationshipTypeSupplierTest
         TrackerPreheat preheat = new TrackerPreheat();
         this.supplier.preheatAdd( params, preheat );
 
-        assertThat( preheat.getAll( TrackerIdScheme.UID, RelationshipType.class ), hasSize( 5 ) );
+        assertThat( preheat.getAll( RelationshipType.class ), hasSize( 5 ) );
     }
 }

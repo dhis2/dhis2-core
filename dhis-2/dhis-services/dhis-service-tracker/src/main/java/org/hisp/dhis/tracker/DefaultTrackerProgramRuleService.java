@@ -113,7 +113,7 @@ public class DefaultTrackerProgramRuleService
     {
         return events
             .stream()
-            .filter( e -> isEventInRegistrationProgram( e, bundle.getPreheat(), bundle.getIdentifier() ) )
+            .filter( e -> isEventInRegistrationProgram( e, bundle.getPreheat() ) )
             .collect( Collectors.toMap( Event::getEvent, event -> {
                 ProgramInstance enrollment = getEnrollment( bundle, event );
                 try
@@ -137,14 +137,13 @@ public class DefaultTrackerProgramRuleService
             } ) );
     }
 
-    private boolean isEventInRegistrationProgram( Event e, TrackerPreheat preheat,
-        TrackerIdScheme identifier )
+    private boolean isEventInRegistrationProgram( Event e, TrackerPreheat preheat )
     {
         if ( e.getProgram() == null )
         {
             return false;
         }
-        Program program = preheat.get( identifier, Program.class, e.getProgram() );
+        Program program = preheat.get( Program.class, e.getProgram() );
         if ( program == null )
         {
             return false;
