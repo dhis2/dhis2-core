@@ -35,6 +35,7 @@ import org.hisp.dhis.node.serializers.Jackson2JsonNodeSerializer;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.SimpleNode;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.CriteriaQueryEngine;
 import org.hisp.dhis.query.DefaultQueryParser;
 import org.hisp.dhis.query.DefaultQueryService;
@@ -83,6 +84,9 @@ public class DataElementOperandControllerTest
 
     @Mock
     private SchemaService schemaService;
+    
+    @Mock
+    private OrganisationUnitService organisationUnitService;
 
     @Mock
     private CategoryService dataElementCategoryService;
@@ -107,7 +111,7 @@ public class DataElementOperandControllerTest
         ContextService contextService = new DefaultContextService();
 
         QueryService _queryService = new DefaultQueryService(
-            new DefaultQueryParser( schemaService ),
+            new DefaultQueryParser( schemaService, currentUserService, organisationUnitService ),
             new DefaultQueryPlanner( schemaService ), mock( CriteriaQueryEngine.class ),
             new InMemoryQueryEngine<>( schemaService, mock( AclService.class ), currentUserService ) );
         // Use "spy" on queryService, because we want a partial mock: we only want to
