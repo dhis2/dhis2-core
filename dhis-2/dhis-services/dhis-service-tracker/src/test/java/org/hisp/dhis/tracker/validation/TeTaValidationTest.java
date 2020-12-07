@@ -165,15 +165,7 @@ public class TeTaValidationTest
         trackerBundleService.commit( trackerBundle );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
-
-        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues(
-                trackedEntityInstance );
-
-        assertEquals( 1, attributeValues.size() );
+        assertEquals( 0, trackedEntityInstances.size() );
     }
 
     @Test
@@ -196,15 +188,7 @@ public class TeTaValidationTest
         trackerBundleService.commit( trackerBundle );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
-
-        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues(
-                trackedEntityInstance );
-
-        assertEquals( 1, attributeValues.size() );
+        assertEquals( 0, trackedEntityInstances.size() );
     }
 
     @Test

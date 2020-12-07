@@ -396,7 +396,7 @@ public class EventImportValidationTest
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -487,7 +487,7 @@ public class EventImportValidationTest
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -524,7 +524,7 @@ public class EventImportValidationTest
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -550,7 +550,7 @@ public class EventImportValidationTest
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -623,7 +623,7 @@ public class EventImportValidationTest
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 

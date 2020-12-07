@@ -67,9 +67,6 @@ public class DefaultTrackerProgramRuleService
 
     private final TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
 
-    private final String WARN_MESSAGE = "An error occurred during a Program Rule engine call for %s.\n" +
-        " Please check the response payload for additional information";
-
     public DefaultTrackerProgramRuleService(
         @Qualifier( "serviceTrackerRuleEngine" ) ProgramRuleEngine programRuleEngine,
         TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService,
@@ -89,22 +86,7 @@ public class DefaultTrackerProgramRuleService
             .collect( Collectors.toMap( Enrollment::getEnrollment, e -> {
                 ProgramInstance enrollment = enrollmentTrackerConverterService.fromForRuleEngine( bundle.getPreheat(),
                     e );
-                try
-                {
-                    return programRuleEngine.evaluate( enrollment, Sets.newHashSet() );
-                }
-                catch ( Exception ex )
-                {
-                    if ( log.isDebugEnabled() )
-                    {
-                        log.debug( String.format( WARN_MESSAGE, "enrollment" ), e );
-                    }
-                    else
-                    {
-                        log.warn( String.format( WARN_MESSAGE, "enrollment" ) );
-                    }
-                    return Lists.newArrayList();
-                }
+                return programRuleEngine.evaluate( enrollment, Sets.newHashSet() );
             } ) );
     }
 
@@ -116,24 +98,9 @@ public class DefaultTrackerProgramRuleService
             .filter( e -> isEventInRegistrationProgram( e, bundle.getPreheat() ) )
             .collect( Collectors.toMap( Event::getEvent, event -> {
                 ProgramInstance enrollment = getEnrollment( bundle, event );
-                try
-                {
-                    return programRuleEngine.evaluate( enrollment,
-                        eventTrackerConverterService.from( bundle.getPreheat(), event ),
-                        getEventsFromEnrollment( enrollment.getUid(), bundle, events ) );
-                }
-                catch ( Exception e )
-                {
-                    if ( log.isDebugEnabled() )
-                    {
-                        log.debug( String.format( WARN_MESSAGE, "event" ), e );
-                    }
-                    else
-                    {
-                        log.warn( String.format( WARN_MESSAGE, "event" ) );
-                    }
-                    return Lists.newArrayList();
-                }
+                return programRuleEngine.evaluate( enrollment,
+                    eventTrackerConverterService.from( bundle.getPreheat(), event ),
+                    getEventsFromEnrollment( enrollment.getUid(), bundle, events ) );
             } ) );
     }
 

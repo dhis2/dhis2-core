@@ -66,7 +66,8 @@ import com.google.common.collect.Sets;
 
 import static org.junit.Assert.*;
 
-public class SetMandatoryFieldImplementerTest extends AbstractImportValidationTest
+public class SetMandatoryFieldValidatorTest
+    extends AbstractImportValidationTest
 {
 
     @Autowired
@@ -94,7 +95,7 @@ public class SetMandatoryFieldImplementerTest extends AbstractImportValidationTe
     private ProgramRuleVariableService programRuleVariableService;
 
     @Autowired
-    private SetMandatoryFieldImplementer implementerToTest;
+    private SetMandatoryFieldValidator implementerToTest;
 
     @Override
     protected void setUpTest()

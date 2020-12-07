@@ -51,11 +51,15 @@ public class TrackerTimingsStats
 {
     public static final String PREHEAT_OPS = "preheat";
 
-    public static final String PROGRAMRULE_OPS = "programrule";
+    public static final String PREPROCESS_OPS = "preprocess";
 
     public static final String COMMIT_OPS = "commit";
 
     public static final String VALIDATION_OPS = "validation";
+
+    public static final String PROGRAMRULE_OPS = "programrule";
+
+    public static final String VALIDATE_PROGRAMRULE_OPS = "programruleValidation";
 
     public static final String TOTAL_OPS = "totalImport";
 

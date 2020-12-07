@@ -354,7 +354,6 @@ public class EnrollmentImportValidationTest
             "tracker/validations/enrollments_error_non_program_attr.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
 
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
         printReport( validationReport );
@@ -484,7 +483,6 @@ insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpd
             "tracker/validations/enrollments_bad-geo-missing-geotype.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
 
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
         printReport( validationReport );
@@ -511,7 +509,7 @@ insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpd
 
         createAndUpdate = validateAndCommit(
             "tracker/validations/enrollments_double-tei-enrollment_part2.json", TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
+
         validationReport = createAndUpdate.getValidationReport();
         printReport( validationReport );
 

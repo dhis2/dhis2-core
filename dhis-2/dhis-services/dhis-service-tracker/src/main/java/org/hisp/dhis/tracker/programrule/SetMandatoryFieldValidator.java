@@ -51,7 +51,7 @@ import com.google.api.client.util.Lists;
  * @Author Enrico Colasante
  */
 @Component
-public class SetMandatoryFieldImplementer
+public class SetMandatoryFieldValidator
     implements RuleActionValidator
 {
     @Override

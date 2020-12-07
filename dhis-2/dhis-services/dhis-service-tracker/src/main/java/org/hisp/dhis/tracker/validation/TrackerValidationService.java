@@ -42,4 +42,11 @@ public interface TrackerValidationService
      * @param bundle Bundle to validate
      */
     TrackerValidationReport validate( TrackerBundle bundle );
+
+    /**
+     * Validate tracker bundle with validations created by rule engine
+     *
+     * @param bundle Bundle to validate
+     */
+    TrackerValidationReport validateRuleEngine( TrackerBundle bundle );
 }

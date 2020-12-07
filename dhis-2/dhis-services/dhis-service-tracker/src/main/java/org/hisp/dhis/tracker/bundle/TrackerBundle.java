@@ -164,8 +164,6 @@ public class TrackerBundle
     @Builder.Default
     private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
 
-    private TrackerImportValidationContext trackerImportValidationContext;
-
     @JsonProperty
     public String getUsername()
     {
