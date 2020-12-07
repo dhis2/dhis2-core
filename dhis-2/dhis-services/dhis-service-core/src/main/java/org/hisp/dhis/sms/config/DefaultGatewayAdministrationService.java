@@ -187,7 +187,7 @@ public class DefaultGatewayAdministrationService
 
             List<GenericGatewayParameter> updatedList = updatedGenericConfig.getParameters()
                 .stream().filter( GenericGatewayParameter::isConfidential )
-                .collect( Collectors.toList() );sudo k
+                .collect( Collectors.toList() );
 
             for ( GenericGatewayParameter p: updatedList )
             {
