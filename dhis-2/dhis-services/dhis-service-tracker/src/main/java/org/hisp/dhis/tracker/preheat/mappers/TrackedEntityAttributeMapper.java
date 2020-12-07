@@ -39,6 +39,7 @@ public interface TrackedEntityAttributeMapper extends PreheatMapper<TrackedEntit
 {
     TrackedEntityAttributeMapper INSTANCE = Mappers.getMapper( TrackedEntityAttributeMapper.class );
 
+    @Override
     @BeanMapping( ignoreByDefault = true )
     @Mapping( target = "id" )
     @Mapping( target = "uid" )
