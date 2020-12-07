@@ -164,7 +164,7 @@
 			     	 <td><input type="text" name="oldVName$rowId" id="oldVName$rowId" style="width:9em" value="$!encoder.htmlEncode( $!param.key )"/></td>
 			     	 <td>		     	 
 			     	 #if($param.confidential)
-			     	 	 <input type="password" name="oldValue$rowId" id="oldValue$rowId" style="width:10em" value=""/>
+			     	 	 <input type="password" name="oldValue$rowId" id="oldValue$rowId" style="width:10em" value="$!encoder.htmlEncode( $!param.value )"/>
 			     	 #else	     	 
 			     		 <input type="text" name="oldValue$rowId" id="oldValue$rowId" style="width:10em" value="$!encoder.htmlEncode( $!param.value )"/> 
 			     	 #end
