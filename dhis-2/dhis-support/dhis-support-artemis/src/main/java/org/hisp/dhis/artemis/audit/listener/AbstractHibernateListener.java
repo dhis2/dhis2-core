@@ -264,7 +264,9 @@ public abstract class AbstractHibernateListener
 
         if ( schema == null )
         {
-            putValueToMap( property, objectMap, value );
+            // We shouldn't invoke this again since it will cause StackOverflowException
+            // putValueToMap( property, objectMap, value );
+            return;
         }
         List<Map<String,Object>> listProperties = new ArrayList<>();
 
