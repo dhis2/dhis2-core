@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat.mappers;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,22 +26,29 @@ package org.hisp.dhis.tracker.preheat.mappers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+package org.hisp.dhis.tracker.programrule;
 
-@Mapper( uses = DebugMapper.class )
-public interface DataElementMapper extends PreheatMapper<DataElement>
+import org.hisp.dhis.rules.models.RuleActionShowError;
+import org.springframework.stereotype.Component;
+
+/**
+ * This implementer show errors calculated by Rule Engine.
+ *
+ * @Author Enrico Colasante
+ */
+@Component
+public class ShowErrorValidator
+    extends ErrorWarningImplementer
 {
-    DataElementMapper INSTANCE = Mappers.getMapper( DataElementMapper.class );
+    @Override
+    public Class<RuleActionShowError> getActionClass()
+    {
+        return RuleActionShowError.class;
+    }
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "name" )
-    @Mapping( target = "valueType" )
-    DataElement map( DataElement dataElement );
+    @Override
+    public boolean isWarning()
+    {
+        return false;
+    }
 }

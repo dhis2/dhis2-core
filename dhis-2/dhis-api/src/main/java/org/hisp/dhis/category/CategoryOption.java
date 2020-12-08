@@ -38,6 +38,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.OrganisationUnitAssignable;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -55,7 +56,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
 public class CategoryOption
-    extends BaseDimensionalItemObject implements SystemDefaultMetadataObject
+    extends BaseDimensionalItemObject implements SystemDefaultMetadataObject, OrganisationUnitAssignable
 {
     public static final String DEFAULT_NAME = "default";
 

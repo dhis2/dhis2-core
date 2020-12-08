@@ -52,7 +52,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -159,12 +158,8 @@ public class PreCheckMetaValidationHook
             .stream()
             .map( DataValue::getDataElement )
             .forEach( de -> {
-                DataElement dataElement = context.getBundle().getPreheat().get( TrackerIdScheme.UID, DataElement.class,
-                    de );
-                if ( dataElement == null )
-                {
-                    addError( reporter, E1087, event.getEvent(), de );
-                }
+                DataElement dataElement = context.getBundle().getPreheat().get( DataElement.class, de );
+                addErrorIfNull( dataElement,  reporter, E1087, event.getEvent(), de );
             } );
     }
 
@@ -187,14 +182,10 @@ public class PreCheckMetaValidationHook
             addError( reporter, E1086, event, program );
         }
 
-        if ( program != null )
+        if ( program != null && programStage == null && program.isWithoutRegistration() )
         {
-            programStage = (programStage == null && program.isWithoutRegistration())
-                ? program.getProgramStageByStage( 1 )
-                : programStage;
+            addErrorIfNull( program.getProgramStageByStage( 1 ), reporter, E1035, event );
         }
-
-        addErrorIfNull( programStage, reporter, E1035, event );
 
         if ( program != null && programStage != null && !program.equals( programStage.getProgram() ) )
         {

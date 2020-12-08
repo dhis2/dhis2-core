@@ -595,6 +595,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             case STACKED_COLUMN:
             case YEAR_OVER_YEAR_COLUMN:
             case YEAR_OVER_YEAR_LINE:
+            case SCATTER:
+            case BUBBLE:
                 final Chart chart = new Chart();
                 chart.setUid( interpretation.getVisualization().getUid() );
                 interpretation.setChart( chart );

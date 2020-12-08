@@ -135,10 +135,13 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         {
             return Restrictions.in( "code", ids );
         }
+        else if( TrackerIdScheme.NAME.equals( idScheme) )
+        {
+            return Restrictions.in( "name", ids );
+        }
         else
         {
             return Restrictions.in( "id", ids );
         }
     }
-
 }

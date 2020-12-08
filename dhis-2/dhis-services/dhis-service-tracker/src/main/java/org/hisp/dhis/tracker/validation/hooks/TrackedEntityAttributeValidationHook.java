@@ -60,8 +60,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -119,6 +119,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
             trackedEntityType.getTrackedEntityTypeAttributes()
                 .stream()
                 .filter( trackedEntityTypeAttribute -> Boolean.TRUE.equals( trackedEntityTypeAttribute.isMandatory() ) )
+                .map(TrackedEntityTypeAttribute::getTrackedEntityAttribute)
                 .map( BaseIdentifiableObject::getUid )
                 .filter( mandatoryAttributeUid -> !trackedEntityAttributes.contains( mandatoryAttributeUid ) )
                 .forEach(
@@ -250,7 +251,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         }
 
         FileResource fileResource = reporter.getValidationContext().getBundle().getPreheat()
-            .get( TrackerIdScheme.UID, FileResource.class, attr.getValue() );
+            .get( FileResource.class, attr.getValue() );
         
         addErrorIfNull( fileResource, reporter, E1084, attr.getValue() );
         addErrorIf( () -> fileResource != null && fileResource.isAssigned(), reporter, E1009, attr.getValue() );

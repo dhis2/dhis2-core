@@ -35,6 +35,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.hisp.dhis.tracker.validation.hooks.*;
@@ -53,6 +54,12 @@ public class TrackerImportValidationConfig
     {
         // EMPTY
     }
+
+    protected static final List<Class<? extends TrackerValidationHook>> RULE_ENGINE_VALIDATION_HOOKS = ImmutableList.of(
+
+        EnrollmentRuleValidationHook.class,
+        EventRuleValidationHook.class
+    );
 
     protected static final List<Class<? extends TrackerValidationHook>> VALIDATION_ORDER = ImmutableList.of(
 
@@ -79,10 +86,10 @@ public class TrackerImportValidationConfig
 
         RelationshipsValidationHook.class,
 
-        EnrollmentRuleValidationHook.class,
-        EventRuleValidationHook.class,
+        AssignedUserValidationHook.class,
 
-        AssignedUserValidationHook.class
+        RepeatedEventsValidationHook.class // This validation must be run after all the Event validations
+        // because it needs to consider all and only the valid events
     );
 
     /**
@@ -99,9 +106,25 @@ public class TrackerImportValidationConfig
      *
      * @param hooks list to sort
      */
-    public static void sortHooks( List<TrackerValidationHook> hooks )
+    public static List<TrackerValidationHook> sortValidationHooks( List<TrackerValidationHook> hooks )
     {
         //TODO: Make some tests to check this is correctly configured
-        hooks.sort( Comparator.comparingInt( o -> VALIDATION_ORDER_MAP.get( o.getClass() ) ) );
+        return hooks
+            .stream().filter( h -> VALIDATION_ORDER.contains( h.getClass() ) )
+            .sorted( Comparator.comparingInt( o -> VALIDATION_ORDER_MAP.get( o.getClass() ) ) )
+            .collect( Collectors.toList() );
+    }
+
+    /**
+     * Get just rule engine validation hooks.
+     *
+     * @param hooks list to filter
+     */
+    public static List<TrackerValidationHook> getRuleEngineValidationHooks( List<TrackerValidationHook> hooks )
+    {
+        return hooks
+            .stream()
+            .filter( h -> RULE_ENGINE_VALIDATION_HOOKS.contains( h.getClass() ) )
+            .collect( Collectors.toList() );
     }
 }

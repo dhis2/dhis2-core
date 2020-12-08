@@ -176,9 +176,9 @@ public class EventTrackerConverterService
 
     private ProgramStageInstance from( TrackerPreheat preheat, Event event, ProgramStageInstance programStageInstance )
     {
-        ProgramStage programStage = preheat.get( TrackerIdScheme.UID, ProgramStage.class, event.getProgramStage() );
+        ProgramStage programStage = preheat.get( ProgramStage.class, event.getProgramStage() );
         OrganisationUnit organisationUnit = preheat
-            .get( TrackerIdScheme.UID, OrganisationUnit.class, event.getOrgUnit() );
+            .get( OrganisationUnit.class, event.getOrgUnit() );
 
         if ( isNewEntity( programStageInstance ) )
         {
@@ -204,7 +204,7 @@ public class EventTrackerConverterService
         if ( attributeOptionCombo != null )
         {
             programStageInstance.setAttributeOptionCombo(
-                preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, event.getAttributeOptionCombo() ) );
+                preheat.get( CategoryOptionCombo.class, event.getAttributeOptionCombo() ) );
         }
         else
         {
@@ -234,7 +234,7 @@ public class EventTrackerConverterService
 
         if ( programStage.isEnableUserAssignment() )
         {
-            User assignedUser = preheat.get( TrackerIdScheme.UID, User.class, event.getAssignedUser() );
+            User assignedUser = preheat.get( User.class, event.getAssignedUser() );
             programStageInstance.setAssignedUser( assignedUser );
         }
 

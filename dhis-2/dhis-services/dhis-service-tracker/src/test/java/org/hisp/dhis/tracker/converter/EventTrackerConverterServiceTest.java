@@ -38,9 +38,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.converter.EventTrackerConverterService;
-import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.Before;
@@ -85,10 +82,8 @@ public class EventTrackerConverterServiceTest
 
         programStage.setProgram( program );
 
-        when( preheat.get( TrackerIdScheme.UID, ProgramStage.class, programStage.getUid() ) )
-            .thenReturn( programStage );
-        when( preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, organisationUnit.getUid() ) )
-            .thenReturn( organisationUnit );
+        when( preheat.get( ProgramStage.class, programStage.getUid() ) ).thenReturn( programStage );
+        when( preheat.get( OrganisationUnit.class, organisationUnit.getUid() ) ).thenReturn( organisationUnit );
     }
 
     @Test
