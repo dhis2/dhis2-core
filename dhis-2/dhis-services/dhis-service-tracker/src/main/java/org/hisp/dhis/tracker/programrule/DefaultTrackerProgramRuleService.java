@@ -44,6 +44,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -77,6 +78,7 @@ public class DefaultTrackerProgramRuleService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<String, List<RuleEffect>> calculateEnrollmentRuleEffects( List<Enrollment> enrollments,
         TrackerBundle bundle )
     {
@@ -90,6 +92,7 @@ public class DefaultTrackerProgramRuleService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<String, List<RuleEffect>> calculateEventRuleEffects( List<Event> events, TrackerBundle bundle )
     {
         return events
