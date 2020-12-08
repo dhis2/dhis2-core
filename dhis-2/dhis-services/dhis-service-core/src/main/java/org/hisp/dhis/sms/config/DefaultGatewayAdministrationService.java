@@ -124,6 +124,13 @@ public class DefaultGatewayAdministrationService
     {
         if ( config != null )
         {
+            SmsGatewayConfig persisted = smsConfigurationManager.checkInstanceOfGateway( config.getClass() );
+
+            if ( persisted != null )
+            {
+                return true;
+            }
+
             config.setUid( CodeGenerator.generateCode( 10 )  );
 
             SmsConfiguration smsConfiguration = getSmsConfiguration();
@@ -302,7 +309,7 @@ public class DefaultGatewayAdministrationService
         {
             for ( SmsGatewayConfig smsGatewayConfig : gatewayList )
             {
-                gatewayConfigurationMap.put( smsGatewayConfig.getName(), smsGatewayConfig );
+                gatewayConfigurationMap.put( smsGatewayConfig.getClass().getName(), smsGatewayConfig );
             }
 
             return true;
