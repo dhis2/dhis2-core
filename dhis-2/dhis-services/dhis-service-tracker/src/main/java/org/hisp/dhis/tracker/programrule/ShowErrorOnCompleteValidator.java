@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
  * @Author Enrico Colasante
  */
 @Component
-public class ShowErrorOnCompleteImplementer
+public class ShowErrorOnCompleteValidator
     extends ErrorWarningImplementer
 {
     @Override

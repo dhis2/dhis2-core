@@ -124,21 +124,21 @@ public class ProgramRuleIntegrationTest
         ProgramRule programRule = createProgramRule( 'A', program );
         programRuleService.addProgramRule( programRule );
 
-        ProgramRuleAction programRuleActionSendMessage = createProgramRuleAction( 'A', programRule );
-        programRuleActionSendMessage.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
-        programRuleActionSendMessage.setContent( "WARNING" );
-        programRuleActionSendMessage.setTemplateUid( "M4zQapPyTZI" );
-        programRuleActionService.addProgramRuleAction( programRuleActionSendMessage );
+        ProgramRuleAction programRuleActionShowWarning = createProgramRuleAction( 'A', programRule );
+        programRuleActionShowWarning.setProgramRuleActionType( ProgramRuleActionType.SHOWWARNING );
+        programRuleActionShowWarning.setContent( "WARNING" );
+        programRuleActionService.addProgramRuleAction( programRuleActionShowWarning );
 
-        programRule.getProgramRuleActions().add( programRuleActionSendMessage );
+        programRule.getProgramRuleActions().add( programRuleActionShowWarning );
         programRuleService.updateProgramRule( programRule );
 
         userA = userService.getUser( "M5zQapPyTZI" );
     }
 
     @Test
-    public void testImportSuccessWithWaringRaised() throws IOException {
-
+    public void testImportSuccessWithWarningRaised()
+        throws IOException
+    {
         InputStream inputStream = new ClassPathResource( "tracker/single_tei.json" ).getInputStream();
 
         TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
@@ -147,7 +147,7 @@ public class ProgramRuleIntegrationTest
 
         TrackerImportParams enrollmentParams = renderService
             .fromJson( new ClassPathResource( "tracker/single_enrollment.json" ).getInputStream(),
-                    TrackerImportParams.class );
+                TrackerImportParams.class );
         enrollmentParams.setUserId( userA.getUid() );
         TrackerImportReport trackerImportEnrollmentReport = trackerImportService
             .importTracker( enrollmentParams );
@@ -157,6 +157,6 @@ public class ProgramRuleIntegrationTest
 
         assertNotNull( trackerImportEnrollmentReport );
         assertEquals( TrackerStatus.OK, trackerImportEnrollmentReport.getStatus() );
-        assertTrue( trackerImportEnrollmentReport.getValidationReport().getWarningReports().isEmpty() );
+        assertEquals( 1, trackerImportEnrollmentReport.getValidationReport().getWarningReports().size() );
     }
 }
