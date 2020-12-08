@@ -61,6 +61,13 @@ public interface ProgramMapper extends PreheatMapper<Program>
     @Mapping( target = "onlyEnrollOnce" )
     @Mapping( target = "featureType" )
     @Mapping( target = "categoryCombo" )
+    @Mapping( target = "selectEnrollmentDatesInFuture" )
+    @Mapping( target = "selectIncidentDatesInFuture" )
+    @Mapping( target = "displayIncidentDate" )
+    @Mapping( target = "ignoreOverdueEvents" )
+    @Mapping( target = "expiryDays" )
+    @Mapping( target = "expiryPeriodType" )
+    @Mapping( target = "completeEventsExpiryDays" )
     Program map( Program program );
 
     Set<UserGroupAccess> userGroupAccessesProgram( Set<UserGroupAccess> userGroupAccesses );
