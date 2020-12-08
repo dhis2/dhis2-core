@@ -171,7 +171,7 @@ public class DefaultGatewayAdministrationService
 
         if ( persistedConfig.getPassword() != null )
         {
-            if ( persistedConfig.getPassword().equals( updatedConfig.getPassword() ) )
+            if ( !persistedConfig.getPassword().equals( updatedConfig.getPassword() ) )
             {
                 updatedConfig.setPassword( pbeStringEncryptor.encrypt( updatedConfig.getPassword() ) );
             }

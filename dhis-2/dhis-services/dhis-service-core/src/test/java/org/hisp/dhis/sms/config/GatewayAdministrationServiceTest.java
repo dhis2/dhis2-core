@@ -83,6 +83,7 @@ public class GatewayAdministrationServiceTest
 
         clickatellConfig = new ClickatellGatewayConfig();
         clickatellConfig.setName( CLICKATELL );
+        clickatellConfig.setPassword( "123abc" );
 
         genericHttpGatewayConfig = new GenericHttpGatewayConfig();
         genericHttpGatewayConfig.setName( GENERIC_GATEWAY );
@@ -174,6 +175,7 @@ public class GatewayAdministrationServiceTest
         assertTrue( subject.getGatewayConfigurationMap().get( BULKSMS ).isDefault() );
         assertFalse( subject.getGatewayConfigurationMap().get( CLICKATELL_UPDATED ).isDefault() );
         assertNotEquals( "tempUId", subject.getGatewayConfigurationMap().get( CLICKATELL_UPDATED ).getUid() );
+        assertEquals( subject.getGatewayConfigurationMap().get( CLICKATELL_UPDATED ).getPassword(), updated.getPassword() );
     }
 
     @Test
