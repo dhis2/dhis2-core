@@ -44,6 +44,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.sharing.SharingService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -110,6 +111,9 @@ public class SharingController
 
     @Autowired
     private SchemaService schemaService;
+
+    @Autowired
+    private SharingService sharingService;
 
     // -------------------------------------------------------------------------
     // Resources
@@ -477,7 +481,7 @@ public class SharingController
     /**
      * This method is being used only during the deprecation process of the
      * Pivot/ReportTable API. It must be removed once the process is complete.
-     * 
+     *
      * @return "visualization" if the given type is equals to "reportTable" or
      *         "chart", otherwise it returns the given type itself.
      */
@@ -490,4 +494,6 @@ public class SharingController
         }
         return type;
     }
+
+
 }

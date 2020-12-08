@@ -33,7 +33,6 @@ import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
@@ -96,12 +95,14 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.sharing.SharingService;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -117,6 +118,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -221,6 +223,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @Autowired
     protected UserService userService;
+
+    @Autowired
+    protected SharingService sharingService;
 
     //--------------------------------------------------------------------------
     // GET
@@ -1090,6 +1095,40 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         collectionService.delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
+    }
+
+    @PutMapping( value = "/{uid}/sharing", consumes = "application/json" )
+    public void setSharing( @PathVariable( "uid" ) String uid, HttpServletRequest request, HttpServletResponse response )
+        throws WebMessageException, IOException
+    {
+        T entity = manager.get( getEntityClass(), uid );
+
+        if ( entity == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), uid ) );
+        }
+
+        User user = currentUserService.getCurrentUser();
+
+        if ( !aclService.canUpdate( user, entity ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+        }
+
+        Sharing sharingObject = renderService.fromJson( request.getInputStream(), Sharing.class );
+
+        TypeReport typeReport = new TypeReport( Sharing.class );
+
+        typeReport.addObjectReport( sharingService.saveSharing( getEntityClass(), entity, sharingObject ) );
+
+        if ( !typeReport.getErrorReports().isEmpty() )
+        {
+            WebMessage webMessage = WebMessageUtils.typeReport( typeReport );
+            webMessageService.send( webMessage, response, request );
+            return;
+        }
+
+        response.setStatus( HttpServletResponse.SC_NO_CONTENT );
     }
 
     //--------------------------------------------------------------------------
