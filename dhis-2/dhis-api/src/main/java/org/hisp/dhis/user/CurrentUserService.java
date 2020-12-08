@@ -85,4 +85,8 @@ public interface CurrentUserService
      * @return UserCredentials of current User
      */
     UserCredentials getCurrentUserCredentials();
+
+    CurrentUserGroupInfo getCurrentUserGroupsInfo();
+
+    void invalidateUserGroupCache( String username );
 }

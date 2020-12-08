@@ -28,70 +28,10 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashSet;
-import java.util.Set;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
-/**
- * Represents minimal user information.
- * 
- * @author Lars Helge Overland
- */
-public class UserInfo
+public interface UserGroupStore
+    extends IdentifiableObjectStore<UserGroup>
 {
-    private long id;
-    
-    private String username;
-
-    private Set<String> authorities = new HashSet<>();
-
-    protected UserInfo()
-    {
-    }
-    
-    public UserInfo( long id, String username, Set<String> authorities )
-    {
-        this.id = id;
-        this.username = username;
-        this.authorities = authorities;
-    }
-
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-    
-    public boolean isSuper()
-    {
-        return authorities.contains( UserAuthorityGroup.AUTHORITY_ALL );
-    }
-    
-    public static UserInfo fromUser( User user )
-    {
-        if ( user == null )
-        {
-            return null;
-        }
-        
-        UserCredentials credentials = user.getUserCredentials();
-
-        return new UserInfo( credentials.getId(), credentials.getUsername(), credentials.getAllAuthorities() );
-    }
-    
-    // -------------------------------------------------------------------------
-    // Get methods
-    // -------------------------------------------------------------------------
-
-    public long getId()
-    {
-        return id;
-    }
-
-    public String getUsername()
-    {
-        return username;
-    }
-
-    public Set<String> getAuthorities()
-    {
-        return authorities;
-    }
+    String ID = UserGroupStore.class.getName();
 }

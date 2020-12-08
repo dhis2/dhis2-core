@@ -29,9 +29,7 @@ package org.hisp.dhis.user;
  */
 
 import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,7 +50,7 @@ public class DefaultUserGroupService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final HibernateIdentifiableObjectStore<UserGroup> userGroupStore;
+    private final UserGroupStore userGroupStore;
 
     private final CurrentUserService currentUserService;
 
@@ -60,7 +58,7 @@ public class DefaultUserGroupService
 
     private final HibernateCacheManager cacheManager;
 
-    public DefaultUserGroupService( @Qualifier( "org.hisp.dhis.user.UserGroupStore" ) HibernateIdentifiableObjectStore<UserGroup> userGroupStore,
+    public DefaultUserGroupService( UserGroupStore userGroupStore,
         AclService aclService, HibernateCacheManager cacheManager, CurrentUserService currentUserService )
     {
         checkNotNull( userGroupStore );

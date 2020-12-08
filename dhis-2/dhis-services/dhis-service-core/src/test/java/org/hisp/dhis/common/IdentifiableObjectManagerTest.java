@@ -381,12 +381,11 @@ public class IdentifiableObjectManagerTest
 
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( loginUser ) );
         identifiableObjectManager.save( userGroup );
-
+        user.getGroups().add( userGroup );
         loginUser.getGroups().add( userGroup );
+
         identifiableObjectManager.save( loginUser );
-
-
-
+        identifiableObjectManager.save( user );
 
         identifiableObjectManager.save( createDataElement( 'A' ) );
         identifiableObjectManager.save( createDataElement( 'B' ) );
@@ -405,6 +404,8 @@ public class IdentifiableObjectManagerTest
             dataElement.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, AccessStringHelper.READ ) );
             sessionFactory.getCurrentSession().update( dataElement );
         }
+
+        identifiableObjectManager.flush();
 
         assertEquals( 4, identifiableObjectManager.getCount( DataElement.class ) );
         assertEquals( 4, identifiableObjectManager.getAll( DataElement.class ).size() );

@@ -460,6 +460,11 @@ public class BaseIdentifiableObject
     @PropertyRange( min = 8, max = 8 )
     public String getPublicAccess()
     {
+        if ( sharing == null )
+        {
+            sharing = new Sharing();
+        }
+
         return sharing.getPublicAccess();
     }
 
@@ -473,6 +478,10 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean getExternalAccess()
     {
+        if ( sharing == null )
+        {
+            sharing = new Sharing();
+        }
         return sharing.isExternal();
     }
 

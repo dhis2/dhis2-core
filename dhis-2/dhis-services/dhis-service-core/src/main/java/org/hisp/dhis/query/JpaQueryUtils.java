@@ -29,6 +29,7 @@ package org.hisp.dhis.query;
  */
 
 import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.schema.Property;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -42,6 +43,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -300,18 +302,19 @@ public class JpaQueryUtils
     }
 
     /**
-     * Generate Predicate for checking Access for given List of UserGroup Id and access string
+     * Generate Predicate for checking Access for given Set of UserGroup Id and access string
+     * Return NULL if given Set of UserGroup is empty
      * @param builder
      * @param userGroupUids List of User Group Uids
      * @param access Access String
      * @param <T>
      * @return JPA Predicate
      */
-    public static <T> Function<Root<T>,Predicate> checkUserGroupsAccess( CriteriaBuilder builder, List<String> userGroupUids, String access )
+    public static <T> Function<Root<T>,Predicate> checkUserGroupsAccess( CriteriaBuilder builder, Set<String> userGroupUids, String access )
     {
         return ( Root<T> root ) ->
         {
-            if ( userGroupUids.isEmpty() )
+            if ( CollectionUtils.isEmpty( userGroupUids ) )
             {
                 return null;
             }

@@ -33,11 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.Property;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -55,13 +50,13 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserInfo;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.util.Assert;
 
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -121,16 +116,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     private boolean isTransientIdentifiableProperties()
     {
         return transientIdentifiableProperties;
-    }
-
-    // -------------------------------------------------------------------------
-    // InternalHibernateGenericStore implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public final DetachedCriteria getSharingDetachedCriteria( User user )
-    {
-        return getSharingDetachedCriteria(  UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA );
     }
 
     // -------------------------------------------------------------------------
@@ -959,132 +944,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getList( builder, parameters );
     }
 
-    //----------------------------------------------------------------------------------------------------------------
-    // Supportive methods
-    //----------------------------------------------------------------------------------------------------------------
-
-//    /**
-//     * Creates a criteria with sharing restrictions relative to the given
-//     * user and access string.
-//     */
-//    @Override
-//    public final Criteria getSharingCriteria()
-//    {
-//        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA ) );
-//    }
-
-//    /**
-//     * Creates a detached criteria with data sharing restrictions relative to the
-//     * given user and access string.
-//     *
-//     * @param user the user.
-//     * @param access the access string.
-//     * @return a DetachedCriteria.
-//     */
-//    private DetachedCriteria getDataSharingDetachedCriteria( UserInfo user, String access )
-//    {
-//        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
-//
-//        if ( user == null || !dataSharingEnabled( user ) )
-//        {
-//            return criteria;
-//        }
-//
-//        Assert.notNull( user, "User argument can't be null." );
-//
-//        Disjunction disjunction = Restrictions.disjunction();
-//
-//        disjunction.add( Restrictions.like( "c.publicAccess", access ) );
-//        disjunction.add( Restrictions.isNull( "c.publicAccess" ) );
-//
-//        DetachedCriteria userGroupDetachedCriteria = DetachedCriteria.forClass( getClazz(), "ugdc" );
-//        userGroupDetachedCriteria.createCriteria( "ugdc.userGroupAccesses", "uga" );
-//        userGroupDetachedCriteria.createCriteria( "uga.userGroup", "ug" );
-//        userGroupDetachedCriteria.createCriteria( "ug.members", "ugm" );
-//
-//        userGroupDetachedCriteria.add( Restrictions.eqProperty( "ugdc.id", "c.id" ) );
-//        userGroupDetachedCriteria.add( Restrictions.eq( "ugm.id", user.getId() ) );
-//        userGroupDetachedCriteria.add( Restrictions.like( "uga.access", access ) );
-//
-//        userGroupDetachedCriteria.setProjection( Property.forName( "uga.id" ) );
-//
-//        disjunction.add( Subqueries.exists( userGroupDetachedCriteria ) );
-//
-//        DetachedCriteria userDetachedCriteria = DetachedCriteria.forClass( getClazz(), "udc" );
-//        userDetachedCriteria.createCriteria( "udc.userAccesses", "ua" );
-//        userDetachedCriteria.createCriteria( "ua.user", "u" );
-//
-//        userDetachedCriteria.add( Restrictions.eqProperty( "udc.id", "c.id" ) );
-//        userDetachedCriteria.add( Restrictions.eq( "u.id", user.getId() ) );
-//        userDetachedCriteria.add( Restrictions.like( "ua.access", access ) );
-//
-//        userDetachedCriteria.setProjection( Property.forName( "ua.id" ) );
-//
-//        disjunction.add( Subqueries.exists( userDetachedCriteria ) );
-//
-//        criteria.add( disjunction );
-//
-//        return criteria;
-//    }
-
-    /**
-     * Creates a detached criteria with sharing restrictions relative to the given
-     * user and access string.
-     *
-     * @param user   the user.
-     * @param access the access string.
-     * @return a DetachedCriteria.
-     */
-    private DetachedCriteria getSharingDetachedCriteria( UserInfo user, String access )
-    {
-        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
-
-        preProcessDetachedCriteria( criteria );
-
-        if ( !sharingEnabled( user ) || user == null )
-        {
-            return criteria;
-        }
-
-        Assert.notNull( user, "User argument can't be null." );
-
-        Disjunction disjunction = Restrictions.disjunction();
-
-        disjunction.add( Restrictions.like( "c.publicAccess", access ) );
-        disjunction.add( Restrictions.isNull( "c.publicAccess" ) );
-        disjunction.add( Restrictions.isNull( "c.user.id" ) );
-        disjunction.add( Restrictions.eq( "c.user.id", user.getId() ) );
-
-        DetachedCriteria userGroupDetachedCriteria = DetachedCriteria.forClass( getClazz(), "ugdc" );
-        userGroupDetachedCriteria.createCriteria( "ugdc.userGroupAccesses", "uga" );
-        userGroupDetachedCriteria.createCriteria( "uga.userGroup", "ug" );
-        userGroupDetachedCriteria.createCriteria( "ug.members", "ugm" );
-
-        userGroupDetachedCriteria.add( Restrictions.eqProperty( "ugdc.id", "c.id" ) );
-        userGroupDetachedCriteria.add( Restrictions.eq( "ugm.id", user.getId() ) );
-        userGroupDetachedCriteria.add( Restrictions.like( "uga.access", access ) );
-
-        userGroupDetachedCriteria.setProjection( Property.forName( "uga.id" ) );
-
-        disjunction.add( Subqueries.exists( userGroupDetachedCriteria ) );
-
-        DetachedCriteria userDetachedCriteria = DetachedCriteria.forClass( getClazz(), "udc" );
-        userDetachedCriteria.createCriteria( "udc.userAccesses", "ua" );
-        userDetachedCriteria.createCriteria( "ua.user", "u" );
-
-        userDetachedCriteria.add( Restrictions.eqProperty( "udc.id", "c.id" ) );
-        userDetachedCriteria.add( Restrictions.eq( "u.id", user.getId() ) );
-        userDetachedCriteria.add( Restrictions.like( "ua.access", access ) );
-
-        userDetachedCriteria.setProjection( Property.forName( "ua.id" ) );
-
-        disjunction.add( Subqueries.exists( userDetachedCriteria ) );
-
-        criteria.add( disjunction );
-
-        return criteria;
-    }
-
     // ----------------------------------------------------------------------
     // JPA support methods
     // ----------------------------------------------------------------------
@@ -1092,7 +951,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder )
     {
-        return getDataSharingPredicates( builder, currentUserService.getCurrentUser(), AclService.LIKE_READ_DATA );
+        return getDataSharingPredicates( builder, currentUserService.getCurrentUserInfo(), currentUserService.getCurrentUserGroupsInfo(), AclService.LIKE_READ_DATA );
     }
 
     @Override
@@ -1104,13 +963,13 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, String access )
     {
-        return getDataSharingPredicates( builder, currentUserService.getCurrentUser(), access );
+        return getDataSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), currentUserService.getCurrentUserGroupsInfo(), access );
     }
 
     @Override
     public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder )
     {
-        return getSharingPredicates( builder, currentUserService.getCurrentUser(), AclService.LIKE_READ_METADATA );
+        return getSharingPredicates( builder, currentUserService.getCurrentUserInfo(), currentUserService.getCurrentUserGroupsInfo(), AclService.LIKE_READ_METADATA );
     }
 
     /**
@@ -1136,9 +995,20 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, String access )
     {
-        return getSharingPredicates( builder, currentUserService.getCurrentUser(), access );
+        return getSharingPredicates( builder, currentUserService.getCurrentUserInfo(), currentUserService.getCurrentUserGroupsInfo(), access );
     }
 
+    @Override
+    public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo userInfo,
+        CurrentUserGroupInfo groupInfo, String access )
+    {
+        if ( !sharingEnabled( userInfo ) || userInfo == null || groupInfo == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return getSharingPredicates( builder, groupInfo.getUserUID(), groupInfo.getUserGroupUIDs(), access );
+    }
 
     @Override
     public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user, String access )
@@ -1148,9 +1018,23 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return new ArrayList<>();
         }
 
-        List<String> groupIds = user.getGroups().stream().map( g -> g.getUid() ).collect( Collectors.toList() );
+        Set<String> groupIds = user.getGroups().stream().map( g -> g.getUid() ).collect( Collectors.toSet() );
 
         return getSharingPredicates( builder, user.getUid(), groupIds, access );
+    }
+
+    @Override
+    public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo userInfo,
+        CurrentUserGroupInfo groupInfo, String access )
+    {
+        List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
+
+        if ( !dataSharingEnabled( userInfo ) || userInfo == null || groupInfo == null )
+        {
+            return predicates;
+        }
+
+        return getDataSharingPredicates( builder, groupInfo.getUserUID(), groupInfo.getUserGroupUIDs(), access );
     }
 
     @Override
@@ -1163,7 +1047,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return predicates;
         }
 
-        List<String> groupIds = user.getGroups().stream().map( g -> g.getUid() ).collect( Collectors.toList() );
+        Set<String> groupIds = user.getGroups().stream().map( g -> g.getUid() ).collect( Collectors.toSet() );
 
         return getDataSharingPredicates( builder, user.getUid(), groupIds, access );
     }
@@ -1176,7 +1060,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * @param access Access String for checking
      * @return Predicate
      */
-    private List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, String userUid, List<String> userGroupUids,
+    private List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, String userUid, Set<String> userGroupUids,
         String access )
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
@@ -1215,7 +1099,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * @param access Access String for checking
      * @return Predicate
      */
-    private List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, String userUid, List<String> userGroupUids,
+    private List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, String userUid, Set<String> userGroupUids,
         String access )
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();

@@ -30,7 +30,6 @@ package org.hisp.dhis.user;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -50,15 +49,15 @@ public class UserGroupDeletionHandler
 
     private final IdentifiableObjectManager idObjectManager;
 
-    private final JdbcTemplate jdbcTemplate;
+    private final CurrentUserService currentUserService;
 
-    public UserGroupDeletionHandler( IdentifiableObjectManager idObjectManager, JdbcTemplate jdbcTemplate )
+    public UserGroupDeletionHandler( IdentifiableObjectManager idObjectManager, CurrentUserService currentUserService )
     {
         checkNotNull( idObjectManager );
-        checkNotNull( jdbcTemplate );
+        checkNotNull( currentUserService );
 
         this.idObjectManager = idObjectManager;
-        this.jdbcTemplate = jdbcTemplate;
+        this.currentUserService = currentUserService;
     }
 
     // -------------------------------------------------------------------------
@@ -93,5 +92,7 @@ public class UserGroupDeletionHandler
             group.getManagedGroups().remove( userGroup );
             idObjectManager.updateNoAcl( group );
         }
+
+        userGroup.getMembers().forEach( member -> currentUserService.invalidateUserGroupCache( member.getUsername() ) );
     }
 }

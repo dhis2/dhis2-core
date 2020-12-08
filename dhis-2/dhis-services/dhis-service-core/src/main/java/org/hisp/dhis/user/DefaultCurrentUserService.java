@@ -64,6 +64,12 @@ public class DefaultCurrentUserService
      */
     private static Cache<Long> USERNAME_ID_CACHE;
 
+    /**
+     * Cache contains Set of UserGroup UID for each user. Key is user ID which can be retrieved from USERNAME_ID_CACHE.
+     * This will be used for ACL checking
+     */
+    private static Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -99,6 +105,12 @@ public class DefaultCurrentUserService
             .withInitialCapacity( 200 )
             .forceInMemory()
             .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 4000 )
+            .build();
+
+        currentUserGroupInfoCache = cacheProvider.newCacheBuilder( CurrentUserGroupInfo.class )
+            .forRegion( "currentUserGroupInfoCache" )
+            .expireAfterAccess( 1, TimeUnit.HOURS )
+            .forceInMemory()
             .build();
     }
 
@@ -145,7 +157,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        return new UserInfo( userId, currentUsername, getCurrentUserAuthorities() );
+        return new UserInfo( userId,  currentUsername, getCurrentUserAuthorities() );
     }
 
     @Override
@@ -187,5 +199,49 @@ public class DefaultCurrentUserService
     public UserCredentials getCurrentUserCredentials()
     {
         return userStore.getUserCredentialsByUsername( getCurrentUsername() );
+    }
+
+    @Override
+    public CurrentUserGroupInfo getCurrentUserGroupsInfo()
+    {
+        UserInfo currentUserInfo = getCurrentUserInfo();
+
+        if ( currentUserInfo == null )
+        {
+            return null;
+        }
+
+        return currentUserGroupInfoCache
+            .get( currentUserInfo.getUsername(), this::getCurrentUserGroupsInfo ).orElse( null );
+    }
+
+    @Override
+    public void invalidateUserGroupCache( String username )
+    {
+        try
+        {
+            currentUserGroupInfoCache.invalidate( username );
+        }
+        catch ( NullPointerException exception )
+        {
+            // Ignore if key doesn't exists
+        }
+    }
+
+    private CurrentUserGroupInfo getCurrentUserGroupsInfo( String username )
+    {
+        if ( username == null )
+        {
+            return null;
+        }
+
+        Long userId = USERNAME_ID_CACHE.get( username, this::getUserId ).orElse( null );
+
+        if ( userId == null )
+        {
+            return null;
+        }
+
+        return userStore.getCurrentUserGroupInfo( getCurrentUserInfo().getId() );
     }
 }
