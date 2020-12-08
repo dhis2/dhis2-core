@@ -44,11 +44,10 @@ public class V2_36_11__Migrate_sharings_to_jsonb
 {
     private static final Logger log = LoggerFactory.getLogger( V2_36_11__Migrate_sharings_to_jsonb.class );
 
-    @Override
     public void migrate( Context context )
         throws SQLException
     {
-        String[] tableNames = {"attribute","userrole","usergroup","sqlview","constant","optionset","optiongroup",
+        String[] tableNames = { "attribute","userrole","usergroup","sqlview","constant","optionset","optiongroup",
             "optiongroupset","maplegendset","orgunitgroup","orgunitgroupset","dataelementcategoryoption",
             "categoryoptiongroup","categoryoptiongroupSet","dataelementcategory","categorycombo","dataelement",
             "dataelementgroup","dataelementgroupset","indicator","indicatorgroup","indicatorgroupset","dataset",
@@ -96,52 +95,54 @@ public class V2_36_11__Migrate_sharings_to_jsonb
             "predictorgroupusergroupaccesses","dashboardusergroupaccesses","interpretationusergroupaccesses",
             "programstageinstancefilterusergroupaccesses", "keyjsonvalueusergroupaccesses"};
 
-            for ( int i=0; i < tableNames.length; i++ )
+
+        for ( int i=0; i < tableNames.length; i++ )
+        {
+            doMigration( context, tableNames[i], tableUserAccesses[i], tableUserGroupAccesses[i], tablePkNames[i] );
+        }
+    }
+
+    private void doMigration( Context context, String tableName, String tableUserAccess, String tableUserGroupAccess, String tablePKName  )
+        throws SQLException
+    {
+        try ( Statement statement = context.getConnection().createStatement() )
+        {
+            ResultSet resultSet = statement.executeQuery( "select exists ( select 1 from " + tableName + " where sharing = '{}')");
+            resultSet.next();
+
+            if ( !resultSet.getBoolean( 1 ) )
             {
-                String tableName = tableNames[i],
-                tableUserAccess = tableUserAccesses[i],
-                tableUserGroupAccess = tableUserGroupAccesses[i],
-                tablePKName = tablePkNames[i];
-
-                try ( Statement statement = context.getConnection().createStatement() )
-                {
-                    ResultSet resultSet = statement.executeQuery( "select exists ( select 1 from " + tableName + " where sharing = '{}')");
-                    resultSet.next();
-
-                    if ( !resultSet.getBoolean( 1 ) )
-                    {
-                        // Already done for this table
-                        continue;
-                    }
-                }
-
-                String query = "update " + tableName + " _entity set sharing = to_jsonb(jsonb_build_object(" +
-                    "'owner',(select _owner.uid from users _owner where _owner.userid = _entity.userid )," +
-                    "'public',_entity.publicaccess," +
-                    "'external', false," +
-                    "'users',(" +
-                    "select to_jsonb(coalesce(nullif(replace(array_to_string(array ( select json_build_object(_u.uid, jsonb_build_object('id', _u.uid, 'access', _ua.access)) " +
-                    "from  " + tableUserAccess + " _tua inner join useraccess _ua on _tua.useraccessid = _ua.useraccessid  " +
-                    "inner join users _u on _ua.userid = _u.userid " +
-                    "where _tua." + tablePKName + " = _entity." + tablePKName + " ) , ','), '}},{', '},'), ''), NULL)::json)" +
-                    ")," +
-                    "'userGroups',(" +
-                    "select to_jsonb(coalesce(nullif(replace(array_to_string(array ( select  json_build_object(_ug.uid, jsonb_build_object('id', _ug.uid, 'access', _uga.access))" +
-                    "from  " + tableUserGroupAccess + " _tuga inner join usergroupaccess _uga on _tuga.usergroupaccessid = _uga.usergroupaccessid  " +
-                    "inner join usergroup _ug on _uga.usergroupid = _ug.usergroupid " +
-                    "where _tuga."+ tablePKName +" = _entity." + tablePKName + " ) , ','), '}},{', '},'), ''), NULL)::json)" +
-                    ")));";
-
-                try ( Statement statement = context.getConnection().createStatement() )
-                {
-                    log.info( "Executing sharing migration query: [" + query  + "]");
-                    statement.execute( query );
-                }
-                catch ( SQLException e )
-                {
-                    log.error( e.getMessage() );
-                    throw e;
-                }
+                // Already done for this table
+                return;
             }
+        }
+
+        String query = "update " + tableName + " _entity set sharing = to_jsonb(jsonb_build_object(" +
+            "'owner',(select _owner.uid from userinfo _owner where _owner.userinfoid = _entity.userid )," +
+            "'public',_entity.publicaccess," +
+            "'external', false," +
+            "'users',(" +
+            "select to_jsonb(coalesce(nullif(replace(array_to_string(array ( select json_build_object(_u.uid, jsonb_build_object('id', _u.uid, 'access', _ua.access)) " +
+            "from  " + tableUserAccess + " _tua inner join useraccess _ua on _tua.useraccessid = _ua.useraccessid  " +
+            "inner join userinfo _u on _ua.userid = _u.userinfoid " +
+            "where _tua." + tablePKName + " = _entity." + tablePKName + " ) , ','), '}},{', '},'), ''), NULL)::json)" +
+            ")," +
+            "'userGroups',(" +
+            "select to_jsonb(coalesce(nullif(replace(array_to_string(array ( select  json_build_object(_ug.uid, jsonb_build_object('id', _ug.uid, 'access', _uga.access))" +
+            "from  " + tableUserGroupAccess + " _tuga inner join usergroupaccess _uga on _tuga.usergroupaccessid = _uga.usergroupaccessid  " +
+            "inner join usergroup _ug on _uga.usergroupid = _ug.usergroupid " +
+            "where _tuga."+ tablePKName +" = _entity." + tablePKName + " ) , ','), '}},{', '},'), ''), NULL)::json)" +
+            ")));";
+
+        try ( Statement statement = context.getConnection().createStatement() )
+        {
+            log.info( "Executing sharing migration query: [" + query  + "]");
+            statement.execute( query );
+        }
+        catch ( SQLException e )
+        {
+            log.error( e.getMessage() );
+            throw e;
+        }
     }
 }
