@@ -37,10 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Attribute;
-import org.hisp.dhis.tracker.domain.DataValue;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.*;
 import org.springframework.stereotype.Component;
 
 import com.google.api.client.util.Lists;
@@ -66,7 +63,7 @@ public class SetMandatoryFieldValidator
         Map<String, List<RuleEffect>> effects = getEffects( bundle.getEnrollmentRuleEffects() );
 
         return effects.entrySet().stream()
-            .collect( Collectors.toMap( e -> e.getKey(),
+            .collect( Collectors.toMap( Map.Entry::getKey,
                 e -> getTrackedEntityFromEnrollment( bundle, e.getKey() )
                     .map( tei -> checkMandatoryTeiAttribute( tei, e.getValue() ) ).orElse( Lists.newArrayList() ) ) );
     }
@@ -77,7 +74,7 @@ public class SetMandatoryFieldValidator
         Map<String, List<RuleEffect>> effects = getEffects( bundle.getEventRuleEffects() );
 
         return effects.entrySet().stream()
-            .collect( Collectors.toMap( e -> e.getKey(),
+            .collect( Collectors.toMap( Map.Entry::getKey,
                 e -> getEvent( bundle, e.getKey() )
                     .map( tei -> checkMandatoryDataElement( tei, e.getValue() ) ).orElse( Lists.newArrayList() ) ) );
     }
@@ -153,7 +150,7 @@ public class SetMandatoryFieldValidator
         return bundle.getEnrollments()
             .stream()
             .filter( e -> e.getEnrollment().equals( enrollmentUid ) )
-            .map( e -> e.getTrackedEntity() )
+            .map( Enrollment::getTrackedEntity )
             .findAny()
             .flatMap( tei -> getTrackedEntity( bundle, tei ) );
     }

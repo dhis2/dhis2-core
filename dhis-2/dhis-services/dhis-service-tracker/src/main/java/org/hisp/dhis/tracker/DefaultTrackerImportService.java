@@ -119,67 +119,39 @@ public class DefaultTrackerImportService
 
             notifier.notifyOps( VALIDATION_OPS, opsTimer );
 
-
-            if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
+            if ( exitOnError( validationReport, params ) )
             {
-                TrackerImportReport trackerImportReport = TrackerImportReport
-                    .withValidationErrors( validationReport, opsTimer.stopTimer(),
-                        bundleSize.values().stream().mapToInt( Integer::intValue ).sum() );
+                return buildReportAndNotify( validationReport, opsTimer, bundleSize, notifier );
+            }
 
-                notifier.endImport( trackerImportReport );
+            validationReport = execRuleEngine( opsTimer, trackerBundle, validationReport, notifier );
 
-                return trackerImportReport;
+            if ( exitOnError( validationReport, params ) )
+            {
+                return buildReportAndNotify( validationReport, opsTimer, bundleSize, notifier );
+            }
+
+            //
+            // commit
+            //
+            if ( TrackerImportStrategy.DELETE == params.getImportStrategy() )
+            {
+                bundleReport = opsTimer.exec( COMMIT_OPS, () -> deleteBundle( trackerBundle ) );
             }
             else
             {
-
-                //
-                // rule engine
-                //
-                opsTimer.execVoid( PROGRAMRULE_OPS,
-                    () -> runRuleEngine( trackerBundle ) );
-
-                notifier.notifyOps( PROGRAMRULE_OPS, opsTimer );
-
-                //
-                // rule engine
-                //
-                TrackerValidationReport finalValidationReport = validationReport;
-                validationReport = opsTimer.exec( VALIDATE_PROGRAMRULE_OPS,
-                    () -> validateRuleEngine( trackerBundle, finalValidationReport ) );
-
-                notifier.notifyOps( VALIDATE_PROGRAMRULE_OPS, opsTimer );
-
-                if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
-                {
-                    TrackerImportReport trackerImportReport = TrackerImportReport
-                        .withValidationErrors( validationReport, opsTimer.stopTimer(),
-                            bundleSize.values().stream().mapToInt( Integer::intValue ).sum() );
-
-                    notifier.endImport( trackerImportReport );
-
-                    return trackerImportReport;
-                }
-
-                if ( TrackerImportStrategy.DELETE == params.getImportStrategy() )
-                {
-                    bundleReport = opsTimer.exec( COMMIT_OPS, () -> deleteBundle( trackerBundle ) );
-                }
-                else
-                {
-                    bundleReport = opsTimer.exec( COMMIT_OPS, () -> commitBundle( trackerBundle ) );
-                }
-
-                notifier.notifyOps( COMMIT_OPS, opsTimer );
-
-                TrackerImportReport trackerImportReport = TrackerImportReport.withImportCompleted( TrackerStatus.OK,
-                    bundleReport, validationReport,
-                    opsTimer.stopTimer(), bundleSize );
-
-                notifier.endImport( trackerImportReport );
-
-                return trackerImportReport;
+                bundleReport = opsTimer.exec( COMMIT_OPS, () -> commitBundle( trackerBundle ) );
             }
+
+            notifier.notifyOps( COMMIT_OPS, opsTimer );
+
+            TrackerImportReport trackerImportReport = TrackerImportReport.withImportCompleted( TrackerStatus.OK,
+                bundleReport, validationReport,
+                opsTimer.stopTimer(), bundleSize );
+
+            notifier.endImport( trackerImportReport );
+
+            return trackerImportReport;
         }
         catch ( Exception e )
         {
@@ -194,9 +166,49 @@ public class DefaultTrackerImportService
         }
     }
 
+    private TrackerValidationReport execRuleEngine( TrackerTimingsStats opsTimer, TrackerBundle trackerBundle,
+        TrackerValidationReport report, ImportNotifier notifier )
+    {
+        //
+        // rule engine
+        //
+        opsTimer.execVoid( PROGRAMRULE_OPS,
+            () -> runRuleEngine( trackerBundle ) );
+
+        notifier.notifyOps( PROGRAMRULE_OPS, opsTimer );
+
+        //
+        // rule engine
+        //
+        TrackerValidationReport finalValidationReport = report;
+        report = opsTimer.exec( VALIDATE_PROGRAMRULE_OPS,
+            () -> validateRuleEngine( trackerBundle, finalValidationReport ) );
+
+        notifier.notifyOps( VALIDATE_PROGRAMRULE_OPS, opsTimer );
+
+        return report;
+    }
+
+    private TrackerImportReport buildReportAndNotify( TrackerValidationReport validationReport,
+        TrackerTimingsStats opsTimer, Map<TrackerType, Integer> bundleSize, ImportNotifier notifier )
+    {
+        TrackerImportReport trackerImportReport = TrackerImportReport
+            .withValidationErrors( validationReport, opsTimer.stopTimer(),
+                bundleSize.values().stream().mapToInt( Integer::intValue ).sum() );
+
+        notifier.endImport( trackerImportReport );
+
+        return trackerImportReport;
+    }
+
+    private boolean exitOnError( TrackerValidationReport validationReport, TrackerImportParams params )
+    {
+        return validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL;
+    }
+
     private Map<TrackerType, Integer> calculatePayloadSize( TrackerBundle bundle )
     {
-        return ImmutableMap.<TrackerType, Integer> builder()
+        return ImmutableMap.<TrackerType, Integer>builder()
             .put( TrackerType.TRACKED_ENTITY, bundle.getTrackedEntities().size() )
             .put( TrackerType.ENROLLMENT, bundle.getEnrollments().size() )
             .put( TrackerType.EVENT, bundle.getEvents().size() )
@@ -232,7 +244,7 @@ public class DefaultTrackerImportService
         return bundleReport;
     }
 
-    List<TrackerSideEffectDataBundle> safelyGetSideEffectsDataBundles( TrackerBundleReport bundleReport,
+    private List<TrackerSideEffectDataBundle> safelyGetSideEffectsDataBundles( TrackerBundleReport bundleReport,
         TrackerType trackerType )
     {
         return Optional.ofNullable( bundleReport )

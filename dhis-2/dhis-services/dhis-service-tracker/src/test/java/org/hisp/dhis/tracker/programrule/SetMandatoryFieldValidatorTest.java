@@ -189,6 +189,6 @@ public class SetMandatoryFieldValidatorTest
 
         errors.entrySet().stream()
             .filter( e -> e.getKey().equals( "D9PbzJY8bJO" ) )
-            .forEach( e -> assertTrue( e.getValue().size() == 1 ) );
+            .forEach( e -> assertEquals( 1, e.getValue().size() ) );
     }
 }
