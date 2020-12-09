@@ -107,13 +107,17 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
         }
         matchPaths = TextUtils.removeLastOr( matchPaths ) + ") ";
 
-        String sql = "select dv.sourceid, dv.categoryoptioncomboid, " + "avg( cast( dv.value as "
-            + statementBuilder.getDoubleColumnType() + " ) ) as average, " + "stddev_pop( cast( dv.value as "
-            + statementBuilder.getDoubleColumnType() + " ) ) as standarddeviation " + "from datavalue dv "
+        String sql = "select dv.sourceid, dv.categoryoptioncomboid, "
+            + "avg( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) as average, "
+            + "stddev_pop( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) as standarddeviation "
+            + "from datavalue dv "
             + "join organisationunit ou on ou.organisationunitid = dv.sourceid "
-            + "join period pe on dv.periodid = pe.periodid " + "where dv.dataelementid = " + dataElement.getId() + " "
-            + "and dv.categoryoptioncomboid in (" + catOptionComboIds + ") " + "and pe.startdate >= '"
-            + DateUtils.getMediumDateString( from ) + "' " + "and " + matchPaths + "and dv.deleted is false "
+            + "join period pe on dv.periodid = pe.periodid "
+            + "where dv.dataelementid = " + dataElement.getId() + " "
+            + "and dv.categoryoptioncomboid in (" + catOptionComboIds + ") "
+            + "and pe.startdate >= '" + DateUtils.getMediumDateString( from ) + "' "
+            + "and " + matchPaths
+            + "and dv.deleted is false "
             + "group by dv.sourceid, dv.categoryoptioncomboid";
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
