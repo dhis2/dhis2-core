@@ -30,6 +30,7 @@ package org.hisp.dhis.query.operators;
 
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
 
@@ -62,18 +63,19 @@ public class TokenOperator<T extends Comparable<? super T>>
         return Restrictions.sqlRestriction( "c_." + queryPath.getPath() + " ~* '" + TokenUtils.createRegex( value ) + "'" );
     }
 
-    //TODO IMPLEMENT THIS
     @Override
     public <Y> Predicate getPredicate( CriteriaBuilder builder, Root<Y> root, QueryPath queryPath )
     {
-        return null;
+        String value = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
+
+        return builder.equal( builder.function( JsonbFunctions.REGEXP_SEARCH, Boolean.class, root.get( queryPath.getPath() ),
+            builder.literal( TokenUtils.createRegex( value ).toString() ) ), true );
     }
 
     @Override
     public boolean test( Object value )
     {
-//        String targetValue = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
-//        return TokenUtils.test( args, value, targetValue, caseSensitive, matchMode );
-        return false;
+        String targetValue = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
+        return TokenUtils.test( args, (T) value, targetValue, caseSensitive, matchMode );
     }
 }

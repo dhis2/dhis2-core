@@ -443,6 +443,7 @@ public class BaseIdentifiableObject
         return user;
     }
 
+    @Override
     public void setUser( User user )
     {
         this.user = user;

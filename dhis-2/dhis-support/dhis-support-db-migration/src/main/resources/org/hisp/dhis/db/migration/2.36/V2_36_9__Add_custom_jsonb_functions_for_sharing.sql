@@ -34,4 +34,9 @@ SELECT exists(
 $$
 LANGUAGE SQL IMMUTABLE PARALLEL SAFE;
 
+CREATE OR REPLACE FUNCTION regexp_search(character varying, character varying)
+RETURNS boolean
+AS 'select $1 ~* $2;'
+LANGUAGE sql;
+
 

@@ -94,7 +94,7 @@ public class DefaultSharingService implements SharingService
 
     @Override
     public <T extends IdentifiableObject> ObjectReport saveSharing( @NotNull Class<T> sharingClass, @NotNull T entity,
-        Sharing sharing )
+        @NotNull Sharing sharing )
     {
         ObjectReport objectReport = new ObjectReport( Sharing.class, 0 );
 

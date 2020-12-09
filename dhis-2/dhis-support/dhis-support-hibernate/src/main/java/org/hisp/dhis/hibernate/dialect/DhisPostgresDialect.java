@@ -53,6 +53,7 @@ public class DhisPostgresDialect
         registerFunction( JsonbFunctions.CHECK_USER_GROUPS_ACCESS, new StandardSQLFunction( JsonbFunctions.CHECK_USER_GROUPS_ACCESS, StandardBasicTypes.BOOLEAN ) );
         registerFunction( JsonbFunctions.HAS_USER_ID, new StandardSQLFunction( JsonbFunctions.HAS_USER_ID, StandardBasicTypes.BOOLEAN ) );
         registerFunction( JsonbFunctions.CHECK_USER_ACCESS, new StandardSQLFunction( JsonbFunctions.CHECK_USER_ACCESS, StandardBasicTypes.BOOLEAN ) );
+        registerFunction( JsonbFunctions.REGEXP_SEARCH, new StandardSQLFunction( JsonbFunctions.REGEXP_SEARCH, StandardBasicTypes.BOOLEAN ) );
 
     }
 }

@@ -41,7 +41,7 @@ public class JsonbFunctions
      * $2: Array of UserGroup uid
      * @return True if the given jsonb has at least one of UserGroup's uid from the given array
      */
-    public static String HAS_USER_GROUP_IDS = "jsonb_has_user_group_ids" ;
+    public static final String HAS_USER_GROUP_IDS = "jsonb_has_user_group_ids" ;
 
     /**
      * FUNCTION jsonb_check_user_groups_access(jsonb, text, text)
@@ -51,7 +51,7 @@ public class JsonbFunctions
      * @return True if the given jsonb has at least one of UserGroup's uid from the given array
      *          and the access of UserGroup `like` given access
      */
-    public static String CHECK_USER_GROUPS_ACCESS = "jsonb_check_user_groups_access" ;
+    public static final String CHECK_USER_GROUPS_ACCESS = "jsonb_check_user_groups_access" ;
 
     /**
      * FUNCTION jsonb_has_user_id(jsonb, text )
@@ -59,7 +59,7 @@ public class JsonbFunctions
      * $2: User uid to check
      * @return True if given jsonb has user uid
      */
-    public static String HAS_USER_ID = "jsonb_has_user_id" ;
+    public static final String HAS_USER_ID = "jsonb_has_user_id" ;
 
     /**
      * FUNCTION jsonb_check_user_access(jsonb, text, text)
@@ -68,9 +68,22 @@ public class JsonbFunctions
      * $3: Access string to check
      * @return TRUE if given jsonb has user uid and user access like given access string
      */
-    public static String CHECK_USER_ACCESS = "jsonb_check_user_access" ;
+    public static final String CHECK_USER_ACCESS = "jsonb_check_user_access" ;
 
-    public static String EXTRACT_PATH = "jsonb_extract_path" ;
+    /**
+     * Built-in function of PostgresQL
+     */
+    public static final String EXTRACT_PATH = "jsonb_extract_path" ;
 
-    public static String EXTRACT_PATH_TEXT = "jsonb_extract_path_text" ;
+    /**
+     * Built-in function of PostgresQL
+     */
+    public static final String EXTRACT_PATH_TEXT = "jsonb_extract_path_text" ;
+
+    /**
+     * Use the regex operator '~*' to match a given string with a given regular expression
+     * $1 String to search
+     * $2 Regular expression for matching
+     */
+    public static final String REGEXP_SEARCH = "regexp_search";
 }
