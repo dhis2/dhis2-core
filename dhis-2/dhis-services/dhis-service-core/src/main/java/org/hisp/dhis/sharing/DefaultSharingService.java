@@ -145,11 +145,8 @@ public class DefaultSharingService implements SharingService
             }
         }
 
-        //TODO should we allow updating existing owner ?
-        if ( object.getSharing().getOwner() == null && sharing.getOwner() != null )
-        {
-            object.getSharing().setOwner( sharing.getOwner() );
-        }
+        // Update owner of the object
+        object.getSharing().setOwner( sharing.getOwner() );
 
         //--------------------------------------
         // Handle UserGroup
