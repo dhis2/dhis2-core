@@ -35,6 +35,7 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.context.ApplicationContext;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -43,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Evaluates validation rules.
- * 
+ *
  * @author Jim Grace
  */
 public class Validator
@@ -59,16 +60,16 @@ public class Validator
      *
      * @return a collection of any validations that were found
      */
-    public static Collection<ValidationResult> validate( ValidationRunContext context,
+    public static List<ValidationResult> validate( ValidationRunContext context,
         ApplicationContext applicationContext, AnalyticsService analyticsService )
     {
         CategoryService categoryService = applicationContext.getBean( CategoryService.class );
-                
+
         int threadPoolSize = getThreadPoolSize( context );
 
         if ( threadPoolSize == 0 || context.getPeriodTypeXs().isEmpty() )
         {
-            return context.getValidationResults();
+            return new ArrayList<>( context.getValidationResults() );
         }
 
         ExecutorService executor = Executors.newFixedThreadPool( threadPoolSize );
@@ -96,12 +97,12 @@ public class Validator
 
         reloadAttributeOptionCombos( context.getValidationResults(), categoryService );
 
-        return context.getValidationResults();
+        return new ArrayList<>( context.getValidationResults() );
     }
 
     /**
      * Determines how many threads we should use for testing validation rules.
-     * 
+     *
      * @param context validation run context
      * @return number of threads we should use for testing validation rules
      */

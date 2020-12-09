@@ -159,7 +159,7 @@ public class DefaultValidationService
     // -------------------------------------------------------------------------
 
     @Override
-    public Collection<ValidationResult> validationAnalysis( ValidationAnalysisParams parameters )
+    public List<ValidationResult> validationAnalysis( ValidationAnalysisParams parameters )
     {
         Clock clock = new Clock( log ).startClock().logTime( "Starting validation analysis"
             + ( parameters.getOrgUnit() == null ? "" : " for orgUnit " + parameters.getOrgUnit().getUid()
@@ -174,7 +174,7 @@ public class DefaultValidationService
 
         clock.logTime( "Initialized validation analysis" );
 
-        Collection<ValidationResult> results = Validator.validate( context, applicationContext, analyticsService );
+        List<ValidationResult> results = Validator.validate( context, applicationContext, analyticsService );
 
         if ( context.isPersistResults() )
         {

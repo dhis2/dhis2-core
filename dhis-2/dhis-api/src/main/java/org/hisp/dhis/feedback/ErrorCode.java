@@ -44,7 +44,7 @@ package org.hisp.dhis.feedback;
  */
 public enum ErrorCode
 {
-    /* Miscellaneous */
+    /* General */
     E1000( "API query must be specified" ),
     E1001( "API query contains an illegal string" ),
     E1002( "API version is invalid" ),
