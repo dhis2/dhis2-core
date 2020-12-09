@@ -53,7 +53,7 @@ public interface ValidationService
      * @param parameters the parameters to base the analysis on.
      * @return a collection of ValidationResults found.
      */
-    Collection<ValidationResult> validationAnalysis( ValidationAnalysisParams parameters );
+    List<ValidationResult> validationAnalysis( ValidationAnalysisParams parameters );
 
     /**
      * Validate that missing data values have a corresponding comment, assuming
