@@ -934,7 +934,6 @@ $.extend( dhis2.period.WeeklySundayGenerator.prototype, {
 
     var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 7 );
     var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 ) );
-    nextYearStartDate = nextYearStartDate.formatDate( this.format );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
