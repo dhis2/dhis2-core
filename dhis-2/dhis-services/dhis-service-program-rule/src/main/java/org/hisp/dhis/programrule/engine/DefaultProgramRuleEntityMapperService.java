@@ -112,7 +112,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     private final ImmutableMap<ProgramRuleActionType, Function<ProgramRuleAction, RuleAction>> ACTION_MAPPER = new ImmutableMap.Builder<ProgramRuleActionType, Function<ProgramRuleAction, RuleAction>>()
         .put( ProgramRuleActionType.ASSIGN,
             pra -> RuleActionAssign.create( pra.getContent(), pra.getData(),
-                getAssignedParameterForAssignAction( pra ) ) )
+                getAssignedParameter( pra ) ) )
         .put( ProgramRuleActionType.CREATEEVENT,
             pra -> RuleActionCreateEvent.create( pra.getContent(), pra.getData(), pra.getLocation() ) )
         .put( ProgramRuleActionType.DISPLAYKEYVALUEPAIR, this::getLocationBasedDisplayRuleAction )
@@ -455,29 +455,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         return RuleValueType.TEXT;
     }
 
-    private String getAssignedParameterForAssignAction( ProgramRuleAction programRuleAction )
-    {
-        if ( programRuleAction.hasDataElement() )
-        {
-            return programRuleAction.getDataElement().getUid();
-        }
-
-        if ( programRuleAction.hasTrackedEntityAttribute() )
-        {
-            return programRuleAction.getAttribute().getUid();
-        }
-
-        if ( programRuleAction.hasContent() )
-        {
-            return StringUtils.EMPTY;
-        }
-
-        log.warn( String.format( "No location found for ProgramRuleAction: %s in ProgramRule: %s",
-            programRuleAction.getProgramRuleActionType(), programRuleAction.getProgramRule().getUid() ) );
-
-        return StringUtils.EMPTY;
-    }
-
     private String getAssignedParameter( ProgramRuleAction programRuleAction )
     {
         if ( programRuleAction.hasDataElement() )
@@ -492,7 +469,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
         if ( programRuleAction.hasContent() )
         {
-            return programRuleAction.getContent();
+            return StringUtils.EMPTY;
         }
 
         log.warn( String.format( "No location found for ProgramRuleAction: %s in ProgramRule: %s",
