@@ -159,12 +159,12 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
             + "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, "
             + "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue "
             + "from datavalue dv "
-            + "join minmaxdataelement mm on ( dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid ) "
-            + "join dataelement de on dv.dataelementid = de.dataelementid "
-            + "join period pe on dv.periodid = pe.periodid "
-            + "join periodtype pt on pe.periodtypeid = pt.periodtypeid "
-            + "join organisationunit ou on dv.sourceid = ou.organisationunitid "
-            + "join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid "
+            + "left join minmaxdataelement mm on ( dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid ) "
+            + "inner join dataelement de on dv.dataelementid = de.dataelementid "
+            + "inner join period pe on dv.periodid = pe.periodid "
+            + "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid "
+            + "inner join organisationunit ou on dv.sourceid = ou.organisationunitid "
+            + "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid "
             + "where dv.dataelementid in (" + dataElementIds + ") " + "and dv.categoryoptioncomboid in ("
             + categoryOptionComboIds + ") " + "and dv.periodid in (" + periodIds + ") " + "and ( "
             + "cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) < mm.minimumvalue "
@@ -252,7 +252,6 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
         Collection<CategoryOptionCombo> categoryOptionCombos, Collection<Period> periods,
         Collection<OrganisationUnit> parents, int limit )
     {
-
         if ( dataElements.isEmpty() || categoryOptionCombos.isEmpty() || periods.isEmpty() || parents.isEmpty() )
         {
             return new ArrayList<>();
@@ -267,11 +266,11 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
             + "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue "
             + "from datavalue dv "
             + "left join minmaxdataelement mm on ( dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid ) "
-            + "join dataelement de on dv.dataelementid = de.dataelementid "
-            + "join period pe on dv.periodid = pe.periodid "
-            + "join periodtype pt on pe.periodtypeid = pt.periodtypeid "
-            + "join organisationunit ou on dv.sourceid = ou.organisationunitid "
-            + "join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid "
+            + "inner join dataelement de on dv.dataelementid = de.dataelementid "
+            + "inner join period pe on dv.periodid = pe.periodid "
+            + "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid "
+            + "inner join organisationunit ou on dv.sourceid = ou.organisationunitid "
+            + "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid "
             + "where dv.dataelementid in (" + dataElementIds + ") "
             + "and dv.categoryoptioncomboid in (" + categoryOptionComboIds + ") "
             + "and dv.periodid in (" + periodIds + ") " + "and (";
