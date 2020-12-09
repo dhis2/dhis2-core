@@ -115,6 +115,7 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
             + "avg( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) as average, "
             + "stddev_pop( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) as standarddeviation "
             + "from datavalue dv "
+            + "inner join period pe on dv.periodid = pe.periodid "
             + "where dv.dataelementid = " + dataElement.getId() + " "
             + "and dv.categoryoptioncomboid in (" + catOptionComboIds + ") "
             + "and pe.startdate >= '" + DateUtils.getMediumDateString( from ) + "' "
