@@ -104,8 +104,8 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
         matchPaths = TextUtils.removeLastOr( matchPaths ) + ") ";
 
         String sql = "select dv.sourceid, dv.categoryoptioncomboid, " +
-            "avg( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) as average, " +
-            "stddev_pop( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) as standarddeviation " +
+            "avg(cast(dv.value as " + statementBuilder.getDoubleColumnType() + ")) as average, " +
+            "stddev_pop(cast(dv.value as " + statementBuilder.getDoubleColumnType() + ")) as standarddeviation " +
             "from datavalue dv " +
             "inner join organisationunit ou on ou.organisationunitid = dv.sourceid " +
             "inner join period pe on dv.periodid = pe.periodid " +
@@ -153,16 +153,16 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
             "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, " +
             "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue " +
             "from datavalue dv " +
-            "left join minmaxdataelement mm on ( dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid ) " +
+            "left join minmaxdataelement mm on dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid " +
             "inner join dataelement de on dv.dataelementid = de.dataelementid " +
             "inner join period pe on dv.periodid = pe.periodid " +
             "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
             "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
             "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
             "where dv.dataelementid in (" + dataElementIds + ") " + "and dv.categoryoptioncomboid in (" +
-            categoryOptionComboIds + ") " + "and dv.periodid in (" + periodIds + ") " + "and ( " +
-            "cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) < mm.minimumvalue " +
-            "or cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) > mm.maximumvalue ) " + "and (";
+            categoryOptionComboIds + ") " + "and dv.periodid in (" + periodIds + ") " + "and (" +
+            "cast(dv.value as " + statementBuilder.getDoubleColumnType() + ") < mm.minimumvalue " +
+            "or cast(dv.value as " + statementBuilder.getDoubleColumnType() + ") > mm.maximumvalue) " + "and (";
 
         for ( OrganisationUnit parent : parents )
         {
@@ -219,13 +219,13 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
             "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
             "where dv.dataelementid = " + dataElement.getId() + " " +
             "and dv.categoryoptioncomboid = " + categoryOptionCombo.getId() + " " +
-            "and dv.periodid in (" + periodIds + ") and ( ";
+            "and dv.periodid in (" + periodIds + ") and (";
 
         for ( Long orgUnitUid : organisationUnits )
         {
-            sql += "( dv.sourceid = " + orgUnitUid + " " +
-                "and ( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) < " + lowerBoundMap.get( orgUnitUid ) + " " +
-                "or cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) > " + upperBoundMap.get( orgUnitUid ) + " ) ) or ";
+            sql += "(dv.sourceid = " + orgUnitUid + " " +
+                "and (cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) < " + lowerBoundMap.get( orgUnitUid ) + " " +
+                "or cast(dv.value as " + statementBuilder.getDoubleColumnType() + ") > " + upperBoundMap.get( orgUnitUid ) + ")) or ";
         }
 
         sql = TextUtils.removeLastOr( sql ) + ") ";
@@ -257,7 +257,7 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
             "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, " +
             "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue " +
             "from datavalue dv " +
-            "left join minmaxdataelement mm on ( dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid ) " +
+            "left join minmaxdataelement mm on (dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid) " +
             "inner join dataelement de on dv.dataelementid = de.dataelementid " +
             "inner join period pe on dv.periodid = pe.periodid " +
             "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
