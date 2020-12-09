@@ -245,6 +245,10 @@ public class SmsController
         webMessageService.send( WebMessageUtils.ok( "Import successful" ), response, request );
     }
 
+    // -------------------------------------------------------------------------
+    // SUPPORTIVE METHOD
+    // -------------------------------------------------------------------------
+
     private User getUserByPhoneNumber( String phoneNumber, String text ) throws WebMessageException
     {
         SMSCommand unregisteredParser = smsCommandService.getSMSCommand( SmsUtils.getCommandString( text ), ParserType.UNREGISTERED_PARSER );
@@ -253,23 +257,33 @@ public class SmsController
 
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( currentUser != null && !phoneNumber.equals( currentUser.getPhoneNumber() ) )
+        if ( SmsUtils.isBase64( text ) )
         {
-            if ( users == null || users.isEmpty() )
-            {
-                if ( unregisteredParser != null )
-                {
-                    return null;
-                }
+            return handleCompressedCommands( currentUser, phoneNumber );
+        }
 
-                // No user belong to this phone number
-                throw new WebMessageException( WebMessageUtils.conflict( "User's phone number is not registered in the system" ) );
+        if ( users == null || users.isEmpty() )
+        {
+            if ( unregisteredParser != null )
+            {
+                return null;
             }
 
+            // No user belong to this phone number
+            throw new WebMessageException( WebMessageUtils.conflict( "User's phone number is not registered in the system" ) );
+        }
+
+        return users.iterator().next();
+    }
+
+    private User handleCompressedCommands( User currentUser, String phoneNumber ) throws WebMessageException
+    {
+        if ( currentUser != null && !phoneNumber.equals( currentUser.getPhoneNumber() ) )
+        {
             // current user does not belong to this number
             throw new WebMessageException( WebMessageUtils.conflict( "Originator's number does not match user's Phone number" ) );
         }
 
-        return users.iterator().next();
+        return currentUser;
     }
 }
