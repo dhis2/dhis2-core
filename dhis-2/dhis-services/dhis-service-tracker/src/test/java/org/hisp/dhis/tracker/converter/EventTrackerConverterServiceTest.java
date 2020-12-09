@@ -67,6 +67,8 @@ public class EventTrackerConverterServiceTest
     @Mock
     public TrackerPreheat preheat;
 
+    private Program program = createProgram( 'A' );
+
     @Before
     public void setUpTest()
     {
@@ -76,7 +78,6 @@ public class EventTrackerConverterServiceTest
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnit.setUid( ORGANISATION_UNIT_UID );
 
-        Program program = createProgram( 'A' );
         program.setUid( PROGRAM_UID );
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
 
@@ -93,6 +94,8 @@ public class EventTrackerConverterServiceTest
         event.setProgram( PROGRAM_UID );
         event.setProgramStage( PROGRAM_STAGE_UID );
         event.setOrgUnit( ORGANISATION_UNIT_UID );
+
+        when( preheat.get( Program.class, program.getUid() ) ).thenReturn( program );
 
         ProgramStageInstance programStageInstance = trackerConverterService.from( preheat, event );
 
