@@ -32,9 +32,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 
-import java.util.*;
-
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.collection.PaginatedList;
@@ -53,6 +55,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -127,12 +131,12 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
             int orgUnitId = rowSet.getInt( 1 );
             int categoryOptionComboId = rowSet.getInt( 2 );
             double average = rowSet.getDouble( 3 );
-            double standardDeviation = rowSet.getDouble( 4 );
+            double stdDev = rowSet.getDouble( 4 );
 
-            if ( standardDeviation != 0.0 )
+            if ( stdDev != 0.0 )
             {
-                measures
-                    .add( new DataAnalysisMeasures( orgUnitId, categoryOptionComboId, average, standardDeviation ) );
+                measures.add( new DataAnalysisMeasures(
+                    orgUnitId, categoryOptionComboId, average, stdDev ) );
             }
         }
 
