@@ -35,14 +35,22 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1019;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1075;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -50,6 +58,7 @@ import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Streams;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -96,7 +105,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         }
 
         Program program = context.getProgram( enrollment.getProgram() );
-        validateMandatoryAttributes( reporter, program, attributeValueMap );
+        validateMandatoryAttributes( reporter, program, enrollment );
     }
 
     protected void validateRequiredProperties( ValidationErrorReporter reporter, Attribute attribute )
@@ -114,9 +123,31 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     }
 
     private void validateMandatoryAttributes( ValidationErrorReporter reporter,
-        Program program, Map<String, String> attributeValueMap )
+        Program program, Enrollment enrollment )
     {
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+
+        // Build a data structures of attributes eligible for mandatory validations:
+        // 1 - attributes from enrollments whose value is not empty or null
+        // 2 - attributes already existing in TEI (from preheat)
+
+        // 1 - attributes from enrollment whose value is non-empty
+        Map<String, String> enrollmentNonEmptyAttributeUids = Optional.of( enrollment )
+            .map( Enrollment::getAttributes )
+            .orElse( Collections.emptyList() )
+            .stream()
+            .filter( this::hasNonEmptyValue )
+            .collect( Collectors.toMap(
+                Attribute::getAttribute,
+                Attribute::getValue ) );
+
+        // 2 - attributes uids from existing TEI (if any) from preheat
+        Set<String> teiAttributeUids = buildTeiAttributeUids( reporter, enrollment.getTrackedEntity() );
+
+        // merged uids of eligible attribute to validate
+        Set<String> mergedAttributes = Streams
+            .concat( enrollmentNonEmptyAttributeUids.keySet().stream(), teiAttributeUids.stream() )
+            .collect( Collectors.toSet() );
 
         // Map having as key program attribute uid and mandatory flag as value
         Map<String, Boolean> programAttributesMap = program.getProgramAttributes().stream()
@@ -124,18 +155,39 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
                 programTrackedEntityAttribute -> programTrackedEntityAttribute.getAttribute().getUid(),
                 ProgramTrackedEntityAttribute::isMandatory ) );
 
-        // attributeValueMap (attributes from enrollments) must contain all
-        // programAttributeMap entries which are mandatory
+        // Merged attributes must contain each mandatory program attribute.
         programAttributesMap.entrySet()
             .stream()
-            // filter on mandatory flag
-            .filter( Map.Entry::getValue )
+            .filter( Map.Entry::getValue ) // <--- filter on mandatory flag
             .map( Map.Entry::getKey )
-            .forEach( mandatoryAttributeUid -> addErrorIf( () -> !attributeValueMap.containsKey( mandatoryAttributeUid ),
-                reporter, E1018, mandatoryAttributeUid ) );
+            .forEach( mandatoryProgramAttributeUid -> addErrorIf(
+                () -> !mergedAttributes.contains( mandatoryProgramAttributeUid ), reporter, E1018,
+                mandatoryProgramAttributeUid ) );
 
-        attributeValueMap.keySet()
-            .forEach( enrollmentAttribute -> addErrorIf( () -> !programAttributesMap.containsKey( enrollmentAttribute ),
-                reporter, E1019, enrollmentAttribute + "=" + attributeValueMap.get( enrollmentAttribute ) ) );
+        // enrollment must not contain any attribute which is not defined in program
+        enrollmentNonEmptyAttributeUids
+            .forEach(
+                ( attrUid, attrVal ) -> addErrorIf( () -> !programAttributesMap.containsKey( attrUid ), reporter, E1019,
+                    attrUid + "=" + attrVal ) );
+    }
+
+    private Set<String> buildTeiAttributeUids( ValidationErrorReporter reporter, String trackedEntityInstanceUid )
+    {
+        return Optional.of( reporter )
+            .map( ValidationErrorReporter::getValidationContext )
+            .map( TrackerImportValidationContext::getBundle )
+            .map( TrackerBundle::getPreheat )
+            .map( trackerPreheat -> trackerPreheat.getTrackedEntity( TrackerIdScheme.UID, trackedEntityInstanceUid ) )
+            .map( TrackedEntityInstance::getTrackedEntityAttributeValues )
+            .orElse( Collections.emptySet() )
+            .stream()
+            .map( TrackedEntityAttributeValue::getAttribute )
+            .map( BaseIdentifiableObject::getUid )
+            .collect( Collectors.toSet() );
+    }
+
+    private boolean hasNonEmptyValue( Attribute attribute )
+    {
+        return StringUtils.isNotBlank( attribute.getValue() );
     }
 }
