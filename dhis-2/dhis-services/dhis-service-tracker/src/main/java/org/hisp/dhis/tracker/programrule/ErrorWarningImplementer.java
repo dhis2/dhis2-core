@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.rules.models.RuleActionMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -54,18 +55,28 @@ public abstract class ErrorWarningImplementer
             .collect( Collectors.toMap( e -> e.getKey(),
                 e -> parseErrors( e.getValue() ) ) );
     }
-
-    // TODO: This is a temp format, as soon as we have the definitive validation
-    // structure it will be changed
+    
     private List<String> parseErrors( List<RuleEffect> effects )
     {
         return effects
             .stream()
             .map( ruleEffect -> {
-                String field = getActionClass().cast( ruleEffect.ruleAction() ).field();
+                RuleActionMessage ruleActionMessage = getActionClass().cast( ruleEffect.ruleAction() );
+                String field = ruleActionMessage.field();
+                String content = ruleActionMessage.content();
                 String data = ruleEffect.data();
 
-                return field + " " + data;
+                StringBuilder stringBuilder = new StringBuilder( content );
+                if ( !StringUtils.isEmpty( data ) )
+                {
+                    stringBuilder.append( " " ).append( data );
+                }
+                if ( !StringUtils.isEmpty( field ) )
+                {
+                    stringBuilder.append( " (" ).append( field ).append( ")" );
+                }
+
+                return stringBuilder.toString();
             } )
             .collect( Collectors.toList() );
     }
