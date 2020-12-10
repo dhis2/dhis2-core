@@ -51,7 +51,7 @@ public class OutlierDetectionMetadata
 
     public void addItem( NameableObject object )
     {
-        MetadataItem item = new MetadataItem( object.getName() );
+        MetadataItem item = new MetadataItem( object.getDisplayName() );
         item.setUid( object.getUid() );
         item.setCode( object.getCode() );
 

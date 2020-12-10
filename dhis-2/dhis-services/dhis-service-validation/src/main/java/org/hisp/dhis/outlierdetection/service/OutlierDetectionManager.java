@@ -148,9 +148,9 @@ public class OutlierDetectionManager
 
         for ( OrganisationUnit ou : query.getOrgUnits() )
         {
-            sql += "ou.\"path\" like '" + ou.getPath() + "%' and ";
+            sql += "ou.\"path\" like '" + ou.getPath() + "%' or ";
         }
 
-        return TextUtils.removeLastAnd( sql );
+        return TextUtils.removeLastOr( sql );
     }
 }
