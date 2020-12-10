@@ -55,12 +55,18 @@ public class OutlierDetectionManager
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    /**
+     * Returns a list of outlier data values for the given request.
+     *
+     * @param request the {@link OutlierDetectionRequest}.
+     * @return a list of {@link OutlierValue}.
+     */
     public List<OutlierValue> getOutliers( OutlierDetectionRequest request )
     {
         String ouPathClause = getOrgUnitPathClause( request );
 
         final String sql =
-            // Outer selection
+            // Outer select
             "select dvs.de_uid, dvs.periodid, dvs.ou_uid, dvs.coc_uid, dvs.aoc_uid, " +
                 "dvs.de_name, dvs.ou_name, dvs.coc_name, dvs.aoc_name, dvs.value, " +
                 "stats.mean as mean, " +
@@ -73,7 +79,7 @@ public class OutlierDetectionManager
             "from (" +
                 "select dv.dataelementid, dv.sourceid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, " +
                 "de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, " +
-                "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, " +
+                "de.shortname as de_name, ou.shortname as ou_name, coc.name as coc_name, aoc.name as aoc_name, " +
                 "dv.value " +
                 "from datavalue dv " +
                 "inner join dataelement de on dv.dataelementid = de.dataelementid " +
@@ -103,7 +109,7 @@ public class OutlierDetectionManager
                 "and dv.value ~* :numeric_regex " +
                 "group by dv.dataelementid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid" +
             ") as stats " +
-            // Join data queries
+            // Query join
             "on dvs.dataelementid = stats.dataelementid " +
             "and dvs.sourceid = stats.sourceid " +
             "and dvs.categoryoptioncomboid = stats.categoryoptioncomboid " +
@@ -146,7 +152,7 @@ public class OutlierDetectionManager
     }
 
     /**
-     * Returns an organisation unit 'path' "like" clause.
+     * Returns an organisation unit 'path' "like" clause for the given query.
      *
      * @param query the {@link OutlierDetectionRequest}.
      * @return an organisation unit 'path' "like" clause.

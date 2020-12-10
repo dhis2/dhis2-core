@@ -39,7 +39,7 @@ import org.hisp.dhis.feedback.ErrorMessage;
 public interface OutlierDetectionService
 {
     /**
-     * Validates the request.
+     * Validates the given request.
      *
      * @param request the {@link OutlierDetectionRequest}.
      * @throws IllegalQueryException if request is invalid.
@@ -48,7 +48,7 @@ public interface OutlierDetectionService
         throws IllegalQueryException;
 
     /**
-     * Validates the request.
+     * Validates the given request.
      *
      * @param request the {@link OutlierDetectionRequest}.
      * @return an {@link ErrorMessage} if request is invalid, or null if valid.
@@ -64,7 +64,7 @@ public interface OutlierDetectionService
     OutlierDetectionRequest fromQuery( OutlierDetectionQuery query );
 
     /**
-     * Returns outlier values.
+     * Returns outlier values for the given request.
      *
      * @param request the {@link OutlierDetectionRequest}.
      * @return a {@link OutlierDetectionResponse}.
