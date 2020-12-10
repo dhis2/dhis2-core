@@ -28,21 +28,25 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.hisp.dhis.common.BaseLinkableObject;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.tracker.domain.verbs.RestVerbs;
+import org.hisp.dhis.tracker.domain.verbs.ValidFor;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vividsolutions.jts.geom.Geometry;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.BaseLinkableObject;
-import org.hisp.dhis.event.EventStatus;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -56,31 +60,40 @@ public class Event
     extends BaseLinkableObject
     implements TrackerDto
 {
+    @ValidFor( verb = RestVerbs.GET )
     private String uid;
+
 
     @JsonProperty
     private String event;
 
     @JsonProperty
     @Builder.Default
+    @ValidFor( verb = RestVerbs.ALL )
     private EventStatus status = EventStatus.ACTIVE;
 
     @JsonProperty
+    @ValidFor( verb = {RestVerbs.POST, RestVerbs.PUT } )
     private String program;
 
     @JsonProperty
+    @ValidFor( verb = {RestVerbs.POST, RestVerbs.PUT } )
     private String programStage;
 
     @JsonProperty
+    @ValidFor( verb = {RestVerbs.POST, RestVerbs.PUT } )
     private String enrollment;
 
     @JsonProperty
+    @ValidFor( verb = {RestVerbs.GET } )
     private EnrollmentStatus enrollmentStatus;
 
     @JsonProperty
+    @ValidFor( verb = {RestVerbs.POST, RestVerbs.PUT } )
     private String orgUnit;
 
     @JsonProperty
+    @ValidFor( verb = {RestVerbs.POST, RestVerbs.PUT } )
     private String trackedEntity;
 
     @JsonProperty
@@ -94,18 +107,22 @@ public class Event
     private String scheduledAt;
 
     @JsonProperty
+    @ValidFor( verb = RestVerbs.GET )
     private String storedBy;
 
     @JsonProperty
+    @ValidFor( verb = {RestVerbs.POST, RestVerbs.PUT, RestVerbs.PATCH } )
     private boolean followUp;
 
     @JsonProperty
     private boolean deleted;
 
     @JsonProperty
+    @ValidFor( verb = RestVerbs.GET )
     private String createdAt;
 
     @JsonProperty
+    @ValidFor( verb = RestVerbs.GET )
     private String updatedAt;
 
     @JsonProperty
@@ -121,6 +138,7 @@ public class Event
     private String completedAt;
 
     @JsonProperty
+    @ValidFor( verb = {RestVerbs.POST, RestVerbs.PUT, RestVerbs.PATCH } )
     private Geometry geometry;
 
     @JsonProperty

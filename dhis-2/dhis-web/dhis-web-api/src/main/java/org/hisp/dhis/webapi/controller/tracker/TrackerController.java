@@ -44,6 +44,8 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.job.TrackerJobWebMessageResponse;
 import org.hisp.dhis.tracker.job.TrackerMessageManager;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
@@ -53,6 +55,7 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -95,7 +98,8 @@ public class TrackerController
     }
 
     @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
-//    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
+    // @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')"
+    // )
     public void postJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser )
         throws IOException
     {
@@ -103,7 +107,8 @@ public class TrackerController
         TrackerImportParams params = TrackerImportParamsBuilder.build( contextService.getParameterValuesMap() );
 
         // Set the actual objects to import
-        TrackerBundleParams trackerBundleParams = renderService.fromJson( request.getInputStream(), TrackerBundleParams.class );
+        TrackerBundleParams trackerBundleParams = renderService.fromJson( request.getInputStream(),
+            TrackerBundleParams.class );
         params.setUserId( currentUser.getUid() );
         params.setTrackedEntities( trackerBundleParams.getTrackedEntities() );
         params.setEnrollments( trackerBundleParams.getEnrollments() );
@@ -161,5 +166,36 @@ public class TrackerController
         }
 
         throw new HttpClientErrorException( HttpStatus.NOT_FOUND );
+    }
+
+    @PatchMapping( value = "/events/{uid}" )
+    public void patchEvents( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response,
+        User currentUser )
+        throws IOException
+    {
+        TrackerBundleParams trackerBundleParams = renderService.fromJson( request.getInputStream(),
+            TrackerBundleParams.class );
+
+        TrackerImportParams params = TrackerImportParams.builder()
+            .validationMode( ValidationMode.SKIP )
+            .importStrategy( TrackerImportStrategy.PATCH )
+            .skipRuleEngine( true )
+            .userId( currentUser.getUid() )
+            .events( trackerBundleParams.getEvents() )
+            .build();
+
+        String jobId = trackerMessageManager.addJob( params );
+
+        String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
+        response.setHeader( "Location", location );
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+
+        renderService.toJson( response.getOutputStream(), new WebMessage()
+            .setMessage( "Tracker job added" )
+            .setResponse(
+                TrackerJobWebMessageResponse.builder()
+                    .id( jobId ).location( location )
+                    .build() ) );
+
     }
 }

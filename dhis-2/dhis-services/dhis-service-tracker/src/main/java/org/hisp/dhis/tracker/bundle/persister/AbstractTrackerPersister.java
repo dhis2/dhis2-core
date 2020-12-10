@@ -76,6 +76,22 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         this.reservedValueService = reservedValueService;
     }
 
+    @Override
+    public TrackerTypeReport patch( Session session, TrackerBundle bundle )
+    {
+        TrackerTypeReport typeReport = new TrackerTypeReport( getType() );
+
+        T dto = getByType( getType(), bundle ).get( 0 );
+
+        TrackerObjectReport objectReport = new TrackerObjectReport( getType(), dto.getUid(), 0 );
+
+        typeReport.addObjectReport( objectReport );
+
+        session.merge( convertForPatch( bundle, dto ) );
+
+        return typeReport;
+    }
+
     /**
      * Template method that can be used by classes extending this class to execute
      * the persistence flow of Tracker entities
@@ -209,6 +225,14 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
      * corresponding Hibernate-managed object
      */
     protected abstract V convert( TrackerBundle bundle, T trackerDto );
+
+    /**
+     *
+     * @param bundle
+     * @param trackerDto
+     * @return
+     */
+    protected abstract V convertForPatch( TrackerBundle bundle, T trackerDto );
 
     /**
      * Persists the comments for the given entity, if the entity has comments

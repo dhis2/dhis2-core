@@ -127,6 +127,12 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
     }
 
     @Override
+    protected ProgramInstance convertForPatch( TrackerBundle bundle, Enrollment trackerDto )
+    {
+        return null;
+    }
+
+    @Override
     protected ProgramInstance convert( TrackerBundle bundle, Enrollment enrollment )
     {
         Date now = new Date();

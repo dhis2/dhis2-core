@@ -101,6 +101,11 @@ public class TrackedEntityPersister extends AbstractTrackerPersister<TrackedEnti
     }
 
     @Override
+    protected TrackedEntityInstance convertForPatch(TrackerBundle bundle, TrackedEntity trackerDto) {
+        return null;
+    }
+
+    @Override
     protected TrackerType getType()
     {
         return TrackerType.TRACKED_ENTITY;
