@@ -311,8 +311,6 @@ public class MetadataImportServiceTest extends IntegrationTestBase
         assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUserUid() );
         assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
 
-        dbmsManager.clearSession();
-
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(),
             RenderFormat.JSON );
@@ -323,6 +321,7 @@ public class MetadataImportServiceTest extends IntegrationTestBase
         params.setObjects( metadata );
         params.setSkipSharing( true );
 
+        dbmsManager.clearSession();
 
         report = importService.importMetadata( params );
         final List<ErrorReport> errorReports = report.getErrorReports();

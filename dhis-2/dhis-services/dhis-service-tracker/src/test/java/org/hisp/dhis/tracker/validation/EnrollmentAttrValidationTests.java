@@ -33,8 +33,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -49,7 +47,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
-import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -57,8 +54,6 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.isNotNull;
-import static org.mockito.ArgumentMatchers.notNull;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -90,8 +85,7 @@ public class EnrollmentAttrValidationTests
         assertEquals( 1, trackerBundle.getTrackedEntities().size() );
 
         final TrackerPreheat preheat = trackerBundle.getPreheat();
-        final IdentifiableObject sTJvSLN7Kcb1 = preheat
-            .get( trackerBundle.getIdentifier(), TrackedEntityAttribute.class, "sTJvSLN7Kcb" );
+        final IdentifiableObject sTJvSLN7Kcb1 = preheat.get(  TrackedEntityAttribute.class, "sTJvSLN7Kcb" );
         log.error( "PRE sTJvSLN7Kcb1->" + sTJvSLN7Kcb1 );
         assertNotNull( sTJvSLN7Kcb1 );
 
@@ -113,8 +107,7 @@ public class EnrollmentAttrValidationTests
 
         final TrackerBundle trackerBundle = trackerBundleService.create( params );
         final TrackerPreheat preheat = trackerBundle.getPreheat();
-        final IdentifiableObject sTJvSLN7Kcb1 = preheat
-            .get( trackerBundle.getIdentifier(), TrackedEntityAttribute.class, "sTJvSLN7Kcb" );
+        final IdentifiableObject sTJvSLN7Kcb1 = preheat.get( TrackedEntityAttribute.class, "sTJvSLN7Kcb" );
 
         log.error( "1 sTJvSLN7Kcb1->" + sTJvSLN7Kcb1 );
 //        final Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes = preheat
