@@ -58,7 +58,9 @@ public class ConverterUtils
      * Extract all the {@link Field} from a given object having the following
      * characteristics:
      *
-     * - the field is not a Collection - the field value is not null or empty String
+     * - the field is not a Collection
+     * 
+     * - the field value is not null or empty String
      * 
      * @param clazz the class of the object to analyze
      * @param entity the object from which to extract the Fields
