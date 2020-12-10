@@ -58,7 +58,7 @@ public class OutlierDetectionManager
     {
         String ouPathClause = getOrgUnitPathClause( request );
 
-        String sql =
+        final String sql =
             // Outer selection
             "select dvs.de_uid, dvs.periodid, dvs.ou_uid, dvs.coc_uid, dvs.aoc_uid, dvs.value, " +
                 "stats.mean as mean, " +
@@ -108,7 +108,7 @@ public class OutlierDetectionManager
             "order by :order_by desc " +
             "limit :max_results;";
 
-        SqlParameterSource params = new MapSqlParameterSource()
+        final SqlParameterSource params = new MapSqlParameterSource()
             .addValue( "threshold", request.getThreshold() )
             .addValue( "data_element_ids", request.getDataElementIds() )
             .addValue( "start_date", request.getStartDateString() )
@@ -116,7 +116,7 @@ public class OutlierDetectionManager
             .addValue( "oder_by", request.getOrderBy().getKey() )
             .addValue( "max_results", request.getMaxResults() );
 
-        return jdbcTemplate.query( sql, params, (rs, rowNum) -> {
+        return jdbcTemplate.query( sql, params, ( rs, rowNum ) -> {
            OutlierValue outlier = new OutlierValue();
            outlier.setDe( rs.getString( "de_uid" ) );
            // TODO Period identifier
@@ -132,7 +132,7 @@ public class OutlierDetectionManager
            outlier.setUpperBound( rs.getDouble( "upper_bound" ) );
 
            return outlier;
-        });
+        } );
     }
 
     /**
