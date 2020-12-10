@@ -75,6 +75,8 @@
   ],
   "programStages": [
     {
+      "lastUpdated": "2019-01-28T11:23:20.855",
+      "created": "2019-01-28T11:23:20.855",
       "id": "NpsdDv6kKSO",
       "code": "PRGA",
       "name": "ProgramA",
@@ -90,8 +92,8 @@
       "programStageDataElements": [
         {
           "lastUpdated": "2019-01-28T11:23:20.855",
-          "id": "DSKTW8qFP0z",
           "created": "2019-01-28T11:23:20.855",
+          "id": "DSKTW8qFP0z",
           "displayInReports": false,
           "skipSynchronization": false,
           "externalAccess": false,
@@ -143,6 +145,8 @@
   ],
   "programs": [
     {
+      "lastUpdated": "2019-01-28T11:23:20.855",
+      "created": "2019-01-28T11:23:20.855",
       "name": "ProgramA",
       "id": "QfUVllTs6cS",
       "code": "PRG1",
