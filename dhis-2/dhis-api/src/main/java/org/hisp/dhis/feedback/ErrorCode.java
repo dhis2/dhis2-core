@@ -74,6 +74,7 @@ public enum ErrorCode
     E2202( "At least one organisation unit must be specified" ),
     E2203( "Threshold must be a positive number" ),
     E2204( "Max results must be a positive number" ),
+    E2205( "Max results exceeds the allowed max limit: `{0}`" ),
 
     /* Security */
     E3000( "User `{0}` is not allowed to create objects of type {1}." ),

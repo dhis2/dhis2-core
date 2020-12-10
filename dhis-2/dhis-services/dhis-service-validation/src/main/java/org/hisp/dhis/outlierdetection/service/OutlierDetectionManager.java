@@ -127,7 +127,7 @@ public class OutlierDetectionManager
             OutlierValue outlier = new OutlierValue();
             outlier.setDe( rs.getString( "de_uid" ) );
             outlier.setDeName( rs.getString( "de_name" ) );
-            // TODO Period identifier
+            outlier.setPe( String.valueOf( rs.getInt( "periodid" ) ) ); // TODO Period identifier
             outlier.setOu( rs.getString( "ou_uid" ) );
             outlier.setOuName( rs.getString( "ou_name" ) );
             outlier.setCoc( rs.getString( "coc_uid" ) );

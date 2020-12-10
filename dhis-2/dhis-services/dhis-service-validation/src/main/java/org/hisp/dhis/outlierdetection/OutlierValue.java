@@ -68,9 +68,6 @@ public class OutlierValue
     private String aocName;
 
     @JsonProperty
-    private String comment;
-
-    @JsonProperty
     private Date lastUpdated;
 
     @JsonProperty

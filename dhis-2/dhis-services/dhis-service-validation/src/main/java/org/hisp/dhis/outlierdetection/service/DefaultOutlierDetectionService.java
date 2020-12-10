@@ -56,7 +56,10 @@ import lombok.extern.slf4j.Slf4j;
 public class DefaultOutlierDetectionService
     implements OutlierDetectionService
 {
+    private static final int MAX_LIMIT = 1000;
+
     private final IdentifiableObjectManager idObjectManager;
+
     private final OutlierDetectionManager outlierDetectionManager;
 
     public DefaultOutlierDetectionService(
@@ -112,6 +115,11 @@ public class DefaultOutlierDetectionService
             error = new ErrorMessage( ErrorCode.E2204 );
         }
 
+        if ( request.getMaxResults() > MAX_LIMIT )
+        {
+            error = new ErrorMessage( ErrorCode.E2205, MAX_LIMIT );
+        }
+
         return error;
     }
 
@@ -122,6 +130,7 @@ public class DefaultOutlierDetectionService
 
         List<DataSet> dataSets = idObjectManager.getByUid( DataSet.class, query.getDs() );
         List<DataElement> dataElements = idObjectManager.getByUid( DataElement.class, query.getDe() );
+        List<OrganisationUnit> orgUnits = idObjectManager.getByUid( OrganisationUnit.class, query.getOu() );
 
         dataElements.addAll( dataSets.stream()
             .map( ds -> ds.getDataElements() )
@@ -132,7 +141,7 @@ public class DefaultOutlierDetectionService
         request
             .withDataElements( dataElements )
             .withStartEndDate( query.getStartDate(), query.getEndDate() )
-            .withOrgUnits( idObjectManager.getByUid( OrganisationUnit.class, query.getOu() ) );
+            .withOrgUnits( orgUnits );
 
         if ( query.getThreshold() != null )
         {

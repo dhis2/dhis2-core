@@ -91,7 +91,7 @@ public class OutlierDetectionRequest
             this.query.outlierAlgorithm = OutlierDetectionAlgorithm.Z_SCORE;
             this.query.threshold = 3.0d;
             this.query.orderBy = Order.MEAN_ABS_DEV;
-            this.query.maxResults = 1000;
+            this.query.maxResults = 500;
         }
 
         public Builder withDataElements( List<DataElement> dataElements )
