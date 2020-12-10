@@ -109,9 +109,10 @@ public class OutlierDetectionManager
             "and dvs.categoryoptioncomboid = stats.categoryoptioncomboid " +
             "and dvs.attributeoptioncomboid = stats.attributeoptioncomboid " +
             "where stats.std_dev != 0.0 " +
-            // Filter on z score, order and limit
+            // Filter on z-score threshold
             "and (abs(dvs.value::double precision - stats.mean) / stats.std_dev) > :threshold " +
-            "order by :order_by desc " +
+            // Order and limit
+            "order by " + request.getOrderBy().getKey() + " desc " +
             "limit :max_results;";
 
         final SqlParameterSource params = new MapSqlParameterSource()
@@ -120,7 +121,6 @@ public class OutlierDetectionManager
             .addValue( "start_date", request.getStartDate() )
             .addValue( "numeric_regex", MathUtils.NUMERIC_LENIENT_REGEXP )
             .addValue( "end_date", request.getEndDate() )
-            .addValue( "order_by", request.getOrderBy().getKey() )
             .addValue( "max_results", request.getMaxResults() );
 
         return jdbcTemplate.query( sql, params, ( rs, rowNum ) -> {
@@ -141,7 +141,6 @@ public class OutlierDetectionManager
             outlier.setZScore( rs.getDouble( "z_score" ) );
             outlier.setLowerBound( rs.getDouble( "lower_bound" ) );
             outlier.setUpperBound( rs.getDouble( "upper_bound" ) );
-
            return outlier;
         } );
     }
