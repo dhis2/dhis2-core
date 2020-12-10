@@ -28,6 +28,8 @@
 
 package org.hisp.dhis.outlierdetection;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Data;
 
 /**
@@ -38,11 +40,15 @@ import lombok.Data;
 @Data
 public class OutlierDetectionMetadata
 {
+    @JsonProperty
     private double threshold;
 
+    @JsonProperty
     private Order orderBy;
 
+    @JsonProperty
     private int maxResults;
 
+    @JsonProperty
     private Integer count;
 }
