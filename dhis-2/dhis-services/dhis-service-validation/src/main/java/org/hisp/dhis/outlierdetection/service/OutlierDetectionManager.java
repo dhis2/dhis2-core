@@ -111,8 +111,8 @@ public class OutlierDetectionManager
         final SqlParameterSource params = new MapSqlParameterSource()
             .addValue( "threshold", request.getThreshold() )
             .addValue( "data_element_ids", request.getDataElementIds() )
-            .addValue( "start_date", request.getStartDateString() )
-            .addValue( "end_date", request.getEndDateString() )
+            .addValue( "start_date", request.getStartDate() )
+            .addValue( "end_date", request.getEndDate() )
             .addValue( "order_by", request.getOrderBy().getKey() )
             .addValue( "max_results", request.getMaxResults() );
 

@@ -35,8 +35,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.util.DateUtils;
-
 import com.google.common.base.Preconditions;
 
 import lombok.Getter;
@@ -72,16 +70,6 @@ public class OutlierDetectionRequest
         return dataElements.stream()
             .map( DataElement::getId )
             .collect( Collectors.toList() );
-    }
-
-    public String getStartDateString()
-    {
-        return DateUtils.getMediumDateString( startDate );
-    }
-
-    public String getEndDateString()
-    {
-        return DateUtils.getMediumDateString( endDate );
     }
 
     private OutlierDetectionRequest()
