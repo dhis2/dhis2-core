@@ -15,7 +15,6 @@ import java.util.stream.IntStream;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -68,9 +67,9 @@ public class UserSupplierTest
 
         for ( String userUid : userIds )
         {
-            assertThat( preheat.get( TrackerIdScheme.UID, User.class, userUid ), is( notNullValue() ) );
+            assertThat( preheat.get( User.class, userUid ), is( notNullValue() ) );
         }
         // Make sure also User Credentials object are cached in the pre-heat
-        assertThat( preheat.getAll( TrackerIdScheme.UID, UserCredentials.class ), hasSize( 5 ) );
+        assertThat( preheat.getAll( UserCredentials.class ), hasSize( 5 ) );
     }
 }

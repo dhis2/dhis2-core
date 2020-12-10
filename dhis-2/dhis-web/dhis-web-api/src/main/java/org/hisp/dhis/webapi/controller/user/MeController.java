@@ -110,6 +110,9 @@ public class MeController
     private CurrentUserService currentUserService;
 
     @Autowired
+    private UserControllerUtils userControllerUtils;
+
+    @Autowired
     protected ContextService contextService;
 
     @Autowired
@@ -219,6 +222,22 @@ public class MeController
         }
 
         return false;
+    }
+
+    @RequestMapping( value = "/dataApprovalWorkflows", method = RequestMethod.GET )
+    public void getCurrentUserDataApprovalWorkflows( HttpServletResponse response )
+        throws Exception
+    {
+        User user = currentUserService.getCurrentUser();
+
+        if ( user == null )
+        {
+            throw new NotAuthenticatedException();
+        }
+
+        RootNode rootNode = userControllerUtils.getUserDataApprovalWorkflows( user );
+
+        nodeService.serialize( rootNode, "application/json", response.getOutputStream() );
     }
 
     @RequestMapping( value = "", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )

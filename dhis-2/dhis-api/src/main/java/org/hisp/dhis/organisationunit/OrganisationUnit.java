@@ -77,11 +77,8 @@ import org.locationtech.jts.geom.Geometry;
  */
 @JacksonXmlRootElement( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnit
-    extends
-    BaseDimensionalItemObject
-    implements
-    MetadataObject,
-    CoordinateObject
+    extends BaseDimensionalItemObject
+        implements MetadataObject, CoordinateObject
 {
     private static final String PATH_SEP = "/";
 

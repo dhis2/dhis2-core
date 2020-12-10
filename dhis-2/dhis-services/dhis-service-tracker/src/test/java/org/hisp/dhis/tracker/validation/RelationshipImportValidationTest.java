@@ -39,7 +39,6 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -81,7 +80,7 @@ public class RelationshipImportValidationTest
         when( context.getBundle() ).thenReturn( trackerBundle );
         when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( trackerBundle.getPreheat() ).thenReturn( preheat );
-        when( preheat.getAll( TrackerIdScheme.UID, RelationshipType.class ) ).thenReturn( getRelationshipTypes() );
+        when( preheat.getAll( RelationshipType.class ) ).thenReturn( getRelationshipTypes() );
         when( trackerBundle.getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE );
 
         validatorToTest = new RelationshipsValidationHook();
@@ -111,7 +110,7 @@ public class RelationshipImportValidationTest
     @Test
     public void validateRelationshipShouldFailForMissingRelationshipType()
     {
-        when( preheat.getAll( TrackerIdScheme.UID, RelationshipType.class ) ).thenReturn( Lists.newArrayList() );
+        when( preheat.getAll( RelationshipType.class ) ).thenReturn( Lists.newArrayList() );
 
         Relationship rel = getValidRelationship();
         reporter = new ValidationErrorReporter( context, rel );

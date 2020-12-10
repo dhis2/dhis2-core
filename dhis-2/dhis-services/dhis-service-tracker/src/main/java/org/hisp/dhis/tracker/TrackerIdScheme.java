@@ -44,6 +44,11 @@ public enum TrackerIdScheme
     CODE,
 
     /**
+     * Preheat using NAME identifiers
+     */
+    NAME,
+
+    /**
      * Preheat using ATTRIBUTE identifiers
      */
     ATTRIBUTE,

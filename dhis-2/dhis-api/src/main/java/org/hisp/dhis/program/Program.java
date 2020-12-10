@@ -41,6 +41,7 @@ import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.OrganisationUnitAssignable;
 import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
@@ -71,7 +72,7 @@ import com.google.common.collect.Sets;
 @JacksonXmlRootElement( localName = "program", namespace = DxfNamespaces.DXF_2_0 )
 public class Program
     extends BaseNameableObject
-    implements VersionedObject, MetadataObject
+    implements VersionedObject, MetadataObject, OrganisationUnitAssignable
 {
     private String formName;
 

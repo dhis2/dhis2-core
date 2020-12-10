@@ -32,6 +32,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
@@ -52,6 +53,7 @@ import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
 import org.hisp.dhis.sms.config.SmsGateway;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -83,6 +85,9 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
     @Mock
     private RestTemplate restTemplate;
 
+    @Mock
+    private PBEStringEncryptor pbeStringEncryptor;
+
     @InjectMocks
     private BulkSmsHttpGateway bulkSmsGateway;
 
@@ -109,6 +114,8 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
         outboundMessageList.add( new OutboundMessage( SUBJECT,MESSAGE, recipients ) );
 
         batch = new OutboundMessageBatch( outboundMessageList, DeliveryChannel.SMS );
+
+        when( pbeStringEncryptor.decrypt( anyString() ) ).thenReturn( smsGatewayConfig.getPassword() );
     }
 
     @Test
