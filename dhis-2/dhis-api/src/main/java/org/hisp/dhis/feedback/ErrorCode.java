@@ -71,10 +71,11 @@ public enum ErrorCode
     /* Outlier detection */
     E2200( "At least one data element must be specified" ),
     E2201( "Start date and end date must be specified" ),
-    E2202( "At least one organisation unit must be specified" ),
-    E2203( "Threshold must be a positive number" ),
-    E2204( "Max results must be a positive number" ),
-    E2205( "Max results exceeds the allowed max limit: `{0}`" ),
+    E2202( "Start date must be before end date" ),
+    E2203( "At least one organisation unit must be specified" ),
+    E2204( "Threshold must be a positive number" ),
+    E2205( "Max results must be a positive number" ),
+    E2206( "Max results exceeds the allowed max limit: `{0}`" ),
 
     /* Security */
     E3000( "User `{0}` is not allowed to create objects of type {1}." ),

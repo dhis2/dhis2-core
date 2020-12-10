@@ -100,6 +100,11 @@ public class DefaultOutlierDetectionService
             error = new ErrorMessage( ErrorCode.E2201 );
         }
 
+        if ( request.getStartDate().after( request.getEndDate() ) )
+        {
+            error = new ErrorMessage( ErrorCode.E2202 );
+        }
+
         if ( request.getOrgUnits().isEmpty() )
         {
             error = new ErrorMessage( ErrorCode.E2202 );
