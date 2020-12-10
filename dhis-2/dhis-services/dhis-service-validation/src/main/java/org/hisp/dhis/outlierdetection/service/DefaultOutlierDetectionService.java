@@ -35,12 +35,7 @@ public class DefaultOutlierDetectionService
         this.outlierDetectionManager = outlierDetectionManager;
     }
 
-    /**
-     * Validates the request.
-     *
-     * @param request the {@link OutlierDetectionRequest}.
-     * @throws IllegalQueryException if request is invalid.
-     */
+    @Override
     public void validate( OutlierDetectionRequest params )
         throws IllegalQueryException
     {
@@ -56,12 +51,7 @@ public class DefaultOutlierDetectionService
         }
     }
 
-    /**
-     * Validates the request.
-     *
-     * @param request the {@link OutlierDetectionRequest}.
-     * @return an {@link ErrorMessage} if request is invalid, or null if valid.
-     */
+    @Override
     public ErrorMessage validateForErrorMessage( OutlierDetectionRequest request )
     {
         ErrorMessage error = null;
@@ -94,12 +84,7 @@ public class DefaultOutlierDetectionService
         return error;
     }
 
-    /**
-     * Creates a {@link OutlierDetectionRequest} from the given query.
-     *
-     * @param query the {@link OutlierDetectionQuery}.
-     * @return a {@link OutlierDetectionRequest}.
-     */
+    @Override
     public OutlierDetectionRequest fromQuery( OutlierDetectionQuery query )
     {
         OutlierDetectionRequest.Builder request = new OutlierDetectionRequest.Builder();
@@ -134,12 +119,7 @@ public class DefaultOutlierDetectionService
         return request.build();
     }
 
-    /**
-     * Returns outlier data values.
-     *
-     * @param request the {@link OutlierDetectionRequest}.
-     * @return a {@link OutlierValueResponse}.
-     */
+    @Override
     public OutlierValueResponse getOutliers( OutlierDetectionRequest request )
     {
         OutlierValueResponse response = new OutlierValueResponse();
