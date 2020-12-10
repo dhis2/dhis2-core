@@ -79,7 +79,7 @@ public class OutlierDetectionManager
             "from (" +
                 "select dv.dataelementid, dv.sourceid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, " +
                 "de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, " +
-                "de.shortname as de_name, ou.shortname as ou_name, coc.name as coc_name, aoc.name as aoc_name, " +
+                "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, " +
                 "dv.value " +
                 "from datavalue dv " +
                 "inner join dataelement de on dv.dataelementid = de.dataelementid " +
