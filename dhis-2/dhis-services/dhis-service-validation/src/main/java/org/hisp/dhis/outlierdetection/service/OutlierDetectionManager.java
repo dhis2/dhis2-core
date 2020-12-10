@@ -82,7 +82,7 @@ public class OutlierDetectionManager
                 "and pe.enddate <= :end_date " +
                 "and " + ouPathClause + " " +
                 "and dv.deleted is false" +
-            ") as dvs" +
+            ") as dvs " +
             // Mean and std dev mapping query
             "inner join (" +
                 "select dv.dataelementid as dataelementid, dv.sourceid as sourceid, " +
