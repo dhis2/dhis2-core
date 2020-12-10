@@ -39,6 +39,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.outlierdetection.OutlierDetectionMetadata;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionService;
@@ -156,6 +157,23 @@ public class DefaultOutlierDetectionService
 
         OutlierDetectionResponse response = new OutlierDetectionResponse();
         response.setOutlierValues( outlierDetectionManager.getOutliers( request ) );
+        response.setMetadata( getMetadata( request ) );
         return response;
+    }
+
+    /**
+     * Returns metadata for the given request.
+     *
+     * @param request the {@link OutlierDetectionRequest}.
+     * @return the {@link OutlierDetectionMetadata}.
+     */
+    private OutlierDetectionMetadata getMetadata( OutlierDetectionRequest request )
+    {
+        final OutlierDetectionMetadata metadata = new OutlierDetectionMetadata();
+
+        request.getDataElements().forEach( de -> metadata.addItem( de ) );
+        request.getOrgUnits().forEach( ou -> metadata.addItem( ou ) );
+
+        return metadata;
     }
 }

@@ -78,8 +78,8 @@ public class OutlierDetectionManager
                 "inner join period pe on dv.periodid = pe.periodid " +
                 "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
                 "where dv.dataelementid in (:data_element_ids) " +
-                "and pe.startdate >= ':start_date' " +
-                "and pe.enddate <= ':end_date' " +
+                "and pe.startdate >= :start_date " +
+                "and pe.enddate <= :end_date " +
                 "and " + ouPathClause + " " +
                 "and dv.deleted is false" +
             ") as dvs" +
