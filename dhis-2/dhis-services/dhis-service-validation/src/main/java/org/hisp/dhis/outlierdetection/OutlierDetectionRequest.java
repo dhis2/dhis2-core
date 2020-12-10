@@ -60,14 +60,14 @@ public class OutlierDetectionRequest
     {
     }
 
-    public class Builder
+    public static class Builder
     {
         private OutlierDetectionRequest query;
 
         /**
          * Initializes the {@link OutlierDetectionRequest} with default values.
          */
-        private Builder()
+        public Builder()
         {
             this.query = new OutlierDetectionRequest();
 
@@ -99,13 +99,13 @@ public class OutlierDetectionRequest
 
         public Builder withThreshold( double threshold )
         {
-            this.query.dataElements = dataElements;
+            this.query.threshold = threshold;
             return this;
         }
 
-        public Builder withOrderBy( Order order )
+        public Builder withOrderBy( Order orderBy )
         {
-            this.query.orderBy = order;
+            this.query.orderBy = orderBy;
             return this;
         }
 

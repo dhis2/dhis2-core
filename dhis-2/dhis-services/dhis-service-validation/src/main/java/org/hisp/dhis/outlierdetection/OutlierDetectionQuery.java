@@ -24,9 +24,6 @@ public class OutlierDetectionQuery
     private List<String> ou = new ArrayList<>();
 
     @JsonProperty
-    private OutlierDetectionAlgorithm outlierAlgorithm;
-
-    @JsonProperty
     private Double threshold;
 
     @JsonProperty

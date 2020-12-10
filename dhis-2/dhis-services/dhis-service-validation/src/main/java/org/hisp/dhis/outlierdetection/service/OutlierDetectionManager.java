@@ -21,9 +21,9 @@ public class OutlierDetectionManager
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<OutlierValue> getOutliers( OutlierDetectionRequest query )
+    public List<OutlierValue> getOutliers( OutlierDetectionRequest request )
     {
-        String ouPathClause = getOrgUnitPathClause( query );
+        String ouPathClause = getOrgUnitPathClause( request );
 
         String sql =
             // Outer selection
@@ -76,12 +76,12 @@ public class OutlierDetectionManager
             "limit :max_results;";
 
         SqlParameterSource params = new MapSqlParameterSource()
-            .addValue( "threshold", query.getThreshold() )
-            .addValue( "data_element_ids", query.getDataElementIds() )
-            .addValue( "start_date", query.getStartDateString() )
-            .addValue( "end_date", query.getEndDateString() )
-            .addValue( "oder_by", query.getOrderBy().getKey() )
-            .addValue( "max_results", query.getMaxResults() );
+            .addValue( "threshold", request.getThreshold() )
+            .addValue( "data_element_ids", request.getDataElementIds() )
+            .addValue( "start_date", request.getStartDateString() )
+            .addValue( "end_date", request.getEndDateString() )
+            .addValue( "oder_by", request.getOrderBy().getKey() )
+            .addValue( "max_results", request.getMaxResults() );
 
         return jdbcTemplate.query( sql, params, (rs, rowNum) -> {
            OutlierValue outlier = new OutlierValue();
@@ -103,10 +103,10 @@ public class OutlierDetectionManager
     }
 
     /**
-     * Returns an organisation unit 'path' like clause.
+     * Returns an organisation unit 'path' "like" clause.
      *
      * @param query the {@link OutlierDetectionRequest}.
-     * @return an organisation unit 'path' like clause.
+     * @return an organisation unit 'path' "like" clause.
      */
     private String getOrgUnitPathClause( OutlierDetectionRequest query )
     {
