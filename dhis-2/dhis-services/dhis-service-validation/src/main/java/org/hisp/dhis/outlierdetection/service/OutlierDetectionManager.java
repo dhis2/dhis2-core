@@ -117,19 +117,19 @@ public class OutlierDetectionManager
             .addValue( "max_results", request.getMaxResults() );
 
         return jdbcTemplate.query( sql, params, ( rs, rowNum ) -> {
-           OutlierValue outlier = new OutlierValue();
-           outlier.setDe( rs.getString( "de_uid" ) );
-           // TODO Period identifier
-           outlier.setDe( rs.getString( "ou_uid" ) );
-           outlier.setCoc( rs.getString( "coc_uid" ) );
-           outlier.setAoc( rs.getString( "aoc_uid" ) );
-           outlier.setValue( rs.getDouble( "value" ) );
-           outlier.setMean( rs.getDouble( "mean" ) );
-           outlier.setStdDev( rs.getDouble( "std_dev" ) );
-           outlier.setMeanAbsDev( rs.getDouble( "mean_abs_dev" ) );
-           outlier.setZScore( rs.getDouble( "z_score" ) );
-           outlier.setLowerBound( rs.getDouble( "lower_bound" ) );
-           outlier.setUpperBound( rs.getDouble( "upper_bound" ) );
+            OutlierValue outlier = new OutlierValue();
+            outlier.setDe( rs.getString( "de_uid" ) );
+            // TODO Period identifier
+            outlier.setDe( rs.getString( "ou_uid" ) );
+            outlier.setCoc( rs.getString( "coc_uid" ) );
+            outlier.setAoc( rs.getString( "aoc_uid" ) );
+            outlier.setValue( rs.getDouble( "value" ) );
+            outlier.setMean( rs.getDouble( "mean" ) );
+            outlier.setStdDev( rs.getDouble( "std_dev" ) );
+            outlier.setMeanAbsDev( rs.getDouble( "mean_abs_dev" ) );
+            outlier.setZScore( rs.getDouble( "z_score" ) );
+            outlier.setLowerBound( rs.getDouble( "lower_bound" ) );
+            outlier.setUpperBound( rs.getDouble( "upper_bound" ) );
 
            return outlier;
         } );
