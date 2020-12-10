@@ -84,7 +84,7 @@ public class OutlierDetectionManager
                 "from datavalue dv " +
                 "inner join dataelement de on dv.dataelementid = de.dataelementid " +
                 "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
-                "inner join categoryoptioncombo aoc on dv.categoryoptioncomboid = aoc.categoryoptioncomboid " +
+                "inner join categoryoptioncombo aoc on dv.attributeoptioncomboid = aoc.categoryoptioncomboid " +
                 "inner join period pe on dv.periodid = pe.periodid " +
                 "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
                 "where dv.dataelementid in (:data_element_ids) " +
