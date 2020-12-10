@@ -29,14 +29,15 @@ package org.hisp.dhis.sms.config;
  */
 
 import java.io.Serializable;
-import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import lombok.EqualsAndHashCode;
 import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@EqualsAndHashCode( of = { "key","value", "confidential", "encode", "header" } )
 public class GenericGatewayParameter
     implements Serializable
 {
@@ -106,31 +107,5 @@ public class GenericGatewayParameter
     public void setEncode( boolean encode )
     {
         this.encode = encode;
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-
-        GenericGatewayParameter parameter = (GenericGatewayParameter) o;
-        return header == parameter.header &&
-                encode == parameter.encode &&
-                confidential == parameter.confidential &&
-                Objects.equals( key, parameter.key ) &&
-                Objects.equals( value, parameter.value );
-    }
-
-    @Override
-    public int hashCode() {
-
-        return Objects.hash( key, value, header, encode, confidential );
     }
 }

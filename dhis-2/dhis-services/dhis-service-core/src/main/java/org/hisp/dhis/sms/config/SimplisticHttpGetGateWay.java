@@ -170,7 +170,7 @@ public class SimplisticHttpGetGateWay
             }
 
             valueStore.put( parameter.getKey(), parameter.isConfidential() ?
-                    pbeStringEncryptor.decrypt( parameter.getValue() ) : parameter.getValue() );
+                pbeStringEncryptor.decrypt( parameter.getValue() ) : parameter.getValue() );
         }
 
         valueStore.put( KEY_TEXT, SmsUtils.encode( text ) );
@@ -194,7 +194,8 @@ public class SimplisticHttpGetGateWay
             if ( !parameter.isHeader() )
             {
                 valueStore.put( parameter.getKey(), parameter.isConfidential() ?
-                    pbeStringEncryptor.decrypt( parameter.getValue() ) : parameter.getValue() );            }
+                    pbeStringEncryptor.decrypt( parameter.getValue() ) : parameter.getValue() );
+            }
         }
 
         valueStore.put( KEY_TEXT, text );

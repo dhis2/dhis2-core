@@ -28,6 +28,7 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.ClickatellRequestEntity;
 import org.hisp.dhis.sms.outbound.ClickatellResponseEntity;
@@ -49,15 +50,12 @@ import java.util.stream.Collectors;
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 @Component( "org.hisp.dhis.sms.config.ClickatellGateway" )
+@RequiredArgsConstructor
 public class ClickatellHttpGateway
     extends SmsGateway
 {
+    @Qualifier( "tripleDesStringEncryptor" )
     private final PBEStringEncryptor pbeStringEncryptor;
-
-    public ClickatellHttpGateway( @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor )
-    {
-        this.pbeStringEncryptor = pbeStringEncryptor;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation
