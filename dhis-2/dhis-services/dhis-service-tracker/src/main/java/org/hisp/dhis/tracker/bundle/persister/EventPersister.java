@@ -29,15 +29,9 @@ package org.hisp.dhis.tracker.bundle.persister;
  */
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.domain.verbs.RestVerbs.ALL;
-import static org.hisp.dhis.tracker.domain.verbs.RestVerbs.ALL_BUT_GET;
-import static org.hisp.dhis.tracker.domain.verbs.RestVerbs.PATCH;
 
-import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -47,10 +41,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.Session;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -60,22 +52,15 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleHook;
+import org.hisp.dhis.tracker.converter.PatchConverterService;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.converter.TrackerSideEffectConverterService;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.verbs.ValidFor;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.reflections.Reflections;
-import org.reflections.scanners.FieldAnnotationsScanner;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.SneakyThrows;
 
 /**
  * @author Luciano Fiandesio
@@ -142,53 +127,14 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     protected ProgramStageInstance convert( TrackerBundle bundle, Event event )
     {
         Date now = new Date();
-        ProgramStageInstance programStageInstance = eventConverter.from( bundle.getPreheat(), event );
+        ProgramStageInstance programStageInstance = bundle.getImportStrategy().isPatch()
+            ? ((PatchConverterService<Event, ProgramStageInstance>) eventConverter).fromForPatch( bundle.getPreheat(),
+                event )
+            : eventConverter.from( bundle.getPreheat(), event );
         programStageInstance.setLastUpdated( now );
         programStageInstance.setLastUpdatedAtClient( now );
         programStageInstance.setLastUpdatedBy( bundle.getUser() );
         return programStageInstance;
-    }
-
-    @SneakyThrows
-    @Override
-    protected ProgramStageInstance convertForPatch( TrackerBundle bundle, Event event )
-    {
-        final ProgramStageInstance psi = bundle.getPreheat().getEvent( TrackerIdScheme.UID, event.getEvent() );
-        Reflections reflections = new Reflections( Event.class, new FieldAnnotationsScanner() );
-        final Set<Field> fieldsAnnotatedWith = reflections.getFieldsAnnotatedWith( JsonProperty.class );
-        List<Field> patchableFields = new ArrayList<>();
-        for ( Field field : fieldsAnnotatedWith )
-        {
-            if ( field.getDeclaringClass().equals( Event.class ) )
-            {
-                final ValidFor annotation = field.getAnnotation( ValidFor.class );
-
-                if ( !Collection.class.isAssignableFrom( field.getType() ) && annotation != null
-                    && (ArrayUtils.contains( annotation.verb(), PATCH ) ||
-                        ArrayUtils.contains( annotation.verb(), ALL ) ||
-                        ArrayUtils.contains( annotation.verb(), ALL_BUT_GET )) )
-                {
-                    ReflectionUtils.makeAccessible( field );
-                    if ( ReflectionUtils.getField( field, event ) != null
-                        || (String.class.isAssignableFrom( field.getType() )
-                            && !StringUtils.isEmpty( field.get( event ) )) )
-                    {
-                        // TODO how to deal with boolean and default values?
-                        patchableFields.add( field );
-                    }
-                }
-            }
-        }
-
-        for ( Field field : patchableFields )
-        {
-            if ( field.getName().equals( "status" ) )
-            {
-                psi.setStatus( (EventStatus) ReflectionUtils.getField( field, event ) );
-            }
-        }
-
-        return psi;
     }
 
     @Override

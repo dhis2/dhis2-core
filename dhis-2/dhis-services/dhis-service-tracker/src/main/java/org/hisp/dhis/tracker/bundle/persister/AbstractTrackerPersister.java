@@ -76,19 +76,21 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         this.reservedValueService = reservedValueService;
     }
 
-    @Override
     public TrackerTypeReport patch( Session session, TrackerBundle bundle )
     {
         TrackerTypeReport typeReport = new TrackerTypeReport( getType() );
 
-        T dto = getByType( getType(), bundle ).get( 0 );
+        final List<T> byType = getByType( getType(), bundle );
+        if ( byType.size() == 1 )
+        {
+            T dto = getByType( getType(), bundle ).get( 0 );
 
-        TrackerObjectReport objectReport = new TrackerObjectReport( getType(), dto.getUid(), 0 );
+            TrackerObjectReport objectReport = new TrackerObjectReport( getType(), dto.getUid(), 0 );
 
-        typeReport.addObjectReport( objectReport );
+            typeReport.addObjectReport( objectReport );
 
-        session.merge( convertForPatch( bundle, dto ) );
-
+            session.merge( convert( bundle, dto ) );
+        }
         return typeReport;
     }
 
@@ -103,6 +105,11 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     @Override
     public TrackerTypeReport persist( Session session, TrackerBundle bundle )
     {
+        if ( bundle.getImportStrategy().isPatch() )
+        {
+            return patch( session, bundle );
+        }
+        
         //
         // Init the report that will hold the results of the persist operation
         //
@@ -225,14 +232,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
      * corresponding Hibernate-managed object
      */
     protected abstract V convert( TrackerBundle bundle, T trackerDto );
-
-    /**
-     *
-     * @param bundle
-     * @param trackerDto
-     * @return
-     */
-    protected abstract V convertForPatch( TrackerBundle bundle, T trackerDto );
 
     /**
      * Persists the comments for the given entity, if the entity has comments

@@ -80,6 +80,13 @@ public enum TrackerImportStrategy
         return DELETE == this;
     }
 
+    public boolean isPatch()
+    {
+        return PATCH == this;
+    }
+
+
+
     public boolean isUpdateOrDelete()
     {
         return UPDATE == this || DELETE == this;

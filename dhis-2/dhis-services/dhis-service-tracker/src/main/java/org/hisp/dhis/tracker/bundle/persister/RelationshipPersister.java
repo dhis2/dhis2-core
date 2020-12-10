@@ -72,11 +72,6 @@ public class RelationshipPersister
     }
 
     @Override
-    protected org.hisp.dhis.relationship.Relationship convertForPatch(TrackerBundle bundle, Relationship trackerDto) {
-        return null;
-    }
-
-    @Override
     protected void persistComments( org.hisp.dhis.relationship.Relationship entity )
     {
         // NOTHING TO DO

@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.converter;
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -55,6 +57,7 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -62,9 +65,8 @@ import org.springframework.util.StringUtils;
  */
 @Service
 public class EventTrackerConverterService
-    implements TrackerConverterService<Event, ProgramStageInstance>
+    implements TrackerConverterService<Event, ProgramStageInstance>, PatchConverterService<Event, ProgramStageInstance>
 {
-
     private final NotesConverterService notesConverterService;
 
     public EventTrackerConverterService( NotesConverterService notesConverterService )
@@ -168,6 +170,30 @@ public class EventTrackerConverterService
     }
 
     @Override
+    public ProgramStageInstance fromForPatch( TrackerPreheat preheat, Event event )
+    {
+        final ProgramStageInstance psi = preheat.getEvent( TrackerIdScheme.UID, event.getEvent() );
+
+        List<Field> patchableFields = ConverterUtils.getPatchFields( Event.class, event );
+
+        for ( Field field : patchableFields )
+        {
+            if ( field.getName().equals( "status" ) )
+            {
+                psi.setStatus( (EventStatus) ReflectionUtils.getField( field, event ) );
+            }
+
+            if ( field.getName().equals( "scheduledAt" ) )
+            {
+                // how to validate the date??
+                psi.setDueDate( DateUtils.parseDate( event.getScheduledAt() ) );
+            }
+        }
+
+        return psi;
+    }
+
+    @Override
     public ProgramStageInstance fromForRuleEngine( TrackerPreheat preheat, Event event )
     {
         return from( preheat, event, null );
@@ -207,7 +233,8 @@ public class EventTrackerConverterService
         }
         else
         {
-            programStageInstance.setAttributeOptionCombo( (CategoryOptionCombo) preheat.getDefaults().get( CategoryOptionCombo.class ) );
+            programStageInstance.setAttributeOptionCombo(
+                (CategoryOptionCombo) preheat.getDefaults().get( CategoryOptionCombo.class ) );
         }
 
         programStageInstance.setGeometry( event.getGeometry() );
@@ -237,7 +264,8 @@ public class EventTrackerConverterService
             programStageInstance.setAssignedUser( assignedUser );
         }
 
-        if ( programStage.getProgram().isRegistration() && programStageInstance.getDueDate() == null && programStageInstance.getExecutionDate() != null )
+        if ( programStage.getProgram().isRegistration() && programStageInstance.getDueDate() == null
+            && programStageInstance.getExecutionDate() != null )
         {
             programStageInstance.setDueDate( programStageInstance.getExecutionDate() );
         }

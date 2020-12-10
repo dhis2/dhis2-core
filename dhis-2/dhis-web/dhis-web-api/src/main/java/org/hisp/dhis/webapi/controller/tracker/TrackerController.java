@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.tracker;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -46,6 +47,7 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.job.TrackerJobWebMessageResponse;
 import org.hisp.dhis.tracker.job.TrackerMessageManager;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
@@ -173,15 +175,16 @@ public class TrackerController
         User currentUser )
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService.fromJson( request.getInputStream(),
-            TrackerBundleParams.class );
-
+        Event event = renderService.fromJson( request.getInputStream(),
+            Event.class );
+        event.setEvent( uid );
+        
         TrackerImportParams params = TrackerImportParams.builder()
             .validationMode( ValidationMode.SKIP )
             .importStrategy( TrackerImportStrategy.PATCH )
             .skipRuleEngine( true )
             .userId( currentUser.getUid() )
-            .events( trackerBundleParams.getEvents() )
+            .events( Collections.singletonList( event ) )
             .build();
 
         String jobId = trackerMessageManager.addJob( params );

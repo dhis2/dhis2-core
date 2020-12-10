@@ -42,6 +42,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleHook;
+import org.hisp.dhis.tracker.converter.PatchConverterService;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.converter.TrackerSideEffectConverterService;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -127,16 +128,13 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
     }
 
     @Override
-    protected ProgramInstance convertForPatch( TrackerBundle bundle, Enrollment trackerDto )
-    {
-        return null;
-    }
-
-    @Override
     protected ProgramInstance convert( TrackerBundle bundle, Enrollment enrollment )
     {
         Date now = new Date();
-        ProgramInstance programInstance = enrollmentConverter.from( bundle.getPreheat(), enrollment );
+        ProgramInstance programInstance = bundle.getImportStrategy().isPatch()
+            ? ((PatchConverterService<Enrollment, ProgramInstance>) enrollmentConverter)
+                .fromForPatch( bundle.getPreheat(), enrollment )
+            : enrollmentConverter.from( bundle.getPreheat(), enrollment );
         programInstance.setLastUpdated( now );
         programInstance.setLastUpdatedAtClient( now );
         programInstance.setLastUpdatedBy( bundle.getUser() );

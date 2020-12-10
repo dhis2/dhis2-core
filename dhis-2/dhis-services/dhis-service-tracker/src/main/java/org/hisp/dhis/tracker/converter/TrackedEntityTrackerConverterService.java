@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -46,7 +47,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class TrackedEntityTrackerConverterService
-    implements TrackerConverterService<TrackedEntity, TrackedEntityInstance>
+    implements TrackerConverterService<TrackedEntity, TrackedEntityInstance>,
+    PatchConverterService<TrackedEntity, TrackedEntityInstance>
 {
 
     @Override
@@ -90,6 +92,22 @@ public class TrackedEntityTrackerConverterService
             .stream()
             .map( te -> from( preheat, te ) )
             .collect( Collectors.toList() );
+    }
+
+    @Override
+    public TrackedEntityInstance fromForPatch( TrackerPreheat preheat, TrackedEntity trackedEntity )
+    {
+        final TrackedEntityInstance tei = preheat.getTrackedEntity( TrackerIdScheme.UID,
+            trackedEntity.getTrackedEntity() );
+
+        List<Field> patchableFields = ConverterUtils.getPatchFields( TrackedEntity.class, tei );
+
+        for ( Field field : patchableFields )
+        {
+            // TODO
+        }
+
+        return tei;
     }
 
     @Override

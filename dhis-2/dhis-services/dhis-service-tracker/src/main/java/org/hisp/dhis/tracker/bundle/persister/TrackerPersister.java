@@ -53,7 +53,4 @@ public interface TrackerPersister<T extends TrackerDto, V>
      */
     TrackerTypeReport persist( Session session, TrackerBundle bundle );
 
-    TrackerTypeReport patch( Session session, TrackerBundle bundle );
-
-
 }

@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.validation;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -81,7 +82,7 @@ public class DefaultTrackerValidationService
 
         User user = bundle.getUser();
 
-        if ( (user == null || user.isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
+        if ( bundle.getImportStrategy() == TrackerImportStrategy.PATCH || (user == null || user.isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
         {
             log.warn( "Skipping validation for metadata import by user '" +
                 bundle.getUsername() + "'. Not recommended." );

@@ -41,6 +41,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleHook;
+import org.hisp.dhis.tracker.converter.PatchConverterService;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
@@ -93,16 +94,14 @@ public class TrackedEntityPersister extends AbstractTrackerPersister<TrackedEnti
     protected TrackedEntityInstance convert( TrackerBundle bundle, TrackedEntity trackerDto )
     {
         Date now = new Date();
-        TrackedEntityInstance tei = teConverter.from( bundle.getPreheat(), trackerDto );
+        TrackedEntityInstance tei = bundle.getImportStrategy().isPatch()
+            ? ((PatchConverterService<TrackedEntity, TrackedEntityInstance>) teConverter)
+                .fromForPatch( bundle.getPreheat(), trackerDto )
+            : teConverter.from( bundle.getPreheat(), trackerDto );
         tei.setLastUpdated( now );
         tei.setLastUpdatedAtClient( now );
         tei.setLastUpdatedBy( bundle.getUser() );
         return tei;
-    }
-
-    @Override
-    protected TrackedEntityInstance convertForPatch(TrackerBundle bundle, TrackedEntity trackerDto) {
-        return null;
     }
 
     @Override

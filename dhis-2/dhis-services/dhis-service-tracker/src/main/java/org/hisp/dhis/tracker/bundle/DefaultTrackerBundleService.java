@@ -200,8 +200,8 @@ public class DefaultTrackerBundleService
 
         bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
 
-        dbmsManager.clearSession();
-        cacheManager.clearCache();
+        //dbmsManager.clearSession();
+        //cacheManager.clearCache();
 
         return bundleReport;
     }

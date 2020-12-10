@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.converter;
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -54,7 +55,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class EnrollmentTrackerConverterService
-    implements TrackerConverterService<Enrollment, ProgramInstance>
+    implements TrackerConverterService<Enrollment, ProgramInstance>, PatchConverterService<Enrollment, ProgramInstance>
 {
     private final NotesConverterService notesConverterService;
 
@@ -104,6 +105,22 @@ public class EnrollmentTrackerConverterService
             .stream()
             .map( enrollment -> from( preheat, enrollment ) )
             .collect( Collectors.toList() );
+    }
+
+    @Override
+    public ProgramInstance fromForPatch( TrackerPreheat preheat, Enrollment enrollment )
+    {
+        final ProgramInstance pi = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
+
+        List<Field> patchableFields = ConverterUtils.getPatchFields( Enrollment.class, enrollment );
+
+        for ( Field field : patchableFields )
+        {
+            // TODO
+        }
+
+        return pi;
+
     }
 
     @Override
