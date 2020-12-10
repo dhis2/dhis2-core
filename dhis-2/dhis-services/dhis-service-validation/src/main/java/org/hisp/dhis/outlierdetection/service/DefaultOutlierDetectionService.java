@@ -107,22 +107,22 @@ public class DefaultOutlierDetectionService
 
         if ( request.getOrgUnits().isEmpty() )
         {
-            error = new ErrorMessage( ErrorCode.E2202 );
+            error = new ErrorMessage( ErrorCode.E2203 );
         }
 
         if ( request.getThreshold() <= 0 )
         {
-            error = new ErrorMessage( ErrorCode.E2203 );
+            error = new ErrorMessage( ErrorCode.E2204 );
         }
 
         if ( request.getMaxResults() <= 0 )
         {
-            error = new ErrorMessage( ErrorCode.E2204 );
+            error = new ErrorMessage( ErrorCode.E2205 );
         }
 
         if ( request.getMaxResults() > MAX_LIMIT )
         {
-            error = new ErrorMessage( ErrorCode.E2205, MAX_LIMIT );
+            error = new ErrorMessage( ErrorCode.E2206, MAX_LIMIT );
         }
 
         return error;
