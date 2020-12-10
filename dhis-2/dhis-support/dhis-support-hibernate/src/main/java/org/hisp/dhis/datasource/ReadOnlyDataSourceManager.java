@@ -1,4 +1,4 @@
-package org.hisp.dhis.hibernate;
+package org.hisp.dhis.datasource;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,48 +28,28 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Properties;
-
-import org.springframework.beans.factory.FactoryBean;
+import javax.sql.DataSource;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
-public class HibernatePropertiesFactoryBean
-    implements FactoryBean<Properties>
+public interface ReadOnlyDataSourceManager
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private HibernateConfigurationProvider hibernateConfigurationProvider;
-
-    public void setHibernateConfigurationProvider( HibernateConfigurationProvider hibernateConfigurationProvider )
-    {
-        this.hibernateConfigurationProvider = hibernateConfigurationProvider;
-    }
-
-    // -------------------------------------------------------------------------
-    // FactoryBean implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public Properties getObject()
-        throws Exception
-    {
-        return hibernateConfigurationProvider.getConfiguration().getProperties();
-    }
-
-    @Override
-    public Class<Properties> getObjectType()
-    {
-        return Properties.class;
-    }
-
-    @Override
-    public boolean isSingleton()
-    {
-        return true;
-    }
+    /**
+     * Returns a data source which should be used for read only queries only. If
+     * read only replicas have been explicitly defined in the configuration, the
+     * data source implementation will be routing to potentially multiple 
+     * underlying data sources. If not, the data source will point to the main 
+     * data source.
+     * 
+     * @return a DataSource instance.
+     */
+    DataSource getReadOnlyDataSource();
+    
+    /**
+     * Returns the number of explicitly defined read only database instances.
+     * 
+     * @return the number of explicitly defined read only database instances.
+     */
+    int getReadReplicaCount();
 }

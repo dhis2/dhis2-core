@@ -50,8 +50,7 @@ import java.util.stream.Stream;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @Slf4j
-public class H2DhisConfigurationProvider
-    implements DhisConfigurationProvider
+public class H2DhisConfigurationProvider implements DhisConfigurationProvider
 {
     private static final String DEFAULT_CONFIGURATION_FILE_NAME = "h2TestConfig.conf";
     private Properties properties;
@@ -108,6 +107,12 @@ public class H2DhisConfigurationProvider
     public boolean isDisabled( ConfigurationKey key )
     {
         return "off".equals( getProperty( key ) );
+    }
+
+    @Override
+    public boolean getBoolean( ConfigurationKey key )
+    {
+        return Boolean.parseBoolean( getProperty( key ) );
     }
 
     @Override

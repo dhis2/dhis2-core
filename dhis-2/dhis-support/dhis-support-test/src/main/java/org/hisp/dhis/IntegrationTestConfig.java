@@ -59,13 +59,16 @@ public class IntegrationTestConfig
         PostgresDhisConfigurationProvider dhisConfigurationProvider = new PostgresDhisConfigurationProvider();
         JdbcDatabaseContainer<?> postgreSQLContainer = initContainer();
 
+        final String username = postgreSQLContainer.getUsername();
+        final String password = postgreSQLContainer.getPassword();
+
         Properties properties = new Properties();
 
         properties.setProperty( "connection.url", postgreSQLContainer.getJdbcUrl() );
         properties.setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect" );
         properties.setProperty( "connection.driver_class", "org.postgresql.Driver" );
-        properties.setProperty( "connection.username", postgreSQLContainer.getUsername() );
-        properties.setProperty( "connection.password", postgreSQLContainer.getPassword() );
+        properties.setProperty( "connection.username", username );
+        properties.setProperty( "connection.password", password );
         properties.setProperty( ConfigurationKey.AUDIT_USE_INMEMORY_QUEUE_ENABLED.getKey(), "off" );
         properties.setProperty( "metadata.audit.persist", "on");
         properties.setProperty( "tracker.audit.persist", "on");

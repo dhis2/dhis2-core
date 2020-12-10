@@ -55,7 +55,15 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 
-import static org.hibernate.cfg.AvailableSettings.*;
+import static org.hibernate.cfg.AvailableSettings.C3P0_MAX_SIZE;
+import static org.hibernate.cfg.AvailableSettings.CACHE_REGION_FACTORY;
+import static org.hibernate.cfg.AvailableSettings.DIALECT;
+import static org.hibernate.cfg.AvailableSettings.GENERATE_STATISTICS;
+import static org.hibernate.cfg.AvailableSettings.HBM2DDL_AUTO;
+import static org.hibernate.cfg.AvailableSettings.JDBC_TYLE_PARAMS_ZERO_BASE;
+import static org.hibernate.cfg.AvailableSettings.TABLE_GENERATOR_STORE_LAST_USED;
+import static org.hibernate.cfg.AvailableSettings.USE_QUERY_CACHE;
+import static org.hibernate.cfg.AvailableSettings.USE_SECOND_LEVEL_CACHE;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -65,6 +73,8 @@ public class DefaultHibernateConfigurationProvider
     implements HibernateConfigurationProvider
 {
     private Configuration configuration = null;
+
+    private static final String DEFAULT_HIBERNATE_PROPERTIES_FILE = "hibernate-default.properties";
 
     private static final String MAPPING_RESOURCES_ROOT = "org/hisp/dhis/";
 
@@ -82,12 +92,10 @@ public class DefaultHibernateConfigurationProvider
 
     @Autowired
     private org.springframework.core.env.Environment environment;
-
     // -------------------------------------------------------------------------
     // Property resources
-    // -------------------------------------------------------------------------
 
-    private String defaultPropertiesFile = "hibernate-default.properties";
+    // -------------------------------------------------------------------------
 
     private List<Resource> jarResources = new ArrayList<>();
 
@@ -157,8 +165,7 @@ public class DefaultHibernateConfigurationProvider
         // ---------------------------------------------------------------------
         // Add default properties from class path
         // ---------------------------------------------------------------------
-        Properties defaultProperties = getProperties( defaultPropertiesFile );
-
+        Properties defaultProperties = getProperties( DEFAULT_HIBERNATE_PROPERTIES_FILE );
         config.addProperties( defaultProperties );
 
         // ---------------------------------------------------------------------
@@ -223,6 +230,11 @@ public class DefaultHibernateConfigurationProvider
         return clusterHostnames;
     }
 
+    @Override
+    public Object getConnectionProperty( String key )
+    {
+        return getConfiguration().getProperty( key );
+    }
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -236,27 +248,32 @@ public class DefaultHibernateConfigurationProvider
         set( TABLE_GENERATOR_STORE_LAST_USED, "true", p );
 
         set( DIALECT, configProvider.getProperty( ConfigurationKey.CONNECTION_DIALECT ), p );
-        set( DRIVER, configProvider.getProperty( ConfigurationKey.CONNECTION_DRIVER_CLASS ), p );
-        set( URL, configProvider.getProperty( ConfigurationKey.CONNECTION_URL ), p );
-        set( USER, configProvider.getProperty( ConfigurationKey.CONNECTION_USERNAME ), p );
-        set( PASS, configProvider.getProperty( ConfigurationKey.CONNECTION_PASSWORD ), p );
-        set( C3P0_MAX_SIZE, configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE ), p );
-        set( ConfigurationKey.CONNECTION_POOL_MIN_SIZE.getKey(),
-            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MIN_SIZE ), p );
-        set( ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE.getKey(),
-            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE ), p );
-        set( ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR.getKey(),
-            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR ), p );
-        set( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME.getKey(),
-            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME ), p );
-        set( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON.getKey(),
-            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON ), p );
-        set( ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD.getKey(),
-            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD ), p );
-        set( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN.getKey(),
-            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN ), p );
-        set( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT.getKey(),
-            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT ), p );
+
+//        set( DRIVER, configProvider.getProperty( ConfigurationKey.CONNECTION_DRIVER_CLASS ), p );
+//        set( URL, configProvider.getProperty( ConfigurationKey.CONNECTION_URL ), p );
+
+//        set( USER, configProvider.getProperty( ConfigurationKey.CONNECTION_USERNAME ), p );
+//        set( PASS, configProvider.getProperty( ConfigurationKey.CONNECTION_PASSWORD ), p );
+
+//        set( C3P0_MAX_SIZE, configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE ), p );
+
+//        set( ConfigurationKey.CONNECTION_POOL_MIN_SIZE.getKey(),
+//            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MIN_SIZE ), p );
+//        set( ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE.getKey(),
+//            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE ), p );
+//        set( ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR.getKey(),
+//            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR ), p );
+//        set( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME.getKey(),
+//            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME ), p );
+//        set( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON.getKey(),
+//            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON ), p );
+//        set( ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD.getKey(),
+//            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD ), p );
+//        set( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN.getKey(),
+//            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN ), p );
+//        set( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT.getKey(),
+//            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT ), p );
+
         set( ConfigurationKey.ENCRYPTION_PASSWORD.getKey(),
             configProvider.getProperty( ConfigurationKey.ENCRYPTION_PASSWORD ), p );
 

@@ -44,7 +44,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.translation.Translation;
@@ -105,7 +104,6 @@ public class DefaultIdentifiableObjectManager
     private Map<Class<? extends IdentifiableObject>, IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreMap;
 
     private Map<Class<? extends DimensionalObject>, GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStoreMap;
-
 
     public DefaultIdentifiableObjectManager(
         Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores,
@@ -412,10 +410,10 @@ public class DefaultIdentifiableObjectManager
     public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
         String value )
     {
-       return getByUniqueAttributeValue( clazz, attribute, value, currentUserService.getCurrentUserInfo() );
+        return getByUniqueAttributeValue( clazz, attribute, value, currentUserService.getCurrentUserInfo() );
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     @Override
     @Transactional( readOnly = true )
     public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
@@ -561,7 +559,7 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    @Transactional( readOnly = true)
+    @Transactional( readOnly = true )
     public <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
@@ -578,11 +576,11 @@ public class DefaultIdentifiableObjectManager
             return new ArrayList<>();
         }
 
-        return  store.getAllValuesByAttributes( attributes );
+        return store.getAllValuesByAttributes( attributes );
     }
 
     @Override
-    public <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> klass, List<Attribute> attributes)
+    public <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> klass, List<Attribute> attributes )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
 
@@ -598,7 +596,7 @@ public class DefaultIdentifiableObjectManager
             return 0;
         }
 
-        return  store.countAllValuesByAttributes( attributes );
+        return store.countAllValuesByAttributes( attributes );
     }
 
     @Override
@@ -1139,10 +1137,14 @@ public class DefaultIdentifiableObjectManager
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
-            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class.getName(), key -> HibernateUtils.initializeProxy( getByName( Category.class, "default" ) ) ).orElse( null ) )
-            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class.getName(), key -> HibernateUtils.initializeProxy( getByName( CategoryCombo.class, "default" ) ) ).orElse( null ) )
-            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class.getName(), key -> HibernateUtils.initializeProxy( getByName( CategoryOption.class, "default" ) ) ).orElse( null ) )
-            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class.getName(), key -> HibernateUtils.initializeProxy( getByName( CategoryOptionCombo.class, "default" ) ) ).orElse( null ) )
+            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class.getName(),
+                key -> getByName( Category.class, "default" ) ).orElse( null ) )
+            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class.getName(),
+                key -> getByName( CategoryCombo.class, "default" ) ).orElse( null ) )
+            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class.getName(),
+                key -> getByName( CategoryOption.class, "default" ) ).orElse( null ) )
+            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class.getName(),
+                key -> getByName( CategoryOptionCombo.class, "default" ) ).orElse( null ) )
             .build();
     }
 

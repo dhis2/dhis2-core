@@ -30,12 +30,14 @@ package org.hisp.dhis.dxf2.metadata;
 
 import com.google.common.collect.Sets;
 import org.hibernate.MappingException;
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -59,10 +61,11 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.Rollback;
 
 import javax.xml.xpath.XPathExpressionException;
 import java.io.ByteArrayOutputStream;
@@ -79,12 +82,21 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class MetadataImportServiceTest extends DhisSpringTest
+@DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
+@Rollback
+public class MetadataImportServiceTest extends IntegrationTestBase
 {
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
     @Autowired
     private MetadataImportService importService;
 
@@ -99,6 +111,9 @@ public class MetadataImportServiceTest extends DhisSpringTest
 
     @Autowired
     private IdentifiableObjectManager manager;
+
+    @Autowired
+    private DbmsManager dbmsManager;
 
     @Autowired
     private SchemaService schemaService;
@@ -296,7 +311,7 @@ public class MetadataImportServiceTest extends DhisSpringTest
         assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUserUid() );
         assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
 
-        manager.flush();
+        dbmsManager.clearSession();
 
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(),
@@ -308,7 +323,6 @@ public class MetadataImportServiceTest extends DhisSpringTest
         params.setObjects( metadata );
         params.setSkipSharing( true );
 
-        manager.flush();
 
         report = importService.importMetadata( params );
         final List<ErrorReport> errorReports = report.getErrorReports();
@@ -316,8 +330,8 @@ public class MetadataImportServiceTest extends DhisSpringTest
         {
             log.error( "Error report:"+errorReport );
         }
-        // TODO: FAILS WITH HIBERNATE 5.4!!! ONLY SOMETIMES..... not failing when using debugger
-        // * ERROR 13:26:43,008 Error report:ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Gender [v7n8H4aj8Cg] (CategoryCombo)., errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryCombo, errorKlass=null, value=null} (MetadataImportServiceTest.java [main])
+        // * ERROR 13:26:43,008 Error report:ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Gender [v7n8H4aj8Cg] (CategoryCombo).,
+        // errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryCombo, errorKlass=null, value=null} (MetadataImportServiceTest.java [main])
         assertEquals( Status.OK, report.getStatus() );
 
         visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
@@ -353,14 +367,14 @@ public class MetadataImportServiceTest extends DhisSpringTest
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
 
+        dbmsManager.clearSession();
+
         Visualization visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
         assertNotNull( visualization );
         assertEquals( 1, visualization.getUserGroupAccesses().size() );
         assertEquals( 1, visualization.getUserAccesses().size() );
         assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUserUid() );
         assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
-
-        manager.flush();
 
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(),
@@ -372,22 +386,23 @@ public class MetadataImportServiceTest extends DhisSpringTest
         params.setObjects( metadata );
         params.setSkipSharing( false );
 
-        manager.flush();
+        dbmsManager.clearSession();
 
         report = importService.importMetadata( params );
         final List<ErrorReport> errorReports = report.getErrorReports();
         for ( ErrorReport errorReport : errorReports )
         {
-            log.error( "Error report:"+errorReport );
+            log.error( "Error report:" + errorReport );
         }
-        // TODO: FAILS WITH HIBERNATE 5.4!!! ONLY SOMETIMES..... not failing when using debugger
-        // * ERROR 13:26:43,008 Error report:ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Gender [v7n8H4aj8Cg] (CategoryCombo)., errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryCombo, errorKlass=null, value=null} (MetadataImportServiceTest.java [main])
+        // * ERROR 13:26:43,008 Error report:ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Gender [v7n8H4aj8Cg] (CategoryCombo).,
+        // errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryCombo, errorKlass=null, value=null} (MetadataImportServiceTest.java [main])
         assertEquals( Status.OK, report.getStatus() );
 
         visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
         assertNotNull( visualization );
         assertEquals( 0, visualization.getUserGroupAccesses().size() );
         assertEquals( 0, visualization.getUserAccesses().size() );
+
     }
 
     @Test
@@ -437,42 +452,43 @@ public class MetadataImportServiceTest extends DhisSpringTest
         assertEquals( Status.OK, report.getStatus() );
 
         DataSet dataset = dataSetService.getDataSet( "em8Bg4LCr5k" );
-
         assertNotNull( dataset.getSections() );
-
         assertNotNull( manager.get( Section.class, "JwcV2ZifEQf" ) );
 
-        metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/dataset_with_removed_section.json" ).getInputStream(), RenderFormat.JSON );
+        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/dataset_with_removed_section.json" ).getInputStream(), RenderFormat.JSON );
         params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setImportStrategy( ImportStrategy.UPDATE );
         params.setObjects( metadata );
         params.setMetadataSyncImport( true );
 
+        dbmsManager.clearSession();
+
         report = importService.importMetadata( params );
+        final List<ErrorReport> errorReports = report.getErrorReports();
+        for ( ErrorReport errorReport : errorReports )
+        {
+            log.error( "Error report:" + errorReport );
+        }
         // TODO: FAILS WITH HIBERNATE 5.4!!! Fails only sometimes...
         assertEquals( Status.OK, report.getStatus() );
 
         dataset = manager.get( DataSet.class, "em8Bg4LCr5k" );
-
         assertEquals( 1, dataset.getSections().size() );
-
         assertNull( manager.get( Section.class, "JwcV2ZifEQf" ) );
 
-        metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/dataset_with_all_section_removed.json" ).getInputStream(), RenderFormat.JSON );
+        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/dataset_with_all_section_removed.json" ).getInputStream(), RenderFormat.JSON );
         params.setImportMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
         params.setObjects( metadata );
         params.setMetadataSyncImport( true );
 
+        dbmsManager.clearSession();
+
         report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
 
         dataset = manager.get( DataSet.class, "em8Bg4LCr5k" );
-
-        assertEquals( true, dataset.getSections().isEmpty() );
-
+        assertTrue( dataset.getSections().isEmpty() );
     }
 
     @Test
@@ -490,21 +506,30 @@ public class MetadataImportServiceTest extends DhisSpringTest
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
 
+        dbmsManager.clearSession();
+
         ProgramStage programStage = programStageService.getProgramStage( "NpsdDv6kKSO" );
 
         assertNotNull( programStage.getProgramStageSections() );
 
         assertNotNull( manager.get( ProgramStageSection.class, "JwcV2ZifEQf" ) );
 
+        CategoryCombo categoryCombo = manager.get( CategoryCombo.class, "faV8QvLgIwB" );
+
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/programstage_with_removed_section.json" ).getInputStream(),
             RenderFormat.JSON );
         params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setImportStrategy( ImportStrategy.UPDATE );
         params.setObjects( metadata );
         params.setMetadataSyncImport( true );
 
         report = importService.importMetadata( params );
+        final List<ErrorReport> errorReports = report.getErrorReports();
+        for ( ErrorReport errorReport : errorReports )
+        {
+            log.error( "Error report:" + errorReport );
+        }
         assertEquals( Status.OK, report.getStatus() );
 
         programStage = manager.get( ProgramStage.class, "NpsdDv6kKSO" );
@@ -517,7 +542,7 @@ public class MetadataImportServiceTest extends DhisSpringTest
             new ClassPathResource( "dxf2/programstage_with_all_section_removed.json" ).getInputStream(),
             RenderFormat.JSON );
         params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setImportStrategy( ImportStrategy.UPDATE );
         params.setObjects( metadata );
         params.setMetadataSyncImport( true );
 
@@ -639,6 +664,8 @@ public class MetadataImportServiceTest extends DhisSpringTest
 
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
+
+        manager.flush();
 
         ProgramStageSection programStageSection = manager.get( ProgramStageSection.class, "e99B1JXVMMQ" );
         assertNotNull( programStageSection );

@@ -29,13 +29,10 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -53,7 +50,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationR
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
-import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.option.OptionSet;
@@ -75,20 +71,35 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.Rollback;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
 import static org.hisp.dhis.dxf2.metadata.AtomicMode.NONE;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ObjectBundleServiceTest
-    extends DhisSpringTest
+@DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
+@Rollback
+public class ObjectBundleServiceTest extends IntegrationTestBase
 {
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
     @Autowired
     private ObjectBundleService objectBundleService;
 
@@ -859,8 +870,8 @@ public class ObjectBundleServiceTest
     }
 
     @Test
-    @Ignore // TODO: FAILS WITH HIBERNATE 5.4!!!
-    public void testUpdateDataSetWithSectionsAndGreyedFields() throws IOException
+    public void testUpdateDataSetWithSectionsAndGreyedFields()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_sections_gf.json" ).getInputStream(), RenderFormat.JSON );
@@ -874,9 +885,9 @@ public class ObjectBundleServiceTest
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
         assertTrue( validate.getErrorReports().isEmpty() );
 
-        final ObjectBundleCommitReport commitReport = objectBundleService.commit( bundle );
-        final List<ErrorReport> errorReports1 = commitReport.getErrorReports();
-        assertTrue( errorReports1.isEmpty() );
+        objectBundleService.commit( bundle );
+
+        dbmsManager.clearSession();
 
         Section section1 = manager.get( Section.class, "JwcV2ZifEQf" );
         assertNotNull( section1.getDataSet() );
@@ -892,26 +903,21 @@ public class ObjectBundleServiceTest
         assertEquals( 1, section2.getDataElements().size() );
         assertNotNull( section2.getDataSet() );
 
-        manager.flush();
-
-        final CategoryOptionCombo p99yaU6mweU = manager.get( CategoryOptionCombo.class, "p99yaU6mweU" );
-        final CategoryCombo faV8QvLgIwB = manager.get( CategoryCombo.class, "faV8QvLgIwB" );
-
         metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/dataset_with_sections_gf_update.json" ).getInputStream(), RenderFormat.JSON );
 
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.setObjects( metadata );
-        params.setAtomicMode( NONE );
 
         bundle = objectBundleService.create( params );
         validate = objectBundleValidationService.validate( bundle );
         final List<ErrorReport> errorReports = validate.getErrorReports();
-//        0 = {ErrorReport@20289} "ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Male [p99yaU6mweU] (CategoryOptionCombo)., errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryOptionCombo, errorKlass=null, value=null}"
-//        1 = {ErrorReport@20290} "ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Gender [faV8QvLgIwB] (CategoryCombo)., errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryCombo, errorKlass=null, value=null}"
-        // TODO: FAILS WITH HIBERNATE 5.4!!!
-//        assertTrue( errorReports.isEmpty() );
+//        0 = {ErrorReport@20289} "ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Male [p99yaU6mweU] (CategoryOptionCombo).,
+//        errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryOptionCombo, errorKlass=null, value=null}"
+//        1 = {ErrorReport@20290} "ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Gender [faV8QvLgIwB] (CategoryCombo).,
+//        errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryCombo, errorKlass=null, value=null}"
+        assertTrue( errorReports.isEmpty() );
 
         final ObjectBundleCommitReport commit = objectBundleService.commit( bundle );
         final List<ErrorReport> errorReports2 = commit.getErrorReports();
@@ -1473,10 +1479,10 @@ public class ObjectBundleServiceTest
 
         bundle = objectBundleService.create( params );
         validate = objectBundleValidationService.validate( bundle );
-        final List<ErrorReport> errorReports = validate.getErrorReports();
+        List<ErrorReport> errorReports = validate.getErrorReports();
         assertTrue( validate.getErrorReports().isEmpty() );
 
-        final ObjectBundleCommitReport commit = objectBundleService.commit( bundle );
+        objectBundleService.commit( bundle );
 
         List<DataSet> dataSets = manager.getAll( DataSet.class );
         List<Section> sections = manager.getAll( Section.class );
@@ -1574,9 +1580,7 @@ public class ObjectBundleServiceTest
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        final ObjectBundleValidationReport report = objectBundleValidationService.validate( bundle );
-        final List<ErrorReport> errorReports = report.getErrorReports();
-        assertTrue( report.getErrorReports().isEmpty() );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
 
         objectBundleService.commit( bundle );
 

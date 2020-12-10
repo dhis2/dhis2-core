@@ -28,6 +28,24 @@ package org.hisp.dhis.external.conf;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringSubstitutor;
+import org.hisp.dhis.encryption.EncryptionStatus;
+import org.hisp.dhis.external.location.LocationManager;
+import org.hisp.dhis.external.location.LocationManagerException;
+import org.hisp.dhis.external.util.LogOnceLogger;
+import org.slf4j.event.Level;
+import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import javax.crypto.Cipher;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -40,28 +58,6 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import javax.annotation.PostConstruct;
-import javax.crypto.Cipher;
-
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-
-
-import org.apache.commons.text.StringSubstitutor;
-import org.hisp.dhis.encryption.EncryptionStatus;
-import org.hisp.dhis.external.location.LocationManager;
-import org.hisp.dhis.external.location.LocationManagerException;
-import org.hisp.dhis.external.util.LogOnceLogger;
-import org.slf4j.event.Level;
-import org.springframework.context.annotation.Profile;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -188,6 +184,12 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
     public boolean isEnabled( ConfigurationKey key )
     {
         return ENABLED_VALUE.equals( getProperty( key ) );
+    }
+
+    @Override
+    public boolean getBoolean( ConfigurationKey key )
+    {
+        return Boolean.parseBoolean( getProperty( key ) );
     }
 
     @Override

@@ -28,12 +28,6 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
-
-import org.hibernate.FlushMode;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -48,12 +42,13 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.EncodedResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
-import org.springframework.orm.hibernate5.SessionFactoryUtils;
-import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 
 /*
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -61,10 +56,9 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @RunWith( SpringJUnit4ClassRunner.class )
 @ContextConfiguration( classes = { IntegrationTestConfig.class } )
 @Category( IntegrationTest.class )
-@ActiveProfiles( profiles = {"test-postgres"} )
-public abstract class IntegrationTestBase
-        extends DhisConvenienceTest
-        implements ApplicationContextAware
+@ActiveProfiles( profiles = { "test-postgres" } )
+@Transactional
+public abstract class IntegrationTestBase extends DhisConvenienceTest implements ApplicationContextAware
 {
     @Autowired
     protected DbmsManager dbmsManager;
@@ -90,9 +84,9 @@ public abstract class IntegrationTestBase
     protected ApplicationContext webApplicationContext;
 
     @Before
-    public void before() throws Exception
+    public void before()
+        throws Exception
     {
-        bindSession();
         executeStartupRoutines();
 
         IntegrationTestData annotation = this.getClass().getAnnotation( IntegrationTestData.class );
@@ -110,18 +104,18 @@ public abstract class IntegrationTestBase
     }
 
     @AfterClass
-    public static void afterClass() {
-
+    public static void afterClass()
+    {
         if ( dataInit ) // only truncate tables if IntegrationTestData is used
         {
             // truncate all tables
             String truncateAll = "DO $$ DECLARE\n" +
-                    "  r RECORD;\n" +
-                    "BEGIN\n" +
-                    "  FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = current_schema()) LOOP\n" +
-                    "    EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE';\n" +
-                    "  END LOOP;\n" +
-                    "END $$;";
+                "  r RECORD;\n" +
+                "BEGIN\n" +
+                "  FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = current_schema()) LOOP\n" +
+                "    EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE';\n" +
+                "  END LOOP;\n" +
+                "END $$;";
 
             jdbcTemplate.execute( truncateAll );
         }
@@ -130,10 +124,10 @@ public abstract class IntegrationTestBase
     }
 
     @After
-    public void after() throws Exception
+    public void after()
+        throws Exception
     {
         tearDownTest();
-        unbindSession();
 
         if ( emptyDatabaseAfterTest() )
         {
@@ -141,40 +135,24 @@ public abstract class IntegrationTestBase
         }
     }
 
-    private void executeStartupRoutines() throws Exception
+    private void executeStartupRoutines()
+        throws Exception
     {
         String id = "org.hisp.dhis.system.startup.StartupRoutineExecutor";
 
         if ( webApplicationContext.containsBean( id ) )
         {
             Object object = webApplicationContext.getBean( id );
-            Method method = object.getClass().getMethod( "executeForTesting", new Class[0] );
-            method.invoke( object, new Object[0] );
+            Method method = object.getClass().getMethod( "executeForTesting" );
+            method.invoke( object );
         }
     }
 
     @Override
-    public void setApplicationContext( ApplicationContext applicationContext ) throws BeansException
+    public void setApplicationContext( ApplicationContext applicationContext )
+        throws BeansException
     {
         this.webApplicationContext = applicationContext;
-    }
-
-    private void bindSession()
-    {
-        SessionFactory sessionFactory = (SessionFactory) webApplicationContext.getBean( "sessionFactory" );
-        Session session = sessionFactory.openSession();
-        session.setHibernateFlushMode(FlushMode.ALWAYS);
-        TransactionSynchronizationManager.bindResource( sessionFactory, new SessionHolder( session ) );
-    }
-
-    private void unbindSession()
-    {
-        SessionFactory sessionFactory = (SessionFactory) webApplicationContext.getBean( "sessionFactory" );
-
-        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager
-            .unbindResource( sessionFactory );
-
-        SessionFactoryUtils.closeSession( sessionHolder.getSession() );
     }
 
     public abstract boolean emptyDatabaseAfterTest();

@@ -47,7 +47,7 @@ import javax.annotation.PostConstruct;
  * @author Luciano Fiandesio
  */
 @Configuration
-public class EncryptionConfig
+public class HibernateEncryptionConfig
 {
     @Autowired
     private HibernateConfigurationProvider hibernateConfigurationProvider;

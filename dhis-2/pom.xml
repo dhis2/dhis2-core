@@ -920,6 +920,12 @@
         <version>4.2</version>
       </dependency>
 
+      <dependency>
+        <groupId>net.ttddyy</groupId>
+        <artifactId>datasource-proxy</artifactId>
+        <version>1.7</version>
+      </dependency>
+
       <!-- Javassist from hibernate-core -->
       <dependency>
         <groupId>org.apache.struts</groupId>
@@ -1289,6 +1295,12 @@
         <artifactId>c3p0</artifactId>
         <version>0.9.5.5</version>
       </dependency>
+      <dependency>
+        <groupId>com.zaxxer</groupId>
+        <artifactId>HikariCP</artifactId>
+        <version>3.4.5</version>
+      </dependency>
+
       <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
