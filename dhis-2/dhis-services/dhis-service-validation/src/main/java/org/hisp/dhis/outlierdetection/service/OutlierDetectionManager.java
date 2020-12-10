@@ -141,7 +141,7 @@ public class OutlierDetectionManager
             outlier.setZScore( rs.getDouble( "z_score" ) );
             outlier.setLowerBound( rs.getDouble( "lower_bound" ) );
             outlier.setUpperBound( rs.getDouble( "upper_bound" ) );
-           return outlier;
+            return outlier;
         } );
     }
 
