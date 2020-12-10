@@ -104,7 +104,7 @@ public class OutlierDetectionManager
             "and dvs.attributeoptioncomboid = stats.attributeoptioncomboid " +
             "where stats.std_dev != 0.0 " +
             // Filter on z score, order and limit
-            "and (abs(cast(dvs.value as double precision) - stats.mean) / stats.std_dev) > :threshold " +
+            "and (abs(dvs.value::double precision - stats.mean) / stats.std_dev) > :threshold " +
             "order by :order_by desc " +
             "limit :max_results;";
 
