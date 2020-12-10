@@ -10,6 +10,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Outlier detection API controller.
+ *
+ * @author Lars Helge Overland
+ */
 @RestController
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @PreAuthorize( "hasRole('ALL') or hasRole('F_RUN_VALIDATION')" )
