@@ -94,33 +94,27 @@ public class DefaultOutlierDetectionService
         {
             error = new ErrorMessage( ErrorCode.E2200 );
         }
-
-        if ( request.getStartDate() == null || request.getEndDate() == null )
+        else if ( request.getStartDate() == null || request.getEndDate() == null )
         {
             error = new ErrorMessage( ErrorCode.E2201 );
         }
-
-        if ( request.getStartDate().after( request.getEndDate() ) )
+        else if ( request.getStartDate().after( request.getEndDate() ) )
         {
             error = new ErrorMessage( ErrorCode.E2202 );
         }
-
-        if ( request.getOrgUnits().isEmpty() )
+        else if ( request.getOrgUnits().isEmpty() )
         {
             error = new ErrorMessage( ErrorCode.E2203 );
         }
-
-        if ( request.getThreshold() <= 0 )
+        else if ( request.getThreshold() <= 0 )
         {
             error = new ErrorMessage( ErrorCode.E2204 );
         }
-
-        if ( request.getMaxResults() <= 0 )
+        else if ( request.getMaxResults() <= 0 )
         {
             error = new ErrorMessage( ErrorCode.E2205 );
         }
-
-        if ( request.getMaxResults() > MAX_LIMIT )
+        else if ( request.getMaxResults() > MAX_LIMIT )
         {
             error = new ErrorMessage( ErrorCode.E2206, MAX_LIMIT );
         }
