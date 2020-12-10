@@ -119,8 +119,8 @@ public class OutlierDetectionManager
             .addValue( "threshold", request.getThreshold() )
             .addValue( "data_element_ids", request.getDataElementIds() )
             .addValue( "start_date", request.getStartDate() )
-            .addValue( "numeric_regex", MathUtils.NUMERIC_LENIENT_REGEXP )
             .addValue( "end_date", request.getEndDate() )
+            .addValue( "numeric_regex", MathUtils.NUMERIC_LENIENT_REGEXP )
             .addValue( "max_results", request.getMaxResults() );
 
         return jdbcTemplate.query( sql, params, ( rs, rowNum ) -> {
