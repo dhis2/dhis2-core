@@ -564,7 +564,7 @@ public class EventImportTest
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
 
         // FETCH NEWLY CREATED EVENT
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( uid );
+        programStageInstanceService.getProgramStageInstance( uid );
 
         // UPDATE EVENT - Program is not specified
         Event event = new Event();

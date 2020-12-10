@@ -48,16 +48,6 @@ public class DataAnalysisParams
     {
     }
 
-    public DataAnalysisParams( String startDate, String endDate, List<String> dataSetIds,
-        Double standardDeviation, String organisationUnitId )
-    {
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.ds = dataSetIds;
-        this.standardDeviation = standardDeviation;
-        this.ou = organisationUnitId;
-    }
-
     @JsonProperty
     public String getStartDate()
     {

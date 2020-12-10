@@ -32,29 +32,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.programrule.RuleActionApplier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Enrico Colasante
  */
-@Slf4j
 @Service
 public class DefaultTrackerPreprocessService
     implements TrackerPreprocessService
 {
-    private List<RuleActionApplier> appliers = new ArrayList<>();
-
     private List<BundlePreProcessor> preProcessors = new ArrayList<>();
-
-    @Autowired( required = false )
-    public void setAppliers( List<RuleActionApplier> appliers )
-    {
-        this.appliers = appliers;
-    }
 
     @Autowired( required = false )
     public void setPreProcessors( List<BundlePreProcessor> preProcessors )
@@ -65,16 +53,9 @@ public class DefaultTrackerPreprocessService
     @Override
     public TrackerBundle preprocess( TrackerBundle bundle )
     {
-        // TODO we may consider "merging" the BundlePreProcessor with the RuleActionApplier, since
-        // they share an identical interface.
         for ( BundlePreProcessor preProcessor : preProcessors )
         {
             preProcessor.process( bundle );
-        }
-
-        for ( RuleActionApplier applier : appliers )
-        {
-            bundle = applier.executeActions( bundle );
         }
 
         return bundle;

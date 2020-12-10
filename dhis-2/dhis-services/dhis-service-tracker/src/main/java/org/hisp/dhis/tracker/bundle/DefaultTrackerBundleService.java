@@ -50,6 +50,7 @@ import org.hisp.dhis.tracker.bundle.persister.CommitService;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
+import org.hisp.dhis.tracker.programrule.RuleActionApplier;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.sideeffect.SideEffectHandlerService;
@@ -59,13 +60,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableMap;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
-@Slf4j
 public class DefaultTrackerBundleService
     implements TrackerBundleService
 {
@@ -86,6 +84,14 @@ public class DefaultTrackerBundleService
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
 
     private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
+
+    private List<RuleActionApplier> appliers = new ArrayList<>();
+
+    @Autowired( required = false )
+    public void setAppliers( List<RuleActionApplier> appliers )
+    {
+        this.appliers = appliers;
+    }
 
     @Autowired( required = false )
     public void setBundleHooks( List<TrackerBundleHook> bundleHooks )
@@ -159,23 +165,16 @@ public class DefaultTrackerBundleService
             return trackerBundle;
         }
 
-        try
+        Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
+            .calculateEnrollmentRuleEffects( trackerBundle.getEnrollments(), trackerBundle );
+        Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
+            .calculateEventRuleEffects( trackerBundle.getEvents(), trackerBundle );
+        trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
+        trackerBundle.setEventRuleEffects( eventRuleEffects );
+
+        for ( RuleActionApplier applier : appliers )
         {
-            Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
-                .calculateEnrollmentRuleEffects( trackerBundle.getEnrollments(), trackerBundle );
-            Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
-                .calculateEventRuleEffects( trackerBundle.getEvents(), trackerBundle );
-            trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
-            trackerBundle.setEventRuleEffects( eventRuleEffects );
-        }
-        catch ( Exception e )
-        {
-            // TODO: Report that rule engine has failed
-            // Rule engine can fail because of validation errors in the payload that
-            // were not discovered yet.
-            // If rule engine fails and the validation pass, a 500 code should be returned
-            log.warn( "An error occured during a Program Rule engine call. " +
-                "Please check the response payload for additional information" );
+            trackerBundle = applier.executeActions( trackerBundle );
         }
         return trackerBundle;
     }
@@ -213,6 +212,7 @@ public class DefaultTrackerBundleService
         sideEffectHandlers.forEach( handler -> handler.handleSideEffects( bundles ) );
     }
 
+    @Override
     @Transactional
     public TrackerBundleReport delete( TrackerBundle bundle )
     {

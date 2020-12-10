@@ -40,6 +40,8 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.system.util.SmsUtils;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -57,16 +59,22 @@ import lombok.extern.slf4j.Slf4j;
 public class SimplisticHttpGetGateWay
         extends SmsGateway
 {
+    private final PBEStringEncryptor pbeStringEncryptor;
+
+    private final RestTemplate restTemplate;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final RestTemplate restTemplate;
 
-    public SimplisticHttpGetGateWay( RestTemplate restTemplate )
+    public SimplisticHttpGetGateWay( RestTemplate restTemplate, @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor )
     {
         checkNotNull( restTemplate );
+        checkNotNull( pbeStringEncryptor );
+
         this.restTemplate = restTemplate;
+        this.pbeStringEncryptor = pbeStringEncryptor;
     }
 
     // -------------------------------------------------------------------------
@@ -157,11 +165,12 @@ public class SimplisticHttpGetGateWay
 
             if ( parameter.isEncode() )
             {
-                valueStore.put( parameter.getKey(), SmsUtils.encode( parameter.getKey() ) );
+                valueStore.put( parameter.getKey(), SmsUtils.encode( parameter.getValue() ) );
                 continue;
             }
 
-            valueStore.put( parameter.getKey(), parameter.getValue() );
+            valueStore.put( parameter.getKey(), parameter.isConfidential() ?
+                pbeStringEncryptor.decrypt( parameter.getValue() ) : parameter.getValue() );
         }
 
         valueStore.put( KEY_TEXT, SmsUtils.encode( text ) );
@@ -184,7 +193,8 @@ public class SimplisticHttpGetGateWay
         {
             if ( !parameter.isHeader() )
             {
-                valueStore.put( parameter.getKey(), parameter.getValue() );
+                valueStore.put( parameter.getKey(), parameter.isConfidential() ?
+                    pbeStringEncryptor.decrypt( parameter.getValue() ) : parameter.getValue() );
             }
         }
 

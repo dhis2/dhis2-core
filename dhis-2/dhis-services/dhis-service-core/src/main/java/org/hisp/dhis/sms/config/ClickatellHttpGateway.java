@@ -28,10 +28,13 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.ClickatellRequestEntity;
 import org.hisp.dhis.sms.outbound.ClickatellResponseEntity;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -47,9 +50,13 @@ import java.util.stream.Collectors;
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 @Component( "org.hisp.dhis.sms.config.ClickatellGateway" )
+@RequiredArgsConstructor
 public class ClickatellHttpGateway
     extends SmsGateway
 {
+    @Qualifier( "tripleDesStringEncryptor" )
+    private final PBEStringEncryptor pbeStringEncryptor;
+
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
@@ -100,7 +107,7 @@ public class ClickatellHttpGateway
         headers.set( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
         headers.set( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
         headers.set( PROTOCOL_VERSION, "1" );
-        headers.set( HttpHeaders.AUTHORIZATION, clickatellConfiguration.getAuthToken() );
+        headers.set( HttpHeaders.AUTHORIZATION, pbeStringEncryptor.decrypt( clickatellConfiguration.getPassword() ) );
 
         return headers;
     }
