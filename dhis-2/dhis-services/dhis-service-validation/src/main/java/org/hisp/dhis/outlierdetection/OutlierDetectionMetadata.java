@@ -38,4 +38,11 @@ import lombok.Data;
 @Data
 public class OutlierDetectionMetadata
 {
+    private double threshold;
+
+    private Order orderBy;
+
+    private int maxResults;
+
+    private Integer count;
 }

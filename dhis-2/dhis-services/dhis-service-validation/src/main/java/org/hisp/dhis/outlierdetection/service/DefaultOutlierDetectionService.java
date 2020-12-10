@@ -62,8 +62,8 @@ public class DefaultOutlierDetectionService
 
     private final OutlierDetectionManager outlierDetectionManager;
 
-    public DefaultOutlierDetectionService(
-        IdentifiableObjectManager idObjectManager, OutlierDetectionManager outlierDetectionManager )
+    public DefaultOutlierDetectionService( IdentifiableObjectManager idObjectManager,
+        OutlierDetectionManager outlierDetectionManager )
     {
         this.idObjectManager = idObjectManager;
         this.outlierDetectionManager = outlierDetectionManager;
@@ -166,22 +166,16 @@ public class DefaultOutlierDetectionService
     {
         validate( request );
 
-        OutlierDetectionResponse response = new OutlierDetectionResponse();
+        final OutlierDetectionResponse response = new OutlierDetectionResponse();
         response.setOutlierValues( outlierDetectionManager.getOutliers( request ) );
-        response.setMetadata( getMetadata( request ) );
-        return response;
-    }
 
-    /**
-     * Returns metadata for the given request.
-     *
-     * @param request the {@link OutlierDetectionRequest}.
-     * @return the {@link OutlierDetectionMetadata}.
-     */
-    private OutlierDetectionMetadata getMetadata( OutlierDetectionRequest request )
-    {
         final OutlierDetectionMetadata metadata = new OutlierDetectionMetadata();
+        metadata.setCount( response.getOutlierValues().size() );
+        metadata.setThreshold( request.getThreshold() );
+        metadata.setOrderBy( request.getOrderBy() );
+        metadata.setMaxResults( request.getMaxResults() );
+        response.setMetadata( metadata );
 
-        return metadata;
+        return response;
     }
 }
