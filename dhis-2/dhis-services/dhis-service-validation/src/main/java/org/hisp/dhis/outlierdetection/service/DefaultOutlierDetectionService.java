@@ -36,15 +36,15 @@ public class DefaultOutlierDetectionService
     }
 
     @Override
-    public void validate( OutlierDetectionRequest params )
+    public void validate( OutlierDetectionRequest request )
         throws IllegalQueryException
     {
-        ErrorMessage error = validateForErrorMessage( params );
+        ErrorMessage error = validateForErrorMessage( request );
 
         if ( error != null )
         {
             log.warn( String.format(
-                "Outlier detection validation failed, code: '%s', message: '%s'",
+                "Outlier detection request validation failed, code: '%s', message: '%s'",
                 error.getErrorCode(), error.getMessage() ) );
 
             throw new IllegalQueryException( error );
@@ -122,9 +122,12 @@ public class DefaultOutlierDetectionService
     @Override
     public OutlierValueResponse getOutliers( OutlierDetectionRequest request )
     {
+        validate( request );
+
         OutlierValueResponse response = new OutlierValueResponse();
         List<OutlierValue> outlierValues = outlierDetectionManager.getOutliers( request );
         response.setOutlierValues( outlierValues );
+
         return response;
     }
 }
