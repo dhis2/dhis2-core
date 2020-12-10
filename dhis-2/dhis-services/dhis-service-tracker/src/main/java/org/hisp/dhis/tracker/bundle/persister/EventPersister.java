@@ -131,6 +131,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             ? ((PatchConverterService<Event, ProgramStageInstance>) eventConverter).fromForPatch( bundle.getPreheat(),
                 event )
             : eventConverter.from( bundle.getPreheat(), event );
+
         programStageInstance.setLastUpdated( now );
         programStageInstance.setLastUpdatedAtClient( now );
         programStageInstance.setLastUpdatedBy( bundle.getUser() );

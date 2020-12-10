@@ -98,6 +98,7 @@ public class TrackedEntityPersister extends AbstractTrackerPersister<TrackedEnti
             ? ((PatchConverterService<TrackedEntity, TrackedEntityInstance>) teConverter)
                 .fromForPatch( bundle.getPreheat(), trackerDto )
             : teConverter.from( bundle.getPreheat(), trackerDto );
+
         tei.setLastUpdated( now );
         tei.setLastUpdatedAtClient( now );
         tei.setLastUpdatedBy( bundle.getUser() );

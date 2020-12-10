@@ -135,6 +135,7 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
             ? ((PatchConverterService<Enrollment, ProgramInstance>) enrollmentConverter)
                 .fromForPatch( bundle.getPreheat(), enrollment )
             : enrollmentConverter.from( bundle.getPreheat(), enrollment );
+
         programInstance.setLastUpdated( now );
         programInstance.setLastUpdatedAtClient( now );
         programInstance.setLastUpdatedBy( bundle.getUser() );

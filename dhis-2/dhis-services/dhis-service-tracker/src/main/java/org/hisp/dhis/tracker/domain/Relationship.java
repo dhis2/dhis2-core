@@ -70,4 +70,10 @@ public class Relationship implements TrackerDto
     {
         return relationship;
     }
+
+    @Override
+    public void setDefaults()
+    {
+
+    }
 }

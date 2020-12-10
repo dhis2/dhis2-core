@@ -28,15 +28,16 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vividsolutions.jts.geom.Geometry;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -65,7 +66,7 @@ public class TrackedEntity implements TrackerDto
     private String orgUnit;
 
     @JsonProperty
-    private boolean inactive;
+    private Boolean inactive;
 
     @JsonProperty
     private boolean deleted;
@@ -91,4 +92,13 @@ public class TrackedEntity implements TrackerDto
     @JsonProperty
     @Builder.Default
     private List<ProgramOwner> programOwners = new ArrayList<>();
+
+    @Override
+    public void setDefaults()
+    {
+        if ( inactive == null )
+        {
+            inactive = false;
+        }
+    }
 }

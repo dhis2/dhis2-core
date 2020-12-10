@@ -80,7 +80,7 @@ public class Enrollment implements TrackerDto
     private String occurredAt;
 
     @JsonProperty
-    private boolean followUp;
+    private Boolean followUp;
 
     @JsonProperty
     private String completedBy;
@@ -112,4 +112,13 @@ public class Enrollment implements TrackerDto
     @JsonProperty
     @Builder.Default
     private List<Note> notes = new ArrayList<>();
+
+    @Override
+    public void setDefaults()
+    {
+        if ( followUp == null )
+        {
+            followUp = false;
+        }
+    }
 }

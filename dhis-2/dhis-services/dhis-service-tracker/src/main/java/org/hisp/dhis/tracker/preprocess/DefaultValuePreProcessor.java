@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.preprocess;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,65 +28,28 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.springframework.stereotype.Component;
+
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Pre-process all the entities in the bundle and sets the default values for
+ * each entity.
  */
-public enum TrackerImportStrategy
+@Component
+public class DefaultValuePreProcessor implements BundlePreProcessor
 {
-    /**
-     * Create/import objects that don't match any existing objects.
-     */
-    CREATE,
-
-    /**
-     * Update/import objects that match existing objects.
-     */
-    UPDATE,
-
-    /**
-     * Patches the persisted object with a partial object, requires a valid UID.
-     * (currently no plans to support this).
-     */
-    PATCH,
-
-    /**
-     * Create/import objects that don't match any existing identifiers, update/import objects that
-     * matches existing identifiers.
-     */
-    CREATE_AND_UPDATE,
-
-    /**
-     * Delete/import objects that matches identifiers.
-     */
-    DELETE;
-
-    public boolean isCreateAndUpdate()
+    @Override
+    public void process( TrackerBundle bundle )
     {
-        return CREATE_AND_UPDATE == this;
-    }
-
-    public boolean isCreate()
-    {
-        return CREATE == this;
-    }
-
-    public boolean isUpdate()
-    {
-        return UPDATE == this;
-    }
-
-    public boolean isDelete()
-    {
-        return DELETE == this;
-    }
-
-    public boolean isPatch()
-    {
-        return PATCH == this;
-    }
-
-    public boolean isUpdateOrDelete()
-    {
-        return UPDATE == this || DELETE == this;
+        if ( bundle.getImportStrategy() != TrackerImportStrategy.PATCH )
+        {
+            bundle.getTrackedEntities().forEach( TrackedEntity::setDefaults );
+            bundle.getEnrollments().forEach( Enrollment::setDefaults );
+            bundle.getEvents().forEach( Event::setDefaults );
+        }
     }
 }

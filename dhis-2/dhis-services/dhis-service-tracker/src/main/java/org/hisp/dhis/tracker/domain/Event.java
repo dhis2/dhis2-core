@@ -28,21 +28,23 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.hisp.dhis.common.BaseLinkableObject;
+import org.hisp.dhis.event.EventStatus;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vividsolutions.jts.geom.Geometry;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.BaseLinkableObject;
-import org.hisp.dhis.event.EventStatus;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -63,7 +65,7 @@ public class Event
 
     @JsonProperty
     @Builder.Default
-    private EventStatus status = EventStatus.ACTIVE;
+    private EventStatus status = null;
 
     @JsonProperty
     private String program;
@@ -97,7 +99,7 @@ public class Event
     private String storedBy;
 
     @JsonProperty
-    private boolean followUp;
+    private Boolean followUp;
 
     @JsonProperty
     private boolean deleted;
@@ -138,5 +140,19 @@ public class Event
     public boolean isCreatableInSearchScope()
     {
         return this.getStatus() == EventStatus.SCHEDULE && this.getDataValues().isEmpty() && this.occurredAt == null;
+    }
+
+    @Override
+    public void setDefaults()
+    {
+        if ( status == null )
+        {
+            status = EventStatus.ACTIVE;
+        }
+
+        if ( followUp == null )
+        {
+            followUp = false;
+        }
     }
 }

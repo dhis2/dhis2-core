@@ -76,27 +76,9 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         this.reservedValueService = reservedValueService;
     }
 
-    public TrackerTypeReport patch( Session session, TrackerBundle bundle )
-    {
-        TrackerTypeReport typeReport = new TrackerTypeReport( getType() );
-
-        final List<T> byType = getByType( getType(), bundle );
-        if ( byType.size() == 1 )
-        {
-            T dto = getByType( getType(), bundle ).get( 0 );
-
-            TrackerObjectReport objectReport = new TrackerObjectReport( getType(), dto.getUid(), 0 );
-
-            typeReport.addObjectReport( objectReport );
-
-            session.merge( convert( bundle, dto ) );
-        }
-        return typeReport;
-    }
-
     /**
      * Template method that can be used by classes extending this class to execute
-     * the persistence flow of Tracker entities
+     * the persistence and patch flow of Tracker entities
      * 
      * @param session a valid Hibernate Session
      * @param bundle the Bundle to persist
@@ -105,10 +87,10 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     @Override
     public TrackerTypeReport persist( Session session, TrackerBundle bundle )
     {
-        if ( bundle.getImportStrategy().isPatch() )
-        {
-            return patch( session, bundle );
-        }
+        return bundle.getImportStrategy().isPatch() ? patch( session, bundle ) : saveOrUpdate( session, bundle );
+    }
+
+    private TrackerTypeReport saveOrUpdate( Session session, TrackerBundle bundle ) {
         
         //
         // Init the report that will hold the results of the persist operation
@@ -186,8 +168,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             catch ( Exception e )
             {
                 final String msg = "A Tracker Entity of type '" + getType().getName() + "' (" + trackerDto.getUid()
-                    + ") failed to persist.";
-                
+                        + ") failed to persist.";
+
                 if ( bundle.getAtomicMode().equals( AtomicMode.ALL ) )
                 {
                     throw new PersistenceException( msg , e );
@@ -212,6 +194,28 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 
         typeReport.getSideEffectDataBundles().addAll( sideEffectDataBundles );
 
+        return typeReport;
+        
+    }
+
+    private TrackerTypeReport patch( Session session, TrackerBundle bundle )
+    {
+        TrackerTypeReport typeReport = new TrackerTypeReport( getType() );
+
+        final List<T> entities = getByType( getType(), bundle );
+
+        // Patch only operates one one entity - we expect one entity in the bundle
+        if ( entities.size() == 1 )
+        {
+            T dto = getByType( getType(), bundle ).get( 0 );
+
+            TrackerObjectReport objectReport = new TrackerObjectReport( getType(), dto.getUid(), 0 );
+
+            typeReport.addObjectReport( objectReport );
+
+            session.merge( convert( bundle, dto ) );
+            typeReport.getStats().incUpdated();
+        }
         return typeReport;
     }
 

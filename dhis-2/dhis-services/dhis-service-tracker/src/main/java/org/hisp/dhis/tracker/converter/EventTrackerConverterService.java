@@ -185,7 +185,7 @@ public class EventTrackerConverterService
 
             if ( field.getName().equals( "scheduledAt" ) )
             {
-                // how to validate the date??
+                // TODO how to validate the date??
                 psi.setDueDate( DateUtils.parseDate( event.getScheduledAt() ) );
             }
         }

@@ -138,7 +138,7 @@ public class TrackedEntityTrackerConverterService
 
         tei.setOrganisationUnit( organisationUnit );
         tei.setTrackedEntityType( trackedEntityType );
-        tei.setInactive( te.isInactive() );
+        tei.setInactive( te.getInactive() );
         tei.setDeleted( te.isDeleted() );
         tei.setGeometry( te.getGeometry() );
 

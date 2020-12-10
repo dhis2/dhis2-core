@@ -200,6 +200,7 @@ public class DefaultTrackerBundleService
 
         bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
 
+        // TODO see https://github.com/dhis2/dhis2-core/pull/6876
         //dbmsManager.clearSession();
         //cacheManager.clearCache();
 
