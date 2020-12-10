@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.tracker;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,7 +48,9 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.job.TrackerJobWebMessageResponse;
 import org.hisp.dhis.tracker.job.TrackerMessageManager;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
@@ -66,9 +69,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
+import lombok.RequiredArgsConstructor;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@RequiredArgsConstructor
 @RestController
 @RequestMapping( value = TrackerController.RESOURCE_PATH )
 public class TrackerController
@@ -84,20 +90,6 @@ public class TrackerController
     private final TrackerMessageManager trackerMessageManager;
 
     private final Notifier notifier;
-
-    public TrackerController(
-        TrackerImportService trackerImportService,
-        RenderService renderService,
-        ContextService contextService,
-        TrackerMessageManager trackerMessageManager,
-        Notifier notifier )
-    {
-        this.trackerImportService = trackerImportService;
-        this.renderService = renderService;
-        this.contextService = contextService;
-        this.trackerMessageManager = trackerMessageManager;
-        this.notifier = notifier;
-    }
 
     @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
     // @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')"
@@ -117,18 +109,7 @@ public class TrackerController
         params.setEvents( trackerBundleParams.getEvents() );
         params.setRelationships( trackerBundleParams.getRelationships() );
 
-        String jobId = trackerMessageManager.addJob( params );
-
-        String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
-        response.setHeader( "Location", location );
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-
-        renderService.toJson( response.getOutputStream(), new WebMessage()
-            .setMessage( "Tracker job added" )
-            .setResponse(
-                TrackerJobWebMessageResponse.builder()
-                    .id( jobId ).location( location )
-                    .build() ) );
+        runAsyncJob( params, request, response );
     }
 
     @GetMapping( value = "/jobs/{uid}", produces = MediaType.APPLICATION_JSON_VALUE )
@@ -175,18 +156,55 @@ public class TrackerController
         User currentUser )
         throws IOException
     {
-        Event event = renderService.fromJson( request.getInputStream(),
-            Event.class );
-        event.setEvent( uid );
-        
+        Event entity = renderService.fromJson( request.getInputStream(), Event.class );
+        entity.setEvent( uid );
+
+        patch( request, response, currentUser, null, null, entity );
+    }
+
+    @PatchMapping( value = "/enrollments/{uid}" )
+    public void patchEnrollments( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response,
+        User currentUser )
+        throws IOException
+    {
+        Enrollment entity = renderService.fromJson( request.getInputStream(), Enrollment.class );
+        entity.setEnrollment( uid );
+
+        patch( request, response, currentUser, null, entity, null );
+    }
+
+    @PatchMapping( value = "/trackedEntities/{uid}" )
+    public void patchTrackedEntity( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response,
+        User currentUser )
+        throws IOException
+    {
+        TrackedEntity entity = renderService.fromJson( request.getInputStream(), TrackedEntity.class );
+        entity.setTrackedEntity( uid );
+
+        patch( request, response, currentUser, entity, null, null );
+    }
+
+    private void patch( HttpServletRequest request, HttpServletResponse response, User currentUser,
+        TrackedEntity trackedEntity, Enrollment enrollment, Event event )
+        throws IOException
+    {
+
         TrackerImportParams params = TrackerImportParams.builder()
-            .validationMode( ValidationMode.SKIP )
+            .validationMode( ValidationMode.FULL )
             .importStrategy( TrackerImportStrategy.PATCH )
             .skipRuleEngine( true )
             .userId( currentUser.getUid() )
-            .events( Collections.singletonList( event ) )
+            .events( event == null ? new ArrayList<>() : Collections.singletonList( event ) )
+            .enrollments( enrollment == null ? new ArrayList<>() : Collections.singletonList( enrollment ) )
+            .trackedEntities( trackedEntity == null ? new ArrayList<>() : Collections.singletonList( trackedEntity ) )
             .build();
 
+        runAsyncJob( params, request, response );
+    }
+
+    private void runAsyncJob( TrackerImportParams params, HttpServletRequest request, HttpServletResponse response )
+        throws IOException
+    {
         String jobId = trackerMessageManager.addJob( params );
 
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
