@@ -217,6 +217,5 @@ public class TrackerController
                 TrackerJobWebMessageResponse.builder()
                     .id( jobId ).location( location )
                     .build() ) );
-
     }
 }
