@@ -97,7 +97,6 @@ import static org.hisp.dhis.commons.util.DebugUtils.getStackTrace;
 import static org.hisp.dhis.commons.util.SystemUtils.getCpuCores;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType.values;
 import static org.hisp.dhis.period.DailyPeriodType.NAME;
-import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 import static org.hisp.dhis.setting.SettingKey.DATABASE_SERVER_CPUS;
@@ -606,7 +605,8 @@ public class DataHandler
                         : getPeriodTypeFromIsoString( dataRow.get( periodIndex ) );
                     PeriodType dataSetPt = dsPtMap.get( dataRow.get( dataSetIndex ) );
 
-                    target = getCalculatedTarget( periodIndex, timeUnits, dataRow, target, queryPt, dataSetPt );
+                    target = getCalculatedTarget( periodIndex, timeUnits, dataRow, target, queryPt, dataSetPt,
+                        params.getFilterPeriods() );
 
                     addReportRateToGrid( params, grid, metric, dataRow, target, actual );
                 }
@@ -667,16 +667,43 @@ public class DataHandler
      *        {@link #getAggregatedCompletenessTargetMap(DataQueryParams).
      * @param queryPt the filter period in the current "dataRow". See {@link PeriodType#getPeriodTypeFromIsoString}.
      * @param dataSetPt the dataset period.
+     * @param filterPeriods the filter "pe" in the params.
      *
      * @return the calculate target
      */
     private Double getCalculatedTarget( Integer periodIndex, int timeUnits, List<String> dataRow, Double target,
-        PeriodType queryPt, PeriodType dataSetPt )
+        PeriodType queryPt, PeriodType dataSetPt, List<DimensionalItemObject> filterPeriods )
     {
         if ( dataSetPt.equalsName( NAME ) )
         {
-            Period period = getPeriodFromIsoString( dataRow.get( periodIndex ) );
-            target = target * period.getDaysInPeriod() * timeUnits;
+            boolean hasPeriodInDimension = periodIndex != -1;
+
+            // If we enter here, it means there is a "pe" in the dimension parameter.
+            if ( hasPeriodInDimension )
+            {
+                final Period period = PeriodType.getPeriodFromIsoString( dataRow.get( periodIndex ) );
+
+                target = target * period.getDaysInPeriod() * timeUnits;
+            }
+            else
+            {
+                // If we reach here, it means that we should have a "pe" dimension in the filter
+                // parameter.
+                final List<DimensionalItemObject> periods = filterPeriods;
+
+                if ( isNotEmpty( periods ) )
+                {
+                    int totalOfDayInPeriod = 0;
+
+                    for ( final DimensionalItemObject itemObject : periods )
+                    {
+                        final Period period = (Period) itemObject;
+                        totalOfDayInPeriod += period.getDaysInPeriod();
+                    }
+
+                    target += target * totalOfDayInPeriod;
+                }
+            }
         }
         else
         {
@@ -719,11 +746,11 @@ public class DataHandler
     }
 
     /**
-     * Generates a mapping between the the data set dimension key and the count of
+     * Generates a mapping between the data set dimension key and the count of
      * expected data sets to report.
      *
      * @param params the {@link DataQueryParams}.
-     * @return a mapping between the the data set dimension key and the count of
+     * @return a mapping between the data set dimension key and the count of
      *         expected data sets to report.
      */
     private Map<String, Double> getAggregatedCompletenessTargetMap( DataQueryParams params )
