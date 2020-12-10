@@ -30,9 +30,6 @@ package org.hisp.dhis.tracker;
 
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
