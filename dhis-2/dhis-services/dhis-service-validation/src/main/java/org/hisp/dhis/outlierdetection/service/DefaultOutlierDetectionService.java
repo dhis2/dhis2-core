@@ -149,7 +149,6 @@ public class DefaultOutlierDetectionService
         List<DataElement> dataElements = idObjectManager.getByUid( DataElement.class, de );
         List<OrganisationUnit> orgUnits = idObjectManager.getByUid( OrganisationUnit.class, query.getOu() );
 
-
         request
             .withDataElements( dataElements )
             .withStartEndDate( query.getStartDate(), query.getEndDate() )
