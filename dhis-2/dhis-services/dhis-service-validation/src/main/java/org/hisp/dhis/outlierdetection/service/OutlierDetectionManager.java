@@ -113,7 +113,7 @@ public class OutlierDetectionManager
             .addValue( "data_element_ids", request.getDataElementIds() )
             .addValue( "start_date", request.getStartDateString() )
             .addValue( "end_date", request.getEndDateString() )
-            .addValue( "oder_by", request.getOrderBy().getKey() )
+            .addValue( "order_by", request.getOrderBy().getKey() )
             .addValue( "max_results", request.getMaxResults() );
 
         return jdbcTemplate.query( sql, params, ( rs, rowNum ) -> {

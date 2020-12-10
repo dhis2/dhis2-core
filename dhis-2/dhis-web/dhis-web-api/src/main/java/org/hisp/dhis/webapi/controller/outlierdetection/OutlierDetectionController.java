@@ -28,6 +28,8 @@
 
 package org.hisp.dhis.webapi.controller.outlierdetection;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
@@ -55,7 +57,7 @@ public class OutlierDetectionController
         this.outlierService = outlierService;
     }
 
-    @GetMapping( value = "/outlierDetection" )
+    @GetMapping( value = "/outlierDetection", produces = { APPLICATION_JSON_VALUE } )
     public OutlierValueResponse getOutliers( OutlierDetectionQuery query )
     {
         OutlierDetectionRequest request = outlierService.fromQuery( query );
