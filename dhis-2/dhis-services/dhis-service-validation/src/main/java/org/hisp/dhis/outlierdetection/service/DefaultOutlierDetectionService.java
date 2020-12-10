@@ -129,7 +129,7 @@ public class DefaultOutlierDetectionService
 
         List<DataSet> dataSets = idObjectManager.getByUid( DataSet.class, query.getDs() );
 
-        // Fetch data elements from service to maintain access control
+        // Re-fetch data elements to maintain access control
 
         List<String> de = dataSets.stream()
             .map( ds -> ds.getDataElements() )
@@ -168,6 +168,7 @@ public class DefaultOutlierDetectionService
 
     @Override
     public OutlierDetectionResponse getOutliers( OutlierDetectionRequest request )
+        throws IllegalQueryException
     {
         validate( request );
 
