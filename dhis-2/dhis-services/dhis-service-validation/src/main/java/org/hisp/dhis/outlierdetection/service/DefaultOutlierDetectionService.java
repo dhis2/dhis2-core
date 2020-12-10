@@ -155,9 +155,7 @@ public class DefaultOutlierDetectionService
         validate( request );
 
         OutlierValueResponse response = new OutlierValueResponse();
-
         response.setOutlierValues( outlierDetectionManager.getOutliers( request ) );
-
         return response;
     }
 }
