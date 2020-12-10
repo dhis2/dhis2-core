@@ -86,7 +86,7 @@ public class TrackerEntityInstanceStrategyTest
         List<List<String>> uids = new ArrayList<>();
         uids.add( rootUids );
 
-        when( trackedEntityInstanceStore.getByUid( rootUids, user ) ).thenReturn( Lists.newArrayList(
+        when( trackedEntityInstanceStore.getIncludingDeleted( rootUids ) ).thenReturn( Lists.newArrayList(
             new TrackedEntityInstance()
             {{
                 setUid( trackedEntities.get( 0 ).getTrackedEntity() );
