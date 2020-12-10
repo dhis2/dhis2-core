@@ -29,7 +29,7 @@
 package org.hisp.dhis.outlierdetection;
 
 /**
- * Field on which to order an outlier detection result set.
+ * Candidate on which to order an outlier detection result set.
  *
  * @author Lars Helge Overland
  */

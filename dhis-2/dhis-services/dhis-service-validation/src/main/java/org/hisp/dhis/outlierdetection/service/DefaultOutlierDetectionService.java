@@ -42,7 +42,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionService;
-import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.outlierdetection.OutlierValueResponse;
 import org.springframework.stereotype.Service;
 
@@ -156,8 +155,8 @@ public class DefaultOutlierDetectionService
         validate( request );
 
         OutlierValueResponse response = new OutlierValueResponse();
-        List<OutlierValue> outlierValues = outlierDetectionManager.getOutliers( request );
-        response.setOutlierValues( outlierValues );
+
+        response.setOutlierValues( outlierDetectionManager.getOutliers( request ) );
 
         return response;
     }
