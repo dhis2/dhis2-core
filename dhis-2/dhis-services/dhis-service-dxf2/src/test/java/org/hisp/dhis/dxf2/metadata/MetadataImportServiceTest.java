@@ -329,8 +329,6 @@ public class MetadataImportServiceTest extends IntegrationTestBase
         {
             log.error( "Error report:"+errorReport );
         }
-        // * ERROR 13:26:43,008 Error report:ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Gender [v7n8H4aj8Cg] (CategoryCombo).,
-        // errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryCombo, errorKlass=null, value=null} (MetadataImportServiceTest.java [main])
         assertEquals( Status.OK, report.getStatus() );
 
         visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
@@ -393,8 +391,6 @@ public class MetadataImportServiceTest extends IntegrationTestBase
         {
             log.error( "Error report:" + errorReport );
         }
-        // * ERROR 13:26:43,008 Error report:ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Gender [v7n8H4aj8Cg] (CategoryCombo).,
-        // errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryCombo, errorKlass=null, value=null} (MetadataImportServiceTest.java [main])
         assertEquals( Status.OK, report.getStatus() );
 
         visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
@@ -450,6 +446,8 @@ public class MetadataImportServiceTest extends IntegrationTestBase
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
 
+        dbmsManager.clearSession();
+
         DataSet dataset = dataSetService.getDataSet( "em8Bg4LCr5k" );
         assertNotNull( dataset.getSections() );
         assertNotNull( manager.get( Section.class, "JwcV2ZifEQf" ) );
@@ -468,7 +466,6 @@ public class MetadataImportServiceTest extends IntegrationTestBase
         {
             log.error( "Error report:" + errorReport );
         }
-        // TODO: FAILS WITH HIBERNATE 5.4!!! Fails only sometimes...
         assertEquals( Status.OK, report.getStatus() );
 
         dataset = manager.get( DataSet.class, "em8Bg4LCr5k" );
