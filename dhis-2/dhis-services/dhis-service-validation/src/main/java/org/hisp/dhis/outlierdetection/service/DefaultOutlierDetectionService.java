@@ -129,14 +129,21 @@ public class DefaultOutlierDetectionService
         OutlierDetectionRequest.Builder request = new OutlierDetectionRequest.Builder();
 
         List<DataSet> dataSets = idObjectManager.getByUid( DataSet.class, query.getDs() );
-        List<DataElement> dataElements = idObjectManager.getByUid( DataElement.class, query.getDe() );
-        List<OrganisationUnit> orgUnits = idObjectManager.getByUid( OrganisationUnit.class, query.getOu() );
 
-        dataElements.addAll( dataSets.stream()
+        // Fetch data elements from service to maintain access control
+
+        List<String> de = dataSets.stream()
             .map( ds -> ds.getDataElements() )
             .flatMap( Collection::stream )
-            .filter( de -> de.getValueType().isNumeric() )
-            .collect( Collectors.toList() ) );
+            .filter( d -> d.getValueType().isNumeric() )
+            .map( DataElement::getUid )
+            .collect( Collectors.toList() );
+
+        de.addAll( query.getDe() );
+
+        List<DataElement> dataElements = idObjectManager.getByUid( DataElement.class, de );
+        List<OrganisationUnit> orgUnits = idObjectManager.getByUid( OrganisationUnit.class, query.getOu() );
+
 
         request
             .withDataElements( dataElements )
