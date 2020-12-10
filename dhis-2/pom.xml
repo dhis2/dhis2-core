@@ -1636,7 +1636,7 @@
       <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-render</artifactId>
-        <version>24.0</version>
+        <version>${geotools.version}</version>
         <exclusions>
           <exclusion>
             <groupId>xalan</groupId>
@@ -1651,7 +1651,7 @@
       <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-epsg-wkt</artifactId>
-        <version>24.0</version>
+        <version>${geotools.version}</version>
         <exclusions>
           <exclusion>
             <groupId>commons-pool</groupId>
@@ -1663,22 +1663,22 @@
       <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-main</artifactId>
-        <version>24.0</version>
+        <version>${geotools.version}</version>
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-geojson</artifactId>
-        <version>24.0</version>
+        <version>${geotools.version}</version>
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-opengis</artifactId>
-        <version>24.0</version>
+        <version>${geotools.version}</version>
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-referencing</artifactId>
-        <version>24.0</version>
+        <version>${geotools.version}</version>
       </dependency>
       <!-- JAXB -->
       <dependency>
@@ -2136,5 +2136,6 @@
     <dependency-check-maven.version>6.0.3</dependency-check-maven.version>
     <lombok.version>1.18.10</lombok.version>
     <mapstruct.version>1.4.1.Final</mapstruct.version>
+    <geotools.version>24.0</geotools.version>
   </properties>
 </project>
