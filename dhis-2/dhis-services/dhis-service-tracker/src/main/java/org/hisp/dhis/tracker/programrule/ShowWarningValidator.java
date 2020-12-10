@@ -28,27 +28,27 @@
 
 package org.hisp.dhis.tracker.programrule;
 
-import org.hisp.dhis.rules.models.RuleActionShowError;
+import org.hisp.dhis.rules.models.RuleActionShowWarning;
 import org.springframework.stereotype.Component;
 
 /**
- * This implementer show errors calculated by Rule Engine.
+ * This implementer show warnings calculated by Rule Engine.
  *
  * @Author Enrico Colasante
  */
 @Component
-public class ShowErrorImplementer
+public class ShowWarningValidator
     extends ErrorWarningImplementer
 {
     @Override
-    public Class<RuleActionShowError> getActionClass()
+    public Class<RuleActionShowWarning> getActionClass()
     {
-        return RuleActionShowError.class;
+        return RuleActionShowWarning.class;
     }
 
     @Override
     public boolean isWarning()
     {
-        return false;
+        return true;
     }
 }

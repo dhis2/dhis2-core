@@ -45,12 +45,12 @@ public interface OrganisationUnitMapper
     @Mapping( target = "id" )
     @Mapping( target = "uid" )
     @Mapping( target = "code" )
+    @Mapping( target = "name" )
     @Mapping( target = "user" )
     @Mapping( target = "publicAccess" )
     @Mapping( target = "externalAccess" )
     @Mapping( target = "userGroupAccesses" )
     @Mapping( target = "userAccesses" )
-    @Mapping( target = "programs" )
     @Mapping( target = "parent", qualifiedByName = "parentMapper" )
     OrganisationUnit map( OrganisationUnit organisationUnit );
 

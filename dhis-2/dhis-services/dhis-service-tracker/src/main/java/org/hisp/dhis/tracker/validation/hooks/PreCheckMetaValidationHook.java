@@ -52,7 +52,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -112,7 +111,7 @@ public class PreCheckMetaValidationHook
         {
             ProgramInstance pi = context.getProgramInstance( enrollment.getEnrollment() );
             Program existingProgram = pi.getProgram();
-            if ( !existingProgram.equals( program ) )
+            if ( program != null && !existingProgram.getUid().equals( program.getUid() ) )
             {
                 addError( reporter, E1094, pi, existingProgram );
             }
@@ -159,12 +158,8 @@ public class PreCheckMetaValidationHook
             .stream()
             .map( DataValue::getDataElement )
             .forEach( de -> {
-                DataElement dataElement = context.getBundle().getPreheat().get( TrackerIdScheme.UID, DataElement.class,
-                    de );
-                if ( dataElement == null )
-                {
-                    addError( reporter, E1087, event.getEvent(), de );
-                }
+                DataElement dataElement = context.getBundle().getPreheat().get( DataElement.class, de );
+                addErrorIfNull( dataElement,  reporter, E1087, event.getEvent(), de );
             } );
     }
 
@@ -187,16 +182,12 @@ public class PreCheckMetaValidationHook
             addError( reporter, E1086, event, program );
         }
 
-        if ( program != null )
+        if ( program != null && programStage == null && program.isWithoutRegistration() )
         {
-            programStage = (programStage == null && program.isWithoutRegistration())
-                ? program.getProgramStageByStage( 1 )
-                : programStage;
+            addErrorIfNull( program.getProgramStageByStage( 1 ), reporter, E1035, event );
         }
 
-        addErrorIfNull( programStage, reporter, E1035, event );
-
-        if ( program != null && programStage != null && !program.equals( programStage.getProgram() ) )
+        if ( program != null && programStage != null && !program.getUid().equals( programStage.getProgram().getUid() ) )
         {
             addError( reporter, E1089, event, programStage, program );
         }
@@ -213,7 +204,7 @@ public class PreCheckMetaValidationHook
         ProgramStageInstance psi = context.getProgramStageInstance( event.getEvent() );
         Program existingProgram = psi.getProgramStage().getProgram();
 
-        if ( !existingProgram.equals( program ) )
+        if ( !existingProgram.getUid().equals( program.getUid() ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1110 )
                 .addArg( psi )
@@ -228,7 +219,12 @@ public class PreCheckMetaValidationHook
         // TODO: This trick mutates the data, try to avoid this...
         program = programStage.getProgram();
         TrackerIdentifier identifier = bundle.getPreheat().getIdentifiers().getProgramIdScheme();
-        bundle.getPreheat().put( identifier, program );
+
+        // no need to add the program if already in preheat
+        if ( bundle.getPreheat().get( Program.class, identifier.getIdentifier( program ) ) == null )
+        {
+            bundle.getPreheat().put( identifier, program );
+        }
         event.setProgram( identifier.getIdentifier( program ) );
         return program;
     }

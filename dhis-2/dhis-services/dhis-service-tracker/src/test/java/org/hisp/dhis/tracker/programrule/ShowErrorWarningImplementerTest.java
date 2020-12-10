@@ -93,16 +93,16 @@ public class ShowErrorWarningImplementerTest
     private ProgramRuleActionService programRuleActionService;
 
     @Autowired
-    private ShowWarningOnCompleteImplementer warningOnCompleteImplementer;
+    private ShowWarningOnCompleteValidator warningOnCompleteImplementer;
 
     @Autowired
-    private ShowErrorOnCompleteImplementer errorOnCompleteImplementer;
+    private ShowErrorOnCompleteValidator errorOnCompleteImplementer;
 
     @Autowired
-    private ShowErrorImplementer errorImplementer;
+    private ShowErrorValidator errorImplementer;
 
     @Autowired
-    private ShowWarningImplementer warningImplementer;
+    private ShowWarningValidator warningImplementer;
 
     private TrackerBundle trackerBundle;
 

@@ -141,7 +141,7 @@ public class TrackerImportParamsBuilderTest
         assertThat( identifiers.getOrgUnitIdScheme(), is( TrackerIdentifier.UID ) );
         assertThat( identifiers.getProgramIdScheme(), is( TrackerIdentifier.UID ) );
         assertThat( identifiers.getCategoryOptionComboIdScheme(), is( TrackerIdentifier.UID ) );
-        assertThat( identifiers.getCategoryOption(), is( TrackerIdentifier.UID ) );
+        assertThat( identifiers.getCategoryOptionIdScheme(), is( TrackerIdentifier.UID ) );
         assertThat( identifiers.getDataElementIdScheme(), is( TrackerIdentifier.UID ) );
         assertThat( identifiers.getProgramStageIdScheme(), is( TrackerIdentifier.UID ) );
         assertThat( identifiers.getIdScheme(), is( TrackerIdentifier.UID ) );

@@ -43,6 +43,7 @@ public interface DataElementMapper extends PreheatMapper<DataElement>
     @Mapping( target = "id" )
     @Mapping( target = "uid" )
     @Mapping( target = "code" )
+    @Mapping( target = "name" )
     @Mapping( target = "valueType" )
     DataElement map( DataElement dataElement );
 }

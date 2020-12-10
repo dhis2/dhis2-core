@@ -34,7 +34,6 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1120;
 import java.util.Optional;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -74,7 +73,7 @@ public class AssignedUserValidationHook
 
     private boolean assignedUserNotPresentInPreheat(ValidationErrorReporter reporter, Event event )
     {
-        return reporter.getValidationContext().getBundle().getPreheat().get( TrackerIdScheme.UID, User.class,
+        return reporter.getValidationContext().getBundle().getPreheat().get( User.class,
             event.getAssignedUser() ) == null;
     }
 

@@ -34,6 +34,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Every.everyItem;
+import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -247,13 +248,10 @@ public class EventImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
-        assertEquals( 2, report.getErrorReports().size() );
+        assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1088 ) ) ) );
-
-        assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1035 ) ) ) );
     }
 
     @Test
@@ -268,10 +266,25 @@ public class EventImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
-        assertEquals( 2, report.getErrorReports().size() );
+        assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1086 ) ) ) );
+    }
+
+    @Test
+    public void testEventMissingProgramStageProgramIsWithoutRegistration()
+        throws IOException
+    {
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-pstage-missing-withoutreg.json" );
+
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
+            TrackerImportStrategy.CREATE );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1035 ) ) ) );
@@ -383,7 +396,7 @@ public class EventImportValidationTest
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -474,7 +487,7 @@ public class EventImportValidationTest
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -511,7 +524,7 @@ public class EventImportValidationTest
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -537,7 +550,7 @@ public class EventImportValidationTest
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -610,7 +623,7 @@ public class EventImportValidationTest
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -885,6 +898,58 @@ public class EventImportValidationTest
             assertNull( comment.getCreator() );
             assertNull( comment.getLastUpdatedBy() );
         } );
+    }
+
+    @Test
+    public void testUpdateDeleteEventFails()
+        throws IOException
+    {
+        // Given -> Creates an event
+        createEvent( "tracker/validations/events-with-notes-data.json" );
+
+        // When -> Soft-delete the event
+        programStageServiceInstance
+            .deleteProgramStageInstance( programStageServiceInstance.getProgramStageInstance( "ZwwuwNp6gVd" ) );
+
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events-with-notes-data.json" );
+
+        // Then
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams, CREATE );
+
+        assertEquals( 0, createAndUpdate.getTrackerBundle().getEvents().size() );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+        assertEquals( 1, report.getErrorReports().size() );
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1082 ) ) ) );
+
+    }
+
+    @Test
+    public void testInserDeleteEventFails()
+            throws IOException
+    {
+        // Given -> Creates an event
+        createEvent( "tracker/validations/events-with-notes-data.json" );
+
+        // When -> Soft-delete the event
+        programStageServiceInstance
+                .deleteProgramStageInstance( programStageServiceInstance.getProgramStageInstance( "ZwwuwNp6gVd" ) );
+
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+                "tracker/validations/events-with-notes-data.json" );
+
+        // Then
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams, CREATE );
+
+        assertEquals( 0, createAndUpdate.getTrackerBundle().getEvents().size() );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+        assertEquals( 1, report.getErrorReports().size() );
+        assertThat( report.getErrorReports(),
+                everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1082 ) ) ) );
+
     }
 
     private ValidateAndCommitTestUnit createEvent( String jsonPayload )

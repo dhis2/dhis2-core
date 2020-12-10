@@ -28,18 +28,9 @@ package org.hisp.dhis.tracker.preprocess;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.collections4.BidiMap;
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Relationship;
 import org.springframework.stereotype.Component;
-
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * This preprocessor is responsible for populating the bidirectional field
@@ -58,7 +49,7 @@ public class BidirectionalRelationshipsPreProcessor
         bundle.getRelationships()
             .forEach( rel -> {
                 RelationshipType relType = bundle.getPreheat()
-                    .get( bundle.getIdentifier(), RelationshipType.class, rel.getRelationshipType() );
+                    .get( RelationshipType.class, rel.getRelationshipType() );
                 if (relType != null)
                 {
                     rel.setBidirectional( relType.isBidirectional() );

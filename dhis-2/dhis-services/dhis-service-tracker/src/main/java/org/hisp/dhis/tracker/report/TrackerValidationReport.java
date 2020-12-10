@@ -67,14 +67,14 @@ public class TrackerValidationReport
     public void add( TrackerValidationReport validationReport )
     {
         add( validationReport.getErrorReports() );
-        this.warningReports.addAll( validationReport.getWarningReports() );
+        addWarnings( validationReport.getWarningReports() );
         addPerfReports( validationReport.getPerformanceReport() );
     }
 
     public void add( ValidationErrorReporter validationReporter )
     {
         add( validationReporter.getReportList() );
-        this.warningReports.addAll( validationReporter.getWarningsReportList() );
+        addWarnings( validationReporter.getWarningsReportList() );
     }
 
     public void add( List<TrackerErrorReport> errorReports )
@@ -82,6 +82,14 @@ public class TrackerValidationReport
         for ( TrackerErrorReport errorReport : errorReports )
         {
             addErrorIfNotExisting( errorReport );
+        }
+    }
+
+    public void addWarnings( List<TrackerWarningReport> warningReportsReports )
+    {
+        for ( TrackerWarningReport warningReport : warningReportsReports )
+        {
+            addWarningIfNotExisting( warningReport );
         }
     }
 
@@ -103,16 +111,25 @@ public class TrackerValidationReport
     /**
      * Returns the size of all the Tracker DTO that did not pass validation
      */
-    public long size() {
-        
+    public long size()
+    {
+
         return this.getErrorReports().stream().map( TrackerErrorReport::getUid ).distinct().count();
     }
-    
+
     private void addErrorIfNotExisting( TrackerErrorReport report )
     {
         if ( !this.errorReports.contains( report ) )
         {
             this.errorReports.add( report );
+        }
+    }
+
+    private void addWarningIfNotExisting( TrackerWarningReport report )
+    {
+        if ( !this.warningReports.contains( report ) )
+        {
+            this.warningReports.add( report );
         }
     }
 }

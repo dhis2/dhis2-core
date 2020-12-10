@@ -1,3 +1,5 @@
+package org.hisp.dhis.common;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,29 +28,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.programrule;
+import java.util.Set;
 
-import org.hisp.dhis.rules.models.RuleActionShowWarning;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * This implementer show warnings calculated by Rule Engine.
- *
- * @Author Enrico Colasante
+ * @author Ameen Mohamed
  */
-@Component
-public class ShowWarningImplementer
-    extends ErrorWarningImplementer
+public interface OrganisationUnitAssignable
 {
-    @Override
-    public Class<RuleActionShowWarning> getActionClass()
-    {
-        return RuleActionShowWarning.class;
-    }
+    Set<OrganisationUnit> getOrganisationUnits();
 
-    @Override
-    public boolean isWarning()
-    {
-        return true;
-    }
+    void setOrganisationUnits( Set<OrganisationUnit> organisationUnits );
+
 }

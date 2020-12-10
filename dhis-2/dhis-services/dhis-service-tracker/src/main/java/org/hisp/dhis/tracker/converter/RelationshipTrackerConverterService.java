@@ -123,7 +123,7 @@ public class RelationshipTrackerConverterService
         org.hisp.dhis.relationship.Relationship toRelationship )
     {
         org.hisp.dhis.relationship.RelationshipType relationshipType = preheat
-            .get( TrackerIdScheme.UID, RelationshipType.class, fromRelationship.getRelationshipType() );
+            .get( RelationshipType.class, fromRelationship.getRelationshipType() );
         org.hisp.dhis.relationship.RelationshipItem fromItem = new org.hisp.dhis.relationship.RelationshipItem();
         org.hisp.dhis.relationship.RelationshipItem toItem = new org.hisp.dhis.relationship.RelationshipItem();
 
