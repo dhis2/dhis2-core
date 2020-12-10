@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -53,18 +54,12 @@ import org.springframework.stereotype.Service;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@RequiredArgsConstructor
 @Service
 public class EnrollmentTrackerConverterService
     implements TrackerConverterService<Enrollment, ProgramInstance>, PatchConverterService<Enrollment, ProgramInstance>
 {
     private final NotesConverterService notesConverterService;
-
-    public EnrollmentTrackerConverterService( NotesConverterService notesConverterService )
-    {
-        checkNotNull( notesConverterService );
-
-        this.notesConverterService = notesConverterService;
-    }
 
     @Override
     public Enrollment to( ProgramInstance programInstance )

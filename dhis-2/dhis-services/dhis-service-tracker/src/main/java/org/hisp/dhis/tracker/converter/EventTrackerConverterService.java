@@ -28,7 +28,6 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.lang.reflect.Field;
@@ -60,21 +59,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
+import lombok.RequiredArgsConstructor;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@RequiredArgsConstructor
 @Service
 public class EventTrackerConverterService
     implements TrackerConverterService<Event, ProgramStageInstance>, PatchConverterService<Event, ProgramStageInstance>
 {
     private final NotesConverterService notesConverterService;
-
-    public EventTrackerConverterService( NotesConverterService notesConverterService )
-    {
-        checkNotNull( notesConverterService );
-
-        this.notesConverterService = notesConverterService;
-    }
 
     @Override
     public Event to( ProgramStageInstance programStageInstance )
