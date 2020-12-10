@@ -67,7 +67,7 @@ public interface OutlierDetectionService
      * Returns outlier values.
      *
      * @param request the {@link OutlierDetectionRequest}.
-     * @return a {@link OutlierValueResponse}.
+     * @return a {@link OutlierDetectionResponse}.
      */
-    OutlierValueResponse getOutliers( OutlierDetectionRequest request );
+    OutlierDetectionResponse getOutliers( OutlierDetectionRequest request );
 }

@@ -34,7 +34,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionService;
-import org.hisp.dhis.outlierdetection.OutlierValueResponse;
+import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,7 +58,7 @@ public class OutlierDetectionController
     }
 
     @GetMapping( value = "/outlierDetection", produces = { APPLICATION_JSON_VALUE } )
-    public OutlierValueResponse getOutliers( OutlierDetectionQuery query )
+    public OutlierDetectionResponse getOutliers( OutlierDetectionQuery query )
     {
         OutlierDetectionRequest request = outlierService.fromQuery( query );
 

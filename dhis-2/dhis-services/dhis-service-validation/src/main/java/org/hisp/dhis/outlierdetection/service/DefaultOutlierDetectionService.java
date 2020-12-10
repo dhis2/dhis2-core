@@ -42,7 +42,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionService;
-import org.hisp.dhis.outlierdetection.OutlierValueResponse;
+import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
@@ -150,11 +150,11 @@ public class DefaultOutlierDetectionService
     }
 
     @Override
-    public OutlierValueResponse getOutliers( OutlierDetectionRequest request )
+    public OutlierDetectionResponse getOutliers( OutlierDetectionRequest request )
     {
         validate( request );
 
-        OutlierValueResponse response = new OutlierValueResponse();
+        OutlierDetectionResponse response = new OutlierDetectionResponse();
         response.setOutlierValues( outlierDetectionManager.getOutliers( request ) );
         return response;
     }

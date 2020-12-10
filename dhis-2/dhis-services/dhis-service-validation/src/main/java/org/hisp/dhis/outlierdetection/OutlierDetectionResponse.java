@@ -39,8 +39,11 @@ import lombok.Data;
  * @author Lars Helge Overland
  */
 @Data
-public class OutlierValueResponse
+public class OutlierDetectionResponse
 {
+    @JsonProperty
+    private OutlierDetectionMetadata metadata = new OutlierDetectionMetadata();
+
     @JsonProperty
     private List<OutlierValue> outlierValues = new ArrayList<>();
 }
