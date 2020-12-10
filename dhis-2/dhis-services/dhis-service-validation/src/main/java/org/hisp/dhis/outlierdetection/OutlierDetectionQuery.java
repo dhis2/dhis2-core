@@ -48,6 +48,9 @@ public class OutlierDetectionQuery
     private List<String> ds = new ArrayList<>();
 
     @JsonProperty
+    private List<String> de = new ArrayList<>();
+
+    @JsonProperty
     private Date startDate;
 
     @JsonProperty

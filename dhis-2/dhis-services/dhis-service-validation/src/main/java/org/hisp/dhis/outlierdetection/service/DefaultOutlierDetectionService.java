@@ -121,11 +121,13 @@ public class DefaultOutlierDetectionService
         OutlierDetectionRequest.Builder request = new OutlierDetectionRequest.Builder();
 
         List<DataSet> dataSets = idObjectManager.getByUid( DataSet.class, query.getDs() );
+        List<DataElement> dataElements = idObjectManager.getByUid( DataElement.class, query.getDe() );
 
-        List<DataElement> dataElements = dataSets.stream()
+        dataElements.addAll( dataSets.stream()
             .map( ds -> ds.getDataElements() )
             .flatMap( Collection::stream )
-            .collect( Collectors.toList() );
+            .filter( de -> de.getValueType().isNumeric() )
+            .collect( Collectors.toList() ) );
 
         request
             .withDataElements( dataElements )
@@ -170,9 +172,6 @@ public class DefaultOutlierDetectionService
     private OutlierDetectionMetadata getMetadata( OutlierDetectionRequest request )
     {
         final OutlierDetectionMetadata metadata = new OutlierDetectionMetadata();
-
-        request.getDataElements().forEach( de -> metadata.addItem( de ) );
-        request.getOrgUnits().forEach( ou -> metadata.addItem( ou ) );
 
         return metadata;
     }

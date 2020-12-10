@@ -28,14 +28,6 @@
 
 package org.hisp.dhis.outlierdetection;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.hisp.dhis.common.MetadataItem;
-import org.hisp.dhis.common.NameableObject;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Data;
 
 /**
@@ -46,15 +38,4 @@ import lombok.Data;
 @Data
 public class OutlierDetectionMetadata
 {
-    @JsonProperty
-    private Map<String, MetadataItem> items = new HashMap<>();
-
-    public void addItem( NameableObject object )
-    {
-        MetadataItem item = new MetadataItem( object.getDisplayName() );
-        item.setUid( object.getUid() );
-        item.setCode( object.getCode() );
-
-        this.items.put( object.getUid(), item );
-    }
 }
