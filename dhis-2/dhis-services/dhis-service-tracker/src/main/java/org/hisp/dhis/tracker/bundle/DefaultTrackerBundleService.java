@@ -196,12 +196,9 @@ public class DefaultTrackerBundleService
 
         Stream.of( TrackerType.values() )
             .forEach( t -> bundleReport.getTypeReportMap().put( t, COMMIT_MAPPER.get( t )
-            .apply( session, bundle ) ) );
+                .apply( session, bundle ) ) );
 
         bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
-
-        dbmsManager.clearSession();
-        cacheManager.clearCache();
 
         return bundleReport;
     }
