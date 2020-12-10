@@ -34,6 +34,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierValue;
+import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -60,7 +61,8 @@ public class OutlierDetectionManager
 
         final String sql =
             // Outer selection
-            "select dvs.de_uid, dvs.periodid, dvs.ou_uid, dvs.ou_name, dvs.coc_uid, dvs.aoc_uid, dvs.value, " +
+            "select dvs.de_uid, dvs.periodid, dvs.ou_uid, dvs.coc_uid, dvs.aoc_uid, " +
+                "dvs.de_name, dvs.ou_name, dvs.coc_name, dvs.aoc_name, dvs.value, " +
                 "stats.mean as mean, " +
                 "stats.std_dev as std_dev, " +
                 "abs(dvs.value::double precision - stats.mean) as mean_abs_dev, " +
@@ -69,8 +71,10 @@ public class OutlierDetectionManager
                 "stats.mean + (stats.std_dev * :threshold) as upper_bound " +
             // Data value query
             "from (" +
-                "select dv.dataelementid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, " +
-                "de.uid as de_uid, dv.periodid, ou.uid as ou_uid, ou.name as ou_name, coc.uid as coc_uid, aoc.uid as aoc_uid, dv.value " +
+                "select dv.dataelementid, dv.sourceid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, " +
+                "de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, " +
+                "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, " +
+                "dv.value " +
                 "from datavalue dv " +
                 "inner join dataelement de on dv.dataelementid = de.dataelementid " +
                 "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
@@ -81,7 +85,8 @@ public class OutlierDetectionManager
                 "and pe.startdate >= :start_date " +
                 "and pe.enddate <= :end_date " +
                 "and " + ouPathClause + " " +
-                "and dv.deleted is false" +
+                "and dv.deleted is false " +
+                "and dv.value ~* :numeric_regex" +
             ") as dvs " +
             // Mean and std dev mapping query
             "inner join (" +
@@ -95,6 +100,7 @@ public class OutlierDetectionManager
                 "where dv.dataelementid in (:data_element_ids) " +
                 "and " + ouPathClause + " " +
                 "and dv.deleted is false " +
+                "and dv.value ~* :numeric_regex " +
                 "group by dv.dataelementid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid" +
             ") as stats " +
             // Join data queries
@@ -112,6 +118,7 @@ public class OutlierDetectionManager
             .addValue( "threshold", request.getThreshold() )
             .addValue( "data_element_ids", request.getDataElementIds() )
             .addValue( "start_date", request.getStartDate() )
+            .addValue( "numeric_regex", MathUtils.NUMERIC_LENIENT_REGEXP )
             .addValue( "end_date", request.getEndDate() )
             .addValue( "order_by", request.getOrderBy().getKey() )
             .addValue( "max_results", request.getMaxResults() );
@@ -119,11 +126,14 @@ public class OutlierDetectionManager
         return jdbcTemplate.query( sql, params, ( rs, rowNum ) -> {
             OutlierValue outlier = new OutlierValue();
             outlier.setDe( rs.getString( "de_uid" ) );
+            outlier.setDeName( rs.getString( "de_name" ) );
             // TODO Period identifier
             outlier.setOu( rs.getString( "ou_uid" ) );
             outlier.setOuName( rs.getString( "ou_name" ) );
             outlier.setCoc( rs.getString( "coc_uid" ) );
+            outlier.setCocName( rs.getString( "coc_name" ) );
             outlier.setAoc( rs.getString( "aoc_uid" ) );
+            outlier.setAocName( rs.getString( "aoc_name" ) );
             outlier.setValue( rs.getDouble( "value" ) );
             outlier.setMean( rs.getDouble( "mean" ) );
             outlier.setStdDev( rs.getDouble( "std_dev" ) );

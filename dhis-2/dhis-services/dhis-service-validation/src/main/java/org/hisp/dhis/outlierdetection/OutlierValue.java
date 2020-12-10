@@ -44,6 +44,9 @@ public class OutlierValue
     private String de;
 
     @JsonProperty
+    private String deName;
+
+    @JsonProperty
     private String pe;
 
     @JsonProperty
@@ -56,7 +59,13 @@ public class OutlierValue
     private String coc;
 
     @JsonProperty
+    private String cocName;
+
+    @JsonProperty
     private String aoc;
+
+    @JsonProperty
+    private String aocName;
 
     @JsonProperty
     private String comment;
