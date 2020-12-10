@@ -82,6 +82,8 @@ import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
 public class DefaultIdentifiableObjectManager
     implements IdentifiableObjectManager
 {
+    public static final String DEFAULT = "default";
+
     /**
      * Cache for default category objects. Disabled during test phase.
      */
@@ -1138,13 +1140,13 @@ public class DefaultIdentifiableObjectManager
     {
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
             .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class.getName(),
-                key -> getByName( Category.class, "default" ) ).orElse( null ) )
+                key -> getByName( Category.class, DEFAULT ) ).orElse( null ) )
             .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class.getName(),
-                key -> getByName( CategoryCombo.class, "default" ) ).orElse( null ) )
+                key -> getByName( CategoryCombo.class, DEFAULT ) ).orElse( null ) )
             .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class.getName(),
-                key -> getByName( CategoryOption.class, "default" ) ).orElse( null ) )
+                key -> getByName( CategoryOption.class, DEFAULT ) ).orElse( null ) )
             .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class.getName(),
-                key -> getByName( CategoryOptionCombo.class, "default" ) ).orElse( null ) )
+                key -> getByName( CategoryOptionCombo.class, DEFAULT ) ).orElse( null ) )
             .build();
     }
 

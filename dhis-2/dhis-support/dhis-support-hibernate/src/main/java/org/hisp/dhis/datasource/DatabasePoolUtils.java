@@ -129,8 +129,8 @@ public class DatabasePoolUtils
         hc.addDataSourceProperty( "prepStmtCacheSqlLimit", "2048" );
 
         HikariDataSource ds = new HikariDataSource( hc );
-        ds.setConnectionTimeout(  connectionTimeout ) ;
-        ds.setValidationTimeout( validationTimeout ) ;
+        ds.setConnectionTimeout( connectionTimeout );
+        ds.setValidationTimeout( validationTimeout );
         ds.setMaximumPoolSize( maxPoolSize );
 
         testConnection( ds );
@@ -141,10 +141,7 @@ public class DatabasePoolUtils
     public static DataSource createC3p0DbPool( PoolConfig config )
         throws PropertyVetoException, SQLException
     {
-        HibernateConfigurationProvider hibernateConfig = config.getHibernateConfig();
         DhisConfigurationProvider dhisConfig = config.getDhisConfig();
-
-        ComboPooledDataSource dataSource = new ComboPooledDataSource();
 
         final String driverClassName = dhisConfig.getProperty( ConfigurationKey.CONNECTION_DRIVER_CLASS );
         final String jdbcUrl = MoreObjects.firstNonNull( config.getJdbcUrl(), dhisConfig.getProperty( ConfigurationKey.CONNECTION_URL ) );
@@ -161,6 +158,7 @@ public class DatabasePoolUtils
         final int maxIdleTimeExcessConnections = Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON ) );
         final int idleConnectionTestPeriod = Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD ) );
 
+        ComboPooledDataSource dataSource = new ComboPooledDataSource();
         dataSource.setDriverClass( driverClassName );
         dataSource.setJdbcUrl( jdbcUrl );
         dataSource.setUser( username );

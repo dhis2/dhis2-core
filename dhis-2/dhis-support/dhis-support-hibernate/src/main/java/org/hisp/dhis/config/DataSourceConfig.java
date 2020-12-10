@@ -68,9 +68,6 @@ public class DataSourceConfig
     @Autowired
     private DhisConfigurationProvider dhisConfig;
 
-    @Autowired
-    private HibernateConfigurationProvider hibernateConfigurationProvider;
-
     @Bean( "jdbcTemplate" )
     @DependsOn( "dataSource" )
     @Primary
@@ -96,10 +93,9 @@ public class DataSourceConfig
     }
 
     @Bean( "actualDataSource" )
-    public DataSource actualDataSource()
+    public DataSource actualDataSource( HibernateConfigurationProvider hibernateConfigurationProvider )
         throws PropertyVetoException
     {
-
         String jdbcUrl = dhisConfig.getProperty( ConfigurationKey.CONNECTION_URL );
         String username = dhisConfig.getProperty( ConfigurationKey.CONNECTION_USERNAME );
         String dbPoolType = dhisConfig.getProperty( ConfigurationKey.DB_POOL_TYPE );

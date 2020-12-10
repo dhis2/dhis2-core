@@ -47,6 +47,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 
@@ -136,7 +137,7 @@ public abstract class IntegrationTestBase extends DhisConvenienceTest implements
     }
 
     private void executeStartupRoutines()
-        throws Exception
+        throws NoSuchMethodException, InvocationTargetException, IllegalAccessException
     {
         String id = "org.hisp.dhis.system.startup.StartupRoutineExecutor";
 

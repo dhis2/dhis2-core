@@ -37,7 +37,6 @@ import org.hisp.dhis.deletedobject.DeletedObject;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.DefaultHibernateConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,17 +56,15 @@ import java.util.Properties;
 
 /**
  * @author Luciano Fiandesio
+ * @author Morten Svanæs
  */
 @Slf4j
 @Configuration
 @EnableTransactionManagement
 public class HibernateConfig
 {
-    @Autowired
-    private DhisConfigurationProvider dhisConfig;
-
     @Bean( "hibernateConfigurationProvider" )
-    public HibernateConfigurationProvider hibernateConfigurationProvider()
+    public HibernateConfigurationProvider hibernateConfigurationProvider( DhisConfigurationProvider dhisConfig )
     {
         DefaultHibernateConfigurationProvider hibernateConfigurationProvider = new DefaultHibernateConfigurationProvider();
         hibernateConfigurationProvider.setConfigProvider( dhisConfig );
@@ -76,18 +73,17 @@ public class HibernateConfig
 
     @Bean
     @DependsOn( "flyway" )
-    public LocalSessionFactoryBean sessionFactory( DataSource dataSource, @Qualifier( "hibernateConfigurationProvider" ) HibernateConfigurationProvider hibernateConfigurationProvider )
-        throws Exception
+    public LocalSessionFactoryBean sessionFactory( DataSource dataSource,
+        @Qualifier( "hibernateConfigurationProvider" ) HibernateConfigurationProvider hibernateConfigurationProvider )
     {
         Objects.requireNonNull( dataSource );
         Objects.requireNonNull( hibernateConfigurationProvider );
 
         Properties hibernateProperties = hibernateConfigurationProvider.getConfiguration().getProperties();
-
         Objects.requireNonNull( hibernateProperties );
 
-        List<Resource> jarResources = hibernateConfigurationProvider().getJarResources();
-        List<Resource> directoryResources = hibernateConfigurationProvider().getDirectoryResources();
+        List<Resource> jarResources = hibernateConfigurationProvider.getJarResources();
+        List<Resource> directoryResources = hibernateConfigurationProvider.getDirectoryResources();
 
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setDataSource( dataSource );
@@ -100,9 +96,7 @@ public class HibernateConfig
     }
 
     @Bean
-    public PlatformTransactionManager hibernateTransactionManager( DataSource dataSource,
-        SessionFactory sessionFactory )
-        throws Exception
+    public PlatformTransactionManager hibernateTransactionManager( DataSource dataSource, SessionFactory sessionFactory )
     {
         HibernateTransactionManager transactionManager = new HibernateTransactionManager();
         transactionManager.setSessionFactory( sessionFactory );
@@ -112,14 +106,12 @@ public class HibernateConfig
 
     @Bean
     public TransactionTemplate transactionTemplate( PlatformTransactionManager transactionManager )
-        throws Exception
     {
         return new TransactionTemplate( transactionManager );
     }
 
     @Bean
     public DefaultHibernateCacheManager cacheManager( SessionFactory sessionFactory )
-        throws Exception
     {
         DefaultHibernateCacheManager cacheManager = new DefaultHibernateCacheManager();
         cacheManager.setSessionFactory( sessionFactory );
@@ -129,7 +121,6 @@ public class HibernateConfig
     @Bean
     public DbmsManager dbmsManager( JdbcTemplate jdbcTemplate, SessionFactory sessionFactory,
         DefaultHibernateCacheManager cacheManager )
-        throws Exception
     {
         HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
         hibernateDbmsManager.setCacheManager( cacheManager );
