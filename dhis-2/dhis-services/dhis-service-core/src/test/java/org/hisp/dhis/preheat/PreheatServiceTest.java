@@ -28,11 +28,8 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-import java.util.*;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -50,13 +47,20 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -76,10 +80,14 @@ public class PreheatServiceTest
     @Autowired
     private AttributeService attributeService;
 
+    @Autowired
+    private UserService _userService;
+
     @Override
     protected void setUpTest() throws Exception
     {
         renderService = _renderService;
+        userService = _userService;
     }
 
     @Ignore
@@ -487,9 +495,9 @@ public class PreheatServiceTest
 
         List<DataElement> members = new ArrayList<>( dataElementGroup.getMembers() );
 
-        assertContains(members, "DataElementA", "DataElementCodeA");
-        assertContains(members, "DataElementB", "DataElementCodeB");
-        assertContains(members, "DataElementC", "DataElementCodeC");
+        assertContains( members, "DataElementA", "DataElementCodeA" );
+        assertContains( members, "DataElementB", "DataElementCodeB" );
+        assertContains( members, "DataElementC", "DataElementCodeC" );
 
         assertEquals( "FirstNameA", dataElementGroup.getUser().getFirstName() );
         assertEquals( "SurnameA", dataElementGroup.getUser().getSurname() );
@@ -513,9 +521,9 @@ public class PreheatServiceTest
 
         List<DataElement> members = new ArrayList<>( dataElementGroup.getMembers() );
 
-        assertContains(members, "DataElementA", "DataElementCodeA");
-        assertContains(members, "DataElementB", "DataElementCodeB");
-        assertContains(members, "DataElementC", "DataElementCodeC");
+        assertContains( members, "DataElementA", "DataElementCodeA" );
+        assertContains( members, "DataElementB", "DataElementCodeB" );
+        assertContains( members, "DataElementC", "DataElementCodeC" );
 
         assertEquals( "FirstNameA", dataElementGroup.getUser().getFirstName() );
         assertEquals( "SurnameA", dataElementGroup.getUser().getSurname() );
@@ -539,9 +547,9 @@ public class PreheatServiceTest
 
         List<DataElement> members = new ArrayList<>( dataElementGroup.getMembers() );
 
-        assertContains(members, "DataElementA", "DataElementCodeA");
-        assertContains(members, "DataElementB", "DataElementCodeB");
-        assertContains(members, "DataElementC", "DataElementCodeC");
+        assertContains( members, "DataElementA", "DataElementCodeA" );
+        assertContains( members, "DataElementB", "DataElementCodeB" );
+        assertContains( members, "DataElementC", "DataElementCodeC" );
 
         assertEquals( "FirstNameA", dataElementGroup.getUser().getFirstName() );
         assertEquals( "SurnameA", dataElementGroup.getUser().getSurname() );
@@ -613,6 +621,33 @@ public class PreheatServiceTest
 
         Map<String, IdentifiableObject> map = preheat.getMap().get( PreheatIdentifier.UID ).get( DataElement.class );
         assertEquals( 3, map.size() );
+    }
+
+    @Test
+    public void testUserPreheatCollection()
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = new HashMap<>();
+
+        User user1 = createUser( "aaa" );
+        User user2 = createUser( "bbb" );
+        User user3 = createUser( "ccc" );
+
+        metadata.put( User.class, new ArrayList<>() );
+        metadata.get( User.class ).add( user1 );
+        metadata.get( User.class ).add( user2 );
+        metadata.get( User.class ).add( user3 );
+
+        PreheatParams params = new PreheatParams();
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setPreheatMode( PreheatMode.REFERENCE );
+        params.setObjects( metadata );
+
+        Preheat preheat = preheatService.preheat( params );
+        assertNotNull( preheat.getMap().get( PreheatIdentifier.CODE ) );
+        assertNotNull( preheat.getMap().get( PreheatIdentifier.UID ) );
+
+        assertTrue( preheat.getMap().get( PreheatIdentifier.CODE ).isEmpty() );
+        assertFalse( preheat.getMap().get( PreheatIdentifier.UID ).isEmpty() );
     }
 
     private void defaultSetup()
