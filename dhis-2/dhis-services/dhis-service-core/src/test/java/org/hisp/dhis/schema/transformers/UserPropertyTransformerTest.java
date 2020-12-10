@@ -143,7 +143,7 @@ public class UserPropertyTransformerTest
         FieldFilterParams params = new FieldFilterParams(
             Collections.singletonList( simple ), Collections.singletonList( "id,name,user[id,code],users[id,code]" ) );
 
-        ComplexNode node = fieldFilterService.toComplexNode( params );
+        fieldFilterService.toComplexNode( params );
     }
 
     @Test
@@ -183,7 +183,7 @@ public class UserPropertyTransformerTest
         FieldFilterParams params = new FieldFilterParams(
             Collections.singletonList( simple ), Collections.singletonList( "id,name,user[*],users[*]" ) );
 
-        ComplexNode node = fieldFilterService.toComplexNode( params );
+        fieldFilterService.toComplexNode( params );
     }
 
     @Test

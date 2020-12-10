@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.programrule;
  */
 
 import com.google.api.client.util.Sets;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -57,7 +56,6 @@ import java.util.stream.Stream;
  * @author Enrico Colasante
  */
 @Service
-@Slf4j
 public class DefaultTrackerProgramRuleService
     implements TrackerProgramRuleService
 {

@@ -31,14 +31,12 @@ package org.hisp.dhis.tracker.bundle.persister;
 import java.util.List;
 
 import org.hibernate.Session;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleHook;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
-import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;

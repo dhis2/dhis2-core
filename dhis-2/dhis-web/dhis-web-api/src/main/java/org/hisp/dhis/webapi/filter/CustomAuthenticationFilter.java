@@ -28,9 +28,7 @@ package org.hisp.dhis.webapi.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.stereotype.Component;
+import java.io.IOException;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -38,12 +36,13 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import java.io.IOException;
+
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Slf4j
 @Component
 public class CustomAuthenticationFilter implements InitializingBean, Filter
 {

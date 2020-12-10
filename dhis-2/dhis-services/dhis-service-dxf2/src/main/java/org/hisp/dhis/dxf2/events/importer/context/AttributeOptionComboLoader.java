@@ -63,8 +63,6 @@ public class AttributeOptionComboLoader
 {
     private final JdbcTemplate jdbcTemplate;
 
-    private final static String KEY_SEPARATOR = "-";
-
     public final static String SQL_GET_CATEGORYOPTIONCOMBO = "select coc.categoryoptioncomboid, "
         + "coc.uid, coc.code, coc.ignoreapproval, coc.name, c.uid as cc_uid, c.name as cc_name, "
         + "string_agg(dec.categoryid::text, ',') as cat_ids from categoryoptioncombo coc "
