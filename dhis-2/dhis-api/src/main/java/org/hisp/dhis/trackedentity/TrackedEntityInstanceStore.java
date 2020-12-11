@@ -84,7 +84,7 @@ public interface TrackedEntityInstanceStore
      * @return a List containing the TrackedEntityInstances matching the given
      *         parameters list
      */
-    List<TrackedEntityInstance> getIncludingDeleted(List<String> uids );
+    List<TrackedEntityInstance> getIncludingDeleted( List<String> uids );
 
     /**
      * Set lastSynchronized timestamp to provided timestamp for provided TEIs
