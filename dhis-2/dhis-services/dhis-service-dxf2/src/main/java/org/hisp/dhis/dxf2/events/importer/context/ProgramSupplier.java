@@ -28,22 +28,13 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.text.StrSubstitutor;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.integration.CacheLoader;
@@ -70,12 +61,18 @@ import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This supplier builds and caches a Map of all the Programs in the system.
@@ -132,18 +129,6 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     private final static String COMPULSORY = "compulsory";
     private final static String TRACKED_ENTITY_TYPE_ID = "trackedentitytypeid";
 
-    private final static String USER_ACCESS_SQL = "select eua.${column_name}, eua.useraccessid, ua.useraccessid, ua.access, ua.userid, ui.uid, ui.code, ui.surname, ui.firstname " +
-        "from ${table_name} eua " +
-        "join useraccess ua on eua.useraccessid = ua.useraccessid " +
-        "join userinfo ui on ui.userinfoid = ua.userid " +
-        "order by eua.${column_name}";
-
-    private final static String USER_GROUP_ACCESS_SQL = "select ega.${column_name}, ega.usergroupaccessid, u.access, u.usergroupid, ug.uid " +
-        "from ${table_name} ega " +
-        "join usergroupaccess u on ega.usergroupaccessid = u.usergroupaccessid " +
-        "join usergroup ug on u.usergroupid = ug.usergroupid " +
-        "order by ega.${column_name}";
-
     // Caches the entire Program hierarchy, including Program Stages and ACL data
     private final Cache<String, Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>() {}
         .name( "eventImportProgramCache" + RandomStringUtils.randomAlphabetic( 5 ) )
@@ -198,24 +183,18 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             //
             programMap = loadPrograms( importOptions.getIdSchemes() );
 
-            //
-            // Load User Access data for all the Programs (required for ACL checks)
-            //
-//            Map<Long, Set<UserAccess>> programUserAccessMap = loadUserAccessesForPrograms();
-//            Map<Long, Set<UserAccess>> programStageUserAccessMap = loadUserAccessesForProgramStages();
-//            Map<Long, Set<UserAccess>> tetUserAccessMap = loadUserAccessesForTrackedEntityTypes();
+            if ( !MapUtils.isEmpty( programMap ) )
+            {
+                aggregateProgramAndAclData( programMap, loadOrgUnits(),
+                    loadProgramStageDataElementSets() );
 
-            //
-            // Load User Group Access data for all the Programs (required for ACL checks)
-            //
-//            Map<Long, Set<UserGroupAccess>> programUserGroupAccessMap = loadGroupUserAccessesForPrograms();
-//            Map<Long, Set<UserGroupAccess>> programStageUserGroupAccessMap = loadGroupUserAccessesForProgramStages();
-//            Map<Long, Set<UserGroupAccess>> tetUserGroupAccessMap = loadGroupUserAccessesForTrackedEntityTypes();
+                programsCache.put( PROGRAM_CACHE_KEY, programMap );
+            }
+            else
+            {
+                programsCache.put( PROGRAM_CACHE_KEY, new HashMap<>() );
+            }
 
-            aggregateProgramAndAclData( programMap, loadOrgUnits(),
-                loadProgramStageDataElementSets() );
-
-            programsCache.put( PROGRAM_CACHE_KEY, programMap );
         }
 
         return programMap;
@@ -224,29 +203,12 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     private void aggregateProgramAndAclData( Map<String, Program> programMap, Map<Long, Set<OrganisationUnit>> ouMap,
         Map<Long, DataElementSets> dataElementSetsMap  )
     {
-
         for ( Program program : programMap.values() )
         {
             program.setOrganisationUnits( ouMap.getOrDefault( program.getId(), new HashSet<>() ) );
-//            program.setUserAccesses( programUserAccessMap.getOrDefault( program.getId(), new HashSet<>() ) );
-//            program
-//                .setUserGroupAccesses( programUserGroupAccessMap.getOrDefault( program.getId(), new HashSet<>() ) );
-            TrackedEntityType trackedEntityType = program.getTrackedEntityType();
-            if ( trackedEntityType != null )
-            {
-//                trackedEntityType
-//                    .setUserAccesses( tetUserAccessMap.getOrDefault( trackedEntityType.getId(), new HashSet<>() ) );
-//                trackedEntityType.setUserGroupAccesses(
-//                    tetUserGroupAccessMap.getOrDefault( trackedEntityType.getId(), new HashSet<>() ) );
-            }
 
             for ( ProgramStage programStage : program.getProgramStages() )
             {
-//                programStage.setUserAccesses(
-//                    programStageUserAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
-//                programStage.setUserGroupAccesses(
-//                    programStageUserGroupAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
-
                 DataElementSets dataElementSets = dataElementSetsMap.get( programStage.getId() );
                 if ( dataElementSets != null )
                 {

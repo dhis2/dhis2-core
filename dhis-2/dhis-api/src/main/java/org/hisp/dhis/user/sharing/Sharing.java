@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.collections.MapUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.user.User;
@@ -42,16 +43,6 @@ public class Sharing
 
     @JsonProperty
     private Map<String, UserGroupAccess> userGroups = new HashMap<>();
-
-    public Sharing copy()
-    {
-        return builder()
-            .external( this.external )
-            .publicAccess( this.publicAccess )
-            .owner( this.owner )
-            .users( new HashMap<>( users ) )
-            .userGroups( new HashMap<>( userGroups ) ).build();
-    }
 
     public void setOwner( User user )
     {
@@ -138,12 +129,28 @@ public class Sharing
 
     public void resetUserAccesses()
     {
-        this.users.clear();
+        if ( !MapUtils.isEmpty( this.users ) )
+        {
+            this.users.clear();
+        }
     }
 
     public void resetUserGroupAccesses()
     {
-        this.userGroups.clear();
+        if ( !MapUtils.isEmpty( this.userGroups ) )
+        {
+            this.userGroups.clear();
+        }
+    }
+
+    public Sharing copy()
+    {
+        return builder()
+            .external( this.external )
+            .publicAccess( this.publicAccess )
+            .owner( this.owner )
+            .users( new HashMap<>( users ) )
+            .userGroups( new HashMap<>( userGroups ) ).build();
     }
 }
 
