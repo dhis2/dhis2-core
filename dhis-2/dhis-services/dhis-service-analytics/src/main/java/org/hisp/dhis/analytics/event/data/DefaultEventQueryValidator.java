@@ -80,7 +80,9 @@ public class DefaultEventQueryValidator
 
         if ( error != null )
         {
-            log.warn( String.format( "Event analytics validation failed, code: '%s', message: '%s'", error.getErrorCode(), error.getMessage() ) );
+            log.warn( String.format(
+                "Event analytics validation failed, code: '%s', message: '%s'",
+                error.getErrorCode(), error.getMessage() ) );
 
             throw new IllegalQueryException( error );
         }
@@ -95,80 +97,63 @@ public class DefaultEventQueryValidator
         {
             throw new IllegalQueryException( ErrorCode.E7100 );
         }
-
-        if ( !params.hasOrganisationUnits() )
+        else if ( !params.hasOrganisationUnits() )
         {
             error = new ErrorMessage( ErrorCode.E7200 );
         }
-
-        if ( !params.getDuplicateDimensions().isEmpty() )
+        else if ( !params.getDuplicateDimensions().isEmpty() )
         {
             error = new ErrorMessage( ErrorCode.E7201, params.getDuplicateDimensions() );
         }
-
-        if ( !params.getDuplicateQueryItems().isEmpty() )
+        else if ( !params.getDuplicateQueryItems().isEmpty() )
         {
             error = new ErrorMessage( ErrorCode.E7202, params.getDuplicateQueryItems() );
         }
-
-        if ( params.hasValueDimension() && params.getDimensionalObjectItems().contains( params.getValue() ) )
+        else if ( params.hasValueDimension() && params.getDimensionalObjectItems().contains( params.getValue() ) )
         {
             error = new ErrorMessage( ErrorCode.E7203 );
         }
-
-        if ( params.hasAggregationType() && !( params.hasValueDimension() || params.isAggregateData() ) )
+        else if ( params.hasAggregationType() && !( params.hasValueDimension() || params.isAggregateData() ) )
         {
             error = new ErrorMessage( ErrorCode.E7204 );
         }
-
-        if ( !params.hasPeriods() && ( params.getStartDate() == null || params.getEndDate() == null ) )
+        else if ( !params.hasPeriods() && ( params.getStartDate() == null || params.getEndDate() == null ) )
         {
             error = new ErrorMessage( ErrorCode.E7205 );
         }
-
-        if ( params.getStartDate() != null && params.getEndDate() != null && params.getStartDate().after( params.getEndDate() ) )
+        else if ( params.getStartDate() != null && params.getEndDate() != null && params.getStartDate().after( params.getEndDate() ) )
         {
             error = new ErrorMessage( ErrorCode.E7206, getMediumDateString( params.getStartDate() ), getMediumDateString( params.getEndDate() ) );
         }
-
-        if ( params.getPage() != null && params.getPage() <= 0 )
+        else if ( params.getPage() != null && params.getPage() <= 0 )
         {
             error = new ErrorMessage( ErrorCode.E7207, params.getPage() );
         }
-
-        if ( params.getPageSize() != null && params.getPageSize() < 0 )
+        else if ( params.getPageSize() != null && params.getPageSize() < 0 )
         {
             error = new ErrorMessage( ErrorCode.E7208, params.getPageSize() );
         }
-
-        if ( params.hasLimit() && getMaxLimit() > 0 && params.getLimit() > getMaxLimit() )
+        else if ( params.hasLimit() && getMaxLimit() > 0 && params.getLimit() > getMaxLimit() )
         {
             error = new ErrorMessage( ErrorCode.E7209, params.getLimit(), getMaxLimit() );
         }
-
-        if ( params.hasTimeField() && !params.timeFieldIsValid() )
+        else if ( params.hasTimeField() && !params.timeFieldIsValid() )
         {
             error = new ErrorMessage( ErrorCode.E7210, params.getTimeField() );
         }
-
-        if ( params.hasOrgUnitField() && !params.orgUnitFieldIsValid() )
+        else if ( params.hasOrgUnitField() && !params.orgUnitFieldIsValid() )
         {
             error = new ErrorMessage( ErrorCode.E7211, params.getOrgUnitField() );
         }
-
-        if ( params.hasClusterSize() && params.getClusterSize() <= 0 )
+        else if ( params.hasClusterSize() && params.getClusterSize() <= 0 )
         {
             error = new ErrorMessage( ErrorCode.E7212, params.getClusterSize() );
         }
-
-        if ( params.hasBbox() && !ValidationUtils.bboxIsValid( params.getBbox() ) )
+        else if ( params.hasBbox() && !ValidationUtils.bboxIsValid( params.getBbox() ) )
         {
             error = new ErrorMessage( ErrorCode.E7213, params.getBbox() );
         }
-
-        // TODO validate coordinate field
-
-        if ( ( params.hasBbox() || params.hasClusterSize() ) && params.getCoordinateField() == null )
+        else if ( ( params.hasBbox() || params.hasClusterSize() ) && params.getCoordinateField() == null )
         {
             error = new ErrorMessage( ErrorCode.E7214 );;
         }
@@ -179,12 +164,13 @@ public class DefaultEventQueryValidator
             {
                 error = new ErrorMessage( ErrorCode.E7215, item.getItemId() );
             }
-
-            if ( params.isAggregateData() && !item.getAggregationType().isAggregateable() )
+            else if ( params.isAggregateData() && !item.getAggregationType().isAggregateable() )
             {
                 error = new ErrorMessage( ErrorCode.E7216, item.getItemId() );
             }
         }
+
+        // TODO validate coordinate field
 
         return error;
     }
