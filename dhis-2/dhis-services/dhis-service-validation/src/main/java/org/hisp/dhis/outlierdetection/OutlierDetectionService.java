@@ -44,7 +44,7 @@ public interface OutlierDetectionService
      * @param request the {@link OutlierDetectionRequest}.
      * @throws IllegalQueryException if request is invalid.
      */
-    void validate( OutlierDetectionRequest params )
+    void validate( OutlierDetectionRequest request )
         throws IllegalQueryException;
 
     /**
