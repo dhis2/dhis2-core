@@ -42,6 +42,9 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 import lombok.SneakyThrows;
 
@@ -53,6 +56,13 @@ public class ConverterUtils
     private ConverterUtils()
     {
     }
+
+    /*
+    Memoize the TrackeDto fields
+     */
+    private final static LoadingCache<Class<? extends TrackerDto>, Set<Field>> memoizedFields = CacheBuilder
+        .newBuilder()
+        .build( CacheLoader.from( ConverterUtils::getFields ) );
 
     /**
      * Extract all the {@link Field} from a given object having the following
@@ -70,8 +80,7 @@ public class ConverterUtils
     public static List<Field> getPatchFields( Class<? extends TrackerDto> clazz, Object entity )
     {
         // Get all the fields on the "patchable" entity
-        final Set<Field> fields = new Reflections( clazz, new FieldAnnotationsScanner() )
-            .getFieldsAnnotatedWith( JsonProperty.class );
+        final Set<Field> fields = memoizedFields.get( clazz );
 
         Predicate<Field> isFromDeclaringClass = f -> f.getDeclaringClass().equals( clazz );
         Predicate<Field> isNotCollection = f -> !Collection.class.isAssignableFrom( f.getType() );
@@ -95,5 +104,11 @@ public class ConverterUtils
         {
             return ReflectionUtils.getField( f, entity ) != null;
         }
+    }
+
+    private static Set<Field> getFields( Class<? extends TrackerDto> clazz )
+    {
+        return new Reflections( clazz, new FieldAnnotationsScanner() )
+            .getFieldsAnnotatedWith( JsonProperty.class );
     }
 }

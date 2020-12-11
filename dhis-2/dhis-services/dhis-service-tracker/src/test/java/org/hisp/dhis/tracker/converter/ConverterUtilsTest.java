@@ -22,7 +22,7 @@ public class ConverterUtilsTest
     @Test
     public void verifyPatchFieldsOnEmptyEntity()
     {
-        final List<Field> patchFields = ConverterUtils.getPatchFields( Event.class, new Event() );
+        List<Field> patchFields = ConverterUtils.getPatchFields( Event.class, new Event() );
         assertThat( patchFields, hasSize( 1 ) );
         assertThat( patchFields.get( 0 ).getName(), is( "deleted" ) );
     }
