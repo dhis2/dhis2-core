@@ -71,10 +71,6 @@ public class DefaultTrackerBundleService
 
     private final SessionFactory sessionFactory;
 
-    private final HibernateCacheManager cacheManager;
-
-    private final DbmsManager dbmsManager;
-
     private final CommitService commitService;
 
     private final TrackerProgramRuleService trackerProgramRuleService;
@@ -133,15 +129,11 @@ public class DefaultTrackerBundleService
 
     public DefaultTrackerBundleService( TrackerPreheatService trackerPreheatService,
         SessionFactory sessionFactory,
-        HibernateCacheManager cacheManager,
-        DbmsManager dbmsManager,
         TrackerProgramRuleService trackerProgramRuleService,
         TrackerObjectDeletionService deletionService, CommitService commitService )
     {
         this.trackerPreheatService = trackerPreheatService;
         this.sessionFactory = sessionFactory;
-        this.cacheManager = cacheManager;
-        this.dbmsManager = dbmsManager;
         this.trackerProgramRuleService = trackerProgramRuleService;
         this.deletionService = deletionService;
         this.commitService = commitService;
