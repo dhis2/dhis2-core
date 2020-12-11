@@ -272,6 +272,7 @@ public class HibernateDbmsManager
         emptyTable( "program_attributes" );
         emptyTable( "periodboundary" );
         emptyTable( "programindicator" );
+        emptyTable( "programownershiphistory" );
         emptyTable( "program" );
 
         emptyTable( "programstageinstancefilter" );
