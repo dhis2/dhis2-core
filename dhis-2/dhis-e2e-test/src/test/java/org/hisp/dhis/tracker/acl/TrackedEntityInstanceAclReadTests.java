@@ -204,6 +204,7 @@ public class TrackedEntityInstanceAclReadTests
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder.addAll( "ouMode=ACCESSIBLE", "fields=*" );
         ApiResponse response = teiActions.get( "/", queryParamsBuilder );
+        System.out.println( "response.getAsString() = " + response.getAsString() );
 
         response.validate().statusCode( 200 );
 

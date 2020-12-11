@@ -1073,6 +1073,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             Predicate disjunction = builder.or(
                 builder.like( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ), builder.literal( "public" ) ) , access ) ,
                 builder.equal( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ), builder.literal( "public" ) ),"null" ),
+                builder.isNull( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ), builder.literal( "public" ) ) ),
+                builder.isNull( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ), builder.literal( "owner" ) ) ),
                 builder.equal( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ), builder.literal( "owner" ) ), "null" ),
                 builder.equal( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ), builder.literal( "owner" ) ), userUid ),
                 userPredicate.apply( root )
@@ -1114,6 +1116,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             Predicate disjunction = builder.or(
                 builder.like( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ), builder.literal( "public" ) ) , access ) ,
                 builder.equal( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ), builder.literal( "public" ) ),"null" ),
+                builder.isNull( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ), builder.literal( "public" ) ) ),
                 userPredicate.apply( root )
             );
 
