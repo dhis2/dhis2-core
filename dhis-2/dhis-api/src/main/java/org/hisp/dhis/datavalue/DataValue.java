@@ -199,7 +199,10 @@ public class DataValue
      */
     public boolean isZero()
     {
-        return dataElement != null && dataElement.getValueType().isNumeric() && value != null && ZERO_PATTERN.matcher( value ).find();
+        return dataElement != null &&
+            dataElement.getValueType().isNumeric() &&
+            value != null &&
+            ZERO_PATTERN.matcher( value ).find();
     }
 
     /**

@@ -60,13 +60,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableMap;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
-@Slf4j
 public class DefaultTrackerBundleService
     implements TrackerBundleService
 {
@@ -174,7 +171,7 @@ public class DefaultTrackerBundleService
             .calculateEventRuleEffects( trackerBundle.getEvents(), trackerBundle );
         trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
         trackerBundle.setEventRuleEffects( eventRuleEffects );
-        
+
         for ( RuleActionApplier applier : appliers )
         {
             trackerBundle = applier.executeActions( trackerBundle );
@@ -215,6 +212,7 @@ public class DefaultTrackerBundleService
         sideEffectHandlers.forEach( handler -> handler.handleSideEffects( bundles ) );
     }
 
+    @Override
     @Transactional
     public TrackerBundleReport delete( TrackerBundle bundle )
     {
