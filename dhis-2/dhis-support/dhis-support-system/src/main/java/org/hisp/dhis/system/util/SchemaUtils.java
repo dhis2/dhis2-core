@@ -28,7 +28,6 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
 import com.google.common.primitives.Primitives;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.Property;
@@ -39,17 +38,12 @@ import org.springframework.util.Assert;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.Set;
-
-import static org.hisp.dhis.schema.PropertyType.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public final class SchemaUtils
 {
-    private static final Set<PropertyType> PROPS_IGNORE_MINMAX = Sets.newHashSet( REFERENCE, BOOLEAN, DATE, CONSTANT );
-
     public static void updatePropertyTypes( Property property )
     {
         Assert.notNull( property, "Property cannot be null" );
@@ -146,12 +140,6 @@ public final class SchemaUtils
                 {
                     property.setMax( Double.MAX_VALUE );
                 }
-            }
-
-            if ( PROPS_IGNORE_MINMAX.contains( property.getPropertyType() ) )
-            {
-                property.setMin( null );
-                property.setMax( null );
             }
         }
         else
