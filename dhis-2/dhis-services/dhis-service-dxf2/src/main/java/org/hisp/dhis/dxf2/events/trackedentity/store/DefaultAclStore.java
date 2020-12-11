@@ -56,8 +56,8 @@ public class DefaultAclStore
 
     private final static String USERACCESS_CONDITION = "sharing->'users'->:" + USER_SQL_PARAM_NAME + "->>'access' LIKE '__r%'";
 
-    private final static String USERGROUPACCESS_CONDITION = "function(" + JsonbFunctions.HAS_USER_GROUP_IDS + ",sharing, ':" + USER_GROUP_SQL_PARAM_NAME + "') = true " +
-        "and function(" + JsonbFunctions.CHECK_USER_GROUPS_ACCESS + ", sharing, '__r%', ':" + USER_GROUP_SQL_PARAM_NAME + "') = true";
+    private final static String USERGROUPACCESS_CONDITION =  JsonbFunctions.HAS_USER_GROUP_IDS + "( sharing, :" + USER_GROUP_SQL_PARAM_NAME + ") = true " +
+        "and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "(sharing, '__r%', :" + USER_GROUP_SQL_PARAM_NAME + ") = true";
 
     private final static String GET_TEI_TYPE_ACL = "SELECT trackedentitytypeid FROM trackedentitytype "
         + " WHERE " + PUBLIC_ACCESS_CONDITION + " OR " + USERACCESS_CONDITION;

@@ -306,6 +306,7 @@ public class HibernateDbmsManager
 
         emptyTable( "userteisearchorgunits" );
         emptyTable( "categoryoption_organisationunits" );
+        emptyTable( "userdatavieworgunits" );
         emptyTable( "organisationunit" );
         emptyTable( "orgunitlevel" );
 
