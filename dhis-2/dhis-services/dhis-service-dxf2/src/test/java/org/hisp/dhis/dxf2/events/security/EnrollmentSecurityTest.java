@@ -215,7 +215,7 @@ public class EnrollmentSecurityTest
      * orgUnit = Not Accessible
      * status = ERROR
      */
-    @Test
+    @Test( expected = IllegalQueryException.class )
     public void testUserWithDataReadWriteNoOrgUnit()
     {
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
@@ -243,7 +243,7 @@ public class EnrollmentSecurityTest
      * orgUnit = Accessible
      * status = ERROR
      */
-    @Test
+    @Test( expected = IllegalQueryException.class )
     public void testUserWithDataReadOrgUnit()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
@@ -272,7 +272,7 @@ public class EnrollmentSecurityTest
      * orgUnit = Accessible
      * status = ERROR
      */
-    @Test
+    @Test( expected = IllegalQueryException.class )
     public void testUserNoDataAccessOrgUnit()
     {
         programA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
@@ -301,7 +301,7 @@ public class EnrollmentSecurityTest
      * orgUnit = Not Accessible
      * status = ERROR
      */
-    @Test
+    @Test( expected = IllegalQueryException.class )
     public void testUserNoDataAccessNoOrgUnit()
     {
         programA.setPublicAccess( AccessStringHelper.DEFAULT );
