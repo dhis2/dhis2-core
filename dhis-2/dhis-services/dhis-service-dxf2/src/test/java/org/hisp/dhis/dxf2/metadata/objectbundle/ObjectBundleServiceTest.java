@@ -698,7 +698,8 @@ public class ObjectBundleServiceTest
         assertNotNull( userGroup );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        objectBundleValidationService.validate( bundle );
+        ObjectBundleValidationReport report = objectBundleValidationService.validate( bundle );
+        assertEquals( 0, report.getErrorReports().size() );
         objectBundleService.commit( bundle );
 
         DataElement dataElementA = dataElementMap.get( "deabcdefghA" );

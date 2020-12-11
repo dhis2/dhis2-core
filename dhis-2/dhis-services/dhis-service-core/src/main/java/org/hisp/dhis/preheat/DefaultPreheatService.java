@@ -172,7 +172,8 @@ public class DefaultPreheatService implements PreheatService
                 query.setUser( preheat.getUser() );
                 List<? extends IdentifiableObject> objects = queryService.query( query );
 
-                if ( PreheatIdentifier.UID == params.getPreheatIdentifier() || PreheatIdentifier.AUTO == params.getPreheatIdentifier() )
+                if ( PreheatIdentifier.UID == params.getPreheatIdentifier() || PreheatIdentifier.AUTO == params.getPreheatIdentifier()
+                    || isOnlyUID( klass ) )
                 {
                     preheat.put( PreheatIdentifier.UID, objects );
                 }
@@ -195,7 +196,10 @@ public class DefaultPreheatService implements PreheatService
             Map<Class<? extends IdentifiableObject>, Set<String>> uidMap = references.get( PreheatIdentifier.UID );
             Map<Class<? extends IdentifiableObject>, Set<String>> codeMap = references.get( PreheatIdentifier.CODE );
 
-            if ( uidMap != null && (PreheatIdentifier.UID == params.getPreheatIdentifier() || PreheatIdentifier.AUTO == params.getPreheatIdentifier()) )
+            boolean hasOnlyUIDClasses = uidMap.keySet().stream().filter( klass -> isOnlyUID( klass ) ).findAny().isPresent() ? true : false;
+
+            if ( uidMap != null && ( PreheatIdentifier.UID == params.getPreheatIdentifier()
+                || PreheatIdentifier.AUTO == params.getPreheatIdentifier() || hasOnlyUIDClasses ) )
             {
                 for ( Class<? extends IdentifiableObject> klass : uidMap.keySet() )
                 {
@@ -310,23 +314,7 @@ public class DefaultPreheatService implements PreheatService
             object.getSharing().setPublicAccess( object.getPublicAccess() );
             object.getUserAccesses().forEach( ua ->
             {
-                User user = null;
-
-                if ( ua.getUser() != null )
-                {
-                    if ( PreheatIdentifier.UID == identifier )
-                    {
-                        user = preheat.get( identifier, User.class, ua.getUser().getUid() );
-                    }
-                    else if ( PreheatIdentifier.CODE == identifier )
-                    {
-                        user = preheat.get( identifier, User.class, ua.getUser().getCode() );
-                    }
-                }
-                else
-                {
-                    user = preheat.get( PreheatIdentifier.UID, User.class, ua.getUserUid() );
-                }
+                User user = preheat.get( PreheatIdentifier.UID, User.class, ua.getUserUid() );
 
                 if ( user != null )
                 {
@@ -339,23 +327,7 @@ public class DefaultPreheatService implements PreheatService
 
             object.getUserGroupAccesses().forEach( uga ->
             {
-                UserGroup userGroup = null;
-
-                if ( uga.getUserGroup() != null )
-                {
-                    if ( PreheatIdentifier.UID == identifier )
-                    {
-                        userGroup = preheat.get( identifier, UserGroup.class, uga.getUserGroup().getUid() );
-                    }
-                    else if ( PreheatIdentifier.CODE == identifier )
-                    {
-                        userGroup = preheat.get( identifier, UserGroup.class, uga.getUserGroup().getCode() );
-                    }
-                }
-                else
-                {
-                    userGroup = preheat.get( PreheatIdentifier.UID, UserGroup.class, uga.getUserGroupUid() );
-                }
+                UserGroup userGroup = preheat.get( PreheatIdentifier.UID, UserGroup.class, uga.getUserGroupUid() );
 
                 if ( userGroup != null )
                 {
@@ -1031,5 +1003,10 @@ public class DefaultPreheatService implements PreheatService
     private boolean skipConnect( Class<?> klass )
     {
         return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ));
+    }
+
+    private boolean isOnlyUID( Class<?> klass )
+    {
+        return UserGroup.class.isAssignableFrom( klass ) || User.class.isAssignableFrom( klass );
     }
 }

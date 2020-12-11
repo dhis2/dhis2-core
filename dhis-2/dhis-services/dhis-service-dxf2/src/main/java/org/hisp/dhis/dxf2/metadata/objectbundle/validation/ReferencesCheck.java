@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 import org.apache.commons.collections.MapUtils;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -180,29 +179,6 @@ public class ReferencesCheck
 
         if ( schema.havePersistedProperty( "sharing" ) && !skipSharing )
         {
-            //TODO Legacy sharing objects, need to be removed
-            if ( !CollectionUtils.isEmpty( object.getUserGroupAccesses() ) )
-            {
-                object.getUserGroupAccesses().stream()
-                    .filter( userGroupAccess -> userGroupAccess.getUserGroup() != null
-                        && preheat.get( identifier, userGroupAccess.getUserGroup() ) == null )
-                    .forEach(
-                        userGroupAccesses -> preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
-                            ErrorCode.E5002, identifier.getIdentifiersWithName( userGroupAccesses.getUserGroup() ),
-                            identifier.getIdentifiersWithName( object ), "userGroupAccesses" ) ) );
-            }
-
-            if ( !CollectionUtils.isEmpty( object.getUserAccesses() ) )
-            {
-                object.getUserAccesses().stream()
-                    .filter( userGroupAccess -> userGroupAccess.getUser() != null
-                        && preheat.get( identifier, userGroupAccess.getUser() ) == null )
-                    .forEach( userAccesses -> preheatErrorReports.add( new PreheatErrorReport( identifier,
-                        object.getClass(), ErrorCode.E5002, identifier.getIdentifiersWithName( userAccesses.getUser() ),
-                        identifier.getIdentifiersWithName( object ), "userAccesses" ) ) );
-            }
-
-            // New jsonb sharing property
             if ( object.getSharing() != null )
             {
                 if ( !MapUtils.isEmpty( object.getSharing().getUserGroups() ) )
@@ -210,19 +186,19 @@ public class ReferencesCheck
                     object.getSharing().getUserGroups().values().stream()
                         .filter( userGroupAccess -> preheat.get( PreheatIdentifier.UID, userGroupAccess.toDtoObject().getUserGroup() ) == null )
                         .forEach(
-                            userGroupAccess -> preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
-                                ErrorCode.E5002, identifier.getIdentifiersWithName( userGroupAccess.toDtoObject().getUserGroup() ),
-                                identifier.getIdentifiersWithName( object ), "userGroupAccesses" ) ) );
+                            userGroupAccess -> preheatErrorReports.add( new PreheatErrorReport( PreheatIdentifier.UID, object.getClass(),
+                                ErrorCode.E5002, PreheatIdentifier.UID.getIdentifiersWithName( userGroupAccess.toDtoObject().getUserGroup() ),
+                                PreheatIdentifier.UID.getIdentifiersWithName( object ), "userGroupAccesses" ) ) );
                 }
 
                 if ( !MapUtils.isEmpty( object.getSharing().getUsers() ) )
                 {
                     object.getSharing().getUsers().values().stream()
                         .filter( userAccess -> preheat.get( PreheatIdentifier.UID, userAccess.toDtoObject().getUser() ) == null )
-                        .forEach( userAccesses -> preheatErrorReports.add( new PreheatErrorReport( identifier,
+                        .forEach( userAccesses -> preheatErrorReports.add( new PreheatErrorReport( PreheatIdentifier.UID,
                             object.getClass(), ErrorCode.E5002,
-                            identifier.getIdentifiersWithName( userAccesses.toDtoObject().getUser() ),
-                            identifier.getIdentifiersWithName( object ), "userAccesses" ) ) );
+                            PreheatIdentifier.UID.getIdentifiersWithName( userAccesses.toDtoObject().getUser() ),
+                            PreheatIdentifier.UID.getIdentifiersWithName( object ), "userAccesses" ) ) );
                 }
             }
         }
