@@ -610,6 +610,8 @@ public class AclServiceTest
         Dashboard dashboard = new Dashboard( "Dashboard" );
         dashboard.setUser( user1 );
         dashboard.getSharing().setOwner( user1 );
+        manager.save( dashboard );
+
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ );
         dashboard.getSharing().addUserGroupAccess( userGroupAccess );
         manager.save( dashboard, false );
