@@ -200,8 +200,6 @@ public class DefaultTrackerBundleService
 
         bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
 
-        dbmsManager.clearSession();
-
         return bundleReport;
     }
 
@@ -224,7 +222,7 @@ public class DefaultTrackerBundleService
 
         Stream.of( TrackerType.values() )
             .forEach( t -> bundleReport.getTypeReportMap().put( t, DELETION_MAPPER.get( t )
-            .apply( bundle, t ) ) );
+                .apply( bundle, t ) ) );
 
         return bundleReport;
     }
