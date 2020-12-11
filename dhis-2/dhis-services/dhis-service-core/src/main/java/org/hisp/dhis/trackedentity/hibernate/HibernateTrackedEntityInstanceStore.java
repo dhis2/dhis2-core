@@ -861,7 +861,7 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     public List<String> getUidsIncludingDeleted( List<String> uids )
     {
-        String hql = "select te.uid " + TEI_HQL_BY_UIDS;
+        String hql = "select tei.uid " + TEI_HQL_BY_UIDS;
         List<String> resultUids = new ArrayList<>();
         List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
 
