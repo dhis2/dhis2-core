@@ -32,7 +32,6 @@ package org.hisp.dhis.outlierdetection;
  * Mode for selection of org units.
  *
  * @author Lars Helge Overland
- *
  */
 public enum OrgUnitSelection
 {
