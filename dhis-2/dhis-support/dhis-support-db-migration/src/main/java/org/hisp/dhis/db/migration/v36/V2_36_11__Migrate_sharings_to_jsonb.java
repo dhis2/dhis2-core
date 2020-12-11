@@ -118,8 +118,8 @@ public class V2_36_11__Migrate_sharings_to_jsonb
         }
 
         String query = "update " + tableName + " _entity set sharing = to_jsonb(jsonb_build_object(" +
-            "'owner',(select _owner.uid from userinfo _owner where _owner.userinfoid = _entity.userid )," +
-            "'public',_entity.publicaccess," +
+            "'owner',nullif((select _owner.uid from users _owner where _owner.userid = _entity.userid),'' )," +
+            "'public',nullif(_entity.publicaccess,'')," +
             "'external', false," +
             "'users',(" +
             "select to_jsonb(coalesce(nullif(replace(array_to_string(array ( select json_build_object(_u.uid, jsonb_build_object('id', _u.uid, 'access', _ua.access)) " +
