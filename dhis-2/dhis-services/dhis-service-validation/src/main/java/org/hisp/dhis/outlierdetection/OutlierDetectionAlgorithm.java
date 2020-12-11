@@ -32,7 +32,6 @@ package org.hisp.dhis.outlierdetection;
  * Algorithm for outlier value detection.
  *
  * @author Lars Helge Overland
- *
  */
 public enum OutlierDetectionAlgorithm
 {
