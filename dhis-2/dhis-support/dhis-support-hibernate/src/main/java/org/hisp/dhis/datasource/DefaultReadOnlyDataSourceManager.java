@@ -157,7 +157,7 @@ public class DefaultReadOnlyDataSourceManager
                 }
                 catch ( SQLException | PropertyVetoException e )
                 {
-                    String message = String.format( "Connection test failed for main database pool, " +
+                    String message = String.format( "Connection test failed for read replica database pool, " +
                         "driver class: '%s', URL: '%s', user: '%s'", driverClass, jdbcUrl, username );
 
                     log.error( message );

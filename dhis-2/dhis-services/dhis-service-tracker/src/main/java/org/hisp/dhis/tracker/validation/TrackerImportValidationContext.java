@@ -88,12 +88,12 @@ public class TrackerImportValidationContext
         // Create a copy of the bundle
         this.bundle = bundle;
 
-        Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedMap = this.getResolvedStrategyMap();
+        Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedMap = this
+            .getResolvedStrategyMap();
 
         resolvedMap.put( Event.class, new HashMap<>() );
         resolvedMap.put( Enrollment.class, new HashMap<>() );
         resolvedMap.put( TrackedEntity.class, new HashMap<>() );
-
         this.rootReporter = ValidationErrorReporter.emptyReporter();
     }
 

@@ -28,8 +28,19 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Maps;
-import lombok.extern.slf4j.Slf4j;
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1017;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1018;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1019;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1075;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_VALUE_MAP_CANT_BE_NULL;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.Authorities;
@@ -45,24 +56,12 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1017;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1018;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1019;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1075;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_VALUE_MAP_CANT_BE_NULL;
+import com.google.common.collect.Maps;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-@Slf4j
 public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 {
 
@@ -82,19 +81,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
         for ( Attribute attribute : enrollment.getAttributes() )
         {
-//            validateRequiredProperties( reporter, attribute );
-            addErrorIfNull( attribute.getAttribute(), reporter, E1075, attribute );
-            addErrorIfNull( attribute.getValue(), reporter, E1076, attribute );
-            log.error( "attribute:" + attribute + "attribute.getAttribute()-->" + attribute.getAttribute() );
-            if ( attribute.getAttribute() != null )
-            {
-                TrackedEntityAttribute teAttribute = reporter.getValidationContext()
-                    .getTrackedEntityAttribute( attribute.getAttribute() );
-
-                log.error( "teAttribute:" + teAttribute );
-
-                addErrorIfNull( teAttribute, reporter, E1017, attribute );
-            }
+            validateRequiredProperties( reporter, attribute );
 
             if ( attribute.getAttribute() == null || attribute.getValue() == null ||
                 context.getTrackedEntityAttribute( attribute.getAttribute() ) == null )
@@ -119,19 +106,19 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         validateMandatoryAttributes( reporter, program, enrollment, attributeValueMap );
     }
 
-//    protected void validateRequiredProperties( ValidationErrorReporter reporter, Attribute attribute )
-//    {
-//        addErrorIfNull( attribute.getAttribute(), reporter, E1075, attribute );
-//        addErrorIfNull( attribute.getValue(), reporter, E1076, attribute );
-//
-//        if ( attribute.getAttribute() != null )
-//        {
-//            TrackedEntityAttribute teAttribute = reporter.getValidationContext()
-//                .getTrackedEntityAttribute( attribute.getAttribute() );
-//
-//            addErrorIfNull( teAttribute, reporter, E1017, attribute );
-//        }
-//    }
+    protected void validateRequiredProperties( ValidationErrorReporter reporter, Attribute attribute )
+    {
+        addErrorIfNull( attribute.getAttribute(), reporter, E1075, attribute );
+        addErrorIfNull( attribute.getValue(), reporter, E1076, attribute );
+
+        if ( attribute.getAttribute() != null )
+        {
+            TrackedEntityAttribute teAttribute = reporter.getValidationContext()
+                .getTrackedEntityAttribute( attribute.getAttribute() );
+
+            addErrorIfNull( teAttribute, reporter, E1017, attribute );
+        }
+    }
 
     private void validateMandatoryAttributes( ValidationErrorReporter reporter,
         Program program, Enrollment enrollment, Map<String, String> attributeValueMap )

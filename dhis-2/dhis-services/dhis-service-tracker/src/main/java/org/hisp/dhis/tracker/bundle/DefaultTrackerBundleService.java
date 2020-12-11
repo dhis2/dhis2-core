@@ -35,9 +35,7 @@ import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
-import javax.persistence.FlushModeType;
 
-import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
@@ -194,21 +192,11 @@ public class DefaultTrackerBundleService
 
         Session session = sessionFactory.getCurrentSession();
 
-        for ( TrackerBundleHook bundleHook : bundleHooks )
-        {
-            bundleHook.preCommit( bundle );
-        }
+        bundleHooks.forEach( hook -> hook.preCommit( bundle ) );
 
-        for ( TrackerType t : TrackerType.values() )
-        {
-            final BiFunction<Session, TrackerBundle, TrackerTypeReport> sessionTrackerBundleTrackerTypeReportBiFunction = COMMIT_MAPPER
-                .get( t );
-            final TrackerTypeReport apply = sessionTrackerBundleTrackerTypeReportBiFunction.apply( session, bundle );
-
-            final Map<TrackerType, TrackerTypeReport> typeReportMap = bundleReport.getTypeReportMap();
-
-            typeReportMap.put( t, apply );
-        }
+        Stream.of( TrackerType.values() )
+            .forEach( t -> bundleReport.getTypeReportMap().put( t, COMMIT_MAPPER.get( t )
+            .apply( session, bundle ) ) );
 
         bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
 
@@ -241,7 +229,6 @@ public class DefaultTrackerBundleService
 
         dbmsManager.clearSession();
         cacheManager.clearCache();
-        dbmsManager.flushSession();
 
         return bundleReport;
     }
