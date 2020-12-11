@@ -80,7 +80,9 @@ public class DefaultEventQueryValidator
 
         if ( error != null )
         {
-            log.warn( String.format( "Event analytics validation failed, code: '%s', message: '%s'", error.getErrorCode(), error.getMessage() ) );
+            log.warn( String.format(
+                "Event analytics validation failed, code: '%s', message: '%s'",
+                error.getErrorCode(), error.getMessage() ) );
 
             throw new IllegalQueryException( error );
         }

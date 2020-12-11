@@ -88,7 +88,9 @@ public class DefaultQueryValidator
 
         if ( error != null )
         {
-            log.warn( String.format( "Analytics validation failed, code: '%s', message: '%s'", error.getErrorCode(), error.getMessage() ) );
+            log.warn( String.format(
+                "Analytics validation failed, code: '%s', message: '%s'",
+                error.getErrorCode(), error.getMessage() ) );
 
             throw new IllegalQueryException( error );
         }
