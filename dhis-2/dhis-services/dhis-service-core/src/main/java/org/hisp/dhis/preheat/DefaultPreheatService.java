@@ -67,6 +67,8 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
@@ -303,6 +305,9 @@ public class DefaultPreheatService implements PreheatService
     {
         objects.forEach( ( klass, list ) -> list.forEach( object ->
         {
+            object.getSharing().setExternal( object.getExternalAccess() );
+            object.getSharing().setOwner( object.getUser() );
+            object.getSharing().setPublicAccess( object.getPublicAccess() );
             object.getUserAccesses().forEach( ua ->
             {
                 User user = null;
@@ -327,6 +332,9 @@ public class DefaultPreheatService implements PreheatService
                 {
                     ua.setUser( user );
                 }
+
+                // Copy legacy sharing to new jsonb sharing
+                object.getSharing().getUsers().put( ua.getUid(), new UserAccess( ua ) );
             } );
 
             object.getUserGroupAccesses().forEach( uga ->
@@ -353,6 +361,9 @@ public class DefaultPreheatService implements PreheatService
                 {
                     uga.setUserGroup( userGroup );
                 }
+
+                // Copy legacy sharing to new jsonb sharing
+                object.getSharing().getUserGroups().put( uga.getUid(), new UserGroupAccess( uga ) );
             } );
         } ) );
     }

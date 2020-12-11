@@ -452,7 +452,7 @@ public class BaseIdentifiableObject
 
     public void setOwner( String userId )
     {
-        this.sharing.setOwner( userId );
+         getSharing().setOwner( userId );
     }
 
     @Override
@@ -461,17 +461,12 @@ public class BaseIdentifiableObject
     @PropertyRange( min = 8, max = 8 )
     public String getPublicAccess()
     {
-        if ( sharing == null )
-        {
-            sharing = new Sharing();
-        }
-
-        return sharing.getPublicAccess();
+        return getSharing().getPublicAccess();
     }
 
     public void setPublicAccess( String publicAccess )
     {
-        this.sharing.setPublicAccess( publicAccess );
+        getSharing().setPublicAccess( publicAccess );
     }
 
     @Override
@@ -488,7 +483,7 @@ public class BaseIdentifiableObject
 
     public void setExternalAccess( Boolean externalAccess )
     {
-        this.sharing.setExternal( externalAccess );
+         getSharing().setExternal( externalAccess );
     }
 
     @Override
@@ -497,12 +492,12 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
     public Set<org.hisp.dhis.user.UserGroupAccess> getUserGroupAccesses()
     {
-        return SharingUtils.getDtoUserGroupAccesses( sharing );
+        return SharingUtils.getDtoUserGroupAccesses( getSharing() );
     }
 
     public void setUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses )
     {
-        this.sharing.setDtoUserGroupAccesses( userGroupAccesses );
+         getSharing().setDtoUserGroupAccesses( userGroupAccesses );
         this.userGroupAccesses = userGroupAccesses;
     }
 
@@ -517,7 +512,7 @@ public class BaseIdentifiableObject
 
     public void setUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )
     {
-        this.sharing.setDtoUserAccesses( userAccesses );
+         getSharing().setDtoUserAccesses( userAccesses );
         this.userAccesses = userAccesses;
     }
 
@@ -562,12 +557,17 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Sharing getSharing()
     {
+        if ( sharing == null )
+        {
+            sharing = SharingUtils.generateSharingFromIdentifiableObject( this );
+        }
+
         return sharing;
     }
 
     public void setSharing( Sharing sharing )
     {
-        this.sharing = sharing;
+         this.sharing = sharing;
     }
 
     @Override

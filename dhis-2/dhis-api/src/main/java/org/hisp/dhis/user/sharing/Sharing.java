@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.user.User;
 
 import java.io.Serializable;
@@ -21,7 +22,7 @@ import java.util.Set;
 @NoArgsConstructor
 @JacksonXmlRootElement( localName = "sharing", namespace = DxfNamespaces.DXF_2_0 )
 public class Sharing
-    implements Serializable
+    implements Serializable, EmbeddedObject
 {
     private static final long serialVersionUID = 6977793211734844477L;
 
@@ -31,7 +32,7 @@ public class Sharing
     private String owner = null;
 
     @JsonProperty("public")
-    private String publicAccess = DEFAULT;
+    private String publicAccess = null;
 
     @JsonProperty
     private boolean external = false;

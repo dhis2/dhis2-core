@@ -37,7 +37,6 @@ import org.hisp.dhis.user.UserGroup;
 
 import java.io.Serializable;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -103,6 +102,7 @@ public class UserGroupAccess
         UserGroup userGroup = new UserGroup();
         userGroup.setUid( this.id );
         userGroupAccess.setUserGroup( userGroup );
+        userGroupAccess.setUid( this.id );
 
         return userGroupAccess;
     }

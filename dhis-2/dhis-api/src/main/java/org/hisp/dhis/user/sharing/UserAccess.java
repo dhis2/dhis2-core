@@ -99,6 +99,10 @@ public class UserAccess
         org.hisp.dhis.user.UserAccess userAccess = new org.hisp.dhis.user.UserAccess();
         userAccess.setUid( this.id );
         userAccess.setAccess( this.access );
+        User user = new User();
+        user.setUid( this.id );
+        userAccess.setUser( user );
+        userAccess.setUid( this.id );
 
         return userAccess;
     }

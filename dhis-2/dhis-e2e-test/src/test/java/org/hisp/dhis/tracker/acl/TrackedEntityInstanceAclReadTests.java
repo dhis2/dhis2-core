@@ -157,7 +157,7 @@ public class TrackedEntityInstanceAclReadTests
 
                         for ( JsonElement access : userAccesses )
                         {
-                            if ( access.getAsJsonObject().get( "id" ).getAsString().equals( user.getUid() ) &&
+                            if ( access.getAsJsonObject().get( "userUid" ).getAsString().equals( user.getUid() ) &&
                                 access.getAsJsonObject().get( "access" ).getAsString().matches( _DATAREAD ) )
                             {
                                 hasDataRead = true;
@@ -169,7 +169,7 @@ public class TrackedEntityInstanceAclReadTests
                             for ( JsonElement access : userGroupAccess )
                             {
                                 if ( user.getGroups()
-                                    .contains( access.getAsJsonObject().get( "id" ).getAsString() ) &&
+                                    .contains( access.getAsJsonObject().get( "userGroupUid" ).getAsString() ) &&
                                     access.getAsJsonObject().get( "access" ).getAsString().matches( _DATAREAD ) )
                                 {
                                     hasDataRead = true;

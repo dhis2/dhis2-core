@@ -1,3 +1,5 @@
+package org.hisp.dhis.util;
+
 /*
  *
  *  * Copyright (c) 2004-2020, University of Oslo
@@ -28,8 +30,8 @@
  *
  */
 
-package org.hisp.dhis.util;
-
+import org.apache.commons.collections.MapUtils;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.sharing.Sharing;
 
@@ -41,14 +43,25 @@ public class SharingUtils
 {
     public static final Set<UserGroupAccess> getDtoUserGroupAccesses( Sharing sharing )
     {
-        return sharing.getUserGroups() != null && !sharing.getUserGroups().isEmpty() ? sharing.getUserGroups().values().stream().map( uag -> uag.toDtoObject() ).collect(
-            Collectors.toSet()) : new HashSet<>();
+        return !MapUtils.isEmpty( sharing.getUserGroups() ) ? sharing.getUserGroups().values()
+            .stream().map( uag -> uag.toDtoObject() ).collect( Collectors.toSet() ) : new HashSet<>();
     }
 
     public static final  Set<org.hisp.dhis.user.UserAccess> getDtoUserAccess( Sharing sharing )
     {
-        return sharing.getUsers() != null && !sharing.getUsers().isEmpty() ? sharing.getUsers().values().stream().map( ua -> ua.toDtoObject() ).collect(
-            Collectors.toSet()) : new HashSet<>();
+        return !MapUtils.isEmpty( sharing.getUsers() ) ? sharing.getUsers().values()
+            .stream().map( ua -> ua.toDtoObject() ).collect( Collectors.toSet() ) : new HashSet<>();
+    }
+
+    public static final Sharing generateSharingFromIdentifiableObject( IdentifiableObject object )
+    {
+        Sharing sharing = new Sharing();
+        sharing.setOwner( object.getUser() );
+        sharing.setExternal( object.getExternalAccess() );
+        sharing.setPublicAccess( object.getPublicAccess() );
+        sharing.setDtoUserGroupAccesses( object.getUserGroupAccesses() );
+        sharing.setDtoUserAccesses( object.getUserAccesses() );
+        return sharing;
     }
 
 }
