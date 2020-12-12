@@ -553,6 +553,7 @@ public class BaseIdentifiableObject
         return user != null && favorites != null ? favorites.contains( user.getUid() ) : false;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Sharing getSharing()

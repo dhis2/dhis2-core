@@ -430,10 +430,8 @@ public class DefaultAclService implements AclService
         }
 
         BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) object;
-//        baseIdentifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
-        baseIdentifiableObject.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
-//        baseIdentifiableObject.setExternalAccess( false );
-        baseIdentifiableObject.getSharing().setExternal( false );
+        baseIdentifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
+        baseIdentifiableObject.setExternalAccess( false );
 
         if ( object.getSharing().getOwner() == null )
         {

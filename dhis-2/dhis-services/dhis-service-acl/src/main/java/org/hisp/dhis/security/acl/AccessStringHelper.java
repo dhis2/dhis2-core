@@ -29,7 +29,6 @@ package org.hisp.dhis.security.acl;
  */
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.util.Assert;
 
 /**
@@ -67,7 +66,7 @@ public class AccessStringHelper
 
     private char[] access = DEFAULT.toCharArray();
 
-    public static final String DEFAULT = Sharing.DEFAULT;
+    public static final String DEFAULT = "--------";
 
     //This should be used only when creating a default CategoryOption
     public static final String CATEGORY_OPTION_DEFAULT = "rwrw----";
@@ -231,5 +230,10 @@ public class AccessStringHelper
     public static <T extends BaseIdentifiableObject> void copySharing( T source, T target )
     {
         target.setSharing( source.getSharing().copy() );
+    }
+
+    public static String disableDataSharing( String access )
+    {
+       return AccessStringHelper.newInstance( access.toCharArray() ).disable( Permission.DATA_READ ).disable( Permission.DATA_WRITE ).toString();
     }
 }

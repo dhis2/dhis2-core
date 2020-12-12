@@ -34,9 +34,8 @@ import org.hisp.dhis.user.sharing.Sharing;
 
 /**
  * Contains functions for managing {@link Sharing}
- *
  */
 public interface SharingService
 {
-    <T extends IdentifiableObject> ObjectReport saveSharing( Class<T> sharingClass, T entity, Sharing sharing );
+    <T extends IdentifiableObject> ObjectReport saveSharing( Class<T> entityClass, T entity, Sharing sharing );
 }

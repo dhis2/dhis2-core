@@ -172,20 +172,6 @@ public class Interpretation
     // Logic
     // -------------------------------------------------------------------------
 
-    /**
-     * Overriding getUser in order to expose user in web api. Sharing is not enabled
-     * for interpretations but "user" is used for representing the creator. Must be
-     * removed when sharing is enabled for this class.
-     */
-    @Override
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public User getUser()
-    {
-        return this.sharing.getUserOwner();
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public AnalyticsFavoriteType getType()

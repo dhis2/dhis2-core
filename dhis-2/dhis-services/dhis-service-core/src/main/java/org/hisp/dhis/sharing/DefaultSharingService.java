@@ -91,7 +91,7 @@ public class DefaultSharingService implements SharingService
     }
 
     @Override
-    public <T extends IdentifiableObject> ObjectReport saveSharing( @NotNull Class<T> sharingClass, @NotNull T entity,
+    public <T extends IdentifiableObject> ObjectReport saveSharing( @NotNull Class<T> entityClass, @NotNull T entity,
         @NotNull Sharing sharing )
     {
         ObjectReport objectReport = new ObjectReport( Sharing.class, 0 );
@@ -100,26 +100,26 @@ public class DefaultSharingService implements SharingService
 
         if ( ( object instanceof SystemDefaultMetadataObject) && ( (SystemDefaultMetadataObject) object ).isDefault() )
         {
-            objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3013, sharingClass.getSimpleName() ).setErrorKlass( sharingClass ) );
+            objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3013, entityClass.getSimpleName() ).setErrorKlass( entityClass ) );
         }
 
         User user = currentUserService.getCurrentUser();
 
         if ( !aclService.canManage( user, object ) )
         {
-            objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3014 ).setErrorKlass( sharingClass ) );
+            objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3014 ).setErrorKlass( entityClass ) );
         }
 
         if ( !AccessStringHelper.isValid( sharing.getPublicAccess() ) )
         {
-            objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3015, sharing.getPublicAccess() ).setErrorKlass( sharingClass ) );
+            objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3015, sharing.getPublicAccess() ).setErrorKlass( entityClass ) );
         }
 
         // ---------------------------------------------------------------------
         // Ignore externalAccess if user is not allowed to make objects external
         // ---------------------------------------------------------------------
 
-        if ( aclService.canMakeExternal( user, sharingClass ) )
+        if ( aclService.canMakeExternal( user, entityClass ) )
         {
             object.getSharing().setExternal( sharing.isExternal() );
         }
@@ -128,7 +128,7 @@ public class DefaultSharingService implements SharingService
         // Ignore publicAccess if user is not allowed to make objects public
         // ---------------------------------------------------------------------
 
-        Schema schema = schemaService.getDynamicSchema( sharingClass );
+        Schema schema = schemaService.getDynamicSchema( entityClass );
 
         if ( aclService.canMakePublic( user, object.getClass() ) )
         {
@@ -139,7 +139,7 @@ public class DefaultSharingService implements SharingService
         {
             if ( AccessStringHelper.hasDataSharing( object.getSharing().getPublicAccess() ) )
             {
-                objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3016 ).setErrorKlass( sharingClass ) );
+                objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3016 ).setErrorKlass( entityClass ) );
             }
         }
 
@@ -157,14 +157,14 @@ public class DefaultSharingService implements SharingService
             {
                 if ( !AccessStringHelper.isValid( sharingUserGroupAccess.getAccess() ) )
                 {
-                    objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3017, sharingUserGroupAccess.getAccess() ).setErrorKlass( sharingClass ) );
+                    objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3017, sharingUserGroupAccess.getAccess() ).setErrorKlass( entityClass ) );
                 }
 
                 if ( !schema.isDataShareable() )
                 {
                     if ( AccessStringHelper.hasDataSharing( sharingUserGroupAccess.getAccess() ) )
                     {
-                        objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3016 ).setErrorKlass( sharingClass ) );
+                        objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3016 ).setErrorKlass( entityClass ) );
                     }
                 }
 
@@ -189,14 +189,14 @@ public class DefaultSharingService implements SharingService
             {
                 if ( !AccessStringHelper.isValid( sharingUserAccess.getAccess() ) )
                 {
-                    objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3018, sharingUserAccess.getAccess() ).setErrorKlass( sharingClass ) );
+                    objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3018, sharingUserAccess.getAccess() ).setErrorKlass( entityClass ) );
                 }
 
                 if ( !schema.isDataShareable() )
                 {
                     if ( AccessStringHelper.hasDataSharing( sharingUserAccess.getAccess() ) )
                     {
-                        objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3016 ).setErrorKlass( sharingClass ) );
+                        objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3016 ).setErrorKlass( entityClass ) );
                     }
                 }
 

@@ -31,27 +31,31 @@ package org.hisp.dhis.user.sharing;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.user.User;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @JacksonXmlRootElement( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
 public class UserAccess
     implements Serializable
 {
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private String access;
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private String id;
-
-    public UserAccess()
-    {
-    }
 
     public UserAccess( User user, String access )
     {
@@ -65,33 +69,9 @@ public class UserAccess
         this.id = userAccess.getUid();
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getAccess()
-    {
-        return access;
-    }
-
-    public void setAccess( String access )
-    {
-        this.access = access;
-    }
-
     public void setUser( User user )
     {
         this.id = user.getUid();
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getId()
-    {
-        return id;
-    }
-
-    public void setId( String id )
-    {
-        this.id = id;
     }
 
     public org.hisp.dhis.user.UserAccess toDtoObject()
@@ -105,38 +85,5 @@ public class UserAccess
         userAccess.setUid( this.id );
 
         return userAccess;
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-
-        UserAccess that = (UserAccess) o;
-
-        return Objects.equals( access, that.access ) && Objects.equals( id, that.id );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( access, id );
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "access", access )
-            .add( "id", id )
-            .toString();
     }
 }

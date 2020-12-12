@@ -52,6 +52,8 @@ public interface InternalHibernateGenericStore<T>
 
     List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user );
 
+    List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo userInfo );
+
     List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, String access );
 
     List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user, String access );
@@ -62,6 +64,8 @@ public interface InternalHibernateGenericStore<T>
     List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder );
 
     List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user );
+
+    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo userInfo );
 
     List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, String access );
 

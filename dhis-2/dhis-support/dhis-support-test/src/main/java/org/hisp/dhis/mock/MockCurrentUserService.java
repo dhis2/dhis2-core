@@ -140,4 +140,10 @@ public class MockCurrentUserService
     public void invalidateUserGroupCache( String username )
     {
     }
+
+    @Override
+    public CurrentUserGroupInfo getCurrentUserGroupsInfo( UserInfo userInfo )
+    {
+        return getCurrentUserGroupsInfo();
+    }
 }

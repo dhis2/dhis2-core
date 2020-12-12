@@ -279,7 +279,7 @@ public class SharingController
         {
             if ( AccessStringHelper.hasDataSharing( object.getSharing().getPublicAccess() ) )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Data sharing is not enabled for this object." ) );
+                object.getSharing().setPublicAccess( AccessStringHelper.disableDataSharing( object.getSharing().getPublicAccess() ) );
             }
         }
 
@@ -303,7 +303,7 @@ public class SharingController
             {
                 if ( AccessStringHelper.hasDataSharing( sharingUserGroupAccess.getAccess() ) )
                 {
-                    throw new WebMessageException( WebMessageUtils.conflict( "Data sharing is not enabled for this object." ) );
+                    sharingUserGroupAccess.setAccess( AccessStringHelper.disableDataSharing( sharingUserGroupAccess.getAccess() ) );
                 }
             }
 
@@ -333,7 +333,7 @@ public class SharingController
             {
                 if ( AccessStringHelper.hasDataSharing( sharingUserAccess.getAccess() ) )
                 {
-                    throw new WebMessageException( WebMessageUtils.conflict( "Data sharing is not enabled for this object." ) );
+                    sharingUserAccess.setAccess( AccessStringHelper.disableDataSharing( sharingUserAccess.getAccess() ) );
                 }
             }
 

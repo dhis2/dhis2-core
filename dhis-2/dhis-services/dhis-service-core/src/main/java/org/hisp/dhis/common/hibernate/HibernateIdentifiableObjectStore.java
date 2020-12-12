@@ -409,7 +409,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public T getByUniqueAttributeValue( Attribute attribute, String value, User user )
+    public T getByUniqueAttributeValue( Attribute attribute, String value, UserInfo userInfo )
     {
         if ( attribute == null || StringUtils.isEmpty( value ) || !attribute.isUnique() )
         {
@@ -419,7 +419,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
-            .addPredicates( getSharingPredicates( builder, user ) )
+            .addPredicates( getSharingPredicates( builder, userInfo ) )
             .addPredicate( root ->
                 builder.equal(
                     builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
@@ -961,6 +961,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
+    public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo userInfo )
+    {
+        return null;
+    }
+
+    @Override
     public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, String access )
     {
         return getDataSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), currentUserService.getCurrentUserGroupsInfo(), access );
@@ -985,6 +991,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getSharingPredicates( builder, user, AclService.LIKE_READ_METADATA );
     }
 
+    @Override
+    public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo userInfo )
+    {
+        return getSharingPredicates( builder, userInfo, currentUserService.getCurrentUserGroupsInfo( userInfo ), AclService.LIKE_READ_METADATA );
+    }
+
     /**
      * Get sharing predicates based on Access string and current user
      *
@@ -995,7 +1007,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, String access )
     {
-        return getSharingPredicates( builder, currentUserService.getCurrentUserInfo(), currentUserService.getCurrentUserGroupsInfo(), access );
+        UserInfo userInfo = currentUserService.getCurrentUserInfo();
+        return getSharingPredicates( builder, userInfo, currentUserService.getCurrentUserGroupsInfo( userInfo ), access );
     }
 
     @Override

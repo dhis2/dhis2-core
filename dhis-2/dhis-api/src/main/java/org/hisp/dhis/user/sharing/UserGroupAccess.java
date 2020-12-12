@@ -31,27 +31,31 @@ package org.hisp.dhis.user.sharing;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.user.UserGroup;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @JacksonXmlRootElement( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
 public class UserGroupAccess
     implements Serializable
 {
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private String access;
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private String id;
-
-    public UserGroupAccess()
-    {
-    }
 
     public UserGroupAccess( UserGroup userGroup, String access )
     {
@@ -65,33 +69,9 @@ public class UserGroupAccess
         this.access = userGroupAccess.getAccess();
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getAccess()
-    {
-        return access;
-    }
-
-    public void setAccess( String access )
-    {
-        this.access = access;
-    }
-
     public void setUserGroup( UserGroup userGroup )
     {
         this.id = userGroup.getUid();
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getId()
-    {
-        return id;
-    }
-
-    public void setId( String id )
-    {
-        this.id = id;
     }
 
     public org.hisp.dhis.user.UserGroupAccess toDtoObject()
@@ -105,41 +85,5 @@ public class UserGroupAccess
         userGroupAccess.setUid( this.id );
 
         return userGroupAccess;
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-
-        UserGroupAccess that = (UserGroupAccess) o;
-
-        if ( !Objects.equals( id, that.id ) ) return false;
-        if ( !Objects.equals( access, that.access ) ) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( access, id );
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "id", id )
-            .add( "access", access )
-            .toString();
     }
 }

@@ -129,7 +129,6 @@ public class DefaultJpaQueryParser
 
     private void handleCaptureScopeOuFiltering( Schema schema, User user, Disjunction disjunction )
     {
-
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
         params.setParents( user.getOrganisationUnits() );
         params.setFetchChildren( true );
@@ -139,16 +138,6 @@ public class DefaultJpaQueryParser
 
         disjunction.add( getRestriction( schema, "organisationUnits.id", "in", "[" + String.join( ",", orgUnits ) + "]" ) );
         disjunction.add( getRestriction( schema, ORGANISATION_UNITS, "empty", null ) );
-
-//        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-//        params.setParents( user.getOrganisationUnits() );
-//        params.setFetchChildren( true );
-//
-//        List<String> orgUnits = organisationUnitService.getOrganisationUnitsByQuery( params ).stream().map( orgUnit -> orgUnit.getUid() ).collect(
-//            Collectors.toList() );
-//
-//        disjunction.add( getRestriction( schema, "organisationUnits.id", "in", "[" + String.join( ",", orgUnits ) + "]" ) );
-//        disjunction.add( getRestriction( schema, ORGANISATION_UNITS, "empty", null ) );
     }
 
     private void handleIdentifiablePath( Schema schema, String operator, Object arg, Disjunction disjunction )

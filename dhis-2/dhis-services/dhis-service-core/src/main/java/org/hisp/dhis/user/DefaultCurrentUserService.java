@@ -65,8 +65,8 @@ public class DefaultCurrentUserService
     private static Cache<Long> USERNAME_ID_CACHE;
 
     /**
-     * Cache contains Set of UserGroup UID for each user. Key is user ID which can be retrieved from USERNAME_ID_CACHE.
-     * This will be used for ACL checking
+     * Cache contains Set of UserGroup UID for each user. Key is username.
+     * This will be used for ACL check in {@link org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore}
      */
     private static Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
 
@@ -109,7 +109,7 @@ public class DefaultCurrentUserService
 
         currentUserGroupInfoCache = cacheProvider.newCacheBuilder( CurrentUserGroupInfo.class )
             .forRegion( "currentUserGroupInfoCache" )
-            .expireAfterAccess( 1, TimeUnit.HOURS )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
             .forceInMemory()
             .build();
     }
@@ -216,6 +216,18 @@ public class DefaultCurrentUserService
     }
 
     @Override
+    public CurrentUserGroupInfo getCurrentUserGroupsInfo( UserInfo userInfo )
+    {
+        if ( userInfo == null )
+        {
+            return null;
+        }
+
+        return currentUserGroupInfoCache
+            .get( userInfo.getUsername(), this::getCurrentUserGroupsInfo ).orElse( null );
+    }
+
+    @Override
     public void invalidateUserGroupCache( String username )
     {
         try
@@ -224,7 +236,7 @@ public class DefaultCurrentUserService
         }
         catch ( NullPointerException exception )
         {
-            // Ignore if key doesn't exists
+            // Ignore if key doesn't exist
         }
     }
 

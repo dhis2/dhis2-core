@@ -161,16 +161,6 @@ public class StartupConfig
         return upgrader;
     }
 
-//    @Bean
-//    public UserGroupPopulator userGroupPopulator( IdentifiableObjectStore<UserGroup> userGroupStore, AclService aclService )
-//    {
-//        UserGroupPopulator userGroupPopulator = new UserGroupPopulator( userGroupStore, aclService );
-//        userGroupPopulator.setRunlevel( 15 );
-//        userGroupPopulator.setName( "UserGroupPopulator" );
-//        userGroupPopulator.setSkipInTests( false );
-//        return userGroupPopulator;
-//    }
-
     @Bean
     public SchedulerStart schedulerStart( SystemSettingManager systemSettingManager,
         JobConfigurationService jobConfigurationService, SchedulingManager schedulingManager,
