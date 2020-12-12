@@ -1,4 +1,4 @@
-package org.hisp.dhis;
+package org.hisp.dhis.config;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo

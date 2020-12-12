@@ -29,8 +29,9 @@ package org.hisp.dhis.dxf2.metadata;
  */
 
 import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.MappingException;
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -87,9 +88,8 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
-@Rollback
-public class MetadataImportServiceTest extends IntegrationTestBase
+@Slf4j
+public class MetadataImportServiceTest extends TransactionalIntegrationTest
 {
     @Override
     public boolean emptyDatabaseAfterTest()

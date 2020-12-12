@@ -28,11 +28,12 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
-import org.locationtech.jts.geom.Geometry;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.attribute.Attribute;
@@ -136,14 +137,14 @@ import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.utils.Dxf2NamespaceResolver;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.hisp.dhis.visualization.Visualization;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.locationtech.jts.geom.Geometry;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -161,8 +162,6 @@ import org.springframework.util.MimeTypeUtils;
 import org.xml.sax.InputSource;
 
 import javax.annotation.PostConstruct;
-import javax.xml.XMLConstants;
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
@@ -176,7 +175,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -189,11 +187,10 @@ import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @ActiveProfiles( profiles = { "test" } )
 public abstract class DhisConvenienceTest
 {
-    protected static final Logger log = LoggerFactory.getLogger( DhisConvenienceTest.class );
-
     protected static final String BASE_UID = "abcdefghij";
 
     protected static final String BASE_IN_UID = "inabcdefgh";
@@ -209,8 +206,11 @@ public abstract class DhisConvenienceTest
     protected static final String BASE_USER_UID = "userabcdef";
 
     protected static final String BASE_USER_GROUP_UID = "ugabcdefgh";
+
     protected static final String BASE_PG_UID = "pgabcdefgh";
+
     protected static final String BASE_PR_UID = "prabcdefgh";
+
     protected static final String BASE_TEI_UID = "teibcdefgh";
 
     private static final String EXT_TEST_DIR = System.getProperty( "user.home" ) + File.separator + "dhis2_test_dir";
@@ -2110,42 +2110,6 @@ public abstract class DhisConvenienceTest
         return xpath.evaluate( xpathString, source );
     }
 
-    protected class Dxf2NamespaceResolver
-        implements NamespaceContext
-    {
-        @Override
-        public String getNamespaceURI( String prefix )
-        {
-            if ( prefix == null )
-            {
-                throw new IllegalArgumentException( "No prefix provided!" );
-            }
-            else
-            {
-                if ( prefix.equals( "d" ) )
-                {
-                    return "http://dhis2.org/schema/dxf/2.0";
-                }
-                else
-                {
-                    return XMLConstants.NULL_NS_URI;
-                }
-            }
-        }
-
-        @Override
-        public String getPrefix( String namespaceURI )
-        {
-            return null;
-        }
-
-        @Override
-        public Iterator<String> getPrefixes( String namespaceURI )
-        {
-            return null;
-        }
-    }
-
     /**
      * Creates a user and injects into the security context with username
      * "username". Requires <code>identifiableObjectManager</code> and
@@ -2452,5 +2416,56 @@ public abstract class DhisConvenienceTest
         userAccess.setAccess( access );
 
         object.getUserAccesses().add( userAccess );
+    }
+
+    @SuppressWarnings( "all" )
+    protected void preCreateInjectAdminUserWithoutPersistence()
+    {
+        List<GrantedAuthority> grantedAuthorities = ImmutableList.of( new SimpleGrantedAuthority( "ALL" ) );
+
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+            "admin", "district", grantedAuthorities );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication( authentication );
+        SecurityContextHolder.setContext( context );
+    }
+
+    @SuppressWarnings( "all" )
+    protected User preCreateInjectAdminUser()
+    {
+        List<GrantedAuthority> grantedAuthorities = ImmutableList.of( new SimpleGrantedAuthority( "ALL" ) );
+
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+            "admin", "district", grantedAuthorities );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication( authentication );
+        SecurityContextHolder.setContext( context );
+
+        return createAndInjectAdminUser2( "ALL" );
+    }
+
+    protected User createAndInjectAdminUser2( String... authorities )
+    {
+        User user = createAdminUser( authorities );
+
+        List<GrantedAuthority> grantedAuthorities = user.getUserCredentials().getAllAuthorities()
+            .stream().map( SimpleGrantedAuthority::new ).collect( Collectors.toList() );
+
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
+
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication( authentication );
+        SecurityContextHolder.setContext( securityContext );
+
+        return user;
     }
 }

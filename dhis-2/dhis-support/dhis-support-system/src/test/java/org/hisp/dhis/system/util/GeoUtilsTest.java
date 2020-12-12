@@ -36,7 +36,7 @@ import static org.junit.Assert.assertFalse;
 import java.io.IOException;
 
 import org.geotools.geojson.geom.GeometryJSON;
-import org.hisp.dhis.TestResourceUtils;
+import org.hisp.dhis.utils.TestResourceUtils;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.junit.Assert;
 import org.junit.Test;

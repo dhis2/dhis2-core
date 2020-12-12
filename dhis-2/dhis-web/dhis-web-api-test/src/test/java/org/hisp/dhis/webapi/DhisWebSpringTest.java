@@ -34,6 +34,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.utils.TestUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
@@ -58,7 +59,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -76,8 +76,7 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 @ContextConfiguration( classes = { MvcTestConfig.class, WebTestConfiguration.class } )
 @ActiveProfiles( "test-h2" )
 @Transactional
-public abstract class DhisWebSpringTest
-    extends DhisConvenienceTest
+public abstract class DhisWebSpringTest extends DhisConvenienceTest
 {
     @Autowired
     protected WebApplicationContext webApplicationContext;
@@ -111,7 +110,7 @@ public abstract class DhisWebSpringTest
             .apply( documentationConfiguration( this.restDocumentation ) )
             .build();
 
-        executeStartupRoutines();
+        TestUtils.executeStartupRoutines( webApplicationContext );
 
         setUpTest();
     }
@@ -130,8 +129,7 @@ public abstract class DhisWebSpringTest
         SecurityContextHolder.getContext().setAuthentication( getPrincipal( authorities ) );
         MockHttpSession session = new MockHttpSession();
 
-        session.setAttribute(
-            HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+        session.setAttribute( HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
             SecurityContextHolder.getContext() );
 
         return session;
@@ -151,21 +149,6 @@ public abstract class DhisWebSpringTest
             userDetails.getPassword(),
             userDetails.getAuthorities()
         );
-    }
-
-    private void executeStartupRoutines()
-        throws Exception
-    {
-        String id = "org.hisp.dhis.system.startup.StartupRoutineExecutor";
-
-        if ( webApplicationContext.containsBean( id ) )
-        {
-            Object object = webApplicationContext.getBean( id );
-
-            Method method = object.getClass().getMethod( "executeForTesting", new Class[0] );
-
-            method.invoke( object, new Object[0] );
-        }
     }
 
     public RestDocumentationResultHandler documentPrettyPrint( String useCase, Snippet... snippets )

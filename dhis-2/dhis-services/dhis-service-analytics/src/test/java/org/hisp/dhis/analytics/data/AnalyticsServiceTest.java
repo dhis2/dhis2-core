@@ -185,6 +185,12 @@ public class AnalyticsServiceTest
     public void setUpTest()
         throws IOException, InterruptedException
     {
+        setupWrapper();
+    }
+
+    public void setupWrapper()
+        throws IOException, InterruptedException
+    {
         // Set up meta data for data values
 
         ReportingRate reportingRateA;

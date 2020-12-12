@@ -96,16 +96,17 @@ public class HibernateConfig
     }
 
     @Bean
-    public PlatformTransactionManager hibernateTransactionManager( DataSource dataSource, SessionFactory sessionFactory )
+    public HibernateTransactionManager hibernateTransactionManager( DataSource dataSource, SessionFactory sessionFactory )
     {
         HibernateTransactionManager transactionManager = new HibernateTransactionManager();
         transactionManager.setSessionFactory( sessionFactory );
         transactionManager.setDataSource( dataSource );
+
         return transactionManager;
     }
 
     @Bean
-    public TransactionTemplate transactionTemplate( PlatformTransactionManager transactionManager )
+    public TransactionTemplate transactionTemplate( HibernateTransactionManager transactionManager )
     {
         return new TransactionTemplate( transactionManager );
     }

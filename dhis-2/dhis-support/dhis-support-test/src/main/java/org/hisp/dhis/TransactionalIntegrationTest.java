@@ -28,54 +28,67 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.hisp.dhis.config.UnitTestConfig;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.utils.TestUtils;
+import org.hisp.dhis.config.IntegrationTestConfig;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * @author Lars Helge Overland
+/*
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @RunWith( SpringRunner.class )
-@ActiveProfiles( "test-h2" )
-@ContextConfiguration( classes = { UnitTestConfig.class } )
-public abstract class DhisTest extends BaseSpringTest
+@ContextConfiguration( classes = { IntegrationTestConfig.class } )
+@Category( IntegrationTest.class )
+@ActiveProfiles( profiles = { "test-postgres" } )
+@Transactional
+@Slf4j
+public abstract class TransactionalIntegrationTest extends BaseSpringTest
 {
-    protected boolean emptyDatabaseAfterTest()
-    {
-        return false;
-    }
-
     @Before
     public final void before()
         throws Exception
     {
-        bindSession();
-
-        TestUtils.executeStartupRoutines(applicationContext);
-
-        boolean enableQueryLogging = dhisConfigurationProvider.getBoolean( ConfigurationKey.ENABLE_QUERY_LOGGING );
-
-        if ( enableQueryLogging )
-        {
-            Configurator.setLevel( "org.hisp.dhis.datasource.query", Level.INFO );
-            Configurator.setRootLevel( Level.INFO );
-        }
-
-        setUpTest();
+        integrationTestBefore();
     }
 
     @After
     public final void after()
         throws Exception
     {
-        nonTransactionalAfter();
+        clearSecurityContext();
+
+        tearDownTest();
+
+        try
+        {
+            dbmsManager.clearSession();
+        }
+        catch ( Exception e )
+        {
+            log.error( "Failed to clear hibernate session, reason:" + e.getMessage() );
+        }
+
+        if ( emptyDatabaseAfterTest() )
+        {
+            // We normally don't want all the delete/empty db statements in the query logger
+            Configurator.setLevel( "org.hisp.dhis.datasource.query", Level.WARN );
+
+            try
+            {
+                dbmsManager.emptyDatabase();
+            }
+            catch ( Exception e )
+            {
+                log.error( "Failed to empty db, reason:" + e.getMessage() );
+            }
+        }
     }
 }

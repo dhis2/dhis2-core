@@ -180,7 +180,6 @@ public abstract class TrackerTest extends IntegrationTestBase
     @Override
     public void tearDownTest()
     {
-        dbmsManager.emptyDatabase();
     }
 
     public TrackedEntityInstance persistTrackedEntityInstance()

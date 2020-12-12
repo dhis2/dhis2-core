@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi;
  */
 
 import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.H2DhisConfigurationProvider;
+import org.hisp.dhis.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.config.DataSourceConfig;
 import org.hisp.dhis.config.HibernateEncryptionConfig;
 import org.hisp.dhis.config.HibernateConfig;

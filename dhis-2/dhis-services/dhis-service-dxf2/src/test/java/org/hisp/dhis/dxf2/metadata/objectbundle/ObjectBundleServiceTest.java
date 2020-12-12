@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -90,16 +90,8 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
-@Rollback
-public class ObjectBundleServiceTest extends IntegrationTestBase
+public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 {
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Autowired
     private ObjectBundleService objectBundleService;
 
@@ -114,6 +106,12 @@ public class ObjectBundleServiceTest extends IntegrationTestBase
 
     @Autowired
     private UserService _userService;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest() throws Exception

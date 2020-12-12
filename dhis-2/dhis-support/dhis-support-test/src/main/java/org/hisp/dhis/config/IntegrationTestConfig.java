@@ -1,4 +1,4 @@
-package org.hisp.dhis;
+package org.hisp.dhis.config;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -89,6 +89,7 @@ public class IntegrationTestConfig
             .withDatabaseName( POSTGRES_DATABASE_NAME )
             .withUsername( POSTGRES_CREDENTIALS )
             .withPassword( POSTGRES_CREDENTIALS );
+//            .withReuse( true );
 
         postgisContainer.start();
 

@@ -137,10 +137,12 @@ public class DataSourceConfig
         creator.setMultiline( true );
 
         SLF4JQueryLoggingListener listener = new SLF4JQueryLoggingListener();
+        listener.setLogger( "org.hisp.dhis.datasource.query" );
         listener.setLogLevel( SLF4JLogLevel.INFO );
         listener.setQueryLogEntryCreator( creator );
 
         ProxyDataSourceBuilder b = ProxyDataSourceBuilder
+
             .create( actualDataSource )
             .name( "ProxyDS_DHIS2_" + dhisConfig.getProperty( ConfigurationKey.DB_POOL_TYPE ) +
                 "_" + CodeGenerator.generateCode( 5 ) )

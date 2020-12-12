@@ -1,4 +1,4 @@
-package org.hisp.dhis.cache;
+package org.hisp.dhis.utils;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,78 +28,36 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
+ * This annotation is used within a Docker-based integration test to inject data into the
+ * Dockerized Postgresql database.
+ * The annotation expects a "path" property to point to the actual SQL file containing the INSERT/UPDATE/DELETE
+ * statements to run prior to each test. The file must be present in the classpath (e.g. src/main/resources/)
+ * The data file is going to be injected only once per each test class.
+ *
+ * <pre>{@code
+ *
+ * @org.junit.experimental.categories.Category( IntegrationTest.class )
+ * @IntegrationTestData(path = "sql/mydata.sql")
+ * public class DefaultTrackedEntityInstanceStoreTest
+ *     extends
+ *     IntegrationTestBase
+ * {
+ *   ...
+ * }
+ * }</pre>
+ *
+ *
  * @author Luciano Fiandesio
  */
-public class TestCache<V> implements Cache<V>
+@Retention( RetentionPolicy.RUNTIME )
+@Target( ElementType.TYPE )
+public @interface IntegrationTestData
 {
-    private Map<String, V> mapCache = new HashMap<>();
-
-    @Override
-    public Optional<V> getIfPresent( String key )
-    {
-        if ( mapCache.containsKey( key ) )
-        {
-            return get( key );
-        }
-        else
-        {
-            return Optional.empty();
-        }
-    }
-
-    @Override
-    public Optional<V> get( String key )
-    {
-        return Optional.ofNullable( mapCache.get( key ) );
-    }
-
-    @Override
-    public Optional<V> get( String key, Function<String, V> mappingFunction )
-    {
-        return Optional.empty();
-    }
-
-    @Override
-    public Collection<V> getAll()
-    {
-        return mapCache.values();
-    }
-
-    @Override
-    public void put( String key, V value )
-    {
-        mapCache.put( key, value );
-    }
-
-    @Override
-    public void put( String key, V value, long ttlInSeconds)
-    {
-        // Ignoring ttl for this testing cache
-        mapCache.put( key, value );
-    }
-
-    @Override
-    public void invalidate( String key )
-    {
-        mapCache.remove( key );
-    }
-
-    @Override
-    public void invalidateAll()
-    {
-        mapCache = new HashMap<>();
-    }
-
-    @Override
-    public CacheType getCacheType()
-    {
-        return null;
-    }
+    String path();
 }

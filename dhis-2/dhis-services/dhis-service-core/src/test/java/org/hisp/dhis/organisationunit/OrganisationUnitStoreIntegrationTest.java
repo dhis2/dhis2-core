@@ -35,7 +35,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.util.GeoUtils;
@@ -47,7 +47,7 @@ import org.locationtech.jts.geom.Geometry;
 /**
  * @author Luciano Fiandesio
  */
-public class OrganisationUnitStoreIntegrationTest extends IntegrationTestBase
+public class OrganisationUnitStoreIntegrationTest extends TransactionalIntegrationTest
 {
     private final static long _150KM = 150_000;
 

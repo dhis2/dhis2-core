@@ -29,7 +29,6 @@ package org.hisp.dhis.dataapproval;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -54,7 +53,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.*;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -65,7 +63,6 @@ import static org.junit.Assert.*;
 /**
  * @author Jim Grace
  */
-@Category( IntegrationTest.class )
 public class DataApprovalServiceCategoryOptionGroupTest
     extends IntegrationTestBase
 {

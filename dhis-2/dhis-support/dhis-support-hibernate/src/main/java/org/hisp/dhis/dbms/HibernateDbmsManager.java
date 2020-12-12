@@ -386,6 +386,8 @@ public class HibernateDbmsManager
         cacheManager.clearCache();
 
         log.debug( "Cleared Hibernate cache" );
+
+        flushSession();
     }
 
     @Override
