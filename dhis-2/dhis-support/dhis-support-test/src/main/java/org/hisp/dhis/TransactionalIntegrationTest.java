@@ -73,7 +73,7 @@ public abstract class TransactionalIntegrationTest extends BaseSpringTest
         }
         catch ( Exception e )
         {
-            log.error( "Failed to clear hibernate session, reason:" + e.getMessage() );
+            log.info( "Failed to clear hibernate session, reason:" + e.getMessage() );
         }
 
         if ( emptyDatabaseAfterTest() )
@@ -87,7 +87,7 @@ public abstract class TransactionalIntegrationTest extends BaseSpringTest
             }
             catch ( Exception e )
             {
-                log.error( "Failed to empty db, reason:" + e.getMessage() );
+                log.info( "Failed to empty db, reason:" + e.getMessage() );
             }
         }
     }

@@ -2155,6 +2155,5 @@
     <mapstruct.version>1.4.1.Final</mapstruct.version>
     <geotools.version>24.0</geotools.version>
     <testcontainers.version>1.15.1</testcontainers.version>
-<!--    <testcontainers.version>1.10.1</testcontainers.version>-->
   </properties>
 </project>

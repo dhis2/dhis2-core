@@ -150,7 +150,7 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
         }
         catch ( Exception e )
         {
-            log.error( "Failed to clear hibernate session, reason:" + e.getMessage() );
+            log.info( "Failed to clear hibernate session, reason:" + e.getMessage() );
         }
 
         unbindSession();
