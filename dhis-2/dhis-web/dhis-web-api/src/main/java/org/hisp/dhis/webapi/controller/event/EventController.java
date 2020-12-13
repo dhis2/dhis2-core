@@ -969,6 +969,8 @@ public class EventController
     public void postJsonEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions ) throws Exception
     {
+        long start = System.currentTimeMillis();
+
         importOptions.setImportStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         importOptions.setIdSchemes( getIdSchemesFromParameters( importOptions.getIdSchemes(), contextService.getParameterValuesMap() ) );
@@ -976,7 +978,6 @@ public class EventController
         if ( !importOptions.isAsync() )
         {
             final String payload = org.springframework.util.StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
-
             ImportSummaries importSummaries = eventService.addEventsJson( payload, importOptions );
             importSummaries.setImportOptions( importOptions );
 
@@ -1002,7 +1003,8 @@ public class EventController
                     }
                 }
             }
-            traceService.trace( payload, importSummaries, getReqHeaders( request ),
+            
+            traceService.trace( System.currentTimeMillis() - start, payload, importSummaries, getReqHeaders( request ),
                 getPath( request ), currentUserService.getCurrentUser() );
 
             webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );

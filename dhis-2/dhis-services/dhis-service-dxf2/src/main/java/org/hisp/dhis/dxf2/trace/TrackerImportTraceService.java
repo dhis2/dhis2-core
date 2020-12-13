@@ -117,7 +117,7 @@ public class TrackerImportTraceService
         return false;
     }
 
-    public void trace( String request, ImportSummaries importSummaries, Map<String, String> headers, String path, User user )
+    public void trace( long elapsed, String request, ImportSummaries importSummaries, Map<String, String> headers, String path, User user )
     {
         if ( !enabled )
         {
@@ -125,12 +125,12 @@ public class TrackerImportTraceService
         }
 
         final String sql = "INSERT INTO " + TRACE_TABLE
-            + " (USERNAME, PAYLOAD, RESPONSE, IMPORT_STATUS, PATH, HEADERS) VALUES(?,?,?,?,?,?)";
+            + " (ELAPSED, USERNAME, PAYLOAD, RESPONSE, IMPORT_STATUS, PATH, HEADERS) VALUES(?,?,?,?,?,?,?)";
 
         CompletableFuture.runAsync( () -> {
             try
             {
-                jdbcTemplate.update( sql, user.getUsername(), request, renderService.toJsonAsString( importSummaries ),
+                jdbcTemplate.update( sql, elapsed, user.getUsername(), request, renderService.toJsonAsString( importSummaries ),
                     importSummaries.getStatus().name(), StringUtils.left( path, 2000 ),
                     renderService.toJsonAsString( headers ) );
             }
