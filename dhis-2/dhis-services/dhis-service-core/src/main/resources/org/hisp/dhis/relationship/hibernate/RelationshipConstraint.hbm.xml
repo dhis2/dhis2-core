@@ -20,15 +20,15 @@
             </type>
         </property>
 
-        <many-to-one lazy="false" name="trackedEntityType" class="org.hisp.dhis.trackedentity.TrackedEntityType"
+        <many-to-one name="trackedEntityType" class="org.hisp.dhis.trackedentity.TrackedEntityType"
                      column="trackedentitytypeid"
                      foreign-key="fk_relationshipconstraint_trackedentitytype_trackedentitytypeid"/>
 
-        <many-to-one lazy="false" name="program" class="org.hisp.dhis.program.Program"
+        <many-to-one name="program" class="org.hisp.dhis.program.Program"
                      column="programid"
                      foreign-key="fk_relationshipconstraint_program_programid"/>
 
-        <many-to-one lazy="false" name="programStage" class="org.hisp.dhis.program.ProgramStage"
+        <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
                      column="programstageid"
                      foreign-key="fk_relationshipconstraint_programstage_programstageid"/>
     </class>

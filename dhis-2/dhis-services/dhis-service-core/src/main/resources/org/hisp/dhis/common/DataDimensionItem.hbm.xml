@@ -12,10 +12,10 @@
       <generator class="native" />
     </id>
 
-    <many-to-one lazy="false" name="indicator" class="org.hisp.dhis.indicator.Indicator"
+    <many-to-one name="indicator" class="org.hisp.dhis.indicator.Indicator"
       column="indicatorid" foreign-key="fk_datadimensionitem_indicatorid" />
 
-    <many-to-one lazy="false" name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
+    <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
       column="dataelementid" foreign-key="fk_datadimensionitem_dataelementid" />
 
     <component name="dataElementOperand" class="org.hisp.dhis.dataelement.DataElementOperand">
@@ -39,7 +39,7 @@
       </property>
     </component>
 
-    <many-to-one lazy="false" name="programIndicator" class="org.hisp.dhis.program.ProgramIndicator"
+    <many-to-one name="programIndicator" class="org.hisp.dhis.program.ProgramIndicator"
       column="programindicatorid" foreign-key="fk_datadimensionitem_programindicatorid" />
 
     <component name="programDataElement" class="org.hisp.dhis.program.ProgramDataElementDimensionItem">

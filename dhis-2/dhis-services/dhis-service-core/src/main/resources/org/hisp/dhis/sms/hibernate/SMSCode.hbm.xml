@@ -17,10 +17,10 @@
 		
 		<property name="compulsory" />
 
-		<many-to-one lazy="false" name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
+		<many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
 			column="dataelementid" foreign-key="fk_dataelement_dataelementid" />
 
-		<many-to-one lazy="false" name="trackedEntityAttribute"
+		<many-to-one name="trackedEntityAttribute"
 			class="org.hisp.dhis.trackedentity.TrackedEntityAttribute" column="trackedentityattributeid"
 			foreign-key="fk_trackedentityattribute_trackedentityattributeid" />
 

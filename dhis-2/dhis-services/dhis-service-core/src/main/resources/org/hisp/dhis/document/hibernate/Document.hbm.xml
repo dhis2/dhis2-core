@@ -19,7 +19,7 @@
 
     <property name="url" not-null="true" type="text" />
 
-    <many-to-one lazy="false" name="fileResource" class="org.hisp.dhis.fileresource.FileResource" column="fileresource" foreign-key="fk_document_fileresourceid" />
+    <many-to-one name="fileResource" class="org.hisp.dhis.fileresource.FileResource" column="fileresource" foreign-key="fk_document_fileresourceid" />
 
     <property name="external" not-null="true" />
 
@@ -35,7 +35,7 @@
     <!-- Access properties -->
     <property name="externalAccess" />
 
-    <many-to-one lazy="false" name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_document_userid" />
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_document_userid" />
 
     <property name="publicAccess" length="8" />
 

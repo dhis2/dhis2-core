@@ -79,7 +79,7 @@
         unique="true" foreign-key="fk_programinstancecomments_trackedentitycommentid" />
     </list>
 
-    <many-to-one lazy="false" name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
+    <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
       foreign-key="fk_programinstance_organisationunitid" />
 
   </class>

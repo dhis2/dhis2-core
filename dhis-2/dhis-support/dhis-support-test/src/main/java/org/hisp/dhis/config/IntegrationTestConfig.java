@@ -28,8 +28,7 @@ package org.hisp.dhis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Properties;
-
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.container.DhisPostgisContainerProvider;
 import org.hisp.dhis.container.DhisPostgreSQLContainer;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -39,7 +38,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.Properties;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -53,6 +52,8 @@ public class IntegrationTestConfig
 
     private static final String POSTGRES_CREDENTIALS = "dhis";
 
+    public static final String CREATE_UPDATE_DELETE = "CREATE;UPDATE;DELETE";
+
     @Bean( name = "dhisConfigurationProvider" )
     public DhisConfigurationProvider dhisConfigurationProvider()
     {
@@ -64,18 +65,19 @@ public class IntegrationTestConfig
 
         Properties properties = new Properties();
 
-        properties.setProperty( "connection.url", postgreSQLContainer.getJdbcUrl() );
+        String jdbcUrl = postgreSQLContainer.getJdbcUrl();
+        properties.setProperty( "connection.url", jdbcUrl );
         properties.setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect" );
         properties.setProperty( "connection.driver_class", "org.postgresql.Driver" );
         properties.setProperty( "connection.username", username );
         properties.setProperty( "connection.password", password );
         properties.setProperty( ConfigurationKey.AUDIT_USE_INMEMORY_QUEUE_ENABLED.getKey(), "off" );
-        properties.setProperty( "metadata.audit.persist", "on");
-        properties.setProperty( "tracker.audit.persist", "on");
-        properties.setProperty( "aggregate.audit.persist", "on");
-        properties.setProperty( "audit.metadata", "CREATE;UPDATE;DELETE");
-        properties.setProperty( "audit.tracker", "CREATE;UPDATE;DELETE");
-        properties.setProperty( "audit.aggregate", "CREATE;UPDATE;DELETE");
+        properties.setProperty( "metadata.audit.persist", "on" );
+        properties.setProperty( "tracker.audit.persist", "on" );
+        properties.setProperty( "aggregate.audit.persist", "on" );
+        properties.setProperty( "audit.metadata", CREATE_UPDATE_DELETE );
+        properties.setProperty( "audit.tracker", CREATE_UPDATE_DELETE );
+        properties.setProperty( "audit.aggregate", CREATE_UPDATE_DELETE );
 
         dhisConfigurationProvider.addProperties( properties );
 
@@ -84,12 +86,12 @@ public class IntegrationTestConfig
 
     private JdbcDatabaseContainer<?> initContainer()
     {
-        DhisPostgreSQLContainer<?> postgisContainer = ((DhisPostgreSQLContainer<?>) new DhisPostgisContainerProvider().newInstance())
+        // NOSONAR
+        DhisPostgreSQLContainer<?> postgisContainer = ((DhisPostgreSQLContainer<?>) new DhisPostgisContainerProvider().newInstance()) //NOSONAR
             .appendCustomPostgresConfig( "max_locks_per_transaction=100" )
             .withDatabaseName( POSTGRES_DATABASE_NAME )
             .withUsername( POSTGRES_CREDENTIALS )
             .withPassword( POSTGRES_CREDENTIALS );
-//            .withReuse( true );
 
         postgisContainer.start();
 

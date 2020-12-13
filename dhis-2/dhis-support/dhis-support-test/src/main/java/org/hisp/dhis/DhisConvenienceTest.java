@@ -191,6 +191,7 @@ import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 @ActiveProfiles( profiles = { "test" } )
 public abstract class DhisConvenienceTest
 {
+
     protected static final String BASE_UID = "abcdefghij";
 
     protected static final String BASE_IN_UID = "inabcdefgh";
@@ -214,6 +215,10 @@ public abstract class DhisConvenienceTest
     protected static final String BASE_TEI_UID = "teibcdefgh";
 
     private static final String EXT_TEST_DIR = System.getProperty( "user.home" ) + File.separator + "dhis2_test_dir";
+
+    public static final String DEFAULT_ADMIN_PASSWORD = "district";
+
+    public static final String DEFAULT_USERNAME = "admin";
 
     private static Date date;
 
@@ -2255,7 +2260,7 @@ public abstract class DhisConvenienceTest
     {
         Assert.notNull( userService, "UserService must be injected in test" );
 
-        String password = "district";
+        String password = DEFAULT_ADMIN_PASSWORD;
 
         UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
         userAuthorityGroup.setCode( username );
@@ -2292,8 +2297,8 @@ public abstract class DhisConvenienceTest
     {
         Assert.notNull( userService, "UserService must be injected in test" );
 
-        String username = "admin";
-        String password = "district";
+        String username = DEFAULT_USERNAME;
+        String password = DEFAULT_ADMIN_PASSWORD;
 
         UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
         userAuthorityGroup.setUid( "yrB6vc5Ip3r" );
@@ -2424,7 +2429,7 @@ public abstract class DhisConvenienceTest
         List<GrantedAuthority> grantedAuthorities = ImmutableList.of( new SimpleGrantedAuthority( "ALL" ) );
 
         UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            "admin", "district", grantedAuthorities );
+            DEFAULT_USERNAME, DEFAULT_ADMIN_PASSWORD, grantedAuthorities );
 
         Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
 
@@ -2439,7 +2444,7 @@ public abstract class DhisConvenienceTest
         List<GrantedAuthority> grantedAuthorities = ImmutableList.of( new SimpleGrantedAuthority( "ALL" ) );
 
         UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            "admin", "district", grantedAuthorities );
+            DEFAULT_USERNAME, DEFAULT_ADMIN_PASSWORD, grantedAuthorities );
 
         Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
 

@@ -29,10 +29,10 @@
 
     <property name="designContent" type="text" />
 
-    <many-to-one lazy="false" name="visualization" class="org.hisp.dhis.visualization.Visualization" column="visualizationid"
+    <many-to-one name="visualization" class="org.hisp.dhis.visualization.Visualization" column="visualizationid"
       foreign-key="fk_report_visualizationid" />
 
-    <many-to-one lazy="false" name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
+    <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
       cascade="all-delete-orphan" foreign-key="fk_report_relativeperiodsid" />
 
     <component name="reportParams">
@@ -51,7 +51,7 @@
     <!-- Access properties -->
     <property name="externalAccess" />
 
-    <many-to-one lazy="false" name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_report_userid" />
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_report_userid" />
 
     <property name="publicAccess" length="8" />
 

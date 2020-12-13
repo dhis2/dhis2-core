@@ -56,6 +56,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Slf4j
 public abstract class BaseSpringTest extends DhisConvenienceTest implements ApplicationContextAware
 {
+
+    public static final String ORG_HISP_DHIS_DATASOURCE_QUERY = "org.hisp.dhis.datasource.query";
+
     protected ApplicationContext applicationContext;
 
     @Autowired
@@ -79,7 +82,7 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
     "Special" setter to allow setting JdbcTemplate as static field
      */
     @Autowired
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    public static void setJdbcTemplate( JdbcTemplate jdbcTemplate )
     {
         BaseSpringTest.jdbcTemplate = jdbcTemplate;
     }
@@ -98,7 +101,7 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
     public static void beforeClass()
     {
         // We usually don't want all the create db/tables statements in the query logger
-        Configurator.setLevel( "org.hisp.dhis.datasource.query", Level.WARN );
+        Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN );
     }
 
     @AfterClass
@@ -158,7 +161,7 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
         if ( emptyDatabaseAfterTest() )
         {
             // We normally don't want all the delete/empty db statements in the query logger
-            Configurator.setLevel( "org.hisp.dhis.datasource.query", Level.WARN );
+            Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN );
 
             transactionTemplate.execute( status -> {
                 dbmsManager.emptyDatabase();
@@ -182,7 +185,7 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
         // Enable to query logger to log only what's happening inside the test method
         if ( enableQueryLogging )
         {
-            Configurator.setLevel( "org.hisp.dhis.datasource.query", Level.INFO );
+            Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.INFO );
             Configurator.setRootLevel( Level.INFO );
         }
 

@@ -27,7 +27,7 @@
 
         <property name="toFromName" column="toFromName" />
 
-        <many-to-one lazy="false" name="fromConstraint" class="org.hisp.dhis.relationship.RelationshipConstraint"
+        <many-to-one name="fromConstraint" class="org.hisp.dhis.relationship.RelationshipConstraint"
                      column="from_relationshipconstraintid"
                      foreign-key="fk_relationshiptype_from_relationshipconstraintid"
                      not-null="false"
@@ -35,7 +35,7 @@
                      unique-key="relationshiptype_from_key"
                      cascade="all-delete-orphan"/>
 
-        <many-to-one lazy="false" name="toConstraint" class="org.hisp.dhis.relationship.RelationshipConstraint"
+        <many-to-one name="toConstraint" class="org.hisp.dhis.relationship.RelationshipConstraint"
                      column="to_relationshipconstraintid"
                      foreign-key="fk_relationshiptype_to_relationshipconstraintid"
                      not-null="false"
@@ -44,7 +44,7 @@
                      cascade="all-delete-orphan"/>
 
         <!-- Access properties -->
-        <many-to-one lazy="false" name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_relationshiptype_userid" />
+        <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_relationshiptype_userid" />
 
         <property name="publicAccess" length="8" />
 

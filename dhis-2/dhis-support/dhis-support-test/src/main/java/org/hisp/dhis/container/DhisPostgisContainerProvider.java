@@ -54,10 +54,8 @@ public class DhisPostgisContainerProvider
     @Override
     public JdbcDatabaseContainer newInstance( String tag )
     {
-        DockerImageName postgres = DockerImageName.parse( DEFAULT_IMAGE + ":" + tag ).asCompatibleSubstituteFor( "postgres" );
+        DockerImageName postgres = DockerImageName.parse( DEFAULT_IMAGE + ":" + tag )
+            .asCompatibleSubstituteFor( "postgres" );
         return new DhisPostgreSQLContainer( postgres );
-//        return new DhisPostgreSQLContainer( DEFAULT_IMAGE + ":" + tag );
-
     }
-
 }

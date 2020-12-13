@@ -101,7 +101,7 @@
       foreign-key="fk_attribute_optionsetid" />
 
     <!-- Access properties -->
-    <many-to-one lazy="false" name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_attribute_userid" />
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_attribute_userid" />
 
     <property name="publicAccess" length="8" />
 

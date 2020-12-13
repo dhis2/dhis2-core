@@ -30,14 +30,10 @@ package org.hisp.dhis.container;
 
 import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 import org.testcontainers.utility.DockerImageName;
 
-import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
-
-import static java.time.temporal.ChronoUnit.SECONDS;
 
 /**
  * Custom {@link PostgreSQLContainer} that provides additional fluent API to
@@ -47,47 +43,12 @@ import static java.time.temporal.ChronoUnit.SECONDS;
  */
 public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>> extends PostgreSQLContainer<SELF>
 {
-
-    private static final String NAME = "postgis";
-
-//    private static final DockerImageName DEFAULT_IMAGE_NAME = DockerImageName.parse( "postgis/postgis" ).asCompatibleSubstituteFor( "postgres" );
-
-    private static final String DEFAULT_TAG = "12-3.0";
-
-    public static final String USER_PARAM = "user";
-
-    public static final String PASSWORD_PARAM = "password";
-
     private Set<String> customPostgresConfigs = new HashSet<>();
-
-    //    public DhisPostgreSQLContainer( final String dockerImageName )
-//    {
-//        super( dockerImageName );
-//    }
-//    private static final String FSYNC_OFF_OPTION = "fsync=off";
-//
-//    public DhisPostgreSQLContainer( final DockerImageName dockerImageName )
-//    {
-//        super(dockerImageName);
-//        dockerImageName.assertCompatibleWith( DEFAULT_IMAGE_NAME );
-//
-//        this.waitStrategy = new LogMessageWaitStrategy()
-//            .withRegEx( ".*database system is ready to accept connections.*\\s" )
-//            .withTimes( 2 )
-//            .withStartupTimeout( Duration.of( 60, SECONDS ) );
-//        this.setCommand( "postgres", "-c", FSYNC_OFF_OPTION );
-//
-//        addExposedPort( POSTGRESQL_PORT );
-//    }
 
     public DhisPostgreSQLContainer( DockerImageName dockerImageName )
     {
         super( dockerImageName );
     }
-//public DhisPostgreSQLContainer( final String dockerImageName )
-//{
-//    super( dockerImageName );
-//}
 
     @Override
     protected void configure()
@@ -132,5 +93,4 @@ public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>>
         }
         return self();
     }
-
 }
