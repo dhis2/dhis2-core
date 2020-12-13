@@ -34,14 +34,27 @@ import static org.hisp.dhis.scheduling.JobType.EVENT_IMPORT;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -49,7 +62,12 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.dxf2.events.event.*;
+import org.hisp.dhis.dxf2.events.event.DataValue;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.events.event.EventService;
+import org.hisp.dhis.dxf2.events.event.Events;
+import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.events.report.EventRowService;
 import org.hisp.dhis.dxf2.events.report.EventRows;
@@ -57,6 +75,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.trace.TrackerImportTraceService;
 import org.hisp.dhis.dxf2.utils.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -65,7 +84,11 @@ import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.fileresource.*;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.FileResourceStorageStatus;
+import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
@@ -92,7 +115,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
@@ -162,6 +189,9 @@ public class EventController
 
     @Autowired
     private ContextUtils contextUtils;
+
+    @Autowired
+    private TrackerImportTraceService traceService;
 
     private Schema schema;
 
@@ -945,7 +975,9 @@ public class EventController
 
         if ( !importOptions.isAsync() )
         {
-            ImportSummaries importSummaries = eventService.addEventsJson( inputStream, importOptions );
+            final String payload = org.springframework.util.StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
+
+            ImportSummaries importSummaries = eventService.addEventsJson( payload, importOptions );
             importSummaries.setImportOptions( importOptions );
 
             importSummaries.getImportSummaries().stream()
@@ -970,6 +1002,8 @@ public class EventController
                     }
                 }
             }
+            traceService.trace( payload, importSummaries, getReqHeaders( request ),
+                getPath( request ), currentUserService.getCurrentUser() );
 
             webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
         }
@@ -1247,5 +1281,28 @@ public class EventController
     private String getParamValue( Map<String, List<String>> params, String key )
     {
         return params.get( key ) != null ? params.get( key ).get( 0 ) : null;
+    }
+
+    private Map<String, String> getReqHeaders( HttpServletRequest request )
+    {
+        Map<String, String> map = new HashMap<>();
+        // get header values from request object
+        Enumeration<String> headerNames = request.getHeaderNames();
+        while ( headerNames.hasMoreElements() )
+        {
+            String key = headerNames.nextElement();
+            if ( !key.equals( "authorization" ) && !key.equals( "cookie" ) )
+            {
+                String value = request.getHeader( key );
+                map.put( key, value );
+            }
+        }
+        return map;
+    }
+
+    private String getPath( HttpServletRequest request )
+    {
+        return request.getRequestURL().toString()
+            + (request.getQueryString() != null ? "?" + request.getQueryString() : "");
     }
 }

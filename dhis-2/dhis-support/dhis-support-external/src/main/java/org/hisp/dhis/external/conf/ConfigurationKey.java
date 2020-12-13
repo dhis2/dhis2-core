@@ -109,7 +109,9 @@ public enum ConfigurationKey
     AUDIT_USE_INMEMORY_QUEUE_ENABLED( "audit.inmemory-queue.enabled", "off" ),
     AUDIT_METADATA_MATRIX( "audit.metadata", "", false ),
     AUDIT_TRACKER_MATRIX( "audit.tracker", "", false ),
-    AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false );
+    AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false ),
+    TRACKER_IMPORT_TRACING_ENABLED( "tracker.import.tracing.enabled", "off", false ),
+    TRACKER_IMPORT_TRACING_LOG_SIZE( "tracker.import.tracing.log.size", "1000", false );
 
     private final String key;
 

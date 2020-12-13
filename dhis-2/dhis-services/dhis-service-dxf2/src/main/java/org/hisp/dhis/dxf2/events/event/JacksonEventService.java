@@ -38,21 +38,25 @@ import java.util.List;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
-import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
+import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.trace.TrackerImportTraceService;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.node.geometry.JtsXmlModule;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.EventSyncService;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -60,6 +64,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -98,6 +103,8 @@ public class JacksonEventService extends AbstractEventService
 
     private final static ObjectMapper JSON_MAPPER = new ObjectMapper();
 
+    private TrackerImportTraceService tracer;
+
     public JacksonEventService( ProgramService programService, ProgramStageService programStageService,
         ProgramInstanceService programInstanceService, ProgramStageInstanceService programStageInstanceService,
         OrganisationUnitService organisationUnitService, DataElementService dataElementService,
@@ -108,7 +115,7 @@ public class JacksonEventService extends AbstractEventService
         FileResourceService fileResourceService, SchemaService schemaService, QueryService queryService,
         TrackerAccessManager trackerAccessManager, TrackerOwnershipManager trackerOwnershipAccessManager,
         AclService aclService, ApplicationEventPublisher eventPublisher, RelationshipService relationshipService,
-        UserService userService, EventSyncService eventSyncService, ProgramRuleVariableService ruleVariableService )
+        UserService userService, EventSyncService eventSyncService, ProgramRuleVariableService ruleVariableService, TrackerImportTraceService tracer )
     {
         super( programService, programStageService, programInstanceService, programStageInstanceService,
             organisationUnitService, dataElementService, currentUserService, eventDataValueService,
@@ -116,6 +123,8 @@ public class JacksonEventService extends AbstractEventService
             manager, categoryService, fileResourceService, schemaService, queryService, trackerAccessManager,
             trackerOwnershipAccessManager, aclService, eventPublisher, relationshipService, userService,
             eventSyncService, ruleVariableService );
+
+        this.tracer = tracer;
     }
 
     @SuppressWarnings( "unchecked" )
@@ -204,6 +213,15 @@ public class JacksonEventService extends AbstractEventService
         List<Event> events = parseJsonEvents( input );
 
         return processEventImport( events, updateImportOptions( importOptions ), jobId );
+    }
+
+    @Override
+    public ImportSummaries addEventsJson( String payload, ImportOptions importOptions )
+        throws IOException
+    {
+        List<Event> events = parseJsonEvents( payload );
+
+        return processEventImport( events, updateImportOptions( importOptions ), null );
     }
 
     // -------------------------------------------------------------------------
