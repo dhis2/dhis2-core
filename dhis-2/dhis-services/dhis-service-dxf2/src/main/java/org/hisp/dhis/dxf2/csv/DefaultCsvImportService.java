@@ -837,6 +837,7 @@ public class DefaultCsvImportService
         throws IOException
     {
         CachingMap<String, OptionGroupSet> uidMap = new CachingMap<>();
+        //TODO: Why is this? Looks like it is not in use? See: https://github.com/dhis2/dhis2-core/security/code-scanning/1347
         CachingMap<String, OptionGroupSet> persistedGroupSetMap = new CachingMap<>();
 
         while ( reader.readRecord() )

@@ -115,6 +115,11 @@ public class MetadataImportBasedOnSchemasTest
         JsonObject object = DataGenerator.generateObjectMatchingSchema( schemaProperties );
         ApiResponse response = apiActions.post( object );
 
+        int i = response.statusCode();
+        if ( i != 201 )
+        {
+            System.out.println("problem!");
+        }
         // validate response;
         ResponseValidationHelper.validateObjectCreation( response );
 

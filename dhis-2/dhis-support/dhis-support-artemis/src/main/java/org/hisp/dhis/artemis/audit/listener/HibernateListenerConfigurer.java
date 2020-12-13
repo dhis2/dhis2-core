@@ -31,7 +31,13 @@ package org.hisp.dhis.artemis.audit.listener;
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.internal.SessionFactoryImpl;
-import org.springframework.context.annotation.Conditional;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -50,15 +56,29 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Luciano Fiandesio
  */
 @Component
-@Conditional( value = AuditEnabledCondition.class )
-public class HibernateListenerConfigurer
+public class HibernateListenerConfigurer implements ApplicationContextAware
 {
+    @Autowired
+    private DhisConfigurationProvider config;
+
+    private ApplicationContext applicationContext;
+
+    @Override
+    public void setApplicationContext( ApplicationContext applicationContext )
+        throws BeansException
+    {
+        this.applicationContext = applicationContext;
+    }
+
     @PersistenceUnit
     private EntityManagerFactory emf;
 
     private final PostInsertAuditListener postInsertAuditListener;
+
     private final PostUpdateAuditListener postUpdateEventListener;
+
     private final PostDeleteAuditListener postDeleteEventListener;
+
     private final PostLoadAuditListener postLoadEventListener;
 
     public HibernateListenerConfigurer(
@@ -81,6 +101,15 @@ public class HibernateListenerConfigurer
     @PostConstruct
     protected void init()
     {
+        boolean auditEnabled = config.getBoolean( ConfigurationKey.AUDIT_ENABLED );
+
+        boolean isTestAndNotAuditTest = isTestRun() && !isAuditTest();
+
+        if ( !auditEnabled || isTestAndNotAuditTest )
+        {
+            return;
+        }
+
         SessionFactoryImpl sessionFactory = emf.unwrap( SessionFactoryImpl.class );
 
         EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
@@ -92,5 +121,15 @@ public class HibernateListenerConfigurer
         registry.getEventListenerGroup( EventType.POST_COMMIT_DELETE ).appendListener( postDeleteEventListener );
 
         registry.getEventListenerGroup( EventType.POST_LOAD ).appendListener( postLoadEventListener );
+    }
+
+    protected boolean isTestRun()
+    {
+        return SystemUtils.isTestRun( applicationContext.getEnvironment().getActiveProfiles() );
+    }
+
+    protected boolean isAuditTest()
+    {
+        return SystemUtils.isAuditTest( applicationContext.getEnvironment().getActiveProfiles() );
     }
 }

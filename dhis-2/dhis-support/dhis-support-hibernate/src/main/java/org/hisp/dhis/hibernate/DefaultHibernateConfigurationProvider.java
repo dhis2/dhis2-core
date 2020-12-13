@@ -249,31 +249,6 @@ public class DefaultHibernateConfigurationProvider
 
         set( DIALECT, configProvider.getProperty( ConfigurationKey.CONNECTION_DIALECT ), p );
 
-//        set( DRIVER, configProvider.getProperty( ConfigurationKey.CONNECTION_DRIVER_CLASS ), p );
-//        set( URL, configProvider.getProperty( ConfigurationKey.CONNECTION_URL ), p );
-
-//        set( USER, configProvider.getProperty( ConfigurationKey.CONNECTION_USERNAME ), p );
-//        set( PASS, configProvider.getProperty( ConfigurationKey.CONNECTION_PASSWORD ), p );
-
-//        set( C3P0_MAX_SIZE, configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE ), p );
-
-//        set( ConfigurationKey.CONNECTION_POOL_MIN_SIZE.getKey(),
-//            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MIN_SIZE ), p );
-//        set( ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE.getKey(),
-//            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE ), p );
-//        set( ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR.getKey(),
-//            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR ), p );
-//        set( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME.getKey(),
-//            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME ), p );
-//        set( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON.getKey(),
-//            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON ), p );
-//        set( ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD.getKey(),
-//            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD ), p );
-//        set( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN.getKey(),
-//            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN ), p );
-//        set( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT.getKey(),
-//            configProvider.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT ), p );
-
         set( ConfigurationKey.ENCRYPTION_PASSWORD.getKey(),
             configProvider.getProperty( ConfigurationKey.ENCRYPTION_PASSWORD ), p );
 

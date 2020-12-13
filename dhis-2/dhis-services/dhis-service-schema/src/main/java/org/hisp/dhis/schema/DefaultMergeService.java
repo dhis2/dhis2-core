@@ -28,6 +28,7 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.Hibernate;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
@@ -55,6 +56,9 @@ public class DefaultMergeService implements MergeService
     {
         T source = mergeParams.getSource();
         T target = mergeParams.getTarget();
+
+        source = (T) Hibernate.unproxy( source );
+        target = (T) Hibernate.unproxy( target );
 
         Schema schema = schemaService.getDynamicSchema( source.getClass() );
 
