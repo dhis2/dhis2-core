@@ -117,7 +117,18 @@ public class TrackerImportTraceService
         return false;
     }
 
-    public void trace( long elapsed, String request, ImportSummaries importSummaries, Map<String, String> headers, String path, User user )
+    /**
+     * Dump the request/response data to the database
+     * 
+     * @param elapsed request/response elapsed time (ms.)
+     * @param request the JSON representation of the request payload
+     * @param importSummaries the result of the Tracker Import
+     * @param headers a Map containing the request headers
+     * @param path the request path
+     * @param user the current user
+     */
+    public void trace( long elapsed, String request, ImportSummaries importSummaries, Map<String, String> headers,
+        String path, User user )
     {
         if ( !enabled )
         {
@@ -130,9 +141,9 @@ public class TrackerImportTraceService
         CompletableFuture.runAsync( () -> {
             try
             {
-                jdbcTemplate.update( sql, elapsed, user.getUsername(), request, renderService.toJsonAsString( importSummaries ),
-                    importSummaries.getStatus().name(), StringUtils.left( path, 2000 ),
-                    renderService.toJsonAsString( headers ) );
+                jdbcTemplate.update( sql, elapsed, user.getUsername(), request,
+                    renderService.toJsonAsString( importSummaries ), importSummaries.getStatus().name(),
+                    StringUtils.left( path, 2000 ), renderService.toJsonAsString( headers ) );
             }
             catch ( Exception e )
             {
