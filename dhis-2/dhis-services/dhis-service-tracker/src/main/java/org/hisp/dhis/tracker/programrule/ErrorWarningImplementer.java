@@ -30,12 +30,18 @@ package org.hisp.dhis.tracker.programrule;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.rules.models.RuleActionMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.EnrollmentStatus;
+import org.hisp.dhis.tracker.domain.Event;
 
 /**
  * @Author Enrico Colasante
@@ -46,12 +52,22 @@ public abstract class ErrorWarningImplementer
     @Override
     public abstract Class<? extends RuleActionMessage> getActionClass();
 
+    public abstract boolean isOnComplete();
+
     @Override
     public Map<String, List<String>> validateEnrollments( TrackerBundle bundle )
     {
-        Map<String, List<RuleEffect>> effects = getEffects( bundle.getEnrollmentRuleEffects() );
+        Map<String, List<RuleEffect>> effects =
+            getEffects( bundle.getEnrollmentRuleEffects() );
+
+        List<String> filteredEnrollments = bundle.getEnrollments()
+            .stream()
+            .filter( filterEnrollment() )
+            .map( Enrollment::getEnrollment )
+            .collect( Collectors.toList() );
 
         return effects.entrySet().stream()
+            .filter( e -> filteredEnrollments.contains( e.getKey() ) )
             .collect( Collectors.toMap( e -> e.getKey(),
                 e -> parseErrors( e.getValue() ) ) );
     }
@@ -86,8 +102,38 @@ public abstract class ErrorWarningImplementer
     {
         Map<String, List<RuleEffect>> effects = getEffects( bundle.getEventRuleEffects() );
 
+        List<String> filteredEvents = bundle.getEvents()
+            .stream()
+            .filter( filterEvent() )
+            .map( Event::getEvent )
+            .collect( Collectors.toList() );
+
         return effects.entrySet().stream()
             .collect( Collectors.toMap( e -> e.getKey(),
                 e -> parseErrors( e.getValue() ) ) );
+    }
+
+    protected Predicate<Event> filterEvent()
+    {
+        if ( isOnComplete() )
+        {
+            return e -> Objects.equals( EventStatus.COMPLETED, e.getStatus() );
+        }
+        else
+        {
+            return e -> true;
+        }
+    }
+
+    protected Predicate<Enrollment> filterEnrollment()
+    {
+        if ( isOnComplete() )
+        {
+            return e -> Objects.equals( EnrollmentStatus.COMPLETED, e.getStatus() );
+        }
+        else
+        {
+            return e -> true;
+        }
     }
 }
