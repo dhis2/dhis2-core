@@ -45,13 +45,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
  */
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class  DefaultEventPersistenceService
     implements

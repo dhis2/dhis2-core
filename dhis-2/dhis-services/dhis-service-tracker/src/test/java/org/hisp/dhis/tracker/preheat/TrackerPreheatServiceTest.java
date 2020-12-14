@@ -186,14 +186,13 @@ public class TrackerPreheatServiceTest extends TrackerTest
 
         assertNotNull( preheat );
         assertNotNull( preheat.getMap() );
-        assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ) );
-        assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( DataElement.class ) );
-        assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( OrganisationUnit.class ) );
-        assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( Program.class ) );
-        assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( ProgramStage.class ) );
-        assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( CategoryOptionCombo.class ) );
+        assertNotNull( preheat.getMap().get( DataElement.class ) );
+        assertNotNull( preheat.getMap().get( OrganisationUnit.class ) );
+        assertNotNull( preheat.getMap().get( Program.class ) );
+        assertNotNull( preheat.getMap().get( ProgramStage.class ) );
+        assertNotNull( preheat.getMap().get( CategoryOptionCombo.class ) );
 
-        assertNotNull( preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, "XXXvX50cXC0" ) );
-        assertNotNull( preheat.get( TrackerIdScheme.UID, CategoryOption.class, "XXXrKDKCefk" ) );
+        assertNotNull( preheat.get( CategoryOptionCombo.class, "XXXvX50cXC0" ) );
+        assertNotNull( preheat.get( CategoryOption.class, "XXXrKDKCefk" ) );
     }
 }

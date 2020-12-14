@@ -1011,6 +1011,13 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional
+    public void clear()
+    {
+        sessionFactory.getCurrentSession().clear();
+    }
+
+    @Override
+    @Transactional
     public void evict( Object object )
     {
         sessionFactory.getCurrentSession().evict( object );

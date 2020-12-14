@@ -146,7 +146,6 @@ public class AppOverrideFilter
 
         if ( m.find() )
         {
-            String namespace = m.group( 0 );
             String appName = m.group( 1 );
             String resourcePath = m.group( 2 );
 

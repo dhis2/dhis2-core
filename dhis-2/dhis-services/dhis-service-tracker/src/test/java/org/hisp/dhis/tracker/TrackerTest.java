@@ -5,6 +5,7 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -35,6 +36,9 @@ import static org.junit.Assert.assertTrue;
 public abstract class TrackerTest extends TransactionalIntegrationTestBase
 {
     @Autowired
+    protected IdentifiableObjectManager manager;
+
+    @Autowired
     private RenderService _renderService;
 
     @Autowired
@@ -60,6 +64,9 @@ public abstract class TrackerTest extends TransactionalIntegrationTestBase
         userService = _userService;
 
         initTest();
+
+        // Clear the session to simulate different API call after the setup
+        manager.clear();
     }
 
     protected abstract void initTest()

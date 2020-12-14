@@ -37,7 +37,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -61,7 +60,7 @@ public class FileResourceSupplier extends AbstractPreheatSupplier
     @Override
     public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat )
     {
-        List<TrackedEntityAttribute> attributes = preheat.getAll( TrackerIdScheme.UID, TrackedEntityAttribute.class );
+        List<TrackedEntityAttribute> attributes = preheat.getAll( TrackedEntityAttribute.class );
 
         List<String> fileResourceAttributes = attributes.stream()
             .filter( at -> at.getValueType() == ValueType.FILE_RESOURCE )

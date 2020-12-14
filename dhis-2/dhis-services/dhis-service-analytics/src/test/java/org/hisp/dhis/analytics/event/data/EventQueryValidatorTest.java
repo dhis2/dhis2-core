@@ -240,6 +240,8 @@ public class EventQueryValidatorTest
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
             .withPage( -2 ).build();
 
@@ -253,6 +255,8 @@ public class EventQueryValidatorTest
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
             .withPageSize( -1 ).build();
 
@@ -269,6 +273,8 @@ public class EventQueryValidatorTest
 
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
             .withLimit( 200 ).build();
 
@@ -282,6 +288,8 @@ public class EventQueryValidatorTest
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
             .withCoordinateField( deE.getUid() )
             .withClusterSize( -3L ).build();

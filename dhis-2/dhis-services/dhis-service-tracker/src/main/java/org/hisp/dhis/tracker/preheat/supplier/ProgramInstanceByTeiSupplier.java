@@ -132,7 +132,7 @@ public class ProgramInstanceByTeiSupplier extends AbstractPreheatSupplier
 
     private Program getProgram( TrackerPreheat preheat, String uid )
     {
-        return preheat.get( TrackerIdScheme.UID, Program.class, uid );
+        return preheat.get( Program.class, uid );
     }
 
     private TrackedEntityInstance getTrackedEntityInstance( TrackerPreheat preheat, String uid )

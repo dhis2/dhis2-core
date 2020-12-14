@@ -148,7 +148,7 @@ public final class SchemaUtils
                 }
             }
 
-            if ( PROPS_IGNORE_MINMAX.contains( property.getPropertyType() ) )
+            if ( !property.isCollection() && PROPS_IGNORE_MINMAX.contains( property.getPropertyType() ) )
             {
                 property.setMin( null );
                 property.setMax( null );

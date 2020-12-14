@@ -33,7 +33,6 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
@@ -95,13 +94,13 @@ public class RepeatedEventsValidationHookTest
         bundle.setPreheat( preheat );
         ctx = new TrackerImportValidationContext( bundle );
 
-        when( preheat.get( TrackerIdScheme.UID, ProgramStage.class, NOT_REPEATABLE_PROGRAM_STAGE ) )
+        when( preheat.get( ProgramStage.class, NOT_REPEATABLE_PROGRAM_STAGE ) )
             .thenReturn( notRepeatebleProgramStage() );
-        when( preheat.get( TrackerIdScheme.UID, ProgramStage.class, REPEATABLE_PROGRAM_STAGE ) )
+        when( preheat.get( ProgramStage.class, REPEATABLE_PROGRAM_STAGE ) )
             .thenReturn( repeatebleProgramStage() );
-        when( preheat.get( TrackerIdScheme.UID, Program.class, PROGRAM_WITH_REGISTRATION ) )
+        when( preheat.get( Program.class, PROGRAM_WITH_REGISTRATION ) )
             .thenReturn( programWithRegistration() );
-        when( preheat.get( TrackerIdScheme.UID, Program.class, PROGRAM_WITHOUT_REGISTRATION ) )
+        when( preheat.get( Program.class, PROGRAM_WITHOUT_REGISTRATION ) )
             .thenReturn( programWithoutRegistration() );
     }
 

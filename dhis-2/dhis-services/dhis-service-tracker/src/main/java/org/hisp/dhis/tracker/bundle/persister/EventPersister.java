@@ -44,7 +44,6 @@ import java.util.stream.Collectors;
 import org.hibernate.Session;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -73,7 +72,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     private final TrackedEntityCommentService trackedEntityCommentService;
 
     private final TrackerSideEffectConverterService sideEffectConverterService;
-    
+
     public EventPersister( List<TrackerBundleHook> bundleHooks, ReservedValueService reservedValueService,
         TrackerConverterService<Event, ProgramStageInstance> eventConverter,
         TrackedEntityCommentService trackedEntityCommentService, TrackerSideEffectConverterService sideEffectConverterService )
@@ -177,7 +176,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
         for ( DataValue dv : payloadDataValues )
         {
-            DataElement dateElement = preheat.get( TrackerIdScheme.UID, DataElement.class, dv.getDataElement() );
+            DataElement dateElement = preheat.get( DataElement.class, dv.getDataElement() );
 
             checkNotNull( dateElement,
                 "Data element should never be NULL here if validation is enforced before commit." );

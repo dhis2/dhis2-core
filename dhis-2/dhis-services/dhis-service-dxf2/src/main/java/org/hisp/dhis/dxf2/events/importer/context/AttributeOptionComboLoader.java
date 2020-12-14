@@ -65,8 +65,6 @@ public class AttributeOptionComboLoader
 {
     private final JdbcTemplate jdbcTemplate;
 
-    private final static String KEY_SEPARATOR = "-";
-
     public final static String SQL_GET_CATEGORYOPTIONCOMBO = "select coc.categoryoptioncomboid, "
         + "coc.uid, coc.code, coc.ignoreapproval, coc.name, c.uid as cc_uid, c.name as cc_name, "
         + "string_agg(coco.categoryoptionid::text, ',') as cat_ids from categoryoptioncombo coc "
@@ -86,7 +84,7 @@ public class AttributeOptionComboLoader
         "coc.name, " +
         "c.uid as cc_uid, " +
         "c.name as cc_name," +
-        "string_agg( coco.categoryoptionid::text, ',') as cat_ids " +
+        "array_to_string(array_agg(distinct coco.categoryoptionid::TEXT), ',') as cat_ids " +
         "from categoryoptioncombo coc " +
         "join categorycombos_optioncombos co on coc.categoryoptioncomboid = co.categoryoptioncomboid " +
         "join categorycombo c on co.categorycomboid = c.categorycomboid " +
@@ -255,7 +253,7 @@ public class AttributeOptionComboLoader
             .put( "resolvedScheme", Objects.requireNonNull( categoryComboKey ) )
             .put( "option_ids", optionsId )
             .build() );
-        
+
         // TODO use cache
         List<CategoryOptionCombo> categoryOptionCombos = jdbcTemplate
             .query( sub.replace( SQL_GET_CATEGORYOPTIONCOMBO_BY_CATEGORYIDS ), ( rs, i ) -> bind( "categoryoptioncomboid", rs ) );

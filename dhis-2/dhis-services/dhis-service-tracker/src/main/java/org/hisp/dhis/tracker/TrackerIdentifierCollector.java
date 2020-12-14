@@ -136,7 +136,7 @@ public class TrackerIdentifierCollector
             Stream
                 .of( MoreObjects.firstNonNull( event.getAttributeCategoryOptions(), "" ).split( TextUtils.SEMICOLON ) )
                 .forEach(
-                    s -> addIdentifier( map, CategoryOption.class, params.getCategoryOption().getIdScheme(), s ) );
+                    s -> addIdentifier( map, CategoryOption.class, params.getCategoryOptionIdScheme().getIdScheme(), s ) );
 
             addIdentifier( map, CategoryOptionCombo.class, params.getCategoryOptionComboIdScheme().getIdScheme(),
                 event.getAttributeOptionCombo() );
