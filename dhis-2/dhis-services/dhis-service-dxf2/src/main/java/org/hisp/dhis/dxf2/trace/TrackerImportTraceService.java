@@ -156,6 +156,11 @@ public class TrackerImportTraceService
     @Scheduled( fixedRate = 60000 )
     public void truncate()
     {
+        if ( !enabled )
+        {
+            return;
+        }
+        
         try
         {
             jdbcTemplate.execute( "DELETE FROM " + TRACE_TABLE + " WHERE id < (SELECT id FROM " + TRACE_TABLE
