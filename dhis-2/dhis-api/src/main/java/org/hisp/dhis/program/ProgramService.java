@@ -46,19 +46,12 @@ public interface ProgramService
     String ID = ProgramService.class.getName();
 
     Pattern INPUT_PATTERN = Pattern.compile( "(<input.*?/>)", Pattern.DOTALL );
-
     Pattern DYNAMIC_ATTRIBUTE_PATTERN = Pattern.compile( "attributeid=\"(\\w+)\"" );
-
     Pattern PROGRAM_PATTERN = Pattern.compile( "programid=\"(\\w+)\"" );
-
     Pattern VALUE_TAG_PATTERN = Pattern.compile( "value=\"(.*?)\"", Pattern.DOTALL );
-
     Pattern TITLE_TAG_PATTERN = Pattern.compile( "title=\"(.*?)\"", Pattern.DOTALL );
-
     Pattern SUGGESTED_VALUE_PATTERN = Pattern.compile( "suggested=('|\")(\\w*)('|\")" );
-
     Pattern CLASS_PATTERN = Pattern.compile( "class=('|\")(\\w*)('|\")" );
-
     Pattern STYLE_PATTERN = Pattern.compile( "style=('|\")([\\w|\\d\\:\\;]+)('|\")" );
 
     /**
@@ -77,8 +70,9 @@ public interface ProgramService
     void updateProgram( Program program );
 
     /**
-     * Deletes a {@link Program}. All {@link ProgramStage}, {@link ProgramInstance}
-     * and {@link ProgramStageInstance} belong to this program are removed
+     * Deletes a {@link Program}. All {@link ProgramStage},
+     * {@link ProgramInstance} and {@link ProgramStageInstance} belong to this
+     * program are removed
      *
      * @param program the Program to delete.
      */
@@ -95,8 +89,8 @@ public interface ProgramService
     /**
      * Returns all {@link Program}.
      *
-     * @return a collection of all Program, or an empty collection if there are no
-     *         Programs.
+     * @return a collection of all Program, or an empty collection if there are
+     *         no Programs.
      */
     List<Program> getAllPrograms();
 
@@ -111,9 +105,9 @@ public interface ProgramService
     /**
      * Get {@link Program} by a type
      *
-     * @param type The type of program. There are three types, include Multi events
-     *        with registration, Single event with registration and Single event
-     *        without registration
+     * @param type The type of program. There are three types, include Multi
+     *        events with registration, Single event with registration and
+     *        Single event without registration
      * @return Program list by a type specified
      */
     List<Program> getPrograms( ProgramType type );
@@ -142,8 +136,8 @@ public interface ProgramService
     List<Program> getProgramsByDataEntryForm( DataEntryForm dataEntryForm );
 
     /**
-     * Get {@link Program} by the current user. Returns all programs if current user
-     * is superuser. Returns an empty list if there is no current user.
+     * Get {@link Program} by the current user. Returns all programs if current
+     * user is superuser. Returns an empty list if there is no current user.
      *
      * @return Immutable set of programs associated with the current user.
      */
@@ -155,15 +149,15 @@ public interface ProgramService
      * Get {@link Program} by the current user and a certain type
      *
      * @param programType The type of program. There are three types, include Multi
-     *        events with registration, Single event with registration and Single
-     *        event without registration.
+     *        events with registration, Single event with registration and
+     *        Single event without registration.
      * @return Immutable set of programs associated with the current user.
      */
     Set<Program> getUserPrograms( ProgramType programType );
 
     /**
-     * Sets the given merge organisation units on the given programs. Only the
-     * sub-hierarchy of the current user is modified.
+     * Sets the given merge organisation units on the given programs. Only
+     * the sub-hierarchy of the current user is modified.
      *
      * @param program the program.
      * @param mergeOrganisationUnits the merge organisation units.
