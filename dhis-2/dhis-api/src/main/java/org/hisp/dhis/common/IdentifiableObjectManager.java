@@ -158,15 +158,20 @@ public interface IdentifiableObjectManager
 
     void flush();
 
+    void clear();
+
     void evict( Object object );
 
     <T extends IdentifiableObject> List<T> getByAttributeAndValue( Class<T> klass, Attribute attribute, String value );
 
-    <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object, AttributeValue attributeValue );
+    <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object,
+        AttributeValue attributeValue );
 
-    <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object, Attribute attribute, String value );
+    <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object,
+        Attribute attribute, String value );
 
-    List<? extends IdentifiableObject> getAllByAttributeAndValues( Class<? extends IdentifiableObject> klass, Attribute attribute, List<String> values );
+    List<? extends IdentifiableObject> getAllByAttributeAndValues( Class<? extends IdentifiableObject> klass,
+        Attribute attribute, List<String> values );
 
     Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults();
 
