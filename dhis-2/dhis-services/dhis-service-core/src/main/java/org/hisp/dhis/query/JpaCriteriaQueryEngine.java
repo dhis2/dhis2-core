@@ -87,9 +87,10 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
     public List<T> query( Query query )
     {
         Schema schema = query.getSchema();
-        InternalHibernateGenericStore<?> store = getStore( (Class<? extends IdentifiableObject> ) schema.getKlass() );
 
         Class<T> klass = (Class<T>) schema.getKlass();
+
+        InternalHibernateGenericStore<T> store = (InternalHibernateGenericStore<T>) getStore( klass );
 
         if ( store == null )
         {
@@ -123,6 +124,9 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
 
         Predicate predicate = buildPredicates( builder, root, query );
 
+        predicate.getExpressions().addAll( store
+            .getSharingPredicates( builder, query.getUser() ).stream().map( t -> t.apply( root ) ).collect( Collectors.toList() ) );
+
         criteriaQuery.where( predicate );
 
         if ( !query.getOrders().isEmpty() )
@@ -144,9 +148,10 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
     public long count( Query query )
     {
         Schema schema = query.getSchema();
-        InternalHibernateGenericStore<?> store = getStore( (Class<? extends IdentifiableObject> ) schema.getKlass() );
 
         Class<T> klass = (Class<T>) schema.getKlass();
+
+        InternalHibernateGenericStore<T> store = (InternalHibernateGenericStore<T>) getStore( klass );
 
         if ( store == null )
         {
@@ -177,6 +182,9 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         }
 
         Predicate predicate = buildPredicates( builder, root, query );
+
+        predicate.getExpressions().addAll( store
+            .getSharingPredicates( builder, query.getUser() ).stream().map( t -> t.apply( root ) ).collect( Collectors.toList() ) );
 
         criteriaQuery.where( predicate );
 
