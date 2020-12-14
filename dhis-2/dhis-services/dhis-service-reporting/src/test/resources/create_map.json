@@ -64,16 +64,12 @@
           ],
           "startDate": "2018-09-01",
           "noDataColor": "#ddeeff",
-          "thematicMapType": "CHOROPLETH",
-          "created": "2016-03-04T03:37:12.714+0000",
-          "lastUpdated": "2016-03-04T03:37:12.733+0000"
+          "thematicMapType": "CHOROPLETH"
         }
       ],
       "name": "test1",
       "description": "test",
-      "id": "LTNgXfzTFTv",
-      "created": "2016-03-04T03:37:12.714+0000",
-      "lastUpdated": "2016-03-04T03:37:12.733+0000"
+      "id": "LTNgXfzTFTv"
     }
   ]
 }
