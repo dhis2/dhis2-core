@@ -244,8 +244,8 @@ public class DefaultHibernateConfigurationProvider
         Properties p = new Properties();
 
 //        set( "hibernate.id.disable_delayed_identity_inserts", "true", p );
-        set( JDBC_TYLE_PARAMS_ZERO_BASE, "true", p );
-        set( TABLE_GENERATOR_STORE_LAST_USED, "true", p );
+//        set( JDBC_TYLE_PARAMS_ZERO_BASE, "true", p );
+//        set( TABLE_GENERATOR_STORE_LAST_USED, "true", p );
 
         set( DIALECT, configProvider.getProperty( ConfigurationKey.CONNECTION_DIALECT ), p );
 
