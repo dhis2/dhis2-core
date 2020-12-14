@@ -167,14 +167,14 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
                 }
             }
 
-            if ( identifiableObject.getSharing().getOwner() == null )
-            {
-                identifiableObject.getSharing().setOwner( user );
-            }
-
             if ( identifiableObject.getUser() == null )
             {
                 identifiableObject.setUser( user );
+            }
+
+            if ( identifiableObject.getSharing().getOwner() == null && identifiableObject.getUser() != null )
+            {
+                identifiableObject.getSharing().setOwner( user );
             }
         }
 

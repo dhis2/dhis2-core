@@ -447,6 +447,8 @@ public class BaseIdentifiableObject
     public void setUser( User user )
     {
         this.user = user;
+
+        //TODO remove this after implemented functions for using Owner property
         this.setOwner( user != null ? user.getUid() : null );
     }
 
