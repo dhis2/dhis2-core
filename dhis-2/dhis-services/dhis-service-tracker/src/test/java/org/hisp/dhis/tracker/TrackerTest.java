@@ -64,9 +64,6 @@ public abstract class TrackerTest extends TransactionalIntegrationTestBase
         userService = _userService;
 
         initTest();
-
-        // Clear the session to simulate different API call after the setup
-        manager.clear();
     }
 
     protected abstract void initTest()
