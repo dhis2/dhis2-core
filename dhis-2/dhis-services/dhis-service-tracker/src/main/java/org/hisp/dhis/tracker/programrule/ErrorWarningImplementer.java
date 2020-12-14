@@ -109,6 +109,7 @@ public abstract class ErrorWarningImplementer
             .collect( Collectors.toList() );
 
         return effects.entrySet().stream()
+            .filter( e -> filteredEvents.contains( e.getKey() ) )
             .collect( Collectors.toMap( e -> e.getKey(),
                 e -> parseErrors( e.getValue() ) ) );
     }
