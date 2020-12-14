@@ -12,6 +12,7 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -32,8 +33,12 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Luciano Fiandesio
  */
-public abstract class TrackerTest extends DhisSpringTest
+public abstract class TrackerTest
+    extends DhisSpringTest
 {
+    @Autowired
+    protected IdentifiableObjectManager manager;
+
     @Autowired
     private RenderService _renderService;
 
@@ -60,6 +65,9 @@ public abstract class TrackerTest extends DhisSpringTest
         userService = _userService;
 
         initTest();
+
+        // Clear the session to simulate different API call after the setup
+        manager.clear();
     }
 
     protected abstract void initTest()
