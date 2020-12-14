@@ -36,6 +36,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.HashSet;
 import java.util.List;
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -53,6 +54,9 @@ public class ProgramServiceTest
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
+
+    @Autowired
+    private SessionFactory sessionFactory;
 
     private OrganisationUnit organisationUnitA;
 
@@ -81,6 +85,8 @@ public class ProgramServiceTest
 
         programC = createProgram( 'C', new HashSet<>(), organisationUnitB );
         programC.setUid( "UID-C" );
+
+
     }
 
     @Test
@@ -183,5 +189,19 @@ public class ProgramServiceTest
 
         assertEquals( programA, programService.getProgram( "UID-A" ) );
         assertEquals( programB, programService.getProgram( "UID-B" ) );
+    }
+
+    @Test
+    public void testProgramHasOrgUnit()
+    {
+        programService.addProgram( programA );
+
+        Program p = programService.getProgram( programA.getUid() );
+        OrganisationUnit ou = organisationUnitService.getOrganisationUnit( organisationUnitA.getUid() );
+
+        sessionFactory.getCurrentSession().flush();
+
+        assertTrue( programService.hasOrgUnit( p, ou ) );
+
     }
 }

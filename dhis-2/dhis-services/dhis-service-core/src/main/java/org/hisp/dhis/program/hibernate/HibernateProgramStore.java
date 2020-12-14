@@ -29,6 +29,7 @@ package org.hisp.dhis.program.hibernate;
  */
 
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.criteria.CriteriaBuilder;
 
@@ -88,9 +89,9 @@ public class HibernateProgramStore
 
     public boolean hasOrgUnit( Program program, OrganisationUnit organisationUnit )
     {
-        return jdbcTemplate.queryForObject(
+        return jdbcTemplate.queryForList(
             "select programid from program_organisationunits where programid = ? and organisationunitid = ?",
-            Long.class, program.getId(), organisationUnit.getId() ) != null;
+            program.getId(), organisationUnit.getId() ).size() == 1;
     }
 
     @Override
