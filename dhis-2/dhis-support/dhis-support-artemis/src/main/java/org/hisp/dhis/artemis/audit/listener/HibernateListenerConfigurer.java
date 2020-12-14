@@ -28,17 +28,19 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.event.service.spi.EventListenerRegistry;
-import org.hibernate.event.spi.EventType;
-import org.hibernate.internal.SessionFactoryImpl;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.stereotype.Component;
-
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hibernate.event.service.spi.EventListenerRegistry;
+import org.hibernate.event.spi.EventType;
+import org.hibernate.internal.SessionFactoryImpl;
+import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.stereotype.Component;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * This component configures the Hibernate Auditing listeners. The listeners are
@@ -50,7 +52,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Luciano Fiandesio
  */
 @Component
+@DependsOn( "auditMatrix" )
 @Conditional( value = AuditEnabledCondition.class )
+@RequiredArgsConstructor
 public class HibernateListenerConfigurer
 {
     @PersistenceUnit
@@ -60,24 +64,8 @@ public class HibernateListenerConfigurer
     private final PostUpdateAuditListener postUpdateEventListener;
     private final PostDeleteAuditListener postDeleteEventListener;
     private final PostLoadAuditListener postLoadEventListener;
-
-    public HibernateListenerConfigurer(
-        PostInsertAuditListener postInsertAuditListener,
-        PostUpdateAuditListener postUpdateEventListener,
-        PostDeleteAuditListener postDeleteEventListener,
-        PostLoadAuditListener postLoadEventListener )
-    {
-        checkNotNull( postDeleteEventListener );
-        checkNotNull( postUpdateEventListener );
-        checkNotNull( postInsertAuditListener );
-        checkNotNull( postLoadEventListener );
-
-        this.postInsertAuditListener = postInsertAuditListener;
-        this.postUpdateEventListener = postUpdateEventListener;
-        this.postDeleteEventListener = postDeleteEventListener;
-        this.postLoadEventListener = postLoadEventListener;
-    }
-
+    private final AuditMatrix auditMatrix;
+    
     @PostConstruct
     protected void init()
     {
@@ -91,6 +79,9 @@ public class HibernateListenerConfigurer
 
         registry.getEventListenerGroup( EventType.POST_COMMIT_DELETE ).appendListener( postDeleteEventListener );
 
-        registry.getEventListenerGroup( EventType.POST_LOAD ).appendListener( postLoadEventListener );
+        if ( auditMatrix.isReadEnabled() )
+        {
+            registry.getEventListenerGroup( EventType.POST_LOAD ).appendListener( postLoadEventListener );
+        }
     }
 }
