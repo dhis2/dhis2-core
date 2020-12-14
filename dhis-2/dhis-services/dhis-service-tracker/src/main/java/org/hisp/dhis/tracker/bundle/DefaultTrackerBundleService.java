@@ -71,10 +71,6 @@ public class DefaultTrackerBundleService
 
     private final SessionFactory sessionFactory;
 
-    private final HibernateCacheManager cacheManager;
-
-    private final DbmsManager dbmsManager;
-
     private final CommitService commitService;
 
     private final TrackerProgramRuleService trackerProgramRuleService;
@@ -133,15 +129,11 @@ public class DefaultTrackerBundleService
 
     public DefaultTrackerBundleService( TrackerPreheatService trackerPreheatService,
         SessionFactory sessionFactory,
-        HibernateCacheManager cacheManager,
-        DbmsManager dbmsManager,
         TrackerProgramRuleService trackerProgramRuleService,
         TrackerObjectDeletionService deletionService, CommitService commitService )
     {
         this.trackerPreheatService = trackerPreheatService;
         this.sessionFactory = sessionFactory;
-        this.cacheManager = cacheManager;
-        this.dbmsManager = dbmsManager;
         this.trackerProgramRuleService = trackerProgramRuleService;
         this.deletionService = deletionService;
         this.commitService = commitService;
@@ -196,12 +188,9 @@ public class DefaultTrackerBundleService
 
         Stream.of( TrackerType.values() )
             .forEach( t -> bundleReport.getTypeReportMap().put( t, COMMIT_MAPPER.get( t )
-            .apply( session, bundle ) ) );
+                .apply( session, bundle ) ) );
 
         bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
-
-        dbmsManager.clearSession();
-        cacheManager.clearCache();
 
         return bundleReport;
     }
@@ -225,10 +214,7 @@ public class DefaultTrackerBundleService
 
         Stream.of( TrackerType.values() )
             .forEach( t -> bundleReport.getTypeReportMap().put( t, DELETION_MAPPER.get( t )
-            .apply( bundle, t ) ) );
-
-        dbmsManager.clearSession();
-        cacheManager.clearCache();
+                .apply( bundle, t ) ) );
 
         return bundleReport;
     }
