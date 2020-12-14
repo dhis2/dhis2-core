@@ -646,10 +646,11 @@ public abstract class AbstractEventService
             programStage = programStageInstance.getProgramStage();
         }
 
-        if ( !programInstance.getProgram().hasOrganisationUnit( organisationUnit ) )
+        if ( !programService.hasOrgUnit( programInstance.getProgram(), organisationUnit ) )
         {
-            return new ImportSummary( ImportStatus.ERROR, "Program is not assigned to this organisation unit: " + event.getOrgUnit() )
-                .setReference( event.getEvent() ).incrementIgnored();
+            return new ImportSummary( ImportStatus.ERROR,
+                "Program is not assigned to this organisation unit: " + event.getOrgUnit() )
+                    .setReference( event.getEvent() ).incrementIgnored();
         }
 
         validateExpiryDays( importOptions, event, program, programStageInstance );

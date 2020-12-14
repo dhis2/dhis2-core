@@ -28,7 +28,11 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -44,8 +48,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * @author Chau Thu Tran
@@ -82,6 +85,13 @@ public class HibernateProgramStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.join( "organisationUnits" ).get( "id" ), organisationUnit.getId() ) ) );
+    }
+
+    public boolean hasOrgUnit( Program program, OrganisationUnit organisationUnit )
+    {
+        return jdbcTemplate.queryForList(
+            "select programid from program_organisationunits where programid = ? and organisationunitid = ?",
+            program.getId(), organisationUnit.getId() ).size() == 1;
     }
 
     @Override

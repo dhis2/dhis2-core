@@ -63,6 +63,12 @@ public interface ProgramStore
     List<Program> get( OrganisationUnit organisationUnit );
 
     /**
+     * Checks whether the given {@link OrganisationUnit} belongs to the specified
+     * {@link Program}
+     */
+    boolean hasOrgUnit( Program program, OrganisationUnit organisationUnit );
+
+    /**
      * Get {@link Program} by TrackedEntityType
      *
      * @param trackedEntityType {@link TrackedEntityType}
