@@ -119,6 +119,7 @@ public class TrackedEntityImportValidationTest
         List<ErrorReport> errorReports1 = commit.getErrorReports();
         assertTrue( errorReports1.isEmpty() );
 
+        manager.clear();
     }
 
     @Test
@@ -359,6 +360,8 @@ public class TrackedEntityImportValidationTest
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
 
+        manager.clear();
+
         trackerImportParams.setImportStrategy( TrackerImportStrategy.UPDATE );
         TrackerBundle updateBundle = trackerBundleService.create( trackerImportParams );
 
@@ -366,6 +369,8 @@ public class TrackedEntityImportValidationTest
         TrackerBundleReport bundleReport2 = trackerBundleService.commit( updateBundle );
         assertEquals( 0, report.getErrorReports().size() );
         assertEquals( TrackerStatus.OK, bundleReport2.getStatus() );
+
+        manager.clear();
 
         TrackerImportParams trackerBundleParamsUpdate = createBundleFromJson( "tracker/validations/te-data.json" );
 
@@ -404,6 +409,8 @@ public class TrackedEntityImportValidationTest
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
 
+        manager.clear();
+
         TrackerImportParams trackerBundleParamsUpdate = createBundleFromJson( "tracker/validations/te-data.json" );
 
         trackerBundleParamsUpdate.setUserId( user.getUid() );
@@ -419,6 +426,8 @@ public class TrackedEntityImportValidationTest
 
         TrackerBundleReport bundleReportUpdate = trackerBundleService.commit( trackerBundleUpdate );
         assertEquals( TrackerStatus.OK, bundleReportUpdate.getStatus() );
+
+        manager.clear();
 
         // isInactive should now be true
         TrackedEntityInstance nCc1rCEOKaY = trackedEntityInstanceService.getTrackedEntityInstance( "NCc1rCEOKaY" );
@@ -469,6 +478,8 @@ public class TrackedEntityImportValidationTest
         assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
 
         importProgramInstances();
+
+        manager.clear();
 
         TrackerImportParams params = renderService
             .fromJson( new ClassPathResource( "tracker/validations/enrollments_te_te-data.json" ).getInputStream(),
