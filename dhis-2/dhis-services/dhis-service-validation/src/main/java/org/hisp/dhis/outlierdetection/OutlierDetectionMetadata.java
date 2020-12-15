@@ -41,6 +41,9 @@ import lombok.Data;
 public class OutlierDetectionMetadata
 {
     @JsonProperty
+    private OutlierDetectionAlgorithm outlierAlgorithm;
+
+    @JsonProperty
     private double threshold;
 
     @JsonProperty

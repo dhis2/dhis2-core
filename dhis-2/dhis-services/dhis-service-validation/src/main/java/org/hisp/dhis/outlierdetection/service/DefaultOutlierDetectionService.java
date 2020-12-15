@@ -177,6 +177,7 @@ public class DefaultOutlierDetectionService
 
         final OutlierDetectionMetadata metadata = new OutlierDetectionMetadata();
         metadata.setCount( response.getOutlierValues().size() );
+        metadata.setOutlierAlgorithm( request.getOutlierAlgorithm() );
         metadata.setThreshold( request.getThreshold() );
         metadata.setOrderBy( request.getOrderBy() );
         metadata.setMaxResults( request.getMaxResults() );

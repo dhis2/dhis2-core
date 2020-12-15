@@ -63,6 +63,9 @@ public class OutlierDetectionManager
      */
     public List<OutlierValue> getOutliers( OutlierDetectionRequest request )
     {
+        int count = jdbcTemplate.queryForObject( "select count(*) from datavalue;", new MapSqlParameterSource(), Integer.class );
+        System.out.println( "DV COUNT " + count );
+
         String ouPathClause = getOrgUnitPathClause( request );
 
         final String sql =
