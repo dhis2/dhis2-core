@@ -35,8 +35,8 @@ package org.hisp.dhis.outlierdetection;
  */
 public enum Order
 {
-    Z_SCORE( "z_score" ),
-    MEAN_ABS_DEV( "mean_abs_dev" );
+    MEAN_ABS_DEV( "mean_abs_dev" ),
+    Z_SCORE( "z_score" );
 
     private String key;
 
