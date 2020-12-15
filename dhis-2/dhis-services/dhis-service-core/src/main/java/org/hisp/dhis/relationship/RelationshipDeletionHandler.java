@@ -30,6 +30,7 @@ package org.hisp.dhis.relationship;
 
 import java.util.Collection;
 
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -92,6 +93,22 @@ public class RelationshipDeletionHandler
             }
         }
     }
+    
+    @Override
+    public void deleteProgramInstance( ProgramInstance programInstance )
+    {
+        Collection<Relationship> relationships = relationshipService
+            .getRelationshipsByProgramInstance( programInstance, false );
+
+        if ( relationships != null )
+        {
+            for ( Relationship relationship : relationships )
+            {
+                relationshipService.deleteRelationship( relationship );
+            }
+        }
+    }
+
 
     @Override
     public String allowDeleteRelationshipType( RelationshipType relationshipType )
