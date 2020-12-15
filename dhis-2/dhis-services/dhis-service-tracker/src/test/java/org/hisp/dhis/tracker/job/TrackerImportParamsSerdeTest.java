@@ -65,7 +65,6 @@ public class TrackerImportParamsSerdeTest extends TrackerTest
             "\"categoryOptionComboIdScheme\":{\"idScheme\":\"UID\"}," +
             "\"categoryOptionIdScheme\":{\"idScheme\":\"UID\"}}," +
             "\"importStrategy\":\"DELETE\"," +
-            "\"atomicMode\":\"OBJECT\"," +
             "\"flushMode\":\"OBJECT\"," +
             "\"validationMode\":\"SKIP\"," +
             "\"skipPatternValidation\":false," +
@@ -93,7 +92,6 @@ public class TrackerImportParamsSerdeTest extends TrackerTest
             "\"categoryOptionComboIdScheme\":{\"idScheme\":\"UID\"}," +
             "\"categoryOptionIdScheme\":{\"idScheme\":\"UID\"}}," +
             "\"importStrategy\":\"DELETE\"," +
-            "\"atomicMode\":\"OBJECT\"," +
             "\"flushMode\":\"OBJECT\"," +
             "\"validationMode\":\"SKIP\"," +
             "\"skipPatternValidation\":true," +
