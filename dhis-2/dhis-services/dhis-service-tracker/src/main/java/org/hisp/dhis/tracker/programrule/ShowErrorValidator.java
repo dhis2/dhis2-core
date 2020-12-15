@@ -47,6 +47,12 @@ public class ShowErrorValidator
     }
 
     @Override
+    public boolean isOnComplete()
+    {
+        return false;
+    }
+
+    @Override
     public boolean isWarning()
     {
         return false;
