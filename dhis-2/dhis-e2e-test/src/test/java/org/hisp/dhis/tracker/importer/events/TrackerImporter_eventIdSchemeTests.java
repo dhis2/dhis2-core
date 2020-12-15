@@ -70,6 +70,8 @@ public class TrackerImporter_eventIdSchemeTests
 
     private static final String PROGRAM_ID = Constants.EVENT_PROGRAM_ID;
 
+    private static final String PROGRAM_STAGE_ID = "jKLB23QZS4I";
+
     private static String ATTRIBUTE_ID;
 
     private OrgUnitActions orgUnitActions;
@@ -150,6 +152,7 @@ public class TrackerImporter_eventIdSchemeTests
             .replacePropertyValuesWithIds( "event" )
             .replacePropertyValuesWith( "orgUnit", orgUnitId )
             .replacePropertyValuesWith( "program", programPropertyValue )
+            .replacePropertyValuesWith( "programStage", PROGRAM_STAGE_ID )
             .get( JsonObject.class );
 
         // act

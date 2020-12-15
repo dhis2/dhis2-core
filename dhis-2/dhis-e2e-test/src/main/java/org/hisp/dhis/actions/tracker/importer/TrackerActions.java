@@ -28,6 +28,7 @@
 
 package org.hisp.dhis.actions.tracker.importer;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -160,6 +161,7 @@ public class TrackerActions
             .addProperty( "program", programId )
             .addProperty( "orgUnit", ouId )
             .addProperty( "occurredAt", Instant.now().toString())
+            .addProperty( "status", "ACTIVE" )
             .wrapIntoArray( "events" );
 
         return object;
@@ -178,5 +180,17 @@ public class TrackerActions
             .wrapIntoArray("trackedEntities");
 
         return jsonObject;
+    }
+
+    public JsonObject createTeiWithEnrollmentAndEvent( String ouId, String programId, String programStageId) {
+        JsonObject object = createTeiAndEnrollmentBody( ouId, programId );
+
+        JsonArray events = createEventsBody( ouId, programId, programStageId ).getAsJsonArray("events");
+
+        JsonObjectBuilder.jsonObject(object)
+            .addObjectByJsonPath( "trackedEntities[0].enrollments[0]", "events", events );
+        //object.add( "events", event );
+
+        return object;
     }
 }

@@ -90,6 +90,12 @@ public class TrackerApiResponse
             .rootPath( "validationReport.errorReports" );
     }
 
+    public ValidatableResponse validateWarningReport() {
+        return validate().statusCode( 200 )
+            .body( "validationReport.warningReports", Matchers.notNullValue())
+            .rootPath( "validationReport.warningReports");
+    }
+
     public ValidatableResponse validateTeis() {
         return validate()
             .body( "bundleReport.typeReportMap.TRACKED_ENTITY", notNullValue() )

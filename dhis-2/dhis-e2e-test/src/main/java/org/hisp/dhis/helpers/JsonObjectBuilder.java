@@ -78,11 +78,22 @@ public class JsonObjectBuilder
 
     public JsonObjectBuilder addObjectByJsonPath( String path, Object obj ) {
         Configuration conf = Configuration.builder().jsonProvider(new GsonJsonProvider())
-            .options(Option.ALWAYS_RETURN_LIST, Option.SUPPRESS_EXCEPTIONS).build();
+            .options(Option.ALWAYS_RETURN_LIST, Option.SUPPRESS_EXCEPTIONS, Option.DEFAULT_PATH_LEAF_TO_NULL).build();
 
         DocumentContext context = JsonPath.using( conf ).parse(jsonObject);
 
-        context.set( path, obj);
+        JsonPath.using( conf ).parse(jsonObject).set( path, obj);
+
+        return this;
+
+    }
+    public JsonObjectBuilder addObjectByJsonPath( String path, String key, Object obj ) {
+        Configuration conf = Configuration.builder().jsonProvider(new GsonJsonProvider())
+            .options(Option.ALWAYS_RETURN_LIST, Option.SUPPRESS_EXCEPTIONS, Option.DEFAULT_PATH_LEAF_TO_NULL).build();
+
+        DocumentContext context = JsonPath.using( conf ).parse(jsonObject);
+
+        context.put( path, key, obj);
 
         return this;
     }
@@ -111,6 +122,23 @@ public class JsonObjectBuilder
         jsonObject.add( property, array);
 
         return this;
+    }
+
+    public JsonObjectBuilder addArrayByJsonPath( String path, String arrayName, JsonObject... objects) {
+
+            Configuration conf = Configuration.builder().jsonProvider(new GsonJsonProvider())
+                .options(Option.ALWAYS_RETURN_LIST, Option.SUPPRESS_EXCEPTIONS, Option.DEFAULT_PATH_LEAF_TO_NULL).build();
+
+            DocumentContext context = JsonPath.using( conf ).parse(jsonObject);
+
+            JsonObject object = new JsonObjectBuilder()
+                .addArray( arrayName, objects )
+                .build();
+
+            context.put( path, arrayName, object.getAsJsonArray(arrayName));
+
+            return this;
+
     }
 
     public JsonObjectBuilder addOrAppendToArray( String property, JsonObject... objects) {
