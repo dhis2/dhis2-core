@@ -33,6 +33,9 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
+import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE;
+import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
+import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -40,6 +43,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import lombok.SneakyThrows;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -363,6 +367,7 @@ public class TrackedEntityImportValidationTest
         manager.clear();
 
         trackerImportParams.setImportStrategy( TrackerImportStrategy.UPDATE );
+
         TrackerBundle updateBundle = trackerBundleService.create( trackerImportParams );
 
         report = trackerValidationService.validate( updateBundle );
@@ -376,7 +381,7 @@ public class TrackedEntityImportValidationTest
 
         trackerBundleParamsUpdate.setUserId( user.getUid() );
 
-        trackerBundleParamsUpdate.setImportStrategy( TrackerImportStrategy.UPDATE );
+        trackerBundleParamsUpdate.setImportStrategy( UPDATE );
         TrackerBundle trackerBundleUpdate = trackerBundleService.create( trackerBundleParamsUpdate );
         assertEquals( 1, trackerBundleUpdate.getTrackedEntities().size() );
 
