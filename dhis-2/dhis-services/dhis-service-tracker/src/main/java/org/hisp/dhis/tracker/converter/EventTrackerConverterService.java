@@ -40,7 +40,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -176,11 +175,11 @@ public class EventTrackerConverterService
 
     private ProgramStageInstance from( TrackerPreheat preheat, Event event, ProgramStageInstance programStageInstance )
     {
-        ProgramStage programStage = preheat.get( TrackerIdScheme.UID, ProgramStage.class, event.getProgramStage() );
-        OrganisationUnit organisationUnit = preheat
-            .get( TrackerIdScheme.UID, OrganisationUnit.class, event.getOrgUnit() );
+        ProgramStage programStage = preheat.get( ProgramStage.class, event.getProgramStage() );
+        Program program = preheat.get( Program.class, event.getProgram() );
+        OrganisationUnit organisationUnit = preheat.get( OrganisationUnit.class, event.getOrgUnit() );
 
-        if ( programStageInstance == null )
+        if ( isNewEntity( programStageInstance ) )
         {
             Date now = new Date();
 
@@ -191,12 +190,7 @@ public class EventTrackerConverterService
             programStageInstance.setLastUpdated( now );
             programStageInstance.setLastUpdatedAtClient( now );
             programStageInstance.setProgramInstance(
-                getProgramInstance( preheat, TrackerIdScheme.UID, event.getEnrollment(), programStage.getProgram() ) );
-        }
-
-        if ( !CodeGenerator.isValidUid( programStageInstance.getUid() ) )
-        {
-            programStageInstance.setUid( CodeGenerator.generateUid() );
+                getProgramInstance( preheat, TrackerIdScheme.UID, event.getEnrollment(), program ) );
         }
 
         programStageInstance.setProgramStage( programStage );
@@ -209,7 +203,7 @@ public class EventTrackerConverterService
         if ( attributeOptionCombo != null )
         {
             programStageInstance.setAttributeOptionCombo(
-                preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, event.getAttributeOptionCombo() ) );
+                preheat.get( CategoryOptionCombo.class, event.getAttributeOptionCombo() ) );
         }
         else
         {
@@ -239,8 +233,13 @@ public class EventTrackerConverterService
 
         if ( programStage.isEnableUserAssignment() )
         {
-            User assignedUser = preheat.get( TrackerIdScheme.UID, User.class, event.getAssignedUser() );
+            User assignedUser = preheat.get( User.class, event.getAssignedUser() );
             programStageInstance.setAssignedUser( assignedUser );
+        }
+
+        if ( programStage.getProgram().isRegistration() && programStageInstance.getDueDate() == null && programStageInstance.getExecutionDate() != null )
+        {
+            programStageInstance.setDueDate( programStageInstance.getExecutionDate() );
         }
 
         return programStageInstance;

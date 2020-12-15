@@ -28,32 +28,21 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.tracker.AtomicMode;
-import org.hisp.dhis.tracker.FlushMode;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.ValidationMode;
+import org.hisp.dhis.tracker.*;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -164,8 +153,6 @@ public class TrackerBundle
     @Builder.Default
     private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
 
-    private TrackerImportValidationContext trackerImportValidationContext;
-
     @JsonProperty
     public String getUsername()
     {
@@ -175,42 +162,5 @@ public class TrackerBundle
     public Optional<TrackedEntity> getTrackedEntity( String id )
     {
         return this.trackedEntities.stream().filter( t -> t.getTrackedEntity().equals( id ) ).findFirst();
-    }
-
-    /**
-     * Clone the current TrackerBundle
-     * 
-     * @return a copy of this TrackerBundle
-     */
-    public TrackerBundle copy()
-    {
-        TrackerBundle bundle = new TrackerBundle();
-        bundle.setAtomicMode( this.atomicMode );
-        bundle.setFlushMode( this.flushMode );
-        bundle.setRelationships( this.relationships );
-        bundle.setEvents( this.events );
-        bundle.setEnrollments( this.enrollments );
-        bundle.setTrackedEntities( this.trackedEntities );
-        bundle.setEventRuleEffects( this.eventRuleEffects );
-        bundle.setEnrollmentRuleEffects( this.enrollmentRuleEffects );
-        bundle.setValidationMode( this.validationMode );
-        bundle.setIdentifier( this.identifier );
-        bundle.setPreheat( this.preheat );
-        bundle.setUser( this.user );
-        bundle.setImportStrategy( this.importStrategy );
-        bundle.setSkipSideEffects( this.skipSideEffects );
-        bundle.setImportMode( this.importMode );
-
-        return bundle;
-    }
-
-    /**
-     * Calculates the sum of all objects n this bundle.
-     *
-     */
-    public int getBundleSize()
-    {
-        return this.getTrackedEntities().size() + this.getEnrollments().size() + this.getEvents().size()
-            + this.getRelationships().size();
     }
 }

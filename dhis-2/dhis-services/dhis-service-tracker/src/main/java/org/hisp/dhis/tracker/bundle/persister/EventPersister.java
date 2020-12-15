@@ -72,7 +72,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     private final TrackedEntityCommentService trackedEntityCommentService;
 
     private final TrackerSideEffectConverterService sideEffectConverterService;
-    
+
     public EventPersister( List<TrackerBundleHook> bundleHooks, ReservedValueService reservedValueService,
         TrackerConverterService<Event, ProgramStageInstance> eventConverter,
         TrackedEntityCommentService trackedEntityCommentService, TrackerSideEffectConverterService sideEffectConverterService )
@@ -124,7 +124,12 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     @Override
     protected ProgramStageInstance convert( TrackerBundle bundle, Event event )
     {
-        return eventConverter.from( bundle.getPreheat(), event );
+        Date now = new Date();
+        ProgramStageInstance programStageInstance = eventConverter.from( bundle.getPreheat(), event );
+        programStageInstance.setLastUpdated( now );
+        programStageInstance.setLastUpdatedAtClient( now );
+        programStageInstance.setLastUpdatedBy( bundle.getUser() );
+        return programStageInstance;
     }
 
     @Override
@@ -148,7 +153,14 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     }
 
     @Override
-    protected void updateEntityValues( Session session, TrackerPreheat preheat,
+    protected void updateAttributes( Session session, TrackerPreheat preheat,
+        Event event, ProgramStageInstance programStageInstance )
+    {
+        // DO NOTHING - TEI HAVE NO ATTRIBUTES
+    }
+
+    @Override
+    protected void updateDataValues( Session session, TrackerPreheat preheat,
         Event event, ProgramStageInstance programStageInstance )
     {
         handleDataValues( session, preheat, event.getDataValues(), programStageInstance );
@@ -164,7 +176,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
         for ( DataValue dv : payloadDataValues )
         {
-            DataElement dateElement = preheat.get( TrackerIdScheme.UID, DataElement.class, dv.getDataElement() );
+            DataElement dateElement = preheat.get( DataElement.class, dv.getDataElement() );
 
             checkNotNull( dateElement,
                 "Data element should never be NULL here if validation is enforced before commit." );

@@ -70,7 +70,7 @@ public enum ValueType
     AGE( Date.class, false ),
     URL( String.class, false ),
     FILE_RESOURCE( String.class, false ),
-    IMAGE( String.class, false);
+    IMAGE( String.class, false );
 
     public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.of(
         INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE );

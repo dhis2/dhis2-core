@@ -117,12 +117,6 @@ public class RegistrationMultiEventsServiceTest
     private ProgramStage programStageB;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     protected void setUpTest()
         throws Exception
     {
@@ -357,7 +351,7 @@ public class RegistrationMultiEventsServiceTest
 
         enrollment.setStatus( EnrollmentStatus.COMPLETED );
         enrollment.setCompletedDate( new DateTime( 2019, 8, 20, 0, 0, 0, 0 ).toDate() );
-        
+
         enrollmentService.updateEnrollment( enrollment, null );
         importSummary = enrollmentService.updateEnrollment( enrollment, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -375,7 +369,7 @@ public class RegistrationMultiEventsServiceTest
         assertEquals( 2, eventService.getEvents( params ).getEvents().size() );
 
         enrollmentService.incompleteEnrollment( enrollment.getEnrollment() );
-        
+
         enrollment = enrollmentService.getEnrollment( enrollment.getEnrollment() );
         assertEquals( EnrollmentStatus.ACTIVE, enrollment.getStatus() );
 

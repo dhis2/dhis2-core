@@ -32,9 +32,11 @@ import java.util.List;
 
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.hisp.dhis.tracker.preheat.mappers.RelationshipMapper;
 import org.springframework.stereotype.Component;
 
 import lombok.NonNull;
@@ -45,20 +47,21 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( Relationship.class )
+@StrategyFor( value = Relationship.class, mapper = RelationshipMapper.class )
 public class RelationshipStrategy implements ClassBasedSupplierStrategy
 {
     @NonNull
     private final RelationshipStore relationshipStore;
 
     @Override
-    public void add( TrackerPreheatParams params, List<List<String>> splitList, TrackerPreheat preheat )
+    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
     {
         for ( List<String> ids : splitList )
         {
             List<org.hisp.dhis.relationship.Relationship> relationships = relationshipStore
                 .getByUid( ids, preheat.getUser() );
-            preheat.putRelationships( TrackerIdScheme.UID, relationships );
+            preheat.putRelationships( TrackerIdScheme.UID,
+                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), relationships ) );
         }
     }
 }

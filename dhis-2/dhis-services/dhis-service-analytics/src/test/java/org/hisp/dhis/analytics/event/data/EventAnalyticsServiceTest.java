@@ -105,12 +105,6 @@ public class EventAnalyticsServiceTest
     private UserService _userService;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     public void setUpTest()
         throws IOException
     {

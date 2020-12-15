@@ -43,5 +43,7 @@ public enum VisualizationType
     YEAR_OVER_YEAR_LINE,
     YEAR_OVER_YEAR_COLUMN,
     SINGLE_VALUE,
-    PIVOT_TABLE
+    PIVOT_TABLE,
+    SCATTER,
+    BUBBLE
 }

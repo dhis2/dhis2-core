@@ -53,7 +53,6 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,9 +63,6 @@ import com.google.common.collect.Sets;
 public class AssignedUserValidationHookTest
     extends AbstractImportValidationTest
 {
-    @Autowired
-    private UserService _userService;
-
     @Autowired
     private IdentifiableObjectManager manager;
 
@@ -134,7 +130,6 @@ public class AssignedUserValidationHookTest
     @Test
     public void testAssignedUserInvalidUid()
     {
-
         Event event = new Event();
 
         String testUserUid = "123";
@@ -153,7 +148,7 @@ public class AssignedUserValidationHookTest
             .atomicMode( AtomicMode.ALL )
             .events( Lists.newArrayList( event ) )
             .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
-            .user( user )
+            .userId( user.getUid() )
             .build();
 
         TrackerImportReport report = trackerImportService.importTracker( params );
@@ -184,7 +179,7 @@ public class AssignedUserValidationHookTest
             .atomicMode( AtomicMode.ALL )
             .events( Lists.newArrayList( event ) )
             .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
-            .user( user )
+            .userId( user.getUid() )
             .build();
 
         TrackerImportReport report = trackerImportService.importTracker( params );
@@ -212,7 +207,7 @@ public class AssignedUserValidationHookTest
             .atomicMode( AtomicMode.ALL )
             .events( Lists.newArrayList( event ) )
             .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
-            .user( user )
+            .userId( user.getUid() )
             .build();
 
         TrackerImportReport report = trackerImportService.importTracker( params );
@@ -237,7 +232,7 @@ public class AssignedUserValidationHookTest
             .atomicMode( AtomicMode.ALL )
             .events( Lists.newArrayList( event ) )
             .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
-            .user( user )
+            .userId( user.getUid() )
             .build();
 
         TrackerImportReport report = trackerImportService.importTracker( params );

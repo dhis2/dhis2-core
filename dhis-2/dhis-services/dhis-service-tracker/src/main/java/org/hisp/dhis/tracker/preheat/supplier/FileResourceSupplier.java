@@ -37,11 +37,10 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -59,9 +58,9 @@ public class FileResourceSupplier extends AbstractPreheatSupplier
     private final FileResourceService fileResourceService;
 
     @Override
-    public void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat )
+    public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat )
     {
-        List<TrackedEntityAttribute> attributes = preheat.getAll( TrackerIdScheme.UID, TrackedEntityAttribute.class );
+        List<TrackedEntityAttribute> attributes = preheat.getAll( TrackedEntityAttribute.class );
 
         List<String> fileResourceAttributes = attributes.stream()
             .filter( at -> at.getValueType() == ValueType.FILE_RESOURCE )

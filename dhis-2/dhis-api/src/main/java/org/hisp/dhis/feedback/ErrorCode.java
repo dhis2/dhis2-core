@@ -44,7 +44,7 @@ package org.hisp.dhis.feedback;
  */
 public enum ErrorCode
 {
-    /* Miscellaneous */
+    /* General */
     E1000( "API query must be specified" ),
     E1001( "API query contains an illegal string" ),
     E1002( "API version is invalid" ),
@@ -159,7 +159,7 @@ public enum ErrorCode
     E7007( "Failed to add/update job configuration - Delay must be not null for jobs with scheduling type FIXED_DELAY: `{0}`" ),
     E7010( "Failed to validate job runtime - `{0}`" ),
 
-    /* Aggregete analytics */
+    /* Aggregate analytics */
     E7100( "Query parameters cannot be null" ),
     E7101( "At least one dimension must be specified" ),
     E7102( "At least one data dimension item or data element group set dimension item must be specified" ),

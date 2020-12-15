@@ -88,7 +88,9 @@ public class DefaultQueryValidator
 
         if ( error != null )
         {
-            log.warn( String.format( "Analytics validation failed, code: '%s', message: '%s'", error.getErrorCode(), error.getMessage() ) );
+            log.warn( String.format(
+                "Analytics validation failed, code: '%s', message: '%s'",
+                error.getErrorCode(), error.getMessage() ) );
 
             throw new IllegalQueryException( error );
         }
@@ -114,15 +116,13 @@ public class DefaultQueryValidator
             {
                 error = new ErrorMessage( ErrorCode.E7101 );
             }
-
-            if ( !params.isSkipData() &&
+            else if ( !params.isSkipData() &&
                 params.getDataDimensionAndFilterOptions().isEmpty() &&
                 params.getAllDataElementGroups().isEmpty() )
             {
                 error = new ErrorMessage( ErrorCode.E7102 );
             }
-
-            if ( !params.getDimensionsAsFilters().isEmpty() )
+            else if ( !params.getDimensionsAsFilters().isEmpty() )
             {
                 error = new ErrorMessage( ErrorCode.E7103, getDimensions( params.getDimensionsAsFilters() ) );
             }
@@ -132,63 +132,51 @@ public class DefaultQueryValidator
         {
             error = new ErrorMessage( ErrorCode.E7104 );
         }
-
-        if ( params.hasPeriods() && params.hasStartEndDate() )
+        else if ( params.hasPeriods() && params.hasStartEndDate() )
         {
             error = new ErrorMessage( ErrorCode.E7105 );
         }
-
-        if ( params.hasStartEndDate() && params.startDateAfterEndDate() )
+        else if ( params.hasStartEndDate() && params.startDateAfterEndDate() )
         {
             error = new ErrorMessage( ErrorCode.E7106 );
         }
-
-        if ( params.hasStartEndDate() && !params.getReportingRates().isEmpty() )
+        else if ( params.hasStartEndDate() && !params.getReportingRates().isEmpty() )
         {
             error = new ErrorMessage( ErrorCode.E7107 );;
         }
-
-        if ( !params.getFilterIndicators().isEmpty() && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
+        else if ( !params.getFilterIndicators().isEmpty() && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
         {
             error = new ErrorMessage( ErrorCode.E7108 );
         }
-
-        if ( !params.getFilterReportingRates().isEmpty() && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
+        else if ( !params.getFilterReportingRates().isEmpty() && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
         {
             error = new ErrorMessage( ErrorCode.E7109 );
         }
-
-        if ( params.getFilters().contains( new BaseDimensionalObject( CATEGORYOPTIONCOMBO_DIM_ID ) ) )
+        else if ( params.getFilters().contains( new BaseDimensionalObject( CATEGORYOPTIONCOMBO_DIM_ID ) ) )
         {
             error = new ErrorMessage( ErrorCode.E7110 );
         }
-
-        if ( !params.getDuplicateDimensions().isEmpty() )
+        else if ( !params.getDuplicateDimensions().isEmpty() )
         {
             error = new ErrorMessage( ErrorCode.E7111, getDimensions( params.getDuplicateDimensions() ) );
         }
-
-        if ( !params.getAllReportingRates().isEmpty() && !params.containsOnlyDimensionsAndFilters( COMPLETENESS_DIMENSION_TYPES ) )
+        else if ( !params.getAllReportingRates().isEmpty() && !params.containsOnlyDimensionsAndFilters( COMPLETENESS_DIMENSION_TYPES ) )
         {
             error = new ErrorMessage( ErrorCode.E7112, COMPLETENESS_DIMENSION_TYPES );
         }
-
-        if ( params.hasDimensionOrFilter( CATEGORYOPTIONCOMBO_DIM_ID ) && params.getAllDataElements().isEmpty() )
+        else if ( params.hasDimensionOrFilter( CATEGORYOPTIONCOMBO_DIM_ID ) && params.getAllDataElements().isEmpty() )
         {
             error = new ErrorMessage( ErrorCode.E7113 );
         }
-
-        if ( params.hasDimensionOrFilter( CATEGORYOPTIONCOMBO_DIM_ID ) && ( params.getAllDataElements().size() != params.getAllDataDimensionItems().size() ) )
+        else if ( params.hasDimensionOrFilter( CATEGORYOPTIONCOMBO_DIM_ID ) && ( params.getAllDataElements().size() != params.getAllDataDimensionItems().size() ) )
         {
             error = new ErrorMessage( ErrorCode.E7114 );
         }
-
-        if ( !nonAggDataElements.isEmpty() )
+        else if ( !nonAggDataElements.isEmpty() )
         {
             error = new ErrorMessage( ErrorCode.E7115, getUids( nonAggDataElements ) );
         }
-
-        if ( !params.getIndicators().isEmpty() )
+        else if ( !params.getIndicators().isEmpty() )
         {
             try
             {
@@ -199,20 +187,17 @@ public class DefaultQueryValidator
                 error = new ErrorMessage( ErrorCode.E7116, cre.getMessage() );
             }
         }
-
-        if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) )
+        else if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) )
         {
             if ( !params.hasDimension( DATA_X_DIM_ID ) )
             {
                 error = new ErrorMessage( ErrorCode.E7117 );
             }
-
-            if ( !params.hasDimension( PERIOD_DIM_ID ) )
+            else if ( !params.hasDimension( PERIOD_DIM_ID ) )
             {
                 error = new ErrorMessage( ErrorCode.E7118 );
             }
-
-            if ( !params.hasDimension( ORGUNIT_DIM_ID ) )
+            else if ( !params.hasDimension( ORGUNIT_DIM_ID ) )
             {
                 error = new ErrorMessage( ErrorCode.E7119 );;
             }

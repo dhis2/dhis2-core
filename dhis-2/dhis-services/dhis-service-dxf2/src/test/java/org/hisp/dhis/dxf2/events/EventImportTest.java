@@ -564,7 +564,7 @@ public class EventImportTest
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
 
         // FETCH NEWLY CREATED EVENT
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( uid );
+        programStageInstanceService.getProgramStageInstance( uid );
 
         // UPDATE EVENT - Program is not specified
         Event event = new Event();
@@ -682,7 +682,6 @@ public class EventImportTest
         return new ByteArrayInputStream( jsonEvents.toString().getBytes() );
     }
 
-    @SuppressWarnings( "unchecked" )
     private InputStream createEventJsonInputStream( String program, String programStage, String orgUnit, String person,
         DataElement dataElement, String value )
     {

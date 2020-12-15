@@ -34,9 +34,11 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.hisp.dhis.tracker.preheat.mappers.TrackedEntityInstanceMapper;
 import org.springframework.stereotype.Component;
 
 import lombok.NonNull;
@@ -47,25 +49,31 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( TrackedEntity.class )
+@StrategyFor( value = TrackedEntity.class, mapper = TrackedEntityInstanceMapper.class )
 public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
 {
     @NonNull
     private TrackedEntityInstanceStore trackedEntityInstanceStore;
 
     @Override
-    public void add( TrackerPreheatParams params, List<List<String>> splitList, TrackerPreheat preheat )
+    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
     {
         for ( List<String> ids : splitList )
         {
+            // Fetch all Tracked Entity Instance present in the payload
             List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getByUid( ids,
                 preheat.getUser() );
 
+            // Get the uids of all the TEIs which are root (a TEI is not root when is a
+            // property of another object, e.g. enrollment)
             final List<String> rootEntities = params.getTrackedEntities().stream()
                 .map( TrackedEntity::getTrackedEntity )
                 .collect( Collectors.toList() );
 
-            preheat.putTrackedEntities( TrackerIdScheme.UID, trackedEntityInstances,
+            // Add to preheat
+            preheat.putTrackedEntities( TrackerIdScheme.UID,
+                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(),
+                    trackedEntityInstances ),
                 RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ) );
         }
     }

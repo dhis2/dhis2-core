@@ -36,6 +36,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
@@ -48,6 +49,7 @@ import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
@@ -75,10 +77,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -111,6 +110,9 @@ public class UserController
 
     @Autowired
     private UserGroupService userGroupService;
+
+    @Autowired
+    private UserControllerUtils userControllerUtils;
 
     @Autowired
     private SecurityService securityService;
@@ -195,6 +197,37 @@ public class UserController
         }
 
         return users;
+    }
+
+    @Override
+    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.GET )
+    public @ResponseBody
+    RootNode getObjectProperty(
+        @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
+        @RequestParam Map<String, String> rpParameters,
+        TranslateParams translateParams,
+        HttpServletResponse response ) throws Exception
+    {
+        if ( !"dataApprovalWorkflows".equals( pvProperty ) )
+        {
+            return super.getObjectProperty( pvUid, pvProperty, rpParameters, translateParams, response );
+        }
+
+        User user = userService.getUser( pvUid );
+
+        if ( user == null || user.getUserCredentials() == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "User not found: " + pvUid ) );
+        }
+
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !aclService.canRead( currentUser, user ) )
+        {
+            throw new CreateAccessDeniedException( "You don't have the proper permissions to access this user." );
+        }
+
+        return userControllerUtils.getUserDataApprovalWorkflows( user );
     }
 
     // -------------------------------------------------------------------------

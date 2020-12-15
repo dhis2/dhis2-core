@@ -44,6 +44,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.user.UserService;
@@ -56,12 +57,6 @@ import static org.junit.Assert.assertNotNull;
 public class TrackerPreheatServiceIntegration
     extends IntegrationTestBase
 {
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Autowired
     private TrackerPreheatService trackerPreheatService;
 
@@ -133,7 +128,7 @@ public class TrackerPreheatServiceIntegration
             .trackedEntity( TE_UID )
             .build();
 
-        TrackerPreheatParams trackerPreheatParams = TrackerPreheatParams.builder()
+        TrackerImportParams trackerPreheatParams = TrackerImportParams.builder()
             .trackedEntities( Lists.newArrayList( teA ) )
             .enrollments( Lists.newArrayList( enrollmentA ) )
             .identifiers( TrackerIdentifierParams.builder()
@@ -150,6 +145,7 @@ public class TrackerPreheatServiceIntegration
 
         assertNotNull( preheat );
         assertNotNull( preheat.getMap() );
+        //TODO These checks seems off, as we get an enum from map key of type Class
         assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ) );
         assertNotNull( preheat.getMap().get( TrackerIdScheme.CODE ).get( OrganisationUnit.class ) );
         assertNotNull( preheat.getMap().get( TrackerIdScheme.ATTRIBUTE ).get( Program.class ) );

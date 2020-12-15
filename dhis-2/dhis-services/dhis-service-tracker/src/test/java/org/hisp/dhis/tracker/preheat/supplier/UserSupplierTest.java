@@ -15,10 +15,9 @@ import java.util.stream.IntStream;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.junit.Rule;
@@ -59,18 +58,18 @@ public class UserSupplierTest
         when( manager.getByUid( eq( User.class ),
                 argThat( t -> t.containsAll( userIds ) ) ) ).thenReturn( users );
 
-        final TrackerPreheatParams preheatParams = TrackerPreheatParams.builder()
+        final TrackerImportParams params = TrackerImportParams.builder()
                 .events( events )
                 .build();
 
         TrackerPreheat preheat = new TrackerPreheat();
-        this.supplier.preheatAdd( preheatParams, preheat );
+        this.supplier.preheatAdd( params, preheat );
 
         for ( String userUid : userIds )
         {
-            assertThat( preheat.get( TrackerIdScheme.UID, User.class, userUid ), is( notNullValue() ) );
+            assertThat( preheat.get( User.class, userUid ), is( notNullValue() ) );
         }
         // Make sure also User Credentials object are cached in the pre-heat
-        assertThat( preheat.getAll( TrackerIdScheme.UID, UserCredentials.class ), hasSize( 5 ) );
+        assertThat( preheat.getAll( UserCredentials.class ), hasSize( 5 ) );
     }
 }

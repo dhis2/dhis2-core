@@ -28,9 +28,12 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.BulkSmsRequestEntity;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -47,9 +50,13 @@ import java.util.stream.Collectors;
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 @Component( "org.hisp.dhis.sms.config.BulkSmsGateway" )
+@RequiredArgsConstructor
 public class BulkSmsHttpGateway
     extends SmsGateway
 {
+    @Qualifier( "tripleDesStringEncryptor" )
+    private final PBEStringEncryptor pbeStringEncryptor;
+
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
@@ -87,7 +94,8 @@ public class BulkSmsHttpGateway
 
     private HttpHeaders getRequestHeaderParameters( BulkSmsGatewayConfig bulkSmsGatewayConfig )
     {
-        String credentials = bulkSmsGatewayConfig.getUsername().trim() + ":" + bulkSmsGatewayConfig.getPassword().trim();
+        String credentials = bulkSmsGatewayConfig.getUsername().trim() + ":" +
+            pbeStringEncryptor.decrypt( bulkSmsGatewayConfig.getPassword().trim() );
         String encodedCredentials = Base64.getEncoder().encodeToString( credentials.getBytes() );
 
         HttpHeaders headers = new HttpHeaders();

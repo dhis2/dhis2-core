@@ -48,8 +48,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class EventsAnalyticsQueryCriteria
 {
-    private static final String DEFAULT_OUTPUT_TYPE = "EVENT";
-
     // -------------------------------------------------------------------------
     // VALID FOR EVENT QUERY AND AGGREGATE ANALYTICS
     // -------------------------------------------------------------------------
@@ -121,7 +119,7 @@ public class EventsAnalyticsQueryCriteria
     /**
      * Value dimension identifier. Can be a data element or an attribute which must
      * be of numeric value type.
-     * 
+     *
      * Valid for aggregate event analytics only.
      */
     private String value;

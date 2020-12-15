@@ -77,11 +77,8 @@ import com.vividsolutions.jts.geom.Geometry;
  */
 @JacksonXmlRootElement( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnit
-    extends
-    BaseDimensionalItemObject
-    implements
-    MetadataObject,
-    CoordinateObject
+    extends BaseDimensionalItemObject
+        implements MetadataObject, CoordinateObject
 {
     private static final String PATH_SEP = "/";
 
@@ -1161,20 +1158,25 @@ public class OrganisationUnit
      * "coordinates":[....]}
      *
      * @param geometryAsJsonString String containing a GeoJSON JSON payload
-     * @throws IOException an error occurs parsing the payload
      */
     public void setGeometryAsJson( String geometryAsJsonString )
-        throws IOException
     {
         if ( !Strings.isNullOrEmpty( geometryAsJsonString ) )
         {
-            GeometryJSON geometryJSON = new GeometryJSON();
+            try
+            {
+                GeometryJSON geometryJSON = new GeometryJSON();
 
-            Geometry geometry = geometryJSON.read( geometryAsJsonString );
+                Geometry geometry = geometryJSON.read( geometryAsJsonString );
 
-            geometry.setSRID( 4326 );
+                geometry.setSRID( 4326 );
 
-            this.geometry = geometry;
+                this.geometry = geometry;
+            }
+            catch ( IOException e )
+            {
+                throw new RuntimeException( e );
+            }
         }
     }
 

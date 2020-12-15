@@ -117,12 +117,6 @@ public class ResourceTableServiceTest
         dataSetService.addDataSet( dsB );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Test
     public void testGenerateAllResourceTables()
     {

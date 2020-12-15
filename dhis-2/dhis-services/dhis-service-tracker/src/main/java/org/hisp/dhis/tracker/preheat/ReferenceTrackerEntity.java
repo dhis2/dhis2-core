@@ -2,7 +2,6 @@ package org.hisp.dhis.tracker.preheat;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
 @Getter
 @RequiredArgsConstructor
