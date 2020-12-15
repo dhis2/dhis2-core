@@ -37,7 +37,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-/*
+/**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @RunWith( SpringRunner.class )

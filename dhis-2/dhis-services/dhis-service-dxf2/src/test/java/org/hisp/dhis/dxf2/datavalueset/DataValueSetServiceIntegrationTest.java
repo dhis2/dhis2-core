@@ -151,12 +151,6 @@ public class DataValueSetServiceIntegrationTest
         setDependency( dataValueSetService, "currentUserService", currentUserService );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------

@@ -70,7 +70,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class PreCheckMetaValidationHook
-    extends AbstractTrackerDtoValidationHook
+        extends AbstractTrackerDtoValidationHook
 {
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity tei )
@@ -133,7 +133,7 @@ public class PreCheckMetaValidationHook
         if ( program != null )
         {
             addErrorIf( () -> program.isRegistration() && StringUtils.isEmpty( event.getEnrollment() ), reporter, E1033,
-                event.getEvent() );
+                    event.getEvent() );
         }
         validateEventProgramAndProgramStage( reporter, event, context, strategy, bundle, program, programStage );
         validateDataElementForDataValues( reporter, event, context );
@@ -164,8 +164,8 @@ public class PreCheckMetaValidationHook
     }
 
     private void validateEventProgramAndProgramStage( ValidationErrorReporter reporter, Event event,
-        TrackerImportValidationContext context, TrackerImportStrategy strategy, TrackerBundle bundle, Program program,
-        ProgramStage programStage )
+                                                      TrackerImportValidationContext context, TrackerImportStrategy strategy, TrackerBundle bundle, Program program,
+                                                      ProgramStage programStage )
     {
         if ( program == null && programStage == null )
         {
@@ -199,7 +199,7 @@ public class PreCheckMetaValidationHook
     }
 
     private void validateNotChangingProgram( ValidationErrorReporter reporter, Event event,
-        TrackerImportValidationContext context, Program program )
+                                             TrackerImportValidationContext context, Program program )
     {
         ProgramStageInstance psi = context.getProgramStageInstance( event.getEvent() );
         Program existingProgram = psi.getProgramStage().getProgram();
@@ -207,8 +207,8 @@ public class PreCheckMetaValidationHook
         if ( !existingProgram.getUid().equals( program.getUid() ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1110 )
-                .addArg( psi )
-                .addArg( existingProgram ) );
+                    .addArg( psi )
+                    .addArg( existingProgram ) );
         }
     }
 

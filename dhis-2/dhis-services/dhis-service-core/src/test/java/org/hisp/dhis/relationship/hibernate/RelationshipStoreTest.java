@@ -183,11 +183,4 @@ public class RelationshipStoreTest extends TransactionalIntegrationTest
 
         assertTrue( existing.isPresent() );
     }
-
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 }

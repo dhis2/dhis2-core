@@ -90,10 +90,4 @@ public class HardDeleteAuditTest
         assertEquals( TrackedEntityInstance.class.getName(), audit.getKlass() );
         assertEquals( tei.getUid(), audit.getUid() );
     }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 }

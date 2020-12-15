@@ -36,6 +36,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.preheat.mappers.CopyMapper;
 import org.springframework.stereotype.Component;
 
@@ -47,9 +48,9 @@ import org.springframework.stereotype.Component;
 public class GenericStrategy extends AbstractSchemaStrategy
 {
     public GenericStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager )
+        IdentifiableObjectManager manager, PreheatCacheService cacheService )
     {
-        super( schemaService, queryService, manager );
+        super( schemaService, queryService, manager, cacheService );
     }
 
     public void add( Class<?> klazz, List<List<String>> splitList, TrackerPreheat preheat )

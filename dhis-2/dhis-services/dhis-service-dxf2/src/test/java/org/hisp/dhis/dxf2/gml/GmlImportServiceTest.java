@@ -68,12 +68,6 @@ public class GmlImportServiceTest extends TransactionalIntegrationTest
 
     private JobConfiguration id;
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

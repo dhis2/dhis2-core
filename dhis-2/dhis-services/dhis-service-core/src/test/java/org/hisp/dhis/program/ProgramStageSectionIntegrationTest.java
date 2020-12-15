@@ -75,12 +75,6 @@ public class ProgramStageSectionIntegrationTest
     private ProgramStageDataElement programStageDataElementA;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     public void setUpTest()
     {
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );

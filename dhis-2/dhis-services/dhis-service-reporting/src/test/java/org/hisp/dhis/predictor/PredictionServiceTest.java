@@ -266,12 +266,6 @@ public class PredictionServiceTest
     }
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     public void tearDownTest()
     {
         setDependency( predictionService, "currentUserService", currentUserService, CurrentUserService.class );

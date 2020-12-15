@@ -703,10 +703,4 @@ public class AuditRepositoryTest
         assertEquals( categoryComboUid, audits.get( 0 ).getAttributes().get( "categoryCombo" ) );
         assertEquals( "TEXT", audits.get( 0 ).getAttributes().get( "valueType" ) );
     }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 }

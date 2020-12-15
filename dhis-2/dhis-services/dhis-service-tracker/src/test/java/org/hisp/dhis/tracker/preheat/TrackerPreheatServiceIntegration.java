@@ -57,12 +57,6 @@ import static org.junit.Assert.assertNotNull;
 public class TrackerPreheatServiceIntegration
     extends TransactionalIntegrationTest
 {
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Autowired
     private TrackerPreheatService trackerPreheatService;
 

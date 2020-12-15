@@ -3,6 +3,7 @@ package org.hisp.dhis.webapi.controller.tracker;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.tracker.FlushMode;
@@ -41,6 +42,8 @@ public class TrackerImportParamsBuilder
         params.setImportStrategy( getEnumWithDefault( TrackerImportStrategy.class, parameters, IMPORT_STRATEGY_KEY,
             TrackerImportStrategy.CREATE_AND_UPDATE ) );
         params.setFlushMode( getEnumWithDefault( FlushMode.class, parameters, FLUSH_MODE_KEY, FlushMode.AUTO ) );
+        Boolean skipRuleEngine = getBooleanValueOrDefault( parameters, "skipRuleEngine" );
+        params.setSkipRuleEngine( skipRuleEngine );
 
         return params;
 
@@ -89,6 +92,16 @@ public class TrackerImportParamsBuilder
             .dataElementIdScheme( TrackerIdentifier.builder().idScheme( dataElementIdScheme )
                 .value( getAttributeUidOrNull( parameters, "dataElementIdScheme" ) ).build() )
             .build();
+    }
+
+    private static Boolean getBooleanValueOrDefault( Map<String, List<String>> parameters, String key )
+    {
+        if ( parameters == null || parameters.get( key ) == null || parameters.get( key ).isEmpty() )
+        {
+            return false;
+        }
+
+        return BooleanUtils.toBooleanObject( parameters.get( key ).get( 0 ) );
     }
 
     private static String getAttributeUidOrNull( Map<String, List<String>> parameters, String key )

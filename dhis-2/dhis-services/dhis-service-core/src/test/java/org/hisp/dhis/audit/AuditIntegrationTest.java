@@ -97,12 +97,6 @@ public class AuditIntegrationTest extends IntegrationTestBase
     @Autowired
     private DbmsManager dbmsManager;
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Test
     public void testSaveMetadata()
     {

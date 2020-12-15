@@ -32,7 +32,7 @@ import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion;
 import org.springframework.stereotype.Component;
 
 /**
- * This implementer show warnings on a completed enrollment calculated by Rule
+ * This implementer show warnings on a completed enrollment or event calculated by Rule
  * Engine.
  *
  * @Author Enrico Colasante
@@ -45,6 +45,12 @@ public class ShowWarningOnCompleteValidator
     public Class<RuleActionWarningOnCompletion> getActionClass()
     {
         return RuleActionWarningOnCompletion.class;
+    }
+
+    @Override
+    public boolean isOnComplete()
+    {
+        return true;
     }
 
     @Override

@@ -135,10 +135,4 @@ public class TrackerSideEffectHandlerServiceTest extends TransactionalIntegratio
         ProgramNotificationInstance instance = instances.get( 0 );
         assertEquals( "FdIeUL4gyoB", instance.getProgramNotificationTemplateSnapshot().getUid() );
     }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 }

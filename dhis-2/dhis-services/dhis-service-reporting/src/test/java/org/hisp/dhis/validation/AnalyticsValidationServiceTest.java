@@ -291,12 +291,6 @@ public class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         setDependency( validationService, "analyticsService", analyticsService, AnalyticsService.class );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     // -------------------------------------------------------------------------
     // Local convenience methods
     // -------------------------------------------------------------------------

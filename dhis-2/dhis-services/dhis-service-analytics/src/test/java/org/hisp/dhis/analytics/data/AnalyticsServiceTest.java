@@ -705,12 +705,6 @@ public class AnalyticsServiceTest
     }
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     public void tearDownTest()
     {
         analyticsTableGenerator.dropTables();

@@ -177,7 +177,7 @@ public class ShowErrorWarningImplementerTest
     {
         Map<String, List<String>> errors = errorImplementer.validateEvents( trackerBundle );
 
-        assertErrors( errors );
+        assertErrors( errors, 8 );
     }
 
     @Test
@@ -185,7 +185,7 @@ public class ShowErrorWarningImplementerTest
     {
         Map<String, List<String>> errors = errorImplementer.validateEnrollments( trackerBundle );
 
-        assertErrors( errors );
+        assertErrors( errors, 2 );
     }
 
     @Test
@@ -193,7 +193,7 @@ public class ShowErrorWarningImplementerTest
     {
         Map<String, List<String>> warnings = warningImplementer.validateEvents( trackerBundle );
 
-        assertErrors( warnings );
+        assertErrors( warnings, 8 );
     }
 
     @Test
@@ -201,7 +201,7 @@ public class ShowErrorWarningImplementerTest
     {
         Map<String, List<String>> warnings = warningImplementer.validateEnrollments( trackerBundle );
 
-        assertErrors( warnings );
+        assertErrors( warnings, 2 );
     }
 
     @Test
@@ -209,7 +209,7 @@ public class ShowErrorWarningImplementerTest
     {
         Map<String, List<String>> errors = errorOnCompleteImplementer.validateEvents( trackerBundle );
 
-        assertErrors( errors );
+        assertErrors( errors, 7 );
     }
 
     @Test
@@ -217,7 +217,7 @@ public class ShowErrorWarningImplementerTest
     {
         Map<String, List<String>> errors = errorOnCompleteImplementer.validateEnrollments( trackerBundle );
 
-        assertErrors( errors );
+        assertErrors( errors, 1 );
     }
 
     @Test
@@ -225,7 +225,7 @@ public class ShowErrorWarningImplementerTest
     {
         Map<String, List<String>> warnings = warningOnCompleteImplementer.validateEvents( trackerBundle );
 
-        assertErrors( warnings );
+        assertErrors( warnings, 7 );
     }
 
     @Test
@@ -234,12 +234,14 @@ public class ShowErrorWarningImplementerTest
         Map<String, List<String>> warnings = warningOnCompleteImplementer
             .validateEnrollments( trackerBundle );
 
-        assertErrors( warnings );
+        assertErrors( warnings, 1 );
     }
 
-    public void assertErrors( Map<String, List<String>> errors )
+    public void assertErrors( Map<String, List<String>> errors, int numberOfErrors )
     {
         assertFalse( errors.isEmpty() );
+
+        assertEquals( numberOfErrors, errors.size() );
 
         errors.entrySet().stream()
             .forEach( e -> assertTrue( e.getValue().size() == 1 ) );

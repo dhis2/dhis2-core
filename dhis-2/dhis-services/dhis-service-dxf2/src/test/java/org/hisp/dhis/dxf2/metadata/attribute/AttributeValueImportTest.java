@@ -117,10 +117,4 @@ public class AttributeValueImportTest
 
         assertEquals( "false", updatedDataSet.getAttributeValue( "PtyV6lLcmol" ).getValue() );
     }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 }

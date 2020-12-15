@@ -463,12 +463,6 @@ public class DataApprovalServiceTest
     }
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     public void tearDownTest()
     {
         setDependency( dataApprovalService, "currentUserService", currentUserService, CurrentUserService.class );

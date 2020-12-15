@@ -28,9 +28,15 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.springframework.stereotype.Component;
 
 import lombok.NonNull;
@@ -46,11 +52,30 @@ public class PeriodTypeSupplier extends AbstractPreheatSupplier
     @NonNull
     private final PeriodStore periodStore;
 
+    @NonNull
+    private final PreheatCacheService cache;
+
     @Override
-    public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat )
+    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
+        if ( cache.hasKey( Period.class.getName() ) )
+        {
+            addToPreheat( preheat, cache.getAll( Period.class.getName() ) );
+        }
+        else
+        {
+            final List<Period> periods = periodStore.getAll();
+            addToCache( cache, periods);
+            _addToPreheat( preheat,
+                periods.stream().map( p -> (IdentifiableObject) p ).collect( Collectors.toList() ) );
+        }
+        // Period store can't be cached because it's not extending `IdentifiableObject`
         periodStore.getAllPeriodTypes()
             .forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );
+    }
+
+    private void _addToPreheat( TrackerPreheat preheat, List<IdentifiableObject> periods )
+    {
+        periods.forEach( p -> preheat.getPeriodMap().put( p.getName(), (Period) p ) );
     }
 }

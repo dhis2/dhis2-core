@@ -340,12 +340,6 @@ public class EventPredictionServiceTest
         setDependency( predictionService, "currentUserService", currentUserService, CurrentUserService.class );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     // -------------------------------------------------------------------------
     // Local convenience methods
     // -------------------------------------------------------------------------

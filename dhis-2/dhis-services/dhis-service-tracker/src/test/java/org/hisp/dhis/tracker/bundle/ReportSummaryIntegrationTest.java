@@ -62,12 +62,6 @@ import org.springframework.core.io.ClassPathResource;
 public class ReportSummaryIntegrationTest
     extends TransactionalIntegrationTest
 {
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Autowired
     private TrackerImportService trackerImportService;
 

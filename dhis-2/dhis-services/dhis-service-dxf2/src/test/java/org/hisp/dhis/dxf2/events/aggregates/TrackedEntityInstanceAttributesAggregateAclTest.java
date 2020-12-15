@@ -76,7 +76,7 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
 
         assertThat( trackedEntityInstances, hasSize( 0 ) );
     }
-    
+
     @Test
     public void verifyTeiCanBeAccessedWhenDATA_READPublicAccessOnTrackedEntityType()
     {

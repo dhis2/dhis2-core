@@ -41,12 +41,6 @@ public class DataElementStoreIntegrationTest
     @Autowired
     private DataElementStore dataElementStore;
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Test
     public void testDeleteAndGetDataElement()
     {

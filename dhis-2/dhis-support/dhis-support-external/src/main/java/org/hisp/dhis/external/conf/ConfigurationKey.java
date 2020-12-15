@@ -138,9 +138,9 @@ public enum ConfigurationKey
     METHOD_QUERY_LOGGING_ENABLED( "method.query.logging.enabled", Constants.FALSE, false ),
     ELAPSED_TIME_QUERY_LOGGING_ENABLED( "elapsed.time.query.logging.enabled", Constants.FALSE, false ),
     DB_POOL_TYPE( "db.pool.type", "c3p0", false ),
-
     ACTIVE_READ_REPLICAS( "active.read.replicas", "0", false ),
-    AUDIT_ENABLED( "system.audit.enabled", Constants.TRUE, false );
+    AUDIT_ENABLED( "system.audit.enabled", Constants.TRUE, false ),
+    TRACKER_IMPORT_PREHEAT_CACHE_ENABLED( "tracker.import.preheat.cache.enabled", Constants.ON, false );
 
     private final String key;
 

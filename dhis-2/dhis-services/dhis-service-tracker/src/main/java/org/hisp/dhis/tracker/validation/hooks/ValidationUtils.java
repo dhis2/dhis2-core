@@ -35,7 +35,13 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1119;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.GEOMETRY_CANT_BE_NULL;
 
+import com.google.api.client.util.Lists;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ValidationStrategy;
+import org.hisp.dhis.tracker.domain.DataValue;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -45,6 +51,8 @@ import org.locationtech.jts.geom.Geometry;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Luciano Fiandesio
@@ -90,5 +98,36 @@ public class ValidationUtils
             }
         }
         return notes;
+    }
+
+    public static List<String> validateMandatoryDataValue( ProgramStage programStage,
+        Event event, List<String> mandatoryDataElements )
+    {
+        List<String> notPresentMandatoryDataElements = Lists.newArrayList();
+
+        if ( !needsToValidateMandatoryDataValues( event, programStage ) )
+        {
+            return notPresentMandatoryDataElements;
+        }
+
+        Set<String> eventDataElements = event.getDataValues().stream()
+            .map( DataValue::getDataElement )
+            .collect( Collectors.toSet() );
+
+        for ( String mandatoryDataElement : mandatoryDataElements )
+        {
+            if ( !eventDataElements.contains( mandatoryDataElement ) )
+            {
+                notPresentMandatoryDataElements.add( mandatoryDataElement );
+            }
+        }
+
+        return notPresentMandatoryDataElements;
+    }
+
+    private static boolean needsToValidateMandatoryDataValues( Event event, ProgramStage programStage )
+    {
+        return !event.getStatus().equals( EventStatus.ACTIVE ) ||
+            !programStage.getValidationStrategy().equals( ValidationStrategy.ON_COMPLETE );
     }
 }
