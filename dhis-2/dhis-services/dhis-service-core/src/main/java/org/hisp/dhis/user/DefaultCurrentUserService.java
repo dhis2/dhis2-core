@@ -103,7 +103,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional( readOnly = true )
+//    @Transactional( readOnly = true )
     public User getCurrentUser()
     {
         String username = getCurrentUsername();

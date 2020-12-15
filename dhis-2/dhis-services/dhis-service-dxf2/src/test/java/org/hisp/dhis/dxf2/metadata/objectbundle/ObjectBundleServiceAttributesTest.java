@@ -110,7 +110,11 @@ public class ObjectBundleServiceAttributesTest
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         assertTrue( validationReport.getErrorReports().isEmpty() );
 
-        objectBundleService.commit( bundle );
+        transactionTemplate.execute( status -> {
+            objectBundleService.commit( bundle );
+
+            return null;
+        } );
 
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );

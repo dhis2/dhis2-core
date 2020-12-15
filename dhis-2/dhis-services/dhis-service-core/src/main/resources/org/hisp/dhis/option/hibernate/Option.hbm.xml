@@ -34,7 +34,7 @@
 
     <property name="translations" type="jblTranslations"/>
 
-    <many-to-one lazy="false" name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid" />
+    <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid" />
 
     <!-- Dynamic attribute values -->
     <property name="attributeValues" type="jsbAttributeValues"/>
