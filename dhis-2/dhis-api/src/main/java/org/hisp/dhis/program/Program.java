@@ -374,6 +374,10 @@ public class Program
         return programStages != null && programStages.size() == 1;
     }
 
+    /**
+     * @deprecated use {@link ProgramService.hasOrgUnit()} instead.
+     */
+    @Deprecated
     public boolean hasOrganisationUnit( OrganisationUnit unit )
     {
         return organisationUnits.contains( unit );

@@ -184,4 +184,18 @@ public class ProgramServiceTest
         assertEquals( programA, programService.getProgram( "UID-A" ) );
         assertEquals( programB, programService.getProgram( "UID-B" ) );
     }
+
+    @Test
+    public void testProgramHasOrgUnit()
+    {
+        programService.addProgram( programA );
+
+        Program p = programService.getProgram( programA.getUid() );
+        OrganisationUnit ou = organisationUnitService.getOrganisationUnit( organisationUnitA.getUid() );
+
+        //sessionFactory.getCurrentSession().flush();
+
+        assertTrue( programService.hasOrgUnit( p, ou ) );
+
+    }
 }
