@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 
-public class OutlierDetectionSeviceTest
+public class OutlierDetectionServiceTest
     extends IntegrationTestBase
 {
     @Autowired
