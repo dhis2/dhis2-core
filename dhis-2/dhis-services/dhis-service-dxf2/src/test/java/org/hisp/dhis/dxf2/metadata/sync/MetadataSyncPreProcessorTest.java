@@ -261,10 +261,4 @@ public class MetadataSyncPreProcessorTest
         verify( systemSettingManager ).saveSystemSetting( SettingKey.REMOTE_METADATA_VERSION, version4.getName() );
         assertEquals( 3, expectedListOfVersions.size() );
     }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 }

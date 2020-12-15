@@ -313,12 +313,6 @@ public class ValidationResultStoreTest
     }
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     public void tearDownTest()
     {
         setDependency( validationResultStore, "currentUserService", currentUserService, CurrentUserService.class );

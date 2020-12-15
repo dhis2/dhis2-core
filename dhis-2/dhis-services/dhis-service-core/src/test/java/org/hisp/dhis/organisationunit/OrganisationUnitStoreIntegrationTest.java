@@ -61,12 +61,6 @@ public class OrganisationUnitStoreIntegrationTest extends IntegrationTestBase
     @Autowired
     private IdentifiableObjectManager manager;
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Test
     public void verifyGetOrgUnitsWithinAGeoBox() throws IOException {
 

@@ -61,16 +61,16 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
 
     @Autowired
     private TrackedEntityAttributeValueService attributeValueService;
-    
+
     @Autowired
     private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
 
     @Autowired
     private ProgramService programService;
-    
+
     @Autowired
     private TrackerOwnershipManager trackerOwnershipManager;
-    
+
     private Program programB;
 
     private final static int A = 65;
@@ -89,7 +89,7 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
        // makeUserSuper( user );
         manager.update( user );
         currentUserService = new MockCurrentUserService( user );
-        
+
 
         ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
@@ -116,7 +116,7 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances2( queryParams, params, false );
-       
+
 
         assertAttributes( trackedEntityInstances.get( 0 ).getAttributes(), "A","B","C","E" );
     }
@@ -133,14 +133,14 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances2( queryParams, TrackedEntityInstanceParams.TRUE, false );
-       
+
 
         assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 1 ) );
         assertThat( trackedEntityInstances.get( 0 ).getProgramOwners(), hasSize( 2 ) );
     }
 
-    
-    
+
+
     @Test
     public void testTrackedEntityInstanceIncludeAllAttributesInProtectedProgramNoAccess()
     {
@@ -156,9 +156,9 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
             .getTrackedEntityInstances2( queryParams, params, false );
 
         assertAttributes( trackedEntityInstances.get( 0 ).getAttributes(), "A","B","C" );
-        
+
     }
-    
+
     @Test
     public void testTrackedEntityInstanceIncludeSpecificProtectedProgram()
     {
@@ -175,7 +175,7 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
 
         assertAttributes( trackedEntityInstances.get( 0 ).getAttributes(), "A","B","E" );
     }
-    
+
     @Test
     public void testTrackedEntityInstanceIncludeSpecificOpenProgram()
     {
@@ -202,29 +202,29 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
     private void assertAttributes( final List<Attribute> attributes, String... atts )
     {
         assertThat( attributes, hasSize( atts.length ) );
-        
+
         for(String att : atts)
         {
             assertThat( findByValue( attributes, att ).getAttribute(),
                 is( attributeService.getTrackedEntityAttributeByName( "Attribute" + att ).getUid() ) );
         }
-        
+
     }
-    
+
     private void populatePrerequisites( boolean removeOwnership )
     {
         doInTransaction( () -> {
-            
+
             ProgramStage programStageA = createProgramStage( programB, true );
             ProgramStage programStageB = createProgramStage( programB, true );
-            
+
             ProgramStage programStageA1 = createProgramStage( programA, true );
             ProgramStage programStageA2 = createProgramStage( programA, true );
-            
+
             // Create 5 Tracked Entity Attributes (named A .. E)
             IntStream.range( A, F ).mapToObj( i -> Character.toString( (char) i ) ).forEach( c -> attributeService
                 .addTrackedEntityAttribute( createTrackedEntityAttribute( c.charAt( 0 ), ValueType.TEXT ) ) );
-            
+
             // Transform the Tracked Entity Attributes into a List of
             // TrackedEntityTypeAttribute
             List<TrackedEntityTypeAttribute> teatList = IntStream.range( A, C )
@@ -232,29 +232,29 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
                 .map( s -> new TrackedEntityTypeAttribute( trackedEntityTypeA,
                     attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
                 .collect( Collectors.toList() );
-            
+
             // Assign 2 (A, B) TrackedEntityTypeAttribute to Tracked Entity Type A
             trackedEntityTypeA.getTrackedEntityTypeAttributes().addAll( teatList );
-            
+
             //Make TET public
             trackedEntityTypeA.setPublicAccess( AccessStringHelper.FULL );
-            
+
             manager.update( trackedEntityTypeA );
-            
+
             programB = createProgram( 'B', new HashSet<>(), organisationUnitA );
             programB.setProgramType( ProgramType.WITH_REGISTRATION );
             programB.setCategoryCombo( categoryComboA );
             programB.setAccessLevel( AccessLevel.PROTECTED );
             programB.setUid( CodeGenerator.generateUid() );
             programB.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
-            
+
             Set<UserAccess> programBUserAccess = new HashSet<>();
             programBUserAccess.add(new UserAccess( currentUserService.getCurrentUser(), AccessStringHelper.FULL ));
             programB.setUserAccesses( programBUserAccess );
             programB.setProgramStages(
                 Stream.of( programStageA, programStageB ).collect( Collectors.toCollection( HashSet::new ) ) );
             programService.addProgram( programB );
-            
+
             programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
             programA.setProgramType( ProgramType.WITH_REGISTRATION );
             programA.setCategoryCombo( categoryComboA );
@@ -262,59 +262,59 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
             programA.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
             programA.setProgramStages(
                 Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
-            
+
             programService.addProgram( programA );
-            
+
             //Because access strings isnt getting persisted with programService methods for some reason
             programB.setPublicAccess( AccessStringHelper.FULL );
             manager.update( programB );
-            
+
             programA.setPublicAccess( AccessStringHelper.FULL );
             manager.update( programA );
-            
+
             programStageA.setPublicAccess( AccessStringHelper.FULL );
             manager.update( programStageA );
-            
+
             programStageB.setPublicAccess( AccessStringHelper.FULL );
             manager.update( programStageB );
-            
+
             programStageA1.setPublicAccess( AccessStringHelper.FULL );
             manager.update( programStageA1 );
-            
+
             programStageA2.setPublicAccess( AccessStringHelper.FULL );
             manager.update( programStageA2 );
-            
-            
+
+
             // Assign ProgramTrackedEntityAttribute C to program A
             List<ProgramTrackedEntityAttribute> pteaListA = IntStream.range( C,  D )
                 .mapToObj( i -> Character.toString( (char) i ) ).map( s -> new ProgramTrackedEntityAttribute( programA,
                     attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
                 .collect( Collectors.toList() );
-            
+
             // Assign ProgramTrackedEntityAttribute D, E to program B
             List<ProgramTrackedEntityAttribute> pteaListB = IntStream.range( D,  F )
                 .mapToObj( i -> Character.toString( (char) i ) ).map( s -> new ProgramTrackedEntityAttribute( programB,
                     attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
                 .collect( Collectors.toList() );
-            
+
             programA.getProgramAttributes().addAll( pteaListA );
             programB.getProgramAttributes().addAll( pteaListB );
             manager.update( programA );
             manager.update( programB );
-            
-            
+
+
             // Create a TEI associated to program B
             final org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = persistTrackedEntityInstance(
                 ImmutableMap.of( "program", programB ) );
-            
+
             ProgramInstance piB = new ProgramInstance( programB, trackedEntityInstance, organisationUnitA );
             piB.setEnrollmentDate( new Date() );
             manager.save( piB );
-            
+
             ProgramInstance piA = new ProgramInstance( programA, trackedEntityInstance, organisationUnitA );
             piA.setEnrollmentDate( new Date() );
             manager.save( piA );
-            
+
             if ( removeOwnership )
             {
                 trackerOwnershipManager.assignOwnership( trackedEntityInstance, programB, organisationUnitB, true, true );
@@ -325,7 +325,7 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
                 trackerOwnershipManager.assignOwnership( trackedEntityInstance, programB, organisationUnitA, true, true );
                 trackerOwnershipManager.assignOwnership( trackedEntityInstance, programA, organisationUnitA, true, true );
             }
-            
+
             // Assign Attribute A,B,E to Tracked Entity Instance
             attributeValueService.addTrackedEntityAttributeValue(
                 new TrackedEntityAttributeValue( attributeService.getTrackedEntityAttributeByName("AttributeA"), trackedEntityInstance, "A" ) );
@@ -336,11 +336,5 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
             attributeValueService.addTrackedEntityAttributeValue(
                 new TrackedEntityAttributeValue( attributeService.getTrackedEntityAttributeByName("AttributeE"), trackedEntityInstance, "E" ) );
         } );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }
