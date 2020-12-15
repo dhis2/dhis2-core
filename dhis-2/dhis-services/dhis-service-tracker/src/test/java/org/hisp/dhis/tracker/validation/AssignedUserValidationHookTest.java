@@ -42,7 +42,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -143,7 +142,6 @@ public class AssignedUserValidationHookTest
         event.setScheduledAt( "2010-10-22" );
 
         TrackerImportParams params = TrackerImportParams.builder()
-            .atomicMode( AtomicMode.ALL )
             .events( Lists.newArrayList( event ) )
             .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
             .userId( user.getUid() )
@@ -174,7 +172,6 @@ public class AssignedUserValidationHookTest
         event.setCreatedAt( "2010-10-22" );
 
         TrackerImportParams params = TrackerImportParams.builder()
-            .atomicMode( AtomicMode.ALL )
             .events( Lists.newArrayList( event ) )
             .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
             .userId( user.getUid() )
@@ -202,7 +199,6 @@ public class AssignedUserValidationHookTest
         event.setOccurredAt( "1990-10-22" );
 
         TrackerImportParams params = TrackerImportParams.builder()
-            .atomicMode( AtomicMode.ALL )
             .events( Lists.newArrayList( event ) )
             .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
             .userId( user.getUid() )
@@ -227,7 +223,6 @@ public class AssignedUserValidationHookTest
         event.setOccurredAt( "1990-10-22" );
 
         TrackerImportParams params = TrackerImportParams.builder()
-            .atomicMode( AtomicMode.ALL )
             .events( Lists.newArrayList( event ) )
             .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
             .userId( user.getUid() )

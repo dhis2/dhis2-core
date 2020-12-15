@@ -88,13 +88,6 @@ public class TrackerImportParams
     private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE;
 
     /**
-     * Should import be treated as a atomic import (all or nothing).
-     */
-    @JsonProperty
-    @Builder.Default
-    private AtomicMode atomicMode = AtomicMode.ALL;
-
-    /**
      * Flush for every object or per type.
      */
     @JsonProperty

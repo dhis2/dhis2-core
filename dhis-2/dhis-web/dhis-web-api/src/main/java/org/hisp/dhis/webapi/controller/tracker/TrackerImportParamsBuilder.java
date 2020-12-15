@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
@@ -28,8 +27,6 @@ public class TrackerImportParamsBuilder
 
     public static String IMPORT_STRATEGY_KEY = "importStrategy";
 
-    public static String ATOMIC_MODE_KEY = "atomicMode";
-
     public static String FLUSH_MODE_KEY = "flushMode";
 
     public static TrackerImportParams build( Map<String, List<String>> parameters )
@@ -43,7 +40,6 @@ public class TrackerImportParamsBuilder
         params.setIdentifiers( getTrackerIdentifiers( parameters ) );
         params.setImportStrategy( getEnumWithDefault( TrackerImportStrategy.class, parameters, IMPORT_STRATEGY_KEY,
             TrackerImportStrategy.CREATE_AND_UPDATE ) );
-        params.setAtomicMode( getEnumWithDefault( AtomicMode.class, parameters, ATOMIC_MODE_KEY, AtomicMode.ALL ) );
         params.setFlushMode( getEnumWithDefault( FlushMode.class, parameters, FLUSH_MODE_KEY, FlushMode.AUTO ) );
 
         return params;

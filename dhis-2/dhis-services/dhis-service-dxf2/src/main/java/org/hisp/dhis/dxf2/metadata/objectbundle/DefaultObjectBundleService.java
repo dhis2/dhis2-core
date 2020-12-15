@@ -28,13 +28,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
@@ -58,16 +52,21 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
 @Service( "org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService" )
-@Transactional
 public class DefaultObjectBundleService implements ObjectBundleService
 {
     private final CurrentUserService currentUserService;
@@ -140,6 +139,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
     }
 
     @Override
+    @Transactional( propagation = Propagation.REQUIRES_NEW)
     public ObjectBundleCommitReport commit( ObjectBundle bundle )
     {
         Map<Class<?>, TypeReport> typeReports = new HashMap<>();

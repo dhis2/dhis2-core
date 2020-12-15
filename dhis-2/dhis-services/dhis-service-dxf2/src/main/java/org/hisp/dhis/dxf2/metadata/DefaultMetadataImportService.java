@@ -72,7 +72,6 @@ import java.util.Map;
  */
 @Slf4j
 @Service( "org.hisp.dhis.dxf2.metadata.MetadataImportService" )
-@Transactional
 public class DefaultMetadataImportService implements MetadataImportService
 {
     @Autowired
@@ -130,7 +129,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         importReport.addTypeReports( validationReport.getTypeReportMap() );
 
-        if ( !(!validationReport.getErrorReports().isEmpty() && AtomicMode.ALL == bundle.getAtomicMode()) )
+        if ( validationReport.getErrorReports().isEmpty() || AtomicMode.NONE == bundle.getAtomicMode() )
         {
             Timer commitTimer = new SystemTimer().start();
 

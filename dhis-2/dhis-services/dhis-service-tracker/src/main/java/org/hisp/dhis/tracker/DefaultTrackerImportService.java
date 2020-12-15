@@ -203,7 +203,7 @@ public class DefaultTrackerImportService
 
     private boolean exitOnError( TrackerValidationReport validationReport, TrackerImportParams params )
     {
-        return validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL;
+        return validationReport.hasErrors();
     }
 
     private Map<TrackerType, Integer> calculatePayloadSize( TrackerBundle bundle )

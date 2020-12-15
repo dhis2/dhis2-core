@@ -28,14 +28,7 @@ package org.hisp.dhis.tracker.bundle.persister;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.api.client.util.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
@@ -44,7 +37,6 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -57,7 +49,13 @@ import org.hisp.dhis.tracker.report.TrackerObjectReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.springframework.util.StringUtils;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static com.google.api.client.util.Preconditions.checkNotNull;
 
 /**
  * @author Luciano Fiandesio
@@ -166,19 +164,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             {
                 final String msg = "A Tracker Entity of type '" + type.getName() + "' (" + trackerDto.getUid()
                     + ") failed to persist.";
-                
-                if ( bundle.getAtomicMode().equals( AtomicMode.ALL ) )
-                {
-                    throw new PersistenceException( msg , e );
-                }
-                else
-                {
-                    // TODO currently we do not keep track of the failed entity in the TrackerObjectReport
 
-                    log.warn( msg + "\nThe Import process will process remaining entities.", e );
-
-                    typeReport.getStats().incIgnored();
-                }
+                throw new PersistenceException( msg, e );
             }
         }
 
