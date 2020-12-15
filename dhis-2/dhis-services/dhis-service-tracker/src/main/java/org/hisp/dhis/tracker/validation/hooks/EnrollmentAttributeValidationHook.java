@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -79,6 +80,9 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
         TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
+        OrganisationUnit orgUnit = context
+            .getOrganisationUnit( getOrgUnitUidFromTei( context, enrollment.getTrackedEntity() ) );
+
         Map<String, String> attributeValueMap = Maps.newHashMap();
 
         for ( Attribute attribute : enrollment.getAttributes() )
@@ -101,7 +105,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
                 attribute.getValue(),
                 teAttribute,
                 tei,
-                tei.getOrganisationUnit() );
+                orgUnit );
         }
 
         Program program = context.getProgram( enrollment.getProgram() );
@@ -189,5 +193,21 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     private boolean isNonEmpty(Attribute attribute )
     {
         return StringUtils.isNotBlank( attribute.getValue() ) && StringUtils.isNotBlank(attribute.getAttribute());
+    }
+
+    private String getOrgUnitUidFromTei( TrackerImportValidationContext context, String teiUid )
+    {
+
+        final Optional<ReferenceTrackerEntity> reference = context.getReference( teiUid );
+        if ( reference.isPresent() )
+        {
+            final Optional<TrackedEntity> tei = context.getBundle()
+                .getTrackedEntity( teiUid );
+            if ( tei.isPresent() )
+            {
+                return tei.get().getOrgUnit();
+            }
+        }
+        return null;
     }
 }

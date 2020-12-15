@@ -169,6 +169,11 @@ public class DefaultTrackerImportService
     private TrackerValidationReport execRuleEngine( TrackerTimingsStats opsTimer, TrackerBundle trackerBundle,
         TrackerValidationReport report, ImportNotifier notifier )
     {
+        if ( trackerBundle.isSkipRuleEngine() )
+        {
+            return report;
+        }
+
         //
         // rule engine
         //

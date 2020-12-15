@@ -112,6 +112,8 @@ public class TrackedEntityProgramAttributeTest
 
         assertEquals( 4, attributeValues.size() );
 
+        manager.clear();
+        
         // update
 
         trackerImportParams = fromJson( "tracker/te_program_with_tea_update_data.json" );
@@ -149,6 +151,8 @@ public class TrackedEntityProgramAttributeTest
 
         assertEquals( 4, attributeValues.size() );
 
+        manager.clear();
+
         // update
 
         trackerImportParams = fromJson( "tracker/te_program_with_tea_update_data.json" );
@@ -165,9 +169,11 @@ public class TrackedEntityProgramAttributeTest
 
         assertEquals( 4, attributeValues.size() );
 
+        manager.clear();
+
         // delete
 
-        trackerImportParams = fromJson(  "tracker/te_program_with_tea_delete_data.json" );
+        trackerImportParams = fromJson( "tracker/te_program_with_tea_delete_data.json" );
 
         trackerBundle = trackerBundleService.create( trackerImportParams );
 

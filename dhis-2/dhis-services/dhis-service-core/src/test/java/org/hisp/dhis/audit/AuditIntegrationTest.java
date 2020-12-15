@@ -100,12 +100,6 @@ public class AuditIntegrationTest
     {
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Test
     public void testSaveMetadata()
     {

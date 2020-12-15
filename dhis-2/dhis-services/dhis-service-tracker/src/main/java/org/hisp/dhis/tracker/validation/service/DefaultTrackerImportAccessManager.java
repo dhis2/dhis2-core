@@ -219,7 +219,13 @@ public class DefaultTrackerImportAccessManager
         else
         {
             checkProgramStageWriteAccess( reporter, user, programStage );
-            checkProgramReadAccess( reporter, user, programStage.getProgram() );
+            // at this point the link between program and program stage should be validated
+            // so it is safe to fetch the Program from the pre-heat
+            final String identifier = reporter.getValidationContext().getIdentifiers().getProgramIdScheme()
+                .getIdentifier( programStage.getProgram() );
+            final Program program = reporter.getValidationContext().getProgram( identifier );
+
+            checkProgramReadAccess( reporter, user, program );
 
             checkTeiTypeAndTeiProgramAccess( reporter, user,
                 trackedEntity,

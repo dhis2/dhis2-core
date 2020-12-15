@@ -34,6 +34,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -51,6 +52,7 @@ import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
 import org.hisp.dhis.sms.config.SimplisticHttpGetGateWay;
 import org.hisp.dhis.sms.config.SmsGateway;
 import org.hisp.dhis.system.util.SmsUtils;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -90,6 +92,9 @@ public class GenericSmsGatewayTest
     @Mock
     private RestTemplate restTemplate;
 
+    @Mock
+    private PBEStringEncryptor pbeStringEncryptor;
+
     @Captor
     private ArgumentCaptor<HttpEntity<String>> httpEntityArgumentCaptor;
 
@@ -113,7 +118,7 @@ public class GenericSmsGatewayTest
     @Before
     public void setUp()
     {
-        subject = new SimplisticHttpGetGateWay( restTemplate );
+        subject = new SimplisticHttpGetGateWay( restTemplate, pbeStringEncryptor );
 
         gatewayConfig = new GenericHttpGatewayConfig();
         gatewayConfig.setUseGet( false );
@@ -127,7 +132,7 @@ public class GenericSmsGatewayTest
         username.setValue( "user_uio" );
         username.setEncode( false );
         username.setHeader( true );
-        username.setConfidential( true );
+        username.setConfidential( false );
 
         password = new GenericGatewayParameter();
         password.setKey( "password" );
@@ -190,6 +195,7 @@ public class GenericSmsGatewayTest
     {
         username.setHeader( false );
         password.setHeader( false );
+        password.setConfidential( true );
 
         valueStore.put( username.getKey(), username.getValue() );
         valueStore.put( password.getKey(), password.getValue() );
@@ -205,6 +211,7 @@ public class GenericSmsGatewayTest
 
         ResponseEntity<String> responseEntity = new ResponseEntity<>( "success", HttpStatus.OK );
 
+        when( pbeStringEncryptor.decrypt( anyString() ) ).thenReturn( password.getValue() );
         when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
             .thenReturn( responseEntity );
 

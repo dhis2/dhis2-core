@@ -64,12 +64,6 @@ import org.springframework.core.io.ClassPathResource;
 public class AtomicModeIntegrationTest
     extends IntegrationTestBase
 {
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Autowired
     private TrackerImportService trackerImportService;
 

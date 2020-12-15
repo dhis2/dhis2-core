@@ -51,11 +51,9 @@ public class CategoryOptionComboTest
 {
     private Date jan1;
     private Date jan2;
-    private Date jan3;
     private Date jan4;
     private Date jan5;
     private Date jan6;
-    private Date jan7;
 
     private CategoryOption optionA;
     private CategoryOption optionB;
@@ -80,11 +78,9 @@ public class CategoryOptionComboTest
     {
         jan1 = new DateTime( 2000, 1, 1, 0, 0 ).toDate();
         jan2 = new DateTime( 2000, 1, 2, 0, 0 ).toDate();
-        jan3 = new DateTime( 2000, 1, 3, 0, 0 ).toDate();
         jan4 = new DateTime( 2000, 1, 4, 0, 0 ).toDate();
         jan5 = new DateTime( 2000, 1, 5, 0, 0 ).toDate();
         jan6 = new DateTime( 2000, 1, 6, 0, 0 ).toDate();
-        jan7 = new DateTime( 2000, 1, 7, 0, 0 ).toDate();
 
         optionA = new CategoryOption( "optionA" );
         optionB = new CategoryOption( "optionB" );

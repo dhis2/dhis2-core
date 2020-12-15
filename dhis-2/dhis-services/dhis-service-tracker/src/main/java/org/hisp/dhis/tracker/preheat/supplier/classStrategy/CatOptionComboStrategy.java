@@ -32,6 +32,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.preheat.mappers.CategoryOptionComboMapper;
 import org.springframework.stereotype.Component;
 
@@ -39,12 +40,12 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor( value = CategoryOptionCombo.class, mapper = CategoryOptionComboMapper.class )
+@StrategyFor( value = CategoryOptionCombo.class, mapper = CategoryOptionComboMapper.class, cache = true, ttl = 30 )
 public class CatOptionComboStrategy extends AbstractSchemaStrategy
 {
     public CatOptionComboStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager )
+        IdentifiableObjectManager manager, PreheatCacheService cacheService )
     {
-        super( schemaService, queryService, manager );
+        super( schemaService, queryService, manager, cacheService );
     }
 }

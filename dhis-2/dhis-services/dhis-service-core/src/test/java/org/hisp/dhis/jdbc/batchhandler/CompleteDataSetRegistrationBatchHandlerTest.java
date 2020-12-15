@@ -136,12 +136,6 @@ public class CompleteDataSetRegistrationBatchHandlerTest
         batchHandler.flush();
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------

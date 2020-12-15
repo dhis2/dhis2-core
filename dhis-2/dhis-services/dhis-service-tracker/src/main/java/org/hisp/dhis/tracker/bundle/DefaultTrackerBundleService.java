@@ -60,23 +60,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableMap;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
-@Slf4j
 public class DefaultTrackerBundleService
     implements TrackerBundleService
 {
     private final TrackerPreheatService trackerPreheatService;
 
     private final SessionFactory sessionFactory;
-
-    private final HibernateCacheManager cacheManager;
-
-    private final DbmsManager dbmsManager;
 
     private final CommitService commitService;
 
@@ -136,15 +129,11 @@ public class DefaultTrackerBundleService
 
     public DefaultTrackerBundleService( TrackerPreheatService trackerPreheatService,
         SessionFactory sessionFactory,
-        HibernateCacheManager cacheManager,
-        DbmsManager dbmsManager,
         TrackerProgramRuleService trackerProgramRuleService,
         TrackerObjectDeletionService deletionService, CommitService commitService )
     {
         this.trackerPreheatService = trackerPreheatService;
         this.sessionFactory = sessionFactory;
-        this.cacheManager = cacheManager;
-        this.dbmsManager = dbmsManager;
         this.trackerProgramRuleService = trackerProgramRuleService;
         this.deletionService = deletionService;
         this.commitService = commitService;
@@ -163,18 +152,13 @@ public class DefaultTrackerBundleService
     @Override
     public TrackerBundle runRuleEngine( TrackerBundle trackerBundle )
     {
-        if ( trackerBundle.isSkipRuleEngine() )
-        {
-            return trackerBundle;
-        }
-
         Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
             .calculateEnrollmentRuleEffects( trackerBundle.getEnrollments(), trackerBundle );
         Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
             .calculateEventRuleEffects( trackerBundle.getEvents(), trackerBundle );
         trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
         trackerBundle.setEventRuleEffects( eventRuleEffects );
-        
+
         for ( RuleActionApplier applier : appliers )
         {
             trackerBundle = applier.executeActions( trackerBundle );
@@ -199,12 +183,9 @@ public class DefaultTrackerBundleService
 
         Stream.of( TrackerType.values() )
             .forEach( t -> bundleReport.getTypeReportMap().put( t, COMMIT_MAPPER.get( t )
-            .apply( session, bundle ) ) );
+                .apply( session, bundle ) ) );
 
         bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
-
-        dbmsManager.clearSession();
-        cacheManager.clearCache();
 
         return bundleReport;
     }
@@ -215,6 +196,7 @@ public class DefaultTrackerBundleService
         sideEffectHandlers.forEach( handler -> handler.handleSideEffects( bundles ) );
     }
 
+    @Override
     @Transactional
     public TrackerBundleReport delete( TrackerBundle bundle )
     {
@@ -227,10 +209,7 @@ public class DefaultTrackerBundleService
 
         Stream.of( TrackerType.values() )
             .forEach( t -> bundleReport.getTypeReportMap().put( t, DELETION_MAPPER.get( t )
-            .apply( bundle, t ) ) );
-
-        dbmsManager.clearSession();
-        cacheManager.clearCache();
+                .apply( bundle, t ) ) );
 
         return bundleReport;
     }
