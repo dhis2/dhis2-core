@@ -1,0 +1,22 @@
+{
+  "trackedEntities": [
+    {
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntity": "YNCc1rCEOKa",
+      "attributes": [
+        {
+          "attribute": "fmBIpOStKkF",
+          "value": "PersonA",
+          "storedBy": "admin"
+        },
+        {
+          "attribute": "sTJvSLN7Kcb",
+          "value": "AddressA",
+          "storedBy": "admin"
+        }
+      ],
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false
+    }
+  ]
+}

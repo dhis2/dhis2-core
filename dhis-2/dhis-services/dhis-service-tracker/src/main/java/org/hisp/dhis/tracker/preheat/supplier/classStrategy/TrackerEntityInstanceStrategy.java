@@ -61,8 +61,7 @@ public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
         for ( List<String> ids : splitList )
         {
             // Fetch all Tracked Entity Instance present in the payload
-            List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getByUid( ids,
-                preheat.getUser() );
+            List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getIncludingDeleted( ids );
 
             // Get the uids of all the TEIs which are root (a TEI is not root when is a
             // property of another object, e.g. enrollment)
