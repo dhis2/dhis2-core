@@ -43,6 +43,7 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionMetadata;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionService;
+import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.springframework.stereotype.Service;
 
@@ -174,15 +175,18 @@ public class DefaultOutlierDetectionService
 
         final OutlierDetectionResponse response = new OutlierDetectionResponse();
         response.setOutlierValues( outlierDetectionManager.getOutliers( request ) );
+        response.setMetadata( getMetadata( request, response.getOutlierValues() ) );
+        return response;
+    }
 
+    private OutlierDetectionMetadata getMetadata( OutlierDetectionRequest request, List<OutlierValue> outlierValues )
+    {
         final OutlierDetectionMetadata metadata = new OutlierDetectionMetadata();
-        metadata.setCount( response.getOutlierValues().size() );
+        metadata.setCount( outlierValues.size() );
         metadata.setOutlierAlgorithm( request.getOutlierAlgorithm() );
         metadata.setThreshold( request.getThreshold() );
         metadata.setOrderBy( request.getOrderBy() );
         metadata.setMaxResults( request.getMaxResults() );
-        response.setMetadata( metadata );
-
-        return response;
+        return metadata;
     }
 }
