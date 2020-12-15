@@ -30,10 +30,7 @@ package org.hisp.dhis.programrule.engine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -126,7 +123,8 @@ public class ProgramRuleEngine
 
         try
         {
-            RuleEngine ruleEngine = getRuleEngineContext( enrollment.getProgram() )
+            RuleEngine ruleEngine = getRuleEngineContext( enrollment.getProgram(),
+                programStageInstance != null ? programStageInstance.getProgramStage().getUid() : null )
                 .toEngineBuilder()
                 .triggerEnvironment( TriggerEnvironment.SERVER )
                 .events( ruleEvents )
@@ -174,12 +172,16 @@ public class ProgramRuleEngine
         return ruleEngine.evaluate( condition );
     }
 
-    private RuleEngineContext getRuleEngineContext( Program program )
+    private RuleEngineContext getRuleEngineContext( Program program, String uid )
     {
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService
             .getProgramRuleVariable( program );
         List<ProgramRule> programRules = implementableRuleService
-            .getImplementableRules( program );
+            .getImplementableRules( program )
+            .stream()
+            .filter( rule -> Objects.isNull( rule.getProgramStage() ) ||
+                Objects.equals( rule.getProgramStage().getUid(), uid ) )
+            .collect( Collectors.toList() );
 
         Map<String, String> constantMap = constantService.getConstantMap().entrySet()
             .stream()
