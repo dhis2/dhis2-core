@@ -218,12 +218,6 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
         categoryService.updateCategoryCombo( categoryComboA );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Test
     public void testGetDataApprovalStatusesWithOpenPeriodsAfterCoEndDate()
     {

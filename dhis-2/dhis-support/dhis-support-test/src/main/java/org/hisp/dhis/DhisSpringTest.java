@@ -51,6 +51,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public abstract class DhisSpringTest extends BaseSpringTest
 {
+    protected boolean emptyDatabaseAfterTest()
+    {
+        return false;
+    }
+
     @Before
     public final void before()
         throws Exception
@@ -75,10 +80,5 @@ public abstract class DhisSpringTest extends BaseSpringTest
         clearSecurityContext();
 
         tearDownTest();
-    }
-
-    protected boolean emptyDatabaseAfterTest()
-    {
-        return false;
     }
 }

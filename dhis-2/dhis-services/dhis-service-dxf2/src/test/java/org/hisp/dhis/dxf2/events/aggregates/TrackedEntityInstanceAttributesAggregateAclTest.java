@@ -121,10 +121,4 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
         userCredentials.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup ) );
         user.setUserCredentials( userCredentials );
     }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 }

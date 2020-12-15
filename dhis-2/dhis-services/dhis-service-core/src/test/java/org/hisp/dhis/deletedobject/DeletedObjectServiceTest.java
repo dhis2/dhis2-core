@@ -66,12 +66,6 @@ public class DeletedObjectServiceTest
 
     private DeletedObject elementE = new DeletedObject( createDataElement( 'E' ) );
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Test
     public void testAddDeletedObject()
     {

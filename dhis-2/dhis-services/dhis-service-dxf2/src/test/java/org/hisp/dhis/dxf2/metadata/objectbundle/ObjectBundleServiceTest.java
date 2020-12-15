@@ -71,8 +71,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.Rollback;
 
 import java.io.IOException;
 import java.util.List;
@@ -85,7 +83,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -106,12 +103,6 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private UserService _userService;
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 
     @Override
     protected void setUpTest() throws Exception

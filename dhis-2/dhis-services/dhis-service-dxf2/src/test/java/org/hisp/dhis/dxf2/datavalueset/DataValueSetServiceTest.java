@@ -169,12 +169,6 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
     private MockBatchHandlerFactory mockBatchHandlerFactory = null;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     public void setUpTest()
     {
         CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();

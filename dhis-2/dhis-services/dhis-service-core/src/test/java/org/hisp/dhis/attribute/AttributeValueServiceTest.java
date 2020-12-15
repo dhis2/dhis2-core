@@ -80,13 +80,6 @@ public class AttributeValueServiceTest extends TransactionalIntegrationTest
     private Attribute attribute3;
     private UserInfo currentUserInfo;
 
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Override
     protected void setUpTest()
     {

@@ -61,12 +61,6 @@ import static org.junit.Assert.*;
 public class ProgramRuleIntegrationTest
     extends TransactionalIntegrationTest
 {
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Autowired
     private TrackerImportService trackerImportService;
 

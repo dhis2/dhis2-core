@@ -56,7 +56,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Slf4j
 public abstract class BaseSpringTest extends DhisConvenienceTest implements ApplicationContextAware
 {
-
     public static final String ORG_HISP_DHIS_DATASOURCE_QUERY = "org.hisp.dhis.datasource.query";
 
     protected ApplicationContext applicationContext;

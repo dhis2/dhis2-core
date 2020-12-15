@@ -91,4 +91,9 @@ public abstract class TransactionalIntegrationTest extends BaseSpringTest
             }
         }
     }
+
+    protected boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 }

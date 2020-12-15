@@ -33,14 +33,12 @@ import org.apache.commons.collections4.ListUtils;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Objects;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.test.annotation.Commit;
 
 import java.util.Calendar;
@@ -77,12 +75,6 @@ public class DefaultReservedValueServiceTest extends TransactionalIntegrationTes
     private static TextPattern simpleStringPattern;
 
     private static ReservedValue simpleReservedValue;
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 
     @BeforeClass
     public static void setUpClass()

@@ -83,7 +83,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -91,12 +90,6 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @Slf4j
 public class MetadataImportServiceTest extends TransactionalIntegrationTest
 {
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Autowired
     private MetadataImportService importService;
 
