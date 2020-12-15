@@ -629,7 +629,7 @@ public class CriteriaQueryEngineTest
         User userB = createUser( 'B' );
         userService.addUser( userB );
         DataElement de = identifiableObjectManager.get( DataElement.class, "deabcdefghA" );
-        de.setOwner( userB.getUid() );
+        de.setUser( userB );
         identifiableObjectManager.save( de, false );
 
         de = identifiableObjectManager.get( DataElement.class, "deabcdefghA" );
