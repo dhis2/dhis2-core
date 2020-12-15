@@ -1,7 +1,6 @@
 package org.hisp.dhis.outlierdetection.service;
 
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.junit.Assert.assertEquals;
@@ -13,19 +12,17 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionService;
-import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.PeriodType;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
 import com.google.common.collect.Lists;
 
 public class OutlierDetectionServiceValidationTest
@@ -49,8 +46,6 @@ public class OutlierDetectionServiceValidationTest
     private DataElement deB;
     private DataElement deC;
 
-    private DataSet dsA;
-
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
 
@@ -59,16 +54,9 @@ public class OutlierDetectionServiceValidationTest
     {
         subject = new DefaultOutlierDetectionService( idObjectManager, outlierDetectionManager );
 
-        PeriodType pt = new MonthlyPeriodType();
-
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
         deC = createDataElement( 'C', ValueType.NUMBER, AggregationType.SUM );
-
-        dsA = createDataSet( 'A', pt );
-        dsA.addDataSetElement( deA );
-        dsA.addDataSetElement( deB );
-        dsA.addDataSetElement( deC );
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
