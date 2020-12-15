@@ -30,6 +30,7 @@ package org.hisp.dhis.relationship;
 
 import java.util.Collection;
 
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.stereotype.Component;
@@ -67,6 +68,21 @@ public class RelationshipDeletionHandler
     {
         Collection<Relationship> relationships = relationshipService
             .getRelationshipsByTrackedEntityInstance( entityInstance, false );
+
+        if ( relationships != null )
+        {
+            for ( Relationship relationship : relationships )
+            {
+                relationshipService.deleteRelationship( relationship );
+            }
+        }
+    }
+    
+    @Override
+    public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    {
+        Collection<Relationship> relationships = relationshipService
+            .getRelationshipsByProgramStageInstance( programStageInstance, false );
 
         if ( relationships != null )
         {
