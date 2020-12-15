@@ -187,11 +187,10 @@ public class OutlierDetectionServiceTest
     @Test
     public void testGetOutlier()
     {
-        double outlierValue = 81d;
-
         StatsAccumulator stats = new StatsAccumulator();
         stats.addAll( 31, 34, 38, 81, 39, 33 );
 
+        double outlierValue = 81d;
         double threshold = 2.0;
         double mean = stats.mean();
         double stdDev = stats.populationStandardDeviation();
