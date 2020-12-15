@@ -93,6 +93,7 @@ public class DefaultMetadataImportService implements MetadataImportService
     private Notifier notifier;
 
     @Override
+    @Transactional
     public ImportReport importMetadata( MetadataImportParams params )
     {
         Timer timer = new SystemTimer().start();
@@ -197,6 +198,7 @@ public class DefaultMetadataImportService implements MetadataImportService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public MetadataImportParams getParamsFromMap( Map<String, List<String>> parameters )
     {
         MetadataImportParams params = new MetadataImportParams();
