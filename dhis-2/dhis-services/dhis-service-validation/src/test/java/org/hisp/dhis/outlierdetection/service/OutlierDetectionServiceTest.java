@@ -111,6 +111,12 @@ public class OutlierDetectionServiceTest
         periodService.addPeriod( m04 );
         periodService.addPeriod( m05 );
         periodService.addPeriod( m06 );
+        periodService.addPeriod( m07 );
+        periodService.addPeriod( m08 );
+        periodService.addPeriod( m09 );
+        periodService.addPeriod( m10 );
+        periodService.addPeriod( m11 );
+        periodService.addPeriod( m12 );
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
