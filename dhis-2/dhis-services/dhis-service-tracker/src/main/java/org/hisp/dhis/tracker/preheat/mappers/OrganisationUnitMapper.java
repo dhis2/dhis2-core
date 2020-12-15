@@ -29,11 +29,14 @@ package org.hisp.dhis.tracker.preheat.mappers;
  */
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
+
+import java.util.Set;
 
 @Mapper( )
 public interface OrganisationUnitMapper

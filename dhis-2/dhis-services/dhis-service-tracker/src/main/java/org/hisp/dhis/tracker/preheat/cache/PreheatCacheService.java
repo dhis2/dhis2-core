@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat.supplier;
+package org.hisp.dhis.tracker.preheat.cache;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -29,47 +29,55 @@ package org.hisp.dhis.tracker.preheat.supplier;
  */
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.preheat.DetachUtils;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.hisp.dhis.tracker.preheat.mappers.RelationshipTypeMapper;
-import org.springframework.stereotype.Component;
-
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObject;
 
 /**
+ * A DHIS2 metadata cache implementation to reduce db lookups during pre-heat
+ * 
  * @author Luciano Fiandesio
  */
-@RequiredArgsConstructor
-@Component
-public class RelationshipTypeSupplier extends AbstractPreheatSupplier
+public interface PreheatCacheService
 {
-    @NonNull
-    private final IdentifiableObjectManager manager;
+    /**
+     * Fetches an object from the pre-heat cache.
+     * 
+     * @param cacheKey the full class name of the object being cached
+     * @param id the identifier of the object to retrieve
+     *
+     */
+    Optional<IdentifiableObject> get( String cacheKey, String id );
 
-    @NonNull
-    private final PreheatCacheService cache;
+    /**
+     * Check whether a class type is part of the cache
+     * 
+     * @param cacheKey the full class name of a metadata object
+     *
+     */
+    boolean hasKey( String cacheKey );
 
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
-    {
-        if ( cache.hasKey( RelationshipType.class.getName() ) )
-        {
-            addToPreheat( preheat, cache.getAll( RelationshipType.class.getName() ).stream()
-                .map( (rt -> (RelationshipType) rt) ).collect( Collectors.toList() ) );
-        }
-        else
-        {
-            final List<RelationshipType> relationshipTypes = manager.getAll( RelationshipType.class );
+    /**
+     * Fetch all the cached entries for the given class type key
+     * 
+     * @param cacheKey the full class name of a metadata object
+     *
+     */
+    List<IdentifiableObject> getAll( String cacheKey );
 
-            addToPreheat( preheat, DetachUtils.detach( RelationshipTypeMapper.INSTANCE, relationshipTypes ) );
-            addToCache( cache, relationshipTypes );
-        }
-    }
+    /**
+     * Adds an object to the pre-heat cache.
+     *
+     * @param cacheKey the full class name of the object being cached
+     * @param id the identifier of the object being cached, used as cache key
+     * @param object The object being cached
+     * @param cacheTTL The amount of **minutes**
+     * @param capacity The maximum number of entries hold by the cache.
+     */
+    void put( String cacheKey, String id, IdentifiableObject object, int cacheTTL, long capacity );
+
+    /**
+     * Invalidates all caches.
+     */
+    void invalidateCache();
 }

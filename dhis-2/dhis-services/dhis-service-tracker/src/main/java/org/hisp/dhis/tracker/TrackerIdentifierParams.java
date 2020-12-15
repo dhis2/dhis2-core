@@ -114,7 +114,7 @@ public class TrackerIdentifierParams
         case "ProgramStage":
             return programStageIdScheme;
         default:
-            throw new IllegalStateException( "Unexpected value: " + klazz.getName() );
+            return idScheme;
         }
 
     }

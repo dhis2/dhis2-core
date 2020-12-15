@@ -32,7 +32,7 @@ import org.hisp.dhis.rules.models.RuleActionErrorOnCompletion;
 import org.springframework.stereotype.Component;
 
 /**
- * This implementer show errors on a completed enrollment calculated by Rule
+ * This implementer show errors on a completed enrollment  or event calculated by Rule
  * Engine.
  *
  * @Author Enrico Colasante
@@ -48,8 +48,15 @@ public class ShowErrorOnCompleteValidator
     }
 
     @Override
+    public boolean isOnComplete()
+    {
+        return true;
+    }
+
+    @Override
     public boolean isWarning()
     {
         return false;
     }
+
 }
