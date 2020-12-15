@@ -1,5 +1,47 @@
 package org.hisp.dhis.maintenance;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.message.ProgramMessage;
+import org.hisp.dhis.program.message.ProgramMessageRecipients;
+import org.hisp.dhis.program.message.ProgramMessageService;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipEntity;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipService;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.relationship.RelationshipTypeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
+import org.joda.time.DateTime;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -29,28 +71,6 @@ package org.hisp.dhis.maintenance;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.IntegrationTestBase;
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.*;
-import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.program.message.ProgramMessageRecipients;
-import org.hisp.dhis.program.message.ProgramMessageService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
-import org.joda.time.DateTime;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.*;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Enrico Colasante
@@ -60,6 +80,12 @@ public class MaintenanceServiceTest
 {
     @Autowired
     private ProgramInstanceService programInstanceService;
+    
+    @Autowired
+    private RelationshipService relationshipService;
+
+    @Autowired
+    private RelationshipTypeService relationshipTypeService;
 
     @Autowired
     private ProgramMessageService programMessageService;
@@ -215,5 +241,58 @@ public class MaintenanceServiceTest
         maintenanceService.deleteSoftDeletedProgramInstances();
 
         assertFalse( programInstanceService.programInstanceExistsIncludingDeleted( programInstance.getUid() ) );
+    }
+    
+    @Test
+    public void testDeleteSoftDeletedProgramStageInstanceLinkedToARelationshipItem()
+    {
+
+        RelationshipType rType= createRelationshipType( 'A' );
+        rType.getFromConstraint().setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
+        rType.getFromConstraint().setProgram( program );
+        rType.getFromConstraint().setProgramStage( program.getProgramStageByStage( 1 ) );
+
+        rType.getToConstraint().setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        rType.getFromConstraint().setTrackedEntityType( entityInstance.getTrackedEntityType() );
+
+        relationshipTypeService.addRelationshipType( rType );
+
+        ProgramStageInstance programStageInstanceA = new ProgramStageInstance( programInstance,
+            program.getProgramStageByStage( 1 ) );
+        programStageInstanceA.setDueDate( enrollmentDate );
+        programStageInstanceA.setUid( "UID-A" );
+
+        long idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
+
+        Relationship r = new Relationship();
+        RelationshipItem rItem1 = new RelationshipItem();
+        rItem1.setProgramStageInstance( programStageInstanceA );
+
+
+        RelationshipItem rItem2 = new RelationshipItem();
+        rItem2.setTrackedEntityInstance( entityInstance );
+
+        r.setFrom( rItem1 );
+        r.setTo( rItem2 );
+        r.setRelationshipType( rType );
+
+        relationshipService.addRelationship( r );
+
+        assertNotNull( programStageInstanceService.getProgramStageInstance( idA ) );
+
+        assertNotNull(relationshipService.getRelationship( r.getId() )) ;
+
+
+        programStageInstanceService.deleteProgramStageInstance( programStageInstanceA );
+
+        assertNull( programStageInstanceService.getProgramStageInstance( idA ) );
+
+        assertNull(relationshipService.getRelationship( r.getId() )) ;
+
+        assertTrue( programStageInstanceService.programStageInstanceExistsIncludingDeleted( programStageInstanceA.getUid() ) );
+
+        maintenanceService.deleteSoftDeletedProgramStageInstances();
+
+        assertFalse( programStageInstanceService.programStageInstanceExistsIncludingDeleted( programStageInstanceA.getUid() ) );
     }
 }
