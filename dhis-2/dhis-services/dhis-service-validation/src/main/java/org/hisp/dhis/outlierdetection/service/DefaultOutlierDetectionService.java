@@ -179,6 +179,13 @@ public class DefaultOutlierDetectionService
         return response;
     }
 
+    /**
+     * Returns metadata for the given request.
+     *
+     * @param request the {@link Request}.
+     * @param outlierValues the list of {@link OutlierValue}.
+     * @return a {@link OutlierDetectionMetadata} instance.
+     */
     private OutlierDetectionMetadata getMetadata( OutlierDetectionRequest request, List<OutlierValue> outlierValues )
     {
         final OutlierDetectionMetadata metadata = new OutlierDetectionMetadata();
