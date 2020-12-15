@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -134,6 +135,13 @@ public class WorkContext
     private final Map<String, User> assignedUserMap;
 
     private final Map<String, Note> notesMap;
+
+    /**
+     * Holds a Map of Program ID (primary key) and List of Org Unit ID associated to
+     * each program. Note that the List only contains the Org Unit ID of org units
+     * that are specified in the payload.
+     */
+    private final Map<Long, List<Long>> programWithOrgUnitsMap;
 
     /**
      * Services / components
