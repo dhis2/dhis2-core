@@ -410,11 +410,5 @@ public class DataElementServiceTest
         long id = dataElementService.addDataElement( de );
 
         assertNotNull( dataElementService.getDataElement( id ) );
-
-    }
-
-    @Override public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }

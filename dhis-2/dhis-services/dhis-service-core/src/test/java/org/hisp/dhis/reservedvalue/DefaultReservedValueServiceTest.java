@@ -100,12 +100,6 @@ public class DefaultReservedValueServiceTest
     }
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     @Before
     public void setUpTest()
         throws Exception

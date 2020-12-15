@@ -145,9 +145,4 @@ public class DeletedObjectServiceTest
         assertEquals( 3, deletedObjectService.getDeletedObjectsByKlass( "DataElement" ).size() );
         assertEquals( 2, deletedObjectService.getDeletedObjectsByKlass( "OrganisationUnit" ).size() );
     }
-
-    @Override public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 }
