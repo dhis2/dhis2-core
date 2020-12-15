@@ -50,7 +50,7 @@ public abstract class DhisTest extends BaseSpringTest
 {
     protected boolean emptyDatabaseAfterTest()
     {
-        return false;
+        return true;
     }
 
     @Before

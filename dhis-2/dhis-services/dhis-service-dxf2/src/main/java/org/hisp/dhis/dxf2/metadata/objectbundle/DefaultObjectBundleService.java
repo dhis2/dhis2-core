@@ -139,7 +139,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
     }
 
     @Override
-    @Transactional( propagation = Propagation.REQUIRES_NEW)
     public ObjectBundleCommitReport commit( ObjectBundle bundle )
     {
         Map<Class<?>, TypeReport> typeReports = new HashMap<>();

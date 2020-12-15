@@ -1921,12 +1921,12 @@
       <dependency>
         <groupId>org.cache2k</groupId>
         <artifactId>cache2k-api</artifactId>
-        <version>1.6.0.Final</version>
+        <version>${cache2k-api.version}</version>
       </dependency>
       <dependency>
         <groupId>org.cache2k</groupId>
         <artifactId>cache2k-core</artifactId>
-        <version>1.6.0.Final</version>
+        <version>${cache2k-api.version}</version>
       </dependency>
       <dependency>
         <groupId>com.googlecode.jsmpp</groupId>
@@ -2155,5 +2155,6 @@
     <mapstruct.version>1.4.1.Final</mapstruct.version>
     <geotools.version>24.0</geotools.version>
     <testcontainers.version>1.15.1</testcontainers.version>
+    <cache2k-api.version>1.6.0.Final</cache2k-api.version>
   </properties>
 </project>
