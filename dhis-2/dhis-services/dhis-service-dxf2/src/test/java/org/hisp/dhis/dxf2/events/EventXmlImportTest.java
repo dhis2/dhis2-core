@@ -90,12 +90,6 @@ public class EventXmlImportTest
     private DataElement dataElementA;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     protected void setUpTest()
         throws Exception
     {

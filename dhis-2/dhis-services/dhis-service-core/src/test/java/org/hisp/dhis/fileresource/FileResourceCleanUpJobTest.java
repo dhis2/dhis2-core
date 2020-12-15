@@ -224,9 +224,4 @@ public class FileResourceCleanUpJobTest
         fileResourceService.updateFileResource( fileResource );
         return externalFileResource;
     }
-
-    @Override public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 }

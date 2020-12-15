@@ -294,12 +294,6 @@ public class AnalyticsValidationServiceTest
         setDependency( validationService, "analyticsService", analyticsService, AnalyticsService.class );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     // -------------------------------------------------------------------------
     // Local convenience methods
     // -------------------------------------------------------------------------
