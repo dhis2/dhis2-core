@@ -18,6 +18,6 @@ update relationship
 										left join programinstance pi on ri.programinstanceid = pi.programinstanceid 
 										where pi.deleted=true );
 
-delete from relationshipitem where relationshipid in (select relationshipid from relationship where from_relationshipitemid is null or to_relationshipitemid is null )
+delete from relationshipitem where relationshipid in (select relationshipid from relationship where from_relationshipitemid is null or to_relationshipitemid is null );
 
 delete from relationship where from_relationshipitemid is null or to_relationshipitemid is null;
