@@ -6,9 +6,11 @@ import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -82,6 +84,18 @@ public class OutlierDetectionServiceValidationTest
             .build();
 
         assertNull( subject.validateForErrorMessage( request ) );
+    }
+
+    @Test
+    public void testErrorValidation()
+    {
+        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
+            .withDataElements( Lists.newArrayList( deA, deB, deC ) )
+            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2020, 3, 1 ) )
+            .build();
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class, () -> subject.validate( request ) );
+        assertEquals( ErrorCode.E2203, ex.getErrorCode() );
     }
 
     @Test
