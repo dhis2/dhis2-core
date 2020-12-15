@@ -218,6 +218,15 @@ public class TrackerPreheat
     @Setter
     private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
 
+    /**
+     * Map of Program ID (primary key) and List of Org Unit ID associated to each
+     * program. Note that the List only contains the Org Unit ID of the Org Units
+     * that are specified in the import payload.
+     */
+    @Getter
+    @Setter
+    private  Map<Long, List<Long>> programWithOrgUnitsMap;
+    
     public TrackerPreheat()
     {
     }

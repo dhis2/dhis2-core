@@ -63,4 +63,17 @@ public class AuditMatrix
     {
         return matrix.get( auditScope ).getOrDefault( auditType, false );
     }
+
+    public boolean isReadEnabled()
+    {
+        final AuditScope[] auditScopes = AuditScope.values();
+        for ( AuditScope auditScope : auditScopes )
+        {
+            if ( isEnabled( auditScope, AuditType.READ ) )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 }

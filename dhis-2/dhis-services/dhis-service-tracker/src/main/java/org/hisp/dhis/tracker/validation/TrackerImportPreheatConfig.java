@@ -38,6 +38,7 @@ import org.hisp.dhis.tracker.preheat.supplier.PeriodTypeSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.PreheatSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.ProgramInstanceByTeiSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.ProgramInstanceSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.ProgramOrgUnitsSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.ProgramStageInstanceProgramStageMapSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.RelationshipTypeSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.TrackedEntityTypeSupplier;
@@ -61,6 +62,7 @@ public class TrackerImportPreheatConfig
         ProgramInstanceByTeiSupplier.class,
         ProgramInstancesWithAtLeastOneEventSupplier.class,
         ProgramStageInstanceProgramStageMapSupplier.class,
+        ProgramOrgUnitsSupplier.class,
         TrackedEntityTypeSupplier.class,
         RelationshipTypeSupplier.class,
         PeriodTypeSupplier.class,
