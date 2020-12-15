@@ -218,6 +218,12 @@ public class ValidationResultStoreTest
     // -------------------------------------------------------------------------
 
     @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
+    @Override
     public void setUpTest() throws Exception
     {
         // ---------------------------------------------------------------------

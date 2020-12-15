@@ -233,6 +233,12 @@ public class DataApprovalAuditServiceTest
     // -------------------------------------------------------------------------
 
     @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
+    @Override
     public void setUpTest() throws Exception
     {
         // ---------------------------------------------------------------------

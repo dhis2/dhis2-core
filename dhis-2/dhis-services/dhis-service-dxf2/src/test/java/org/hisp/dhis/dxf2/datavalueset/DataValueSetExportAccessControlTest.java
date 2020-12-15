@@ -122,6 +122,12 @@ public class DataValueSetExportAccessControlTest
     private OrganisationUnit ouA;
 
     @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
+    @Override
     public void setUpTest()
     {
         userService = _userService;
