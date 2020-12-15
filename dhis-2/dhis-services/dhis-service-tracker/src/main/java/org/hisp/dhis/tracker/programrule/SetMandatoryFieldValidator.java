@@ -28,19 +28,30 @@
 
 package org.hisp.dhis.tracker.programrule;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerReportUtils;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 import com.google.api.client.util.Lists;
+
+import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMandatoryDataValue;
 
 /**
  * This implementer check if a field is not empty in the {@link TrackerBundle}
@@ -76,7 +87,8 @@ public class SetMandatoryFieldValidator
         return effects.entrySet().stream()
             .collect( Collectors.toMap( Map.Entry::getKey,
                 e -> getEvent( bundle, e.getKey() )
-                    .map( tei -> checkMandatoryDataElement( tei, e.getValue() ) ).orElse( Lists.newArrayList() ) ) );
+                    .map( event -> checkMandatoryDataElement( event, e.getValue(), bundle ) )
+                    .orElse( Lists.newArrayList() ) ) );
     }
 
     @Override
@@ -107,25 +119,18 @@ public class SetMandatoryFieldValidator
             .collect( Collectors.toList() );
     }
 
-    private List<String> checkMandatoryDataElement( Event event, List<RuleEffect> effects )
+    private List<String> checkMandatoryDataElement( Event event, List<RuleEffect> effects,
+        TrackerBundle bundle )
     {
-        return effects.stream()
-            .map( ruleEffect -> {
-                RuleActionSetMandatoryField action = (RuleActionSetMandatoryField) ruleEffect.ruleAction();
-                String dataElementUid = action.field();
-                Optional<DataValue> dataValue = event.getDataValues().stream()
-                    .filter( dv -> dv.getDataElement().equals( dataElementUid ) )
-                    .findAny();
-                if ( dataValue.isPresent() && StringUtils.isEmpty( dataValue.get().getValue() ) )
-                {
-                    return "Data element " + dataElementUid + " is missing for event " + event.getEvent();
-                }
-                else
-                {
-                    return "";
-                }
-            } )
-            .filter( e -> !e.isEmpty() )
+        List<String> mandatoryDataElements = effects.stream()
+            .map( effect -> ((RuleActionSetMandatoryField) effect.ruleAction()).field() )
+            .collect( Collectors.toList() );
+
+        ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
+
+        return validateMandatoryDataValue( programStage, event, mandatoryDataElements )
+            .stream()
+            .map( e -> TrackerReportUtils.formatMessage( TrackerErrorCode.E1303, e ) )
             .collect( Collectors.toList() );
     }
 

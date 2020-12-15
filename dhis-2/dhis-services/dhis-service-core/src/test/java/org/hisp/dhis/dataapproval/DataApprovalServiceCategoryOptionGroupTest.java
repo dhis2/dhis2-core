@@ -527,12 +527,6 @@ public class DataApprovalServiceCategoryOptionGroupTest
     }
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     public void tearDownTest()
     {
         setDependency( dataApprovalService, "currentUserService", currentUserService, CurrentUserService.class );

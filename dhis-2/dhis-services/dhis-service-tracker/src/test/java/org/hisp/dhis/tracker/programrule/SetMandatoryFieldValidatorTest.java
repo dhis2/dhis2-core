@@ -56,7 +56,10 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerReportUtils;
 import org.hisp.dhis.tracker.validation.AbstractImportValidationTest;
+import org.hisp.dhis.tracker.validation.hooks.ValidationUtils;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -154,7 +157,7 @@ public class SetMandatoryFieldValidatorTest
     public void testValidateOkMandatoryFieldsForEvents()
         throws IOException
     {
-        TrackerImportParams bundleParams = createBundleFromJson( "tracker/event_events_and_enrollment.json" );
+        TrackerImportParams bundleParams = createBundleFromJson( "tracker/event_and_enrollment.json" );
 
         TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
 
@@ -183,12 +186,13 @@ public class SetMandatoryFieldValidatorTest
 
         assertFalse( errors.isEmpty() );
 
-        errors.entrySet().stream()
-            .filter( e -> !e.getKey().equals( "D9PbzJY8bJO" ) )
-            .forEach( e -> assertTrue( e.getValue().isEmpty() ) );
+        boolean isErrorMessageCorrect =
+            errors.values()
+                .stream()
+                .filter( e -> !e.isEmpty() )
+                .allMatch(
+                    e -> e.contains( TrackerReportUtils.formatMessage( TrackerErrorCode.E1303, "DSKTW8qFP0z" ) ) );
 
-        errors.entrySet().stream()
-            .filter( e -> e.getKey().equals( "D9PbzJY8bJO" ) )
-            .forEach( e -> assertEquals( 1, e.getValue().size() ) );
+        assertTrue( isErrorMessageCorrect );
     }
 }

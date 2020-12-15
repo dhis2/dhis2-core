@@ -68,12 +68,6 @@ public class DeduplicationServiceTest
         setDependency( potentialDuplicateStore, "currentUserService", currentUserService );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Test
     public void testAddPotentialDuplicate()
     {

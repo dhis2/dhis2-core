@@ -118,7 +118,7 @@ public abstract class DhisTest
      */
     protected boolean emptyDatabaseAfterTest()
     {
-        return false;
+        return true;
     }
 
     // -------------------------------------------------------------------------

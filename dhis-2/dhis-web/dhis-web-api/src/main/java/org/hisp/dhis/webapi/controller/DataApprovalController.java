@@ -78,7 +78,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -442,8 +441,7 @@ public class DataApprovalController
         @RequestParam( required = false ) String wf,
         @RequestParam String pe,
         @RequestParam String ou,
-        @RequestParam( required = false ) String aoc,
-        HttpServletResponse response ) throws WebMessageException
+        @RequestParam( required = false ) String aoc ) throws WebMessageException
     {
         DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
         Period period = getAndValidatePeriod( pe );
@@ -461,16 +459,14 @@ public class DataApprovalController
 
     @RequestMapping( value = APPROVALS_PATH + "/approvals", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void saveApprovalBatch( @RequestBody ApprovalsDto approvals,
-        HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
+    public void saveApprovalBatch( @RequestBody ApprovalsDto approvals ) throws WebMessageException
     {
         dataApprovalService.approveData( getDataApprovalList( approvals ) );
     }
 
     @RequestMapping( value = APPROVALS_PATH + "/unapprovals", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeApprovalBatch( @RequestBody ApprovalsDto approvals,
-        HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
+    public void removeApprovalBatch( @RequestBody ApprovalsDto approvals ) throws WebMessageException
     {
         dataApprovalService.unapproveData( getDataApprovalList( approvals ) );
     }
@@ -487,8 +483,7 @@ public class DataApprovalController
         @RequestParam( required = false ) String wf,
         @RequestParam String pe,
         @RequestParam String ou,
-        @RequestParam( required = false ) String aoc,
-        HttpServletResponse response ) throws WebMessageException
+        @RequestParam( required = false ) String aoc ) throws WebMessageException
     {
         DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
         Period period = getAndValidatePeriod( pe );
@@ -506,16 +501,14 @@ public class DataApprovalController
 
     @RequestMapping( value = ACCEPTANCES_PATH + "/acceptances", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void saveAcceptanceBatch( @RequestBody ApprovalsDto approvals,
-        HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
+    public void saveAcceptanceBatch( @RequestBody ApprovalsDto approvals ) throws WebMessageException
     {
         dataApprovalService.acceptData( getDataApprovalList( approvals ) );
     }
 
     @RequestMapping( value = ACCEPTANCES_PATH + "/unacceptances", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeAcceptancesBatch( @RequestBody ApprovalsDto approvals,
-        HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
+    public void removeAcceptancesBatch( @RequestBody ApprovalsDto approvals ) throws WebMessageException
     {
         dataApprovalService.unacceptData( getDataApprovalList( approvals ) );
     }
@@ -532,8 +525,7 @@ public class DataApprovalController
         @RequestParam( required = false ) Set<String> wf,
         @RequestParam String pe,
         @RequestParam String ou,
-        @RequestParam( required = false ) String aoc,
-        HttpServletResponse response ) throws WebMessageException
+        @RequestParam( required = false ) String aoc ) throws WebMessageException
     {
         Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( ds, wf );
 
@@ -563,8 +555,7 @@ public class DataApprovalController
         @RequestParam( required = false ) String wf,
         @RequestParam String pe,
         @RequestParam String ou,
-        @RequestParam( required = false ) String aoc,
-        HttpServletResponse response ) throws WebMessageException
+        @RequestParam( required = false ) String aoc ) throws WebMessageException
     {
         DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
         Period period = getAndValidatePeriod( pe );
