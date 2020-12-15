@@ -104,10 +104,6 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private IdentifiableObjectManager manager;
-
-    @Autowired
-    private DbmsManager dbmsManager;
-
     @Autowired
     private SchemaService schemaService;
 

@@ -91,6 +91,7 @@ public class AttributeValueImportTest
         DataSet dataSet = manager.get( DataSet.class, "sPnR8BCInMV" );
         assertEquals( "true", dataSet.getAttributeValue( "PtyV6lLcmol" ).getValue() );
 
+
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> attributesUpdate = renderService.fromMetadata(
             new ClassPathResource( "attribute/attribute_update.json" ).getInputStream(), RenderFormat.JSON );
 

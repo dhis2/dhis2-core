@@ -1935,9 +1935,9 @@ public class DataApprovalServiceTest
      * save time in understanding the difference between the expected value
      * and the test result.
      *
-     * @param workflow             Approval workflow
-     * @param period               Approval period
-     * @param organisationUnit     Approval orgaisation unit
+     * @param workflow Approval workflow
+     * @param period Approval period
+     * @param organisationUnit Approval orgaisation unit
      * @param attributeOptionCombo Approval attribute option combination
      * @return A String representing the state, level, and allowed user actions
      */
@@ -1965,11 +1965,11 @@ public class DataApprovalServiceTest
         DataApprovalPermissions permissions = status.getPermissions();
 
         return status.getState().toString()
-            + " level=" + (status.getApprovedLevel() == null ? "null" : status.getApprovedLevel().getName())
-            + " approve=" + (permissions.isMayApprove() ? "T" : "F")
-            + " unapprove=" + (permissions.isMayUnapprove() ? "T" : "F")
-            + " accept=" + (permissions.isMayAccept() ? "T" : "F")
-            + " unaccept=" + (permissions.isMayUnaccept() ? "T" : "F")
-            + " read=" + (permissions.isMayReadData() ? "T" : "F");
+                + " level=" + ( status.getApprovedLevel() == null ? "null" : status.getApprovedLevel().getName() )
+                + " approve=" + ( permissions.isMayApprove() ? "T" : "F" )
+                + " unapprove=" + ( permissions.isMayUnapprove() ? "T" : "F" )
+                + " accept=" + ( permissions.isMayAccept() ? "T" : "F" )
+                + " unaccept=" + ( permissions.isMayUnaccept() ? "T" : "F" )
+                + " read=" + ( permissions.isMayReadData() ? "T" : "F" );
     }
 }

@@ -191,8 +191,7 @@ public class TrackedEntityInstanceAclReadTests
     }
 
     @ParameterizedTest
-//    @ValueSource( strings = { "O2PajOxjJSa", "aDy67f9ijOe", "CKrrGm5Be8O", "Lpa5INiC3Qf", "GTqb3WOZMop" } )
-    @ValueSource( strings = { "O2PajOxjJSa" } )
+    @ValueSource( strings = { "O2PajOxjJSa", "aDy67f9ijOe", "CKrrGm5Be8O", "Lpa5INiC3Qf", "GTqb3WOZMop" } )
     public void testUserDataAndOrgUnitScopeReadAccess( String userUid )
     {
         User user = users.stream()

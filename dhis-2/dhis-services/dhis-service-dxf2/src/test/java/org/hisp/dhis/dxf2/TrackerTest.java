@@ -177,11 +177,6 @@ public abstract class TrackerTest extends IntegrationTestBase
         mockCurrentUserService();
     }
 
-    @Override
-    public void tearDownTest()
-    {
-    }
-
     public TrackedEntityInstance persistTrackedEntityInstance()
     {
         TrackedEntityInstance entityInstance = createTrackedEntityInstance( organisationUnitA );

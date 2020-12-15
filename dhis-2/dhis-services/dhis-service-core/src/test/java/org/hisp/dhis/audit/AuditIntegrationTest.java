@@ -94,9 +94,6 @@ public class AuditIntegrationTest extends IntegrationTestBase
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
-    private DbmsManager dbmsManager;
-
     @Test
     public void testSaveMetadata()
     {

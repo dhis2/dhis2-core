@@ -191,7 +191,6 @@ import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 @ActiveProfiles( profiles = { "test" } )
 public abstract class DhisConvenienceTest
 {
-
     protected static final String BASE_UID = "abcdefghij";
 
     protected static final String BASE_IN_UID = "inabcdefgh";

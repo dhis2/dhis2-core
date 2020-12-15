@@ -107,6 +107,7 @@ public class DefaultIdentifiableObjectManager
 
     private Map<Class<? extends DimensionalObject>, GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStoreMap;
 
+
     public DefaultIdentifiableObjectManager(
         Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores,
         Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores,
@@ -412,10 +413,10 @@ public class DefaultIdentifiableObjectManager
     public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
         String value )
     {
-        return getByUniqueAttributeValue( clazz, attribute, value, currentUserService.getCurrentUserInfo() );
+       return getByUniqueAttributeValue( clazz, attribute, value, currentUserService.getCurrentUserInfo() );
     }
 
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings("unchecked")
     @Override
     @Transactional( readOnly = true )
     public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
@@ -561,7 +562,7 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional( readOnly = true)
     public <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
@@ -578,11 +579,11 @@ public class DefaultIdentifiableObjectManager
             return new ArrayList<>();
         }
 
-        return store.getAllValuesByAttributes( attributes );
+        return  store.getAllValuesByAttributes( attributes );
     }
 
     @Override
-    public <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> klass, List<Attribute> attributes )
+    public <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> klass, List<Attribute> attributes)
     {
         Schema schema = schemaService.getDynamicSchema( klass );
 
@@ -598,7 +599,7 @@ public class DefaultIdentifiableObjectManager
             return 0;
         }
 
-        return store.countAllValuesByAttributes( attributes );
+        return  store.countAllValuesByAttributes( attributes );
     }
 
     @Override

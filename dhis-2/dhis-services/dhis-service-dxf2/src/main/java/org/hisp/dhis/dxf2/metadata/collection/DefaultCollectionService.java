@@ -231,7 +231,6 @@ public class DefaultCollectionService
 
         dbmsManager.clearSession();
         cacheManager.clearCache();
-        //dbmsManager.flushSession();
     }
 
     @Override

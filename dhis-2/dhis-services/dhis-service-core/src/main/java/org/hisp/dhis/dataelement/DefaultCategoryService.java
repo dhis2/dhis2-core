@@ -531,8 +531,6 @@ public class DefaultCategoryService
         categoryOption.setPublicAccess( AccessStringHelper.CATEGORY_OPTION_DEFAULT );
         updateCategoryOption( categoryOption );
 
-        idObjectManager.flush();
-
         // ---------------------------------------------------------------------
         // Category
         // ---------------------------------------------------------------------
@@ -548,8 +546,6 @@ public class DefaultCategoryService
         category.setPublicAccess( AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT );
         updateCategory( category );
 
-        idObjectManager.flush();
-
         // ---------------------------------------------------------------------
         // CategoryCombo
         // ---------------------------------------------------------------------
@@ -564,8 +560,6 @@ public class DefaultCategoryService
 
         categoryCombo.setPublicAccess( AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT );
         updateCategoryCombo( categoryCombo );
-
-        idObjectManager.flush();
 
         // ---------------------------------------------------------------------
         // CategoryOptionCombo
@@ -591,8 +585,6 @@ public class DefaultCategoryService
 
         categoryOption.setCategoryOptionCombos( categoryOptionCombos );
         updateCategoryOption( categoryOption );
-
-        idObjectManager.flush();
     }
 
     @Override

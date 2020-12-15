@@ -465,6 +465,62 @@ public class TrackedEntityImportValidationTest
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1063 ) ) ) );
     }
 
+    @SneakyThrows
+    private void testDeletedTrackedEntityFails(TrackerImportStrategy importStrategy) {
+        // Given -> Creates a tracked entity
+        createTrackedEntityInstance("tracker/validations/te-data_ok_soft_deleted_test.json");
+
+        // When -> Soft-delete the tracked entity
+        trackedEntityInstanceService
+                .deleteTrackedEntityInstance(trackedEntityInstanceService.getTrackedEntityInstance("YNCc1rCEOKa") );
+
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+                "tracker/validations/te-data_ok_soft_deleted_test.json" );
+
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams, importStrategy );
+
+        assertEquals( 0, createAndUpdate.getTrackerBundle().getTrackedEntities().size() );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+        assertEquals( 1, report.getErrorReports().size() );
+        assertThat( report.getErrorReports(),
+                everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1114 ) ) ) );
+    }
+
+    @Test
+    public void testUpdateDeletedTrackedEntityFails()
+            throws IOException
+    {
+       testDeletedTrackedEntityFails( UPDATE );
+    }
+
+    @Test
+    public void testInserDeletedTrackedEntityFails()
+            throws IOException
+    {
+        testDeletedTrackedEntityFails( CREATE_AND_UPDATE );
+    }
+
+
+    private ValidateAndCommitTestUnit createTrackedEntityInstance( String jsonPayload )
+            throws IOException
+    {
+        // Given
+        TrackerImportParams trackerBundleParams = createBundleFromJson( jsonPayload );
+
+        // When
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams, CREATE_AND_UPDATE );
+
+        // Then
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getTrackedEntities().size() );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
+        assertEquals( 0, report.getErrorReports().size() );
+
+        return createAndUpdate;
+    }
+
     @Test
     public void testDeleteCascadeProgramInstances()
         throws IOException
