@@ -178,7 +178,8 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         // Mock for trackedEntityInstanceService
         when( trackedEntityInstanceService.createTrackedEntityInstance( any(), any() ) ).thenReturn( 1L );
         when( trackedEntityInstanceService.getTrackedEntityInstance( anyLong() ) ).thenReturn( trackedEntityInstance );
-
+        when( programService.hasOrgUnit( program, organisationUnit ) ).thenReturn( true );
+        
         // Mock for incomingSmsService
         doAnswer( invocation -> {
             updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
