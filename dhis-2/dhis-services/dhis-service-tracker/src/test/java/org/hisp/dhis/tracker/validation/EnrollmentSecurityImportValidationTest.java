@@ -378,10 +378,10 @@ public class EnrollmentSecurityImportValidationTest
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
         programA.setTrackedEntityType( trackedEntityType );
-        manager.update( programA );
+        manager.updateNoAcl( programA );
 
         manager.flush();
-        
+
         User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
 
         injectSecurityContext( user );
