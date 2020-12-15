@@ -234,7 +234,6 @@ public class OutlierDetectionServiceTest
         assertEquals( outlier.getMeanAbsDev(), meanAbsDev, DELTA );
         assertEquals( outlier.getLowerBound(), lowerBound, DELTA );
         assertEquals( outlier.getUpperBound(), upperBound, DELTA );
-
     }
 
     private void addDataValues( DataValue... dataValues )
