@@ -286,7 +286,7 @@ public class EnrollmentSecurityImportValidationTest
 
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        userService.addUser( user );
         injectSecurityContext( user );
 
         TrackerImportParams params = createBundleFromJson(
@@ -312,11 +312,11 @@ public class EnrollmentSecurityImportValidationTest
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         TrackedEntityType bPJ0FMtcnEh = trackedEntityTypeService.getTrackedEntityType( "bPJ0FMtcnEh" );
         programA.setTrackedEntityType( bPJ0FMtcnEh );
-        manager.update( programA );
+        manager.updateNoAcl( programA );
 
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        userService.addUser( user );
         injectSecurityContext( user );
 
         TrackerImportParams params = createBundleFromJson(
@@ -347,11 +347,11 @@ public class EnrollmentSecurityImportValidationTest
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
         trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
         programA.setTrackedEntityType( trackedEntityType );
-        manager.update( programA );
+        manager.updateNoAcl( programA );
 
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        userService.addUser( user );
         injectSecurityContext( user );
 
         TrackerImportParams params = createBundleFromJson(
@@ -375,15 +375,13 @@ public class EnrollmentSecurityImportValidationTest
     {
         setupMetadata();
 
-        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.FULL );
         trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
         programA.setTrackedEntityType( trackedEntityType );
         manager.updateNoAcl( programA );
 
-        manager.flush();
-
         User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        userService.addUser( user );
         injectSecurityContext( user );
 
         TrackerImportParams params = createBundleFromJson(
@@ -428,5 +426,11 @@ public class EnrollmentSecurityImportValidationTest
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1104 ) ) ) );
+    }
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
     }
 }
