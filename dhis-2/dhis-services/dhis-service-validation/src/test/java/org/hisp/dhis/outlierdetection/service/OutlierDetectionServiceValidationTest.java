@@ -19,17 +19,24 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import com.google.common.collect.Lists;
 
 public class OutlierDetectionServiceValidationTest
 {
-    @Autowired
+    @Mock
     private IdentifiableObjectManager idObjectManager;
 
-    @Autowired
+    @Mock
+    private OutlierDetectionManager outlierDetectionManager;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     private OutlierDetectionService subject;
 
     // -------------------------------------------------------------------------
@@ -39,7 +46,6 @@ public class OutlierDetectionServiceValidationTest
     private DataElement deA;
     private DataElement deB;
     private DataElement deC;
-    private DataElement deD;
 
     private DataSet dsA;
 
@@ -49,12 +55,13 @@ public class OutlierDetectionServiceValidationTest
     @Before
     public void setUp()
     {
+        subject = new DefaultOutlierDetectionService( idObjectManager, outlierDetectionManager );
+
         PeriodType pt = new MonthlyPeriodType();
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
         deC = createDataElement( 'C', ValueType.NUMBER, AggregationType.SUM );
-        deD = createDataElement( 'D', ValueType.NUMBER, AggregationType.SUM );
 
         dsA = createDataSet( 'A', pt );
         dsA.addDataSetElement( deA );
@@ -63,16 +70,6 @@ public class OutlierDetectionServiceValidationTest
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
-
-        idObjectManager.save( deA );
-        idObjectManager.save( deB );
-        idObjectManager.save( deC );
-        idObjectManager.save( deD );
-
-        idObjectManager.save( dsA );
-
-        idObjectManager.save( ouA );
-        idObjectManager.save( ouB );
     }
 
     @Test
