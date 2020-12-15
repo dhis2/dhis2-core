@@ -64,7 +64,7 @@ public interface OutlierDetectionService
     OutlierDetectionRequest getFromQuery( OutlierDetectionQuery query );
 
     /**
-     * Returns outlier values for the given request.
+     * Returns outlier data values for the given request.
      *
      * @param request the {@link OutlierDetectionRequest}.
      * @return a {@link OutlierDetectionResponse}.

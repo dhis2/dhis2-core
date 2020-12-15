@@ -196,14 +196,14 @@ public class OutlierDetectionServiceTest
         double mean = stats.mean();
         double stdDev = stats.populationStandardDeviation();
         double zScore = Math.abs( outlierValue - mean ) / stdDev;
-        double meanAbsDist = Math.abs( outlierValue - mean );
+        double meanAbsDev = Math.abs( outlierValue - mean );
         double lowerBound = mean - ( stdDev * threshold );
         double upperBound = mean + ( stdDev * threshold );
 
         assertEquals( 42.666, mean, DELTA );
         assertEquals( 17.365, stdDev, DELTA );
         assertEquals( 2.207, zScore, DELTA );
-        assertEquals( 38.333, meanAbsDist, DELTA );
+        assertEquals( 38.333, meanAbsDev, DELTA );
         assertEquals( 7.936, lowerBound, DELTA );
         assertEquals( 77.397, upperBound, DELTA );
 
@@ -231,7 +231,7 @@ public class OutlierDetectionServiceTest
         assertEquals( outlier.getMean(), mean, DELTA );
         assertEquals( outlier.getStdDev(), stdDev, DELTA );
         assertEquals( outlier.getZScore(), zScore, DELTA );
-        assertEquals( outlier.getMeanAbsDev(), meanAbsDist, DELTA );
+        assertEquals( outlier.getMeanAbsDev(), meanAbsDev, DELTA );
         assertEquals( outlier.getLowerBound(), lowerBound, DELTA );
         assertEquals( outlier.getUpperBound(), upperBound, DELTA );
 
