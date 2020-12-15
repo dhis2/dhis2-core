@@ -116,7 +116,7 @@ public class OutlierDetectionManager
             "and dvs.attributeoptioncomboid = stats.attributeoptioncomboid " +
             "where stats.std_dev != 0.0 " +
             // Filter on z-score threshold
-            "and (abs(dvs.value::double precision - stats.mean) / stats.std_dev) > :threshold " +
+            "and (abs(dvs.value::double precision - stats.mean) / stats.std_dev) >= :threshold " +
             // Order and limit
             "order by " + request.getOrderBy().getKey() + " desc " +
             "limit :max_results;";
