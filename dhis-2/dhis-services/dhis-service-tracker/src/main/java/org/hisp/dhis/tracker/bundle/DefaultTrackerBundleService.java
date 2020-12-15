@@ -152,11 +152,6 @@ public class DefaultTrackerBundleService
     @Override
     public TrackerBundle runRuleEngine( TrackerBundle trackerBundle )
     {
-        if ( trackerBundle.isSkipRuleEngine() )
-        {
-            return trackerBundle;
-        }
-
         Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
             .calculateEnrollmentRuleEffects( trackerBundle.getEnrollments(), trackerBundle );
         Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
