@@ -33,6 +33,7 @@ import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.SessionFactory;
+import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -104,5 +105,15 @@ public class HibernateProgramStore
         final String hql = "from Program p where p.dataEntryForm = :dataEntryForm";
 
         return getQuery( hql ).setParameter( "dataEntryForm", dataEntryForm ).list();
+    }
+
+    public boolean hasOrgUnit( Program program, OrganisationUnit organisationUnit )
+    {
+        NativeQuery<Long> query = getSession().createNativeQuery(
+            "select programid from program_organisationunits where programid = :pid and organisationunitid = :ouid" );
+        query.setParameter( "pid", program.getId() );
+        query.setParameter( "ouid", organisationUnit.getId() );
+
+        return query.getResultList().size() == 1;
     }
 }

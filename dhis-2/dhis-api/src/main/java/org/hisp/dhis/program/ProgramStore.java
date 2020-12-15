@@ -75,4 +75,10 @@ public interface ProgramStore
      * @return a list of {@link Program}
      */
     List<Program> getByDataEntryForm( DataEntryForm dataEntryForm );
+
+    /**
+     * Checks whether the given {@link OrganisationUnit} belongs to the specified
+     * {@link Program}
+     */
+    boolean hasOrgUnit( Program program, OrganisationUnit organisationUnit );
 }
