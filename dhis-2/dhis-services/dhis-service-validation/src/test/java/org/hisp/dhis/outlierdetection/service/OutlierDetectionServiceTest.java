@@ -29,7 +29,6 @@ package org.hisp.dhis.outlierdetection.service;
  */
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.IntegrationTestBase;
@@ -150,7 +149,7 @@ public class OutlierDetectionServiceTest
         assertEquals( 2, request.getOrgUnits().size() );
         assertEquals( getDate( 2020, 1, 1 ), request.getStartDate() );
         assertEquals( getDate( 2020, 6, 1 ), request.getEndDate() );
-        assertNotNull( request.getThreshold() );
+        assertEquals( request.getThreshold(), 2.5, DELTA );
         assertEquals( 100, request.getMaxResults() );
     }
 
