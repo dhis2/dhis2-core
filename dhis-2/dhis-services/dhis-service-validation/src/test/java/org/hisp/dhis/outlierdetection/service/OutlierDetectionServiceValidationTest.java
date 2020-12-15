@@ -92,7 +92,7 @@ public class OutlierDetectionServiceValidationTest
             .withOrgUnits( Lists.newArrayList( ouA, ouB ) )
             .build();
 
-        assertEquals( ErrorCode.E2200, subject.validateForErrorMessage( request ) );
+        assertEquals( ErrorCode.E2200, subject.validateForErrorMessage( request ).getErrorCode() );
     }
 
     @Test
@@ -104,7 +104,7 @@ public class OutlierDetectionServiceValidationTest
             .withOrgUnits( Lists.newArrayList( ouA, ouB ) )
             .build();
 
-        assertEquals( ErrorCode.E2202, subject.validateForErrorMessage( request ) );
+        assertEquals( ErrorCode.E2202, subject.validateForErrorMessage( request ).getErrorCode() );
     }
 
     @Test
@@ -112,12 +112,12 @@ public class OutlierDetectionServiceValidationTest
     {
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withDataElements( Lists.newArrayList( deA, deB, deC ) )
-            .withStartEndDate( getDate( 2020, 6, 1 ), getDate( 2020, 3, 1 ) )
+            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2020, 6, 1 ) )
             .withOrgUnits( Lists.newArrayList( ouA, ouB ) )
             .withThreshold( -23.4 )
             .build();
 
-        assertEquals( ErrorCode.E2204, subject.validateForErrorMessage( request ) );
+        assertEquals( ErrorCode.E2204, subject.validateForErrorMessage( request ).getErrorCode() );
     }
 
     @Test
@@ -125,11 +125,11 @@ public class OutlierDetectionServiceValidationTest
     {
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withDataElements( Lists.newArrayList( deA, deB, deC ) )
-            .withStartEndDate( getDate( 2020, 6, 1 ), getDate( 2020, 3, 1 ) )
+            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2020, 3, 1 ) )
             .withOrgUnits( Lists.newArrayList( ouA, ouB ) )
             .withMaxResults( -100 )
             .build();
 
-        assertEquals( ErrorCode.E2205, subject.validateForErrorMessage( request ) );
+        assertEquals( ErrorCode.E2205, subject.validateForErrorMessage( request ).getErrorCode() );
     }
 }
