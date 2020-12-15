@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.NotImplementedException;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -46,6 +45,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Luciano Fiandesio
@@ -97,7 +98,9 @@ public class ProgramOrgUnitSupplier extends AbstractSupplier<Map<Long, List<Long
                 }
                 else
                 {
-                    map.put( pid, ImmutableList.of( ouid ));
+                    List<Long> ouids = new ArrayList<>();
+                    ouids.add( ouid );
+                    map.put( pid, ouids );
                 }
             }
 
