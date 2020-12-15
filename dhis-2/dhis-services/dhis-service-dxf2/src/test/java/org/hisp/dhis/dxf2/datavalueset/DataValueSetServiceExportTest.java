@@ -137,12 +137,6 @@ public class DataValueSetServiceExportTest
     private User user;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     public void setUpTest()
     {
         userService = _userService;

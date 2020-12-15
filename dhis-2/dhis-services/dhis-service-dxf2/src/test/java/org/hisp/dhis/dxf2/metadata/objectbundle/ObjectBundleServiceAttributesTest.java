@@ -283,10 +283,4 @@ public class ObjectBundleServiceAttributesTest
         User user = createUser( 'A' );
         manager.save( user );
     }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 }

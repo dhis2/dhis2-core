@@ -157,13 +157,6 @@ public class MinMaxOutlierAnalysisServiceTest
         organisationUnitService.addOrganisationUnit( organisationUnitA );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-
     // ----------------------------------------------------------------------
     // Business logic tests
     // ----------------------------------------------------------------------

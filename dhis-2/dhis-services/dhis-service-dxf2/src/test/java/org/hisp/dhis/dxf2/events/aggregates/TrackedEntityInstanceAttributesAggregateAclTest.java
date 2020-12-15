@@ -76,7 +76,7 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
 
         assertThat( trackedEntityInstances, hasSize( 0 ) );
     }
-    
+
     @Test
     public void verifyTeiCanBeAccessedWhenDATA_READPublicAccessOnTrackedEntityType()
     {
@@ -121,11 +121,4 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
         userCredentials.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup ) );
         user.setUserCredentials( userCredentials );
     }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
 }

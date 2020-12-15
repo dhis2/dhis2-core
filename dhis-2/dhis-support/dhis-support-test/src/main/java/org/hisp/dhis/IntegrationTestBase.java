@@ -61,12 +61,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/*
+/**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @RunWith( SpringJUnit4ClassRunner.class )
@@ -82,8 +83,8 @@ public abstract class IntegrationTestBase
 
     private static JdbcTemplate jdbcTemplate;
 
-    /*
-    "Special" setter to allow setting JdbcTemplate as static field
+    /**
+     * Setter to allow setting JdbcTemplate as static field.
      */
     @Autowired
     public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
@@ -91,10 +92,10 @@ public abstract class IntegrationTestBase
         IntegrationTestBase.jdbcTemplate = jdbcTemplate;
     }
 
-    /*
-        Flag that determines if the IntegrationTestData annotation has
-        been running the database init script. We only want to run
-        the init script once per unit test
+    /**
+     * Flag that determines if the IntegrationTestData annotation has
+     * been running the database init script. We only want to run
+     * the init script once per unit test.
      */
     public static boolean dataInit = false;
 
@@ -239,7 +240,13 @@ public abstract class IntegrationTestBase
         SessionFactoryUtils.closeSession( sessionHolder.getSession() );
     }
 
-    public abstract boolean emptyDatabaseAfterTest();
+    /**
+     * Method to override.
+     */
+    protected boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     /**
      * Method to override.

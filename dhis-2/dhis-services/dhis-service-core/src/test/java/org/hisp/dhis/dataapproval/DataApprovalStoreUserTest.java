@@ -158,12 +158,6 @@ public class DataApprovalStoreUserTest
         setDependency( dataApprovalLevelService, "currentUserService", currentUserService, CurrentUserService.class );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------

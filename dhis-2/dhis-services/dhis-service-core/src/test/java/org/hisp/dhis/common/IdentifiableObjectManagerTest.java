@@ -80,11 +80,6 @@ public class IdentifiableObjectManagerTest
     @Autowired
     private UserService _userService;
 
-    @Override public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Override
     protected void setUpTest() throws Exception
     {
