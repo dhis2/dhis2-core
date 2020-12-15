@@ -124,7 +124,7 @@ public class DefaultOutlierDetectionService
     }
 
     @Override
-    public OutlierDetectionRequest fromQuery( OutlierDetectionQuery query )
+    public OutlierDetectionRequest getFromQuery( OutlierDetectionQuery query )
     {
         OutlierDetectionRequest.Builder request = new OutlierDetectionRequest.Builder();
 

@@ -134,7 +134,7 @@ public class OutlierDetectionServiceTest
     }
 
     @Test
-    public void testFromQuery()
+    public void testGetFromQuery()
     {
         OutlierDetectionQuery query = new OutlierDetectionQuery();
         query.setDe( Lists.newArrayList( "deabcdefghA", "deabcdefghB" ) );
@@ -144,7 +144,8 @@ public class OutlierDetectionServiceTest
         query.setThreshold( 2.5 );
         query.setMaxResults( 100 );
 
-        OutlierDetectionRequest request = subject.fromQuery( query );
+        OutlierDetectionRequest request = subject.getFromQuery( query );
+
         assertEquals( 2, request.getDataElements().size() );
         assertEquals( 2, request.getOrgUnits().size() );
         assertEquals( getDate( 2020, 1, 1 ), request.getStartDate() );

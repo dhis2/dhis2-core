@@ -60,7 +60,7 @@ public class OutlierDetectionController
     @GetMapping( value = "/outlierDetection", produces = { APPLICATION_JSON_VALUE } )
     public OutlierDetectionResponse getOutliers( OutlierDetectionQuery query )
     {
-        OutlierDetectionRequest request = outlierService.fromQuery( query );
+        OutlierDetectionRequest request = outlierService.getFromQuery( query );
 
         return outlierService.getOutliers( request );
     }
