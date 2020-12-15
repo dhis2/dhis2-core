@@ -1,0 +1,138 @@
+package org.hisp.dhis.outlierdetection.service;
+
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.getDate;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
+import org.hisp.dhis.outlierdetection.OutlierDetectionService;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.PeriodType;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Lists;
+
+public class OutlierDetectionServiceValidationTest
+{
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
+
+    @Autowired
+    private OutlierDetectionService subject;
+
+    // -------------------------------------------------------------------------
+    // Fixture
+    // -------------------------------------------------------------------------
+
+    private DataElement deA;
+    private DataElement deB;
+    private DataElement deC;
+    private DataElement deD;
+
+    private DataSet dsA;
+
+    private OrganisationUnit ouA;
+    private OrganisationUnit ouB;
+
+    @Before
+    public void setUp()
+    {
+        PeriodType pt = new MonthlyPeriodType();
+
+        deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
+        deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
+        deC = createDataElement( 'C', ValueType.NUMBER, AggregationType.SUM );
+        deD = createDataElement( 'D', ValueType.NUMBER, AggregationType.SUM );
+
+        dsA = createDataSet( 'A', pt );
+        dsA.addDataSetElement( deA );
+        dsA.addDataSetElement( deB );
+        dsA.addDataSetElement( deC );
+
+        ouA = createOrganisationUnit( 'A' );
+        ouB = createOrganisationUnit( 'B' );
+
+        idObjectManager.save( deA );
+        idObjectManager.save( deB );
+        idObjectManager.save( deC );
+        idObjectManager.save( deD );
+
+        idObjectManager.save( dsA );
+
+        idObjectManager.save( ouA );
+        idObjectManager.save( ouB );
+    }
+
+    @Test
+    public void testSuccessfulValidation()
+    {
+        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
+            .withDataElements( Lists.newArrayList( deA, deB, deC ) )
+            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2020, 3, 1 ) )
+            .withOrgUnits( Lists.newArrayList( ouA, ouB ) )
+            .build();
+
+        assertNull( subject.validateForErrorMessage( request ) );
+    }
+
+    @Test
+    public void testErrorNoDataElements()
+    {
+        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
+            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2020, 7, 1 ) )
+            .withOrgUnits( Lists.newArrayList( ouA, ouB ) )
+            .build();
+
+        assertEquals( ErrorCode.E2200, subject.validateForErrorMessage( request ) );
+    }
+
+    @Test
+    public void testErrorStartAfterEndDates()
+    {
+        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
+            .withDataElements( Lists.newArrayList( deA, deB, deC ) )
+            .withStartEndDate( getDate( 2020, 6, 1 ), getDate( 2020, 3, 1 ) )
+            .withOrgUnits( Lists.newArrayList( ouA, ouB ) )
+            .build();
+
+        assertEquals( ErrorCode.E2202, subject.validateForErrorMessage( request ) );
+    }
+
+    @Test
+    public void testErrorNegativeThreshold()
+    {
+        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
+            .withDataElements( Lists.newArrayList( deA, deB, deC ) )
+            .withStartEndDate( getDate( 2020, 6, 1 ), getDate( 2020, 3, 1 ) )
+            .withOrgUnits( Lists.newArrayList( ouA, ouB ) )
+            .withThreshold( -23.4 )
+            .build();
+
+        assertEquals( ErrorCode.E2204, subject.validateForErrorMessage( request ) );
+    }
+
+    @Test
+    public void testErrorNegativeMaxResults()
+    {
+        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
+            .withDataElements( Lists.newArrayList( deA, deB, deC ) )
+            .withStartEndDate( getDate( 2020, 6, 1 ), getDate( 2020, 3, 1 ) )
+            .withOrgUnits( Lists.newArrayList( ouA, ouB ) )
+            .withMaxResults( -100 )
+            .build();
+
+        assertEquals( ErrorCode.E2205, subject.validateForErrorMessage( request ) );
+    }
+}
