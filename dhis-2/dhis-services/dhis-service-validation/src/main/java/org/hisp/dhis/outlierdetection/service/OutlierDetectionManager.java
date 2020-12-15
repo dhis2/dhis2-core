@@ -61,7 +61,7 @@ public class OutlierDetectionManager
      * @param request the {@link OutlierDetectionRequest}.
      * @return a list of {@link OutlierValue}.
      */
-    public List<OutlierValue> getOutliers( OutlierDetectionRequest request )
+    public List<OutlierValue> getOutlierValues( OutlierDetectionRequest request )
     {
         String ouPathClause = getOrgUnitPathClause( request );
 

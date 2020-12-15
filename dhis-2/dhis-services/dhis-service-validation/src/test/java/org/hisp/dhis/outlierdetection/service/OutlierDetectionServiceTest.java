@@ -180,7 +180,7 @@ public class OutlierDetectionServiceTest
             .withOrgUnits( Lists.newArrayList( ouA ) )
             .withThreshold( 2.0 ).build();
 
-        OutlierDetectionResponse response = subject.getOutliers( request );
+        OutlierDetectionResponse response = subject.getOutlierValues( request );
 
         assertEquals( 4, response.getOutlierValues().size() );
     }
@@ -221,7 +221,7 @@ public class OutlierDetectionServiceTest
             .withOrgUnits( Lists.newArrayList( ouA ) )
             .withThreshold( threshold ).build();
 
-        OutlierDetectionResponse response = subject.getOutliers( request );
+        OutlierDetectionResponse response = subject.getOutlierValues( request );
 
         assertEquals( 1, response.getOutlierValues().size() );
 

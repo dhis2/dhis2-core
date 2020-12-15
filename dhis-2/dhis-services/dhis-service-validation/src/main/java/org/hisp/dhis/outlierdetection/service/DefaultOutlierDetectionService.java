@@ -168,13 +168,13 @@ public class DefaultOutlierDetectionService
     }
 
     @Override
-    public OutlierDetectionResponse getOutliers( OutlierDetectionRequest request )
+    public OutlierDetectionResponse getOutlierValues( OutlierDetectionRequest request )
         throws IllegalQueryException
     {
         validate( request );
 
         final OutlierDetectionResponse response = new OutlierDetectionResponse();
-        response.setOutlierValues( outlierDetectionManager.getOutliers( request ) );
+        response.setOutlierValues( outlierDetectionManager.getOutlierValues( request ) );
         response.setMetadata( getMetadata( request, response.getOutlierValues() ) );
         return response;
     }

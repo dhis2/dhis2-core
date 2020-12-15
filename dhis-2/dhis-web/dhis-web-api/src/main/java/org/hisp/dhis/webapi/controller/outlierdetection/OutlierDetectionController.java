@@ -62,6 +62,6 @@ public class OutlierDetectionController
     {
         OutlierDetectionRequest request = outlierService.getFromQuery( query );
 
-        return outlierService.getOutliers( request );
+        return outlierService.getOutlierValues( request );
     }
 }

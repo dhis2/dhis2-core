@@ -70,6 +70,6 @@ public interface OutlierDetectionService
      * @return a {@link OutlierDetectionResponse}.
      * @throws IllegalQueryException if request is invalid.
      */
-    OutlierDetectionResponse getOutliers( OutlierDetectionRequest request )
+    OutlierDetectionResponse getOutlierValues( OutlierDetectionRequest request )
         throws IllegalQueryException;
 }
