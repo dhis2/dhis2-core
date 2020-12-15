@@ -155,7 +155,7 @@ public class OutlierDetectionServiceTest
     }
 
     @Test
-    public void testGetOutliers()
+    public void testGetOutlierValues()
     {
         // 12, 91, 11, 87 are outlier values with a z-score above 2.0
 
@@ -186,7 +186,7 @@ public class OutlierDetectionServiceTest
     }
 
     @Test
-    public void testGetOutlier()
+    public void testGetOutlierValue()
     {
         StatsAccumulator stats = new StatsAccumulator();
         stats.addAll( 31, 34, 38, 81, 39, 33 );
