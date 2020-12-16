@@ -185,13 +185,13 @@ public class OutlierDetectionManager
      */
     private String getOrgUnitPathClause( OutlierDetectionRequest query )
     {
-        String sql = "";
+        String sql = "(";
 
         for ( OrganisationUnit ou : query.getOrgUnits() )
         {
             sql += "ou.\"path\" like '" + ou.getPath() + "%' or ";
         }
 
-        return TextUtils.removeLastOr( sql );
+        return TextUtils.removeLastOr( sql ) + ")";
     }
 }
