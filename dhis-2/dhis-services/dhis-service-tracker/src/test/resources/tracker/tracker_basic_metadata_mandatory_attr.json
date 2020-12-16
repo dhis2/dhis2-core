@@ -315,6 +315,42 @@
             "id": "E8o1E9tAppy"
           },
           "attributeValues": [],
+          "mandatory": true,
+          "favorite": false,
+          "trackedEntityAttribute": {
+            "id": "TGqP5JNy6Es"
+          },
+          "userAccesses": [],
+          "searchable": false,
+          "id": "0mtgVWShskk",
+          "userGroupAccesses": [],
+          "created": "2019-03-29T12:41:32.882",
+          "displayShortName": "Tracker Program Name",
+          "sortOrder": 1,
+          "lastUpdated": "2019-03-29T12:41:33.001",
+          "renderOptionsAsRadio": false,
+          "access": {
+            "delete": true,
+            "update": true,
+            "write": true,
+            "externalize": true,
+            "read": true,
+            "manage": true
+          },
+          "valueType": "TEXT",
+          "name": "Mandatory Attribute",
+          "translations": [],
+          "displayInList": false,
+          "displayName": "Mandatory Attribute",
+          "favorites": [],
+          "programTrackedEntityAttributeGroups": []
+        },
+        {
+          "externalAccess": false,
+          "program": {
+            "id": "E8o1E9tAppy"
+          },
+          "attributeValues": [],
           "mandatory": false,
           "favorite": false,
           "trackedEntityAttribute": {
@@ -988,6 +1024,36 @@
     }
   ],
   "trackedEntityAttributes": [
+    {
+      "lastUpdated": "2020-02-10T09:12:11.348",
+      "id": "TGqP5JNy6Es",
+      "created": "2020-02-10T09:12:11.348",
+      "name": "Attribute_text_mandatory",
+      "shortName": "Attribute_text_mandatory",
+      "aggregationType": "COUNT",
+      "displayInListNoProgram": false,
+      "publicAccess": "rw------",
+      "pattern": "",
+      "skipSynchronization": false,
+      "generated": false,
+      "displayOnVisitSchedule": false,
+      "valueType": "TEXT",
+      "orgunitScope": false,
+      "confidential": false,
+      "unique": false,
+      "inherit": false,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": []
+    },
     {
       "lastUpdated": "2020-02-10T09:12:11.348",
       "id": "sTGqP5JNy6E",
