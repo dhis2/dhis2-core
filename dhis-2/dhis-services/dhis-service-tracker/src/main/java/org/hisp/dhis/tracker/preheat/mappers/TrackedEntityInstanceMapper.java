@@ -59,6 +59,7 @@ public interface TrackedEntityInstanceMapper extends PreheatMapper<TrackedEntity
     @Mapping( target = "programInstances" )
     @Mapping( target = "created" )
     @Mapping( target = "trackedEntityAttributeValues" )
+    @Mapping( target = "deleted" )
     TrackedEntityInstance map( TrackedEntityInstance trackedEntityInstance );
 
     @Named( "userGroupAccesses" )

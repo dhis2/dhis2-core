@@ -28,22 +28,14 @@ package org.hisp.dhis.dxf2.events.importer.insert.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
-import org.apache.commons.lang3.RandomUtils;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
@@ -53,7 +45,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.junit.Before;
 import org.junit.Test;
-import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Luciano Fiandesio
@@ -84,53 +78,24 @@ public class ProgramOrgUnitCheckTest extends BaseValidationTest
 
         // Prepare data
         Program program = createProgram( 'P' );
-        // make sure that one of the generate Org Units, has the event's UID
-        program.setOrganisationUnits( create( 5, event.getOrgUnit(), scheme ) );
+        program.setId( 1 );
+        
+        OrganisationUnit ou = new OrganisationUnit();
+        ou.setId( 1 );
+        ou.setUid( orgUnitId );
+        when( workContext.getOrganisationUnitMap() ).thenReturn( ImmutableMap.of( event.getUid(), ou ) );
+        
+        when( workContext.getProgramWithOrgUnitsMap() ).thenReturn( ImmutableMap.of( 1L, ImmutableList.of( 1L ) ) );
+        
         ProgramInstance pi = new ProgramInstance();
         pi.setProgram( program );
 
         Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
         programInstanceMap.put( event.getUid(), pi );
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
-
+        
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
         importOptions.setOrgUnitIdScheme( scheme.name() );
-        when( workContext.getImportOptions() ).thenReturn( importOptions );
-
-        // method under test
-        ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
-
-        assertNoError( summary );
-    }
-
-    @Test
-    public void verifyCheckUsingAttributeScheme()
-    {
-        event.setOrgUnit( "blue" );
-
-        // Prepare data
-        Program program = createProgram( 'P' );
-        // make sure that one of the generate Org Units, has the event's UID
-        program.setOrganisationUnits(
-            create( 3, CodeGenerator.generateUid(), IdScheme.UID ) );
-
-        OrganisationUnit ou = createOrganisationUnit( RandomStringUtils.randomAlphabetic( 1 ) );
-        Attribute attribute = new Attribute( "color", ValueType.TEXT );
-        attribute.setUid( CodeGenerator.generateUid() );
-        AttributeValue attributeValue = new AttributeValue( attribute, "blue" );
-        ou.setAttributeValues( Collections.singleton( attributeValue ) );
-
-        program.getOrganisationUnits().add( ou );
-
-        ProgramInstance pi = new ProgramInstance();
-        pi.setProgram( program );
-
-        Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
-        programInstanceMap.put( event.getUid(), pi );
-        when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
-
-        ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
-        importOptions.setOrgUnitIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + attribute.getUid() );
         when( workContext.getImportOptions() ).thenReturn( importOptions );
 
         // method under test
@@ -147,8 +112,15 @@ public class ProgramOrgUnitCheckTest extends BaseValidationTest
 
         // Prepare data
         Program program = createProgram( 'P' );
-        // make sure that one of the generate Org Units, has the event's UID
-        program.setOrganisationUnits( create( 5, CodeGenerator.generateUid(), IdScheme.UID ) );
+        program.setId( 1 );
+
+        OrganisationUnit ou = new OrganisationUnit();
+        ou.setId( 1 );
+        ou.setUid( event.getOrgUnit() );
+        when( workContext.getOrganisationUnitMap() ).thenReturn( ImmutableMap.of( event.getUid(), ou ) );
+
+        when( workContext.getProgramWithOrgUnitsMap() ).thenReturn( new HashMap<>() );
+
         ProgramInstance pi = new ProgramInstance();
         pi.setProgram( program );
 
@@ -161,37 +133,4 @@ public class ProgramOrgUnitCheckTest extends BaseValidationTest
 
         assertHasError( summary, event, "Program is not assigned to this Organisation Unit: " + event.getOrgUnit() );
     }
-
-    private Set<OrganisationUnit> create( int size, String orgUnit, IdScheme idScheme )
-    {
-        Set<OrganisationUnit> result = new HashSet<>();
-        int rnd = RandomUtils.nextInt( 1, 5 );
-        for ( int i = 0; i < size; i++ )
-        {
-            OrganisationUnit ou = createOrganisationUnit( RandomStringUtils.randomAlphabetic( 1 ) );
-            if ( rnd == i )
-            {
-                if ( idScheme.equals( IdScheme.UID ) )
-                {
-                    ou.setUid( orgUnit );
-                }
-                else if ( idScheme.equals( IdScheme.CODE ) )
-                {
-                    ou.setCode( orgUnit );
-                }
-                else if ( idScheme.equals( IdScheme.ID ) )
-                {
-                    ou.setId( Long.parseLong( orgUnit ) );
-                }
-                else if ( idScheme.equals( IdScheme.NAME ) )
-                {
-                    ou.setName( orgUnit );
-                }
-            }
-            result.add( ou );
-        }
-
-        return result;
-    }
-
 }

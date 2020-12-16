@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.outlierdetection;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,24 +28,25 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.hisp.dhis.tracker.preheat.mappers.TrackedEntityAttributeMapper;
-import org.springframework.stereotype.Component;
-
 /**
- * @author Luciano Fiandesio
+ * Candidate on which to order an outlier detection result set.
+ *
+ * @author Lars Helge Overland
  */
-@Component
-@StrategyFor( value = TrackedEntityAttribute.class, mapper = TrackedEntityAttributeMapper.class)
-public class TrackedEntityAttributeStrategy extends AbstractSchemaStrategy
+public enum Order
 {
-    public TrackedEntityAttributeStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager, PreheatCacheService cacheService )
+    MEAN_ABS_DEV( "mean_abs_dev" ),
+    Z_SCORE( "z_score" );
+
+    private String key;
+
+    Order( String key )
     {
-        super( schemaService, queryService, manager, cacheService );
+        this.key = key;
+    }
+
+    public String getKey()
+    {
+        return key;
     }
 }

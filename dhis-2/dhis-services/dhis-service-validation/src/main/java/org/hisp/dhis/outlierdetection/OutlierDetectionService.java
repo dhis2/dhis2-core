@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.outlierdetection;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,24 +28,48 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.hisp.dhis.tracker.preheat.mappers.TrackedEntityAttributeMapper;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
- * @author Luciano Fiandesio
+ * Outlier detection service.
+ *
+ * @author Lars Helge Overland
  */
-@Component
-@StrategyFor( value = TrackedEntityAttribute.class, mapper = TrackedEntityAttributeMapper.class)
-public class TrackedEntityAttributeStrategy extends AbstractSchemaStrategy
+public interface OutlierDetectionService
 {
-    public TrackedEntityAttributeStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager, PreheatCacheService cacheService )
-    {
-        super( schemaService, queryService, manager, cacheService );
-    }
+    /**
+     * Validates the given request.
+     *
+     * @param request the {@link OutlierDetectionRequest}.
+     * @throws IllegalQueryException if request is invalid.
+     */
+    void validate( OutlierDetectionRequest request )
+        throws IllegalQueryException;
+
+    /**
+     * Validates the given request.
+     *
+     * @param request the {@link OutlierDetectionRequest}.
+     * @return an {@link ErrorMessage} if request is invalid, or null if valid.
+     */
+    ErrorMessage validateForErrorMessage( OutlierDetectionRequest request );
+
+    /**
+     * Creates a {@link OutlierDetectionRequest} from the given query.
+     *
+     * @param query the {@link OutlierDetectionQuery}.
+     * @return a {@link OutlierDetectionRequest}.
+     */
+    OutlierDetectionRequest getFromQuery( OutlierDetectionQuery query );
+
+    /**
+     * Returns outlier data values for the given request.
+     *
+     * @param request the {@link OutlierDetectionRequest}.
+     * @return a {@link OutlierDetectionResponse}.
+     * @throws IllegalQueryException if request is invalid.
+     */
+    OutlierDetectionResponse getOutlierValues( OutlierDetectionRequest request )
+        throws IllegalQueryException;
 }

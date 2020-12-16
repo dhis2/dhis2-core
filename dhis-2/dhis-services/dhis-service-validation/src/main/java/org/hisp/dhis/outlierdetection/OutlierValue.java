@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.outlierdetection;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,24 +28,66 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.hisp.dhis.tracker.preheat.mappers.TrackedEntityAttributeMapper;
-import org.springframework.stereotype.Component;
+import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Data;
 
 /**
- * @author Luciano Fiandesio
+ * @author Lars Helge Overland
  */
-@Component
-@StrategyFor( value = TrackedEntityAttribute.class, mapper = TrackedEntityAttributeMapper.class)
-public class TrackedEntityAttributeStrategy extends AbstractSchemaStrategy
+@Data
+public class OutlierValue
 {
-    public TrackedEntityAttributeStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager, PreheatCacheService cacheService )
-    {
-        super( schemaService, queryService, manager, cacheService );
-    }
+    @JsonProperty
+    private String de;
+
+    @JsonProperty
+    private String deName;
+
+    @JsonProperty
+    private String pe;
+
+    @JsonProperty
+    private String ou;
+
+    @JsonProperty
+    private String ouName;
+
+    @JsonProperty
+    private String coc;
+
+    @JsonProperty
+    private String cocName;
+
+    @JsonProperty
+    private String aoc;
+
+    @JsonProperty
+    private String aocName;
+
+    @JsonProperty
+    private Date lastUpdated;
+
+    @JsonProperty
+    private Double value;
+
+    @JsonProperty
+    private Double mean;
+
+    @JsonProperty
+    private Double stdDev;
+
+    @JsonProperty
+    private Double meanAbsDev;
+
+    @JsonProperty
+    private Double zScore;
+
+    @JsonProperty
+    private Double lowerBound;
+
+    @JsonProperty
+    private Double upperBound;
 }

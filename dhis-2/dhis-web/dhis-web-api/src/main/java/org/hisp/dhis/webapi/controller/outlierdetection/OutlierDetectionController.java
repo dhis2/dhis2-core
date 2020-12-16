@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,24 +26,42 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.hisp.dhis.tracker.preheat.mappers.TrackedEntityAttributeMapper;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.webapi.controller.outlierdetection;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
+import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
+import org.hisp.dhis.outlierdetection.OutlierDetectionService;
+import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * @author Luciano Fiandesio
+ * Outlier detection API controller.
+ *
+ * @author Lars Helge Overland
  */
-@Component
-@StrategyFor( value = TrackedEntityAttribute.class, mapper = TrackedEntityAttributeMapper.class)
-public class TrackedEntityAttributeStrategy extends AbstractSchemaStrategy
+@RestController
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@PreAuthorize( "hasRole('ALL') or hasRole('F_RUN_VALIDATION')" )
+public class OutlierDetectionController
 {
-    public TrackedEntityAttributeStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager, PreheatCacheService cacheService )
+    private final OutlierDetectionService outlierService;
+
+    public OutlierDetectionController( OutlierDetectionService outlierService )
     {
-        super( schemaService, queryService, manager, cacheService );
+        this.outlierService = outlierService;
+    }
+
+    @GetMapping( value = "/outlierDetection", produces = { APPLICATION_JSON_VALUE } )
+    public OutlierDetectionResponse getOutliers( OutlierDetectionQuery query )
+    {
+        OutlierDetectionRequest request = outlierService.getFromQuery( query );
+
+        return outlierService.getOutlierValues( request );
     }
 }

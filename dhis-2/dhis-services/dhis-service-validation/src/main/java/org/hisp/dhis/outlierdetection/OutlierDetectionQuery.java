@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.outlierdetection;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,24 +28,43 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.hisp.dhis.tracker.preheat.mappers.TrackedEntityAttributeMapper;
-import org.springframework.stereotype.Component;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Data;
 
 /**
- * @author Luciano Fiandesio
+ * Encapsulation of a web API request for outlier value detection.
+ *
+ * @author Lars Helge Overland
  */
-@Component
-@StrategyFor( value = TrackedEntityAttribute.class, mapper = TrackedEntityAttributeMapper.class)
-public class TrackedEntityAttributeStrategy extends AbstractSchemaStrategy
+@Data
+public class OutlierDetectionQuery
 {
-    public TrackedEntityAttributeStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager, PreheatCacheService cacheService )
-    {
-        super( schemaService, queryService, manager, cacheService );
-    }
+    @JsonProperty
+    private List<String> ds = new ArrayList<>();
+
+    @JsonProperty
+    private List<String> de = new ArrayList<>();
+
+    @JsonProperty
+    private Date startDate;
+
+    @JsonProperty
+    private Date endDate;
+
+    @JsonProperty
+    private List<String> ou = new ArrayList<>();
+
+    @JsonProperty
+    private Double threshold;
+
+    @JsonProperty
+    private Order orderBy;
+
+    @JsonProperty
+    private Integer maxResults;
 }
