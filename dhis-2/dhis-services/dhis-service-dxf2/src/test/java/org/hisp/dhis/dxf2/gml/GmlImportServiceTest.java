@@ -133,7 +133,6 @@ public class GmlImportServiceTest extends IntegrationTestBase
 
         importOptions = new ImportOptions().setImportStrategy( ImportStrategy.UPDATE );
         importOptions.setDryRun( false );
-        importOptions.setPreheatCache( true );
     }
 
     // -------------------------------------------------------------------------

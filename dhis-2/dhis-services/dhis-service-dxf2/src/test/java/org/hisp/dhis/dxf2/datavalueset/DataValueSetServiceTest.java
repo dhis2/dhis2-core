@@ -364,41 +364,6 @@ public class DataValueSetServiceTest
     }
 
     @Test
-    public void testImportDataValueSetXmlPreheatCache()
-        throws Exception
-    {
-        in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
-
-        ImportOptions importOptions = new ImportOptions().setPreheatCache( true );
-
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
-
-        assertNotNull( summary );
-        assertNotNull( summary.getImportCount() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
-
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
-        Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
-
-        assertNotNull( dataValues );
-        assertEquals( 3, dataValues.size() );
-        assertTrue( dataValues.contains( new DataValue( deA, peA, ouA, ocDef, ocDef ) ) );
-        assertEquals( "10002", ( ( List<DataValue> ) dataValues ).get( 1 ).getValue() );
-        assertEquals( "10003", ( ( List<DataValue> ) dataValues ).get( 2 ).getValue() );
-
-        CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dsA, peA, ouA, ocDef );
-
-        assertNotNull( registration );
-        assertEquals( dsA, registration.getDataSet() );
-        assertEquals( peA, registration.getPeriod() );
-        assertEquals( ouA, registration.getSource() );
-        assertEquals( getDate( 2012, 1, 9 ), registration.getDate() );
-
-        assertEquals( 0, auditValues.size() );
-    }
-
-    @Test
     public void testImportDataValuesXmlWithCodeA()
         throws Exception
     {
@@ -504,54 +469,6 @@ public class DataValueSetServiceTest
         // Identifier schemes specified in XML message
 
         ImportOptions importOptions = new ImportOptions();
-
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
-
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
-        assertEquals( 12, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( 0, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-
-        assertImportDataValues( summary );
-    }
-
-    @Test
-    public void testImportDataValuesXmlWithAttributePreheatCacheTrue()
-        throws Exception
-    {
-        in = new ClassPathResource( "datavalueset/dataValueSetBAttribute.xml" ).getInputStream();
-
-        ImportOptions importOptions = new ImportOptions()
-            .setPreheatCache( true )
-            .setIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID )
-            .setDataElementIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID )
-            .setOrgUnitIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID );
-
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
-
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
-        assertEquals( 12, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( 0, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-
-        assertImportDataValues( summary );
-    }
-
-    @Test
-    public void testImportDataValuesXmlWithCodePreheatCacheTrue()
-        throws Exception
-    {
-        in = new ClassPathResource( "datavalueset/dataValueSetBCode.xml" ).getInputStream();
-
-        ImportOptions importOptions = new ImportOptions()
-            .setPreheatCache( true )
-            .setIdScheme( "CODE" )
-            .setDataElementIdScheme( "CODE" )
-            .setOrgUnitIdScheme( "CODE" );
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
 

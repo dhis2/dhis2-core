@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.dataset;
  */
 
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -51,15 +50,6 @@ public class MetadataCaches
     private CachingMap<String, Boolean> orgUnitInHierarchyMap = new CachingMap<>();
 
     private CachingMap<String, Boolean> attrOptComboOrgUnitMap = new CachingMap<>();
-
-    public void preheat( IdentifiableObjectManager manager,
-        final ImportConfig config )
-    {
-        dataSets.load( manager.getAll( DataSet.class ), ds -> ds.getPropertyValue( config.getDsScheme() ) );
-        orgUnits.load( manager.getAll( OrganisationUnit.class ), ou -> ou.getPropertyValue( config.getOuScheme() ) );
-        attrOptionCombos.load( manager.getAll( CategoryOptionCombo.class ),
-            oc -> oc.getPropertyValue( config.getAocScheme() ) );
-    }
 
     public CachingMap<String, DataSet> getDataSets()
     {

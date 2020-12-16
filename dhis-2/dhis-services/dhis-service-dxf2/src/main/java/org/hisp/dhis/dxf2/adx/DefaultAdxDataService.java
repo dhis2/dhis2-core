@@ -270,13 +270,6 @@ public class DefaultAdxDataService
         IdentifiableObjectCallable<DataElement> dataElementCallable = new IdentifiableObjectCallable<>(
             identifiableObjectManager, DataElement.class, dataElementIdScheme, null );
 
-        // Heat cache
-        if ( importOptions.isPreheatCacheDefaultFalse() )
-        {
-            dataSetMap.load( identifiableObjectManager.getAll( DataSet.class ), o -> o.getPropertyValue( dataSetIdScheme ) );
-            dataElementMap.load( identifiableObjectManager.getAll( DataElement.class ), o -> o.getPropertyValue( dataElementIdScheme ) );
-        }
-
         XMLReader adxReader = XMLFactory.getXMLReader( in );
 
         ImportSummary importSummary;

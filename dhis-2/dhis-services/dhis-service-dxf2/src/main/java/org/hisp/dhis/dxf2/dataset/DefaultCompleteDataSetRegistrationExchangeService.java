@@ -311,6 +311,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
+    @Override
     public void validate( ExportParams params )
         throws IllegalQueryException
     {
@@ -462,11 +463,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         MetadataCaches caches = new MetadataCaches();
         MetadataCallables metaDataCallables = new MetadataCallables( cfg, this.idObjManager, this.periodService,
             this.categoryService );
-
-        if ( importOptions.isPreheatCacheDefaultFalse() )
-        {
-            caches.preheat( idObjManager, cfg );
-        }
 
         // ---------------------------------------------------------------------
         // Perform import

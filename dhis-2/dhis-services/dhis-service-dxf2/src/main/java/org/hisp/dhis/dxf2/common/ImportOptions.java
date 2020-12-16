@@ -55,8 +55,6 @@ public class ImportOptions
 
     private boolean dryRun;
 
-    private Boolean preheatCache;
-
     private boolean async;
 
     private ImportStrategy importStrategy = ImportStrategy.CREATE_AND_UPDATE;
@@ -133,7 +131,6 @@ public class ImportOptions
         options.user = this.user;
         options.idSchemes = this.idSchemes;
         options.dryRun = this.dryRun;
-        options.preheatCache = this.preheatCache;
         options.async = this.async;
         options.importStrategy = this.importStrategy;
         options.mergeMode = this.mergeMode;
@@ -164,22 +161,6 @@ public class ImportOptions
     public static ImportOptions getDefaultImportOptions()
     {
         return new ImportOptions().setImportStrategy( ImportStrategy.NEW_AND_UPDATES );
-    }
-
-    /**
-     * Indicates whether to heat cache. Default is true.
-     */
-    public boolean isPreheatCache()
-    {
-        return preheatCache == null ? true : preheatCache;
-    }
-
-    /**
-     * Indicates whether to heat cache. Default is false.
-     */
-    public boolean isPreheatCacheDefaultFalse()
-    {
-        return preheatCache == null ? false : preheatCache;
     }
 
     /**
@@ -221,13 +202,6 @@ public class ImportOptions
     public boolean isDryRun()
     {
         return dryRun;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getPreheatCache()
-    {
-        return preheatCache;
     }
 
     @JsonProperty
@@ -414,7 +388,7 @@ public class ImportOptions
     {
         return mergeDataValues;
     }
-    
+
     //--------------------------------------------------------------------------
     // Set methods
     //--------------------------------------------------------------------------
@@ -494,12 +468,6 @@ public class ImportOptions
     public ImportOptions setDryRun( boolean dryRun )
     {
         this.dryRun = dryRun;
-        return this;
-    }
-
-    public ImportOptions setPreheatCache( Boolean preheatCache )
-    {
-        this.preheatCache = preheatCache;
         return this;
     }
 
@@ -644,7 +612,6 @@ public class ImportOptions
         return MoreObjects.toStringHelper( this )
             .add( "idSchemes", idSchemes )
             .add( "dryRun", dryRun )
-            .add( "preheatCache", preheatCache )
             .add( "async", async )
             .add( "importStrategy", importStrategy )
             .add( "mergeMode", mergeMode )

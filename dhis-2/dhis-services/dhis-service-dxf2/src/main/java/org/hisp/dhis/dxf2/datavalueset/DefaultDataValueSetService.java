@@ -139,7 +139,6 @@ public class DefaultDataValueSetService
     implements DataValueSetService
 {
     private static final String ERROR_OBJECT_NEEDED_TO_COMPLETE = "Must be provided to complete data set";
-    private static final int CACHE_MISS_THRESHOLD = 250;
 
     private final IdentifiableObjectManager identifiableObjectManager;
 
@@ -843,17 +842,6 @@ public class DefaultDataValueSetService
         IdentifiableObjectCallable<Period> periodCallable = new PeriodCallable( periodService, null, trimToNull( dataValueSet.getPeriod() ) );
 
         // ---------------------------------------------------------------------
-        // Heat caches
-        // ---------------------------------------------------------------------
-
-        if ( importOptions.isPreheatCacheDefaultFalse() )
-        {
-            dataElementMap.load( identifiableObjectManager.getAll( DataElement.class ), o -> o.getPropertyValue( dataElementIdScheme ) );
-            orgUnitMap.load( identifiableObjectManager.getAll( OrganisationUnit.class ), o -> o.getPropertyValue( orgUnitIdScheme ) );
-            optionComboMap.load( identifiableObjectManager.getAll( CategoryOptionCombo.class ), o -> o.getPropertyValue( categoryOptComboIdScheme ) );
-        }
-
-        // ---------------------------------------------------------------------
         // Get outer meta-data
         // ---------------------------------------------------------------------
 
@@ -968,32 +956,6 @@ public class DefaultDataValueSetService
                 optionComboMap.get( trimToNull( dataValue.getCategoryOptionCombo() ), categoryOptionComboCallable.setId( trimToNull( dataValue.getCategoryOptionCombo() ) ) );
             CategoryOptionCombo attrOptionCombo = outerAttrOptionCombo != null ? outerAttrOptionCombo :
                 optionComboMap.get( trimToNull( dataValue.getAttributeOptionCombo() ), attributeOptionComboCallable.setId( trimToNull( dataValue.getAttributeOptionCombo() ) ) );
-
-            // -----------------------------------------------------------------
-            // Potentially heat caches
-            // -----------------------------------------------------------------
-
-            if ( !dataElementMap.isCacheLoaded() && dataElementMap.getCacheMissCount() > CACHE_MISS_THRESHOLD )
-            {
-                dataElementMap.load( identifiableObjectManager.getAll( DataElement.class ), o -> o.getPropertyValue( dataElementIdScheme ) );
-
-                log.info( "Data element cache heated after cache miss threshold reached" );
-            }
-
-            if ( !orgUnitMap.isCacheLoaded() && orgUnitMap.getCacheMissCount() > CACHE_MISS_THRESHOLD )
-            {
-                orgUnitMap.load( identifiableObjectManager.getAll( OrganisationUnit.class ), o -> o.getPropertyValue( orgUnitIdScheme ) );
-
-                log.info( "Org unit cache heated after cache miss threshold reached" );
-            }
-
-            if ( !optionComboMap.isCacheLoaded() && optionComboMap.getCacheMissCount() > CACHE_MISS_THRESHOLD )
-            {
-                optionComboMap.load( identifiableObjectManager.getAll( CategoryOptionCombo.class ), o -> o.getPropertyValue(
-                    categoryOptComboIdScheme ) );
-
-                log.info( "Category Option Combo cache heated after cache miss threshold reached" );
-            }
 
             // -----------------------------------------------------------------
             // Validation
