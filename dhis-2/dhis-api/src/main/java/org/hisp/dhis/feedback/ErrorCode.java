@@ -76,6 +76,7 @@ public enum ErrorCode
     E2204( "Threshold must be a positive number" ),
     E2205( "Max results must be a positive number" ),
     E2206( "Max results exceeds the allowed max limit: `{0}`" ),
+    E2207( "Non-numeric data values encountered during outlier value detection" ),
 
     /* Security */
     E3000( "User `{0}` is not allowed to create objects of type {1}." ),
