@@ -1688,6 +1688,7 @@
         <artifactId>gt-referencing</artifactId>
         <version>${geotools.version}</version>
       </dependency>
+
       <!-- JAXB -->
       <dependency>
         <groupId>javax.xml.bind</groupId>
@@ -2066,7 +2067,6 @@
         <artifactId>postgresql </artifactId>
         <version>${testcontainers.version}</version>
       </dependency>
-
 
       <!-- Monitoring -->
       <dependency>

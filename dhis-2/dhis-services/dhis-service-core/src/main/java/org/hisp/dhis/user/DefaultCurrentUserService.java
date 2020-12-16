@@ -127,6 +127,46 @@ public class DefaultCurrentUserService
         return user;
     }
 
+
+
+
+
+
+
+    @Override
+    @Transactional( readOnly = true )
+    public User getCurrentUserInTransaction()
+    {
+        String username = getCurrentUsername();
+
+        if ( username == null )
+        {
+            return null;
+        }
+
+        Long userId = USERNAME_ID_CACHE.get( username, this::getUserId ).orElse( null );
+
+        if ( userId == null )
+        {
+            return null;
+        }
+
+        User user = userStore.getUser( userId );
+
+        if ( user == null )
+        {
+            throw new IllegalStateException("This should not happen, user is null");
+        }
+
+        if ( user.getUserCredentials() == null )
+        {
+            throw new IllegalStateException("This should not happen, user cred is null");
+        }
+
+        user.getUserCredentials().getAllAuthorities();
+        return user;
+    }
+
     @Override
     @Transactional( readOnly = true )
     public UserInfo getCurrentUserInfo()

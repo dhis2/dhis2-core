@@ -902,14 +902,9 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         bundle = objectBundleService.create( params );
         validate = objectBundleValidationService.validate( bundle );
         final List<ErrorReport> errorReports = validate.getErrorReports();
-//        0 = {ErrorReport@20289} "ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Male [p99yaU6mweU] (CategoryOptionCombo).,
-//        errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryOptionCombo, errorKlass=null, value=null}"
-//        1 = {ErrorReport@20290} "ErrorReport{message=No matching object for given reference. Identifier was UID, and object was Gender [faV8QvLgIwB] (CategoryCombo).,
-//        errorCode=E5001, mainKlass=class org.hisp.dhis.category.CategoryCombo, errorKlass=null, value=null}"
         assertTrue( errorReports.isEmpty() );
 
-        final ObjectBundleCommitReport commit = objectBundleService.commit( bundle );
-        final List<ErrorReport> errorReports2 = commit.getErrorReports();
+        objectBundleService.commit( bundle );
 
         manager.flush();
 

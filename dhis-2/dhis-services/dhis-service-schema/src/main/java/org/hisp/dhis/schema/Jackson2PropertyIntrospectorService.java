@@ -143,11 +143,6 @@ public class Jackson2PropertyIntrospectorService
                 property.setOwningRole( hibernateProperty.getOwningRole() );
                 property.setInverseRole( hibernateProperty.getInverseRole() );
 
-                // Breaks in hibernate 5.4 -- TODO: *MAS* try to figure out real cause, seems to work not 100% why it has changed
-//                Method getM = hibernateProperty.getGetterMethod();
-//                property.setGetterMethod( getM );
-//                Method setM = hibernateProperty.getSetterMethod();
-//                property.setSetterMethod( setM );
             }
 
             if ( AnnotationUtils.isAnnotationPresent( property.getGetterMethod(), Description.class ) )
