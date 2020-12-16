@@ -44,13 +44,13 @@ public class OutlierDetectionMetadata
     private OutlierDetectionAlgorithm outlierAlgorithm;
 
     @JsonProperty
-    private double threshold;
+    private Double threshold;
 
     @JsonProperty
     private Order orderBy;
 
     @JsonProperty
-    private int maxResults;
+    private Integer maxResults;
 
     @JsonProperty
     private Integer count;
