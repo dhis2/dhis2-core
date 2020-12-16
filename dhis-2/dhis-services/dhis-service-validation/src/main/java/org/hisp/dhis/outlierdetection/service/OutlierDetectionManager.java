@@ -1,8 +1,5 @@
 package org.hisp.dhis.outlierdetection.service;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -30,6 +27,10 @@ import java.util.Date;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
 
 import java.util.List;
 
