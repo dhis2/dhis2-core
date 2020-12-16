@@ -95,6 +95,12 @@ public class TrackerBundle
     private boolean skipRuleEngine;
 
     /**
+     * Should import be treated as a atomic import (all or nothing).
+     */
+    @Builder.Default
+    private AtomicMode atomicMode = AtomicMode.ALL;
+
+    /**
      * Flush for every object or per type.
      */
     @Builder.Default

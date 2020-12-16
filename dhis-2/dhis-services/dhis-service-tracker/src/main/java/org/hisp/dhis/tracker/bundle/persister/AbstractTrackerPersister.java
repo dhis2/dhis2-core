@@ -28,7 +28,14 @@ package org.hisp.dhis.tracker.bundle.persister;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
+import static com.google.api.client.util.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.hibernate.Session;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
@@ -37,6 +44,7 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -49,13 +57,7 @@ import org.hisp.dhis.tracker.report.TrackerObjectReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
@@ -88,9 +90,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         //
         // Init the report that will hold the results of the persist operation
         //
-        final TrackerType type = getType();
-
-        TrackerTypeReport typeReport = new TrackerTypeReport( type );
+        TrackerTypeReport typeReport = new TrackerTypeReport( getType() );
 
         List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
 
@@ -103,7 +103,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         //
         // Extract the entities to persist from the Bundle
         //
-        List<T> dtos = getByType( type, bundle );
+        List<T> dtos = getByType( getType(), bundle );
 
         for ( int idx = 0; idx < dtos.size(); idx++ )
         {
@@ -112,7 +112,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             //
             final T trackerDto = dtos.get( idx );
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( type, trackerDto.getUid(), idx );
+            TrackerObjectReport objectReport = new TrackerObjectReport( getType(), trackerDto.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
             try
@@ -162,10 +162,21 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             }
             catch ( Exception e )
             {
-                final String msg = "A Tracker Entity of type '" + type.getName() + "' (" + trackerDto.getUid()
+                final String msg = "A Tracker Entity of type '" + getType().getName() + "' (" + trackerDto.getUid()
                     + ") failed to persist.";
 
-                throw new PersistenceException( msg, e );
+                if ( bundle.getAtomicMode().equals( AtomicMode.ALL ) )
+                {
+                    throw new PersistenceException( msg , e );
+                }
+                else
+                {
+                    // TODO currently we do not keep track of the failed entity in the TrackerObjectReport
+
+                    log.warn( msg + "\nThe Import process will process remaining entities.", e );
+
+                    typeReport.getStats().incIgnored();
+                }
             }
         }
 

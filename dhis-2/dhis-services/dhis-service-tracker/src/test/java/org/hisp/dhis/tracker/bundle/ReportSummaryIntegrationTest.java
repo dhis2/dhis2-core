@@ -48,9 +48,11 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationR
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
@@ -112,7 +114,7 @@ public class ReportSummaryIntegrationTest
 
         TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
-//        params.setAtomicMode( AtomicMode.OBJECT );
+        params.setAtomicMode( AtomicMode.OBJECT );
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params  );
 
         assertNotNull( trackerImportTeiReport );
@@ -163,7 +165,7 @@ public class ReportSummaryIntegrationTest
             .getInputStream();
         params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
-//        params.setAtomicMode( AtomicMode.OBJECT );
+        params.setAtomicMode( AtomicMode.OBJECT );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
 
@@ -253,7 +255,7 @@ public class ReportSummaryIntegrationTest
             .getInputStream();
         params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
-//        params.setAtomicMode( AtomicMode.OBJECT );
+        params.setAtomicMode( AtomicMode.OBJECT );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         TrackerImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( params );
 
@@ -354,6 +356,7 @@ public class ReportSummaryIntegrationTest
             .getInputStream();
         params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
+        params.setAtomicMode( AtomicMode.OBJECT );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         TrackerImportReport trackerImportEventReport = trackerImportService.importTracker( params );
 

@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -50,12 +51,14 @@ public class TrackerBundleTest
     public void testBasicSetup1()
     {
         TrackerBundle trackerBundle = TrackerBundle.builder()
+            .atomicMode( AtomicMode.ALL )
             .validationMode( ValidationMode.SKIP )
             .trackedEntities( Collections.singletonList( new TrackedEntity() ) )
             .enrollments( Collections.singletonList( new Enrollment() ) )
             .events( Collections.singletonList( new Event() ) )
             .build();
 
+        assertEquals( AtomicMode.ALL, trackerBundle.getAtomicMode() );
         assertSame( trackerBundle.getValidationMode(), ValidationMode.SKIP );
         assertFalse( trackerBundle.getTrackedEntities().isEmpty() );
         assertFalse( trackerBundle.getEnrollments().isEmpty() );
@@ -66,12 +69,14 @@ public class TrackerBundleTest
     public void testBasicSetup2()
     {
         TrackerBundle trackerBundle = TrackerBundle.builder()
+            .atomicMode( AtomicMode.ALL )
             .validationMode( ValidationMode.SKIP )
             .trackedEntities( Arrays.asList( new TrackedEntity(), new TrackedEntity() ) )
             .enrollments( Arrays.asList( new Enrollment(), new Enrollment() ) )
             .events( Arrays.asList( new Event(), new Event() ) )
             .build();
 
+        assertEquals( AtomicMode.ALL, trackerBundle.getAtomicMode() );
         assertSame( trackerBundle.getValidationMode(), ValidationMode.SKIP );
         assertEquals( 2, trackerBundle.getTrackedEntities().size() );
         assertEquals( 2, trackerBundle.getEnrollments().size() );

@@ -7,6 +7,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import java.io.IOException;
 
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
@@ -48,6 +49,7 @@ public class TrackerImportParamsSerdeTest extends TrackerTest
 
         TrackerImportParams trackerImportParams = TrackerImportParams.builder()
             .identifiers( identifierParams )
+            .atomicMode( AtomicMode.OBJECT )
             .flushMode( FlushMode.OBJECT )
             .skipRuleEngine( true )
             .importStrategy( TrackerImportStrategy.DELETE )
@@ -65,6 +67,7 @@ public class TrackerImportParamsSerdeTest extends TrackerTest
             "\"categoryOptionComboIdScheme\":{\"idScheme\":\"UID\"}," +
             "\"categoryOptionIdScheme\":{\"idScheme\":\"UID\"}}," +
             "\"importStrategy\":\"DELETE\"," +
+            "\"atomicMode\":\"OBJECT\"," +
             "\"flushMode\":\"OBJECT\"," +
             "\"validationMode\":\"SKIP\"," +
             "\"skipPatternValidation\":false," +
@@ -92,6 +95,7 @@ public class TrackerImportParamsSerdeTest extends TrackerTest
             "\"categoryOptionComboIdScheme\":{\"idScheme\":\"UID\"}," +
             "\"categoryOptionIdScheme\":{\"idScheme\":\"UID\"}}," +
             "\"importStrategy\":\"DELETE\"," +
+            "\"atomicMode\":\"OBJECT\"," +
             "\"flushMode\":\"OBJECT\"," +
             "\"validationMode\":\"SKIP\"," +
             "\"skipPatternValidation\":true," +
@@ -107,6 +111,7 @@ public class TrackerImportParamsSerdeTest extends TrackerTest
 
         assertThat( trackerImportParams.getImportMode(), is( TrackerBundleMode.COMMIT ) );
         assertThat( trackerImportParams.getImportStrategy(), is( TrackerImportStrategy.DELETE ) );
+        assertThat( trackerImportParams.getAtomicMode(), is( AtomicMode.OBJECT ) );
         assertThat( trackerImportParams.getFlushMode(), is( FlushMode.OBJECT ) );
         assertThat( trackerImportParams.getValidationMode(), is( ValidationMode.SKIP ) );
         assertThat( trackerImportParams.isSkipPatternValidation(), is( true ) );
