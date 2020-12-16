@@ -39,7 +39,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -99,8 +98,7 @@ public class OutlierDetectionManager
                 "and pe.startdate >= :start_date " +
                 "and pe.enddate <= :end_date " +
                 "and " + ouPathClause + " " +
-                "and dv.deleted is false " +
-                "and dv.value ~* :numeric_regex" +
+                "and dv.deleted is false" +
             ") as dvs " +
             // Mean and std dev mapping query
             "inner join (" +
@@ -114,7 +112,6 @@ public class OutlierDetectionManager
                 "where dv.dataelementid in (:data_element_ids) " +
                 "and " + ouPathClause + " " +
                 "and dv.deleted is false " +
-                "and dv.value ~* :numeric_regex " +
                 "group by dv.dataelementid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid" +
             ") as stats " +
             // Query join
@@ -134,7 +131,6 @@ public class OutlierDetectionManager
             .addValue( "data_element_ids", request.getDataElementIds() )
             .addValue( "start_date", request.getStartDate() )
             .addValue( "end_date", request.getEndDate() )
-            .addValue( "numeric_regex", MathUtils.NUMERIC_LENIENT_REGEXP )
             .addValue( "max_results", request.getMaxResults() );
 
         final Calendar calendar = PeriodType.getCalendar();
