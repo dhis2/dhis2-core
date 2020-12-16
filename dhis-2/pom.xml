@@ -213,7 +213,7 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <version>${maven-surefire-plugin.version}</version>
             <configuration>
-              <skipTests>false</skipTests>
+              <skipTests>true</skipTests>
               <trimStackTrace>false</trimStackTrace>
               <argLine>${argLine}${surefireArgLine}</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
