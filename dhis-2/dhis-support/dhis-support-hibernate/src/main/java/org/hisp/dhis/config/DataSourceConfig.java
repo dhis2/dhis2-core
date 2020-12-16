@@ -50,6 +50,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import javax.sql.DataSource;
 import java.beans.PropertyVetoException;
@@ -67,6 +68,14 @@ public class DataSourceConfig
 {
     @Autowired
     private DhisConfigurationProvider dhisConfig;
+
+    @Bean
+    @DependsOn( "dataSource" )
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )
+        throws PropertyVetoException
+    {
+        return new NamedParameterJdbcTemplate( dataSource );
+    }
 
     @Bean( "jdbcTemplate" )
     @DependsOn( "dataSource" )
