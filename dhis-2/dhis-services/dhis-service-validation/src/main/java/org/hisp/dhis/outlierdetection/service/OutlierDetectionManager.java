@@ -146,7 +146,7 @@ public class OutlierDetectionManager
         }
         catch ( DataIntegrityViolationException ex )
         {
-            // From casting non-numeric data to double precision, faster than pre-filtering
+            // Casting non-numeric data to double, catching exception is faster than filtering
 
             throw new IllegalQueryException( ErrorCode.E2207 );
         }
