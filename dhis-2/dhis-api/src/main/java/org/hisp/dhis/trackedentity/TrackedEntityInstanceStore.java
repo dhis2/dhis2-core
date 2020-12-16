@@ -73,9 +73,18 @@ public interface TrackedEntityInstanceStore
      * Returns UIDs of existing TrackedEntityInstances (including deleted) from the provided UIDs
      *
      * @param uids TEI UIDs to check
-     * @return Set containing UIDs of existing TEIs (including deleted)
+     * @return List containing UIDs of existing TEIs (including deleted)
      */
     List<String> getUidsIncludingDeleted( List<String> uids );
+
+    /**
+     * Fetches TrackedEntityInstances matching the given list of UIDs
+     *
+     * @param uids a List of UID
+     * @return a List containing the TrackedEntityInstances matching the given
+     *         parameters list
+     */
+    List<TrackedEntityInstance> getIncludingDeleted( List<String> uids );
 
     /**
      * Set lastSynchronized timestamp to provided timestamp for provided TEIs

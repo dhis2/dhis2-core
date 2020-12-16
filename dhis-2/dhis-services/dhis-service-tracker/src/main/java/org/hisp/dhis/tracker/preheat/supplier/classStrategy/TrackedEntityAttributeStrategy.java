@@ -40,12 +40,12 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor( value = TrackedEntityAttribute.class, mapper = TrackedEntityAttributeMapper.class )
+@StrategyFor( value = TrackedEntityAttribute.class, mapper = TrackedEntityAttributeMapper.class)
 public class TrackedEntityAttributeStrategy extends AbstractSchemaStrategy
 {
     public TrackedEntityAttributeStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager, PreheatCacheService preheatCacheService )
+        IdentifiableObjectManager manager, PreheatCacheService cacheService )
     {
-        super( schemaService, queryService, manager, preheatCacheService );
+        super( schemaService, queryService, manager, cacheService );
     }
 }

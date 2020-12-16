@@ -69,6 +69,13 @@ public class PreCheckExistenceValidationHook
         TrackedEntityInstance existingTe = context
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
 
+        // If the tracked entity is soft-deleted no operation is allowed
+        if ( existingTe != null && existingTe.isDeleted() )
+        {
+            addError( reporter, E1114, trackedEntity.getTrackedEntity() );
+            return;
+        }
+
         if ( importStrategy.isCreateAndUpdate() )
         {
             if ( existingTe == null )
@@ -83,10 +90,6 @@ public class PreCheckExistenceValidationHook
         else if ( existingTe != null && importStrategy.isCreate() )
         {
             addError( reporter, E1002, trackedEntity.getTrackedEntity() );
-        }
-        else if ( existingTe != null && existingTe.isDeleted() && importStrategy.isDelete() )
-        {
-            addError( reporter, E1114, trackedEntity.getTrackedEntity() );
         }
         else if ( existingTe == null && importStrategy.isUpdateOrDelete() )
         {
