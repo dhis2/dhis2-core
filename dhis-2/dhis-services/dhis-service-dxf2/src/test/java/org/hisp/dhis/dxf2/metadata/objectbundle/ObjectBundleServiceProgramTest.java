@@ -216,6 +216,16 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Test
+    public void testProgramRuleCreation() throws IOException
+    {
+    }
+
+    @Test
+    public void testProgramRuleUpdate() throws IOException
+    {
+    }
+
+    @Test
     public void testCreateSimpleProgramRegNextScheduleDate() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
