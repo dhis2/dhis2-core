@@ -35,11 +35,15 @@ import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.period.PeriodType;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -136,8 +140,27 @@ public class OutlierDetectionManager
 
         final Calendar calendar = PeriodType.getCalendar();
 
-        return jdbcTemplate.query( sql, params, ( rs, rowNum ) -> {
+        try
+        {
+            return jdbcTemplate.query( sql, params, getRowMapper( calendar ) );
+        }
+        catch ( DataIntegrityViolationException ex )
+        {
+            // Casting non-numeric data to double, catching exception is faster than filtering
 
+            throw new IllegalQueryException( ErrorCode.E2207 );
+        }
+    }
+
+    /**
+     * Returns a {@link RowMapper} for {@link OutlierValue}.
+     *
+     * @param calendar the {@link Calendar}.
+     * @return a {@link RowMapper}.
+     */
+    private RowMapper<OutlierValue> getRowMapper( final Calendar calendar )
+    {
+        return ( rs, rowNum ) -> {
             final OutlierValue outlier = new OutlierValue();
             outlier.setDe( rs.getString( "de_uid" ) );
             outlier.setDeName( rs.getString( "de_name" ) );
@@ -156,9 +179,8 @@ public class OutlierDetectionManager
             outlier.setLowerBound( rs.getDouble( "lower_bound" ) );
             outlier.setUpperBound( rs.getDouble( "upper_bound" ) );
             return outlier;
-        } );
+        };
     }
-
     /**
      * Returns the ISO period name for the given {@link ResultSet} row.
      *
