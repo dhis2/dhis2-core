@@ -1,5 +1,8 @@
 package org.hisp.dhis.outlierdetection.service;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -30,10 +33,12 @@ package org.hisp.dhis.outlierdetection.service;
 
 import java.util.List;
 
+import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierValue;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -69,6 +74,7 @@ public class OutlierDetectionManager
             // Outer select
             "select dvs.de_uid, dvs.periodid, dvs.ou_uid, dvs.coc_uid, dvs.aoc_uid, " +
                 "dvs.de_name, dvs.ou_name, dvs.coc_name, dvs.aoc_name, dvs.value, " +
+                "dvs.pe_start_date, dvs.pt_name, " +
                 "stats.mean as mean, " +
                 "stats.std_dev as std_dev, " +
                 "abs(dvs.value::double precision - stats.mean) as mean_abs_dev, " +
@@ -80,12 +86,14 @@ public class OutlierDetectionManager
                 "select dv.dataelementid, dv.sourceid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, " +
                 "de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, " +
                 "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, " +
+                "pe.startdate as pe_start_date, pt.name as pt_name, " +
                 "dv.value " +
                 "from datavalue dv " +
                 "inner join dataelement de on dv.dataelementid = de.dataelementid " +
                 "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
                 "inner join categoryoptioncombo aoc on dv.attributeoptioncomboid = aoc.categoryoptioncomboid " +
                 "inner join period pe on dv.periodid = pe.periodid " +
+                "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
                 "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
                 "where dv.dataelementid in (:data_element_ids) " +
                 "and pe.startdate >= :start_date " +
@@ -129,11 +137,14 @@ public class OutlierDetectionManager
             .addValue( "numeric_regex", MathUtils.NUMERIC_LENIENT_REGEXP )
             .addValue( "max_results", request.getMaxResults() );
 
+        final Calendar calendar = PeriodType.getCalendar();
+
         return jdbcTemplate.query( sql, params, ( rs, rowNum ) -> {
-            OutlierValue outlier = new OutlierValue();
+
+            final OutlierValue outlier = new OutlierValue();
             outlier.setDe( rs.getString( "de_uid" ) );
             outlier.setDeName( rs.getString( "de_name" ) );
-            outlier.setPe( String.valueOf( rs.getInt( "periodid" ) ) ); // TODO Period identifier
+            outlier.setPe( getIsoPeriod( calendar, rs ) );
             outlier.setOu( rs.getString( "ou_uid" ) );
             outlier.setOuName( rs.getString( "ou_name" ) );
             outlier.setCoc( rs.getString( "coc_uid" ) );
@@ -149,6 +160,21 @@ public class OutlierDetectionManager
             outlier.setUpperBound( rs.getDouble( "upper_bound" ) );
             return outlier;
         } );
+    }
+
+    /**
+     * Returns the ISO period name for the given {@link ResultSet} row.
+     *
+     * @param calendar the {@link Calendar}.
+     * @param rs the {@link ResultSet}.
+     * @return the ISO period name.
+     */
+    private String getIsoPeriod( Calendar calendar, ResultSet rs )
+        throws SQLException
+    {
+        final Date startDate = rs.getDate( "pe_start_date" );
+        final PeriodType pt = PeriodType.getPeriodTypeByName( rs.getString( "pt_name" ) );
+        return pt.createPeriod( startDate, calendar ).getIsoDate();
     }
 
     /**

@@ -226,6 +226,10 @@ public class OutlierDetectionServiceTest
 
         OutlierValue outlier = response.getOutlierValues().get( 0 );
 
+        assertEquals( deA.getUid(), outlier.getDe() );
+        assertEquals( ouA.getUid(), outlier.getOu() );
+        assertEquals( m04.getIsoDate(), outlier.getPe() );
+
         assertEquals( outlier.getValue(), outlierValue, DELTA );
         assertEquals( outlier.getMean(), mean, DELTA );
         assertEquals( outlier.getStdDev(), stdDev, DELTA );
