@@ -31,6 +31,7 @@ package org.hisp.dhis.preheat;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.CategoryDimension;
@@ -207,7 +208,13 @@ public class DefaultPreheatService implements PreheatService
                             query.setUser( preheat.getUser() );
                             query.add( Restrictions.in( "id", ids ) );
                             List<? extends IdentifiableObject> objects = queryService.query( query );
-                            preheat.put( PreheatIdentifier.UID, objects );
+                            List<IdentifiableObject> initedObjects = new ArrayList<>();
+                            for ( IdentifiableObject object : objects )
+                            {
+                                IdentifiableObject unproxy = (IdentifiableObject) Hibernate.unproxy( object );
+                                initedObjects.add( unproxy );
+                            }
+                            preheat.put( PreheatIdentifier.UID, initedObjects );
                         }
                     }
                 }

@@ -1263,6 +1263,14 @@
         <artifactId>hibernate-ehcache</artifactId>
         <version>${hibernate.version}</version>
       </dependency>
+
+      <!-- https://mvnrepository.com/artifact/net.bytebuddy/byte-buddy -->
+      <dependency>
+        <groupId>net.bytebuddy</groupId>
+        <artifactId>byte-buddy</artifactId>
+        <version>${byte-buddy.version}</version>
+      </dependency>
+
       <!-- javassist in use by hibernate - make sure versions are kept in sync  -->
       <dependency>
         <groupId>org.javassist</groupId>
@@ -2130,12 +2138,10 @@
     <spring-data-redis.version>2.3.2.RELEASE</spring-data-redis.version>
     <spring-session-data-redis.version>2.3.0.RELEASE</spring-session-data-redis.version>
     <struts.version>2.5.22</struts.version>
-    <hibernate.version>5.4.25.Final</hibernate.version>
+    <hibernate.version>5.4.26.Final</hibernate.version>
     <hibernate-validator.version>5.0.3.Final</hibernate-validator.version>
     <jclouds.version>2.2.0</jclouds.version>
     <antlr.version>4.7.2</antlr.version>
-    <!-- Keep in sync with Hibernate -->
-    <javassist.version>3.27.0-GA</javassist.version>
     <!-- unit test dependencies-->
     <powermock.version>2.0.4</powermock.version>
     <jackson.version>2.11.2</jackson.version>
@@ -2156,5 +2162,8 @@
     <geotools.version>24.0</geotools.version>
     <testcontainers.version>1.15.1</testcontainers.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
+    <!-- Keep in sync with Hibernate -->
+    <javassist.version>3.27.0-GA</javassist.version>
+    <byte-buddy.version>1.10.18</byte-buddy.version>
   </properties>
 </project>
