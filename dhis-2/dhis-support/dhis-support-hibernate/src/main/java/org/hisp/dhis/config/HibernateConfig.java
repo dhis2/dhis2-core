@@ -41,8 +41,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -50,6 +52,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
+import java.beans.PropertyVetoException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
@@ -128,5 +131,36 @@ public class HibernateConfig
         hibernateDbmsManager.setSessionFactory( sessionFactory );
         hibernateDbmsManager.setJdbcTemplate( jdbcTemplate );
         return hibernateDbmsManager;
+    }
+
+    @Bean( "jdbcTemplate" )
+    @Primary
+    public JdbcTemplate jdbcTemplate()
+        throws PropertyVetoException
+    {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate( dataSource() );
+        jdbcTemplate.setFetchSize( 1000 );
+        return jdbcTemplate;
+    }
+
+    @Bean( "readOnlyJdbcTemplate" )
+    public JdbcTemplate readOnlyJdbcTemplate()
+        throws PropertyVetoException
+    {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate( readOnlyDataSource() );
+        jdbcTemplate.setFetchSize( 1000 );
+        return jdbcTemplate;
+    }
+
+    @Bean
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplate()
+        throws PropertyVetoException
+    {
+        return new NamedParameterJdbcTemplate( dataSource() );
+    }
+
+    private Object getConnectionProperty( String key )
+    {
+        return hibernateConfigurationProvider().getConfiguration().getProperty( key );
     }
 }
