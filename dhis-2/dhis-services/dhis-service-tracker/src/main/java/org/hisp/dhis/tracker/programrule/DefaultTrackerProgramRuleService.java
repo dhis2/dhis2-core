@@ -95,28 +95,22 @@ public class DefaultTrackerProgramRuleService
     {
         return events
             .stream()
-            .filter( e -> isEventInRegistrationProgram( e, bundle.getPreheat() ) )
             .collect( Collectors.toMap( Event::getEvent, event -> {
                 ProgramInstance enrollment = getEnrollment( bundle, event );
-                return programRuleEngine.evaluate( enrollment,
-                    eventTrackerConverterService.from( bundle.getPreheat(), event ),
-                    getEventsFromEnrollment( enrollment.getUid(), bundle, events ) );
+                ProgramStageInstance programStageInstance = eventTrackerConverterService
+                    .from( bundle.getPreheat(), event );
+                if ( enrollment == null )
+                {
+                    return programRuleEngine.evaluateProgramEvent( programStageInstance,
+                        bundle.getPreheat().get( Program.class, event.getProgram() ) );
+                }
+                else
+                {
+                    return programRuleEngine.evaluate( enrollment,
+                        programStageInstance,
+                        getEventsFromEnrollment( enrollment.getUid(), bundle, events ) );
+                }
             } ) );
-    }
-
-    private boolean isEventInRegistrationProgram( Event e, TrackerPreheat preheat )
-    {
-        if ( e.getProgram() == null )
-        {
-            return false;
-        }
-        Program program = preheat.get( Program.class, e.getProgram() );
-        if ( program == null )
-        {
-            return false;
-        }
-
-        return program.isRegistration();
     }
 
     private ProgramInstance getEnrollment( TrackerBundle bundle, Event event )
