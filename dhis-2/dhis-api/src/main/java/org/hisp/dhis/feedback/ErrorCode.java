@@ -68,6 +68,15 @@ public enum ErrorCode
     E2015( "Unable to parse order param: `{0}`" ),
     E2016( "Unable to parse element `{0}` on filter `{1}`. The values available are: {2}" ),
 
+    /* Outlier detection */
+    E2200( "At least one data element must be specified" ),
+    E2201( "Start date and end date must be specified" ),
+    E2202( "Start date must be before end date" ),
+    E2203( "At least one organisation unit must be specified" ),
+    E2204( "Threshold must be a positive number" ),
+    E2205( "Max results must be a positive number" ),
+    E2206( "Max results exceeds the allowed max limit: `{0}`" ),
+
     /* Security */
     E3000( "User `{0}` is not allowed to create objects of type {1}." ),
     E3001( "User `{0}` is not allowed to update object `{1}`." ),

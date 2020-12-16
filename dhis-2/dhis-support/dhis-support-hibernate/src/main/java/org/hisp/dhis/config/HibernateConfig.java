@@ -47,6 +47,7 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -203,6 +204,13 @@ public class HibernateConfig
         JdbcTemplate jdbcTemplate = new JdbcTemplate( readOnlyDataSource() );
         jdbcTemplate.setFetchSize( 1000 );
         return jdbcTemplate;
+    }
+
+    @Bean
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplate()
+        throws PropertyVetoException
+    {
+        return new NamedParameterJdbcTemplate( dataSource() );
     }
 
     private Object getConnectionProperty( String key )
