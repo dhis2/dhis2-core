@@ -28,15 +28,19 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 
 /**
  * Converts a {@link org.hisp.dhis.tracker.domain.TrackerDto} into a persistable entity
  * for a PATCH operation
- * 
+ *
  * @author Luciano Fiandesio
  */
 public interface PatchConverterService<From, To>
 {
     To fromForPatch( TrackerPreheat preheat, From object );
+
+    From toForPatch( To object, From patchedObject );
 }

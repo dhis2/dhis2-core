@@ -49,6 +49,8 @@ import lombok.Data;
 @Data
 public class TrackerTimingsStats
 {
+    public static final String PATCH_VALIDATION = "patchValidation";
+
     public static final String PREHEAT_OPS = "preheat";
 
     public static final String PREPROCESS_OPS = "preprocess";

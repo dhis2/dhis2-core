@@ -111,6 +111,22 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
+    public TrackedEntity toForPatch( TrackedEntityInstance trackedEntityInstance, TrackedEntity trackedEntity )
+    {
+
+        List<Field> patchableFields = ConverterUtils.getPatchFields( TrackedEntity.class, trackedEntity );
+
+        final TrackedEntity convertedTei = to( trackedEntityInstance );
+
+        for ( Field field : patchableFields )
+        {
+            // TODO
+        }
+
+        return convertedTei;
+    }
+
+    @Override
     public TrackedEntityInstance fromForRuleEngine( TrackerPreheat preheat, TrackedEntity object )
     {
         return null;

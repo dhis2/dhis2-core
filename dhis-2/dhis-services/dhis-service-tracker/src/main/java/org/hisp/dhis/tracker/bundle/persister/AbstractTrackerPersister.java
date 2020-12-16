@@ -207,7 +207,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         // Patch only operates one one entity - we expect one entity in the bundle
         if ( entities.size() == 1 )
         {
-            T dto = getByType( getType(), bundle ).get( 0 );
+            T dto = entities.get( 0 );
 
             TrackerObjectReport objectReport = new TrackerObjectReport( getType(), dto.getUid(), 0 );
 

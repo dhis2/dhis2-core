@@ -31,11 +31,7 @@ package org.hisp.dhis.tracker.converter;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryOption;
@@ -123,9 +119,11 @@ public class EventTrackerConverterService
             event.setProgram( program.getUid() );
             event.setEnrollment( psi.getProgramInstance().getUid() );
             event.setProgramStage( psi.getProgramStage().getUid() );
-            event.setAttributeOptionCombo( psi.getAttributeOptionCombo().getUid() );
-            event.setAttributeCategoryOptions( psi.getAttributeOptionCombo()
-                .getCategoryOptions().stream().map( CategoryOption::getUid ).collect( Collectors.joining( ";" ) ) );
+            Optional<CategoryOptionCombo> attributeOptionCombo = Optional.ofNullable( psi.getAttributeOptionCombo() );
+            attributeOptionCombo.ifPresent( ac -> event.setAttributeOptionCombo( ac.getUid() ) );
+            attributeOptionCombo.ifPresent( ac ->
+                event.setAttributeCategoryOptions( ac.getCategoryOptions().stream().map( CategoryOption::getUid )
+                    .collect( Collectors.joining( ";" ) ) ) );
 
             Set<EventDataValue> dataValues = psi.getEventDataValues();
 
@@ -186,6 +184,30 @@ public class EventTrackerConverterService
         }
 
         return psi;
+    }
+
+    @Override
+    public Event toForPatch( ProgramStageInstance psi, Event event )
+    {
+        List<Field> patchableFields = ConverterUtils.getPatchFields( Event.class, event );
+
+        Event convertedEvent = to( psi );
+
+        for ( Field field : patchableFields )
+        {
+            if ( field.getName().equals( "status" ) )
+            {
+                convertedEvent.setStatus( (EventStatus) ReflectionUtils.getField( field, event ) );
+            }
+
+            if ( field.getName().equals( "scheduledAt" ) )
+            {
+                // TODO how to validate the date??
+                convertedEvent.setScheduledAt( event.getScheduledAt() );
+            }
+        }
+
+        return convertedEvent;
     }
 
     @Override

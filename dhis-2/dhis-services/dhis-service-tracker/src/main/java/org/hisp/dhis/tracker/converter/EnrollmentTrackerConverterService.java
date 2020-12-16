@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -46,10 +47,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -115,6 +118,21 @@ public class EnrollmentTrackerConverterService
         }
 
         return pi;
+    }
+
+    @Override
+    public Enrollment toForPatch( ProgramInstance programInstance, Enrollment enrollment )
+    {
+        List<Field> patchableFields = ConverterUtils.getPatchFields( Enrollment.class, enrollment );
+
+        Enrollment convertedEnrollment = to( programInstance );
+
+        for ( Field field : patchableFields )
+        {
+            // TODO
+        }
+
+        return convertedEnrollment;
     }
 
     @Override

@@ -41,12 +41,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
-import org.hisp.dhis.tracker.report.TrackerTimingsStats;
-import org.hisp.dhis.tracker.report.TrackerTypeReport;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.tracker.report.*;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.springframework.stereotype.Service;
 
@@ -68,28 +63,46 @@ import static org.hisp.dhis.tracker.report.TrackerTimingsStats.*;
 public class DefaultTrackerImportService
     implements TrackerImportService
 {
-    @NonNull private final TrackerBundleService trackerBundleService;
+    @NonNull
+    private final TrackerBundleService trackerBundleService;
 
-    @NonNull private final TrackerValidationService trackerValidationService;
+    @NonNull
+    private final TrackerValidationService trackerValidationService;
 
-    @NonNull private final TrackerPreprocessService trackerPreprocessService;
+    @NonNull
+    private final TrackerPreprocessService trackerPreprocessService;
 
-    @NonNull private final TrackerUserService trackerUserService;
+    @NonNull
+    private final TrackerUserService trackerUserService;
 
-    @NonNull private final Notifier notifier;
+    @NonNull
+    private final Notifier notifier;
+
+    @NonNull
+    private final TrackerImportPatcher trackerImportPatcher;
 
     @Override
     public TrackerImportReport importTracker( TrackerImportParams params )
     {
-        params.setUser( trackerUserService.getUser( params.getUserId() ) );
+        // Keeps track of the elapsed time of each Import stage
+        TrackerTimingsStats opsTimer = new TrackerTimingsStats();
+
+        Map<TrackerType, Integer> bundleSize = calculatePayloadSize( params );
 
         // Init the Notifier
         ImportNotifier notifier = new ImportNotifier( this.notifier, params );
 
-        // Keeps track of the elapsed time of each Import stage
-        TrackerTimingsStats opsTimer = new TrackerTimingsStats();
-
         notifier.startImport();
+
+        params.setUser( trackerUserService.getUser( params.getUserId() ) );
+
+        String patchValidationReport = opsTimer.exec( PATCH_VALIDATION,
+            () -> updateParamsForPatch( params ) );
+
+        if ( !patchValidationReport.isEmpty() )
+        {
+            return buildReportAndNotify( new TrackerValidationReport(), opsTimer, bundleSize, notifier );
+        }
 
         TrackerValidationReport validationReport = null;
 
@@ -102,8 +115,6 @@ public class DefaultTrackerImportService
             //
             TrackerBundle trackerBundle = opsTimer.exec( PREHEAT_OPS,
                 () -> preheatBundle( params ) );
-
-            Map<TrackerType, Integer> bundleSize = calculatePayloadSize( trackerBundle );
 
             //
             // preprocess
@@ -166,6 +177,16 @@ public class DefaultTrackerImportService
         }
     }
 
+    private String updateParamsForPatch( TrackerImportParams params )
+    {
+        if ( params.getImportStrategy().equals( TrackerImportStrategy.PATCH ) )
+        {
+            return trackerImportPatcher.validatePatch( params );
+        }
+
+        return "";
+    }
+
     private TrackerValidationReport execRuleEngine( TrackerTimingsStats opsTimer, TrackerBundle trackerBundle,
         TrackerValidationReport report, ImportNotifier notifier )
     {
@@ -206,13 +227,13 @@ public class DefaultTrackerImportService
         return validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL;
     }
 
-    private Map<TrackerType, Integer> calculatePayloadSize( TrackerBundle bundle )
+    private Map<TrackerType, Integer> calculatePayloadSize( TrackerImportParams params )
     {
         return ImmutableMap.<TrackerType, Integer>builder()
-            .put( TrackerType.TRACKED_ENTITY, bundle.getTrackedEntities().size() )
-            .put( TrackerType.ENROLLMENT, bundle.getEnrollments().size() )
-            .put( TrackerType.EVENT, bundle.getEvents().size() )
-            .put( TrackerType.RELATIONSHIP, bundle.getRelationships().size() ).build();
+            .put( TrackerType.TRACKED_ENTITY, params.getTrackedEntities().size() )
+            .put( TrackerType.ENROLLMENT, params.getEnrollments().size() )
+            .put( TrackerType.EVENT, params.getEvents().size() )
+            .put( TrackerType.RELATIONSHIP, params.getRelationships().size() ).build();
     }
 
     protected TrackerBundle preheatBundle( TrackerImportParams params )
