@@ -168,7 +168,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .map( Map.Entry::getKey )
             .forEach( mandatoryProgramAttributeUid -> addErrorIf(
                 () -> !mergedAttributes.contains( mandatoryProgramAttributeUid ), reporter, E1018,
-                mandatoryProgramAttributeUid ) );
+                mandatoryProgramAttributeUid, program.getUid(), enrollment.getEnrollment() ) );
 
         // enrollment must not contain any attribute which is not defined in program
         enrollmentNonEmptyAttributeUids
