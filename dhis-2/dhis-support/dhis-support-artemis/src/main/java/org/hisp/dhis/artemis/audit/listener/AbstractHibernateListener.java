@@ -92,9 +92,9 @@ public abstract class AbstractHibernateListener
 
     Optional<Auditable> getAuditable( Object object, String type )
     {
-        if ( AnnotationUtils.isAnnotationPresent( object.getClass(), Auditable.class ) )
+        if ( AnnotationUtils.isAnnotationPresent( HibernateProxyUtils.getRealClass( object ), Auditable.class ) )
         {
-            Auditable auditable = AnnotationUtils.getAnnotation( object.getClass(), Auditable.class );
+            Auditable auditable = AnnotationUtils.getAnnotation( HibernateProxyUtils.getRealClass( object ), Auditable.class );
 
             boolean shouldAudit = Arrays.stream( auditable.eventType() )
                 .anyMatch( s -> s.contains( "all" ) || s.contains( type ) );

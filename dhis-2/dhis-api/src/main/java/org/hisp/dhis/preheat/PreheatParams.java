@@ -2,6 +2,7 @@ package org.hisp.dhis.preheat;
 
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
@@ -133,12 +134,14 @@ public class PreheatParams
             return this;
         }
 
-        if ( !objects.containsKey( object.getClass() ) )
+        Class<? extends IdentifiableObject> aClass = HibernateProxyUtils.getRealClass( object );
+
+        if ( !objects.containsKey( aClass ) )
         {
-            objects.put( object.getClass(), new ArrayList<>() );
+            objects.put( aClass, new ArrayList<>() );
         }
 
-        objects.get( object.getClass() ).add( object );
+        objects.get( aClass ).add( object );
 
         return this;
     }

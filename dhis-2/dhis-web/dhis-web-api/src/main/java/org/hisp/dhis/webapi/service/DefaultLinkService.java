@@ -358,7 +358,7 @@ public class DefaultLinkService implements LinkService
 
     private <T> void generateHref( T object, String hrefBase )
     {
-        if ( object == null || getSetter( object.getClass() ) == null )
+        if ( object == null || getSetter( HibernateProxyUtils.getRealClass( object ) ) == null )
         {
             return;
         }

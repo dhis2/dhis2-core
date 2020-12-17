@@ -158,7 +158,7 @@ public class DefaultIdentifiableObjectManager
     @Transactional
     public void save( IdentifiableObject object, boolean clearSharing )
     {
-        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( HibernateProxyUtils.getRealClass( object ) );
 
         if ( store != null )
         {
@@ -184,7 +184,7 @@ public class DefaultIdentifiableObjectManager
     @Transactional
     public void update( IdentifiableObject object, User user )
     {
-        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( HibernateProxyUtils.getRealClass( object ) );
 
         if ( store != null )
         {
@@ -248,7 +248,7 @@ public class DefaultIdentifiableObjectManager
     @Transactional
     public void delete( IdentifiableObject object, User user )
     {
-        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( HibernateProxyUtils.getRealClass( object ) );
 
         if ( store != null )
         {
@@ -1043,7 +1043,7 @@ public class DefaultIdentifiableObjectManager
     @Transactional
     public <T extends IdentifiableObject> void updateNoAcl( T object )
     {
-        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( HibernateProxyUtils.getRealClass( object ) );
 
         if ( store != null )
         {

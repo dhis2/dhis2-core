@@ -120,7 +120,7 @@ public class DefaultPatchService implements PatchService
     {
         Patch patch = new Patch();
 
-        if ( source == null || !source.getClass().isInstance( target ) )
+        if ( source == null || !HibernateProxyUtils.getRealClass( source ).isInstance( target ) )
         {
             return patch;
         }

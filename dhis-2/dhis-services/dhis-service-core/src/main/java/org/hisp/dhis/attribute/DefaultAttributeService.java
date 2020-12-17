@@ -42,6 +42,7 @@ import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -185,14 +186,14 @@ public class DefaultAttributeService
 
         Attribute attribute = getAttribute( attributeValue.getAttribute().getUid() );
 
-        if ( Objects.isNull( attribute ) || !attribute.getSupportedClasses().contains( object.getClass() ) )
+        if ( Objects.isNull( attribute ) || !attribute.getSupportedClasses().contains( HibernateProxyUtils.getRealClass( object ) ) )
         {
             return;
         }
         if ( attribute.isUnique() )
         {
 
-            if (  !manager.isAttributeValueUnique( object.getClass(), object, attributeValue) )
+            if (  !manager.isAttributeValueUnique( HibernateProxyUtils.getRealClass( object ), object, attributeValue) )
             {
                 throw new NonUniqueAttributeValueException( attributeValue );
             }

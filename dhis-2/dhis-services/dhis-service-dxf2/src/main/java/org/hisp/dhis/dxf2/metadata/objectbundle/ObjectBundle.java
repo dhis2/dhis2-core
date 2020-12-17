@@ -35,6 +35,7 @@ import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.UserOverrideMode;
 import org.hisp.dhis.feedback.ObjectIndexProvider;
 import org.hisp.dhis.feedback.TypedIndexedObjectContainer;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
@@ -325,23 +326,25 @@ public class ObjectBundle implements ObjectIndexProvider
             return;
         }
 
-        if ( !objects.get( Boolean.TRUE ).containsKey( object.getClass() ) )
+        Class<? extends IdentifiableObject> aClass = HibernateProxyUtils.getRealClass( object );
+
+        if ( !objects.get( Boolean.TRUE ).containsKey( aClass ) )
         {
-            objects.get( Boolean.TRUE ).put( object.getClass(), new ArrayList<>() );
+            objects.get( Boolean.TRUE ).put( aClass, new ArrayList<>() );
         }
 
-        if ( !objects.get( Boolean.FALSE ).containsKey( object.getClass() ) )
+        if ( !objects.get( Boolean.FALSE ).containsKey( aClass ) )
         {
-            objects.get( Boolean.FALSE ).put( object.getClass(), new ArrayList<>() );
+            objects.get( Boolean.FALSE ).put( aClass, new ArrayList<>() );
         }
 
         if ( isPersisted( object ) )
         {
-            objects.get( Boolean.TRUE ).get( object.getClass() ).add( object );
+            objects.get( Boolean.TRUE ).get( aClass ).add( object );
         }
         else
         {
-            objects.get( Boolean.FALSE ).get( object.getClass() ).add( object );
+            objects.get( Boolean.FALSE ).get( aClass ).add( object );
 
         }
 
@@ -426,17 +429,19 @@ public class ObjectBundle implements ObjectIndexProvider
             return;
         }
 
-        if ( !extras.containsKey( identifiableObject.getClass() ) )
+        Class<? extends IdentifiableObject> aClass = HibernateProxyUtils.getRealClass( identifiableObject );
+
+        if ( !extras.containsKey( aClass ) )
         {
-            extras.put( identifiableObject.getClass(), new HashMap<>() );
+            extras.put( aClass, new HashMap<>() );
         }
 
-        if ( !extras.get( identifiableObject.getClass() ).containsKey( identifiableObject.getUid() ) )
+        if ( !extras.get( aClass ).containsKey( identifiableObject.getUid() ) )
         {
-            extras.get( identifiableObject.getClass() ).put( identifiableObject.getUid(), new HashMap<>() );
+            extras.get( aClass ).put( identifiableObject.getUid(), new HashMap<>() );
         }
 
-        extras.get( identifiableObject.getClass() ).get( identifiableObject.getUid() ).put( key, object );
+        extras.get( aClass ).get( identifiableObject.getUid() ).put( key, object );
     }
 
     public Object getExtras( IdentifiableObject identifiableObject, String key )
@@ -446,17 +451,19 @@ public class ObjectBundle implements ObjectIndexProvider
             return null;
         }
 
-        if ( !extras.containsKey( identifiableObject.getClass() ) )
+        Class<? extends IdentifiableObject> aClass = HibernateProxyUtils.getRealClass( identifiableObject );
+
+        if ( !extras.containsKey( aClass ) )
         {
             return null;
         }
 
-        if ( !extras.get( identifiableObject.getClass() ).containsKey( identifiableObject.getUid() ) )
+        if ( !extras.get( aClass ).containsKey( identifiableObject.getUid() ) )
         {
             return null;
         }
 
-        return extras.get( identifiableObject.getClass() ).get( identifiableObject.getUid() ).get( key );
+        return extras.get( aClass ).get( identifiableObject.getUid() ).get( key );
     }
 
     public boolean hasExtras( IdentifiableObject identifiableObject, String key )
@@ -466,17 +473,19 @@ public class ObjectBundle implements ObjectIndexProvider
             return false;
         }
 
-        if ( !extras.containsKey( identifiableObject.getClass() ) )
+        Class<? extends IdentifiableObject> aClass = HibernateProxyUtils.getRealClass( identifiableObject );
+
+        if ( !extras.containsKey( aClass ) )
         {
             return false;
         }
 
-        if ( !extras.get( identifiableObject.getClass() ).containsKey( identifiableObject.getUid() ) )
+        if ( !extras.get( aClass ).containsKey( identifiableObject.getUid() ) )
         {
             return false;
         }
 
-        return extras.get( identifiableObject.getClass() ).get( identifiableObject.getUid() ).containsKey( key );
+        return extras.get( aClass ).get( identifiableObject.getUid() ).containsKey( key );
     }
 
     public void removeExtras( IdentifiableObject identifiableObject, String key )
@@ -486,16 +495,18 @@ public class ObjectBundle implements ObjectIndexProvider
             return;
         }
 
-        extras.get( identifiableObject.getClass() ).get( identifiableObject.getUid() ).remove( key );
+        Class<? extends IdentifiableObject> aClass = HibernateProxyUtils.getRealClass( identifiableObject );
 
-        if ( extras.get( identifiableObject.getClass() ).get( identifiableObject.getUid() ).isEmpty() )
+        extras.get( aClass ).get( identifiableObject.getUid() ).remove( key );
+
+        if ( extras.get( aClass ).get( identifiableObject.getUid() ).isEmpty() )
         {
-            extras.get( identifiableObject.getClass() ).remove( identifiableObject.getUid() );
+            extras.get( aClass ).remove( identifiableObject.getUid() );
         }
 
-        if ( extras.get( identifiableObject.getClass() ).isEmpty() )
+        if ( extras.get( aClass ).isEmpty() )
         {
-            extras.remove( identifiableObject.getClass() );
+            extras.remove( aClass );
         }
     }
 

@@ -39,6 +39,7 @@ import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
@@ -442,7 +443,7 @@ public class MetadataImportParams
             return this;
         }
 
-        Class<? extends IdentifiableObject> klass = object.getClass();
+        Class<? extends IdentifiableObject> klass = HibernateProxyUtils.getRealClass( object );
 
         if ( !objects.containsKey( klass ) )
         {
@@ -471,7 +472,7 @@ public class MetadataImportParams
 
             if ( value != null )
             {
-                if ( Collection.class.isAssignableFrom( value.getClass() ) && schema.isIdentifiableObject() )
+                if ( Collection.class.isAssignableFrom( HibernateProxyUtils.getRealClass( value ) ) && schema.isIdentifiableObject() )
                 {
                     List<IdentifiableObject> objects = new ArrayList<>( (Collection<IdentifiableObject>) value );
 
