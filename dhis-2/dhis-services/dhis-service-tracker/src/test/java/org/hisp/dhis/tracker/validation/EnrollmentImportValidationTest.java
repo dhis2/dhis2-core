@@ -39,7 +39,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 
-import lombok.SneakyThrows;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -54,6 +53,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+
+import lombok.SneakyThrows;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -299,16 +300,17 @@ public class EnrollmentImportValidationTest
     }
 
     @SneakyThrows
-    private void testDeletedTrackedEntityFails(TrackerImportStrategy importStrategy) {
+    private void testDeletedEnrollmentFails( TrackerImportStrategy importStrategy )
+    {
 
         // Given -> Creates an enrollment
-        createEnrollment("tracker/validations/enrollments_te_enrollments-data-soft_deleted_test.json");
+        createEnrollment( "tracker/validations/enrollments_te_enrollments-data-soft_deleted_test.json" );
 
-        // When -> Soft-delete the tracked entity
-        programInstanceService.deleteProgramInstance(programInstanceService.getProgramInstance("wMNWZ6hnuhS"));
+        // When -> Soft-delete the enrollment
+        programInstanceService.deleteProgramInstance( programInstanceService.getProgramInstance( "wMNWZ6hnuhS" ) );
 
         TrackerImportParams trackerBundleParams = createBundleFromJson(
-                "tracker/validations/enrollments_te_enrollments-data-soft_deleted_test.json" );
+            "tracker/validations/enrollments_te_enrollments-data-soft_deleted_test.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams, importStrategy );
 
@@ -317,21 +319,20 @@ public class EnrollmentImportValidationTest
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
         assertThat( report.getErrorReports(),
-                everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1113 ) ) ) );
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1113 ) ) ) );
     }
 
     @Test
-    public void testUpdateDeletedTrackedEntityFails()
+    public void testUpdateDeletedEnrollmentFails()
     {
-        testDeletedTrackedEntityFails( UPDATE );
+        testDeletedEnrollmentFails( UPDATE );
     }
 
     @Test
-    public void testInserDeletedTrackedEntityFails()
+    public void testInserDeletedEnrollmentFails()
     {
-        testDeletedTrackedEntityFails( CREATE_AND_UPDATE );
+        testDeletedEnrollmentFails( CREATE_AND_UPDATE );
     }
-
 
     @SneakyThrows
     private void createEnrollment( String jsonPayload )

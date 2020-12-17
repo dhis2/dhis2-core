@@ -297,7 +297,7 @@ public class HibernateProgramInstanceStore
             if ( !uidsPartition.isEmpty() )
             {
                 programInstances.addAll( getSession().createQuery( PI_HQL_BY_UIDS, ProgramInstance.class )
-                        .setParameter( "uids", uidsPartition ).list() );
+                    .setParameter( "uids", uidsPartition ).list() );
             }
         }
 

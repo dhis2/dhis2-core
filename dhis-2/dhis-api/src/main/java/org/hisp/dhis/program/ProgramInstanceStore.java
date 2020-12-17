@@ -121,7 +121,7 @@ public interface ProgramInstanceStore
      * @return a List containing the ProgramInstances matching the given
      *         parameters list
      */
-    List<ProgramInstance> getIncludingDeleted(List<String> uids );
+    List<ProgramInstance> getIncludingDeleted( List<String> uids );
 
     /**
      * Get all ProgramInstances which have notifications with the given ProgramNotificationTemplate scheduled on the given date.
