@@ -127,15 +127,10 @@ public class DefaultCurrentUserService
         return user;
     }
 
-
-
-
-
-
-
     @Override
     @Transactional( readOnly = true )
     public User getCurrentUserInTransaction()
+        throws Exception
     {
         String username = getCurrentUsername();
 
@@ -151,19 +146,20 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        User user = userStore.getUser( userId );
+        User user = userStore.getUser(userId);
 
         if ( user == null )
         {
-            throw new IllegalStateException("This should not happen, user is null");
+            throw new Exception("Could not retrieve current user!");
         }
 
         if ( user.getUserCredentials() == null )
         {
-            throw new IllegalStateException("This should not happen, user cred is null");
+            throw new Exception("Could not retrieve current user credentials!");
         }
 
         user.getUserCredentials().getAllAuthorities();
+
         return user;
     }
 
