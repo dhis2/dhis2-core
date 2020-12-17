@@ -193,9 +193,6 @@ public class ProgramServiceTest
         Program p = programService.getProgram( programA.getUid() );
         OrganisationUnit ou = organisationUnitService.getOrganisationUnit( organisationUnitA.getUid() );
 
-        //sessionFactory.getCurrentSession().flush();
-
         assertTrue( programService.hasOrgUnit( p, ou ) );
-
     }
 }

@@ -114,6 +114,6 @@ public class HibernateProgramStore
         query.setParameter( "pid", program.getId() );
         query.setParameter( "ouid", organisationUnit.getId() );
 
-        return query.getResultList().size() == 1;
+        return !query.getResultList().isEmpty();
     }
 }
