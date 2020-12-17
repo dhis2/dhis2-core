@@ -1264,7 +1264,11 @@
         <version>${hibernate.version}</version>
       </dependency>
 
-      <!-- https://mvnrepository.com/artifact/net.bytebuddy/byte-buddy -->
+      <dependency>
+        <groupId>org.javassist</groupId>
+        <artifactId>javassist</artifactId>
+        <version>${javassist.version}</version>
+      </dependency>
       <dependency>
         <groupId>net.bytebuddy</groupId>
         <artifactId>byte-buddy</artifactId>
@@ -2164,5 +2168,7 @@
     <!-- Keep in sync with Hibernate, default for Hibernate is to use bytebuddy,
     !do not use javassist with Hibernate as this will clash with Struts! -->
     <byte-buddy.version>1.10.18</byte-buddy.version>
+
+    <javassist.version>3.27.0-GA</javassist.version>
   </properties>
 </project>
