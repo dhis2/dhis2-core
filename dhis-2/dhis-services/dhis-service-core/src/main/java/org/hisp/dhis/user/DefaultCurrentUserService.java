@@ -122,6 +122,23 @@ public class DefaultCurrentUserService
 
         User user = userStore.getUser( userId );
 
+        if ( user == null )
+        {
+            UserCredentials credentials = userStore.getUserCredentialsByUsername( username );
+
+            user = userStore.getUser( credentials.getId() );
+
+            if ( user == null )
+            {
+                throw new RuntimeException("Could not retrieve current user!");
+            }
+        }
+
+        if ( user.getUserCredentials() == null )
+        {
+            throw new RuntimeException("Could not retrieve current user credentials!");
+        }
+
         // TODO: this is pretty ugly way to retrieve auths
         user.getUserCredentials().getAllAuthorities();
         return user;
