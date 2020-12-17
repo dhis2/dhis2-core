@@ -187,7 +187,7 @@ public class DefaultOutlierDetectionService
     public void getOutlierValuesAsCsv( OutlierDetectionRequest request, OutputStream out )
         throws IllegalQueryException, IOException
     {
-        JacksonCsvUtils.toCsv( getOutlierValues( request ), OutlierValue.class, out );
+        JacksonCsvUtils.toCsv( getOutlierValues( request ).getOutlierValues(), OutlierValue.class, out );
     }
 
     /**

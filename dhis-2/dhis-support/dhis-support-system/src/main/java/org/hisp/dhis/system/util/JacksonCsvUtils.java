@@ -14,7 +14,7 @@ public class JacksonCsvUtils
     /**
      * Writes the given response to the given output stream as CSV
      * using {@link CsvMapper}. The schema is inferred from the
-     * given type using {@CsvSchema}.
+     * given type using {@CsvSchema}. A header line is included.
      *
      * @param value the value to write.
      * @param out the {@link OutputStream} to write to.
