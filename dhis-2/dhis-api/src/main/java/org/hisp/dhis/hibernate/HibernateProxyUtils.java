@@ -42,6 +42,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -55,6 +56,13 @@ public class HibernateProxyUtils
 
     public static Class getRealClass( Object o )
     {
+        Objects.requireNonNull( o );
+
+        if ( o instanceof Class )
+        {
+            throw new IllegalArgumentException( "Input can't be of type Class!" );
+        }
+
         if ( isProxy( o ) )
         {
             Class classWithoutInitializingProxy = HibernateProxyHelper.getClassWithoutInitializingProxy( o );

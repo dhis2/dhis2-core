@@ -69,7 +69,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
 
 /**
  * Note that it is required for nameable object stores to have concrete implementation
@@ -1188,7 +1187,8 @@ public class DefaultIdentifiableObjectManager
             return false;
         }
 
-        Class<?> realClass = getRealClass( object.getClass() );
+        Class<?> realClass = HibernateProxyUtils.getRealClass( object );
+
         if ( !defaults.containsKey( realClass ) )
         {
             return false;

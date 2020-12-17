@@ -41,6 +41,7 @@ import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
@@ -202,7 +203,7 @@ public class DefaultFieldFilterService implements FieldFilterService
         }
 
         FieldMap fieldMap = new FieldMap();
-        Schema schema = schemaService.getDynamicSchema( objects.get( 0 ).getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( objects.get( 0 ) ) );
 
         if ( StringUtils.isEmpty( fields ) )
         {

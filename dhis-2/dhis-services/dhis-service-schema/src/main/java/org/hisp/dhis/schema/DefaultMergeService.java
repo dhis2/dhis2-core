@@ -28,8 +28,9 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Hibernate;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +43,7 @@ import java.util.stream.Collectors;
  */
 @Service( "org.hisp.dhis.schema.MergeService" )
 @Transactional
+@Slf4j
 public class DefaultMergeService implements MergeService
 {
     private final SchemaService schemaService;
@@ -61,7 +63,19 @@ public class DefaultMergeService implements MergeService
 //        source = (T) Hibernate.unproxy( source );
 //        target = (T) Hibernate.unproxy( target );
 
-        Schema schema = schemaService.getDynamicSchema( source.getClass() );
+        if ( HibernateProxyUtils.isProxy( source ) )
+        {
+            log.error( "Source is a proxy!" );
+        }
+
+        if ( HibernateProxyUtils.isProxy( target ) )
+        {
+            log.error( "Target is a proxy!" );
+        }
+
+        Class realClass = HibernateProxyUtils.getRealClass( source );
+
+        Schema schema = schemaService.getDynamicSchema( realClass );
 
         for ( Property property : schema.getProperties() )
         {

@@ -31,7 +31,6 @@ package org.hisp.dhis.preheat;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Hibernate;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.CategoryDimension;
@@ -48,6 +47,7 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
@@ -208,14 +208,14 @@ public class DefaultPreheatService implements PreheatService
                             query.setUser( preheat.getUser() );
                             query.add( Restrictions.in( "id", ids ) );
                             List<? extends IdentifiableObject> objects = queryService.query( query );
-                            List<IdentifiableObject> initedObjects = new ArrayList<>();
-                            for ( IdentifiableObject object : objects )
-                            {
-                                //TODO: *MAS* Find solution without unproxy
-                                IdentifiableObject unproxy = (IdentifiableObject) Hibernate.unproxy( object );
-                                initedObjects.add( unproxy );
-                            }
-                            preheat.put( PreheatIdentifier.UID, initedObjects );
+//                            List<IdentifiableObject> initedObjects = new ArrayList<>();
+//                            for ( IdentifiableObject object : objects )
+//                            {
+//                                //TODO: *MAS* Find solution without unproxy
+//                                IdentifiableObject unproxy = (IdentifiableObject) Hibernate.unproxy( object );
+//                                initedObjects.add( unproxy );
+//                            }
+                            preheat.put( PreheatIdentifier.UID, objects );
                         }
                     }
                 }
@@ -968,7 +968,8 @@ public class DefaultPreheatService implements PreheatService
         Map<Class<? extends IdentifiableObject>, Set<String>> uidMap = map.get( PreheatIdentifier.UID );
         Map<Class<? extends IdentifiableObject>, Set<String>> codeMap = map.get( PreheatIdentifier.CODE );
 
-        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) ReflectionUtils.getRealClass( identifiableObject.getClass() );
+        Class<? extends IdentifiableObject> klass =
+            (Class<? extends IdentifiableObject>) HibernateProxyUtils.getRealClass( identifiableObject );
 
         if ( !uidMap.containsKey( klass ) ) uidMap.put( klass, new HashSet<>() );
         if ( !codeMap.containsKey( klass ) ) codeMap.put( klass, new HashSet<>() );
