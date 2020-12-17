@@ -244,17 +244,15 @@ public class DefaultSchemaService
     @Override
     public Schema getSchema( Class<?> klass )
     {
-        Objects.requireNonNull( klass );
-
         if ( klass == null )
         {
+            log.error( "getSchema() Error, input class should not be null!" );
             return null;
         }
 
         if ( klass.getName().contains( "Proxy" ) )
         {
-            log.error( "Critical error, can't use Hibernate proxy class names!" );
-            System.exit( 1 );
+            log.error( "Error, can't use Hibernate proxy class names!!!" );
             throw new IllegalStateException( "Input class must not be Hibernate proxy class!!!" );
         }
 
@@ -274,18 +272,16 @@ public class DefaultSchemaService
     @Override
     public Schema getDynamicSchema( Class<?> klass )
     {
-        Objects.requireNonNull( klass );
-
         if ( klass == null )
         {
+            log.error( "getDynamicSchema() Error, input class should not be null!" );
             return null;
         }
 
         if ( klass.getName().contains( "Proxy" ) )
         {
-            log.error( "Critical error, can't use Hibernate proxy class names!!!" );
-            System.exit( 1 );
-            throw new IllegalStateException( "Input class must not be Hibernate proxy class!" );
+            log.error( "Error, can't use Hibernate proxy class names!!!" );
+            throw new IllegalStateException( "Input class must not be Hibernate proxy class!!!" );
         }
 
         Schema schema = getSchema( klass );
