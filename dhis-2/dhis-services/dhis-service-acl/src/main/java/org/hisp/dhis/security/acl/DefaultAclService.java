@@ -59,6 +59,8 @@ import static org.springframework.util.CollectionUtils.containsAny;
 @Service( "org.hisp.dhis.security.acl.AclService" )
 public class DefaultAclService implements AclService
 {
+    public static final String INPUT_OBJECT_CAN_T_BE_OF_TYPE_CLASS = "Input object can't be of type Class!";
+
     private final SchemaService schemaService;
 
     public DefaultAclService( SchemaService schemaService )
@@ -79,7 +81,7 @@ public class DefaultAclService implements AclService
     {
         if ( object instanceof Class )
         {
-            throw new IllegalArgumentException( "Input object can't be of type Class!" );
+            throw new IllegalArgumentException( INPUT_OBJECT_CAN_T_BE_OF_TYPE_CLASS );
         }
 
         return schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) ) != null;
@@ -97,7 +99,7 @@ public class DefaultAclService implements AclService
     {
         if ( object instanceof Class )
         {
-            throw new IllegalArgumentException( "Input object can't be of type Class!" );
+            throw new IllegalArgumentException( INPUT_OBJECT_CAN_T_BE_OF_TYPE_CLASS );
         }
 
         Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
@@ -116,7 +118,7 @@ public class DefaultAclService implements AclService
     {
         if ( object instanceof Class )
         {
-            throw new IllegalArgumentException( "Input object can't be of type Class!" );
+            throw new IllegalArgumentException( INPUT_OBJECT_CAN_T_BE_OF_TYPE_CLASS );
         }
 
         Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
@@ -368,7 +370,7 @@ public class DefaultAclService implements AclService
     {
         if ( object instanceof Class )
         {
-            throw new IllegalArgumentException( "Input object can't be of type Class!" );
+            throw new IllegalArgumentException( INPUT_OBJECT_CAN_T_BE_OF_TYPE_CLASS );
         }
 
         Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
@@ -388,7 +390,7 @@ public class DefaultAclService implements AclService
     {
         if ( object instanceof Class )
         {
-            throw new IllegalArgumentException( "Input object can't be of type Class!" );
+            throw new IllegalArgumentException( INPUT_OBJECT_CAN_T_BE_OF_TYPE_CLASS );
         }
 
         Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object )  );
@@ -409,7 +411,7 @@ public class DefaultAclService implements AclService
     {
         if ( object instanceof Class )
         {
-            throw new IllegalArgumentException( "Input object can't be of type Class!" );
+            throw new IllegalArgumentException( INPUT_OBJECT_CAN_T_BE_OF_TYPE_CLASS );
         }
 
         Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
@@ -440,7 +442,7 @@ public class DefaultAclService implements AclService
     {
         if ( object instanceof Class )
         {
-            throw new IllegalArgumentException( "Input object can't be of type Class!" );
+            throw new IllegalArgumentException( INPUT_OBJECT_CAN_T_BE_OF_TYPE_CLASS );
         }
 
         return !defaultPrivate( HibernateProxyUtils.getRealClass( object ) );

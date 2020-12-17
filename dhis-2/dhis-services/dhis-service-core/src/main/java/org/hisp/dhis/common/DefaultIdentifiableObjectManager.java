@@ -1148,13 +1148,13 @@ public class DefaultIdentifiableObjectManager
     {
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
             .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class.getName(),
-                key -> HibernateProxyUtils.initializeProxy( getByName( Category.class, "default" ) ) ).orElse( null ) )
+                key -> HibernateProxyUtils.initializeProxy( getByName( Category.class, DEFAULT ) ) ).orElse( null ) )
             .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class.getName(),
-                key -> HibernateProxyUtils.initializeProxy( getByName( CategoryCombo.class, "default" ) ) ).orElse( null ) )
+                key -> HibernateProxyUtils.initializeProxy( getByName( CategoryCombo.class, DEFAULT ) ) ).orElse( null ) )
             .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class.getName(),
-                key -> HibernateProxyUtils.initializeProxy( getByName( CategoryOption.class, "default" ) ) ).orElse( null ) )
+                key -> HibernateProxyUtils.initializeProxy( getByName( CategoryOption.class, DEFAULT ) ) ).orElse( null ) )
             .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class.getName(),
-                key -> HibernateProxyUtils.initializeProxy( getByName( CategoryOptionCombo.class, "default" ) ) ).orElse( null ) )
+                key -> HibernateProxyUtils.initializeProxy( getByName( CategoryOptionCombo.class, DEFAULT ) ) ).orElse( null ) )
             .build();
     }
 
