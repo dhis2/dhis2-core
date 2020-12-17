@@ -28,6 +28,15 @@ package org.hisp.dhis.artemis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.artemis.ProducerConfiguration.ProducerConfigurationBuilder;
+import static org.hisp.dhis.external.conf.ConfigurationKey.AUDIT_USE_INMEMORY_QUEUE_ENABLED;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.jms.ConnectionFactory;
+import javax.jms.DeliveryMode;
+
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.core.config.CoreAddressConfiguration;
@@ -48,13 +57,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
-
-import javax.jms.ConnectionFactory;
-import javax.jms.DeliveryMode;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.hisp.dhis.artemis.ProducerConfiguration.ProducerConfigurationBuilder;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -210,7 +212,6 @@ public class ArtemisConfig
     public ProducerConfiguration producerConfiguration()
     {
         return ProducerConfigurationBuilder.aProducerConfiguration()
-            .withUseQueue( true ) // TODO this should come from configuration
-            .build();
+            .withUseQueue( this.dhisConfig.isEnabled( AUDIT_USE_INMEMORY_QUEUE_ENABLED ) ).build();
     }
 }
