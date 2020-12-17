@@ -220,25 +220,10 @@ public class ObjectBundleServiceProgramTest
     @Test
     public void testProgramRuleCreation() throws IOException
     {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/metadata_with_program_and_programrules.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
-
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-
-        validate.getErrorReports().forEach( System.out::println );
-
-        assertTrue( validate.getErrorReports().isEmpty() );
-
-        objectBundleService.commit( bundle );
+        createProgramRuleMetadata();
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata1 = renderService.fromMetadata(
-                new ClassPathResource( "dxf2/duplicate_program_rule.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/duplicate_program_rule.json" ).getInputStream(), RenderFormat.JSON );
 
         ObjectBundleParams params1 = new ObjectBundleParams();
         params1.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -260,6 +245,20 @@ public class ObjectBundleServiceProgramTest
     @Test
     public void testProgramRuleUpdate() throws IOException
     {
+        createProgramRuleMetadata();
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata1 = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/existing_program_rule.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params1 = new ObjectBundleParams();
+        params1.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params1.setImportStrategy( ImportStrategy.UPDATE );
+        params1.setObjects( metadata1 );
+
+        ObjectBundle bundle1 = objectBundleService.create( params1 );
+        ObjectBundleValidationReport validate1 = objectBundleValidationService.validate( bundle1 );
+
+        assertTrue( validate1.getErrorReports().isEmpty() );
     }
 
     @Test
@@ -407,5 +406,25 @@ public class ObjectBundleServiceProgramTest
         validate = objectBundleValidationService.validate( bundle );
         validate.getErrorReports().forEach( System.out::println );
         assertTrue( validate.getErrorReports().isEmpty() );
+    }
+
+    private void createProgramRuleMetadata() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/metadata_with_program_and_programrules.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+
+        validate.getErrorReports().forEach( System.out::println );
+
+        assertTrue( validate.getErrorReports().isEmpty() );
+
+        objectBundleService.commit( bundle );
     }
 }
