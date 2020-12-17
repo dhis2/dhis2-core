@@ -1,8 +1,5 @@
 package org.hisp.dhis.outlierdetection;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -30,6 +27,9 @@ import java.io.OutputStream;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
