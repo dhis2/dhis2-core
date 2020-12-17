@@ -1,5 +1,8 @@
 package org.hisp.dhis.outlierdetection.service;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -34,6 +37,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -46,6 +50,10 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionService;
 import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -174,9 +182,16 @@ public class DefaultOutlierDetectionService
         validate( request );
 
         final OutlierDetectionResponse response = new OutlierDetectionResponse();
-        response.setOutlierValues( outlierDetectionManager.getOutlierValues( request ) );
+        response.setOutlierValues( outlierDetectionManager.getZScoreOutlierValues( request ) );
         response.setMetadata( getMetadata( request, response.getOutlierValues() ) );
         return response;
+    }
+
+    @Override
+    public void getOutlierValuesAsCsv( OutlierDetectionRequest request, OutputStream out )
+        throws IllegalQueryException, IOException
+    {
+        toCsv( getOutlierValues( request ), out );
     }
 
     /**
@@ -195,5 +210,21 @@ public class DefaultOutlierDetectionService
         metadata.setOrderBy( request.getOrderBy() );
         metadata.setMaxResults( request.getMaxResults() );
         return metadata;
+    }
+
+    /**
+     * Writes the given response to the given output stream as CSV.
+     *
+     * @param response the {@link OutlierDetectionResponse}.
+     * @param out the {@link OutputStream}.
+     * @throws IOException if the write operation fails.
+     */
+    private void toCsv( OutlierDetectionResponse response, OutputStream out )
+        throws IOException
+    {
+        CsvMapper csvMapper = JacksonObjectMapperConfig.csvMapper;
+        CsvSchema schema = csvMapper.schemaFor( OutlierValue.class ).withHeader();
+        ObjectWriter writer = csvMapper.writer( schema );
+        writer.writeValue( out, response.getOutlierValues() );
     }
 }

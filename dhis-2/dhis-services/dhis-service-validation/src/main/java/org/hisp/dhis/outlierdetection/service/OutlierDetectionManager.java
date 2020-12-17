@@ -70,7 +70,7 @@ public class OutlierDetectionManager
      * @param request the {@link OutlierDetectionRequest}.
      * @return a list of {@link OutlierValue}.
      */
-    public List<OutlierValue> getOutlierValues( OutlierDetectionRequest request )
+    public List<OutlierValue> getZScoreOutlierValues( OutlierDetectionRequest request )
     {
         String ouPathClause = getOrgUnitPathClause( request );
 
@@ -151,7 +151,6 @@ public class OutlierDetectionManager
             throw new IllegalQueryException( ErrorCode.E2207 );
         }
     }
-
     /**
      * Returns a {@link RowMapper} for {@link OutlierValue}.
      *
