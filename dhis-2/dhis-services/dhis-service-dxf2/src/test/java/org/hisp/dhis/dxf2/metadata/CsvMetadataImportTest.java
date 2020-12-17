@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.metadata;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dataelement.DataElement;

@@ -59,10 +59,6 @@ public class DefaultMergeService implements MergeService
         T source = mergeParams.getSource();
         T target = mergeParams.getTarget();
 
-        //TODO: *MAS* Find solution without unproxy
-//        source = (T) Hibernate.unproxy( source );
-//        target = (T) Hibernate.unproxy( target );
-
         if ( HibernateProxyUtils.isProxy( source ) )
         {
             log.error( "Source is a proxy!" );

@@ -38,7 +38,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -65,8 +64,6 @@ import org.hisp.dhis.visualization.Visualization;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.Rollback;
 
 import javax.xml.xpath.XPathExpressionException;
 import java.io.ByteArrayOutputStream;
@@ -386,7 +383,6 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertNotNull( visualization );
         assertEquals( 0, visualization.getUserGroupAccesses().size() );
         assertEquals( 0, visualization.getUserAccesses().size() );
-
     }
 
     @Test

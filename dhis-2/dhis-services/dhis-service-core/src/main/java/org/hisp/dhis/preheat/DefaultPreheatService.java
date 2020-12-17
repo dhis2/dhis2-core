@@ -208,13 +208,6 @@ public class DefaultPreheatService implements PreheatService
                             query.setUser( preheat.getUser() );
                             query.add( Restrictions.in( "id", ids ) );
                             List<? extends IdentifiableObject> objects = queryService.query( query );
-//                            List<IdentifiableObject> initedObjects = new ArrayList<>();
-//                            for ( IdentifiableObject object : objects )
-//                            {
-//                                //TODO: *MAS* Find solution without unproxy
-//                                IdentifiableObject unproxy = (IdentifiableObject) Hibernate.unproxy( object );
-//                                initedObjects.add( unproxy );
-//                            }
                             preheat.put( PreheatIdentifier.UID, objects );
                         }
                     }
