@@ -131,13 +131,13 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     // Caches the entire Program hierarchy, including Program Stages and ACL data
     private final Cache<String, Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>() {}
-        .name( "eventImportProgramCache" + RandomStringUtils.randomAlphabetic( 5 ) )
+        .name( "eventImportProgramCache_" + RandomStringUtils.randomAlphabetic( 5 ) )
         .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
 
     // Caches the User Groups and the Users belonging to each group
     private final Cache<Long, Set<User>> userGroupCache = new Cache2kBuilder<Long, Set<User>>() {}
-        .name( "eventImportUserGroupCache" + RandomStringUtils.randomAlphabetic( 5 ) )
+        .name( "eventImportUserGroupCache_" + RandomStringUtils.randomAlphabetic( 5 ) )
         .expireAfterWrite( 5, TimeUnit.MINUTES )
         .permitNullValues( true )
         .loader( new CacheLoader<Long, Set<User>>()
@@ -185,7 +185,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
             if ( !MapUtils.isEmpty( programMap ) )
             {
-                aggregateProgramAndAclData( programMap, loadOrgUnits(),
+                aggregateProgramAndAclData( programMap,
                     loadProgramStageDataElementSets() );
 
                 programsCache.put( PROGRAM_CACHE_KEY, programMap );
@@ -200,13 +200,11 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         return programMap;
     }
 
-    private void aggregateProgramAndAclData( Map<String, Program> programMap, Map<Long, Set<OrganisationUnit>> ouMap,
+    private void aggregateProgramAndAclData( Map<String, Program> programMap,
         Map<Long, DataElementSets> dataElementSetsMap  )
     {
         for ( Program program : programMap.values() )
         {
-            program.setOrganisationUnits( ouMap.getOrDefault( program.getId(), new HashSet<>() ) );
-
             for ( ProgramStage programStage : program.getProgramStages() )
             {
                 DataElementSets dataElementSets = dataElementSetsMap.get( programStage.getId() );
@@ -235,37 +233,6 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         return Optional.ofNullable( dataElementSet )
             .orElse( Collections.emptySet() )
             .stream();
-    }
-
-    //
-    // Load a Map of OrgUnits belonging to a Program (key: program id, value: Set of
-    // OrgUnits)
-    //
-    private Map<Long, Set<OrganisationUnit>> loadOrgUnits()
-    {
-        final String sql = "select p.programid, ou.organisationunitid, ou.uid, ou.code, ou.name, ou.attributevalues "
-            + "from program_organisationunits p "
-            + "join organisationunit ou on p.organisationunitid = ou.organisationunitid order by programid";
-
-        return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
-            Map<Long, Set<OrganisationUnit>> results = new HashMap<>();
-            long programId = 0;
-            while ( rs.next() )
-            {
-                if ( programId != rs.getLong( PROGRAM_ID ) )
-                {
-                    Set<OrganisationUnit> ouSet = new HashSet<>();
-                    ouSet.add( toOrganisationUnit( rs ) );
-                    results.put( rs.getLong( PROGRAM_ID ), ouSet );
-                    programId = rs.getLong( PROGRAM_ID );
-                }
-                else
-                {
-                    results.get( rs.getLong( PROGRAM_ID ) ).add( toOrganisationUnit( rs ) );
-                }
-            }
-            return results;
-        } );
     }
 
     //
