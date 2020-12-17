@@ -87,7 +87,7 @@ public class JacksonObjectMapperConfig
     /**
      * Standard CSV mapper.
      */
-    public static final CsvMapper csvMapper = configureMapper( new CsvMapper() );
+    public static final CsvMapper csvMapper = configureCsvMapper( new CsvMapper() );
 
     @Primary
     @Bean( "jsonMapper" )
@@ -179,7 +179,13 @@ public class JacksonObjectMapperConfig
         return objectMapper;
     }
 
-    private static CsvMapper configureMapper( CsvMapper mapper )
+    /**
+     * Configures the shared CSV mapper.
+     *
+     * @param mapper the {@link CsvMapper}.
+     * @return the {@link CsvMapper}.
+     */
+    private static CsvMapper configureCsvMapper( CsvMapper mapper )
     {
         mapper.disable( CsvParser.Feature.FAIL_ON_MISSING_COLUMNS );
         return mapper;
