@@ -28,6 +28,8 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
