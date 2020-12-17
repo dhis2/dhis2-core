@@ -143,14 +143,21 @@ public class DefaultCurrentUserService
 
         if ( userId == null )
         {
-            return null;
+            throw new Exception("Could not retrieve current user id!");
         }
 
         User user = userStore.getUser(userId);
 
         if ( user == null )
         {
-            throw new Exception("Could not retrieve current user!");
+            UserCredentials credentials = userStore.getUserCredentialsByUsername( username );
+
+            user = userStore.getUser( credentials.getId() );
+
+            if ( user == null )
+            {
+                throw new Exception("Could not retrieve current user!");
+            }
         }
 
         if ( user.getUserCredentials() == null )
