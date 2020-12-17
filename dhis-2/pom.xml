@@ -933,10 +933,6 @@
         <version>${struts.version}</version>
         <exclusions>
           <exclusion>
-            <groupId>org.javassist</groupId>
-            <artifactId>javassist</artifactId>
-          </exclusion>
-          <exclusion>
             <groupId>dom4j</groupId>
             <artifactId>dom4j</artifactId>
           </exclusion>
@@ -2164,7 +2160,9 @@
     <geotools.version>24.0</geotools.version>
     <testcontainers.version>1.15.1</testcontainers.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <!-- Keep in sync with Hibernate -->
+
+    <!-- Keep in sync with Hibernate, default for Hibernate is to use bytebuddy,
+    !do not use javassist with Hibernate as this will clash with Struts! -->
     <byte-buddy.version>1.10.18</byte-buddy.version>
   </properties>
 </project>
