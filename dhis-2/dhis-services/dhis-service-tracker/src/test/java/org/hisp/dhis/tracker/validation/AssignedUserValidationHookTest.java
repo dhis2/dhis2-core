@@ -50,7 +50,6 @@ import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -190,9 +189,7 @@ public class AssignedUserValidationHookTest
         assertEquals( TrackerErrorCode.E1118, report.getValidationReport().getErrorReports().get( 0 ).getErrorCode() );
     }
 
-    // TODO FIX ME: fk_programstageinstance_assigneduserid should point to userinfo
-    //  fk_programstageinstance_assigneduserid" FOREIGN KEY (assigneduserid) REFERENCES users(userid)
-    @Ignore
+    @Test
     public void testAssignedUserExists()
     {
         Event event = new Event();
