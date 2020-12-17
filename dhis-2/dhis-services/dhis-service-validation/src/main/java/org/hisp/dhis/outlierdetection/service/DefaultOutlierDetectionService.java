@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -48,12 +47,9 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionService;
 import org.hisp.dhis.outlierdetection.OutlierValue;
+import org.hisp.dhis.system.util.JacksonCsvUtils;
 import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.springframework.stereotype.Service;
-
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -191,7 +187,7 @@ public class DefaultOutlierDetectionService
     public void getOutlierValuesAsCsv( OutlierDetectionRequest request, OutputStream out )
         throws IllegalQueryException, IOException
     {
-        toCsv( getOutlierValues( request ), out );
+        JacksonCsvUtils.toCsv( getOutlierValues( request ), OutlierValue.class, out );
     }
 
     /**
@@ -210,21 +206,5 @@ public class DefaultOutlierDetectionService
         metadata.setOrderBy( request.getOrderBy() );
         metadata.setMaxResults( request.getMaxResults() );
         return metadata;
-    }
-
-    /**
-     * Writes the given response to the given output stream as CSV.
-     *
-     * @param response the {@link OutlierDetectionResponse}.
-     * @param out the {@link OutputStream}.
-     * @throws IOException if the write operation fails.
-     */
-    private void toCsv( OutlierDetectionResponse response, OutputStream out )
-        throws IOException
-    {
-        CsvMapper csvMapper = JacksonObjectMapperConfig.csvMapper;
-        CsvSchema schema = csvMapper.schemaFor( OutlierValue.class ).withHeader();
-        ObjectWriter writer = csvMapper.writer( schema );
-        writer.writeValue( out, response.getOutlierValues() );
     }
 }
