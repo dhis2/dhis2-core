@@ -34,6 +34,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.AuthorityType;
@@ -74,9 +75,14 @@ public class DefaultAclService implements AclService
     }
 
     @Override
-    public boolean isSupported( Class<?> klass )
+    public boolean isSupported( Object object )
     {
-        return schemaService.getSchema( klass ) != null;
+        if ( object instanceof Class )
+        {
+            throw new IllegalArgumentException( "Input object can't be of type Class!" );
+        }
+
+        return schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) ) != null;
     }
 
     @Override
@@ -87,16 +93,40 @@ public class DefaultAclService implements AclService
     }
 
     @Override
-    public boolean isShareable( Class<?> klass )
+    public boolean isShareable( Object object )
     {
-        Schema schema = schemaService.getSchema( klass );
+        if ( object instanceof Class )
+        {
+            throw new IllegalArgumentException( "Input object can't be of type Class!" );
+        }
+
+        Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
         return schema != null && schema.isShareable();
     }
 
     @Override
-    public boolean isDataShareable( Class<?> klass )
+    public boolean isClassShareable( Class clazz )
     {
-        Schema schema = schemaService.getSchema( klass );
+        Schema schema = schemaService.getSchema( clazz );
+        return schema != null && schema.isShareable();
+    }
+
+    @Override
+    public boolean isDataShareable( Object object )
+    {
+        if ( object instanceof Class )
+        {
+            throw new IllegalArgumentException( "Input object can't be of type Class!" );
+        }
+
+        Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
+        return schema != null && schema.isDataShareable();
+    }
+
+    @Override
+    public boolean isDataClassShareable( Class clazz )
+    {
+        Schema schema = schemaService.getSchema( clazz );
         return schema != null && schema.isDataShareable();
     }
 
@@ -108,7 +138,7 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-        Schema schema = schemaService.getSchema( object.getClass() );
+        Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
 
         if ( canAccess( user, schema.getAuthorityByType( AuthorityType.READ ) ) )
         {
@@ -136,7 +166,7 @@ public class DefaultAclService implements AclService
     {
         if ( readWriteCommonCheck( user, object ) ) return true;
 
-        Schema schema = schemaService.getSchema( object.getClass() );
+        Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
 
         if ( canAccess( user, schema.getAuthorityByType( AuthorityType.DATA_READ ) ) )
         {
@@ -159,7 +189,7 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canDataOrMetadataRead( User user, IdentifiableObject object )
     {
-        Schema schema = schemaService.getSchema( object.getClass() );
+        Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
 
         return schema.isDataShareable() ? canDataRead( user, object ) : canRead( user, object );
     }
@@ -172,7 +202,7 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-        Schema schema = schemaService.getSchema( object.getClass() );
+        Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
 
         List<String> anyAuthorities = new ArrayList<>( schema.getAuthorityByType( AuthorityType.CREATE ) );
 
@@ -207,7 +237,7 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-        Schema schema = schemaService.getSchema( object.getClass() );
+        Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
 
         // returned unmodifiable list does not need to be cloned since it is not modified
         List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.DATA_CREATE );
@@ -236,7 +266,7 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-        Schema schema = schemaService.getSchema( object.getClass() );
+        Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
 
         List<String> anyAuthorities = new ArrayList<>( schema.getAuthorityByType( AuthorityType.UPDATE ) );
 
@@ -268,7 +298,7 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-        Schema schema = schemaService.getSchema( object.getClass() );
+        Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
 
         List<String> anyAuthorities = new ArrayList<>( schema.getAuthorityByType( AuthorityType.DELETE ) );
 
@@ -330,33 +360,73 @@ public class DefaultAclService implements AclService
             return canAccess( user, schema.getAuthorityByType( AuthorityType.CREATE ) );
         }
 
-        return canMakePublic( user, klass ) || canMakePrivate( user, klass );
+        return canMakeClassPublic( user, klass ) || canMakeClassPrivate( user, klass );
     }
 
     @Override
-    public <T extends IdentifiableObject> boolean canMakePublic( User user, Class<T> klass )
+    public <T extends IdentifiableObject> boolean canMakePublic( User user, Object object )
     {
+        if ( object instanceof Class )
+        {
+            throw new IllegalArgumentException( "Input object can't be of type Class!" );
+        }
+
+        Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
+        return !(schema == null || !schema.isShareable())
+            && canAccess( user, schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
+    }
+
+    @Override
+    public <T extends IdentifiableObject> boolean canMakeClassPublic( User user, Class<T> klass ){
         Schema schema = schemaService.getSchema( klass );
         return !(schema == null || !schema.isShareable())
             && canAccess( user, schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
     }
 
     @Override
-    public <T extends IdentifiableObject> boolean canMakePrivate( User user, Class<T> klass )
+    public <T extends IdentifiableObject> boolean canMakePrivate( User user, Object object )
     {
-        Schema schema = schemaService.getSchema( klass );
+        if ( object instanceof Class )
+        {
+            throw new IllegalArgumentException( "Input object can't be of type Class!" );
+        }
+
+        Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object )  );
         return !(schema == null || !schema.isShareable())
             && canAccess( user, schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ) );
     }
 
     @Override
-    public <T extends IdentifiableObject> boolean canMakeExternal( User user, Class<T> klass )
+    public <T extends IdentifiableObject> boolean canMakeClassPrivate( User user, Class<T> klass )
+    {
+        Schema schema = schemaService.getSchema( klass  );
+        return !(schema == null || !schema.isShareable())
+            && canAccess( user, schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ) );
+    }
+
+    @Override
+    public <T extends IdentifiableObject> boolean canMakeExternal( User user, Object object )
+    {
+        if ( object instanceof Class )
+        {
+            throw new IllegalArgumentException( "Input object can't be of type Class!" );
+        }
+
+        Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
+        return !(schema == null || !schema.isShareable())
+            && ((!schema.getAuthorityByType( AuthorityType.EXTERNALIZE ).isEmpty() && haveOverrideAuthority( user ))
+            || haveAuthority( user, schema.getAuthorityByType( AuthorityType.EXTERNALIZE ) ));
+    }
+
+    @Override
+    public <T extends IdentifiableObject> boolean canMakeClassExternal( User user, Class<T> klass )
     {
         Schema schema = schemaService.getSchema( klass );
         return !(schema == null || !schema.isShareable())
             && ((!schema.getAuthorityByType( AuthorityType.EXTERNALIZE ).isEmpty() && haveOverrideAuthority( user ))
             || haveAuthority( user, schema.getAuthorityByType( AuthorityType.EXTERNALIZE ) ));
     }
+
 
     @Override
     public <T extends IdentifiableObject> boolean defaultPrivate( Class<T> klass )
@@ -366,9 +436,14 @@ public class DefaultAclService implements AclService
     }
 
     @Override
-    public <T extends IdentifiableObject> boolean defaultPublic( Class<T> klass )
+    public <T extends IdentifiableObject> boolean defaultPublic( Object object )
     {
-        return !defaultPrivate( klass );
+        if ( object instanceof Class )
+        {
+            throw new IllegalArgumentException( "Input object can't be of type Class!" );
+        }
+
+        return !defaultPrivate( HibernateProxyUtils.getRealClass( object ) );
     }
 
     @Override
@@ -392,7 +467,7 @@ public class DefaultAclService implements AclService
         {
             Access access = new Access( true );
 
-            if ( isDataShareable( object.getClass() ) )
+            if ( isDataShareable( object ) )
             {
                 access.setData( new AccessData( true, true ) );
             }
@@ -402,13 +477,13 @@ public class DefaultAclService implements AclService
 
         Access access = new Access();
         access.setManage( canManage( user, object ) );
-        access.setExternalize( canMakeExternal( user, object.getClass() ) );
+        access.setExternalize( canMakeExternal( user, object ) );
         access.setWrite( canWrite( user, object ) );
         access.setRead( canRead( user, object ) );
         access.setUpdate( canUpdate( user, object ) );
         access.setDelete( canDelete( user, object ) );
 
-        if ( isDataShareable( object.getClass() ) )
+        if ( isDataShareable( object ) )
         {
             AccessData data = new AccessData( canDataRead( user, object ), canDataWrite( user, object ) );
 
@@ -421,7 +496,7 @@ public class DefaultAclService implements AclService
     @Override
     public <T extends IdentifiableObject> void resetSharing( T object, User user )
     {
-        if ( object == null || !isShareable( object.getClass() ) || user == null )
+        if ( object == null || !isShareable( object ) || user == null )
         {
             return;
         }
@@ -435,9 +510,9 @@ public class DefaultAclService implements AclService
             baseIdentifiableObject.setUser( user );
         }
 
-        if ( canMakePublic( user, object.getClass() ) )
+        if ( canMakePublic( user, object ) )
         {
-            if ( defaultPublic( object.getClass() ) )
+            if ( defaultPublic( object ) )
             {
                 baseIdentifiableObject.setPublicAccess( AccessStringHelper.READ_WRITE );
             }
@@ -450,7 +525,7 @@ public class DefaultAclService implements AclService
     @Override
     public <T extends IdentifiableObject> void clearSharing( T object, User user )
     {
-        if ( object == null || !isShareable( object.getClass() ) || user == null )
+        if ( object == null || !isShareable( object ) || user == null )
         {
             return;
         }
@@ -469,7 +544,7 @@ public class DefaultAclService implements AclService
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
-        if ( object == null || haveOverrideAuthority( user ) || !isShareable( object.getClass() ) )
+        if ( object == null || haveOverrideAuthority( user ) || !isShareable( object ) )
         {
             return errorReports;
         }
@@ -480,7 +555,7 @@ public class DefaultAclService implements AclService
             return errorReports;
         }
 
-        Schema schema = schemaService.getSchema( object.getClass() );
+        Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
 
         if ( !schema.isDataShareable() )
         {
@@ -517,9 +592,9 @@ public class DefaultAclService implements AclService
             }
         }
 
-        boolean canMakePublic = canMakePublic( user, object.getClass() );
-        boolean canMakePrivate = canMakePrivate( user, object.getClass() );
-        boolean canMakeExternal = canMakeExternal( user, object.getClass() );
+        boolean canMakePublic = canMakePublic( user, object );
+        boolean canMakePrivate = canMakePrivate( user, object );
+        boolean canMakeExternal = canMakeExternal( user, object );
 
         if ( object.getExternalAccess() )
         {
@@ -556,7 +631,7 @@ public class DefaultAclService implements AclService
     private <T extends IdentifiableObject> Collection<? extends ErrorReport> verifyImplicitSharing( User user, T object )
     {
         List<ErrorReport> errorReports = new ArrayList<>();
-        Schema schema = schemaService.getSchema( object.getClass() );
+        Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
 
         if ( !schema.isImplicitPrivateAuthority() || checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE ) )
         {
@@ -607,9 +682,9 @@ public class DefaultAclService implements AclService
      */
     private boolean checkSharingAccess( User user, IdentifiableObject object )
     {
-        boolean canMakePublic = canMakePublic( user, object.getClass() );
-        boolean canMakePrivate = canMakePrivate( user, object.getClass() );
-        boolean canMakeExternal = canMakeExternal( user, object.getClass() );
+        boolean canMakePublic = canMakePublic( user, object );
+        boolean canMakePrivate = canMakePrivate( user, object );
+        boolean canMakeExternal = canMakeExternal( user, object );
 
         if ( AccessStringHelper.DEFAULT.equals( object.getPublicAccess() ) )
         {
@@ -703,7 +778,7 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-        return schemaService.getSchema( object.getClass() ) == null;
+        return schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) ) == null;
     }
 
     private boolean writeCommonCheck( Schema schema, User user, IdentifiableObject object )

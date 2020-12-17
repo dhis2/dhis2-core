@@ -160,8 +160,8 @@ public class AclServiceTest
     {
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
 
-        assertFalse( aclService.canMakePublic( user, Dashboard.class ) );
-        assertTrue( aclService.canMakePrivate( user, Dashboard.class ) );
+        assertFalse( aclService.canMakeClassPublic( user, Dashboard.class ) );
+        assertTrue( aclService.canMakeClassPrivate( user, Dashboard.class ) );
     }
 
     @Test
@@ -182,8 +182,8 @@ public class AclServiceTest
     {
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
 
-        assertFalse( aclService.canMakePublic( user, Visualization.class ) );
-        assertTrue( aclService.canMakePrivate( user, Visualization.class ) );
+        assertFalse( aclService.canMakeClassPublic( user, Visualization.class ) );
+        assertTrue( aclService.canMakeClassPrivate( user, Visualization.class ) );
     }
 
     @Test
@@ -205,8 +205,8 @@ public class AclServiceTest
     {
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
 
-        assertFalse( aclService.canMakePublic( user, Map.class ) );
-        assertTrue( aclService.canMakePrivate( user, Map.class ) );
+        assertFalse( aclService.canMakeClassPublic( user, Map.class ) );
+        assertTrue( aclService.canMakeClassPrivate( user, Map.class ) );
     }
 
     @Test
@@ -227,8 +227,8 @@ public class AclServiceTest
     {
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
 
-        assertFalse( aclService.canMakePublic( user, EventChart.class ) );
-        assertTrue( aclService.canMakePrivate( user, EventChart.class ) );
+        assertFalse( aclService.canMakeClassPublic( user, EventChart.class ) );
+        assertTrue( aclService.canMakeClassPrivate( user, EventChart.class ) );
     }
 
     @Test
@@ -249,8 +249,8 @@ public class AclServiceTest
     {
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
 
-        assertFalse( aclService.canMakePublic( user, EventReport.class ) );
-        assertTrue( aclService.canMakePrivate( user, EventReport.class ) );
+        assertFalse( aclService.canMakeClassPublic( user, EventReport.class ) );
+        assertTrue( aclService.canMakeClassPrivate( user, EventReport.class ) );
     }
 
     @Test
@@ -271,8 +271,8 @@ public class AclServiceTest
     {
         User user = createAdminUser( "F_LEGEND_SET_PRIVATE_ADD" );
 
-        assertFalse( aclService.canMakePublic( user, LegendSet.class ) );
-        assertTrue( aclService.canMakePrivate( user, LegendSet.class ) );
+        assertFalse( aclService.canMakeClassPublic( user, LegendSet.class ) );
+        assertTrue( aclService.canMakeClassPrivate( user, LegendSet.class ) );
     }
 
     @Test

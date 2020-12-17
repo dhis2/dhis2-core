@@ -433,7 +433,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                         if ( property.hasPropertyTransformer() )
                         {
                             // if it has a transformer, re-get the schema (the item klass has probably changed)
-                            Schema sch = schemaService.getDynamicSchema( collectionObject.getClass() );
+                            Schema sch = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( collectionObject ) );
                             node = buildNode( fieldValue, sch.getKlass(), collectionObject, user, property.getName(), defaults );
                         }
                         else
@@ -630,7 +630,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         if ( currentProperty.hasPropertyTransformer() )
         {
-            schema = schemaService.getDynamicSchema( object.getClass() );
+            schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
         }
         else if ( currentProperty.isCollection() )
         {

@@ -28,6 +28,7 @@ package org.hisp.dhis.security.acl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.user.User;
@@ -55,18 +56,22 @@ public interface AclService
     /**
      * Is class supported for acl?
      *
-     * @param klass Class to check
+     * @param object Object to check
      * @return true if type is supported
      */
-    boolean isSupported( Class<?> klass );
+    boolean isSupported( Object object );
+
+    boolean isClassShareable( Class klass );
 
     /**
      * Is class supported for data acl?
      *
-     * @param klass Class to check
+     * @param object Object to check
      * @return true if type is supported
      */
-    boolean isDataShareable( Class<?> klass );
+    boolean isDataShareable( Object object );
+
+    boolean isDataClassShareable( Class clazz );
 
     /**
      * Is type supported for sharing?
@@ -79,10 +84,10 @@ public interface AclService
     /**
      * Is class supported for sharing?
      *
-     * @param klass Class to check
+     * @param o Object to check
      * @return true if type is supported
      */
-    boolean isShareable( Class<?> klass );
+    boolean isShareable( Object o );
 
     /**
      * Can user read this object
@@ -205,10 +210,12 @@ public interface AclService
      * 2. Does user have the authority to create public instances of that object
      *
      * @param user  User to check against
-     * @param klass Class to check
+     * @param object Object to check
      * @return Result of test
      */
-    <T extends IdentifiableObject> boolean canMakePublic( User user, Class<T> klass );
+    <T extends IdentifiableObject> boolean canMakePublic( User user, Object object );
+
+    <T extends IdentifiableObject> boolean canMakeClassPublic( User user, Class<T> klass );
 
     /**
      * Checks if a user can create a private instance of a certain object.
@@ -217,19 +224,23 @@ public interface AclService
      * 2. Does user have the authority to create private instances of that object
      *
      * @param user  User to check against
-     * @param klass Class to check
+     * @param object Object to check
      * @return Result of test
      */
-    <T extends IdentifiableObject> boolean canMakePrivate( User user, Class<T> klass );
+    <T extends IdentifiableObject> boolean canMakePrivate( User user, Object object );
+
+    <T extends IdentifiableObject> boolean canMakeClassPrivate( User user, Class<T> klass );
 
     /**
      * Can user make this object external? (read with no login)
      *
      * @param user  User to check against
-     * @param klass Type to check
+     * @param object Object to check
      * @return Result of test
      */
-    <T extends IdentifiableObject> boolean canMakeExternal( User user, Class<T> klass );
+    <T extends IdentifiableObject> boolean canMakeExternal( User user, Object object );
+
+    <T extends IdentifiableObject> boolean canMakeClassExternal( User user, Class<T> klass );
 
     /**
      * Is the default for this type to be private?
@@ -242,10 +253,10 @@ public interface AclService
     /**
      * Is the default for this type to be public?
      *
-     * @param klass Type to check
+     * @param object Object to check
      * @return Result of test
      */
-    <T extends IdentifiableObject> boolean defaultPublic( Class<T> klass );
+    <T extends IdentifiableObject> boolean defaultPublic( Object object );
 
     /**
      * Returns the class type corresponding to the given class type.

@@ -44,6 +44,7 @@ import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -124,7 +125,7 @@ public abstract class AbstractHibernateListener
     protected Object createAuditEntry( PostDeleteEvent event )
     {
         Map<String,Object> objectMap = new HashMap<>();
-        Schema schema = schemaService.getDynamicSchema( event.getEntity().getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( event.getEntity() ) );
         Map<String, Property> properties = schema.getFieldNameMapProperties();
 
         for ( int i = 0; i< event.getDeletedState().length; i++ )
@@ -172,7 +173,7 @@ public abstract class AbstractHibernateListener
     protected Object createAuditEntry( Object entity, Object[] state, EventSource session, Serializable id, EntityPersister persister )
     {
         Map<String, Object> objectMap = new HashMap<>();
-        Schema schema = schemaService.getDynamicSchema( entity.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( entity ) );
         Map<String, Property> properties = schema.getFieldNameMapProperties();
 
         HibernateProxy entityProxy = null;

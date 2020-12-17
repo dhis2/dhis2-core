@@ -61,6 +61,7 @@ import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
@@ -200,7 +201,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         String username = user != null ? user.getUsername() : "system-process";
 
-        if ( IdentifiableObject.class.isAssignableFrom( object.getClass() ) )
+        if ( IdentifiableObject.class.isAssignableFrom( HibernateProxyUtils.getRealClass( object ) ) )
         {
             object.setAutoFields();
 
@@ -229,20 +230,20 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             }
         }
 
-        if ( user != null && aclService.isShareable( clazz ) )
+        if ( user != null && aclService.isClassShareable( clazz ) )
         {
             BaseIdentifiableObject identifiableObject = object;
 
             if ( clearSharing )
             {
-                if ( aclService.canMakePublic( user, identifiableObject.getClass() ) )
+                if ( aclService.canMakePublic( user, identifiableObject ) )
                 {
-                    if ( aclService.defaultPublic( identifiableObject.getClass() ) )
+                    if ( aclService.defaultPublic( identifiableObject ) )
                     {
                         identifiableObject.setPublicAccess( AccessStringHelper.READ_WRITE );
                     }
                 }
-                else if ( aclService.canMakePrivate( user, identifiableObject.getClass() ) )
+                else if ( aclService.canMakePrivate( user, identifiableObject) )
                 {
                     identifiableObject.setPublicAccess( AccessStringHelper.newInstance().build() );
                 }
@@ -1320,8 +1321,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      */
     private boolean checkPublicAccess( User user, IdentifiableObject identifiableObject )
     {
-        return aclService.canMakePublic( user, identifiableObject.getClass() ) ||
-            (aclService.canMakePrivate( user, identifiableObject.getClass() ) &&
+        return aclService.canMakePublic( user, identifiableObject ) ||
+            (aclService.canMakePrivate( user, identifiableObject ) &&
                 !AccessStringHelper.canReadOrWrite( identifiableObject.getPublicAccess() ));
     }
 
@@ -1332,17 +1333,17 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     private boolean sharingEnabled( User user )
     {
-        return forceAcl() || (aclService.isShareable( clazz ) && !(user == null || user.isSuper()));
+        return forceAcl() || (aclService.isClassShareable( clazz ) && !(user == null || user.isSuper()));
     }
 
     private boolean sharingEnabled( UserInfo userInfo )
     {
-        return forceAcl() || (aclService.isShareable( clazz ) && !(userInfo == null || userInfo.isSuper()));
+        return forceAcl() || (aclService.isClassShareable( clazz ) && !(userInfo == null || userInfo.isSuper()));
     }
 
     private boolean dataSharingEnabled( UserInfo userInfo )
     {
-        return aclService.isDataShareable( clazz ) && !userInfo.isSuper();
+        return aclService.isDataClassShareable( clazz ) && !userInfo.isSuper();
     }
 
     private boolean isReadAllowed( T object, User user )
@@ -1366,7 +1367,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         {
             IdentifiableObject idObject = object;
 
-            if ( aclService.isShareable( clazz ) )
+            if ( aclService.isClassShareable( clazz ) )
             {
                 return aclService.canUpdate( user, idObject );
             }
@@ -1381,7 +1382,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         {
             IdentifiableObject idObject = object;
 
-            if ( aclService.isShareable( clazz ) )
+            if ( aclService.isClassShareable( clazz ) )
             {
                 return aclService.canDelete( user, idObject );
             }

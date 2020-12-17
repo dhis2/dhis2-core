@@ -298,7 +298,7 @@ public class DefaultLinkService implements LinkService
 
     private <T> void generateLink( T object, String hrefBase, boolean deepScan )
     {
-        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
         if ( schema == null )
         {

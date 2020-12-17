@@ -69,9 +69,7 @@ public class DefaultMergeService implements MergeService
             log.error( "Target is a proxy!" );
         }
 
-        Class realClass = HibernateProxyUtils.getRealClass( source );
-
-        Schema schema = schemaService.getDynamicSchema( realClass );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( source ) );
 
         for ( Property property : schema.getProperties() )
         {

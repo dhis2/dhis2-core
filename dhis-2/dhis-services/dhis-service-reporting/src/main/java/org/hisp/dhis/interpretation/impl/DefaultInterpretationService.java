@@ -40,6 +40,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -292,7 +293,7 @@ public class DefaultInterpretationService
     private void notifySubscribers( Interpretation interpretation, InterpretationComment comment, NotificationType notificationType )
     {
         IdentifiableObject interpretableObject = interpretation.getObject();
-        Schema interpretableObjectSchema = schemaService.getDynamicSchema( interpretableObject.getClass() );
+        Schema interpretableObjectSchema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( interpretableObject ) );
 
         if ( interpretableObjectSchema.isSubscribable() )
         {
