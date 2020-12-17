@@ -74,6 +74,8 @@ public class TrackerController
 {
     public static final String RESOURCE_PATH = "/tracker";
 
+    static final String TRACKER_JOB_ADDED = "Tracker job added";
+
     private final TrackerImportService trackerImportService;
 
     private final RenderService renderService;
@@ -98,7 +100,7 @@ public class TrackerController
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
         renderService.toJson( response.getOutputStream(), new WebMessage()
-            .setMessage( "Tracker job added" )
+            .setMessage( TRACKER_JOB_ADDED )
             .setResponse(
                 TrackerJobWebMessageResponse.builder()
                     .id( jobId ).location( location )
@@ -171,7 +173,7 @@ public class TrackerController
         HttpServletResponse response )
         throws HttpStatusCodeException
     {
-        TrackerBundleReportMode trackerBundleReportMode = getTrackerBundleReportMode(reportMode);
+        TrackerBundleReportMode trackerBundleReportMode = getTrackerBundleReportMode( reportMode );
 
         Object importReport = notifier.getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid );
         setNoStore( response );

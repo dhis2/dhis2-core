@@ -21,8 +21,6 @@ import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder
 import java.util.List;
 import java.util.Map;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
@@ -39,7 +37,6 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import com.google.common.base.Enums;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Luciano Fiandesio
@@ -142,11 +139,8 @@ public class TrackerImportParamsBuilder
                                                      TrackerIdScheme defaultIdScheme )
     {
 
-        TrackerIdScheme trackerIdScheme = getEnumWithDefault(
-                TrackerIdScheme.class,
-                parameters,
-                trackerImportParameterKey,
-                defaultIdScheme );
+        TrackerIdScheme trackerIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters,
+            trackerImportParameterKey, defaultIdScheme );
 
         return TrackerIdentifier.of( trackerIdScheme, getAttributeUidOrNull( parameters, trackerImportParameterKey ) );
     }
@@ -168,7 +162,8 @@ public class TrackerImportParamsBuilder
         @Getter
         private final String key;
 
-        TrackerImportParamKey(String key) {
+        TrackerImportParamKey( String key )
+        {
             this.key = key;
         }
     }
