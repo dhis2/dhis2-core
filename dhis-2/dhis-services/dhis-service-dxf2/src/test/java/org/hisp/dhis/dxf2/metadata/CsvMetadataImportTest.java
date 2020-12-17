@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
@@ -37,6 +38,7 @@ import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.csv.CsvImportOptions;
 import org.hisp.dhis.dxf2.csv.CsvImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionService;
@@ -60,7 +62,7 @@ import static org.junit.Assert.assertNotNull;
  * @author Lars Helge Overland
  */
 public class CsvMetadataImportTest
-    extends TransactionalIntegrationTest
+    extends DhisSpringTest
 {
     @Autowired
     private DataElementService dataElementService;
@@ -213,7 +215,8 @@ public class CsvMetadataImportTest
         OptionSet optionSet = optionService.getOptionSetByCode( "COLOR" );
 
         // Total 5 Options added
-        assertEquals( 5, optionSet.getOptions().size() );
+        List<Option> options = optionSet.getOptions();
+        assertEquals( 5, options.size() );
     }
 
     @Test

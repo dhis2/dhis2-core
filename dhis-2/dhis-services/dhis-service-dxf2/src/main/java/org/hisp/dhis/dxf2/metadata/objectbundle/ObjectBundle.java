@@ -361,6 +361,7 @@ public class ObjectBundle implements ObjectIndexProvider
     public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> getObjectMap()
     {
         Set<Class<? extends IdentifiableObject>> klasses = new HashSet<>();
+
         klasses.addAll( objects.get( Boolean.TRUE ).keySet() );
         klasses.addAll( objects.get( Boolean.FALSE ).keySet() );
 

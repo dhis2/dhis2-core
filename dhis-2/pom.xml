@@ -933,7 +933,7 @@
         <version>${struts.version}</version>
         <exclusions>
           <exclusion>
-            <groupId>javassist</groupId>
+            <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
           </exclusion>
           <exclusion>
@@ -1231,6 +1231,10 @@
         <version>${hibernate.version}</version>
         <exclusions>
           <exclusion>
+            <groupId>org.javassist</groupId>
+            <artifactId>javassist</artifactId>
+          </exclusion>
+          <exclusion>
             <groupId>com.fasterxml</groupId>
             <artifactId>classmate</artifactId>
           </exclusion>
@@ -1270,14 +1274,6 @@
         <artifactId>byte-buddy</artifactId>
         <version>${byte-buddy.version}</version>
       </dependency>
-
-      <!-- javassist in use by hibernate - make sure versions are kept in sync  -->
-      <dependency>
-        <groupId>org.javassist</groupId>
-        <artifactId>javassist</artifactId>
-        <version>${javassist.version}</version>
-      </dependency>
-      <!-- logging -->
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-api</artifactId>
@@ -1996,6 +1992,12 @@
         <artifactId>mockito-core</artifactId>
         <version>3.4.6</version>
         <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.powermock</groupId>
@@ -2163,7 +2165,6 @@
     <testcontainers.version>1.15.1</testcontainers.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
     <!-- Keep in sync with Hibernate -->
-    <javassist.version>3.27.0-GA</javassist.version>
     <byte-buddy.version>1.10.18</byte-buddy.version>
   </properties>
 </project>

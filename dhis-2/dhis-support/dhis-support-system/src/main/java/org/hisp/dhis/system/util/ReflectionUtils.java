@@ -30,8 +30,8 @@ package org.hisp.dhis.system.util;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import javassist.util.proxy.ProxyFactory;
 import org.hibernate.collection.spi.PersistentCollection;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Property;
 import org.springframework.util.StringUtils;
 
@@ -480,7 +480,7 @@ public class ReflectionUtils
 
     public static Class<?> getRealClass( Class<?> klass )
     {
-        if ( ProxyFactory.isProxyClass( klass ) )
+        if ( HibernateProxyUtils.isProxy( klass ) )
         {
             klass = klass.getSuperclass();
         }

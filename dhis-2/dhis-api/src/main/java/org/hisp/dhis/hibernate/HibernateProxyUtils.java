@@ -30,71 +30,78 @@ package org.hisp.dhis.hibernate;
 
 import com.google.common.base.Preconditions;
 import org.hibernate.Hibernate;
-import org.hibernate.collection.internal.PersistentSet;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
-import org.hibernate.proxy.pojo.javassist.SerializableProxy;
-import org.hisp.dhis.commons.util.DebugUtils;
+import org.hibernate.proxy.HibernateProxyHelper;
 
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Map;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class HibernateUtils
+public class HibernateProxyUtils
 {
     public static boolean isProxy( Object object )
     {
-        return ( ( object instanceof HibernateProxy ) || ( object instanceof PersistentCollection ) );
+        return ((object instanceof HibernateProxy) || (object instanceof PersistentCollection));
     }
 
-    /**
-     * If object is proxy, get unwrapped non-proxy object.
-     *
-     * @param proxy Object to check and unwrap
-     * @return Unwrapped object if proxyied, if not just returns same object
-     */
-    @SuppressWarnings( "unchecked" )
+    public static Class getRealClass( Object o )
+    {
+        if ( isProxy( o ) )
+        {
+            Class classWithoutInitializingProxy = HibernateProxyHelper.getClassWithoutInitializingProxy( o );
+            return classWithoutInitializingProxy;
+        }
+        else
+        {
+            Class<?> aClass = o.getClass();
+            return aClass;
+        }
+    }
+
     public static <T> T unwrap( T proxy )
     {
-        if ( !isProxy( proxy ) )
-        {
-            return proxy;
-        }
-
-        Hibernate.initialize( proxy );
-
-        if ( HibernateProxy.class.isInstance( proxy ) )
-        {
-            Object result = ((HibernateProxy) proxy).writeReplace();
-
-            if ( !SerializableProxy.class.isInstance( result ) )
-            {
-                return (T) result;
-            }
-        }
-
-        if ( PersistentCollection.class.isInstance( proxy ) )
-        {
-            PersistentCollection persistentCollection = (PersistentCollection) proxy;
-
-            if ( PersistentSet.class.isInstance( persistentCollection ) )
-            {
-                Map<?, ?> map = (Map<?, ?>) persistentCollection.getStoredSnapshot();
-                return (T) new LinkedHashSet<>( map.keySet() );
-            }
-
-            return (T) persistentCollection.getStoredSnapshot();
-        }
-
-        return proxy;
+        return (T) Hibernate.unproxy( proxy );
+//
+//        if ( !isProxy( proxy ) )
+//        {
+//            return proxy;
+//        }
+//
+//        Hibernate.initialize( proxy );
+//
+//        if ( HibernateProxy.class.isInstance( proxy ) )
+//        {
+//            Object result = ((HibernateProxy) proxy).writeReplace();
+//
+//            if ( !SerializableProxy.class.isInstance( result ) )
+//            {
+//                return (T) result;
+//            }
+//        }
+//
+//        if ( PersistentCollection.class.isInstance( proxy ) )
+//        {
+//            PersistentCollection persistentCollection = (PersistentCollection) proxy;
+//
+//            if ( PersistentSet.class.isInstance( persistentCollection ) )
+//            {
+//                Map<?, ?> map = (Map<?, ?>) persistentCollection.getStoredSnapshot();
+//                return (T) new LinkedHashSet<>( map.keySet() );
+//            }
+//
+//            return (T) persistentCollection.getStoredSnapshot();
+//        }
+//
+//        return proxy;
     }
 
     /**
@@ -131,10 +138,25 @@ public class HibernateUtils
                 }
                 catch ( IllegalAccessException | IntrospectionException | InvocationTargetException e )
                 {
-                    DebugUtils.getStackTrace( e );
+                    getStackTrace( e );
                 }
-            });
+            } );
 
         return proxy;
+    }
+
+    public static String getStackTrace( Throwable t )
+    {
+        StringWriter sw = new StringWriter();
+
+        if ( t != null )
+        {
+            PrintWriter pw = new PrintWriter( sw, true );
+            t.printStackTrace( pw );
+            pw.flush();
+            sw.flush();
+        }
+
+        return sw.toString();
     }
 }

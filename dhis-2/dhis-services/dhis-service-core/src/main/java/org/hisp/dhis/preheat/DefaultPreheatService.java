@@ -211,6 +211,7 @@ public class DefaultPreheatService implements PreheatService
                             List<IdentifiableObject> initedObjects = new ArrayList<>();
                             for ( IdentifiableObject object : objects )
                             {
+                                //TODO: *MAS* Find solution without unproxy
                                 IdentifiableObject unproxy = (IdentifiableObject) Hibernate.unproxy( object );
                                 initedObjects.add( unproxy );
                             }

@@ -28,12 +28,12 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javassist.util.proxy.ProxyFactory;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
@@ -160,7 +160,8 @@ public class Preheat
 
         T reference = null;
 
-        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) getRealClass( object.getClass() );
+        Class<? extends IdentifiableObject> klass =
+            (Class<? extends IdentifiableObject>) HibernateProxyUtils.getRealClass( object );
 
         if ( PreheatIdentifier.UID == identifier || PreheatIdentifier.AUTO == identifier )
         {
@@ -200,7 +201,8 @@ public class Preheat
     {
         if ( object == null ) return this;
 
-        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) getRealClass( object.getClass() );
+        Class<? extends IdentifiableObject> klass =
+            (Class<? extends IdentifiableObject>) HibernateProxyUtils.getRealClass( object );
 
         if ( PreheatIdentifier.UID == identifier || PreheatIdentifier.AUTO == identifier )
         {
@@ -268,7 +270,8 @@ public class Preheat
     {
         if ( object == null ) return this;
 
-        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) getRealClass( object.getClass() );
+        Class<? extends IdentifiableObject> klass =
+            (Class<? extends IdentifiableObject>) HibernateProxyUtils.getRealClass( object );
 
         if ( PreheatIdentifier.UID == identifier || PreheatIdentifier.AUTO == identifier )
         {
@@ -355,7 +358,8 @@ public class Preheat
     @SuppressWarnings( "unchecked" )
     public Preheat remove( PreheatIdentifier identifier, IdentifiableObject object )
     {
-        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) getRealClass( object.getClass() );
+        Class<? extends IdentifiableObject> klass =
+            (Class<? extends IdentifiableObject>) HibernateProxyUtils.getRealClass( object );;
 
         if ( PreheatIdentifier.UID == identifier || PreheatIdentifier.AUTO == identifier )
         {
@@ -465,37 +469,26 @@ public class Preheat
         this.uniqueAttributeValues = uniqueAttributeValues;
     }
 
-    public static Class<?> getRealClass( Class<?> klass )
+    public static boolean isDefaultClass( Class klass )
     {
-        if ( ProxyFactory.isProxyClass( klass ) )
-        {
-            klass = klass.getSuperclass();
-        }
-
-        return klass;
-    }
-
-    public static boolean isDefaultClass( IdentifiableObject object )
-    {
-        return object != null && isDefaultClass( getRealClass( object.getClass() ) );
-    }
-
-    public static boolean isDefaultClass( Class<?> klass )
-    {
-        klass = getRealClass( klass );
-
         return Category.class.isAssignableFrom( klass ) || CategoryOption.class.isAssignableFrom( klass )
             || CategoryCombo.class.isAssignableFrom( klass ) || CategoryOptionCombo.class.isAssignableFrom( klass );
     }
 
+    public static boolean isDefaultObject( IdentifiableObject object )
+    {
+        Class klass = HibernateProxyUtils.getRealClass( object );
+        return isDefaultClass( klass );
+    }
+
     public boolean isDefault( IdentifiableObject object )
     {
-        if ( !isDefaultClass( object ) )
+        if ( !isDefaultObject( object ) )
         {
             return false;
         }
 
-        Class<?> klass = getRealClass( object.getClass() );
+        Class<?> klass = HibernateProxyUtils.getRealClass( object );
         IdentifiableObject defaultObject = getDefaults().get( klass );
 
         return defaultObject != null && defaultObject.getUid().equals( object.getUid() );

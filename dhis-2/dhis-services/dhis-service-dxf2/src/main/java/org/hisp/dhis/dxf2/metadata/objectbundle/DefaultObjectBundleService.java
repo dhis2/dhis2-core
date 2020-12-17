@@ -43,6 +43,7 @@ import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatParams;
 import org.hisp.dhis.preheat.PreheatService;
 import org.hisp.dhis.schema.MergeParams;
@@ -52,8 +53,6 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -131,7 +130,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
         preheatParams.setUser( params.getUser() );
         preheatParams.setObjects( params.getObjects() );
 
-        ObjectBundle bundle = new ObjectBundle( params, preheatService.preheat( preheatParams ), params.getObjects() );
+        Preheat preheat = preheatService.preheat( preheatParams );
+
+        ObjectBundle bundle = new ObjectBundle( params, preheat, params.getObjects() );
         bundle.setObjectBundleStatus( ObjectBundleStatus.CREATED );
         bundle.setObjectReferences( preheatService.collectObjectReferences( params.getObjects() ) );
 

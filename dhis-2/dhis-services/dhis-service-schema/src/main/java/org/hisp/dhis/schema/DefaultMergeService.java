@@ -57,8 +57,9 @@ public class DefaultMergeService implements MergeService
         T source = mergeParams.getSource();
         T target = mergeParams.getTarget();
 
-        source = (T) Hibernate.unproxy( source );
-        target = (T) Hibernate.unproxy( target );
+        //TODO: *MAS* Find solution without unproxy
+//        source = (T) Hibernate.unproxy( source );
+//        target = (T) Hibernate.unproxy( target );
 
         Schema schema = schemaService.getDynamicSchema( source.getClass() );
 

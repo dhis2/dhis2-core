@@ -250,7 +250,8 @@ public class DefaultFieldFilterService implements FieldFilterService
     private boolean shouldExclude( Object object, Defaults defaults )
     {
         return Defaults.EXCLUDE == defaults && object instanceof IdentifiableObject &&
-            Preheat.isDefaultClass( (IdentifiableObject) object ) && "default".equals( ((IdentifiableObject) object).getName() );
+            Preheat.isDefaultObject( (IdentifiableObject) object )
+            && "default".equals( ((IdentifiableObject) object).getName() );
     }
 
     private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, User user, String nodeName, Defaults defaults )

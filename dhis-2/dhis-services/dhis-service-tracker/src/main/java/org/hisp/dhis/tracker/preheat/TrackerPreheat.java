@@ -40,12 +40,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramInstance;
@@ -68,7 +65,6 @@ import com.google.api.client.util.Lists;
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
 
-import javassist.util.proxy.ProxyFactory;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -268,8 +264,8 @@ public class TrackerPreheat
             return this;
         }
 
-        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) getRealClass(
-            object.getClass() );
+        Class<? extends IdentifiableObject> klass =
+            (Class<? extends IdentifiableObject>) HibernateProxyUtils.getRealClass( object );
 
         if ( !map.containsKey( klass ) )
         {
@@ -467,42 +463,6 @@ public class TrackerPreheat
         relationships.get( identifier ).put( relationshipUid, relationship );
     }
 
-    public static Class<?> getRealClass( Class<?> klass )
-    {
-        if ( ProxyFactory.isProxyClass( klass ) )
-        {
-            klass = klass.getSuperclass();
-        }
-
-        return klass;
-    }
-
-    public static boolean isDefaultClass( IdentifiableObject object )
-    {
-        return object != null && isDefaultClass( getRealClass( object.getClass() ) );
-    }
-
-    public static boolean isDefaultClass( Class<?> klass )
-    {
-        klass = getRealClass( klass );
-
-        return Category.class.isAssignableFrom( klass ) || CategoryOption.class.isAssignableFrom( klass )
-            || CategoryCombo.class.isAssignableFrom( klass ) || CategoryOptionCombo.class.isAssignableFrom( klass );
-    }
-
-    public boolean isDefault( IdentifiableObject object )
-    {
-        if ( !isDefaultClass( object ) )
-        {
-            return false;
-        }
-
-        Class<?> klass = getRealClass( object.getClass() );
-        IdentifiableObject defaultObject = getDefaults().get( klass );
-
-        return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
-    }
-    
     public ProgramInstance getProgramInstancesWithoutRegistration( String programUid )
     {
         return programInstancesWithoutRegistration.get( programUid );
