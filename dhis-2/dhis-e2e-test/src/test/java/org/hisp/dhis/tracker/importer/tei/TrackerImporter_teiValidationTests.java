@@ -37,6 +37,7 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.metadata.ProgramStageActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
+import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
@@ -58,8 +59,8 @@ public class TrackerImporter_teiValidationTests
 
     private String trackedEntityType;
 
-    private final String program = Constants.TRACKER_PROGRAM_ID;
-    private final String programStageId = "nlXNK4b7LVr";
+    private String program;
+    private String programStageId;
 
     private String mandatoryTetAttribute;
 
@@ -150,10 +151,11 @@ public class TrackerImporter_teiValidationTests
 
         response
             .validateErrorReport()
-            .body( "", hasSize( 2 ) )
-            .body( "message[0]",
-                stringContainsInOrder( "Attribute", "is mandatory in tracked entity type", "but not declared in tracked entity" ) )
-            .body( "errorCode[0]", equalTo( "E1090" ) );
+            .body( "trackerType", hasItem( "ENROLLMENT" ) )
+            .body( "message", hasItem( stringContainsInOrder(
+                "Missing mandatory attribute"
+            ) ) )
+            .body( "errorCode", hasItem( "E1090" ) );
     }
 
     private void setupData()
@@ -182,9 +184,15 @@ public class TrackerImporter_teiValidationTests
 
         trackedEntityType = trackedEntityTypeActions.create( trackedEntityTypePayload );
 
-        JsonObject programPayload = programActions.get(program).getBody();
+        // create a progr
+        program = programActions.createTrackerProgram( Constants.ORG_UNIT_IDS ).extractUid();
+        ApiResponse programResponse = programActions.get(program);
+
+        programStageId = programResponse.extractString( "programStages.id[0]" );
+        JsonObject programPayload = programResponse.getBody();
 
         new JsonObjectBuilder(programPayload)
+            .addObject( "trackedEntityType", new JsonObjectBuilder().addProperty( "id", trackedEntityType ) )
             .addOrAppendToArray( "programTrackedEntityAttributes",
                 new JsonObjectBuilder()
                     .addProperty( "mandatory", "true" )
