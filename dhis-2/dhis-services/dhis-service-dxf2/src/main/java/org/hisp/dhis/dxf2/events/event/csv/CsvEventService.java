@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.events.event.csv;
  */
 
 import org.hisp.dhis.dxf2.events.event.Events;
-import org.locationtech.jts.io.ParseException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,5 +42,5 @@ public interface CsvEventService
     void writeEvents( OutputStream outputStream, Events events, boolean withHeader ) throws IOException;
 
     Events readEvents( InputStream inputStream, boolean skipFirst )
-        throws IOException, ParseException, org.locationtech.jts.io.ParseException;
+        throws IOException, org.locationtech.jts.io.ParseException;
 }

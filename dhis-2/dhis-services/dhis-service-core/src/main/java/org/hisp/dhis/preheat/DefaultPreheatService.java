@@ -961,8 +961,7 @@ public class DefaultPreheatService implements PreheatService
         Map<Class<? extends IdentifiableObject>, Set<String>> uidMap = map.get( PreheatIdentifier.UID );
         Map<Class<? extends IdentifiableObject>, Set<String>> codeMap = map.get( PreheatIdentifier.CODE );
 
-        Class<? extends IdentifiableObject> klass =
-            (Class<? extends IdentifiableObject>) HibernateProxyUtils.getRealClass( identifiableObject );
+        Class<? extends IdentifiableObject> klass = HibernateProxyUtils.getRealClass( identifiableObject );
 
         if ( !uidMap.containsKey( klass ) ) uidMap.put( klass, new HashSet<>() );
         if ( !codeMap.containsKey( klass ) ) codeMap.put( klass, new HashSet<>() );

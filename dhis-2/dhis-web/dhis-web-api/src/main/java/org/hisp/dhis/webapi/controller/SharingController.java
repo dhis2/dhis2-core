@@ -124,7 +124,8 @@ public class SharingController
     // -------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
-    public void getSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response ) throws IOException, WebMessageException
+    public void getSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response )
+        throws IOException, WebMessageException
     {
         type = getSharingType( type );
 

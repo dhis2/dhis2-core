@@ -167,7 +167,7 @@ public class DatabasePoolUtils
         dataSource.setMinPoolSize( minPoolSize );
         dataSource.setInitialPoolSize( initialSize );
         dataSource.setAcquireIncrement( acquireIncrement );
-        dataSource.setMaxIdleTime( 5 );
+        dataSource.setMaxIdleTime( maxIdleTime );
         dataSource.setTestConnectionOnCheckin( testOnCheckIn );
         dataSource.setTestConnectionOnCheckout( testOnCheckOut );
         dataSource.setMaxIdleTimeExcessConnections( maxIdleTimeExcessConnections );

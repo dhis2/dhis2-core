@@ -30,6 +30,7 @@ package org.hisp.dhis.config;
 
 import com.google.common.base.MoreObjects;
 import lombok.extern.slf4j.Slf4j;
+import net.ttddyy.dsproxy.listener.MethodExecutionContext;
 import net.ttddyy.dsproxy.listener.logging.DefaultQueryLogEntryCreator;
 import net.ttddyy.dsproxy.listener.logging.SLF4JLogLevel;
 import net.ttddyy.dsproxy.listener.logging.SLF4JQueryLoggingListener;
@@ -72,7 +73,6 @@ public class DataSourceConfig
     @Bean
     @DependsOn( "dataSource" )
     public NamedParameterJdbcTemplate namedParameterJdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )
-        throws PropertyVetoException
     {
         return new NamedParameterJdbcTemplate( dataSource );
     }
@@ -81,7 +81,6 @@ public class DataSourceConfig
     @DependsOn( "dataSource" )
     @Primary
     public JdbcTemplate jdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )
-        throws PropertyVetoException
     {
         JdbcTemplate jdbcTemplate = new JdbcTemplate( dataSource );
         jdbcTemplate.setFetchSize( 1000 );
@@ -91,7 +90,6 @@ public class DataSourceConfig
     @Bean( "readOnlyJdbcTemplate" )
     @DependsOn( "dataSource" )
     public JdbcTemplate readOnlyJdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )
-        throws PropertyVetoException
     {
         DefaultReadOnlyDataSourceManager manager = new DefaultReadOnlyDataSourceManager( dhisConfig );
 
@@ -103,7 +101,6 @@ public class DataSourceConfig
 
     @Bean( "actualDataSource" )
     public DataSource actualDataSource( HibernateConfigurationProvider hibernateConfigurationProvider )
-        throws PropertyVetoException
     {
         String jdbcUrl = dhisConfig.getProperty( ConfigurationKey.CONNECTION_URL );
         String username = dhisConfig.getProperty( ConfigurationKey.CONNECTION_USERNAME );
@@ -155,9 +152,11 @@ public class DataSourceConfig
             .create( actualDataSource )
             .name( "ProxyDS_DHIS2_" + dhisConfig.getProperty( ConfigurationKey.DB_POOL_TYPE ) +
                 "_" + CodeGenerator.generateCode( 5 ) )
+
             .logSlowQueryBySlf4j(
                 Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS ) ),
                 TimeUnit.MILLISECONDS, SLF4JLogLevel.WARN )
+
             .listener( listener )
             .proxyResultSet();
 
@@ -166,21 +165,24 @@ public class DataSourceConfig
 
         if ( methodLoggingEnabled )
         {
-            b.afterMethod( executionContext -> {
-                Method method = executionContext.getMethod();
-                Class<?> targetClass = executionContext.getTarget().getClass();
-                log.info( "JDBC: " + targetClass.getSimpleName() + "#" + method.getName() );
-            } );
+            b.afterMethod( DataSourceConfig::executeAfterMethod );
         }
 
         if ( elapsedTimeLogging )
         {
-            b.afterQuery( ( execInfo, queryInfoList ) -> {
-                log.info( "Query took " + execInfo.getElapsedTime() + "msec" );
-            } );
+            b.afterQuery( ( execInfo, queryInfoList )
+                -> log.info( "Query took " + execInfo.getElapsedTime() + "msec" ) );
         }
 
         return b.build();
+    }
+
+    private static void executeAfterMethod( MethodExecutionContext executionContext )
+    {
+        Method method = executionContext.getMethod();
+        Class<?> targetClass = executionContext.getTarget().getClass();
+
+        log.info( "JDBC: " + targetClass.getSimpleName() + "#" + method.getName() );
     }
 
     private static class PrettyQueryEntryCreator extends DefaultQueryLogEntryCreator

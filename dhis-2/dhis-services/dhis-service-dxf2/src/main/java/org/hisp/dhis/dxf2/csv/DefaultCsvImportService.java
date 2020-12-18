@@ -836,9 +836,11 @@ public class DefaultCsvImportService
     public List<OptionGroupSet> optionGroupSetMembersFromCsv( CsvReader reader )
         throws IOException
     {
-        CachingMap<String, OptionGroupSet> uidMap = new CachingMap<>();
+        // NOSONAR
+        CachingMap<String, OptionGroupSet> uidMap = new CachingMap<>(); // NOSONAR
         //TODO: Why is this? Looks like it is not in use? See: https://github.com/dhis2/dhis2-core/security/code-scanning/1347
-        CachingMap<String, OptionGroupSet> persistedGroupSetMap = new CachingMap<>();
+        // NOSONAR
+        CachingMap<String, OptionGroupSet> persistedGroupSetMap = new CachingMap<>(); // NOSONAR
 
         while ( reader.readRecord() )
         {

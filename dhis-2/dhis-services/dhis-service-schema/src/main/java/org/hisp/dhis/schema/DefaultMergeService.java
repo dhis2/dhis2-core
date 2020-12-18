@@ -35,6 +35,7 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -146,11 +147,13 @@ public class DefaultMergeService implements MergeService
 
         try
         {
-            return merge( new MergeParams<>( source, (T) HibernateProxyUtils.getRealClass( source ).newInstance() )
+            return merge( new MergeParams<>( source,
+                (T) HibernateProxyUtils.getRealClass( source ).getDeclaredConstructor().newInstance() )
                 .setMergeMode( MergeMode.REPLACE ) );
         }
-        catch ( InstantiationException | IllegalAccessException ignored )
+        catch ( InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e )
         {
+            log.info( "Failed to clone source object, source=" + source, e );
         }
 
         return null;

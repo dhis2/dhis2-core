@@ -49,11 +49,18 @@ import java.util.Objects;
  */
 public class HibernateProxyUtils
 {
+    private HibernateProxyUtils()
+    {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static boolean isProxy( Object object )
     {
         return ((object instanceof HibernateProxy) || (object instanceof PersistentCollection));
     }
 
+
+    @SuppressWarnings( { "rawtypes" } )
     public static Class getRealClass( Object o )
     {
         Objects.requireNonNull( o );
@@ -65,16 +72,15 @@ public class HibernateProxyUtils
 
         if ( isProxy( o ) )
         {
-            Class classWithoutInitializingProxy = HibernateProxyHelper.getClassWithoutInitializingProxy( o );
-            return classWithoutInitializingProxy;
+            return HibernateProxyHelper.getClassWithoutInitializingProxy( o );
         }
         else
         {
-            Class<?> aClass = o.getClass();
-            return aClass;
+            return o.getClass();
         }
     }
 
+    @SuppressWarnings( { "unchecked" } )
     public static <T> T unwrap( T proxy )
     {
         return (T) Hibernate.unproxy( proxy );

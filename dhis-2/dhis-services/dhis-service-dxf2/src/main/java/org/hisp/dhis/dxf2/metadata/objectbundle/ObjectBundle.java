@@ -319,6 +319,7 @@ public class ObjectBundle implements ObjectIndexProvider
         return typedIndexedObjectContainer.containsObject( object );
     }
 
+    @SuppressWarnings( { "unchecked" } )
     private void addObject( IdentifiableObject object )
     {
         if ( object == null )
@@ -326,25 +327,25 @@ public class ObjectBundle implements ObjectIndexProvider
             return;
         }
 
-        Class<? extends IdentifiableObject> aClass = HibernateProxyUtils.getRealClass( object );
+        Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( object );
 
-        if ( !objects.get( Boolean.TRUE ).containsKey( aClass ) )
+        if ( !objects.get( Boolean.TRUE ).containsKey( realClass ) )
         {
-            objects.get( Boolean.TRUE ).put( aClass, new ArrayList<>() );
+            objects.get( Boolean.TRUE ).put( realClass, new ArrayList<>() );
         }
 
-        if ( !objects.get( Boolean.FALSE ).containsKey( aClass ) )
+        if ( !objects.get( Boolean.FALSE ).containsKey( realClass ) )
         {
-            objects.get( Boolean.FALSE ).put( aClass, new ArrayList<>() );
+            objects.get( Boolean.FALSE ).put( realClass, new ArrayList<>() );
         }
 
         if ( isPersisted( object ) )
         {
-            objects.get( Boolean.TRUE ).get( aClass ).add( object );
+            objects.get( Boolean.TRUE ).get( realClass ).add( object );
         }
         else
         {
-            objects.get( Boolean.FALSE ).get( aClass ).add( object );
+            objects.get( Boolean.FALSE ).get( realClass ).add( object );
 
         }
 
@@ -422,6 +423,7 @@ public class ObjectBundle implements ObjectIndexProvider
         this.objectReferences = objectReferences;
     }
 
+    @SuppressWarnings( { "unchecked" } )
     public void putExtras( IdentifiableObject identifiableObject, String key, Object object )
     {
         if ( identifiableObject == null || StringUtils.isEmpty( identifiableObject.getUid() ) || object == null )
@@ -429,21 +431,14 @@ public class ObjectBundle implements ObjectIndexProvider
             return;
         }
 
-        Class<? extends IdentifiableObject> aClass = HibernateProxyUtils.getRealClass( identifiableObject );
+        Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( identifiableObject );
 
-        if ( !extras.containsKey( aClass ) )
-        {
-            extras.put( aClass, new HashMap<>() );
-        }
+        extras.computeIfAbsent( realClass, k ->  new HashMap<>());
 
-        if ( !extras.get( aClass ).containsKey( identifiableObject.getUid() ) )
-        {
-            extras.get( aClass ).put( identifiableObject.getUid(), new HashMap<>() );
-        }
-
-        extras.get( aClass ).get( identifiableObject.getUid() ).put( key, object );
+        extras.get( realClass ).computeIfAbsent( identifiableObject.getUid(), s -> new HashMap<>() ).put( key, object );
     }
 
+    @SuppressWarnings( { "unchecked" } )
     public Object getExtras( IdentifiableObject identifiableObject, String key )
     {
         if ( identifiableObject == null || StringUtils.isEmpty( identifiableObject.getUid() ) )
@@ -451,21 +446,22 @@ public class ObjectBundle implements ObjectIndexProvider
             return null;
         }
 
-        Class<? extends IdentifiableObject> aClass = HibernateProxyUtils.getRealClass( identifiableObject );
+        Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( identifiableObject );
 
-        if ( !extras.containsKey( aClass ) )
+        if ( !extras.containsKey( realClass ) )
         {
             return null;
         }
 
-        if ( !extras.get( aClass ).containsKey( identifiableObject.getUid() ) )
+        if ( !extras.get( realClass ).containsKey( identifiableObject.getUid() ) )
         {
             return null;
         }
 
-        return extras.get( aClass ).get( identifiableObject.getUid() ).get( key );
+        return extras.get( realClass ).get( identifiableObject.getUid() ).get( key );
     }
 
+    @SuppressWarnings( { "unchecked" } )
     public boolean hasExtras( IdentifiableObject identifiableObject, String key )
     {
         if ( identifiableObject == null || StringUtils.isEmpty( identifiableObject.getUid() ) )
@@ -473,21 +469,22 @@ public class ObjectBundle implements ObjectIndexProvider
             return false;
         }
 
-        Class<? extends IdentifiableObject> aClass = HibernateProxyUtils.getRealClass( identifiableObject );
+        Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( identifiableObject );
 
-        if ( !extras.containsKey( aClass ) )
+        if ( !extras.containsKey( realClass ) )
         {
             return false;
         }
 
-        if ( !extras.get( aClass ).containsKey( identifiableObject.getUid() ) )
+        if ( !extras.get( realClass ).containsKey( identifiableObject.getUid() ) )
         {
             return false;
         }
 
-        return extras.get( aClass ).get( identifiableObject.getUid() ).containsKey( key );
+        return extras.get( realClass ).get( identifiableObject.getUid() ).containsKey( key );
     }
 
+    @SuppressWarnings( { "unchecked" } )
     public void removeExtras( IdentifiableObject identifiableObject, String key )
     {
         if ( identifiableObject == null || StringUtils.isEmpty( identifiableObject.getUid() ) || !hasExtras( identifiableObject, key ) )
@@ -495,18 +492,18 @@ public class ObjectBundle implements ObjectIndexProvider
             return;
         }
 
-        Class<? extends IdentifiableObject> aClass = HibernateProxyUtils.getRealClass( identifiableObject );
+        Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( identifiableObject );
 
-        extras.get( aClass ).get( identifiableObject.getUid() ).remove( key );
+        extras.get( realClass ).get( identifiableObject.getUid() ).remove( key );
 
-        if ( extras.get( aClass ).get( identifiableObject.getUid() ).isEmpty() )
+        if ( extras.get( realClass ).get( identifiableObject.getUid() ).isEmpty() )
         {
-            extras.get( aClass ).remove( identifiableObject.getUid() );
+            extras.get( realClass ).remove( identifiableObject.getUid() );
         }
 
-        if ( extras.get( aClass ).isEmpty() )
+        if ( extras.get( realClass ).isEmpty() )
         {
-            extras.remove( aClass );
+            extras.remove( realClass );
         }
     }
 

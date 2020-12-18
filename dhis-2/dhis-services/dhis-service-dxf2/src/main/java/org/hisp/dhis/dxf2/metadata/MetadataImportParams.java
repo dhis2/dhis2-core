@@ -470,16 +470,14 @@ public class MetadataImportParams
         {
             Object value = ReflectionUtils.invokeGetterMethod( schema.getPlural(), metadata );
 
-            if ( value != null )
+            if ( value != null && Collection.class.isAssignableFrom( HibernateProxyUtils.getRealClass( value ) )
+                && schema.isIdentifiableObject() )
             {
-                if ( Collection.class.isAssignableFrom( HibernateProxyUtils.getRealClass( value ) ) && schema.isIdentifiableObject() )
-                {
-                    List<IdentifiableObject> objects = new ArrayList<>( (Collection<IdentifiableObject>) value );
+                List<IdentifiableObject> objects = new ArrayList<>( (Collection<IdentifiableObject>) value );
 
-                    if ( !objects.isEmpty() )
-                    {
-                        objectMap.put( (Class<? extends IdentifiableObject>) schema.getKlass(), objects );
-                    }
+                if ( !objects.isEmpty() )
+                {
+                    objectMap.put( (Class<? extends IdentifiableObject>) schema.getKlass(), objects );
                 }
             }
         }

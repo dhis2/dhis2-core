@@ -28,13 +28,12 @@ package org.hisp.dhis.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.File;
-import java.io.IOException;
-
 import org.springframework.core.io.ClassPathResource;
 import org.testcontainers.shaded.com.google.common.io.Files;
 
-import com.google.common.base.Charsets;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Luciano Fiandesio
@@ -50,6 +49,6 @@ public class TestResourceUtils
     public static String getFileContent( String path )
         throws IOException
     {
-        return Files.toString( getFile( path ), Charsets.UTF_8 );
+        return Files.toString( getFile( path ), StandardCharsets.UTF_8 );
     }
 }

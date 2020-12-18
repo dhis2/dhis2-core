@@ -298,6 +298,7 @@ public class ObjectBundleParams
         return this;
     }
 
+    @SuppressWarnings( { "unchecked" } )
     public ObjectBundleParams addObject( IdentifiableObject object )
     {
         if ( object == null )
@@ -305,14 +306,9 @@ public class ObjectBundleParams
             return this;
         }
 
-        Class<? extends IdentifiableObject> aClass = HibernateProxyUtils.getRealClass( object );
+        Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( object );
 
-        if ( !objects.containsKey( aClass ) )
-        {
-            objects.put( aClass, new ArrayList<>() );
-        }
-
-        objects.get( aClass ).add( object );
+        objects.computeIfAbsent( realClass, k -> new ArrayList<>() ).add( object );
 
         return this;
     }

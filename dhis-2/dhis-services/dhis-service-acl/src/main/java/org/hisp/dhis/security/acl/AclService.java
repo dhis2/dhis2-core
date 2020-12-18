@@ -28,7 +28,6 @@ package org.hisp.dhis.security.acl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.user.User;
@@ -59,9 +58,10 @@ public interface AclService
      * @param object Object to check
      * @return true if type is supported
      */
-    boolean isSupported( Object object );
+    boolean isSupported( IdentifiableObject object );
 
-    boolean isClassShareable( Class klass );
+    @SuppressWarnings( { "rawtypes" } )
+    <T extends IdentifiableObject> boolean isClassShareable( Class<T> klass );
 
     /**
      * Is class supported for data acl?
@@ -69,9 +69,10 @@ public interface AclService
      * @param object Object to check
      * @return true if type is supported
      */
-    boolean isDataShareable( Object object );
+    boolean isDataShareable( IdentifiableObject object );
 
-    boolean isDataClassShareable( Class clazz );
+    @SuppressWarnings( { "rawtypes" } )
+    <T extends IdentifiableObject> boolean isDataClassShareable( Class<T> klass );
 
     /**
      * Is type supported for sharing?
@@ -87,7 +88,7 @@ public interface AclService
      * @param o Object to check
      * @return true if type is supported
      */
-    boolean isShareable( Object o );
+    boolean isShareable( IdentifiableObject o );
 
     /**
      * Can user read this object
@@ -213,7 +214,7 @@ public interface AclService
      * @param object Object to check
      * @return Result of test
      */
-    <T extends IdentifiableObject> boolean canMakePublic( User user, Object object );
+    <T extends IdentifiableObject> boolean canMakePublic( User user, T object );
 
     <T extends IdentifiableObject> boolean canMakeClassPublic( User user, Class<T> klass );
 
@@ -227,7 +228,7 @@ public interface AclService
      * @param object Object to check
      * @return Result of test
      */
-    <T extends IdentifiableObject> boolean canMakePrivate( User user, Object object );
+    <T extends IdentifiableObject> boolean canMakePrivate( User user, T object );
 
     <T extends IdentifiableObject> boolean canMakeClassPrivate( User user, Class<T> klass );
 
@@ -238,7 +239,7 @@ public interface AclService
      * @param object Object to check
      * @return Result of test
      */
-    <T extends IdentifiableObject> boolean canMakeExternal( User user, Object object );
+    <T extends IdentifiableObject> boolean canMakeExternal( User user, T object );
 
     <T extends IdentifiableObject> boolean canMakeClassExternal( User user, Class<T> klass );
 
@@ -256,7 +257,7 @@ public interface AclService
      * @param object Object to check
      * @return Result of test
      */
-    <T extends IdentifiableObject> boolean defaultPublic( Object object );
+    <T extends IdentifiableObject> boolean defaultPublic( T object );
 
     /**
      * Returns the class type corresponding to the given class type.
