@@ -54,7 +54,7 @@ public enum TrackerErrorCode
     E1019( "Only Program attributes is allowed for enrollment; Non valid attribute: `{0}`." ),
     E1008( "Value: `{0}`, does not match the attribute pattern: `{1}`." ),
     E1007( "Error validating attribute value type: `{0}`; Error: `{1}`." ),
-    E1018( "Missing mandatory attribute: `{0}`." ),
+    E1018( "Attribute: `{0}`, is mandatory in program `{1}` but not declared in enrollment `{2}`." ),
     E1075( "Attribute: `{0}`, is missing uid." ),
     E1076( "Attribute: `{0}`, value is null." ),
     E1077( "Attribute: `{0}`, text value exceed the maximum allowed length: `{0}`." ),
