@@ -59,7 +59,7 @@ public class Enrollment implements TrackerDto
     private String updatedAt;
 
     @JsonProperty
-    private String trackedEntityType;
+    private String trackedEntityType; // TODO: can we remove it?
 
     @JsonProperty
     private String trackedEntity;

@@ -29,17 +29,24 @@ package org.hisp.dhis.tracker.converter;
  */
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.vividsolutions.jts.geom.Geometry;
+import lombok.Builder;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -52,27 +59,39 @@ public class TrackedEntityTrackerConverterService
 {
 
     @Override
-    public TrackedEntity to( TrackedEntityInstance trackedEntityInstance )
+    public TrackedEntity to( TrackedEntityInstance tei )
     {
-        List<TrackedEntity> trackedEntities = to( Collections.singletonList( trackedEntityInstance ) );
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setTrackedEntity( tei.getUid() );
+        trackedEntity.setUid( tei.getUid() );
+        trackedEntity.setTrackedEntityType( tei.getTrackedEntityType().getUid() );
+        trackedEntity.setCreatedAt( DateUtils.getIso8601NoTz( tei.getCreatedAtClient() ) );
+        trackedEntity.setUpdatedAt( DateUtils.getIso8601NoTz( tei.getLastUpdatedAtClient() ) );
+        OrganisationUnit ou = tei.getOrganisationUnit();
 
-        if ( trackedEntities.isEmpty() )
+        if ( ou != null )
         {
-            return null;
+            trackedEntity.setOrgUnit( ou.getUid() );
+        }
+        trackedEntity.setInactive( tei.isInactive() );
+        trackedEntity.setDeleted( tei.isDeleted() );
+        trackedEntity.setGeometry( tei.getGeometry() );
+        trackedEntity.setStoredBy( tei.getStoredBy() );
+
+        for ( AttributeValue attributeValue : tei.getAttributeValues() )
+        {
+            Attribute attribute = new Attribute();
+            attribute.setAttribute( attributeValue.getAttribute().getUid() );
+            attribute.setCode( attributeValue.getAttribute().getCode() );
+            attribute.setCreatedAt( DateUtils.getIso8601NoTz( attributeValue.getAttribute().getCreated() ) );
+            attribute.setUpdatedAt( DateUtils.getIso8601NoTz( attributeValue.getAttribute().getLastUpdated() ) );
+            //attribute.setStoredBy( attributeValue.getAttribute().get ); // TODO find it
+            attribute.setValueType( attributeValue.getAttribute().getValueType() );
+            attribute.setValue( attributeValue.getValue() );
         }
 
-        return trackedEntities.get( 0 );
-    }
-
-    @Override
-    public List<TrackedEntity> to( List<TrackedEntityInstance> trackedEntityInstances )
-    {
-        return trackedEntityInstances.stream().map( tei -> {
-            TrackedEntity trackedEntity = new TrackedEntity();
-            trackedEntity.setTrackedEntity( tei.getUid() );
-
-            return trackedEntity;
-        } ).collect( Collectors.toList() );
+        // TODO: Program Owners
+        return trackedEntity;
     }
 
     @Override
@@ -82,16 +101,6 @@ public class TrackedEntityTrackerConverterService
         TrackedEntityInstance tei = preheat.getTrackedEntity( TrackerIdScheme.UID,
             trackedEntity.getTrackedEntity() );
         return from( preheat, trackedEntity, tei );
-    }
-
-    @Override
-    public List<TrackedEntityInstance> from( TrackerPreheat preheat,
-        List<TrackedEntity> trackedEntityInstances )
-    {
-        return trackedEntityInstances
-            .stream()
-            .map( te -> from( preheat, te ) )
-            .collect( Collectors.toList() );
     }
 
     @Override

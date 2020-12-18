@@ -68,82 +68,63 @@ public class EventTrackerConverterService
     private final NotesConverterService notesConverterService;
 
     @Override
-    public Event to( ProgramStageInstance programStageInstance )
+    public Event to( ProgramStageInstance psi )
     {
-        List<Event> events = to( Collections.singletonList( programStageInstance ) );
+        Event event = new Event();
+        event.setEvent( psi.getUid() );
 
-        if ( events.isEmpty() )
+        if ( psi.getProgramInstance().getEntityInstance() != null )
         {
-            return null;
+            event.setTrackedEntity( psi.getProgramInstance().getEntityInstance().getUid() );
         }
 
-        return events.get( 0 );
-    }
+        event.setFollowUp( psi.getProgramInstance().getFollowup() );
+        event.setEnrollmentStatus( EnrollmentStatus.fromProgramStatus( psi.getProgramInstance().getStatus() ) );
+        event.setStatus( psi.getStatus() );
+        event.setOccurredAt( DateUtils.getIso8601NoTz( psi.getExecutionDate() ) );
+        event.setScheduledAt( DateUtils.getIso8601NoTz( psi.getDueDate() ) );
+        event.setStoredBy( psi.getStoredBy() );
+        event.setCompletedBy( psi.getCompletedBy() );
+        event.setCompletedAt( DateUtils.getIso8601NoTz( psi.getCompletedDate() ) );
+        event.setCreatedAt( DateUtils.getIso8601NoTz( psi.getCreated() ) );
+        event.setUpdatedAt( DateUtils.getIso8601NoTz( psi.getLastUpdated() ) );
+        event.setGeometry( psi.getGeometry() );
+        event.setDeleted( psi.isDeleted() );
 
-    @Override
-    public List<Event> to( List<ProgramStageInstance> programStageInstances )
-    {
-        List<Event> events = new ArrayList<>();
+        OrganisationUnit ou = psi.getOrganisationUnit();
 
-        programStageInstances.forEach( psi -> {
-            Event event = new Event();
-            event.setEvent( psi.getUid() );
+        if ( ou != null )
+        {
+            event.setOrgUnit( ou.getUid() );
+        }
 
-            if ( psi.getProgramInstance().getEntityInstance() != null )
-            {
-                event.setTrackedEntity( psi.getProgramInstance().getEntityInstance().getUid() );
-            }
+        Program program = psi.getProgramInstance().getProgram();
 
-            event.setFollowUp( psi.getProgramInstance().getFollowup() );
-            event.setEnrollmentStatus( EnrollmentStatus.fromProgramStatus( psi.getProgramInstance().getStatus() ) );
-            event.setStatus( psi.getStatus() );
-            event.setOccurredAt( DateUtils.getIso8601NoTz( psi.getExecutionDate() ) );
-            event.setScheduledAt( DateUtils.getIso8601NoTz( psi.getDueDate() ) );
-            event.setStoredBy( psi.getStoredBy() );
-            event.setCompletedBy( psi.getCompletedBy() );
-            event.setCompletedAt( DateUtils.getIso8601NoTz( psi.getCompletedDate() ) );
-            event.setCreatedAt( DateUtils.getIso8601NoTz( psi.getCreated() ) );
-            event.setUpdatedAt( DateUtils.getIso8601NoTz( psi.getLastUpdated() ) );
-            event.setGeometry( psi.getGeometry() );
-            event.setDeleted( psi.isDeleted() );
+        event.setProgram( program.getUid() );
+        event.setEnrollment( psi.getProgramInstance().getUid() );
+        event.setProgramStage( psi.getProgramStage().getUid() );
+        Optional<CategoryOptionCombo> attributeOptionCombo = Optional.ofNullable( psi.getAttributeOptionCombo() );
+        attributeOptionCombo.ifPresent( ac -> event.setAttributeOptionCombo( ac.getUid() ) );
+        attributeOptionCombo.ifPresent( ac ->
+            event.setAttributeCategoryOptions( ac.getCategoryOptions().stream().map( CategoryOption::getUid )
+                .collect( Collectors.joining( ";" ) ) ) );
 
-            OrganisationUnit ou = psi.getOrganisationUnit();
+        Set<EventDataValue> dataValues = psi.getEventDataValues();
 
-            if ( ou != null )
-            {
-                event.setOrgUnit( ou.getUid() );
-            }
+        for ( EventDataValue dataValue : dataValues )
+        {
+            DataValue value = new DataValue();
+            value.setCreatedAt( DateUtils.getIso8601NoTz( dataValue.getCreated() ) );
+            value.setUpdatedAt( DateUtils.getIso8601NoTz( dataValue.getLastUpdated() ) );
+            value.setDataElement( dataValue.getDataElement() );
+            value.setValue( dataValue.getValue() );
+            value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
+            value.setStoredBy( dataValue.getStoredBy() );
 
-            Program program = psi.getProgramInstance().getProgram();
+            event.getDataValues().add( value );
+        }
 
-            event.setProgram( program.getUid() );
-            event.setEnrollment( psi.getProgramInstance().getUid() );
-            event.setProgramStage( psi.getProgramStage().getUid() );
-            Optional<CategoryOptionCombo> attributeOptionCombo = Optional.ofNullable( psi.getAttributeOptionCombo() );
-            attributeOptionCombo.ifPresent( ac -> event.setAttributeOptionCombo( ac.getUid() ) );
-            attributeOptionCombo.ifPresent( ac ->
-                event.setAttributeCategoryOptions( ac.getCategoryOptions().stream().map( CategoryOption::getUid )
-                    .collect( Collectors.joining( ";" ) ) ) );
-
-            Set<EventDataValue> dataValues = psi.getEventDataValues();
-
-            for ( EventDataValue dataValue : dataValues )
-            {
-                DataValue value = new DataValue();
-                value.setCreatedAt( DateUtils.getIso8601NoTz( dataValue.getCreated() ) );
-                value.setUpdatedAt( DateUtils.getIso8601NoTz( dataValue.getLastUpdated() ) );
-                value.setDataElement( dataValue.getDataElement() );
-                value.setValue( dataValue.getValue() );
-                value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
-                value.setStoredBy( dataValue.getStoredBy() );
-
-                event.getDataValues().add( value );
-            }
-
-            events.add( event );
-        } );
-
-        return events;
+        return event;
     }
 
     @Override
@@ -151,15 +132,6 @@ public class EventTrackerConverterService
     {
         ProgramStageInstance programStageInstance = preheat.getEvent( TrackerIdScheme.UID, event.getEvent() );
         return from( preheat, event, programStageInstance );
-    }
-
-    @Override
-    public List<ProgramStageInstance> from( TrackerPreheat preheat, List<Event> events )
-    {
-        return events
-            .stream()
-            .map( e -> from( preheat, e ) )
-            .collect( Collectors.toList() );
     }
 
     @Override

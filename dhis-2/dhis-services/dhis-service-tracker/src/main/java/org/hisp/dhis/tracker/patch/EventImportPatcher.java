@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.converter;
+package org.hisp.dhis.tracker.patch;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,50 +28,59 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.tracker.domain.Note;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.util.DateUtils;
+import com.google.common.collect.Lists;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.program.*;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.converter.PatchConverterService;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Event;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Optional;
+
 /**
- * @author Luciano Fiandesio
+ * @author Enrico Colasante
  */
 @Service
-public class NotesConverterService implements TrackerConverterService<Note, TrackedEntityComment>
+@Slf4j
+@RequiredArgsConstructor
+public class EventImportPatcher
+    extends AbstractImportPatcher<Event, ProgramStageInstance>
 {
+    @NonNull
+    private final ProgramStageInstanceStore psiStore;
+
+    @NonNull
+    private final PatchConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
+
     @Override
-    public Note to( TrackedEntityComment trackedEntityComment )
+    protected Event getPayloadEntity( TrackerImportParams params )
     {
-        Note note = new Note();
-        note.setNote( trackedEntityComment.getUid() );
-        note.setValue( trackedEntityComment.getCommentText() );
-        note.setStoredAt( DateUtils.getIso8601NoTz( trackedEntityComment.getCreated() ) );
-        note.setStoredBy( trackedEntityComment.getCreator() );
-        return note;
+        return params.getEvents().get( 0 );
     }
 
     @Override
-    public TrackedEntityComment from( TrackerPreheat preheat, Note note )
+    protected Optional<ProgramStageInstance> getEntityFromDB( Event payloadEntity,
+        TrackerImportParams params )
     {
-        TrackedEntityComment comment = new TrackedEntityComment();
-        comment.setUid( note.getNote() );
-        comment.setAutoFields();
-        comment.setCommentText( note.getValue() );
-
-        comment.setLastUpdatedBy( preheat.getUser() );
-        comment.setLastUpdated( new Date() );
-
-        return comment;
+        ProgramStageInstance programStageInstance = psiStore
+            .getByUid( params.getEvents().get( 0 ).getEvent() );
+        return Optional.ofNullable( programStageInstance );
     }
 
     @Override
-    public TrackedEntityComment fromForRuleEngine( TrackerPreheat preheat, Note object )
+    protected Event convertForPatch( ProgramStageInstance entity, Event payloadEntity )
     {
-        return null;
+        return eventTrackerConverterService.toForPatch( entity, payloadEntity );
+    }
+
+    @Override
+    protected void updatePayload( TrackerImportParams params, Event payloadEntity )
+    {
+        params.setEvents( Lists.newArrayList( payloadEntity ) );
     }
 }

@@ -38,16 +38,19 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.vividsolutions.jts.geom.Geometry;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.EnrollmentStatus;
-import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors;
 import org.hisp.dhis.util.DateUtils;
@@ -67,26 +70,52 @@ public class EnrollmentTrackerConverterService
     @Override
     public Enrollment to( ProgramInstance programInstance )
     {
-        List<Enrollment> enrollments = to( Collections.singletonList( programInstance ) );
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( programInstance.getUid() );
+        enrollment.setEnrollment( programInstance.getUid() );
+        enrollment.setCreatedAt( DateUtils.getIso8601NoTz( programInstance.getCreatedAtClient() ) );
+        enrollment.setUpdatedAt( DateUtils.getIso8601NoTz( programInstance.getLastUpdatedAtClient() ) );
+        enrollment.setTrackedEntity( programInstance.getEntityInstance().getUid() );
+        enrollment.setProgram( programInstance.getProgram().getUid() );
+        enrollment.setStatus( convertStatus( programInstance.getStatus() ) );
+        enrollment.setOrgUnit( programInstance.getOrganisationUnit().getUid() );
+        enrollment.setEnrolledAt( DateUtils.getIso8601NoTz( programInstance.getEnrollmentDate() ) );
+        enrollment.setOccurredAt( DateUtils.getIso8601NoTz( programInstance.getIncidentDate() ) );
+        enrollment.setFollowUp( programInstance.getFollowup() );
+        enrollment.setCompletedBy( programInstance.getCompletedBy() );
+        enrollment.setCompletedAt( DateUtils.getIso8601NoTz( programInstance.getEndDate() ) );
+        enrollment.setDeleted( programInstance.isDeleted() );
+        enrollment.setStoredBy( programInstance.getStoredBy() );
+        enrollment.setGeometry( programInstance.getGeometry() );
 
-        if ( enrollments.isEmpty() )
+        for ( AttributeValue attributeValue : programInstance.getAttributeValues() )
         {
-            return null;
+            Attribute attribute = new Attribute();
+            attribute.setAttribute( attributeValue.getAttribute().getUid() );
+            attribute.setCode( attributeValue.getAttribute().getCode() );
+            attribute.setCreatedAt( DateUtils.getIso8601NoTz( attributeValue.getAttribute().getCreated() ) );
+            attribute.setUpdatedAt( DateUtils.getIso8601NoTz( attributeValue.getAttribute().getLastUpdated() ) );
+            //attribute.setStoredBy( attributeValue.getAttribute().get ); // TODO find it
+            attribute.setValueType( attributeValue.getAttribute().getValueType() );
+            attribute.setValue( attributeValue.getValue() );
         }
 
-        return enrollments.get( 0 );
+        return enrollment;
     }
 
-    @Override
-    public List<Enrollment> to( List<ProgramInstance> programInstances )
+    private EnrollmentStatus convertStatus( ProgramStatus status )
     {
-        List<Enrollment> enrollments = new ArrayList<>();
+        switch ( status )
+        {
+        case ACTIVE:
+            return EnrollmentStatus.ACTIVE;
+        case COMPLETED:
+            return EnrollmentStatus.COMPLETED;
+        case CANCELLED:
+            return EnrollmentStatus.CANCELLED;
+        }
 
-        programInstances.forEach( tei -> {
-            // TODO: Add implementation
-        } );
-
-        return enrollments;
+        return null;
     }
 
     @Override
@@ -94,15 +123,6 @@ public class EnrollmentTrackerConverterService
     {
         ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
         return from( preheat, enrollment, programInstance );
-    }
-
-    @Override
-    public List<ProgramInstance> from( TrackerPreheat preheat, List<Enrollment> enrollments )
-    {
-        return enrollments
-            .stream()
-            .map( enrollment -> from( preheat, enrollment ) )
-            .collect( Collectors.toList() );
     }
 
     @Override

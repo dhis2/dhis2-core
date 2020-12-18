@@ -34,6 +34,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import com.google.common.collect.Lists;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -63,6 +64,11 @@ public class TrackerValidationReport
     //-----------------------------------------------------------------------------------
     // Utility Methods
     //-----------------------------------------------------------------------------------
+
+    public void add( TrackerErrorReport trackerErrorReport )
+    {
+        add( Lists.newArrayList( trackerErrorReport ) );
+    }
 
     public void add( TrackerValidationReport validationReport )
     {

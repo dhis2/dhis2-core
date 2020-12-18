@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.tracker.patch;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,77 +28,41 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.vividsolutions.jts.geom.Geometry;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Enrico Colasante
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class TrackedEntity implements TrackerDto
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class TrackerImportPatchService
 {
-    private String uid;
 
-    @JsonProperty
-    private String trackedEntity;
+    private List<AbstractImportPatcher> patchers = new ArrayList<>();
 
-    @JsonProperty
-    private String trackedEntityType;
-
-    @JsonProperty
-    private String createdAt;
-
-    @JsonProperty
-    private String updatedAt;
-
-    @JsonProperty
-    private String orgUnit;
-
-    @JsonProperty
-    private Boolean inactive;
-
-    @JsonProperty
-    private boolean deleted;
-
-    @JsonProperty
-    private Geometry geometry;
-
-    @JsonProperty
-    private String storedBy;
-
-    @JsonProperty
-    @Builder.Default
-    private List<Relationship> relationships = new ArrayList<>();
-
-    @JsonProperty
-    @Builder.Default
-    private List<Attribute> attributes = new ArrayList<>();
-
-    @JsonProperty
-    @Builder.Default
-    private List<Enrollment> enrollments = new ArrayList<>();
-
-    @JsonProperty
-    @Builder.Default
-    private List<ProgramOwner> programOwners = new ArrayList<>(); // TODO: can we remove it?
-
-    @Override
-    public void setDefaults()
+    @Autowired
+    public void setPatchers( List<AbstractImportPatcher> patchers )
     {
-        if ( inactive == null )
-        {
-            inactive = false;
-        }
+        this.patchers = patchers;
+    }
+
+    @Transactional( readOnly = true )
+    public TrackerValidationReport validatePatch( TrackerImportParams params )
+    {
+        return patchers
+            .stream()
+            .map( p -> p.patch( params ) )
+            .reduce( ( a, b ) -> a + b )
+            .orElse( "" );
     }
 }

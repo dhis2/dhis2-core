@@ -40,6 +40,7 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.patch.TrackerImportPatchService;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.report.*;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
@@ -79,7 +80,7 @@ public class DefaultTrackerImportService
     private final Notifier notifier;
 
     @NonNull
-    private final TrackerImportPatcher trackerImportPatcher;
+    private final TrackerImportPatchService trackerImportPatchService;
 
     @Override
     public TrackerImportReport importTracker( TrackerImportParams params )
@@ -89,27 +90,33 @@ public class DefaultTrackerImportService
 
         Map<TrackerType, Integer> bundleSize = calculatePayloadSize( params );
 
+        params.setUser( trackerUserService.getUser( params.getUserId() ) );
+
         // Init the Notifier
         ImportNotifier notifier = new ImportNotifier( this.notifier, params );
 
         notifier.startImport();
 
-        params.setUser( trackerUserService.getUser( params.getUserId() ) );
-
-        String patchValidationReport = opsTimer.exec( PATCH_VALIDATION,
-            () -> updateParamsForPatch( params ) );
-
-        if ( !patchValidationReport.isEmpty() )
-        {
-            return buildReportAndNotify( new TrackerValidationReport(), opsTimer, bundleSize, notifier );
-        }
-
-        TrackerValidationReport validationReport = null;
+        TrackerValidationReport validationReport = new TrackerValidationReport();
 
         TrackerBundleReport bundleReport;
 
         try
         {
+
+            //
+            // check patch
+            //
+            if ( TrackerImportStrategy.PATCH == params.getImportStrategy() )
+            {
+                TrackerValidationReport patchValidationReport = opsTimer.exec( PATCH_VALIDATION,
+                    () -> updateParamsForPatch( params ) );
+
+                if ( !patchValidationReport.hasErrors() )
+                {
+                    return buildReportAndNotify( patchValidationReport, opsTimer, bundleSize, notifier );
+                }
+            }
             //
             // pre-heat
             //
@@ -177,14 +184,9 @@ public class DefaultTrackerImportService
         }
     }
 
-    private String updateParamsForPatch( TrackerImportParams params )
+    private TrackerValidationReport updateParamsForPatch( TrackerImportParams params )
     {
-        if ( params.getImportStrategy().equals( TrackerImportStrategy.PATCH ) )
-        {
-            return trackerImportPatcher.validatePatch( params );
-        }
-
-        return "";
+        return trackerImportPatchService.validatePatch( params );
     }
 
     private TrackerValidationReport execRuleEngine( TrackerTimingsStats opsTimer, TrackerBundle trackerBundle,

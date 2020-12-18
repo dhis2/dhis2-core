@@ -29,7 +29,10 @@ package org.hisp.dhis.tracker.converter;
  */
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 
 /**
@@ -39,16 +42,28 @@ public interface TrackerConverterService<From, To>
 {
     From to( To object );
 
-    List<From> to( List<To> objects );
-
     To from( TrackerPreheat preheat, From object );
-
-    List<To> from( TrackerPreheat preheat, List<From> objects );
 
     To fromForRuleEngine( TrackerPreheat preheat, From object );
 
     default boolean isNewEntity( To entity )
     {
         return entity == null;
+    }
+
+    default List<From> to( List<To> entities )
+    {
+        return entities
+            .stream()
+            .map( this::to )
+            .collect( Collectors.toList() );
+    }
+
+    default List<To> from( TrackerPreheat preheat, List<From> entities )
+    {
+        return entities
+            .stream()
+            .map( e -> from( preheat, e ) )
+            .collect( Collectors.toList() );
     }
 }

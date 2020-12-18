@@ -87,11 +87,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     @Override
     public TrackerTypeReport persist( Session session, TrackerBundle bundle )
     {
-        return bundle.getImportStrategy().isPatch() ? patch( session, bundle ) : saveOrUpdate( session, bundle );
-    }
-
-    private TrackerTypeReport saveOrUpdate( Session session, TrackerBundle bundle ) {
-        
         //
         // Init the report that will hold the results of the persist operation
         //
@@ -196,27 +191,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 
         return typeReport;
         
-    }
-
-    private TrackerTypeReport patch( Session session, TrackerBundle bundle )
-    {
-        TrackerTypeReport typeReport = new TrackerTypeReport( getType() );
-
-        final List<T> entities = getByType( getType(), bundle );
-
-        // Patch only operates one one entity - we expect one entity in the bundle
-        if ( entities.size() == 1 )
-        {
-            T dto = entities.get( 0 );
-
-            TrackerObjectReport objectReport = new TrackerObjectReport( getType(), dto.getUid(), 0 );
-
-            typeReport.addObjectReport( objectReport );
-
-            session.merge( convert( bundle, dto ) );
-            typeReport.getStats().incUpdated();
-        }
-        return typeReport;
     }
 
     // // // // // // // //
