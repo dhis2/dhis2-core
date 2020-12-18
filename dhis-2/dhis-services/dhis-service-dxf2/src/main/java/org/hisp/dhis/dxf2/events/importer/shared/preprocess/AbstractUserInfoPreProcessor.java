@@ -40,6 +40,7 @@ import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.ServiceDelegator;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.user.User;
 
@@ -56,8 +57,17 @@ public abstract class AbstractUserInfoPreProcessor implements Processor
         {
             UserInfoSnapshot userInfo = UserInfoSnapshot.from( user );
             updateEventUserInfo( event, userInfo );
-            updateDataValuesUserInfo( getWorkContextDataValueMapEntry(workContext, event.getUid()), userInfo );
+            updateDataValuesUserInfo( getExistingPsi( workContext, event.getUid() ),
+                getWorkContextDataValueMapEntry( workContext, event.getUid() ), userInfo );
         }
+    }
+
+    private ProgramStageInstance getExistingPsi( WorkContext workContext, String uid )
+    {
+        return Optional.ofNullable( workContext )
+            .map( WorkContext::getProgramStageInstanceMap )
+            .orElse( Collections.emptyMap() )
+            .get( uid );
     }
 
     protected Set<EventDataValue> getWorkContextDataValueMapEntry( WorkContext workContext, String uid )
@@ -68,14 +78,16 @@ public abstract class AbstractUserInfoPreProcessor implements Processor
             .get( uid );
     }
 
-    protected void updateDataValuesUserInfo(Set<EventDataValue> eventDataValueMap, UserInfoSnapshot userInfo )
+    protected void updateDataValuesUserInfo( ProgramStageInstance existingPsi, Set<EventDataValue> eventDataValueMap,
+        UserInfoSnapshot userInfo )
     {
         Optional.ofNullable( eventDataValueMap )
             .orElse( Collections.emptySet() )
-            .forEach( dataValue -> updateDataValueUserInfo( dataValue, userInfo ) );
+            .forEach( dataValue -> updateDataValueUserInfo( existingPsi, dataValue, userInfo ) );
     }
 
-    protected abstract void updateDataValueUserInfo( EventDataValue dataValue, UserInfoSnapshot userInfo );
+    protected abstract void updateDataValueUserInfo( ProgramStageInstance existingPsi, EventDataValue dataValue,
+        UserInfoSnapshot userInfo );
 
     protected abstract void updateEventUserInfo( Event event, UserInfoSnapshot eventUserInfo );
 
