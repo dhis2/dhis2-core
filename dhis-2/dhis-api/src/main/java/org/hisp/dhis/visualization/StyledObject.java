@@ -1,4 +1,4 @@
-package org.hisp.dhis.visualization.refact;
+package org.hisp.dhis.visualization;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -47,7 +47,6 @@ import lombok.Data;
 @Data
 public class StyledObject implements Serializable
 {
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     private String text;

@@ -30,19 +30,19 @@
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jbAxes">
-    <param name="clazz">org.hisp.dhis.visualization.refact.Axis</param>
+    <param name="clazz">org.hisp.dhis.visualization.AxisV2</param>
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbLegendDefinitions">
-    <param name="clazz">org.hisp.dhis.visualization.refact.LegendDefinitions</param>
+    <param name="clazz">org.hisp.dhis.visualization.LegendDefinitions</param>
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbLine">
-    <param name="clazz">org.hisp.dhis.visualization.refact.Line</param>
+    <param name="clazz">org.hisp.dhis.visualization.Line</param>
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbStyledObject">
-    <param name="clazz">org.hisp.dhis.visualization.refact.StyledObject</param>
+    <param name="clazz">org.hisp.dhis.visualization.StyledObject</param>
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbTextPattern">

@@ -1,4 +1,4 @@
-package org.hisp.dhis.visualization.refact;
+package org.hisp.dhis.visualization;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -34,25 +34,22 @@ import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import lombok.Data;
 
 /**
- * This class holds the legend definitions and settings for each Visualization.
+ * This class represents a line in the axis. See {@link AxisV2}}.
  *
  * @author maikel arabori
  */
 @Data
-@JacksonXmlRootElement( localName = "legend", namespace = DXF_2_0 )
-public class LegendDefinitions implements Serializable
+public class Line implements Serializable
 {
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private Integer value;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private StyledObject labels;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private Boolean hidden;
+    private StyledObject title;
 }

@@ -85,7 +85,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.visualization.refact.LegendDefinitions;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -250,7 +249,7 @@ public class Visualization
 
     private LegendDefinitions legend;
 
-    private List<org.hisp.dhis.visualization.refact.Axis> axes = new ArrayList<>();
+    private List<AxisV2> axes = new ArrayList<>();
 
     /**
      * The period of years of this visualization. See RelativePeriodEnum for a valid
@@ -1106,12 +1105,12 @@ public class Visualization
 
     @JsonProperty( value = "axes" )
     @JacksonXmlProperty( localName = "axes", namespace = DXF_2_0 )
-    public List<org.hisp.dhis.visualization.refact.Axis> getAxes()
+    public List<AxisV2> getAxes()
     {
         return axes;
     }
 
-    public void setAxes( List<org.hisp.dhis.visualization.refact.Axis> axes )
+    public void setAxes( List<AxisV2> axes )
     {
         this.axes = axes;
     }

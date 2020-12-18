@@ -1,4 +1,4 @@
-package org.hisp.dhis.visualization.refact;
+package org.hisp.dhis.visualization;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -35,6 +35,7 @@ import java.io.Serializable;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.Data;
 
 /**
@@ -43,9 +44,9 @@ import lombok.Data;
  * @author maikel arabori
  */
 @Data
-public class Axis implements Serializable
+@JacksonXmlRootElement( localName = "axis", namespace = DXF_2_0 )
+public class AxisV2 implements Serializable
 {
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     private Integer index;
@@ -56,7 +57,7 @@ public class Axis implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private StyledObject labels;
+    private StyledObject label;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )

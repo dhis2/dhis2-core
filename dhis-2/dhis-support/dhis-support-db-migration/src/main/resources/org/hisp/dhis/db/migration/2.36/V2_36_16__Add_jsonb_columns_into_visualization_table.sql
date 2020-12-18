@@ -85,11 +85,11 @@ $$
                 legendJson := '{}';
 
                 IF r.legendFontStyle IS NOT NULL THEN
-                    legendJson := jsonb_set(legendJson::jsonb, '{labels}', format('{"fontStyle":%s}', r.legendFontStyle)::jsonb);
+                    legendJson := jsonb_set(legendJson::jsonb, '{label}', format('{"fontStyle":%s}', r.legendFontStyle)::jsonb);
                     has_legend := TRUE;
 
                     IF debug THEN
-                        RAISE INFO '%', CONCAT('Legend:labels: ', legendJson);
+                        RAISE INFO '%', CONCAT('Legend:label: ', legendJson);
                     END IF;
                 END IF;
 
@@ -116,11 +116,11 @@ $$
 
                 -- Axis RANGE
                 IF r.seriesAxisLabelFontStyle IS NOT NULL THEN
-                    axesJson := jsonb_set(axesJson::jsonb, ('{' || axisIndex || ',labels}')::TEXT[], format('{"fontStyle":%s}', r.seriesAxisLabelFontStyle)::jsonb);
+                    axesJson := jsonb_set(axesJson::jsonb, ('{' || axisIndex || ',label}')::TEXT[], format('{"fontStyle":%s}', r.seriesAxisLabelFontStyle)::jsonb);
                     has_range := TRUE;
 
                     IF debug THEN
-                        RAISE INFO '%', CONCAT('Axes RANGE, labels: ', axesJson);
+                        RAISE INFO '%', CONCAT('Axes RANGE, label: ', axesJson);
                     END IF;
                 END IF;
 
@@ -286,18 +286,16 @@ $$
 
                 -- Axis DOMAIN
                 IF r.categoryAxisLabelFontStyle IS NOT NULL THEN
-                    axesJson := jsonb_set(axesJson::jsonb, ('{' || axisIndex || ',labels}')::TEXT[], format('{"fontStyle":%s}', r.categoryAxisLabelFontStyle)::jsonb);
+                    axesJson := jsonb_set(axesJson::jsonb, ('{' || axisIndex || ',label}')::TEXT[], format('{"fontStyle":%s}', r.categoryAxisLabelFontStyle)::jsonb);
                     has_domain := TRUE;
                 END IF;
 
                 IF (COALESCE(r.domainAxisLabel, '') != '' AND r.horizontalAxisTitleFontStyle IS NULL) THEN
                     axesJson := jsonb_set(axesJson::jsonb, ('{' || axisIndex || ',title}')::TEXT[], format('{"text":"%s"}', r.domainAxisLabel)::jsonb);
                     has_domain := TRUE;
-
                 ELSEIF (COALESCE(r.domainAxisLabel, '') = '' AND r.horizontalAxisTitleFontStyle IS NOT NULL) THEN
                     axesJson := jsonb_set(axesJson::jsonb, ('{' || axisIndex || ',title}')::TEXT[], format('{"fontStyle":%s}', r.horizontalAxisTitleFontStyle)::jsonb);
                     has_domain := TRUE;
-
                 ELSEIF (COALESCE(r.domainAxisLabel, '') != '' AND r.horizontalAxisTitleFontStyle IS NOT NULL) THEN
                     axesJson := jsonb_set(axesJson::jsonb, ('{' || axisIndex || ',title}')::TEXT[], format('{"text":"%s", "fontStyle":%s}', r.domainAxisLabel, r.horizontalAxisTitleFontStyle)::jsonb);
                     has_domain := TRUE;

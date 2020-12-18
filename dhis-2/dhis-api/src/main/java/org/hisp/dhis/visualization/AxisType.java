@@ -1,4 +1,4 @@
-package org.hisp.dhis.visualization.refact;
+package org.hisp.dhis.visualization;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -29,13 +29,12 @@ package org.hisp.dhis.visualization.refact;
  */
 
 /**
- * Represent the axis type. See {@link Axis}}.
+ * Represent the axis type. See {@link AxisV2}}.
  *
  * @author maikel arabori
  */
 public enum AxisType
 {
-
     DOMAIN,
     RANGE
 }
