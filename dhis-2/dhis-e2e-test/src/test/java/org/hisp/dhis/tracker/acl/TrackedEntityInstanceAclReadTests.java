@@ -18,7 +18,6 @@ import org.hisp.dhis.dto.OrgUnit;
 import org.hisp.dhis.dto.UserGroup;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.models.User;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -35,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author Stian Sandvold
  */
-@Ignore
 public class TrackedEntityInstanceAclReadTests
     extends ApiTest
 {
@@ -53,31 +51,31 @@ public class TrackedEntityInstanceAclReadTests
     public void before()
         throws Exception
     {
-        teiActions = new TEIActions();
-        metadataActions = new MetadataActions();
-        userActions = new UserActions();
-
-        // Setup as SuperUser
-        new LoginActions().loginAsDefaultUser();
-
-        // Set up metadata (Import twice to connect all references)
-        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/acl/metadata.json" ) );
-        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/acl/metadata.json" ) );
-
-        // Import test data
-        teiActions.postFile( new File( "src/test/resources/tracker/acl/data.json" ) );
-
-        // Set up all users for testing
-        users.add( new User( "User A", "O2PajOxjJSa", "UserA!123" ) );
-        users.add( new User( "User B", "aDy67f9ijOe", "UserB!123" ) );
-        users.add( new User( "User C", "CKrrGm5Be8O", "UserC!123" ) );
-        users.add( new User( "User D", "Lpa5INiC3Qf", "UserD!123" ) );
-        users.add( new User( "User ALL", "GTqb3WOZMop", "UserALL!123" ) );
-
-        // Update passwords, so we can log in as them
-        // Set AllAuth if user has it and ou scopes.
-        // Map metadata and data sharing
-        users.forEach( this::setupUser );
+//        teiActions = new TEIActions();
+//        metadataActions = new MetadataActions();
+//        userActions = new UserActions();
+//
+//        // Setup as SuperUser
+//        new LoginActions().loginAsDefaultUser();
+//
+//        // Set up metadata (Import twice to connect all references)
+//        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/acl/metadata.json" ) );
+//        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/acl/metadata.json" ) );
+//
+//        // Import test data
+//        teiActions.postFile( new File( "src/test/resources/tracker/acl/data.json" ) );
+//
+//        // Set up all users for testing
+//        users.add( new User( "User A", "O2PajOxjJSa", "UserA!123" ) );
+//        users.add( new User( "User B", "aDy67f9ijOe", "UserB!123" ) );
+//        users.add( new User( "User C", "CKrrGm5Be8O", "UserC!123" ) );
+//        users.add( new User( "User D", "Lpa5INiC3Qf", "UserD!123" ) );
+//        users.add( new User( "User ALL", "GTqb3WOZMop", "UserALL!123" ) );
+//
+//        // Update passwords, so we can log in as them
+//        // Set AllAuth if user has it and ou scopes.
+//        // Map metadata and data sharing
+//        users.forEach( this::setupUser );
     }
 
     /**
@@ -192,31 +190,31 @@ public class TrackedEntityInstanceAclReadTests
         user.setDataRead( dataRead );
     }
 
-    @ParameterizedTest
-    @ValueSource( strings = { "O2PajOxjJSa", "aDy67f9ijOe", "CKrrGm5Be8O", "Lpa5INiC3Qf", "GTqb3WOZMop" } )
-    public void testUserDataAndOrgUnitScopeReadAccess( String userUid )
-    {
-        User user = users.stream()
-            .filter( _user -> _user.getUid().equals( userUid ) )
-            .findFirst()
-            .orElseThrow( () -> new RuntimeException( "User UID not found for test" ) );
-
-        new LoginActions().loginAsUser( user.getUsername(), user.getPassword() );
-
-        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-        queryParamsBuilder.addAll( "ouMode=ACCESSIBLE", "fields=*" );
-        ApiResponse response = teiActions.get( "/", queryParamsBuilder );
-
-        response.validate().statusCode( 200 );
-
-        response.validate().body( "trackedEntityInstances", Matchers.not( Matchers.emptyArray() ) );
-
-        JsonObject json = response.getBody();
-
-        json.getAsJsonArray( "trackedEntityInstances" ).iterator()
-            .forEachRemaining( ( teiJson ) -> assertTrackedEntityInstance( user, teiJson.getAsJsonObject() ) );
-
-    }
+//    @ParameterizedTest
+//    @ValueSource( strings = { "O2PajOxjJSa", "aDy67f9ijOe", "CKrrGm5Be8O", "Lpa5INiC3Qf", "GTqb3WOZMop" } )
+//    public void testUserDataAndOrgUnitScopeReadAccess( String userUid )
+//    {
+//        User user = users.stream()
+//            .filter( _user -> _user.getUid().equals( userUid ) )
+//            .findFirst()
+//            .orElseThrow( () -> new RuntimeException( "User UID not found for test" ) );
+//
+//        new LoginActions().loginAsUser( user.getUsername(), user.getPassword() );
+//
+//        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+//        queryParamsBuilder.addAll( "ouMode=ACCESSIBLE", "fields=*" );
+//        ApiResponse response = teiActions.get( "/", queryParamsBuilder );
+//
+//        response.validate().statusCode( 200 );
+//
+//        response.validate().body( "trackedEntityInstances", Matchers.not( Matchers.emptyArray() ) );
+//
+//        JsonObject json = response.getBody();
+//
+//        json.getAsJsonArray( "trackedEntityInstances" ).iterator()
+//            .forEachRemaining( ( teiJson ) -> assertTrackedEntityInstance( user, teiJson.getAsJsonObject() ) );
+//
+//    }
 
 
     /* Helper methods */
