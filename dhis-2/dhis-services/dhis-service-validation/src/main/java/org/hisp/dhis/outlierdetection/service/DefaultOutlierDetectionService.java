@@ -28,6 +28,9 @@ package org.hisp.dhis.outlierdetection.service;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,6 +47,7 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionService;
 import org.hisp.dhis.outlierdetection.OutlierValue;
+import org.hisp.dhis.system.util.JacksonCsvUtils;
 import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.springframework.stereotype.Service;
 
@@ -174,9 +178,16 @@ public class DefaultOutlierDetectionService
         validate( request );
 
         final OutlierDetectionResponse response = new OutlierDetectionResponse();
-        response.setOutlierValues( outlierDetectionManager.getOutlierValues( request ) );
+        response.setOutlierValues( outlierDetectionManager.getZScoreOutlierValues( request ) );
         response.setMetadata( getMetadata( request, response.getOutlierValues() ) );
         return response;
+    }
+
+    @Override
+    public void getOutlierValuesAsCsv( OutlierDetectionRequest request, OutputStream out )
+        throws IllegalQueryException, IOException
+    {
+        JacksonCsvUtils.toCsv( getOutlierValues( request ).getOutlierValues(), OutlierValue.class, out );
     }
 
     /**
