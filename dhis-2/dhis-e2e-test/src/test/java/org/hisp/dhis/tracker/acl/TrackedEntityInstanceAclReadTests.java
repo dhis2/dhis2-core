@@ -18,6 +18,7 @@ import org.hisp.dhis.dto.OrgUnit;
 import org.hisp.dhis.dto.UserGroup;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.models.User;
+import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -34,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author Stian Sandvold
  */
+@Ignore
 public class TrackedEntityInstanceAclReadTests
     extends ApiTest
 {
