@@ -20,7 +20,7 @@
     <module>dhis-web-dataentry</module>
     <module>dhis-web-approval</module>
     <module>dhis-web-portal</module>
-    <module>dhis-web-apps</module>
+<!--    <module>dhis-web-apps</module>-->
 
   </modules>
 
@@ -139,13 +139,13 @@
         <artifactId>jetty-maven-plugin</artifactId>
         <version>${maven-jetty-plugin.version}</version>
         <configuration>
-<!--          <requestLog implementation="org.eclipse.jetty.server.NCSARequestLog">-->
-<!--            <filename>/tmp/request.log</filename>-->
-<!--            <retainDays>2</retainDays>-->
-<!--            <append>true</append>-->
-<!--            <extended>false</extended>-->
-<!--            <logTimeZone>GMT</logTimeZone>-->
-<!--          </requestLog>-->
+          <requestLog implementation="org.eclipse.jetty.server.NCSARequestLog">
+            <filename>/tmp/request.log</filename>
+            <retainDays>2</retainDays>
+            <append>true</append>
+            <extended>false</extended>
+            <logTimeZone>GMT</logTimeZone>
+          </requestLog>
           <systemProperties>
             <systemProperty>
               <name>org.eclipse.jetty.server.Request.maxFormContentSize</name>
