@@ -32,6 +32,8 @@ import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.ClickatellRequestEntity;
 import org.hisp.dhis.sms.outbound.ClickatellResponseEntity;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -50,6 +52,13 @@ import java.util.stream.Collectors;
 public class ClickatellHttpGateway
     extends SmsGateway
 {
+    private final PBEStringEncryptor pbeStringEncryptor;
+
+    public ClickatellHttpGateway( @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor )
+    {
+        this.pbeStringEncryptor = pbeStringEncryptor;
+    }
+
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
@@ -100,7 +109,7 @@ public class ClickatellHttpGateway
         headers.set( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
         headers.set( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
         headers.set( PROTOCOL_VERSION, "1" );
-        headers.set( HttpHeaders.AUTHORIZATION, clickatellConfiguration.getAuthToken() );
+        headers.set( HttpHeaders.AUTHORIZATION, pbeStringEncryptor.decrypt( clickatellConfiguration.getPassword() ) );
 
         return headers;
     }
