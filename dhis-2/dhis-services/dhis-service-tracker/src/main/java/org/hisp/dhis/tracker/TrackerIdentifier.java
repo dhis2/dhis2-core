@@ -44,7 +44,7 @@ import org.hisp.dhis.util.ObjectUtils;
 @Data
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor(staticName = "of")
 public class TrackerIdentifier
 {
     public final static TrackerIdentifier UID = builder().idScheme( TrackerIdScheme.UID ).build();
