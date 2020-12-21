@@ -478,7 +478,7 @@ public class HibernateDbmsManager
     {
         try
         {
-            jdbcTemplate.update( "update relationshipitem set relationshipid = null; delete from relationship; delete from relationshipitem" );
+            jdbcTemplate.update( "update relationshipitem set relationshipid = null; delete from relationship; delete from relationshipitem; update relationshiptype set from_relationshipconstraintid = null,to_relationshipconstraintid = null; delete from relationshipconstraint; delete from relationshiptype;" );
         }
         catch ( BadSqlGrammarException ex )
         {
