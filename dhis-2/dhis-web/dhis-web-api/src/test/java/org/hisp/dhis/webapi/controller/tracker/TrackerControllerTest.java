@@ -1,3 +1,5 @@
+package org.hisp.dhis.webapi.controller.tracker;
+
 /*
  *  Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -27,8 +29,6 @@
  *
  */
 
-package org.hisp.dhis.webapi.controller.tracker;
-
 import static org.hisp.dhis.webapi.controller.tracker.TrackerController.TRACKER_JOB_ADDED;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -54,6 +54,7 @@ import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerTimingsStats;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.webapi.controller.tracker.TrackerController;
 import org.hisp.dhis.webapi.service.DefaultContextService;
 import org.junit.Before;
 import org.junit.Rule;
