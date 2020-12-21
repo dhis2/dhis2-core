@@ -28,58 +28,53 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotificationEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by zubair@dhis2.org on 18.01.18.
  */
 @Async
+@RequiredArgsConstructor
 @Component( "org.hisp.dhis.program.notification.ProgramNotificationListener" )
 public class ProgramNotificationListener
 {
     private final ProgramNotificationService programNotificationService;
 
-    public ProgramNotificationListener( ProgramNotificationService programNotificationService )
-    {
-        checkNotNull( programNotificationService );
-        this.programNotificationService = programNotificationService;
-    }
-
-    @TransactionalEventListener
+    @EventListener
     public void onEnrollment( ProgramEnrollmentNotificationEvent event )
     {
         programNotificationService.sendEnrollmentNotifications( event.getProgramInstance() );
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void onCompletion( ProgramEnrollmentCompletionNotificationEvent event )
     {
         programNotificationService.sendEnrollmentCompletionNotifications( event.getProgramInstance() );
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void onEvent( ProgramStageCompletionNotificationEvent event )
     {
         programNotificationService.sendEventCompletionNotifications( event.getProgramStageInstance() );
     }
 
     // Published by rule engine
-    @TransactionalEventListener
+    @EventListener
     public void onProgramRuleEnrollment( ProgramRuleEnrollmentEvent event )
     {
         programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramInstance() );
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void onProgramRuleEvent( ProgramRuleStageEvent event )
     {
         programNotificationService.sendProgramRuleTriggeredEventNotifications( event.getTemplate(), event.getProgramStageInstance() );
