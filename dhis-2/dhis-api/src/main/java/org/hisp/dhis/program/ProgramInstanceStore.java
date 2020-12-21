@@ -109,7 +109,7 @@ public interface ProgramInstanceStore
     /**
      * Returns UIDs of existing ProgramInstances (including deleted) from the provided UIDs
      *
-     * @param uids PSI UIDs to check
+     * @param uids PI UIDs to check
      * @return List containing UIDs of existing PSIs (including deleted)
      */
     List<String> getUidsIncludingDeleted( List<String> uids );
