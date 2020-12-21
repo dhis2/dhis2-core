@@ -38,6 +38,8 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ValidationStrategy;
+import org.hisp.dhis.rules.models.AttributeType;
+import org.hisp.dhis.rules.models.RuleActionAttribute;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -123,6 +125,8 @@ public class SetMandatoryFieldValidator
         TrackerBundle bundle )
     {
         List<String> mandatoryDataElements = effects.stream()
+            .filter( effect -> ((RuleActionAttribute) effect.ruleAction()).attributeType() ==
+                AttributeType.DATA_ELEMENT )
             .map( effect -> ((RuleActionSetMandatoryField) effect.ruleAction()).field() )
             .collect( Collectors.toList() );
 

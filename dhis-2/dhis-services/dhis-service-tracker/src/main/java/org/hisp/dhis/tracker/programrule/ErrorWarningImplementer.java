@@ -34,14 +34,21 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.rules.models.AttributeType;
+import org.hisp.dhis.rules.models.RuleActionAttribute;
 import org.hisp.dhis.rules.models.RuleActionMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.validation.hooks.ValidationUtils;
 
 /**
  * @Author Enrico Colasante
@@ -71,7 +78,7 @@ public abstract class ErrorWarningImplementer
             .collect( Collectors.toMap( e -> e.getKey(),
                 e -> parseErrors( e.getValue() ) ) );
     }
-    
+
     private List<String> parseErrors( List<RuleEffect> effects )
     {
         return effects
@@ -108,10 +115,44 @@ public abstract class ErrorWarningImplementer
             .map( Event::getEvent )
             .collect( Collectors.toList() );
 
-        return effects.entrySet().stream()
+        Map<String, List<RuleEffect>> effectsByEvent = effects.entrySet().stream()
             .filter( e -> filteredEvents.contains( e.getKey() ) )
             .collect( Collectors.toMap( e -> e.getKey(),
-                e -> parseErrors( e.getValue() ) ) );
+                e -> e.getValue() ) );
+
+        return filterDataElementEffects( effectsByEvent, bundle.getEvents(), bundle.getPreheat() );
+    }
+
+    /**
+     * Effects that are linked to a data element shouldn't be applied if the {@link Event} is {@link EventStatus#ACTIVE}
+     * and the {@link org.hisp.dhis.program.ValidationStrategy} is {@link org.hisp.dhis.program.ValidationStrategy#ON_COMPLETE}
+     */
+    private Map<String, List<String>> filterDataElementEffects( Map<String, List<RuleEffect>> effectsByEvent,
+        List<Event> events, TrackerPreheat preheat )
+    {
+        Map<String, List<String>> filteredEffects = Maps.newHashMap();
+
+        for ( String eventUid : effectsByEvent.keySet() )
+        {
+            Event event = events.stream().filter( e -> e.getEvent().equals( eventUid ) ).findAny().get();
+            ProgramStage programStage = preheat.get( ProgramStage.class, event.getProgramStage() );
+
+            boolean needsToValidateDataValues = ValidationUtils.needsToValidateDataValues( event, programStage );
+
+            List<RuleEffect> ruleEffectsToValidate = effectsByEvent.get( eventUid )
+                .stream()
+                .filter( effect ->
+                    ((RuleActionAttribute) effect.ruleAction()).attributeType() != AttributeType.DATA_ELEMENT ||
+                        needsToValidateDataValues )
+                .collect( Collectors.toList() );
+
+            if ( !ruleEffectsToValidate.isEmpty() )
+            {
+                filteredEffects.put( eventUid, parseErrors( ruleEffectsToValidate ) );
+            }
+        }
+
+        return filteredEffects;
     }
 
     protected Predicate<Event> filterEvent()
