@@ -29,18 +29,39 @@
 
 package org.hisp.dhis.dxf2.events.importer.update.preprocess;
 
+import java.util.Collections;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.AbstractUserInfoPreProcessor;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.UserInfoSnapshot;
 
 public class UserInfoUpdatePreProcessor extends AbstractUserInfoPreProcessor
 {
 
     @Override
-    protected void updateDataValueUserInfo( EventDataValue dataValue, UserInfoSnapshot userInfo )
+    protected void updateDataValueUserInfo( ProgramStageInstance existingPsi, EventDataValue dataValue,
+        UserInfoSnapshot userInfo )
     {
+        if ( existingPsi != null && !existsDataValueInPsi( existingPsi, dataValue ) )
+        {
+            dataValue.setCreatedByUserInfo( userInfo );
+        }
         dataValue.setLastUpdatedByUserInfo( userInfo );
+    }
+
+    private boolean existsDataValueInPsi( ProgramStageInstance existingPsi, EventDataValue dataValue )
+    {
+        return Optional.ofNullable( existingPsi )
+            .map( ProgramStageInstance::getEventDataValues )
+            .orElse( Collections.emptySet() )
+            .stream()
+            .map( EventDataValue::getDataElement )
+            .collect( Collectors.toSet() )
+            .contains( dataValue.getDataElement() );
     }
 
     @Override

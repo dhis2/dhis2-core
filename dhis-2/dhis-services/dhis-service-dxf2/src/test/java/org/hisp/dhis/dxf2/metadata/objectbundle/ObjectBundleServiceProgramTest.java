@@ -34,6 +34,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -216,6 +218,50 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Test
+    public void testProgramRuleCreation() throws IOException
+    {
+        createProgramRuleMetadata();
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata1 = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/duplicate_program_rule.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params1 = new ObjectBundleParams();
+        params1.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params1.setImportStrategy( ImportStrategy.CREATE );
+        params1.setObjects( metadata1 );
+
+        ObjectBundle bundle1 = objectBundleService.create( params1 );
+        ObjectBundleValidationReport validate1 = objectBundleValidationService.validate( bundle1 );
+
+        assertFalse( validate1.getErrorReports().isEmpty() );
+        assertEquals( 1, validate1.getErrorReports().size() );
+
+        List<ErrorReport> errorReports = validate1.getErrorReports();
+        ErrorReport errorReport = errorReports.get( 0 );
+
+        assertEquals( ErrorCode.E5003, errorReport.getErrorCode() );
+    }
+
+    @Test
+    public void testProgramRuleUpdate() throws IOException
+    {
+        createProgramRuleMetadata();
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata1 = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/existing_program_rule.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params1 = new ObjectBundleParams();
+        params1.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params1.setImportStrategy( ImportStrategy.UPDATE );
+        params1.setObjects( metadata1 );
+
+        ObjectBundle bundle1 = objectBundleService.create( params1 );
+        ObjectBundleValidationReport validate1 = objectBundleValidationService.validate( bundle1 );
+
+        assertTrue( validate1.getErrorReports().isEmpty() );
+    }
+
+    @Test
     public void testCreateSimpleProgramRegNextScheduleDate() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
@@ -360,5 +406,25 @@ public class ObjectBundleServiceProgramTest
         validate = objectBundleValidationService.validate( bundle );
         validate.getErrorReports().forEach( System.out::println );
         assertTrue( validate.getErrorReports().isEmpty() );
+    }
+
+    private void createProgramRuleMetadata() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/metadata_with_program_and_programrules.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+
+        validate.getErrorReports().forEach( System.out::println );
+
+        assertTrue( validate.getErrorReports().isEmpty() );
+
+        objectBundleService.commit( bundle );
     }
 }

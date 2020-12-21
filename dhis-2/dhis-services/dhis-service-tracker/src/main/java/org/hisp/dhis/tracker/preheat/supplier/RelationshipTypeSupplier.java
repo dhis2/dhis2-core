@@ -28,12 +28,15 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.preheat.mappers.RelationshipTypeMapper;
 import org.springframework.stereotype.Component;
 
@@ -50,10 +53,23 @@ public class RelationshipTypeSupplier extends AbstractPreheatSupplier
     @NonNull
     private final IdentifiableObjectManager manager;
 
+    @NonNull
+    private final PreheatCacheService cache;
+
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        preheat.put( TrackerIdentifier.UID,
-            DetachUtils.detach( RelationshipTypeMapper.INSTANCE, manager.getAll( RelationshipType.class ) ) );
+        if ( cache.hasKey( RelationshipType.class.getName() ) )
+        {
+            addToPreheat( preheat, cache.getAll( RelationshipType.class.getName() ).stream()
+                .map( (rt -> (RelationshipType) rt) ).collect( Collectors.toList() ) );
+        }
+        else
+        {
+            final List<RelationshipType> relationshipTypes = manager.getAll( RelationshipType.class );
+
+            addToPreheat( preheat, DetachUtils.detach( RelationshipTypeMapper.INSTANCE, relationshipTypes ) );
+            addToCache( cache, relationshipTypes );
+        }
     }
 }
