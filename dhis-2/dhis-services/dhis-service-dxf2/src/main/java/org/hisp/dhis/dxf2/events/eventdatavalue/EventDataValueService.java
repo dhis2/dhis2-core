@@ -27,12 +27,13 @@ package org.hisp.dhis.dxf2.events.eventdatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStageInstance;
+
+import java.util.Map;
 
 
 /**
@@ -51,5 +52,5 @@ public interface EventDataValueService
      * @param dataElementsCache Cache with DataElements related to EventDataValues that are being updated
      */
     void processDataValues( ProgramStageInstance programStageInstance, Event event, boolean singleValue,
-        ImportOptions importOptions, ImportSummary importSummary, Cache<DataElement> dataElementsCache );
+        ImportOptions importOptions, ImportSummary importSummary, Map<String, DataElement> dataElementsCache  );
 }

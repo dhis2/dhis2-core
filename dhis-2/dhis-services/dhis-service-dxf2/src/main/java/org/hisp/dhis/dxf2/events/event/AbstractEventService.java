@@ -33,8 +33,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -144,7 +142,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -304,6 +301,8 @@ public abstract class AbstractEventService
 
     private CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
+    private CachingMap<String, DataElement> dataElementCache = new CachingMap<>();
+
     private CachingMap<String, Program> programCache = new CachingMap<>();
 
     private CachingMap<String, ProgramStage> programStageCache = new CachingMap<>();
@@ -327,13 +326,6 @@ public abstract class AbstractEventService
     private Set<TrackedEntityInstance> trackedEntityInstancesToUpdate = new HashSet<>();
 
     private CachingMap<String, User> userCache = new CachingMap<>();
-
-    private static Cache<DataElement> DATA_ELEM_CACHE = new SimpleCacheBuilder<DataElement>()
-        .forRegion( "dataElementCache" )
-        .expireAfterAccess( 60, TimeUnit.MINUTES )
-        .withInitialCapacity( 1000 )
-        .withMaximumSize( 50000 )
-        .build();
 
     // -------------------------------------------------------------------------
     // CREATE
@@ -1458,7 +1450,7 @@ public abstract class AbstractEventService
         saveTrackedEntityComment( programStageInstance, event, importOptions.getUser(), storedBy );
         preheatDataElementsCache( event, importOptions );
 
-        eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, DATA_ELEM_CACHE );
+        eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, dataElementCache );
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
 
@@ -1470,7 +1462,7 @@ public abstract class AbstractEventService
 
         for ( DataValue dv : event.getDataValues() )
         {
-            DataElement dataElement = DATA_ELEM_CACHE.get( dv.getDataElement() ).orElse( null );
+            DataElement dataElement = dataElementCache.get( dv.getDataElement() );
 
             if ( dataElement != null )
             {
@@ -1523,7 +1515,7 @@ public abstract class AbstractEventService
             List<DataElement> dataElements = manager.getObjects( DataElement.class, IdentifiableProperty.UID,
                 dataElementIdentificators );
 
-            dataElements.forEach( de -> DATA_ELEM_CACHE.put( de.getUid(), de ) );
+            dataElements.forEach( de -> dataElementCache.put( de.getUid(), de ) );
         }
         else
         {
@@ -1714,7 +1706,7 @@ public abstract class AbstractEventService
                     {
                         for ( DataElement dataElement : programStage.getDataElements() )
                         {
-                            DATA_ELEM_CACHE.put( dataElement.getUid(), dataElement );
+                            dataElementCache.put( dataElement.getUid(), dataElement );
                         }
                     }
                 }
@@ -2009,12 +2001,12 @@ public abstract class AbstractEventService
             programStageInstance.setAutoFields();
             programStageInstanceService.addProgramStageInstance( programStageInstance );
 
-            eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
+            eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, dataElementCache );
             programStageInstanceService.updateProgramStageInstance( programStageInstance );
         }
         else
         {
-            eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
+            eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, dataElementCache );
             programStageInstanceService.updateProgramStageInstance( programStageInstance );
         }
     }
@@ -2176,7 +2168,7 @@ public abstract class AbstractEventService
         {
             for ( DataElement dataElement : programStage.getDataElements() )
             {
-                DATA_ELEM_CACHE.put( dataElement.getUid(), dataElement );
+                dataElementCache.put( dataElement.getUid(), dataElement );
             }
         }
     }
@@ -2207,7 +2199,7 @@ public abstract class AbstractEventService
 
     private DataElement getDataElement( IdScheme idScheme, String id )
     {
-        return DATA_ELEM_CACHE.get( id, s -> manager.getObject( DataElement.class, idScheme, id ) ).orElse( null );
+        return dataElementCache.get( id, () -> manager.getObject( DataElement.class, idScheme, id ) );
     }
 
     private CategoryOption getCategoryOption( IdScheme idScheme, String id )
@@ -2433,7 +2425,7 @@ public abstract class AbstractEventService
         programInstanceCache.clear();
         activeProgramInstanceCache.clear();
         trackedEntityInstanceCache.clear();
-        DATA_ELEM_CACHE.invalidateAll();
+        dataElementCache.clear();
         categoryOptionCache.clear();
         categoryOptionComboCache.clear();
         attributeOptionComboCache.clear();
