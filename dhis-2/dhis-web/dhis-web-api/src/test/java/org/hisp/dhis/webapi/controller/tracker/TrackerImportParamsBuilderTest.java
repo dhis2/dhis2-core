@@ -2,10 +2,12 @@ package org.hisp.dhis.webapi.controller.tracker;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.FLUSH_MODE_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.IMPORT_MODE_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.IMPORT_STRATEGY_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.VALIDATION_MODE_KEY;
+
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.ATOMIC_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.FLUSH_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.IMPORT_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.IMPORT_STRATEGY_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.VALIDATION_MODE_KEY;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -13,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
@@ -41,7 +44,7 @@ public class TrackerImportParamsBuilderTest
     public void testValidationMode()
     {
         Arrays.stream( ValidationMode.values() ).forEach( e -> {
-            paramMap.put( VALIDATION_MODE_KEY, Collections.singletonList( e.name() ) );
+            paramMap.put( VALIDATION_MODE_KEY.getKey(), Collections.singletonList( e.name() ) );
             TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
             assertThat( params.getValidationMode(), is( e ) );
         } );
@@ -51,9 +54,19 @@ public class TrackerImportParamsBuilderTest
     public void testImportMode()
     {
         Arrays.stream( TrackerBundleMode.values() ).forEach( e -> {
-            paramMap.put( IMPORT_MODE_KEY, Collections.singletonList( e.name() ) );
+            paramMap.put( IMPORT_MODE_KEY.getKey(), Collections.singletonList( e.name() ) );
             TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
             assertThat( params.getImportMode(), is( e ) );
+        } );
+    }
+
+    @Test
+    public void testAtomicMode()
+    {
+        Arrays.stream( AtomicMode.values() ).forEach( e -> {
+            paramMap.put( ATOMIC_MODE_KEY.getKey(), Collections.singletonList( e.name() ) );
+            TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
+            assertThat( params.getAtomicMode(), is( e ) );
         } );
     }
 
@@ -61,7 +74,7 @@ public class TrackerImportParamsBuilderTest
     public void testFlushMode()
     {
         Arrays.stream( FlushMode.values() ).forEach( e -> {
-            paramMap.put( FLUSH_MODE_KEY, Collections.singletonList( e.name() ) );
+            paramMap.put( FLUSH_MODE_KEY.getKey(), Collections.singletonList( e.name() ) );
             TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
             assertThat( params.getFlushMode(), is( e ) );
         } );
@@ -71,7 +84,7 @@ public class TrackerImportParamsBuilderTest
     public void testImportStrategy()
     {
         Arrays.stream( TrackerImportStrategy.values() ).forEach( e -> {
-            paramMap.put( IMPORT_STRATEGY_KEY, Collections.singletonList( e.name() ) );
+            paramMap.put( IMPORT_STRATEGY_KEY.getKey(), Collections.singletonList( e.name() ) );
             TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
             assertThat( params.getImportStrategy(), is( e ) );
         } );
@@ -122,6 +135,7 @@ public class TrackerImportParamsBuilderTest
         assertThat( params.getValidationMode(), is( ValidationMode.FULL ) );
         assertThat( params.getImportMode(), is( TrackerBundleMode.COMMIT ) );
         assertThat( params.getImportStrategy(), is( TrackerImportStrategy.CREATE_AND_UPDATE ) );
+        assertThat( params.getAtomicMode(), is( AtomicMode.ALL ) );
         assertThat( params.getFlushMode(), is( FlushMode.AUTO ) );
 
         TrackerIdentifierParams identifiers = params.getIdentifiers();
