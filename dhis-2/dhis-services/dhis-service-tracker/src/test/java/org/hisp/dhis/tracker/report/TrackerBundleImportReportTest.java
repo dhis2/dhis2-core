@@ -202,8 +202,22 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
         assertEquals( toSerializeReport.getBundleReport().getStats().getTotal(),
             deserializedReport.getBundleReport().getStats().getTotal() );
 
-        assertEquals( toSerializeReport.getBundleReport().getTypeReportMap().get( TrackerType.TRACKED_ENTITY ),
-            deserializedReport.getBundleReport().getTypeReportMap().get( TrackerType.TRACKED_ENTITY ) );
+        assertEquals(
+            toSerializeReport.getBundleReport().getTypeReportMap().get( TrackerType.TRACKED_ENTITY ).getTrackerType(),
+            deserializedReport.getBundleReport().getTypeReportMap().get( TrackerType.TRACKED_ENTITY )
+                .getTrackerType() );
+        assertEquals(
+            toSerializeReport.getBundleReport().getTypeReportMap().get( TrackerType.TRACKED_ENTITY )
+                .getObjectReportMap(),
+            deserializedReport.getBundleReport().getTypeReportMap().get( TrackerType.TRACKED_ENTITY )
+                .getObjectReportMap() );
+        assertEquals(
+            toSerializeReport.getBundleReport().getTypeReportMap().get( TrackerType.TRACKED_ENTITY ).getObjectReports(),
+            deserializedReport.getBundleReport().getTypeReportMap().get( TrackerType.TRACKED_ENTITY )
+                .getObjectReports() );
+        assertEquals(
+            toSerializeReport.getBundleReport().getTypeReportMap().get( TrackerType.TRACKED_ENTITY ).getStats(),
+            deserializedReport.getBundleReport().getTypeReportMap().get( TrackerType.TRACKED_ENTITY ).getStats() );
 
         //Verify Validation Report - Error Reports
         assertEquals( toSerializeReport.getValidationReport().getErrorReports().get( 0 ).getErrorMessage(),
