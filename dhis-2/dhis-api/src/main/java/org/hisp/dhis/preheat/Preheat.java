@@ -198,17 +198,24 @@ public class Preheat
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> Preheat put( PreheatIdentifier identifier, T object )
     {
-        if ( object == null ) return this;
+        if ( object == null )
+        {
+            return this;
+        }
 
         Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( object );
 
         if ( PreheatIdentifier.UID == identifier || PreheatIdentifier.AUTO == identifier )
         {
             if ( !map.containsKey( PreheatIdentifier.UID ) )
+            {
                 map.put( PreheatIdentifier.UID, new HashMap<>() );
+            }
 
             if ( !map.get( PreheatIdentifier.UID ).containsKey( realClass ) )
+            {
                 map.get( PreheatIdentifier.UID ).put( realClass, new HashMap<>() );
+            }
 
             if ( User.class.isAssignableFrom( realClass ) )
             {
@@ -239,10 +246,14 @@ public class Preheat
         if ( PreheatIdentifier.CODE == identifier || PreheatIdentifier.AUTO == identifier )
         {
             if ( !map.containsKey( PreheatIdentifier.CODE ) )
+            {
                 map.put( PreheatIdentifier.CODE, new HashMap<>() );
+            }
 
             if ( !map.get( PreheatIdentifier.CODE ).containsKey( realClass ) )
+            {
                 map.get( PreheatIdentifier.CODE ).put( realClass, new HashMap<>() );
+            }
 
             if ( User.class.isAssignableFrom( realClass ) )
             {
@@ -272,17 +283,24 @@ public class Preheat
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> Preheat replace( PreheatIdentifier identifier, T object )
     {
-        if ( object == null ) return this;
+        if ( object == null )
+        {
+            return this;
+        }
 
         Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( object );
 
         if ( PreheatIdentifier.UID == identifier || PreheatIdentifier.AUTO == identifier )
         {
             if ( !map.containsKey( PreheatIdentifier.UID ) )
+            {
                 map.put( PreheatIdentifier.UID, new HashMap<>() );
+            }
 
             if ( !map.get( PreheatIdentifier.UID ).containsKey( realClass ) )
+            {
                 map.get( PreheatIdentifier.UID ).put( realClass, new HashMap<>() );
+            }
 
             if ( User.class.isAssignableFrom( realClass ) )
             {
