@@ -28,7 +28,17 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
+import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMandatoryDataValue;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.google.api.client.util.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResource;
@@ -36,20 +46,12 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
-
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
 
 /**
  * @author Enrico Colasante
@@ -58,11 +60,6 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
 public class EventDataValuesValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    public EventDataValuesValidationHook( TrackedEntityAttributeService teAttrService )
-    {
-        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
-    }
-
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
@@ -73,8 +70,26 @@ public class EventDataValuesValidationHook
             // event dates (createdAt, updatedAt) are ignored and set by the system
             validateDataElement( reporter, context, dataValue );
         }
-        validateMandatoryDataValue( reporter, context, event );
+        validateMandatoryDataValues( event, context, reporter );
         validateDataValueDataElementIsConnectedToProgramStage( reporter, context, event );
+    }
+
+    private void validateMandatoryDataValues( Event event, TrackerImportValidationContext context,
+        ValidationErrorReporter reporter )
+    {
+        if ( StringUtils.isNotEmpty( event.getProgramStage() ) )
+        {
+            ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+            final List<String> mandatoryDataElements =
+                programStage.getProgramStageDataElements()
+                    .stream()
+                    .filter( ProgramStageDataElement::isCompulsory )
+                    .map( de -> de.getDataElement().getUid() )
+                    .collect( Collectors.toList() );
+            List<String> wrongMandatoryDataValue = validateMandatoryDataValue( programStage, event,
+                mandatoryDataElements );
+            wrongMandatoryDataValue.forEach( de -> addError( reporter, TrackerErrorCode.E1303, de ) );
+        }
     }
 
     private void validateDataElement( ValidationErrorReporter reporter, TrackerImportValidationContext ctx,
@@ -97,38 +112,6 @@ public class EventDataValuesValidationHook
             else
             {
                 validateFileNotAlreadyAssigned( reporter, dataValue, dataElement );
-            }
-        }
-    }
-
-    public void validateMandatoryDataValue( ValidationErrorReporter reporter, TrackerImportValidationContext ctx,
-        Event event )
-    {
-        if ( StringUtils.isEmpty( event.getProgramStage() ) )
-            return;
-
-        ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
-
-        if ( !needsToValidateMandatoryDataValues( event, programStage ) )
-        {
-            return;
-        }
-
-        final Set<ProgramStageDataElement> mandatoryDataElements =
-            programStage.getProgramStageDataElements()
-                .stream()
-                .filter( ProgramStageDataElement::isCompulsory )
-                .collect( Collectors.toSet() );
-
-        Set<String> eventDataElements = event.getDataValues().stream()
-            .map( DataValue::getDataElement )
-            .collect( Collectors.toSet() );
-
-        for ( ProgramStageDataElement mandatoryDataElement : mandatoryDataElements )
-        {
-            if ( !eventDataElements.contains( mandatoryDataElement.getDataElement().getUid() ) )
-            {
-                addError( reporter, TrackerErrorCode.E1303, mandatoryDataElement.getDataElement() );
             }
         }
     }
@@ -158,17 +141,6 @@ public class EventDataValuesValidationHook
                 addError( reporter, TrackerErrorCode.E1305, payloadDataElement, programStage.getUid() );
             }
         }
-    }
-
-    private boolean needsToValidateMandatoryDataValues( Event event, ProgramStage programStage )
-    {
-        if ( event.getStatus().equals( EventStatus.ACTIVE ) &&
-            programStage.getValidationStrategy().equals( ValidationStrategy.ON_COMPLETE ) )
-        {
-            return false;
-        }
-
-        return true;
     }
 
     private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, DataValue dataValue,

@@ -103,12 +103,6 @@ public class MaintenanceServiceTest
     private Collection<Long> orgunitIds;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     public void setUpTest()
     {
         organisationUnit = createOrganisationUnit( 'A' );

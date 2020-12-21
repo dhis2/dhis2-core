@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -48,6 +49,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -55,6 +57,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.util.StringUtils;
 
 import com.google.common.base.Preconditions;
@@ -75,8 +78,14 @@ public class TrackerImportValidationContext
 
     private TrackerBundle bundle;
 
+    /**
+     * Holds the accumulated errors generated during the validation process
+     */
+    private ValidationErrorReporter rootReporter;
+
     public TrackerImportValidationContext( TrackerBundle bundle )
     {
+        // Create a copy of the bundle
         this.bundle = bundle;
 
         Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedMap = this
@@ -85,6 +94,7 @@ public class TrackerImportValidationContext
         resolvedMap.put( Event.class, new HashMap<>() );
         resolvedMap.put( Enrollment.class, new HashMap<>() );
         resolvedMap.put( TrackedEntity.class, new HashMap<>() );
+        this.rootReporter = ValidationErrorReporter.emptyReporter();
     }
 
     public TrackerImportStrategy getStrategy( Enrollment enrollment )
@@ -152,7 +162,7 @@ public class TrackerImportValidationContext
 
     public OrganisationUnit getOrganisationUnit( String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), OrganisationUnit.class, id );
+        return bundle.getPreheat().get( OrganisationUnit.class, id );
     }
 
     public TrackedEntityInstance getTrackedEntityInstance( String id )
@@ -162,32 +172,42 @@ public class TrackerImportValidationContext
 
     public TrackedEntityAttribute getTrackedEntityAttribute( String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), TrackedEntityAttribute.class, id );
+        return bundle.getPreheat().get( TrackedEntityAttribute.class, id );
     }
 
     public DataElement getDataElement( String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), DataElement.class, id );
+        return bundle.getPreheat().get( DataElement.class, id );
     }
 
     public TrackedEntityType getTrackedEntityType( String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), TrackedEntityType.class, id );
+        return bundle.getPreheat().get( TrackedEntityType.class, id );
     }
 
     public RelationshipType getRelationShipType(String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), RelationshipType.class, id );
+        return bundle.getPreheat().get( RelationshipType.class, id );
     }
 
     public Program getProgram( String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), Program.class, id );
+        return bundle.getPreheat().get( Program.class, id );
     }
 
     public ProgramInstance getProgramInstance( String id )
     {
         return bundle.getPreheat().getEnrollment( bundle.getIdentifier(), id );
+    }
+    
+    public boolean programInstanceHasEvents( String programInstanceUid )
+    {
+        return bundle.getPreheat().getProgramInstanceWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
+    }
+
+    public boolean programStageHasEvents( String programStageUid, String enrollmentUid )
+    {
+        return bundle.getPreheat().getProgramStageWithEvents().contains( Pair.of( programStageUid, enrollmentUid ) );
     }
 
     public Optional<TrackedEntityComment> getNote( String uid )
@@ -197,7 +217,7 @@ public class TrackerImportValidationContext
 
     public ProgramStage getProgramStage( String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), ProgramStage.class, id );
+        return bundle.getPreheat().get( ProgramStage.class, id );
     }
 
     public ProgramStageInstance getProgramStageInstance( String event )
@@ -207,12 +227,12 @@ public class TrackerImportValidationContext
 
     public CategoryOptionCombo getCategoryOptionCombo( String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), CategoryOptionCombo.class, id );
+        return bundle.getPreheat().get( CategoryOptionCombo.class, id );
     }
 
     public CategoryOption getCategoryOption( String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), CategoryOption.class, id );
+        return bundle.getPreheat().get( CategoryOption.class, id );
     }
 
     public Map<String, List<ProgramInstance>> getEventToProgramInstancesMap()
@@ -227,11 +247,16 @@ public class TrackerImportValidationContext
 
     public FileResource getFileResource( String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), FileResource.class, id );
+        return bundle.getPreheat().get( FileResource.class, id );
     }
 
     public Optional<ReferenceTrackerEntity> getReference( String uid )
     {
         return bundle.getPreheat().getReference( uid );
+    }
+    
+    public TrackerIdentifierParams getIdentifiers()
+    {
+        return bundle.getPreheat().getIdentifiers();
     }
 }

@@ -64,7 +64,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ContinuousAnalyticsTableJob
     extends AbstractJob
 {
-    private static final Integer DEFAULT_HOUR_OF_DAY = 0;
+    private static final int DEFAULT_HOUR_OF_DAY = 0;
 
     private final AnalyticsTableGenerator analyticsTableGenerator;
 
@@ -115,7 +115,7 @@ public class ContinuousAnalyticsTableJob
             {
                 Date update = DateUtils.getNextDate( fullUpdateHourOfDay, now );
                 systemSettingManager.saveSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, update );
-                log.info( String.format( "Next analytics table update: %s", getMediumDateString( update ) ) );
+                log.info( String.format( "Next full analytics table update: %s", getMediumDateString( update ) ) );
             }
         }
         else

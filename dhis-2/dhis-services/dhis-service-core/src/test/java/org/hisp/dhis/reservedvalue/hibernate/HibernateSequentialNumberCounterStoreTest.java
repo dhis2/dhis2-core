@@ -101,7 +101,7 @@ public class HibernateSequentialNumberCounterStoreTest
         }
 
         assertEquals( threadCount, futures.size() );
-        
+
         Set<Integer> allIds = new HashSet<>();
         List<Integer> allIdList = new ArrayList<>();
         for ( List<Integer> integers : resultList )
@@ -158,7 +158,7 @@ public class HibernateSequentialNumberCounterStoreTest
     {
         test( 32 );
     }
-    
+
     @Test
     public void deleteCounter()
     {
@@ -177,12 +177,6 @@ public class HibernateSequentialNumberCounterStoreTest
         assertTrue( dummyService.getNextValues( "ABC", "ABC-###", 3 ).contains( 1 ) );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-    
     @Configuration
     static class TestConfig
     {

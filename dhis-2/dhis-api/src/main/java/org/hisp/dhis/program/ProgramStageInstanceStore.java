@@ -102,9 +102,18 @@ public interface ProgramStageInstanceStore
      * Returns UIDs of existing ProgramStageInstances (including deleted) from the provided UIDs
      *
      * @param uids PSI UIDs to check
-     * @return Set containing UIDs of existing PSIs (including deleted)
+     * @return List containing UIDs of existing PSIs (including deleted)
      */
     List<String> getUidsIncludingDeleted( List<String> uids );
+
+    /**
+     * Fetches ProgramStageInstance matching the given list of UIDs
+     * 
+     * @param uids a List of UID
+     * @return a List containing the ProgramStageInstance matching the given
+     *         parameters list
+     */
+    List<ProgramStageInstance> getIncludingDeleted( List<String> uids );
 
     /**
      * Get all ProgramStageInstances which have notifications with the given ProgramNotificationTemplate scheduled on the given date.

@@ -29,19 +29,6 @@ package org.hisp.dhis.tracker.validation.hooks;
  *
  */
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.springframework.stereotype.Component;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1002;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1030;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1032;
@@ -52,6 +39,19 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1082;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1113;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1114;
 
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.springframework.stereotype.Component;
+
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -59,11 +59,6 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1114;
 public class PreCheckExistenceValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    public PreCheckExistenceValidationHook( TrackedEntityAttributeService teAttrService )
-    {
-        super( teAttrService );
-    }
-
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
@@ -73,6 +68,13 @@ public class PreCheckExistenceValidationHook
 
         TrackedEntityInstance existingTe = context
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
+
+        // If the tracked entity is soft-deleted no operation is allowed
+        if ( existingTe != null && existingTe.isDeleted() )
+        {
+            addError( reporter, E1114, trackedEntity.getTrackedEntity() );
+            return;
+        }
 
         if ( importStrategy.isCreateAndUpdate() )
         {
@@ -88,10 +90,6 @@ public class PreCheckExistenceValidationHook
         else if ( existingTe != null && importStrategy.isCreate() )
         {
             addError( reporter, E1002, trackedEntity.getTrackedEntity() );
-        }
-        else if ( existingTe != null && existingTe.isDeleted() && importStrategy.isDelete() )
-        {
-            addError( reporter, E1114, trackedEntity.getTrackedEntity() );
         }
         else if ( existingTe == null && importStrategy.isUpdateOrDelete() )
         {
@@ -150,6 +148,13 @@ public class PreCheckExistenceValidationHook
 
         ProgramStageInstance existingPsi = context.getProgramStageInstance( event.getEvent() );
 
+        // If the event is soft-deleted no operation is allowed
+        if ( existingPsi != null && existingPsi.isDeleted() )
+        {
+            addError( reporter, E1082, event.getEvent() );
+            return;
+        }
+
         if ( importStrategy.isCreateAndUpdate() )
         {
             if ( existingPsi == null )
@@ -165,10 +170,6 @@ public class PreCheckExistenceValidationHook
         {
             addError( reporter, E1030, event.getEvent() );
         }
-        else if ( existingPsi != null && existingPsi.isDeleted() && importStrategy.isDelete() )
-        {
-            addError( reporter, E1082, event.getEvent() );
-        }
         else if ( existingPsi == null && importStrategy.isUpdateOrDelete() )
         {
             addError( reporter, E1032, event.getEvent() );
@@ -183,5 +184,11 @@ public class PreCheckExistenceValidationHook
     public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
     {
        //TODO need to add existence check for relationship
+    }
+
+    @Override
+    public boolean removeOnError()
+    {
+        return true;
     }
 }

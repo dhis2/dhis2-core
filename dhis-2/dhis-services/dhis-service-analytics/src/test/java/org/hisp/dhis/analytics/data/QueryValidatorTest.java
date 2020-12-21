@@ -44,6 +44,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.mockito.Mockito.mock;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -71,6 +72,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.function.ThrowingRunnable;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -182,14 +184,15 @@ public class QueryValidatorTest
         queryValidator.validate( params );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void validateFailureSingleIndicatorAsFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
             .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, inA ) ) ).build();
 
-        queryValidator.validate( params );
+        assertValidatonError( ErrorCode.E7108, params );
     }
 
     @Test
@@ -197,6 +200,7 @@ public class QueryValidatorTest
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
             .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, inA ) ) ).build();
 
         ErrorMessage error = queryValidator.validateForErrorMessage( params );
@@ -204,7 +208,7 @@ public class QueryValidatorTest
         assertEquals( ErrorCode.E7108, error.getErrorCode() );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void validateFailureMultipleIndicatorsFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -212,7 +216,7 @@ public class QueryValidatorTest
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
             .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( inA, inB ) ) ).build();
 
-        queryValidator.validate( params );
+        assertValidatonError( ErrorCode.E7108, params );
     }
 
     @Test
@@ -228,15 +232,16 @@ public class QueryValidatorTest
         assertEquals( ErrorCode.E7108, error.getErrorCode() );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void validateFailureReportingRatesAndDataElementGroupSetAsDimensions()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( rrA, inA ) ) )
-            .addDimension( new BaseDimensionalObject( dgsA.getDimension(), DimensionType.DATA_ELEMENT_GROUP_SET, getList( deA ) ) ).build();
+            .addDimension( new BaseDimensionalObject( dgsA.getDimension(), DimensionType.DATA_ELEMENT_GROUP_SET, getList( deA ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) ).build();
 
-        queryValidator.validate( params );
+        assertValidatonError( ErrorCode.E7112, params );
     }
 
     @Test
@@ -245,14 +250,15 @@ public class QueryValidatorTest
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( rrA, inA ) ) )
-            .addDimension( new BaseDimensionalObject( dgsA.getDimension(), DimensionType.DATA_ELEMENT_GROUP_SET, getList( deA ) ) ).build();
+            .addDimension( new BaseDimensionalObject( dgsA.getDimension(), DimensionType.DATA_ELEMENT_GROUP_SET, getList( deA ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) ).build();
 
         ErrorMessage error = queryValidator.validateForErrorMessage( params );
 
         assertEquals( ErrorCode.E7112, error.getErrorCode() );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void validateFailureReportingRatesAndStartEndDates()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -261,10 +267,10 @@ public class QueryValidatorTest
             .withStartDate( getDate( 2018, 3, 1 ) )
             .withEndDate( getDate( 2018, 6, 30 ) ).build();
 
-        queryValidator.validate( params );
+        assertValidatonError( ErrorCode.E7107, params );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void validateFailureValueType()
     {
         deB.setValueType( ValueType.FILE_RESOURCE );
@@ -274,10 +280,10 @@ public class QueryValidatorTest
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) ).build();
 
-        queryValidator.validate( params );
+        assertValidatonError( ErrorCode.E7115, params );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void validateFailureAggregationType()
     {
         deB.setAggregationType( AggregationType.CUSTOM );
@@ -287,10 +293,10 @@ public class QueryValidatorTest
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) ).build();
 
-        queryValidator.validate( params );
+        assertValidatonError( ErrorCode.E7115, params );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void validateFailureOptionCombosWithIndicators()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -299,10 +305,10 @@ public class QueryValidatorTest
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) ).build();
 
-        queryValidator.validate( params );
+        assertValidatonError( ErrorCode.E7114, params );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void validateMissingOrgUnitDimensionOutputFormatDataValueSet()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -310,7 +316,7 @@ public class QueryValidatorTest
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
             .withOutputFormat( OutputFormat.DATA_VALUE_SET ).build();
 
-        queryValidator.validate( params );
+        assertValidatonError( ErrorCode.E7119, params );
     }
 
     @Test
@@ -323,5 +329,19 @@ public class QueryValidatorTest
                 .build();
 
         queryValidator.validate( params );
+    }
+
+    /**
+     * Asserts whether the given error code is thrown by the query validator
+     * for the given query.
+     *
+     * @param errorCode the {@link ErrorCode}.
+     * @param params the {@link DataQueryParams}.
+     */
+    private void assertValidatonError( final ErrorCode errorCode, final DataQueryParams params )
+    {
+        ThrowingRunnable runnable = () -> queryValidator.validate( params );
+        IllegalQueryException ex = assertThrows( "Error code mismatch", IllegalQueryException.class, runnable );
+        assertEquals( errorCode, ex.getErrorCode() );
     }
 }

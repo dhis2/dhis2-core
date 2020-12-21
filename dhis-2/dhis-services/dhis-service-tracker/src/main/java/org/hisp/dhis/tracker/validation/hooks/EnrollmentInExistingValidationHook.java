@@ -35,7 +35,6 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_INSTANCE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
-import static org.hisp.dhis.util.DateUtils.getIso8601;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,19 +46,14 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
-import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.TrackerImportAccessManager;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -75,12 +69,10 @@ public class EnrollmentInExistingValidationHook
 
     private final TrackerImportAccessManager trackerImportAccessManager;
 
-    public EnrollmentInExistingValidationHook( TrackedEntityAttributeService teAttrService,
-        TrackerOwnershipManager trackerOwnershipManager, ProgramInstanceService programInstanceService,
+    public EnrollmentInExistingValidationHook( TrackerOwnershipManager trackerOwnershipManager,
+        ProgramInstanceService programInstanceService,
         TrackerImportAccessManager trackerImportAccessManager )
     {
-        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
-
         checkNotNull( trackerOwnershipManager );
         checkNotNull( programInstanceService );
         checkNotNull( trackerImportAccessManager );
@@ -170,18 +162,15 @@ public class EnrollmentInExistingValidationHook
         for ( ProgramInstance programInstance : programInstances )
         {
             if ( trackerOwnershipManager
-                .hasAccess( user, programInstance.getEntityInstance().getUid(), programInstance.getOrganisationUnit(), programInstance.getProgram() ) )
+                .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
             {
-                // Always create a fork of the reporter when used for checking/counting errors,
-                // this is needed for thread safety in parallel mode.
-                ValidationErrorReporter reporterFork = reporter.fork();
 
-                // Validates the programInstance read access on a fork of the reporter
-                trackerImportAccessManager.checkReadEnrollmentAccess( reporterFork, programInstance.getProgram(), programInstance.getOrganisationUnit(), programInstance.getEntityInstance().getUid());
+                ValidationErrorReporter localReporter = new ValidationErrorReporter( reporter.getValidationContext() );
+                trackerImportAccessManager.checkReadEnrollmentAccess( localReporter, programInstance.getProgram(), programInstance.getOrganisationUnit(), programInstance.getEntityInstance().getUid());
 
-                if ( reporterFork.hasErrors() )
+                if ( localReporter.hasErrors() )
                 {
-                    reporter.merge( reporterFork );
+                    reporter.merge( localReporter );
                 }
                 else
                 {
@@ -200,53 +189,7 @@ public class EnrollmentInExistingValidationHook
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( programInstance.getUid() );
 
-        if ( programInstance.getEntityInstance() != null )
-        {
-            enrollment.setTrackedEntityType( programInstance.getEntityInstance().getTrackedEntityType().getUid() );
-            enrollment.setTrackedEntity( programInstance.getEntityInstance().getUid() );
-        }
-
-        if ( programInstance.getOrganisationUnit() != null )
-        {
-            enrollment.setOrgUnit( programInstance.getOrganisationUnit().getUid() );
-        }
-
-        if ( programInstance.getGeometry() != null )
-        {
-            enrollment.setGeometry( programInstance.getGeometry() );
-        }
-
-        enrollment.setCreatedAt( DateUtils.getIso8601NoTz( programInstance.getCreated() ) );
-        enrollment.setUpdatedAt( DateUtils.getIso8601NoTz( programInstance.getLastUpdated() ) );
-        enrollment.setProgram( programInstance.getProgram().getUid() );
         enrollment.setStatus( EnrollmentStatus.fromProgramStatus( programInstance.getStatus() ) );
-        enrollment.setEnrolledAt( getIso8601( programInstance.getEnrollmentDate() ) );
-        enrollment.setOccurredAt( getIso8601( programInstance.getIncidentDate() ) );
-        enrollment.setFollowUp( programInstance.getFollowup() );
-        enrollment.setCreatedAt( getIso8601( programInstance.getEndDate() ) );
-        enrollment.setCompletedBy( programInstance.getCompletedBy() );
-        enrollment.setStoredBy( programInstance.getStoredBy() );
-        enrollment.setDeleted( programInstance.isDeleted() );
-
-        List<TrackedEntityComment> comments = programInstance.getComments();
-
-        for ( TrackedEntityComment comment : comments )
-        {
-            Note note = new Note();
-
-            note.setNote( comment.getUid() );
-            note.setValue( comment.getCommentText() );
-            note.setStoredBy( comment.getCreator() );
-            note.setStoredAt( DateUtils.getIso8601NoTz( comment.getCreated() ) );
-
-            /* TODO: add comment.lastUpdatedBy and comment.lastUpdated to Note
-                it's not part of DHIS2-9835 since it's focused on old tracker
-                and requirements for new one might be different
-             */
-
-            enrollment.getNotes().add( note );
-        }
-
         return enrollment;
     }
 

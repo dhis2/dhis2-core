@@ -95,7 +95,7 @@ public class TrackerIdentifierParams
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifier categoryOption = TrackerIdentifier.UID;
+    private TrackerIdentifier categoryOptionIdScheme = TrackerIdentifier.UID;
 
     public TrackerIdentifier getByClass( Class<?> klazz )
     {
@@ -106,7 +106,7 @@ public class TrackerIdentifierParams
         case "OrganisationUnit":
             return orgUnitIdScheme;
         case "CategoryOption":
-            return categoryOption;
+            return categoryOptionIdScheme;
         case "DataElement":
             return dataElementIdScheme;
         case "Program":
@@ -114,7 +114,7 @@ public class TrackerIdentifierParams
         case "ProgramStage":
             return programStageIdScheme;
         default:
-            throw new IllegalStateException( "Unexpected value: " + klazz.getName() );
+            return idScheme;
         }
 
     }

@@ -1,5 +1,6 @@
 package org.hisp.dhis.webapi.controller;
 
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,7 +29,16 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AuditType;
@@ -62,8 +72,6 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -84,14 +92,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -722,54 +723,5 @@ public class AuditController
         }
 
         return manager.getByUid( DataApprovalWorkflow.class, wf );
-    }
-
-    private List<ProgramInstance> getEnrollments( @RequestParam List<String> enrollmentIdentifiers ) throws WebMessageException
-    {
-        List<ProgramInstance> programInstances = new ArrayList<>();
-
-        if ( enrollmentIdentifiers == null )
-        {
-            return programInstances;
-        }
-
-        for ( String en : enrollmentIdentifiers )
-        {
-            ProgramInstance programInstance = manager.get( ProgramInstance.class, en );
-
-            if ( programInstance == null )
-            {
-                throw new WebMessageException( WebMessageUtils.conflict( "Illegal enrollment identifier: " + en ) );
-            }
-
-            programInstances.add( programInstance );
-        }
-
-        return programInstances;
-    }
-
-    private List<Program> getPrograms( @RequestParam List<String> programIdentifiers ) throws WebMessageException
-    {
-        List<Program> programs = new ArrayList<>();
-
-        if ( programIdentifiers == null )
-        {
-            return programs;
-        }
-
-        for ( String pr : programIdentifiers )
-        {
-            Program program = manager.get( Program.class, pr );
-
-            if ( pr == null )
-            {
-                throw new WebMessageException( WebMessageUtils.conflict( "Illegal program identifier: " + pr ) );
-            }
-
-            programs.add( program );
-        }
-
-        return programs;
-
     }
 }

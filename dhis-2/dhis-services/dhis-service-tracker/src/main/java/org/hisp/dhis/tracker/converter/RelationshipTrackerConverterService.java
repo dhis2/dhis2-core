@@ -35,7 +35,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -123,7 +122,7 @@ public class RelationshipTrackerConverterService
         org.hisp.dhis.relationship.Relationship toRelationship )
     {
         org.hisp.dhis.relationship.RelationshipType relationshipType = preheat
-            .get( TrackerIdScheme.UID, RelationshipType.class, fromRelationship.getRelationshipType() );
+            .get( RelationshipType.class, fromRelationship.getRelationshipType() );
         org.hisp.dhis.relationship.RelationshipItem fromItem = new org.hisp.dhis.relationship.RelationshipItem();
         org.hisp.dhis.relationship.RelationshipItem toItem = new org.hisp.dhis.relationship.RelationshipItem();
 
@@ -135,10 +134,6 @@ public class RelationshipTrackerConverterService
             toRelationship.setUid( fromRelationship.getRelationship() );
             toRelationship.setCreated( now );
             toRelationship.setLastUpdated( now );
-        }
-        if ( !CodeGenerator.isValidUid( toRelationship.getUid() ) )
-        {
-            toRelationship.setUid( CodeGenerator.generateUid() );
         }
 
         toRelationship.setRelationshipType( relationshipType );
@@ -178,12 +173,12 @@ public class RelationshipTrackerConverterService
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
             toItem.setProgramInstance(
-                preheat.getEnrollment( TrackerIdScheme.UID, fromRelationship.getFrom().getEnrollment() ) );
+                preheat.getEnrollment( TrackerIdScheme.UID, fromRelationship.getTo().getEnrollment() ) );
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
             toItem.setProgramStageInstance(
-                preheat.getEvent( TrackerIdScheme.UID, fromRelationship.getFrom().getEvent() ) );
+                preheat.getEvent( TrackerIdScheme.UID, fromRelationship.getTo().getEvent() ) );
         }
 
         toRelationship.setFrom( fromItem );

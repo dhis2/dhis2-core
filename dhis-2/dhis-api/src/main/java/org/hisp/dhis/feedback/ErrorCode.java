@@ -44,7 +44,7 @@ package org.hisp.dhis.feedback;
  */
 public enum ErrorCode
 {
-    /* Miscellaneous */
+    /* General */
     E1000( "API query must be specified" ),
     E1001( "API query contains an illegal string" ),
     E1002( "API version is invalid" ),
@@ -67,6 +67,16 @@ public enum ErrorCode
     E2014( "Unable to parse filter `{0}`" ),
     E2015( "Unable to parse order param: `{0}`" ),
     E2016( "Unable to parse element `{0}` on filter `{1}`. The values available are: {2}" ),
+
+    /* Outlier detection */
+    E2200( "At least one data element must be specified" ),
+    E2201( "Start date and end date must be specified" ),
+    E2202( "Start date must be before end date" ),
+    E2203( "At least one organisation unit must be specified" ),
+    E2204( "Threshold must be a positive number" ),
+    E2205( "Max results must be a positive number" ),
+    E2206( "Max results exceeds the allowed max limit: `{0}`" ),
+    E2207( "Non-numeric data values encountered during outlier value detection" ),
 
     /* Security */
     E3000( "User `{0}` is not allowed to create objects of type {1}." ),
@@ -159,7 +169,7 @@ public enum ErrorCode
     E7007( "Failed to add/update job configuration - Delay must be not null for jobs with scheduling type FIXED_DELAY: `{0}`" ),
     E7010( "Failed to validate job runtime - `{0}`" ),
 
-    /* Aggregete analytics */
+    /* Aggregate analytics */
     E7100( "Query parameters cannot be null" ),
     E7101( "At least one dimension must be specified" ),
     E7102( "At least one data dimension item or data element group set dimension item must be specified" ),

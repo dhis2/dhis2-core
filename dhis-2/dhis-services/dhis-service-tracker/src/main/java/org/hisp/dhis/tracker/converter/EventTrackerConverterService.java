@@ -31,20 +31,28 @@ package org.hisp.dhis.tracker.converter;
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -167,11 +175,11 @@ public class EventTrackerConverterService
 
     private ProgramStageInstance from( TrackerPreheat preheat, Event event, ProgramStageInstance programStageInstance )
     {
-        ProgramStage programStage = preheat.get( TrackerIdScheme.UID, ProgramStage.class, event.getProgramStage() );
-        OrganisationUnit organisationUnit = preheat
-            .get( TrackerIdScheme.UID, OrganisationUnit.class, event.getOrgUnit() );
+        ProgramStage programStage = preheat.get( ProgramStage.class, event.getProgramStage() );
+        Program program = preheat.get( Program.class, event.getProgram() );
+        OrganisationUnit organisationUnit = preheat.get( OrganisationUnit.class, event.getOrgUnit() );
 
-        if ( programStageInstance == null )
+        if ( isNewEntity( programStageInstance ) )
         {
             Date now = new Date();
 
@@ -182,12 +190,7 @@ public class EventTrackerConverterService
             programStageInstance.setLastUpdated( now );
             programStageInstance.setLastUpdatedAtClient( now );
             programStageInstance.setProgramInstance(
-                getProgramInstance( preheat, TrackerIdScheme.UID, event.getEnrollment(), programStage.getProgram() ) );
-        }
-
-        if ( !CodeGenerator.isValidUid( programStageInstance.getUid() ) )
-        {
-            programStageInstance.setUid( CodeGenerator.generateUid() );
+                getProgramInstance( preheat, TrackerIdScheme.UID, event.getEnrollment(), program ) );
         }
 
         programStageInstance.setProgramStage( programStage );
@@ -200,7 +203,7 @@ public class EventTrackerConverterService
         if ( attributeOptionCombo != null )
         {
             programStageInstance.setAttributeOptionCombo(
-                preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, event.getAttributeOptionCombo() ) );
+                preheat.get( CategoryOptionCombo.class, event.getAttributeOptionCombo() ) );
         }
         else
         {
@@ -228,20 +231,31 @@ public class EventTrackerConverterService
             programStageInstance.getComments().addAll( notesConverterService.from( preheat, event.getNotes() ) );
         }
 
+        if ( programStage.isEnableUserAssignment() )
+        {
+            User assignedUser = preheat.get( User.class, event.getAssignedUser() );
+            programStageInstance.setAssignedUser( assignedUser );
+        }
+
+        if ( programStage.getProgram().isRegistration() && programStageInstance.getDueDate() == null && programStageInstance.getExecutionDate() != null )
+        {
+            programStageInstance.setDueDate( programStageInstance.getExecutionDate() );
+        }
+
         return programStageInstance;
     }
 
     private ProgramInstance getProgramInstance( TrackerPreheat preheat, TrackerIdScheme identifier, String enrollment,
         Program program )
     {
-        if ( !StringUtils.isEmpty( enrollment ) )
+        if ( ProgramType.WITH_REGISTRATION == program.getProgramType() )
         {
             return preheat.getEnrollment( identifier, enrollment );
         }
 
         if ( ProgramType.WITHOUT_REGISTRATION == program.getProgramType() )
         {
-            return preheat.getEnrollment( identifier, program.getUid() );
+            return preheat.getProgramInstancesWithoutRegistration( program.getUid() );
         }
 
         // no valid enrollment given and program not single event, just return null

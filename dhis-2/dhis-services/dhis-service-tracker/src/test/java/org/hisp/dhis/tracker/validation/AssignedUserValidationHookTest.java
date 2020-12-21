@@ -30,6 +30,12 @@ package org.hisp.dhis.tracker.validation;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Date;
+
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -47,22 +53,16 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 public class AssignedUserValidationHookTest
     extends AbstractImportValidationTest
 {
-    @Autowired
-    private UserService _userService;
-
     @Autowired
     private IdentifiableObjectManager manager;
 
@@ -130,7 +130,6 @@ public class AssignedUserValidationHookTest
     @Test
     public void testAssignedUserInvalidUid()
     {
-
         Event event = new Event();
 
         String testUserUid = "123";
@@ -149,14 +148,14 @@ public class AssignedUserValidationHookTest
             .atomicMode( AtomicMode.ALL )
             .events( Lists.newArrayList( event ) )
             .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
-            .user( user )
+            .userId( user.getUid() )
             .build();
 
         TrackerImportReport report = trackerImportService.importTracker( params );
 
-        assertTrue( report.getTrackerValidationReport().getErrorReports().size() == 1);
-        assertEquals( "Assigned user `123` is not a valid uid.", report.getTrackerValidationReport().getErrorReports().get( 0 ).getMessage() );
-        assertEquals( TrackerErrorCode.E1118, report.getTrackerValidationReport().getErrorReports().get( 0 ).getErrorCode() );
+        assertEquals( 1, report.getValidationReport().getErrorReports().size() );
+        assertEquals( "Assigned user `123` is not a valid uid.", report.getValidationReport().getErrorReports().get( 0 ).getMessage() );
+        assertEquals( TrackerErrorCode.E1118, report.getValidationReport().getErrorReports().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -180,14 +179,14 @@ public class AssignedUserValidationHookTest
             .atomicMode( AtomicMode.ALL )
             .events( Lists.newArrayList( event ) )
             .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
-            .user( user )
+            .userId( user.getUid() )
             .build();
 
         TrackerImportReport report = trackerImportService.importTracker( params );
 
-        assertTrue( report.getTrackerValidationReport().getErrorReports().size() == 1);
-        assertEquals( "Assigned user `A01234567890` is not a valid uid.", report.getTrackerValidationReport().getErrorReports().get( 0 ).getMessage() );
-        assertEquals( TrackerErrorCode.E1118, report.getTrackerValidationReport().getErrorReports().get( 0 ).getErrorCode() );
+        assertEquals( 1, report.getValidationReport().getErrorReports().size() );
+        assertEquals( "Assigned user `A01234567890` is not a valid uid.", report.getValidationReport().getErrorReports().get( 0 ).getMessage() );
+        assertEquals( TrackerErrorCode.E1118, report.getValidationReport().getErrorReports().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -196,6 +195,7 @@ public class AssignedUserValidationHookTest
 
         Event event = new Event();
 
+        event.setEvent( CodeGenerator.generateUid() );
         event.setAssignedUser( user.getUid() );
         event.setProgram( programA.getUid() );
         event.setProgramStage( programStageA.getUid() );
@@ -207,12 +207,12 @@ public class AssignedUserValidationHookTest
             .atomicMode( AtomicMode.ALL )
             .events( Lists.newArrayList( event ) )
             .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
-            .user( user )
+            .userId( user.getUid() )
             .build();
 
         TrackerImportReport report = trackerImportService.importTracker( params );
 
-        assertTrue( report.getTrackerValidationReport().getErrorReports().isEmpty() );
+        assertTrue( report.getValidationReport().getErrorReports().isEmpty() );
     }
 
     @Test
@@ -232,12 +232,12 @@ public class AssignedUserValidationHookTest
             .atomicMode( AtomicMode.ALL )
             .events( Lists.newArrayList( event ) )
             .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
-            .user( user )
+            .userId( user.getUid() )
             .build();
 
         TrackerImportReport report = trackerImportService.importTracker( params );
 
-        assertTrue( report.getTrackerValidationReport().getErrorReports().isEmpty() );
+        assertTrue( report.getValidationReport().getErrorReports().isEmpty() );
     }
 
 }

@@ -31,7 +31,6 @@ package org.hisp.dhis.trackedentity;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.User;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed

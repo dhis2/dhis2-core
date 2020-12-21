@@ -37,7 +37,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
@@ -202,27 +201,15 @@ public class TrackedEntityInstanceController
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        if ( !criteria.hasTrackedEntityInstance() )
+        if ( criteria.isUseLegacy() ) // FIXME luciano: this has to be removed!
         {
-            if ( criteria.isUseLegacy() ) // FIXME luciano: this has to be removed!
-            {
-                trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                    getTrackedEntityInstanceParams( fields ), false );
-            }
-            else
-            {
-                trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances2( queryParams,
-                    getTrackedEntityInstanceParams( fields ), false );
-            }
+            trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
+                getTrackedEntityInstanceParams( fields ), false );
         }
         else
         {
-            Set<String> trackedEntityInstanceIds = criteria.getTrackedEntityInstances();
-
-            trackedEntityInstances = trackedEntityInstanceIds.stream()
-                .map( id -> trackedEntityInstanceService.getTrackedEntityInstance( id,
-                    getTrackedEntityInstanceParams( fields ) ) )
-                .collect( Collectors.toList() );
+            trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances2( queryParams,
+                getTrackedEntityInstanceParams( fields ), false );
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -234,7 +221,7 @@ public class TrackedEntityInstanceController
             Pager pager = new Pager( queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault() );
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
-        
+
         if ( !StringUtils.isEmpty( criteria.getAttachment() ) )
         {
                 response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + criteria.getAttachment() );

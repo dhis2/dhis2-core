@@ -30,9 +30,6 @@ package org.hisp.dhis.tracker;
 
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -46,14 +43,6 @@ public interface TrackerImportService
      * @return Report giving status of import (and any errors)
      */
     TrackerImportReport importTracker( TrackerImportParams params );
-
-    /**
-     * Parses, and creates a TrackerImportParams instance based on given map of parameters.
-     *
-     * @param parameters Key-Value map of wanted parameters
-     * @return MetadataImportParams instance created based on input parameters
-     */
-    TrackerImportParams getParamsFromMap( Map<String, List<String>> parameters );
 
     /**
      * Build the report based on the mode selected by the client.

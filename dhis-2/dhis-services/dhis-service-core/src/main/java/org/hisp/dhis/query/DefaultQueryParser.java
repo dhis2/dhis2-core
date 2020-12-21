@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.OrganisationUnitAssignable;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.operators.MatchMode;
@@ -119,7 +120,7 @@ public class DefaultQueryParser implements QueryParser
             }
         }
         
-        if ( restrictToCaptureScope && schema.haveProperty( ORGANISATION_UNITS ) )
+        if ( restrictToCaptureScope && OrganisationUnitAssignable.class.isAssignableFrom( klass ) )
         {
             User user = currentUserService.getCurrentUser();
 

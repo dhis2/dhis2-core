@@ -35,9 +35,11 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.hisp.dhis.tracker.preheat.mappers.UserMapper;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -55,7 +57,7 @@ public class UserSupplier extends AbstractPreheatSupplier
     private final IdentifiableObjectManager manager;
 
     @Override
-    public void preheatAdd( TrackerPreheatParams params, TrackerPreheat preheat )
+    public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat )
     {
         Set<String> userUids = params.getEvents().stream()
             .filter( Objects::nonNull )
@@ -63,6 +65,7 @@ public class UserSupplier extends AbstractPreheatSupplier
             .filter( CodeGenerator::isValidUid )
             .collect( Collectors.toSet() );
 
-        preheat.put( TrackerIdentifier.UID, manager.getByUid( User.class, userUids ) );
+        preheat.put( TrackerIdentifier.UID,
+            DetachUtils.detach( UserMapper.INSTANCE, manager.getByUid( User.class, userUids ) ) );
     }
 }

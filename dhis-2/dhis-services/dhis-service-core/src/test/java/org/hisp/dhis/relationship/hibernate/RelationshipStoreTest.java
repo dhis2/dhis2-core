@@ -187,11 +187,4 @@ public class RelationshipStoreTest
 
         assertTrue( existing.isPresent() );
     }
-
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 }

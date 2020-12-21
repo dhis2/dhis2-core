@@ -40,7 +40,6 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -73,20 +72,17 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
     private final ProgramService programService;
 
-    private final ProgramRuleService programRuleService;
-
     public DefaultProgramRuleEngineService(
         @Qualifier( "serviceTrackerRuleEngine" ) ProgramRuleEngine programRuleEngineNew,
         @Qualifier( "notificationRuleEngine" ) ProgramRuleEngine programRuleEngine,
         List<RuleActionImplementer> ruleActionImplementers, ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService, ProgramRuleService programRuleService, ProgramService programService )
+        ProgramStageInstanceService programStageInstanceService, ProgramService programService )
     {
         checkNotNull( programRuleEngine );
         checkNotNull( programRuleEngineNew );
         checkNotNull( ruleActionImplementers );
         checkNotNull( programInstanceService );
         checkNotNull( programStageInstanceService );
-        checkNotNull( programRuleService );
         checkNotNull( programService );
 
         this.programRuleEngine = programRuleEngine;
@@ -94,7 +90,6 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         this.ruleActionImplementers = ruleActionImplementers;
         this.programInstanceService = programInstanceService;
         this.programStageInstanceService = programStageInstanceService;
-        this.programRuleService = programRuleService;
         this.programService = programService;
     }
 

@@ -105,6 +105,8 @@ public class HibernateTrackedEntityInstanceStore
     extends SoftDeleteHibernateObjectStore<TrackedEntityInstance>
     implements TrackedEntityInstanceStore
 {
+    private final static String TEI_HQL_BY_UIDS = "from TrackedEntityInstance as tei where tei.uid in (:uids)";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -114,7 +116,7 @@ public class HibernateTrackedEntityInstanceStore
     private final StatementBuilder statementBuilder;
 
     private final static String SELECT_TEI = "select tei from";
-    
+
     public HibernateTrackedEntityInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
         AclService aclService, OrganisationUnitStore organisationUnitStore, StatementBuilder statementBuilder )
@@ -201,7 +203,7 @@ public class HibernateTrackedEntityInstanceStore
             .replaceFirst( "order by case when pi.status = 'ACTIVE' then 1 when pi.status = 'COMPLETED' then 2 else 3 end asc, tei.lastUpdated desc ", "" )
             .replaceFirst( "order by tei.lastUpdated desc ", "" );
     }
-    
+
     private String withProgram( TrackedEntityInstanceQueryParams params, SqlHelper hlp )
     {
         String hql = "";
@@ -212,7 +214,6 @@ public class HibernateTrackedEntityInstanceStore
 
             // Joining program owners and using that as tei ou source
             hql += "inner join fetch tei.programOwners as po ";
-            String teiOuSource = "po.organisationUnit";
 
             if ( params.hasFilterForEvents() )
             {
@@ -280,7 +281,7 @@ public class HibernateTrackedEntityInstanceStore
         }
         return hql;
     }
-    
+
     private String withFilters( TrackedEntityInstanceQueryParams params, SqlHelper hlp )
     {
         String hql = "";
@@ -306,7 +307,7 @@ public class HibernateTrackedEntityInstanceStore
         }
         return hql;
     }
-    
+
     private String buildTrackedEntityInstanceHql( TrackedEntityInstanceQueryParams params, boolean idOnly )
     {
         SqlHelper hlp = new SqlHelper( true );
@@ -317,15 +318,18 @@ public class HibernateTrackedEntityInstanceStore
         String teiOuSource = params.hasProgram() ? "po.organisationUnit" : "tei.organisationUnit";
 
         hql += withProgram( params, hlp );
-        
+
         // If sync job, fetch only TEAVs that are supposed to be synchronized
 
         hql += addConditionally( params.isSynchronizationQuery(),
             () -> "left join tei.trackedEntityAttributeValues teav1 " +
             "left join teav1.attribute as attr" + hlp.whereAnd() + " attr.skipSynchronization = false" );
 
-        hql += addWhereConditionally( hlp, params.hasTrackedEntityType(), () ->
-            "tei.trackedEntityType.uid='" + params.getTrackedEntityType().getUid() + "'" );
+        hql += addWhereConditionally( hlp, params.hasTrackedEntityType(),
+            () -> " tei.trackedEntityType.uid='" + params.getTrackedEntityType().getUid() + "'" );
+
+        hql += addWhereConditionally( hlp, params.hasTrackedEntityInstances(),
+            () -> " tei.uid in (" + getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) + ")" );
 
         if ( params.hasLastUpdatedDuration() )
         {
@@ -342,7 +346,7 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         hql += addWhereConditionally( hlp, params.isSynchronizationQuery(), () -> "tei.lastUpdated > tei.lastSynchronized");
-        
+
         // Comparing milliseconds instead of always creating new Date( 0 )
 
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
@@ -585,6 +589,9 @@ public class HibernateTrackedEntityInstanceStore
             }
         }
 
+        sql += addWhereConditionally( hlp, params.hasTrackedEntityInstances(),
+            () -> " tei.uid in (" + getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) + ")" );
+
         if ( !params.hasTrackedEntityType() )
         {
             sql += hlp.whereAnd() + " tei.trackedentitytypeid in (" + params.getTrackedEntityTypes().stream()
@@ -747,7 +754,7 @@ public class HibernateTrackedEntityInstanceStore
                 sql += " psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' " + "and psi.status = '" + EventStatus.SKIPPED.name() + "' and ";
             }
         }
-        
+
         if ( params.hasProgramStage() )
         {
             sql += " psi.programstageid = " + params.getProgramStage().getId() + " and ";
@@ -811,7 +818,7 @@ public class HibernateTrackedEntityInstanceStore
                 hql += " psi.dueDate >= '" + start + "' and psi.dueDate <= '" + end + "' " + "and psi.status = '" + EventStatus.SKIPPED.name() + "' and ";
             }
         }
-        
+
         if ( params.hasProgramStage() )
         {
             hql += " psi.programStage.uid = " + params.getProgramStage().getUid() + " and ";
@@ -854,7 +861,7 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     public List<String> getUidsIncludingDeleted( List<String> uids )
     {
-        String hql = "select te.uid from TrackedEntityInstance as te where te.uid in (:uids)";
+        String hql = "select tei.uid " + TEI_HQL_BY_UIDS;
         List<String> resultUids = new ArrayList<>();
         List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
 
@@ -867,6 +874,24 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         return resultUids;
+    }
+
+    @Override
+    public List<TrackedEntityInstance> getIncludingDeleted( List<String> uids )
+    {
+        List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
+        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
+
+        for ( List<String> uidsPartition : uidsPartitions )
+        {
+            if ( !uidsPartition.isEmpty() )
+            {
+                trackedEntityInstances.addAll( getSession().createQuery( TEI_HQL_BY_UIDS, TrackedEntityInstance.class )
+                    .setParameter( "uids", uidsPartition ).list() );
+            }
+        }
+
+        return trackedEntityInstances;
     }
 
     @Override

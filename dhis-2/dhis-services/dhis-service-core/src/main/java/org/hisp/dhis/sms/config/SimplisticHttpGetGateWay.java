@@ -39,6 +39,9 @@ import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
+import org.hisp.dhis.system.util.SmsUtils;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -54,18 +57,24 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component( "org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" )
 public class SimplisticHttpGetGateWay
-    extends SmsGateway
+        extends SmsGateway
 {
+    private final PBEStringEncryptor pbeStringEncryptor;
+
+    private final RestTemplate restTemplate;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final RestTemplate restTemplate;
 
-    public SimplisticHttpGetGateWay( RestTemplate restTemplate )
+    public SimplisticHttpGetGateWay( RestTemplate restTemplate, @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor )
     {
         checkNotNull( restTemplate );
+        checkNotNull( pbeStringEncryptor );
+
         this.restTemplate = restTemplate;
+        this.pbeStringEncryptor = pbeStringEncryptor;
     }
 
     // -------------------------------------------------------------------------
@@ -139,13 +148,60 @@ public class SimplisticHttpGetGateWay
 
     private HttpEntity<String> getRequestEntity( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
-        Map<String, String> valueStore = getValueStore( config, text, recipients );
+        List<GenericGatewayParameter> parameters = config.getParameters();
+
+        Map<String, String> valueStore = new HashMap<>();
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.put( "Content-type", Collections.singletonList( config.getContentType().getValue() ) );
+
+        for ( GenericGatewayParameter parameter : parameters )
+        {
+            if ( parameter.isHeader() )
+            {
+                httpHeaders.put( parameter.getKey(), Collections.singletonList( parameter.getValue() ) );
+                continue;
+            }
+
+            if ( parameter.isEncode() )
+            {
+                valueStore.put( parameter.getKey(), SmsUtils.encode( parameter.getValue() ) );
+                continue;
+            }
+
+            valueStore.put( parameter.getKey(), parameter.isConfidential() ?
+                pbeStringEncryptor.decrypt( parameter.getValue() ) : parameter.getValue() );
+        }
+
+        valueStore.put( KEY_TEXT, SmsUtils.encode( text ) );
+        valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
 
         final StringSubstitutor substitutor = new StringSubstitutor( valueStore ); // Matches on ${...}
 
         String data = substitutor.replace( config.getConfigurationTemplate() );
 
-        return new HttpEntity<>( data, getHeaderParameters( config ) );
+        return new HttpEntity<>( data, httpHeaders );
+    }
+
+    private Map<String, String> getValueStore( GenericHttpGatewayConfig config, String text, Set<String> recipients )
+    {
+        List<GenericGatewayParameter> parameters = config.getParameters();
+
+        Map<String, String> valueStore = new HashMap<>();
+
+        for ( GenericGatewayParameter parameter : parameters )
+        {
+            if ( !parameter.isHeader() )
+            {
+                valueStore.put( parameter.getKey(), parameter.isConfidential() ?
+                    pbeStringEncryptor.decrypt( parameter.getValue() ) : parameter.getValue() );
+            }
+        }
+
+        valueStore.put( KEY_TEXT, text );
+        valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
+
+        return valueStore;
     }
 
     private HttpHeaders getHeaderParameters( GenericHttpGatewayConfig config )
@@ -162,26 +218,6 @@ public class SimplisticHttpGetGateWay
         }
 
         return httpHeaders;
-    }
-
-    private Map<String, String> getValueStore( GenericHttpGatewayConfig config, String text, Set<String> recipients )
-    {
-        List<GenericGatewayParameter> parameters = config.getParameters();
-
-        Map<String, String> valueStore = new HashMap<>();
-
-        for ( GenericGatewayParameter parameter : parameters )
-        {
-            if ( !parameter.isHeader() )
-            {
-                valueStore.put( parameter.getKey(), parameter.getValue() );
-            }
-        }
-
-        valueStore.put( KEY_TEXT, text );
-        valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
-
-        return valueStore;
     }
 
     private OutboundMessageResponse getResponse( ResponseEntity<String> responseEntity )

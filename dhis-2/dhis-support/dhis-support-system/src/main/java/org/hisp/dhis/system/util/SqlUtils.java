@@ -102,7 +102,7 @@ public class SqlUtils
      */
     public static String castToNumber( String value )
     {
-        return "CAST (" + value + ") AS NUMERIC";
+        return "CAST (" + value + " AS NUMERIC )";
     }
 
     public static String lower( String value )

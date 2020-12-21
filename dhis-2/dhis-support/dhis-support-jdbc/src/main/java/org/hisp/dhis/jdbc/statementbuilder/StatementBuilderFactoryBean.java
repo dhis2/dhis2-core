@@ -36,7 +36,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public class StatementBuilderFactoryBean
     implements FactoryBean<StatementBuilder>
@@ -56,7 +55,7 @@ public class StatementBuilderFactoryBean
     private StatementBuilder statementBuilder;
 
     // -------------------------------------------------------------------------
-    // Initialisation
+    // Init
     // -------------------------------------------------------------------------
 
     public void init()
@@ -84,7 +83,8 @@ public class StatementBuilderFactoryBean
     // -------------------------------------------------------------------------
 
     @Override
-    public StatementBuilder getObject() {
+    public StatementBuilder getObject()
+    {
         return statementBuilder;
     }
 
