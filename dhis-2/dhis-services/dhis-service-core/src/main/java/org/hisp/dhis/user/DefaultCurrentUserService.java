@@ -152,21 +152,27 @@ public class DefaultCurrentUserService
 
         if ( username == null )
         {
-            return null;
+            throw new Exception("Could not retrieve current username!");
         }
+
+        User user = null;
 
         Long userId = USERNAME_ID_CACHE.get( username, this::getUserId ).orElse( null );
 
-        if ( userId == null )
+        if ( userId != null )
         {
-            throw new Exception("Could not retrieve current user id!");
+            user = userStore.getUser(userId);
         }
-
-        User user = userStore.getUser(userId);
 
         if ( user == null )
         {
             UserCredentials credentials = userStore.getUserCredentialsByUsername( username );
+
+            // Happens when user is anonymous aka. not logged in yet.
+            if ( credentials == null )
+            {
+                return null;
+            }
 
             user = userStore.getUser( credentials.getId() );
 

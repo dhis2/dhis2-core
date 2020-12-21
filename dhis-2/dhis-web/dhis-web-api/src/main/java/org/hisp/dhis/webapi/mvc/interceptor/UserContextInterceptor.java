@@ -78,14 +78,21 @@ public class UserContextInterceptor extends HandlerInterceptorAdapter implements
     }
 
     @Override
-    public boolean preHandle( final HttpServletRequest request, final HttpServletResponse response,
-        final Object handler )
+    public boolean preHandle( final HttpServletRequest request,
+        final HttpServletResponse response, final Object handler )
         throws Exception
     {
         boolean translate = !"false".equals( request.getParameter( PARAM_TRANSLATE ) );
+
         String locale = request.getParameter( PARAM_LOCALE );
+
         User user = currentUserService.getCurrentUserInTransaction();
-        configureUserContext( user, new TranslateParams( translate, locale ) );
+
+        if ( user != null )
+        {
+            configureUserContext( user, new TranslateParams( translate, locale ) );
+        }
+
         return true;
     }
 
@@ -108,7 +115,7 @@ public class UserContextInterceptor extends HandlerInterceptorAdapter implements
     {
         return translateParams.isTranslate()
             ? translateParams
-                .getLocaleWithDefault( (Locale) userSettingService.getUserSetting( DB_LOCALE, user ) )
+            .getLocaleWithDefault( (Locale) userSettingService.getUserSetting( DB_LOCALE, user ) )
             : null;
     }
 }
