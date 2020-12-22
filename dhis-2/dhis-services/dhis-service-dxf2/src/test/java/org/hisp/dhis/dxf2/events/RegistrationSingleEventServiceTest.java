@@ -29,7 +29,8 @@ package org.hisp.dhis.dxf2.events;
  */
 
 import org.hamcrest.CoreMatchers;
-import org.hisp.dhis.TransactionalIntegrationTestBase;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
@@ -68,7 +69,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class RegistrationSingleEventServiceTest
-    extends TransactionalIntegrationTestBase
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private EventService eventService;

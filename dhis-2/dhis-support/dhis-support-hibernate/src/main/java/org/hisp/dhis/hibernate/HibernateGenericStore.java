@@ -494,7 +494,7 @@ public class HibernateGenericStore<T>
 
         List<String> result = getSession().createQuery( query ).list();
 
-        return HibernateUtils.convertListJsonToListObject( JsonAttributeValueBinaryType.MAPPER, result, AttributeValue.class );
+        return HibernateProxyUtils.convertListJsonToListObject( JsonAttributeValueBinaryType.MAPPER, result, AttributeValue.class );
     }
 
     @Override
@@ -576,7 +576,7 @@ public class HibernateGenericStore<T>
 
         List<String> result = getSession().createQuery( query ).list();
 
-        return HibernateUtils.convertListJsonToListObject( JsonAttributeValueBinaryType.MAPPER, result , AttributeValue.class );
+        return HibernateProxyUtils.convertListJsonToListObject( JsonAttributeValueBinaryType.MAPPER, result , AttributeValue.class );
     }
 
     @Override

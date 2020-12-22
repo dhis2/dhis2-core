@@ -29,7 +29,7 @@ package org.hisp.dhis.security.acl;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.TransactionalIntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -62,8 +62,7 @@ import static org.junit.Assert.*;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AclServiceTest
-    extends TransactionalIntegrationTestBase
+public class AclServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
     private AclService aclService;

@@ -1179,7 +1179,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     private boolean dataSharingEnabled( User user )
     {
-        return aclService.isDataShareable( clazz ) && !user.isSuper();
+        return aclService.isDataClassShareable( clazz ) && !user.isSuper();
     }
 
     private boolean isReadAllowed( T object, User user )

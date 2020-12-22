@@ -29,7 +29,7 @@ package org.hisp.dhis.query;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.TransactionalIntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -57,8 +57,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class CriteriaQueryEngineTest
-    extends TransactionalIntegrationTestBase
+public class CriteriaQueryEngineTest extends TransactionalIntegrationTest
 {
     @Autowired
     private SchemaService schemaService;

@@ -82,6 +82,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Jim Grace
  */
+@Ignore
 public class DataApprovalServiceCategoryOptionGroupTest
     extends IntegrationTestBase
 {
