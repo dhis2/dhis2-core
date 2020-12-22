@@ -139,6 +139,8 @@ public class TrackerAccessManagerTest extends TransactionalIntegrationTestBase
     {
         userService = _userService;
 
+        createAndInjectAdminUser();
+
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
         manager.save( organisationUnitA );
