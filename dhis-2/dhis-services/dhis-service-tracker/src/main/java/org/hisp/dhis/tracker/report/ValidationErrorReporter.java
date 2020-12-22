@@ -39,6 +39,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 
@@ -194,5 +195,10 @@ public class ValidationErrorReporter
     public boolean isInvalid( TrackerType trackerType, String uid )
     {
         return this.invalidDTOs.getOrDefault( trackerType, new ArrayList<>() ).contains( uid );
+    }
+    
+    public TrackerPreheat getPreheat()
+    {
+        return this.getValidationContext().getBundle().getPreheat();
     }
 }
