@@ -259,6 +259,8 @@ public class HibernateDbmsManager
         emptyTable( "programnotificationinstance" );
         emptyTable( "trackedentitydatavalueaudit" );
         emptyTable( "trackedentityprogramowner" );
+        emptyTable( "programstageinstancecomments" );
+        emptyTable( "programinstancecomments" );
         emptyTable( "programstageinstance" );
         emptyTable( "programinstance" );
         emptyTable( "programnotificationtemplate" );
@@ -271,6 +273,7 @@ public class HibernateDbmsManager
         emptyTable( "program_attributes" );
         emptyTable( "periodboundary" );
         emptyTable( "programindicator" );
+        emptyTable( "programownershiphistory" );
         emptyTable( "program" );
 
         emptyTable( "programstageinstancefilter" );
@@ -304,6 +307,7 @@ public class HibernateDbmsManager
 
         emptyTable( "userteisearchorgunits" );
         emptyTable( "categoryoption_organisationunits" );
+        emptyTable( "userdatavieworgunits" );
         emptyTable( "organisationunit" );
         emptyTable( "orgunitlevel" );
 
@@ -361,6 +365,8 @@ public class HibernateDbmsManager
         emptyTable( "users" );
         emptyTable( "useraccess" );
         emptyTable( "usersetting" );
+        emptyTable( "fileresource" );
+        emptyTable( "trackedentitycomment" );
         emptyTable( "userinfo" );
 
         dropTable( "_orgunitstructure" );

@@ -28,19 +28,6 @@ package org.hisp.dhis.webapi.controller.dataitem;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.lang.String.join;
-import static java.util.Collections.emptyList;
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
-import static org.hisp.dhis.node.NodeUtils.createPager;
-import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.API_RESOURCE_PATH;
-
-import java.util.List;
-
-import javax.annotation.PostConstruct;
-
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -57,6 +44,18 @@ import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.join;
+import static java.util.Collections.emptyList;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
+import static org.hisp.dhis.node.NodeUtils.createPager;
+import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.API_RESOURCE_PATH;
 
 /**
  * This class is responsible for handling the result and pagination nodes. This
@@ -84,7 +83,7 @@ class ResponseHandler
 
     private final CacheProvider cacheProvider;
 
-    private Cache<Integer> PAGE_COUNTING_CACHE;
+    private Cache<Long> PAGE_COUNTING_CACHE;
 
     ResponseHandler( final QueryService queryService, final LinkService linkService,
         final FieldFilterService fieldFilterService, final Environment environment, final CacheProvider cacheProvider )
@@ -144,7 +143,7 @@ class ResponseHandler
                 {
                     count += PAGE_COUNTING_CACHE.get(
                         createPageCountingCacheKey( currentUser, entity, filters, options ),
-                        p -> countEntityRowsTotal( entity, options, filters ) ).orElse( 0 );
+                        p -> countEntityRowsTotal( entity, options, filters ) ).orElse( Long.valueOf( 0 ) );
                 }
 
                 final Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
@@ -156,7 +155,7 @@ class ResponseHandler
         }
     }
 
-    private int countEntityRowsTotal( final Class<? extends BaseDimensionalItemObject> entity, final WebOptions options,
+    private long countEntityRowsTotal( final Class<? extends BaseDimensionalItemObject> entity, final WebOptions options,
         final List<String> filters )
     {
         final Query query = queryService.getQueryFromUrl( entity, filters, emptyList(), new Pagination(),
@@ -176,7 +175,7 @@ class ResponseHandler
     void init()
     {
         // formatter:off
-        PAGE_COUNTING_CACHE = cacheProvider.newCacheBuilder( Integer.class )
+        PAGE_COUNTING_CACHE = cacheProvider.newCacheBuilder( Long.class )
             .forRegion( CACHE_DATA_ITEMS_PAGINATION )
             .expireAfterWrite( 5, MINUTES )
             .withInitialCapacity( 1000 )

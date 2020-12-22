@@ -35,11 +35,11 @@ import java.util.List;
  */
 public interface AclStore
 {
-    List<Long> getAccessibleTrackedEntityInstanceTypes( Long userId );
+    List<Long> getAccessibleTrackedEntityInstanceTypes( String userUID, List<String> userGroupUIDs );
 
-    List<Long> getAccessiblePrograms( Long userId );
+    List<Long> getAccessiblePrograms( String userUID, List<String> userGroupUIDs );
 
-    List<Long> getAccessibleProgramStages( Long userId );
+    List<Long> getAccessibleProgramStages( String userUID, List<String> userGroupUIDs );
 
-    List<Long> getAccessibleRelationshipTypes( Long userId );
+    List<Long> getAccessibleRelationshipTypes( String userUID, List<String> userGroupUIDs );
 }

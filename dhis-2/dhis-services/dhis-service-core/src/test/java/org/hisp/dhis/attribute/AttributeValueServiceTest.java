@@ -40,14 +40,15 @@ import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserInfo;
 import org.hisp.dhis.user.UserService;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

@@ -214,7 +214,7 @@ public class DefaultSchemaValidator implements SchemaValidator
 
         Collection<?> value = (Collection<?>) propertyObject;
 
-        if ( value.size() < property.getMin() || value.size() > property.getMax() )
+        if ( ( property.getMin() != null && value.size() < property.getMin() ) || ( property.getMax() != null && value.size() > property.getMax() ) )
         {
             errorReports.add( new ErrorReport( klass, ErrorCode.E4007, property.getName(), property.getMin(), property.getMax(), value.size() )
                 .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );

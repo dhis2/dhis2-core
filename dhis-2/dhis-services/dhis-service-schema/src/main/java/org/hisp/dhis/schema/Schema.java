@@ -363,8 +363,7 @@ public class Schema implements Ordered, Klass
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isShareable()
     {
-        return shareable != null ? shareable :
-            (havePersistedProperty( "user" ) && havePersistedProperty( "userGroupAccesses" ) && havePersistedProperty( "publicAccess" ));
+        return shareable != null ? shareable : havePersistedProperty( "sharing" );
     }
 
     public void setShareable( boolean shareable )

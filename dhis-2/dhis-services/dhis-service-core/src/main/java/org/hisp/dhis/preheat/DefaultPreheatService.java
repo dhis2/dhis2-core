@@ -68,6 +68,8 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
@@ -161,7 +163,7 @@ public class DefaultPreheatService implements PreheatService
         {
             if ( params.getClasses().isEmpty() )
             {
-                schemaService.getMetadataSchemas().stream().filter( Schema::isIdentifiableObject )
+                schemaService.getMetadataSchemas().stream().filter( schema -> schema.isIdentifiableObject() && schema.isPersisted() )
                     .forEach( schema -> params.getClasses().add( (Class<? extends IdentifiableObject>) schema.getKlass() ) );
             }
 
@@ -171,7 +173,8 @@ public class DefaultPreheatService implements PreheatService
                 query.setUser( preheat.getUser() );
                 List<? extends IdentifiableObject> objects = queryService.query( query );
 
-                if ( PreheatIdentifier.UID == params.getPreheatIdentifier() || PreheatIdentifier.AUTO == params.getPreheatIdentifier() )
+                if ( PreheatIdentifier.UID == params.getPreheatIdentifier() || PreheatIdentifier.AUTO == params.getPreheatIdentifier()
+                    || isOnlyUID( klass ) )
                 {
                     preheat.put( PreheatIdentifier.UID, objects );
                 }
@@ -194,7 +197,10 @@ public class DefaultPreheatService implements PreheatService
             Map<Class<? extends IdentifiableObject>, Set<String>> uidMap = references.get( PreheatIdentifier.UID );
             Map<Class<? extends IdentifiableObject>, Set<String>> codeMap = references.get( PreheatIdentifier.CODE );
 
-            if ( uidMap != null && (PreheatIdentifier.UID == params.getPreheatIdentifier() || PreheatIdentifier.AUTO == params.getPreheatIdentifier()) )
+            boolean hasOnlyUIDClasses = uidMap.keySet().stream().filter( klass -> isOnlyUID( klass ) ).findAny().isPresent() ? true : false;
+
+            if ( uidMap != null && ( PreheatIdentifier.UID == params.getPreheatIdentifier()
+                || PreheatIdentifier.AUTO == params.getPreheatIdentifier() || hasOnlyUIDClasses ) )
             {
                 for ( Class<? extends IdentifiableObject> klass : uidMap.keySet() )
                 {
@@ -304,56 +310,33 @@ public class DefaultPreheatService implements PreheatService
     {
         objects.forEach( ( klass, list ) -> list.forEach( object ->
         {
+            object.getSharing().setExternal( object.getExternalAccess() );
+            object.getSharing().setOwner( object.getUser() );
+            object.getSharing().setPublicAccess( object.getPublicAccess() );
             object.getUserAccesses().forEach( ua ->
             {
-                User user = null;
-
-                if ( ua.getUser() != null )
-                {
-                    if ( PreheatIdentifier.UID == identifier )
-                    {
-                        user = preheat.get( identifier, User.class, ua.getUser().getUid() );
-                    }
-                    else if ( PreheatIdentifier.CODE == identifier )
-                    {
-                        user = preheat.get( identifier, User.class, ua.getUser().getCode() );
-                    }
-                }
-                else
-                {
-                    user = preheat.get( PreheatIdentifier.UID, User.class, ua.getUserUid() );
-                }
+                User user = preheat.get( PreheatIdentifier.UID, User.class, ua.getUserUid() );
 
                 if ( user != null )
                 {
                     ua.setUser( user );
                 }
+
+                // Copy legacy sharing to new jsonb sharing
+                object.getSharing().getUsers().put( ua.getUid(), new UserAccess( ua ) );
             } );
 
             object.getUserGroupAccesses().forEach( uga ->
             {
-                UserGroup userGroup = null;
-
-                if ( uga.getUserGroup() != null )
-                {
-                    if ( PreheatIdentifier.UID == identifier )
-                    {
-                        userGroup = preheat.get( identifier, UserGroup.class, uga.getUserGroup().getUid() );
-                    }
-                    else if ( PreheatIdentifier.CODE == identifier )
-                    {
-                        userGroup = preheat.get( identifier, UserGroup.class, uga.getUserGroup().getCode() );
-                    }
-                }
-                else
-                {
-                    userGroup = preheat.get( PreheatIdentifier.UID, UserGroup.class, uga.getUserGroupUid() );
-                }
+                UserGroup userGroup = preheat.get( PreheatIdentifier.UID, UserGroup.class, uga.getUserGroupUid() );
 
                 if ( userGroup != null )
                 {
                     uga.setUserGroup( userGroup );
                 }
+
+                // Copy legacy sharing to new jsonb sharing
+                object.getSharing().getUserGroups().put( uga.getUid(), new UserGroupAccess( uga ) );
             } );
         } ) );
     }
@@ -532,6 +515,11 @@ public class DefaultPreheatService implements PreheatService
                     identifiableObject.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
                     identifiableObject.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
                     identifiableObject.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
+
+                    if ( identifiableObject.getUser() != null )
+                    {
+                        addIdentifiers( map, identifiableObject.getUser() );
+                    }
 
                     addIdentifiers( map, identifiableObject );
                 }
@@ -1016,5 +1004,10 @@ public class DefaultPreheatService implements PreheatService
     private boolean skipConnect( Class<?> klass )
     {
         return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ));
+    }
+
+    private boolean isOnlyUID( Class<?> klass )
+    {
+        return UserGroup.class.isAssignableFrom( klass ) || User.class.isAssignableFrom( klass );
     }
 }

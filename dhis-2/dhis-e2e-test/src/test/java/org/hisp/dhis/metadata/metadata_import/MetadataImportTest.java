@@ -319,7 +319,7 @@ public class MetadataImportTest
         JsonArray userGroupAccesses = new JsonArray(  );
         JsonObject userGroupAccess = new JsonObject();
         userGroupAccess.addProperty( "access", "rwrw----" );
-        userGroupAccess.addProperty( "userGroupUid", "non-existing-id " );
+        userGroupAccess.addProperty( "userGroupUid", "non-existing-id" );
         userGroupAccess.addProperty( "id", "non-existing-id" );
 
         userGroupAccesses.add( userGroupAccess );

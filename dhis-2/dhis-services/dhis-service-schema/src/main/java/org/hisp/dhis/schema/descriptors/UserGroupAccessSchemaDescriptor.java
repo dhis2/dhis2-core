@@ -30,7 +30,7 @@ package org.hisp.dhis.schema.descriptors;
 
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

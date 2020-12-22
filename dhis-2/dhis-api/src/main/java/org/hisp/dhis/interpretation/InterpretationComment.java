@@ -67,8 +67,8 @@ public class InterpretationComment
     public InterpretationComment( String text, User user )
     {
         this.text = text;
-        this.user = user;
         this.created = new Date();
+        this.sharing.setOwner( user );
     }
 
     @JsonProperty

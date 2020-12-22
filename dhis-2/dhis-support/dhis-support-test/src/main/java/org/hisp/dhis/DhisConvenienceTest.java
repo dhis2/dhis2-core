@@ -132,7 +132,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
@@ -2413,13 +2413,13 @@ public abstract class DhisConvenienceTest
 
     protected void enableDataSharing( User user, IdentifiableObject object, String access )
     {
-        object.getUserAccesses().clear();
+        object.getSharing().resetUserAccesses();
 
         UserAccess userAccess = new UserAccess();
         userAccess.setUser( user );
         userAccess.setAccess( access );
 
-        object.getUserAccesses().add( userAccess );
+        object.getSharing().addUserAccess( userAccess );
     }
 
     @SuppressWarnings( "all" )

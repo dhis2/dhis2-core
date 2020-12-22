@@ -28,7 +28,6 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -161,20 +160,6 @@ public class UserGroup
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
-
-    @Override
-    @JsonIgnore
-    public User getUser()
-    {
-        return user;
-    }
-
-    @Override
-    @JsonIgnore
-    public void setUser( User user )
-    {
-        this.user = user;
-    }
 
     public UUID getUuid()
     {

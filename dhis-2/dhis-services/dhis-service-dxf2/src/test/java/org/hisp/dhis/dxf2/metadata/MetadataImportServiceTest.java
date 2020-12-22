@@ -101,6 +101,7 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private IdentifiableObjectManager manager;
+
     @Autowired
     private SchemaService schemaService;
 
@@ -237,7 +238,7 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( Status.OK, report.getStatus() );
     }
 
-    @Test( expected = MappingException.class )
+    @Test( expected = IllegalArgumentException.class )
     public void testImportNonExistingEntityObject()
         throws IOException
     {
@@ -294,8 +295,15 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertNotNull( visualization );
         assertEquals( 1, visualization.getUserGroupAccesses().size() );
         assertEquals( 1, visualization.getUserAccesses().size() );
-        assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUserUid() );
-        assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
+        assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUser().getUserUid() );
+        assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid().getUid() );
+
+//        Visualization dataElementOperandVisualization = manager.get( Visualization.class, "qD72aBqsHvt" );
+//        assertNotNull( dataElementOperandVisualization );
+//        assertEquals( 2, dataElementOperandVisualization.getDataDimensionItems().size() );
+//        dataElementOperandVisualization.getDataDimensionItems()
+//            .stream()
+//            .forEach( item -> assertNotNull( item.getDataElementOperand() ) );
 
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(),
@@ -321,8 +329,8 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertNotNull( visualization );
         assertEquals( 1, visualization.getUserGroupAccesses().size() );
         assertEquals( 1, visualization.getUserAccesses().size() );
-        assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUserUid() );
-        assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
+        assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUser().getUid() );
+        assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroup().getUid() );
     }
 
     @Test
@@ -356,8 +364,8 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertNotNull( visualization );
         assertEquals( 1, visualization.getUserGroupAccesses().size() );
         assertEquals( 1, visualization.getUserAccesses().size() );
-        assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUserUid() );
-        assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
+        assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUser().getUid() );
+        assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroup().getUid() );
 
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(),
@@ -592,7 +600,7 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
     public void testUpdateUserGroupWithoutCreatedUserProperty()
         throws IOException
     {
-        User userA = createUser( "A", "ALL" );
+        User userA = createUser( 'A', Lists.newArrayList( "ALL" ) );
         userService.addUser( userA );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
@@ -608,7 +616,7 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( Status.OK, report.getStatus() );
 
         UserGroup userGroup = manager.get( UserGroup.class, "OPVIvvXzNTw" );
-        assertEquals( userA, userGroup.getUser() );
+        assertEquals( userA.getUid(), userGroup.getSharing().getOwner() );
 
         User userB = createUser( "B", "ALL" );
         userService.addUser( userB );
@@ -622,12 +630,13 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         params.setObjects( metadata );
         params.setUser( userB );
 
+
         report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
 
         userGroup = manager.get( UserGroup.class, "OPVIvvXzNTw" );
         assertEquals( "TA user group updated", userGroup.getName() );
-        assertEquals( userA, userGroup.getUser() );
+        assertEquals( userA.getUid(), userGroup.getSharing().getOwner() );
     }
 
     @Test

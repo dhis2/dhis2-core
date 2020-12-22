@@ -83,7 +83,7 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     }
 
     @Override
-    public int count( Query query )
+    public long count( Query query )
     {
         validateQuery( query );
         List<T> list = runQuery( query );

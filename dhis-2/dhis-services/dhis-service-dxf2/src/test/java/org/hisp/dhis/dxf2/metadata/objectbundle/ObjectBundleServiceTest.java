@@ -859,8 +859,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testUpdateDataSetWithSectionsAndGreyedFields()
-        throws IOException
+    public void testUpdateDataSetWithSectionsAndGreyedFields() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_sections_gf.json" ).getInputStream(), RenderFormat.JSON );

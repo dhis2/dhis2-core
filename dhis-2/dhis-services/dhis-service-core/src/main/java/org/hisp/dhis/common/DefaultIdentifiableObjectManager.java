@@ -422,7 +422,7 @@ public class DefaultIdentifiableObjectManager
     @Override
     @Transactional( readOnly = true )
     public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
-        String value, UserInfo currentUserInfo )
+        String value, UserInfo userInfo )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
@@ -431,7 +431,7 @@ public class DefaultIdentifiableObjectManager
             return null;
         }
 
-        return (T) store.getByUniqueAttributeValue( attribute, value, currentUserInfo );
+        return (T) store.getByUniqueAttributeValue( attribute, value, userInfo );
     }
 
     @Override

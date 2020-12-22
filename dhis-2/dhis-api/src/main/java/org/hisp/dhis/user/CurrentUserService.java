@@ -88,4 +88,20 @@ public interface CurrentUserService
      * @return UserCredentials of current User
      */
     UserCredentials getCurrentUserCredentials();
+
+    /**
+     * Return {@link CurrentUserGroupInfo} of current User
+     */
+    CurrentUserGroupInfo getCurrentUserGroupsInfo();
+
+    /**
+     * Invalidate UserGroupInfo Cache for given username
+     * Ignore if username doesn't exist
+     */
+    void invalidateUserGroupCache( String username );
+
+    /**
+     * Get {@link CurrentUserGroupInfo} by given {@link UserInfo}
+     */
+    CurrentUserGroupInfo getCurrentUserGroupsInfo( UserInfo userInfo );
 }

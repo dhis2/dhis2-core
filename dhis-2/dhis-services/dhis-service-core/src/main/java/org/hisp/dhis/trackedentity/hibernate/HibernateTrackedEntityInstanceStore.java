@@ -67,7 +67,6 @@ import javax.persistence.criteria.Root;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -906,12 +905,9 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
     {
-        return getSharingCriteria( user )
-            .add( Restrictions.in( "uid", uids ) )
-            .list();
+        return getList( getCriteriaBuilder(), newJpaParameters().addPredicate( root -> root.get( "uid" ).in( uids ) )  );
     }
 
     @Override
