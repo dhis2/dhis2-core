@@ -185,6 +185,7 @@ public class OutlierDetectionManager
             return outlier;
         };
     }
+
     /**
      * Returns the ISO period name for the given {@link ResultSet} row.
      *
