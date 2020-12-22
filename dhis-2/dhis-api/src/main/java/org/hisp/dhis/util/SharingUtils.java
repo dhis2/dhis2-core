@@ -28,7 +28,6 @@ package org.hisp.dhis.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.collections.MapUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -41,13 +40,13 @@ public class SharingUtils
 {
     public static final Set<UserGroupAccess> getDtoUserGroupAccesses( Sharing sharing )
     {
-        return !MapUtils.isEmpty( sharing.getUserGroups() ) ? sharing.getUserGroups().values()
+        return sharing.hasUserGroupAccesses() ? sharing.getUserGroups().values()
             .stream().map( uag -> uag.toDtoObject() ).collect( Collectors.toSet() ) : new HashSet<>();
     }
 
     public static final  Set<org.hisp.dhis.user.UserAccess> getDtoUserAccess( Sharing sharing )
     {
-        return !MapUtils.isEmpty( sharing.getUsers() ) ? sharing.getUsers().values()
+        return sharing.hasUserAccesses() ? sharing.getUsers().values()
             .stream().map( ua -> ua.toDtoObject() ).collect( Collectors.toSet() ) : new HashSet<>();
     }
 

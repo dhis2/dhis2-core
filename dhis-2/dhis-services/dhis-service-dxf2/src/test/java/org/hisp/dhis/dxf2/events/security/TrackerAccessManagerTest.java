@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.events.security;
 
 import com.google.common.collect.Sets;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -75,7 +75,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-public class TrackerAccessManagerTest extends DhisSpringTest
+public class TrackerAccessManagerTest extends TransactionalIntegrationTestBase
 {
     @Autowired
     private TrackerAccessManager trackerAccessManager;
@@ -127,6 +127,12 @@ public class TrackerAccessManagerTest extends DhisSpringTest
     private ProgramStage programStageB;
 
     private TrackedEntityType trackedEntityType;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest()

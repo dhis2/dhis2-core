@@ -29,7 +29,6 @@ package org.hisp.dhis.sharing;
  */
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.MapUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -151,7 +150,7 @@ public class DefaultSharingService implements SharingService
 
         object.getSharing().getUserGroups().clear();
 
-        if ( !MapUtils.isEmpty( sharing.getUserGroups() ) )
+        if ( sharing.hasUserGroupAccesses() )
         {
             for ( UserGroupAccess sharingUserGroupAccess : sharing.getUserGroups().values() )
             {
@@ -183,7 +182,7 @@ public class DefaultSharingService implements SharingService
 
         object.getSharing().getUsers().clear();
 
-        if ( !MapUtils.isEmpty( sharing.getUsers() ) )
+        if ( sharing.hasUserAccesses() )
         {
             for ( UserAccess sharingUserAccess : sharing.getUsers().values() )
             {
