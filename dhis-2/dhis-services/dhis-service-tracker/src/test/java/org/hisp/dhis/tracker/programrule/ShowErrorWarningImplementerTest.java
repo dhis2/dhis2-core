@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.programrule;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ValidationStrategy;
@@ -56,7 +57,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith( MockitoJUnitRunner.class )
 public class ShowErrorWarningImplementerTest
-    extends AbstractImportValidationTest
+    extends DhisSpringTest
 {
     private final static String CONTENT = "SHOW ERROR DATA";
 
