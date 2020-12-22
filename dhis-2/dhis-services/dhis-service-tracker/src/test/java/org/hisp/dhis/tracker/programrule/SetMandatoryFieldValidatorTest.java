@@ -59,7 +59,6 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerReportUtils;
 import org.hisp.dhis.tracker.validation.AbstractImportValidationTest;
-import org.hisp.dhis.tracker.validation.hooks.ValidationUtils;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

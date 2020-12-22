@@ -29,7 +29,6 @@
 package org.hisp.dhis.dataelement.hibernate;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
 

@@ -1,4 +1,5 @@
 package org.hisp.dhis.dxf2.events;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -42,7 +43,6 @@ import java.util.stream.Stream;
 
 import org.hamcrest.Matchers;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
@@ -75,13 +75,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author David Katuscak
