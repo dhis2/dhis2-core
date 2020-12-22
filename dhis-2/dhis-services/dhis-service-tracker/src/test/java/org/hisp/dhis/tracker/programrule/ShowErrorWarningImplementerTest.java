@@ -96,7 +96,6 @@ public class ShowErrorWarningImplementerTest
     @Mock
     private TrackerPreheat preheat;
 
-    @Mock
     private ProgramStage programStage;
 
     @Override
@@ -109,9 +108,9 @@ public class ShowErrorWarningImplementerTest
         bundle.setEventRuleEffects( getRuleEventEffects() );
         bundle.setPreheat( preheat );
 
+        programStage = createProgramStage( 'A', 0 );
+        programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
         when( preheat.get( ProgramStage.class, PROGRAM_STAGE_ID ) ).thenReturn( programStage );
-        when( programStage.getValidationStrategy() ).thenReturn( ValidationStrategy.ON_UPDATE_AND_INSERT );
-
     }
 
     @Test
@@ -125,7 +124,7 @@ public class ShowErrorWarningImplementerTest
     @Test
     public void testValidateShowErrorRuleActionForEventsWithValidationStrategyOnComplete()
     {
-        when( programStage.getValidationStrategy() ).thenReturn( ValidationStrategy.ON_COMPLETE );
+        programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
         bundle.setEventRuleEffects( getRuleEventEffectsLinkedToDataElement() );
         Map<String, List<String>> errors = errorImplementer.validateEvents( bundle );
 
