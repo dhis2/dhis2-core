@@ -83,10 +83,10 @@ public class Map
     public Map( String name, User user, Double longitude, Double latitude, Integer zoom )
     {
         this.name = name;
-        this.user = user;
         this.longitude = longitude;
         this.latitude = latitude;
         this.zoom = zoom;
+        this.setUser( user );
     }
 
     // -------------------------------------------------------------------------

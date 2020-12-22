@@ -103,8 +103,8 @@ public class DefaultAttributeService
     @Transactional
     public void deleteAttribute( Attribute attribute )
     {
-        attributeCache.invalidate( attribute.getUid() );
         attributeStore.delete( attribute );
+        attributeCache.invalidate( attribute.getUid() );
     }
 
     @Override

@@ -271,7 +271,8 @@
       "created": "2019-03-25T13:59:02.598",
       "path": "/QfUVllTs6cS",
       "shortName": "Country",
-      "lastUpdated": "2019-03-25T13:59:02.692"
+      "lastUpdated": "2019-03-25T13:59:02.692",
+      "publicAccess": "rw------"
     }
   ],
   "programs": [

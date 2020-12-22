@@ -53,9 +53,8 @@ import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -117,13 +116,6 @@ public class StoreConfig
     {
         return new HibernateGenericStore<>( sessionFactory, jdbcTemplate, publisher,
             Expression.class, true );
-    }
-
-    @Bean( "org.hisp.dhis.user.UserGroupStore" )
-    public HibernateIdentifiableObjectStore<UserGroup> userGroupStore()
-    {
-        return new HibernateIdentifiableObjectStore<>( sessionFactory,
-            jdbcTemplate, publisher, UserGroup.class, currentUserService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.user.UserGroupAccessStore" )

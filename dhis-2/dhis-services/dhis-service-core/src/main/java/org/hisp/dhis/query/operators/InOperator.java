@@ -35,20 +35,23 @@ import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
 import org.hisp.dhis.schema.Property;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class InOperator extends Operator
+public class InOperator<T extends Comparable<? super T>> extends Operator<T>
 {
-    public InOperator( Collection<?> arg )
+    public InOperator( Collection<T> arg )
     {
         super( "in", Typed.from( Collection.class ), arg );
     }
 
-    public InOperator( String name, Collection<?> arg )
+    public InOperator( String name, Collection<T> arg )
     {
         super( name, Typed.from( Collection.class ), arg );
     }
@@ -64,6 +67,19 @@ public class InOperator extends Operator
         }
 
         return Restrictions.in( queryPath.getPath(), getValue( Collection.class, queryPath.getProperty().getKlass(), args.get( 0 ) ) );
+    }
+
+    @Override
+    public <Y> Predicate getPredicate( CriteriaBuilder builder, Root<Y> root, QueryPath queryPath )
+    {
+        Property property = queryPath.getProperty();
+
+        if ( property.isCollection() )
+        {
+            return root.get( queryPath.getPath() ).in( getValue( Collection.class, queryPath.getProperty().getItemKlass(), getCollectionArgs().get( 0 ) ) );
+        }
+
+        return root.get( queryPath.getPath() ).in( getCollectionArgs().get( 0 ) );
     }
 
     @Override

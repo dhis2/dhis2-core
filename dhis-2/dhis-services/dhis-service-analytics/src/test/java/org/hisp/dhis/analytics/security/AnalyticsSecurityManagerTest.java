@@ -28,10 +28,9 @@ package org.hisp.dhis.analytics.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import org.hisp.dhis.DhisSpringTest;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -40,25 +39,28 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Lars Helge Overland
  */
 public class AnalyticsSecurityManagerTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private AnalyticsSecurityManager securityManager;
@@ -71,6 +73,12 @@ public class AnalyticsSecurityManagerTest
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
+
+    @Autowired
+    private UserService _userService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     private CategoryOption coA;
     private CategoryOption coB;
@@ -85,8 +93,16 @@ public class AnalyticsSecurityManagerTest
     private Set<OrganisationUnit> userOrgUnits;
 
     @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
+    @Override
     public void setUpTest()
     {
+        userService = _userService;
+        createAndInjectAdminUser();
         coA = createCategoryOption( 'A' );
         coB = createCategoryOption( 'B' );
 
@@ -113,9 +129,14 @@ public class AnalyticsSecurityManagerTest
 
         userOrgUnits = Sets.newHashSet( ouB, ouC );
 
-        userService = (UserService) getBean( UserService.ID );
+        User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
+        user.setOrganisationUnits( userOrgUnits );
+        user.setDataViewOrganisationUnits( userOrgUnits );
+        user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
 
-        createUserAndInjectSecurityContext( userOrgUnits, userOrgUnits, catDimensionConstraints, false, "F_VIEW_EVENT_ANALYTICS" );
+        userService.addUser( user );
+        injectSecurityContext( user );
+
     }
 
     @Test

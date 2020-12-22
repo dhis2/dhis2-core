@@ -65,8 +65,7 @@ import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
  */
 @JacksonXmlRootElement( localName = "interpretation", namespace = DXF_2_0 )
 public class Interpretation
-    extends
-    BaseIdentifiableObject
+    extends BaseIdentifiableObject
 {
     private Visualization visualization;
 

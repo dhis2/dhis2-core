@@ -29,6 +29,8 @@ package org.hisp.dhis.query;
  */
 
 import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.schema.Property;
 import org.springframework.context.i18n.LocaleContextHolder;
 
@@ -41,6 +43,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -104,7 +107,7 @@ public class JpaQueryUtils
      * @param caseSesnitive is case sensitive
      * @return a {@link Predicate}.
      */
-    private static Predicate stringPredicate( CriteriaBuilder builder,
+    public static Predicate stringPredicate( CriteriaBuilder builder,
         Expression<String> expressionPath, Object objectValue, StringSearchMode searchMode, boolean caseSesnitive )
     {
         Expression<String> path = expressionPath;
@@ -122,12 +125,18 @@ public class JpaQueryUtils
                 return builder.equal( path, attrValue );
             case ENDING_LIKE:
                 return builder.like( path, "%" + attrValue );
+            case NOT_ENDING_LIKE:
+                return builder.notLike( path, "%" + attrValue );
             case STARTING_LIKE:
                 return builder.like( path, attrValue + "%" );
+            case NOT_STARTING_LIKE:
+                return builder.notLike(  path, attrValue + "%" );
             case ANYWHERE:
                 return builder.like( path, "%" + attrValue + "%" );
             case LIKE:
                 return builder.like( path, (String) attrValue ); // assume user provide the wild cards
+            case NOT_LIKE:
+                return builder.notLike( path, (String) attrValue );
             default:
                 throw new IllegalStateException( "expecting a search mode!" );
         }
@@ -142,8 +151,11 @@ public class JpaQueryUtils
         EQUALS( "eq" ), // Match exactly
         ANYWHERE( "any" ), // Like search with '%' prefix and suffix
         STARTING_LIKE( "sl" ), // Like search and add a '%' prefix before searching
+        NOT_STARTING_LIKE( "nsl" ),
         LIKE( "li" ), // User provides the wild card
-        ENDING_LIKE( "el" ); // LIKE search and add a '%' suffix before searching
+        ENDING_LIKE( "el" ), // LIKE search and add a '%' suffix before searching
+        NOT_LIKE( "nli"),
+        NOT_ENDING_LIKE( "nel");
 
         private final String code;
 
@@ -179,9 +191,9 @@ public class JpaQueryUtils
         switch ( operator )
         {
             case "in" :
-                return path.in( QueryUtils.parseValue( Collection.class, property.getKlass(), value ) );
+                return path.in( (Collection<?>) QueryUtils.parseValue( Collection.class, property.getKlass(), value ) );
             case "eq" :
-                return  builder.equal( path, QueryUtils.parseValue( property.getKlass(), value )  );
+                return  builder.equal( path, property.getKlass().cast( QueryUtils.parseValue( property.getKlass(), value ) ) );
             default:
                 throw new QueryParserException( "Query operator is not supported : " + operator );
         }
@@ -259,6 +271,74 @@ public class JpaQueryUtils
 
             return sb.toString();
         } ).collect( Collectors.joining( "," ) ), null );
+    }
+
+    /**
+     * Generate JPA Predicate for checking User Access for given User Uid and access string
+     * @param builder
+     * @param userUid User Uid
+     * @param access Access string for checking
+     * @param <T>
+     * @return JPA Predicate
+     */
+    public static <T> Function<Root<T>, Predicate> checkUserAccess( CriteriaBuilder builder, String userUid, String access )
+    {
+        return ( Root<T> root ) ->
+            builder.and(
+                builder.equal(
+                    builder.function(
+                        JsonbFunctions.HAS_USER_ID,
+                        Boolean.class, root.get( "sharing" ),
+                        builder.literal( userUid ) ),
+                    true ),
+                builder.equal(
+                    builder.function(
+                        JsonbFunctions.CHECK_USER_ACCESS,
+                        Boolean.class, root.get( "sharing" ),
+                        builder.literal( userUid ),
+                        builder.literal( access ) ),
+                    true )
+            );
+    }
+
+    /**
+     * Generate Predicate for checking Access for given Set of UserGroup Id and access string
+     * Return NULL if given Set of UserGroup is empty
+     * @param builder
+     * @param userGroupUids List of User Group Uids
+     * @param access Access String
+     * @param <T>
+     * @return JPA Predicate
+     */
+    public static <T> Function<Root<T>,Predicate> checkUserGroupsAccess( CriteriaBuilder builder, Set<String> userGroupUids, String access )
+    {
+        return ( Root<T> root ) ->
+        {
+            if ( CollectionUtils.isEmpty( userGroupUids ) )
+            {
+                return null;
+            }
+
+            String groupUuIds = "{" + String.join( ",", userGroupUids ) + "}";
+
+            return builder.and(
+                builder.equal(
+                    builder.function(
+                        JsonbFunctions.HAS_USER_GROUP_IDS,
+                        Boolean.class,
+                        root.get( "sharing" ),
+                        builder.literal( groupUuIds ) ),
+                    true ),
+                builder.equal(
+                    builder.function(
+                        JsonbFunctions.CHECK_USER_GROUPS_ACCESS,
+                        Boolean.class,
+                        root.get( "sharing" ),
+                        builder.literal( access ),
+                        builder.literal( groupUuIds ) ),
+                    true )
+            );
+        };
     }
 
     private static boolean isIgnoreCase( org.hisp.dhis.query.Order o )

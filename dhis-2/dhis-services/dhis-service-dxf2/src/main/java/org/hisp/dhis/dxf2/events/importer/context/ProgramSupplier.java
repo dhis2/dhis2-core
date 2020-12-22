@@ -28,28 +28,20 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.text.StrSubstitutor;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.integration.CacheLoader;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -64,19 +56,23 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This supplier builds and caches a Map of all the Programs in the system.
@@ -133,18 +129,6 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     private final static String COMPULSORY = "compulsory";
     private final static String TRACKED_ENTITY_TYPE_ID = "trackedentitytypeid";
 
-    private final static String USER_ACCESS_SQL = "select eua.${column_name}, eua.useraccessid, ua.useraccessid, ua.access, ua.userid, ui.uid, ui.code, ui.surname, ui.firstname " +
-        "from ${table_name} eua " +
-        "join useraccess ua on eua.useraccessid = ua.useraccessid " +
-        "join userinfo ui on ui.userinfoid = ua.userid " +
-        "order by eua.${column_name}";
-
-    private final static String USER_GROUP_ACCESS_SQL = "select ega.${column_name}, ega.usergroupaccessid, u.access, u.usergroupid, ug.uid " +
-        "from ${table_name} ega " +
-        "join usergroupaccess u on ega.usergroupaccessid = u.usergroupaccessid " +
-        "join usergroup ug on u.usergroupid = ug.usergroupid " +
-        "order by ega.${column_name}";
-
     // Caches the entire Program hierarchy, including Program Stages and ACL data
     private final Cache<String, Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>() {}
         .name( "eventImportProgramCache_" + RandomStringUtils.randomAlphabetic( 5 ) )
@@ -199,60 +183,30 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             //
             programMap = loadPrograms( importOptions.getIdSchemes() );
 
-            //
-            // Load User Access data for all the Programs (required for ACL checks)
-            //
-            Map<Long, Set<UserAccess>> programUserAccessMap = loadUserAccessesForPrograms();
-            Map<Long, Set<UserAccess>> programStageUserAccessMap = loadUserAccessesForProgramStages();
-            Map<Long, Set<UserAccess>> tetUserAccessMap = loadUserAccessesForTrackedEntityTypes();
+            if ( !MapUtils.isEmpty( programMap ) )
+            {
+                aggregateProgramAndAclData( programMap,
+                    loadProgramStageDataElementSets() );
 
-            //
-            // Load User Group Access data for all the Programs (required for ACL checks)
-            //
-            Map<Long, Set<UserGroupAccess>> programUserGroupAccessMap = loadGroupUserAccessesForPrograms();
-            Map<Long, Set<UserGroupAccess>> programStageUserGroupAccessMap = loadGroupUserAccessesForProgramStages();
-            Map<Long, Set<UserGroupAccess>> tetUserGroupAccessMap = loadGroupUserAccessesForTrackedEntityTypes();
+                programsCache.put( PROGRAM_CACHE_KEY, programMap );
+            }
+            else
+            {
+                programsCache.put( PROGRAM_CACHE_KEY, new HashMap<>() );
+            }
 
-            aggregateProgramAndAclData( programMap, programUserAccessMap, programUserGroupAccessMap,
-                tetUserAccessMap, tetUserGroupAccessMap,
-                programStageUserAccessMap, programStageUserGroupAccessMap,
-                loadProgramStageDataElementSets() );
-
-            programsCache.put( PROGRAM_CACHE_KEY, programMap );
         }
 
         return programMap;
     }
 
     private void aggregateProgramAndAclData( Map<String, Program> programMap,
-        Map<Long, Set<UserAccess>> programUserAccessMap,
-        Map<Long, Set<UserGroupAccess>> programUserGroupAccessMap, Map<Long, Set<UserAccess>> tetUserAccessMap,
-        Map<Long, Set<UserGroupAccess>> tetUserGroupAccessMap, Map<Long, Set<UserAccess>> programStageUserAccessMap,
-        Map<Long, Set<UserGroupAccess>> programStageUserGroupAccessMap,
-        Map<Long, DataElementSets> dataElementSetsMap )
+        Map<Long, DataElementSets> dataElementSetsMap  )
     {
-
         for ( Program program : programMap.values() )
         {
-            program.setUserAccesses( programUserAccessMap.getOrDefault( program.getId(), new HashSet<>() ) );
-            program
-                .setUserGroupAccesses( programUserGroupAccessMap.getOrDefault( program.getId(), new HashSet<>() ) );
-            TrackedEntityType trackedEntityType = program.getTrackedEntityType();
-            if ( trackedEntityType != null )
-            {
-                trackedEntityType
-                    .setUserAccesses( tetUserAccessMap.getOrDefault( trackedEntityType.getId(), new HashSet<>() ) );
-                trackedEntityType.setUserGroupAccesses(
-                    tetUserGroupAccessMap.getOrDefault( trackedEntityType.getId(), new HashSet<>() ) );
-            }
-
             for ( ProgramStage programStage : program.getProgramStages() )
             {
-                programStage.setUserAccesses(
-                    programStageUserAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
-                programStage.setUserGroupAccesses(
-                    programStageUserGroupAccessMap.getOrDefault( programStage.getId(), new HashSet<>() ) );
-
                 DataElementSets dataElementSets = dataElementSetsMap.get( programStage.getId() );
                 if ( dataElementSets != null )
                 {
@@ -279,97 +233,6 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         return Optional.ofNullable( dataElementSet )
             .orElse( Collections.emptySet() )
             .stream();
-    }
-
-    private Map<Long, Set<UserAccess>> loadUserAccessesForPrograms()
-    {
-        return fetchUserAccesses( replaceAclQuery( USER_ACCESS_SQL, "programuseraccesses", PROGRAM_ID ), PROGRAM_ID );
-    }
-
-    private Map<Long, Set<UserAccess>> loadUserAccessesForProgramStages()
-    {
-        return fetchUserAccesses( replaceAclQuery( USER_ACCESS_SQL, "programstageuseraccesses", "programstageid" ),
-            "programstageid" );
-    }
-
-    private Map<Long, Set<UserAccess>> loadUserAccessesForTrackedEntityTypes()
-    {
-        return fetchUserAccesses(
-            replaceAclQuery( USER_ACCESS_SQL, "trackedentitytypeuseraccesses", TRACKED_ENTITY_TYPE_ID ),
-            TRACKED_ENTITY_TYPE_ID );
-    }
-
-    private Map<Long, Set<UserAccess>> fetchUserAccesses( String sql, String column )
-    {
-        return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
-            Map<Long, Set<UserAccess>> results = new HashMap<>();
-            long programStageId = 0;
-            while ( rs.next() )
-            {
-                if ( programStageId != rs.getLong( column ) )
-                {
-                    Set<UserAccess> aclSet = new HashSet<>();
-                    aclSet.add( toUserAccess( rs ) );
-                    results.put( rs.getLong( column ), aclSet );
-
-                    programStageId = rs.getLong( column );
-                }
-                else
-                {
-                    results.get( rs.getLong( column ) ).add( toUserAccess( rs ) );
-                }
-            }
-            return results;
-        } );
-    }
-
-    private Map<Long, Set<UserGroupAccess>> loadGroupUserAccessesForPrograms()
-    {
-        return fetchUserGroupAccess( replaceAclQuery( USER_GROUP_ACCESS_SQL, "programusergroupaccesses", PROGRAM_ID ),
-            PROGRAM_ID );
-    }
-
-    private Map<Long, Set<UserGroupAccess>> loadGroupUserAccessesForProgramStages()
-    {
-        // TODO: can't use replace because the table programstageusergroupaccesses
-        // should use 'programstageid' as column name
-        final String sql = "select psuga.programid as programstageid, psuga.usergroupaccessid, u.access, u.usergroupid, ug.uid "
-            + "from programstageusergroupaccesses psuga "
-            + "join usergroupaccess u on psuga.usergroupaccessid = u.usergroupaccessid "
-            + "join usergroup ug on u.usergroupid = ug.usergroupid order by programstageid";
-
-        return fetchUserGroupAccess( sql, PROGRAM_STAGE_ID );
-    }
-
-    private Map<Long, Set<UserGroupAccess>> loadGroupUserAccessesForTrackedEntityTypes()
-    {
-        return fetchUserGroupAccess(
-            replaceAclQuery( USER_GROUP_ACCESS_SQL, "trackedentitytypeusergroupaccesses", TRACKED_ENTITY_TYPE_ID ),
-            TRACKED_ENTITY_TYPE_ID );
-    }
-
-    private Map<Long, Set<UserGroupAccess>> fetchUserGroupAccess( String sql, String column )
-    {
-        return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
-            Map<Long, Set<UserGroupAccess>> results = new HashMap<>();
-            long entityId = 0;
-            while ( rs.next() )
-            {
-                if ( entityId != rs.getLong( column ) )
-                {
-                    Set<UserGroupAccess> aclSet = new HashSet<>();
-                    aclSet.add( toUserGroupAccess( rs ) );
-                    results.put( rs.getLong( column ), aclSet );
-
-                    entityId = rs.getLong( column );
-                }
-                else
-                {
-                    results.get( rs.getLong( column ) ).add( toUserGroupAccess( rs ) );
-                }
-            }
-            return results;
-        } );
     }
 
     //
@@ -424,7 +287,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             return results;
         } );
     }
-    
+
     @Data
     static class DataElementSets
     {
@@ -441,13 +304,13 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         //
         IdScheme idScheme = idSchemes.getProgramIdScheme();
 
-        String sqlSelect = "select p.programid as id, p.uid, p.code, p.name, p.publicaccess, "
-            + "p.type, tet.trackedentitytypeid, tet.publicaccess  as tet_public_access, "
+        String sqlSelect = "select p.programid as id, p.uid, p.code, p.name, p.sharing as program_sharing, "
+            + "p.type, tet.trackedentitytypeid, tet.sharing  as tet_sharing, "
             + "tet.uid           as tet_uid, c.categorycomboid as catcombo_id, "
             + "c.uid             as catcombo_uid, c.name            as catcombo_name, "
             + "c.code            as catcombo_code, ps.programstageid as ps_id, ps.uid as ps_uid, "
             + "ps.code           as ps_code, ps.name           as ps_name, "
-            + "ps.featuretype    as ps_feature_type, ps.sort_order, ps.publicaccess   as ps_public_access, "
+            + "ps.featuretype    as ps_feature_type, ps.sort_order, ps.sharing   as ps_sharing, "
             + "ps.repeatable     as ps_repeatable, ps.enableuserassignment, ps.validationstrategy";
 
         if ( idScheme.isAttribute() )
@@ -481,7 +344,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                     program.setCode( rs.getString( "code" ) );
 
                     program.setProgramType( ProgramType.fromValue( rs.getString( "type" ) ) );
-                    program.setPublicAccess( rs.getString( "publicaccess" ) );
+                    program.setSharing( toSharing( rs.getString( "program_sharing" ) ) );
                     // Do not add program stages without primary key (this should not really happen,
                     // but the database does allow Program Stage without a Program Id
                     if ( rs.getLong( "ps_id" ) != 0 )
@@ -502,7 +365,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                         TrackedEntityType trackedEntityType = new TrackedEntityType();
                         trackedEntityType.setId( tetId );
                         trackedEntityType.setUid( rs.getString( "tet_uid" ) );
-                        trackedEntityType.setPublicAccess( rs.getString( "tet_public_access" ) );
+                        trackedEntityType.setSharing( toSharing( rs.getString( "tet_sharing" ) ) );
                         program.setTrackedEntityType( trackedEntityType );
                     }
 
@@ -542,7 +405,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         programStage.setCode( rs.getString( "ps_code" ) );
         programStage.setName( rs.getString( "ps_name" ) );
         programStage.setSortOrder( rs.getInt( "sort_order" ) );
-        programStage.setPublicAccess( rs.getString( "ps_public_access" ) );
+        programStage.setSharing( toSharing( rs.getString( "ps_sharing" ) ) );
         programStage.setFeatureType(
             rs.getString( "ps_feature_type" ) != null ? FeatureType.valueOf( rs.getString( "ps_feature_type" ) )
                 : FeatureType.NONE );
@@ -583,21 +446,6 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         return ou;
     }
 
-    private UserAccess toUserAccess( ResultSet rs ) throws SQLException
-    {
-        UserAccess userAccess = new UserAccess();
-        userAccess.setId( rs.getInt( "useraccessid" ) );
-        userAccess.setAccess( rs.getString( "access" ) );
-        User user = new User();
-        user.setId( rs.getLong( "userid" ) );
-        user.setUid( rs.getString( "uid" ) );
-        user.setCode( rs.getString( "code" ) );
-        user.setSurname( rs.getString( "surname" ) );
-        user.setFirstName( rs.getString( "firstName" ) );
-        userAccess.setUser( user );
-        return userAccess;
-    }
-
     private DataElement toDataElement( ResultSet rs )
         throws SQLException
     {
@@ -606,23 +454,6 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         dataElement.setUid( rs.getString( "de_uid" ) );
         dataElement.setCode( rs.getString( "de_code" ) );
         return dataElement;
-    }
-
-    private UserGroupAccess toUserGroupAccess( ResultSet rs )
-        throws SQLException
-    {
-        UserGroupAccess userGroupAccess = new UserGroupAccess();
-        userGroupAccess.setId( rs.getInt( "usergroupaccessid" ) );
-        userGroupAccess.setAccess( rs.getString( "access" ) );
-        UserGroup userGroup = new UserGroup();
-        userGroup.setId( rs.getLong( "usergroupid" ) );
-        userGroupAccess.setUserGroup( userGroup );
-        userGroup.setUid( rs.getString( "uid" ) );
-        // TODO This is not very efficient for large DHIS2 installations:
-        // it would be better to run a direct query in the Access Layer
-        // to determine if the user belongs to the group
-        userGroup.setMembers( userGroupCache.get( userGroup.getId() ) );
-        return userGroupAccess;
     }
 
     private Set<User> loadUserGroups( Long userGroupId )
@@ -645,15 +476,6 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
             return users;
         } );
-    }
-
-    private String replaceAclQuery( String sql, String tableName, String column )
-    {
-        StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String> builder()
-            .put( "table_name", tableName )
-            .put( "column_name", column )
-            .build() );
-        return sub.replace( sql );
     }
 
     /**
@@ -679,5 +501,21 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             }
         }
         return false;
+    }
+
+    private Sharing toSharing( String json )
+    {
+        if ( StringUtils.isEmpty( json ) ) return null;
+
+        try
+        {
+            return JacksonObjectMapperConfig.staticJsonMapper().readValue( json, Sharing.class );
+        }
+        catch ( JsonProcessingException e )
+        {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }
