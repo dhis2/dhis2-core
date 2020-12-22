@@ -40,7 +40,6 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.AbstractImportValidationTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;

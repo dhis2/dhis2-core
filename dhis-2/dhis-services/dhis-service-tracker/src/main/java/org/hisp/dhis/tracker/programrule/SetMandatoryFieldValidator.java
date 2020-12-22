@@ -28,30 +28,26 @@
 
 package org.hisp.dhis.tracker.programrule;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
+import com.google.api.client.util.Lists;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.RuleActionAttribute;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerReportUtils;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
-import com.google.api.client.util.Lists;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMandatoryDataValue;
 

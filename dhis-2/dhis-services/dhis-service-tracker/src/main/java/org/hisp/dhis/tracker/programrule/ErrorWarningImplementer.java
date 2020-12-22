@@ -116,8 +116,8 @@ public abstract class ErrorWarningImplementer
 
         Map<String, List<RuleEffect>> effectsByEvent = effects.entrySet().stream()
             .filter( e -> filteredEvents.contains( e.getKey() ) )
-            .collect( Collectors.toMap( e -> e.getKey(),
-                e -> e.getValue() ) );
+            .collect( Collectors.toMap( Map.Entry::getKey,
+                Map.Entry::getValue ) );
 
         return filterDataElementEffects( effectsByEvent, bundle.getEvents(), bundle.getPreheat() );
     }
