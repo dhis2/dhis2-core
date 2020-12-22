@@ -34,9 +34,9 @@ import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 
 /**
@@ -49,32 +49,32 @@ public class ProgramNotificationListener
 {
     private final ProgramNotificationService programNotificationService;
 
-    @EventListener
+    @TransactionalEventListener
     public void onEnrollment( ProgramEnrollmentNotificationEvent event )
     {
         programNotificationService.sendEnrollmentNotifications( event.getProgramInstance() );
     }
 
-    @EventListener
+    @TransactionalEventListener
     public void onCompletion( ProgramEnrollmentCompletionNotificationEvent event )
     {
         programNotificationService.sendEnrollmentCompletionNotifications( event.getProgramInstance() );
     }
 
-    @EventListener
+    @TransactionalEventListener
     public void onEvent( ProgramStageCompletionNotificationEvent event )
     {
         programNotificationService.sendEventCompletionNotifications( event.getProgramStageInstance() );
     }
 
     // Published by rule engine
-    @EventListener
+    @TransactionalEventListener( fallbackExecution = true )
     public void onProgramRuleEnrollment( ProgramRuleEnrollmentEvent event )
     {
         programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramInstance() );
     }
 
-    @EventListener
+    @TransactionalEventListener( fallbackExecution = true )
     public void onProgramRuleEvent( ProgramRuleStageEvent event )
     {
         programNotificationService.sendProgramRuleTriggeredEventNotifications( event.getTemplate(), event.getProgramStageInstance() );

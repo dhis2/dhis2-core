@@ -29,9 +29,9 @@ package org.hisp.dhis.programrule.engine;
  */
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * @author Zubair Asghar.
@@ -44,25 +44,25 @@ public class ProgramRuleEngineListener
 {
     private final ProgramRuleEngineService programRuleEngineService;
 
-    @EventListener
+    @TransactionalEventListener
     public void onEnrollment( EnrollmentEvaluationEvent event )
     {
         programRuleEngineService.evaluateEnrollmentAndRunEffects( event.getProgramInstance() );
     }
 
-    @EventListener
+    @TransactionalEventListener( fallbackExecution = true )
     public void onDataValueChange( DataValueUpdatedEvent event )
     {
         programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstanceUid() );
     }
 
-    @EventListener
+    @TransactionalEventListener( fallbackExecution = true )
     public void onEventCompletion( StageCompletionEvaluationEvent event )
     {
         programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
     }
 
-    @EventListener
+    @TransactionalEventListener( fallbackExecution = true )
     public void onScheduledEvent( StageScheduledEvaluationEvent event )
     {
         programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
