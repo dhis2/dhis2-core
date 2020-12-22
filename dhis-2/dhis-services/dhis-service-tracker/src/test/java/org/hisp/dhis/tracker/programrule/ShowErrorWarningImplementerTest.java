@@ -45,6 +45,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -209,9 +210,9 @@ public class ShowErrorWarningImplementerTest
         errors
             .values()
             .stream()
-            .flatMap( e -> e.stream() )
+            .flatMap( Collection::stream )
             .forEach(
-                e -> assertTrue( e.equals( prefix + CONTENT + " " + EVALUATED_DATA + " (" + DATA_ELEMENT_ID + ")" ) ) );
+                e -> assertEquals( e, prefix + CONTENT + " " + EVALUATED_DATA + " (" + DATA_ELEMENT_ID + ")" ) );
     }
 
     private List<Event> getEvents()
