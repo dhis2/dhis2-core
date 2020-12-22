@@ -28,7 +28,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -46,7 +46,10 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.user.*;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.validation.ValidationRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,13 +59,15 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class ObjectBundleServiceProgramTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTestBase
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -79,8 +84,11 @@ public class ObjectBundleServiceProgramTest
     @Autowired
     private UserService _userService;
 
-    @Autowired
-    private UserAccessService userAccessService;
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest() throws Exception
@@ -383,12 +391,10 @@ public class ObjectBundleServiceProgramTest
         TrackedEntityAttribute tea2 = manager.get( TrackedEntityAttribute.class, "QhEcRpLZwMb" );
 
         UserAccess userAccess1 = new UserAccess( testUser, "rw------" );
-        userAccessService.addUserAccess( userAccess1 );
-        tea1.getUserAccesses().add( userAccess1 );
+        tea1.getSharing().addUserAccess( userAccess1 );
 
         UserAccess userAccess2 = new UserAccess( testUser, "rw------" );
-        userAccessService.addUserAccess( userAccess2 );
-        tea2.getUserAccesses().add( userAccess2 );
+        tea2.getSharing().addUserAccess( userAccess2 );
 
         manager.update( tea1 );
         manager.update( tea2 );

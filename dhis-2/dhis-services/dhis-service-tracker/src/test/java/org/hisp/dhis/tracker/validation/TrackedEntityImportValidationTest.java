@@ -33,7 +33,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
-import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
 import static org.junit.Assert.assertEquals;
@@ -105,6 +104,10 @@ public class TrackedEntityImportValidationTest
     {
         renderService = _renderService;
         userService = _userService;
+        User systemUser = createUser( "systemUser", "ALL" );
+        userService.addUser( systemUser );
+        injectSecurityContext( systemUser );
+
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "tracker/tracker_basic_metadata.json" ).getInputStream(), RenderFormat.JSON );
@@ -223,6 +226,9 @@ public class TrackedEntityImportValidationTest
 
         User user = userService.getUser( USER_3 );
         params.setUserId( user.getUid() );
+        params.setUser( user );
+        user.getUserCredentials().setPassword( "user4password" );
+        injectSecurityContext( user );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();

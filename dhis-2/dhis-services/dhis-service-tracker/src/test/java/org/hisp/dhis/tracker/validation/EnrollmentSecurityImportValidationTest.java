@@ -28,18 +28,7 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -79,7 +68,17 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -212,6 +211,8 @@ public class EnrollmentSecurityImportValidationTest
         manager.save( maleB );
         manager.save( femaleA );
         manager.save( femaleB );
+
+        manager.flush();
     }
 
     @Override
@@ -285,7 +286,7 @@ public class EnrollmentSecurityImportValidationTest
 
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        userService.addUser( user );
         injectSecurityContext( user );
 
         TrackerImportParams params = createBundleFromJson(
@@ -311,11 +312,11 @@ public class EnrollmentSecurityImportValidationTest
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         TrackedEntityType bPJ0FMtcnEh = trackedEntityTypeService.getTrackedEntityType( "bPJ0FMtcnEh" );
         programA.setTrackedEntityType( bPJ0FMtcnEh );
-        manager.update( programA );
+        manager.updateNoAcl( programA );
 
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        userService.addUser( user );
         injectSecurityContext( user );
 
         TrackerImportParams params = createBundleFromJson(
@@ -346,11 +347,11 @@ public class EnrollmentSecurityImportValidationTest
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
         trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
         programA.setTrackedEntityType( trackedEntityType );
-        manager.update( programA );
+        manager.updateNoAcl( programA );
 
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        userService.addUser( user );
         injectSecurityContext( user );
 
         TrackerImportParams params = createBundleFromJson(
@@ -374,13 +375,13 @@ public class EnrollmentSecurityImportValidationTest
     {
         setupMetadata();
 
-        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.FULL );
         trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
         programA.setTrackedEntityType( trackedEntityType );
-        manager.update( programA );
+        manager.updateNoAcl( programA );
 
         User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        userService.addUser( user );
         injectSecurityContext( user );
 
         TrackerImportParams params = createBundleFromJson(
@@ -406,6 +407,8 @@ public class EnrollmentSecurityImportValidationTest
         programA.setTrackedEntityType( trackedEntityType );
         manager.update( programA );
 
+        manager.flush();
+
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
 
@@ -423,5 +426,11 @@ public class EnrollmentSecurityImportValidationTest
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1104 ) ) ) );
+    }
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
     }
 }

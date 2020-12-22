@@ -32,24 +32,10 @@
     <!-- Dynamic attribute values -->
     <property name="attributeValues" type="jsbAttributeValues"/>
 
-    <!-- Access properties -->
-    <property name="externalAccess" />
-
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_document_userid" />
 
-    <property name="publicAccess" length="8" />
-
-    <set name="userGroupAccesses" table="documentusergroupaccesses" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="documentid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
-    </set>
-
-    <set name="userAccesses" table="documentuseraccesses" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="documentid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
-    </set>
+    <!-- Sharing -->
+    <property name="sharing" type="jsbObjectSharing"/>
 
   </class>
 

@@ -90,7 +90,14 @@ public enum ErrorCode
     E3009( "User `{0}` is not allowed to make private objects of type `{1}`." ),
     E3010( "Invalid access string `{0}`." ),
     E3011( "Data sharing is not enabled for type `{0}`, but one or more access strings contains data sharing read or write." ),
-    E3012( "User `{0}` does not have read access for object {1}." ),
+    E3012( "User `{0}` does not have read access for object `{1}`." ),
+    E3013( "Sharing settings of system default metadata object of type `{0}` cannot be modified."),
+    E3014( "You do not have manage access to this object." ),
+    E3015( "Invalid public access string: `{0}`" ),
+    E3016( "Data sharing is not enabled for this object" ),
+    E3017( "Invalid user group access string: `{0}`" ),
+    E3018( "Invalid user access string: `{0}`" ),
+
 
     /* Metadata Validation */
     E4000( "Missing required property `{0}`." ),

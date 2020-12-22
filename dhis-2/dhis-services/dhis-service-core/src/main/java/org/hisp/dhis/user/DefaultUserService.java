@@ -148,7 +148,6 @@ public class DefaultUserService
 
     @Override
     @Transactional
-
     public void deleteUser( User user )
     {
         AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_DELETE );
@@ -174,7 +173,7 @@ public class DefaultUserService
     @Transactional(readOnly = true)
     public User getUser( String uid )
     {
-        return userStore.getByUid( uid );
+        return userStore.getByUidNoAcl( uid );
     }
 
     @Override

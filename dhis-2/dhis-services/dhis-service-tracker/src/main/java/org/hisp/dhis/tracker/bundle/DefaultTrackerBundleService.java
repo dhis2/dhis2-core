@@ -38,8 +38,6 @@ import javax.annotation.PostConstruct;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.ParamsConverter;
 import org.hisp.dhis.tracker.TrackerImportParams;
