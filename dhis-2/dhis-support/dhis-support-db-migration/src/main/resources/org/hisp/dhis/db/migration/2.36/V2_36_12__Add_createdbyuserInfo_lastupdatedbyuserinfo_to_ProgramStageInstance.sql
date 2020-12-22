@@ -1,5 +1,5 @@
 alter table if exists programstageinstance
-    add createdbyuserinfo jsonb;
+    add column if not exists createdbyuserinfo jsonb;
 
 alter table if exists programstageinstance
-    add lastupdatedbyuserinfo jsonb;
+    add column if not exists lastupdatedbyuserinfo jsonb;
