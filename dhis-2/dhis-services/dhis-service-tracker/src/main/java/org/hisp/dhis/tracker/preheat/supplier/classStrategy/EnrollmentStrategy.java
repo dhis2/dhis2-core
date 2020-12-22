@@ -60,7 +60,7 @@ public class EnrollmentStrategy implements ClassBasedSupplierStrategy
     {
         for ( List<String> ids : splitList )
         {
-            List<ProgramInstance> programInstances = programInstanceStore.getByUid( ids, preheat.getUser() );
+            List<ProgramInstance> programInstances = programInstanceStore.getIncludingDeleted( ids );
 
             final List<String> rootEntities = params.getEnrollments().stream().map( Enrollment::getEnrollment )
                 .collect( Collectors.toList() );
