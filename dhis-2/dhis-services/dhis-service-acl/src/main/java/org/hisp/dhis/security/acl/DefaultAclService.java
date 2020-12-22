@@ -657,7 +657,7 @@ public class DefaultAclService implements AclService
             {
                 // Check if user is allowed to read this object through group access
                 if ( AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
-                    && checkUserGroupAccess( user.getGroups(), userGroupAccess.getId() ) )
+                    && hasUserGroupAccess( user.getGroups(), userGroupAccess.getId() ) )
                 {
                     return true;
                 }
@@ -724,13 +724,17 @@ public class DefaultAclService implements AclService
             ( checkUser(user, object) || checkSharingPermission( user, object, Permission.WRITE ) );
     }
 
-    private boolean checkUserGroupAccess( Set<UserGroup> userGroups, String userGroupUid )
+    private boolean hasUserGroupAccess( Set<UserGroup> userGroups, String userGroupUid )
     {
         for ( UserGroup group : userGroups )
         {
-            if ( group.getUid().equals( userGroupUid ) ) return true;
+            if ( group.getUid().equals( userGroupUid ) )
+            {
+                return true;
+            }
         }
 
         return false;
     }
 }
+
