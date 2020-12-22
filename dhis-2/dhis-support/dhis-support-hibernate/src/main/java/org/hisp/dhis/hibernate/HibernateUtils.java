@@ -35,7 +35,6 @@ import org.hibernate.collection.internal.PersistentSet;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.pojo.javassist.SerializableProxy;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.commons.util.DebugUtils;
 
 import java.beans.IntrospectionException;

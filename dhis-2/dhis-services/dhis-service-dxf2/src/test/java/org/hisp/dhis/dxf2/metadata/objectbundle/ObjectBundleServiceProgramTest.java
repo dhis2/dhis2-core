@@ -47,7 +47,6 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccessService;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -84,9 +83,6 @@ public class ObjectBundleServiceProgramTest
 
     @Autowired
     private UserService _userService;
-
-    @Autowired
-    private UserAccessService userAccessService;
 
     @Override
     public boolean emptyDatabaseAfterTest()

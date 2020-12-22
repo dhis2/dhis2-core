@@ -51,7 +51,6 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -71,9 +70,6 @@ public class EnrollmentSecurityTest
 {
     @Autowired
     private EnrollmentService enrollmentService;
-
-    @Autowired
-    private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
     private ProgramStageDataElementService programStageDataElementService;
@@ -375,7 +371,7 @@ public class EnrollmentSecurityTest
         assertNotNull( enrollment );
         assertEquals( enrollment.getEnrollment(), importSummary.getReference() );
     }
-    
+
     /**
      * program = DATA READ
      * orgUnit = Accessible in search scope
