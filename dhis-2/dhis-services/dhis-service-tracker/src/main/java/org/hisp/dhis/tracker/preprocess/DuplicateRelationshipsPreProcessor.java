@@ -63,7 +63,8 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor
      *
      * REL 2 --- TEI A
      *       --- TEI B
-     *       --- bi = false
+     *
+     * TYPE  --- bi = false
      *
      * result:  REL 1 or REL 2 has to be removed (does not matter which one)
      *
@@ -71,11 +72,11 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor
      *
      * REL 1 --- TEI A
      *       --- TEI B
-     *       --- bi = false
      *
      * REL 2 --- TEI B
      *       --- TEI A
-     *       --- bi = false
+     *
+     * TYPE  --- bi = false
      *
      * result: REL 1 or REL 2 are both unique, so they are not removed
      *
@@ -83,11 +84,11 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor
      *
      * REL 1 --- TEI A
      *       --- TEI B
-     *       --- bi = true
      *
      * REL 2 --- TEI B
      *       --- TEI A
-     *       --- bi = true
+     *
+     * TYPE  --- bi = true
      *
      * result:  REL 1 or REL 2 has to be removed (does not matter which one)
      *
@@ -96,26 +97,14 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor
      *
      * REL 1 --- TEI A
      *       --- TEI B
-     *       --- bi = true
      *
      * REL 2 --- TEI A
      *       --- TEI B
-     *       --- bi = true
+     *
+     * TYPE  --- bi = true
      *
      * result:  REL 1 or REL 2 has to be removed (does not matter which one)
      *
-     *
-     * case 5:
-     *
-     * REL 1 --- TEI A
-     *       --- TEI B
-     *       --- bi = false
-     *
-     * REL 2 --- TEI A
-     *       --- TEI B
-     *       --- bi = true
-     *
-     * result: REL 1 or REL 2 are both unique, so they are not removed
      * </pre>
      */
     @Override
