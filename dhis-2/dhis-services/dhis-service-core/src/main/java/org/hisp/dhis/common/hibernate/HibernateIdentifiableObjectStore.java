@@ -30,7 +30,6 @@ package org.hisp.dhis.common.hibernate;
 
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
@@ -155,16 +154,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             if ( clearSharing )
             {
                 identifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
-
-                if ( !MapUtils.isEmpty( identifiableObject.getSharing().getUserGroups() ) )
-                {
-                    identifiableObject.getSharing().resetUserGroupAccesses();
-                }
-
-                if ( !MapUtils.isEmpty( identifiableObject.getSharing().getUsers() ) )
-                {
-                    identifiableObject.getSharing().resetUserAccesses();
-                }
+                identifiableObject.getSharing().resetUserGroupAccesses();
+                identifiableObject.getSharing().resetUserAccesses();
             }
 
             if ( identifiableObject.getUser() == null )

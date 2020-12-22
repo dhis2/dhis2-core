@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.collections.MapUtils;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
@@ -181,7 +180,7 @@ public class ReferencesCheck
         {
             if ( object.getSharing() != null )
             {
-                if ( !MapUtils.isEmpty( object.getSharing().getUserGroups() ) )
+                if ( object.getSharing().hasUserGroupAccesses() )
                 {
                     object.getSharing().getUserGroups().values().stream()
                         .filter( userGroupAccess -> preheat.get( PreheatIdentifier.UID, userGroupAccess.toDtoObject().getUserGroup() ) == null )
@@ -191,7 +190,7 @@ public class ReferencesCheck
                                 PreheatIdentifier.UID.getIdentifiersWithName( object ), "userGroupAccesses" ) ) );
                 }
 
-                if ( !MapUtils.isEmpty( object.getSharing().getUsers() ) )
+                if ( object.getSharing().hasUserAccesses() )
                 {
                     object.getSharing().getUsers().values().stream()
                         .filter( userAccess -> preheat.get( PreheatIdentifier.UID, userAccess.toDtoObject().getUser() ) == null )

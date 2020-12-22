@@ -168,7 +168,7 @@ public class Sharing
 
     public void resetUserAccesses()
     {
-        if ( !MapUtils.isEmpty( this.users ) )
+        if ( hasUserAccesses() )
         {
             this.users.clear();
         }
@@ -176,10 +176,20 @@ public class Sharing
 
     public void resetUserGroupAccesses()
     {
-        if ( !MapUtils.isEmpty( this.userGroups ) )
+        if ( hasUserGroupAccesses() )
         {
             this.userGroups.clear();
         }
+    }
+
+    public boolean hasUserAccesses()
+    {
+        return !MapUtils.isEmpty( this.users );
+    }
+
+    public boolean hasUserGroupAccesses()
+    {
+        return !MapUtils.isEmpty( this.userGroups );
     }
 
     public Sharing copy()
