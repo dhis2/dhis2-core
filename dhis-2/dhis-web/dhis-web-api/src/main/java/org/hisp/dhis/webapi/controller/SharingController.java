@@ -44,15 +44,15 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.sharing.SharingService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserAccessService;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccess;
-import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
+import org.hisp.dhis.util.SharingUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -74,7 +74,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -102,12 +101,6 @@ public class SharingController
     private UserService userService;
 
     @Autowired
-    private UserGroupAccessService userGroupAccessService;
-
-    @Autowired
-    private UserAccessService userAccessService;
-
-    @Autowired
     private AclService aclService;
 
     @Autowired
@@ -118,6 +111,9 @@ public class SharingController
 
     @Autowired
     private SchemaService schemaService;
+
+    @Autowired
+    private SharingService sharingService;
 
     // -------------------------------------------------------------------------
     // Resources
@@ -184,24 +180,31 @@ public class SharingController
             sharing.getObject().getUser().setName( object.getUser().getDisplayName() );
         }
 
-        for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
+        for ( org.hisp.dhis.user.UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
         {
+            UserGroup userGroup = userGroupService.getUserGroup( userGroupAccess.getId() );
+
+            if ( userGroup == null ) continue;
+
             SharingUserGroupAccess sharingUserGroupAccess = new SharingUserGroupAccess();
-            sharingUserGroupAccess.setId( userGroupAccess.getUserGroup().getUid() );
-            sharingUserGroupAccess.setName( userGroupAccess.getUserGroup().getDisplayName() );
-            sharingUserGroupAccess.setDisplayName( userGroupAccess.getUserGroup().getDisplayName() );
+            sharingUserGroupAccess.setId( userGroupAccess.getId() );
+            sharingUserGroupAccess.setName( userGroup.getDisplayName() );
+            sharingUserGroupAccess.setDisplayName( userGroup.getDisplayName() );
             sharingUserGroupAccess.setAccess( userGroupAccess.getAccess() );
 
             sharing.getObject().getUserGroupAccesses().add( sharingUserGroupAccess );
         }
 
-        for ( UserAccess userAccess : object.getUserAccesses() )
+        for ( org.hisp.dhis.user.UserAccess userAccess : SharingUtils.getDtoUserAccess( object.getSharing() ) )
         {
-            SharingUserAccess sharingUserAccess = new SharingUserAccess();
+            User _user = userService.getUser( userAccess.getUid() );
 
-            sharingUserAccess.setId( userAccess.getUser().getUid() );
-            sharingUserAccess.setName( userAccess.getUser().getDisplayName() );
-            sharingUserAccess.setDisplayName( userAccess.getUser().getDisplayName() );
+            if ( _user == null ) continue;
+
+            SharingUserAccess sharingUserAccess = new SharingUserAccess();
+            sharingUserAccess.setId( userAccess.getId() );
+            sharingUserAccess.setName( _user.getDisplayName() );
+            sharingUserAccess.setDisplayName( _user.getDisplayName() );
             sharingUserAccess.setAccess( userAccess.getAccess() );
 
             sharing.getObject().getUserAccesses().add( sharingUserAccess );
@@ -274,9 +277,9 @@ public class SharingController
 
         if ( !schema.isDataShareable() )
         {
-            if ( AccessStringHelper.hasDataSharing( object.getPublicAccess() ) )
+            if ( AccessStringHelper.hasDataSharing( object.getSharing().getPublicAccess() ) )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Data sharing is not enabled for this object." ) );
+                object.getSharing().setPublicAccess( AccessStringHelper.disableDataSharing( object.getSharing().getPublicAccess() ) );
             }
         }
 
@@ -285,15 +288,7 @@ public class SharingController
             object.setUser( user );
         }
 
-        Iterator<UserGroupAccess> userGroupAccessIterator = object.getUserGroupAccesses().iterator();
-
-        while ( userGroupAccessIterator.hasNext() )
-        {
-            UserGroupAccess userGroupAccess = userGroupAccessIterator.next();
-            userGroupAccessIterator.remove();
-
-            userGroupAccessService.deleteUserGroupAccess( userGroupAccess );
-        }
+        object.getSharing().getUserGroups().clear();
 
         for ( SharingUserGroupAccess sharingUserGroupAccess : sharing.getObject().getUserGroupAccesses() )
         {
@@ -308,7 +303,7 @@ public class SharingController
             {
                 if ( AccessStringHelper.hasDataSharing( sharingUserGroupAccess.getAccess() ) )
                 {
-                    throw new WebMessageException( WebMessageUtils.conflict( "Data sharing is not enabled for this object." ) );
+                    sharingUserGroupAccess.setAccess( AccessStringHelper.disableDataSharing( sharingUserGroupAccess.getAccess() ) );
                 }
             }
 
@@ -319,21 +314,11 @@ public class SharingController
             if ( userGroup != null )
             {
                 userGroupAccess.setUserGroup( userGroup );
-                userGroupAccessService.addUserGroupAccess( userGroupAccess );
-
-                object.getUserGroupAccesses().add( userGroupAccess );
+                object.getSharing().addUserGroupAccess( userGroupAccess );
             }
         }
 
-        Iterator<UserAccess> userAccessIterator = object.getUserAccesses().iterator();
-
-        while ( userAccessIterator.hasNext() )
-        {
-            UserAccess userAccess = userAccessIterator.next();
-            userAccessIterator.remove();
-
-            userAccessService.deleteUserAccess( userAccess );
-        }
+        object.getSharing().getUsers().clear();
 
         for ( SharingUserAccess sharingUserAccess : sharing.getObject().getUserAccesses() )
         {
@@ -348,7 +333,7 @@ public class SharingController
             {
                 if ( AccessStringHelper.hasDataSharing( sharingUserAccess.getAccess() ) )
                 {
-                    throw new WebMessageException( WebMessageUtils.conflict( "Data sharing is not enabled for this object." ) );
+                    sharingUserAccess.setAccess( AccessStringHelper.disableDataSharing( sharingUserAccess.getAccess() ) );
                 }
             }
 
@@ -359,9 +344,7 @@ public class SharingController
             if ( sharingUser != null )
             {
                 userAccess.setUser( sharingUser );
-                userAccessService.addUserAccess( userAccess );
-
-                object.getUserAccesses().add( userAccess );
+                object.getSharing().addUserAccess( userAccess );
             }
         }
 
@@ -455,7 +438,7 @@ public class SharingController
         {
             builder.append( ", userGroupAccesses: " );
 
-            for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
+            for ( org.hisp.dhis.user.UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
             {
                 builder.append( "{uid: " ).append( userGroupAccess.getUserGroup().getUid() )
                     .append( ", name: " ).append( userGroupAccess.getUserGroup().getName() )
@@ -468,7 +451,7 @@ public class SharingController
         {
             builder.append( ", userAccesses: " );
 
-            for ( UserAccess userAccess : object.getUserAccesses() )
+            for ( org.hisp.dhis.user.UserAccess userAccess : object.getUserAccesses() )
             {
                 builder.append( "{uid: " ).append( userAccess.getUser().getUid() )
                     .append( ", name: " ).append( userAccess.getUser().getName() )
@@ -498,7 +481,7 @@ public class SharingController
     /**
      * This method is being used only during the deprecation process of the
      * Pivot/ReportTable API. It must be removed once the process is complete.
-     * 
+     *
      * @return "visualization" if the given type is equals to "reportTable" or
      *         "chart", otherwise it returns the given type itself.
      */
@@ -511,4 +494,6 @@ public class SharingController
         }
         return type;
     }
+
+
 }

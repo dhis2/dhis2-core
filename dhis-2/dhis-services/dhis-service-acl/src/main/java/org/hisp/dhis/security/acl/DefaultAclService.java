@@ -32,6 +32,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Schema;
@@ -39,13 +40,15 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.springframework.util.CollectionUtils.containsAny;
@@ -430,21 +433,21 @@ public class DefaultAclService implements AclService
         baseIdentifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
         baseIdentifiableObject.setExternalAccess( false );
 
-        if ( object.getUser() == null )
+        if ( object.getSharing().getOwner() == null )
         {
-            baseIdentifiableObject.setUser( user );
+            baseIdentifiableObject.getSharing().setOwner( user );
         }
 
         if ( canMakePublic( user, object.getClass() ) )
         {
             if ( defaultPublic( object.getClass() ) )
             {
-                baseIdentifiableObject.setPublicAccess( AccessStringHelper.READ_WRITE );
+                baseIdentifiableObject.getSharing().setPublicAccess( AccessStringHelper.READ_WRITE );
             }
         }
 
-        object.getUserAccesses().clear();
-        object.getUserGroupAccesses().clear();
+        object.getSharing().getUsers().clear();
+        object.getSharing().getUserGroups().clear();
     }
 
     @Override
@@ -456,12 +459,11 @@ public class DefaultAclService implements AclService
         }
 
         BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) object;
-        baseIdentifiableObject.setUser( user );
-        baseIdentifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
-        baseIdentifiableObject.setExternalAccess( false );
-
-        object.getUserAccesses().clear();
-        object.getUserGroupAccesses().clear();
+        baseIdentifiableObject.getSharing().setOwner( user );
+        baseIdentifiableObject.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        baseIdentifiableObject.getSharing().setExternal( false );
+        object.getSharing().resetUserAccesses();
+        object.getSharing().resetUserGroupAccesses();
     }
 
     @Override
@@ -474,7 +476,7 @@ public class DefaultAclService implements AclService
             return errorReports;
         }
 
-        if ( !AccessStringHelper.isValid( object.getPublicAccess() ) )
+        if ( !AccessStringHelper.isValid( object.getSharing().getPublicAccess() ) )
         {
             errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3010, object.getPublicAccess() ) );
             return errorReports;
@@ -486,13 +488,13 @@ public class DefaultAclService implements AclService
         {
             ErrorReport errorReport = null;
 
-            if ( object.getPublicAccess() != null && AccessStringHelper.hasDataSharing( object.getPublicAccess() ) )
+            if ( object.getSharing().getPublicAccess() != null && AccessStringHelper.hasDataSharing( object.getSharing().getPublicAccess() ) )
             {
                 errorReport = new ErrorReport( object.getClass(), ErrorCode.E3011, object.getClass() );
             }
             else
             {
-                for ( UserAccess userAccess : object.getUserAccesses() )
+                for ( UserAccess userAccess : object.getSharing().getUsers().values() )
                 {
                     if ( AccessStringHelper.hasDataSharing( userAccess.getAccess() ) )
                     {
@@ -501,7 +503,7 @@ public class DefaultAclService implements AclService
                     }
                 }
 
-                for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
+                for ( UserGroupAccess userGroupAccess : object.getSharing().getUserGroups().values() )
                 {
                     if ( AccessStringHelper.hasDataSharing( userGroupAccess.getAccess() ) )
                     {
@@ -563,7 +565,7 @@ public class DefaultAclService implements AclService
             return errorReports;
         }
 
-        if ( AccessStringHelper.DEFAULT.equals( object.getPublicAccess() ) )
+        if ( AccessStringHelper.DEFAULT.equals( object.getSharing().getPublicAccess() ) )
         {
             errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3001, user.getUsername(), object.getClass() ) );
         }
@@ -595,7 +597,7 @@ public class DefaultAclService implements AclService
      */
     private boolean checkUser( User user, IdentifiableObject object )
     {
-        return user == null || object.getUser() == null || user.getUid().equals( object.getUser().getUid() );
+        return user == null || object.getSharing().getOwner() == null || user.getUid().equals( object.getSharing().getOwner() );
     }
 
     /**
@@ -611,7 +613,7 @@ public class DefaultAclService implements AclService
         boolean canMakePrivate = canMakePrivate( user, object.getClass() );
         boolean canMakeExternal = canMakeExternal( user, object.getClass() );
 
-        if ( AccessStringHelper.DEFAULT.equals( object.getPublicAccess() ) )
+        if ( AccessStringHelper.DEFAULT.equals( object.getSharing().getPublicAccess() ) )
         {
             if ( !(canMakePublic || canMakePrivate) )
             {
@@ -644,30 +646,35 @@ public class DefaultAclService implements AclService
      */
     private boolean checkSharingPermission( User user, IdentifiableObject object, Permission permission )
     {
-        if ( AccessStringHelper.isEnabled( object.getPublicAccess(), permission ) )
+        if ( AccessStringHelper.isEnabled( object.getSharing().getPublicAccess(), permission ) )
         {
             return true;
         }
 
-        for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
+        if ( object.getSharing().getUserGroups() != null && !CollectionUtils.isEmpty( user.getGroups() ) )
         {
-            // Check if user is allowed to read this object through group access
-
-            if ( AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
-                    && userGroupAccess.userGroupContainsUser( user ) )
+            for ( UserGroupAccess userGroupAccess : object.getSharing().getUserGroups().values() )
             {
-                return true;
+                // Check if user is allowed to read this object through group access
+                if ( AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
+                    && hasUserGroupAccess( user.getGroups(), userGroupAccess.getId() ) )
+                {
+                    return true;
+                }
             }
         }
 
-        for ( UserAccess userAccess : object.getUserAccesses() )
+        if ( object.getSharing().getUsers() != null )
         {
-            // Check if user is allowed to read to this object through user access
-
-            if ( AccessStringHelper.isEnabled( userAccess.getAccess(), permission )
-                    && user.equals( userAccess.getUser() ) )
+            for ( UserAccess userAccess : object.getSharing().getUsers().values() )
             {
-                return true;
+                // Check if user is allowed to read to this object through user access
+
+                if ( AccessStringHelper.isEnabled( userAccess.getAccess(), permission )
+                        && user.getUid().equals( userAccess.getId() ) )
+                {
+                    return true;
+                }
             }
         }
 
@@ -716,4 +723,18 @@ public class DefaultAclService implements AclService
         return checkSharingAccess(user, object) &&
             ( checkUser(user, object) || checkSharingPermission( user, object, Permission.WRITE ) );
     }
+
+    private boolean hasUserGroupAccess( Set<UserGroup> userGroups, String userGroupUid )
+    {
+        for ( UserGroup group : userGroups )
+        {
+            if ( group.getUid().equals( userGroupUid ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
+

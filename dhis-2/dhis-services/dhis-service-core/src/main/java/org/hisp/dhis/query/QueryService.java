@@ -64,7 +64,7 @@ public interface QueryService
      * @param query Query instance to use
      * @return N number of matching objects
      */
-    int count( Query query );
+    long count( Query query );
 
     /**
      * Create a query instance from a given set of filters (property:operator:value), and

@@ -41,9 +41,9 @@ public class UserInfo
     private long id;
     
     private String username;
-    
+
     private Set<String> authorities = new HashSet<>();
-    
+
     protected UserInfo()
     {
     }
@@ -72,7 +72,7 @@ public class UserInfo
         }
         
         UserCredentials credentials = user.getUserCredentials();
-        
+
         return new UserInfo( credentials.getId(), credentials.getUsername(), credentials.getAllAuthorities() );
     }
     

@@ -30,20 +30,25 @@ package org.hisp.dhis.query.operators;
 
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 /**
  * @author Henning Håkonsen
  */
-public class TokenOperator
-    extends Operator
+public class TokenOperator<T extends Comparable<? super T>>
+    extends Operator<T>
 {
     private final boolean caseSensitive;
 
     private final org.hibernate.criterion.MatchMode matchMode;
 
-    public TokenOperator( Object arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode )
+    public TokenOperator( T arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode )
     {
         super( "token", Typed.from( String.class ), arg );
         this.caseSensitive = caseSensitive;
@@ -59,9 +64,18 @@ public class TokenOperator
     }
 
     @Override
+    public <Y> Predicate getPredicate( CriteriaBuilder builder, Root<Y> root, QueryPath queryPath )
+    {
+        String value = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
+
+        return builder.equal( builder.function( JsonbFunctions.REGEXP_SEARCH, Boolean.class, root.get( queryPath.getPath() ),
+            builder.literal( TokenUtils.createRegex( value ).toString() ) ), true );
+    }
+
+    @Override
     public boolean test( Object value )
     {
         String targetValue = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
-        return TokenUtils.test( args, value, targetValue, caseSensitive, matchMode );
+        return TokenUtils.test( args, (T) value, targetValue, caseSensitive, matchMode );
     }
 }

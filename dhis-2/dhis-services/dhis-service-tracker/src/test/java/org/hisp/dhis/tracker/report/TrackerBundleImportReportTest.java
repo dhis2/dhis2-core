@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.report.TrackerTimingsStats.COMMIT_OPS;
 import static org.hisp.dhis.tracker.report.TrackerTimingsStats.PREHEAT_OPS;
 import static org.hisp.dhis.tracker.report.TrackerTimingsStats.PREPARE_REQUEST_OPS;
@@ -118,15 +119,15 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
 
         // Build BundleReport
         Map<TrackerType, TrackerTypeReport> typeReportMap = new HashMap<>();
-        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.TRACKED_ENTITY );
-        TrackerObjectReport trackerObjectReport = new TrackerObjectReport( TrackerType.TRACKED_ENTITY );
+        TrackerTypeReport typeReport = new TrackerTypeReport( TRACKED_ENTITY );
+        TrackerObjectReport trackerObjectReport = new TrackerObjectReport( TRACKED_ENTITY );
         List<TrackerErrorReport> trackerErrorReports = new ArrayList<>();
         TrackerErrorReport errorReport1 = new TrackerErrorReport(
             "Could not find OrganisationUnit: ``, linked to Tracked Entity.", TrackerErrorCode.E1049,
-            TrackerType.TRACKED_ENTITY, "BltTZV9HvEZ" );
+            TRACKED_ENTITY, "BltTZV9HvEZ" );
         TrackerErrorReport errorReport2 = new TrackerErrorReport( "Could not find TrackedEntityType: `Q9GufDoplCL`.",
             TrackerErrorCode.E1049,
-            TrackerType.TRACKED_ENTITY, "BltTZV9HvEZ" );
+            TRACKED_ENTITY, "BltTZV9HvEZ" );
         trackerErrorReports.add( errorReport1 );
         trackerErrorReports.add( errorReport2 );
         trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
@@ -137,7 +138,7 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
         typeReport.getStats().setCreated( 1 );
         typeReport.getStats().setUpdated( 2 );
         typeReport.getStats().setDeleted( 3 );
-        typeReportMap.put( TrackerType.TRACKED_ENTITY, typeReport );
+        typeReportMap.put( TRACKED_ENTITY, typeReport );
         
         TrackerBundleReport bundleReport = new TrackerBundleReport( TrackerStatus.ERROR, typeReportMap );
         
@@ -159,7 +160,7 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
         tvr.getErrorReports()
             .add( new TrackerErrorReport( "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
                 TrackerErrorCode.E1049,
-                TrackerType.TRACKED_ENTITY, "BltTZV9HvEZ" ) );
+                TRACKED_ENTITY, "BltTZV9HvEZ" ) );
 
         
         //Warning Reports - Validation Report
@@ -169,7 +170,7 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
       
         //Create the TrackerImportReport
         final Map<TrackerType, Integer> bundleSize = new HashMap<>();
-        bundleSize.put( TrackerType.TRACKED_ENTITY, 1 );
+        bundleSize.put( TRACKED_ENTITY, 1 );
         TrackerImportReport toSerializeReport = TrackerImportReport.withImportCompleted( TrackerStatus.ERROR,
             bundleReport, tvr, timingsStats, bundleSize);
 
@@ -202,8 +203,14 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
         assertEquals( toSerializeReport.getBundleReport().getStats().getTotal(),
             deserializedReport.getBundleReport().getStats().getTotal() );
 
-        assertEquals( toSerializeReport.getBundleReport().getTypeReportMap().get( TrackerType.TRACKED_ENTITY ),
-            deserializedReport.getBundleReport().getTypeReportMap().get( TrackerType.TRACKED_ENTITY ) );
+        TrackerTypeReport serializedReportTrackerTypeReport = toSerializeReport.getBundleReport().getTypeReportMap().get( TRACKED_ENTITY );
+        TrackerTypeReport deserializedReportTrackerTypeReport = deserializedReport.getBundleReport().getTypeReportMap().get( TRACKED_ENTITY );
+
+        // sideEffectsDataBundle is no more relevant to object equivalence, so just asserting on all other fields.
+        assertEquals( serializedReportTrackerTypeReport.getTrackerType(), deserializedReportTrackerTypeReport.getTrackerType() );
+        assertEquals( serializedReportTrackerTypeReport.getObjectReportMap(), deserializedReportTrackerTypeReport.getObjectReportMap() );
+        assertEquals( serializedReportTrackerTypeReport.getObjectReports(), deserializedReportTrackerTypeReport.getObjectReports() );
+        assertEquals( serializedReportTrackerTypeReport.getStats(), deserializedReportTrackerTypeReport.getStats() );
 
         //Verify Validation Report - Error Reports
         assertEquals( toSerializeReport.getValidationReport().getErrorReports().get( 0 ).getErrorMessage(),
@@ -256,7 +263,7 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
     private TrackerImportReport createImportReport()
     {
         final Map<TrackerType, Integer> bundleSize = new HashMap<>();
-        bundleSize.put( TrackerType.TRACKED_ENTITY, 1 );
+        bundleSize.put( TRACKED_ENTITY, 1 );
         return TrackerImportReport.withImportCompleted( TrackerStatus.OK, createBundleReport(),
             createValidationReport(), createTimingStats(), bundleSize );
     }
@@ -282,11 +289,11 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
     private TrackerBundleReport createBundleReport()
     {
         TrackerBundleReport bundleReport = new TrackerBundleReport();
-        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.TRACKED_ENTITY );
-        TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.TRACKED_ENTITY, "TEI_UID", 1 );
+        TrackerTypeReport typeReport = new TrackerTypeReport( TRACKED_ENTITY );
+        TrackerObjectReport objectReport = new TrackerObjectReport( TRACKED_ENTITY, "TEI_UID", 1 );
         typeReport.addObjectReport( objectReport );
         typeReport.getStats().incCreated();
-        bundleReport.getTypeReportMap().put( TrackerType.TRACKED_ENTITY, typeReport );
+        bundleReport.getTypeReportMap().put( TRACKED_ENTITY, typeReport );
 
         return bundleReport;
     }

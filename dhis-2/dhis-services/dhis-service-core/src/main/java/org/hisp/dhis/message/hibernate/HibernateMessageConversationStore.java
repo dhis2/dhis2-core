@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -132,12 +131,9 @@ public class HibernateMessageConversationStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<MessageConversation> getMessageConversations( Collection<String> uids )
     {
-        return getSharingCriteria()
-            .add( Restrictions.in( "uid", uids ) )
-            .list();
+        return getList( getCriteriaBuilder(), newJpaParameters().addPredicate( root -> root.get( "uid" ).in( uids ) ) );
     }
 
     @Override

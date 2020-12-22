@@ -33,22 +33,8 @@
 
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid" foreign-key="fk_optiongroupset_optionsetid" />
 
-    <!-- Access properties -->
-    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_optiongroupset_userid" />
-
-    <property name="publicAccess" length="8" />
-
-    <set name="userGroupAccesses" table="optiongroupsetusergroupaccesses" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="optiongroupsetid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
-    </set>
-
-    <set name="userAccesses" table="optiongroupsetuseraccesses" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="optiongroupsetid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
-    </set>
+    <!-- Sharing -->
+    <property name="sharing" type="jsbObjectSharing"/>
 
   </class>
 

@@ -104,4 +104,6 @@ public abstract class AbstractSpringSecurityCurrentUserService implements Curren
 
         throw new RuntimeException( "Authentication principal is not supported; principal:" + principal );
     }
+
+    public abstract Long getUserId(String username);
 }

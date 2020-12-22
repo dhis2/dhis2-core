@@ -37,15 +37,13 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class JsonAttributeValueBinaryType
     extends JsonBinaryType
 {
-    static final ObjectMapper MAPPER = new ObjectMapper();
+    public static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
     protected JavaType getResultingJavaType( Class<?> returnedClass )
@@ -103,19 +101,7 @@ public class JsonAttributeValueBinaryType
         }
     }
 
-    public static List<AttributeValue> convertListJsonToListObject( List<String> content )
-    {
-        return content.stream().map( json -> {
-            try
-            {
-                return MAPPER.readValue( json, AttributeValue.class );
-            }
-            catch ( IOException e )
-            {
-                throw new RuntimeException( e );
-            }
-        } ).collect( Collectors.toList() );
-    }
+
 
     private static Set<AttributeValue> convertAttributeValueMapIntoSet( Map<String, AttributeValue> data )
     {

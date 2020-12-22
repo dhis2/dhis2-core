@@ -47,7 +47,7 @@ public class ValidationResultQuery
 
     private int pageSize = Pager.DEFAULT_PAGE_SIZE;
 
-    private int total;
+    private long total;
 
     public ValidationResultQuery()
     {
@@ -93,12 +93,12 @@ public class ValidationResultQuery
         this.pageSize = pageSize;
     }
 
-    public int getTotal()
+    public long getTotal()
     {
         return total;
     }
 
-    public void setTotal( int total )
+    public void setTotal( long total )
     {
         this.total = total;
     }
