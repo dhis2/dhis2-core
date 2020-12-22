@@ -1,4 +1,4 @@
-package org.hisp.dhis.outlierdetection;
+package org.hisp.dhis.system.util;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,70 +28,35 @@ package org.hisp.dhis.outlierdetection;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
+import java.io.IOException;
+import java.io.OutputStream;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
 
-import lombok.Data;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
 /**
  * @author Lars Helge Overland
  */
-@Data
-@JsonPropertyOrder({"de", "deName", "pe", "ou", "ouName",
-    "coc", "cocName", "aoc", "lastUpdated", "value", "mean",
-    "stdDev", "meanAbsDev", "zScore", "lowerBound", "upperBound"})
-public class OutlierValue
+public class JacksonCsvUtils
 {
-    @JsonProperty
-    private String de;
-
-    @JsonProperty
-    private String deName;
-
-    @JsonProperty
-    private String pe;
-
-    @JsonProperty
-    private String ou;
-
-    @JsonProperty
-    private String ouName;
-
-    @JsonProperty
-    private String coc;
-
-    @JsonProperty
-    private String cocName;
-
-    @JsonProperty
-    private String aoc;
-
-    @JsonProperty
-    private String aocName;
-
-    @JsonProperty
-    private Date lastUpdated;
-
-    @JsonProperty
-    private Double value;
-
-    @JsonProperty
-    private Double mean;
-
-    @JsonProperty
-    private Double stdDev;
-
-    @JsonProperty
-    private Double meanAbsDev;
-
-    @JsonProperty
-    private Double zScore;
-
-    @JsonProperty
-    private Double lowerBound;
-
-    @JsonProperty
-    private Double upperBound;
+    /**
+     * Writes the given response to the given output stream as CSV
+     * using {@link CsvMapper}. The schema is inferred from the
+     * given type using {@CsvSchema}. A header line is included.
+     *
+     * @param value the value to write.
+     * @param out the {@link OutputStream} to write to.
+     * @throws IOException if the write operation fails.
+     */
+    public static void toCsv( Object value, Class<?> type, OutputStream out )
+        throws IOException
+    {
+        CsvMapper csvMapper = JacksonObjectMapperConfig.csvMapper;
+        CsvSchema schema = csvMapper.schemaFor( type ).withHeader();
+        ObjectWriter writer = csvMapper.writer( schema );
+        writer.writeValue( out, value );
+    }
 }

@@ -29,6 +29,10 @@ package org.hisp.dhis.outlierdetection.service;
  */
 
 import static org.junit.Assert.assertEquals;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.IntegrationTestBase;
@@ -37,6 +41,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -182,6 +187,50 @@ public class OutlierDetectionServiceTest
         OutlierDetectionResponse response = subject.getOutlierValues( request );
 
         assertEquals( 4, response.getOutlierValues().size() );
+    }
+
+    @Test
+    public void testGetOutlierValuesAsCsv()
+        throws IOException
+    {
+        // 12, 91, 11, 87 are outlier values with a z-score above 2.0
+
+        addDataValues(
+            new DataValue( deA, m01, ouA, coc, coc, "50" ), new DataValue( deA, m07, ouA, coc, coc, "51" ),
+            new DataValue( deA, m02, ouA, coc, coc, "53" ), new DataValue( deA, m08, ouA, coc, coc, "59" ),
+            new DataValue( deA, m03, ouA, coc, coc, "58" ), new DataValue( deA, m09, ouA, coc, coc, "55" ),
+            new DataValue( deA, m04, ouA, coc, coc, "55" ), new DataValue( deA, m10, ouA, coc, coc, "52" ),
+            new DataValue( deA, m05, ouA, coc, coc, "51" ), new DataValue( deA, m11, ouA, coc, coc, "58" ),
+            new DataValue( deA, m06, ouA, coc, coc, "12" ), new DataValue( deA, m12, ouA, coc, coc, "91" ),
+
+            new DataValue( deB, m01, ouA, coc, coc, "41" ), new DataValue( deB, m02, ouA, coc, coc, "48" ),
+            new DataValue( deB, m03, ouA, coc, coc, "45" ), new DataValue( deB, m04, ouA, coc, coc, "46" ),
+            new DataValue( deB, m05, ouA, coc, coc, "49" ), new DataValue( deB, m06, ouA, coc, coc, "41" ),
+            new DataValue( deB, m07, ouA, coc, coc, "41" ), new DataValue( deB, m08, ouA, coc, coc, "49" ),
+            new DataValue( deB, m09, ouA, coc, coc, "42" ), new DataValue( deB, m10, ouA, coc, coc, "47" ),
+            new DataValue( deB, m11, ouA, coc, coc, "11" ), new DataValue( deB, m12, ouA, coc, coc, "87" ) );
+
+        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
+            .withDataElements( Lists.newArrayList( deA, deB ) )
+            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) )
+            .withOrgUnits( Lists.newArrayList( ouA ) )
+            .withThreshold( 2.0 ).build();
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        subject.getOutlierValuesAsCsv( request, out );
+
+        List<String> csvLines = TextUtils.toLines( new String( out.toByteArray(), StandardCharsets.UTF_8 ) );
+
+        final int endIndex = 61;
+
+        assertEquals( 5, csvLines.size() );
+
+        assertEquals( "de,deName,pe,ou,ouName,coc,cocName,aoc,lastUpdated,value,mean", csvLines.get( 0 ).substring( 0, endIndex ) );
+        assertEquals( "deabcdefghA,DataElementA,202006,ouabcdefghA,OrganisationUnitA", csvLines.get( 1 ).substring( 0, endIndex ) );
+        assertEquals( "deabcdefghB,DataElementB,202012,ouabcdefghA,OrganisationUnitA", csvLines.get( 2 ).substring( 0, endIndex ) );
+        assertEquals( "deabcdefghA,DataElementA,202012,ouabcdefghA,OrganisationUnitA", csvLines.get( 3 ).substring( 0, endIndex ) );
+        assertEquals( "deabcdefghB,DataElementB,202011,ouabcdefghA,OrganisationUnitA", csvLines.get( 4 ).substring( 0, endIndex ) );
     }
 
     @Test

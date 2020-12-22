@@ -146,8 +146,8 @@ public class ProgramRuleServiceTest extends IntegrationTestBase
     public void testAddGet()
     {
         ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, programStageA, null, "true", null );
-        ProgramRule ruleB = new ProgramRule( "RuleA", "descriptionA", programA, null, null, "$a < 1", 1 );
-        ProgramRule ruleC = new ProgramRule( "RuleA", "descriptionA", programA, null, null, "($a < 1 && $a > -10) && !$b", 0 );
+        ProgramRule ruleB = new ProgramRule( "RuleB", "descriptionA", programA, null, null, "$a < 1", 1 );
+        ProgramRule ruleC = new ProgramRule( "RuleC", "descriptionA", programA, null, null, "($a < 1 && $a > -10) && !$b", 0 );
 
         long idA = programRuleService.addProgramRule( ruleA );
         long idB = programRuleService.addProgramRule( ruleB );
@@ -452,7 +452,7 @@ public class ProgramRuleServiceTest extends IntegrationTestBase
     @Test
     public void testDeleteDeletedObjectWithCascade()
     {
-        ProgramRule programRule = createProgramRule( 'A', programA );
+        ProgramRule programRule = createProgramRule( 'C', programA );
 
         ProgramRuleAction programRuleAction = createProgramRuleAction( 'D' );
         programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
@@ -467,7 +467,7 @@ public class ProgramRuleServiceTest extends IntegrationTestBase
 
         programRuleService.deleteProgramRule( programRule );
 
-        ProgramRule programRule1 = createProgramRule( 'A', programA );
+        ProgramRule programRule1 = createProgramRule( 'X', programA );
         programRule1.setUid( programRuleUID );
 
         ProgramRuleAction programRuleAction1 = createProgramRuleAction( 'D' );

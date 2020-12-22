@@ -31,7 +31,6 @@ package org.hisp.dhis.outlierdetection.service;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
-
 import java.util.List;
 
 import org.hisp.dhis.calendar.Calendar;
@@ -49,11 +48,14 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Manager for database queries related to outlier data detection.
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service
 public class OutlierDetectionManager
 {
@@ -70,7 +72,7 @@ public class OutlierDetectionManager
      * @param request the {@link OutlierDetectionRequest}.
      * @return a list of {@link OutlierValue}.
      */
-    public List<OutlierValue> getOutlierValues( OutlierDetectionRequest request )
+    public List<OutlierValue> getZScoreOutlierValues( OutlierDetectionRequest request )
     {
         String ouPathClause = getOrgUnitPathClause( request );
 
@@ -148,6 +150,8 @@ public class OutlierDetectionManager
         {
             // Casting non-numeric data to double, catching exception is faster than filtering
 
+            log.error( ErrorCode.E2207.getMessage(), ex );
+
             throw new IllegalQueryException( ErrorCode.E2207 );
         }
     }
@@ -181,6 +185,7 @@ public class OutlierDetectionManager
             return outlier;
         };
     }
+
     /**
      * Returns the ISO period name for the given {@link ResultSet} row.
      *
