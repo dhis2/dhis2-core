@@ -290,8 +290,8 @@
       "created": "2019-03-25T13:59:02.598",
       "path": "/QfUVllTs6cZ",
       "shortName": "Country2",
-      "lastUpdated": "2019-03-25T13:59:02.692"
->>>>>>> 22d9e6d4a228 (perf: replace expensive "Program has OrgUnit" call with faster SQL)
+      "lastUpdated": "2019-03-25T13:59:02.692",
+      "publicAccess": "rw------"
     }
   ],
   "programs": [
