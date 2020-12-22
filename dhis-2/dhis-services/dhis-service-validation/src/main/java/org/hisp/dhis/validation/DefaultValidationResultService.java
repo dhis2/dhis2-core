@@ -108,7 +108,7 @@ public class DefaultValidationResultService
     }
 
     @Override
-    public int countValidationResults( ValidationResultQuery query )
+    public long countValidationResults( ValidationResultQuery query )
     {
         return validationResultStore.count( query );
     }

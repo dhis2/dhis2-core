@@ -57,7 +57,7 @@ import java.util.stream.Collectors;
 public class ReflectionUtils
 {
     public static final List<String> SHARING_PROPS = Arrays.asList(
-            "publicAccess", "externalAccess", "userGroupAccesses", "userAccesses" );
+            "publicAccess", "externalAccess", "userGroupAccesses", "userAccesses", "sharing" );
 
     /**
      * Invokes method getId() for this object and returns the return value. An

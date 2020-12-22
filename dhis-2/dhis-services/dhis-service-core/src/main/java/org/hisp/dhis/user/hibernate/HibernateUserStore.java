@@ -28,27 +28,14 @@
 
 package org.hisp.dhis.user.hibernate;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.persistence.TypedQuery;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.query.JpaQueryUtils;
@@ -57,6 +44,7 @@ import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
@@ -67,7 +55,23 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import lombok.extern.slf4j.Slf4j;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Root;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Nguyen Hong Duc
@@ -88,6 +92,14 @@ public class HibernateUserStore
 
         checkNotNull( schemaService );
         this.schemaService = schemaService;
+    }
+
+    @Override
+    public void save( User user, boolean clearSharing )
+    {
+        super.save( user, clearSharing );
+
+        currentUserService.invalidateUserGroupCache( user.getUsername() );
     }
 
     @Override
@@ -410,5 +422,39 @@ public class HibernateUserStore
         typedQuery.setHint( QueryHints.CACHEABLE, true );
 
         return QueryUtils.getSingleResult( typedQuery );
+    }
+
+    @Override
+    public CurrentUserGroupInfo getCurrentUserGroupInfo( long userId )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery<Object[]> query = builder.createQuery( Object[].class );
+        Root<User>  root = query.from( User.class );
+        query.where( builder.equal( root.get( "id" ), userId ) );
+        query.select( builder.array( root.get( "uid" ), root.join( "groups", JoinType.LEFT ).get( "uid" ) ) );
+
+        List<Object[]> results = getSession().createQuery( query ).getResultList();
+
+        CurrentUserGroupInfo currentUserGroupInfo = new CurrentUserGroupInfo();
+
+        if ( CollectionUtils.isEmpty( results ) )
+        {
+            return currentUserGroupInfo;
+        }
+
+        for ( Object[] result : results )
+        {
+            if ( currentUserGroupInfo.getUserUID() == null )
+            {
+                currentUserGroupInfo.setUserUID( result[0].toString() );
+            }
+
+            if ( result[1] != null )
+            {
+                currentUserGroupInfo.getUserGroupUIDs().add( result[1].toString() );
+            }
+        }
+
+        return currentUserGroupInfo;
     }
 }

@@ -92,4 +92,11 @@ public interface UserStore
      * @return User with given userId
      */
     User getUser( long userId );
+
+    /**
+     * Return CurrentUserGroupInfo used for ACL check in {@link IdentifiableObjectStore}
+     * @param userId
+     * @return
+     */
+    CurrentUserGroupInfo getCurrentUserGroupInfo( long userId );
 }

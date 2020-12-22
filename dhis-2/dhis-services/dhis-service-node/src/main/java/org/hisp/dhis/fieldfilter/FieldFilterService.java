@@ -40,7 +40,7 @@ import java.util.List;
 public interface FieldFilterService
 {
     List<String> SHARING_FIELDS = Arrays.asList(
-        "!user", "!publicAccess", "!userGroupAccesses", "!userAccesses", "!externalAccess" );
+        "!user", "!publicAccess", "!userGroupAccesses", "!userAccesses", "!externalAccess", "!sharing" );
 
     /**
      * Perform inclusion/exclusion on a list of objects.

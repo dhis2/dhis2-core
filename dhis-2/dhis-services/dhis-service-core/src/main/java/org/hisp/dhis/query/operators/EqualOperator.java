@@ -37,20 +37,23 @@ import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
 import org.hisp.dhis.schema.Property;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class EqualOperator extends Operator
+public class EqualOperator<T extends Comparable<? super T>> extends Operator<T>
 {
-    public EqualOperator( Object arg )
+    public EqualOperator( T arg )
     {
         super( "eq", Typed.from( String.class, Boolean.class, Number.class, Date.class, Enum.class ), arg );
     }
 
-    public EqualOperator( String name, Object arg )
+    public EqualOperator( String name, T arg )
     {
         super( name, Typed.from( String.class, Boolean.class, Number.class, Date.class, Enum.class ), arg );
     }
@@ -73,6 +76,26 @@ public class EqualOperator extends Operator
         }
 
         return Restrictions.eq( queryPath.getPath(), args.get( 0 ) );
+    }
+
+    @Override
+    public <Y> Predicate getPredicate( CriteriaBuilder builder, Root<Y> root, QueryPath queryPath )
+    {
+        Property property = queryPath.getProperty();
+
+        if ( property.isCollection() )
+        {
+            Integer value = QueryUtils.parseValue( Integer.class, args.get( 0 ) );
+
+            if ( value == null )
+            {
+                throw new QueryException(
+                    "Left-side is collection, and right-side is not a valid integer, so can't compare by size." );
+            }
+
+            return builder.equal( builder.size( root.get( queryPath.getPath() ) ), value );
+        }
+        return builder.equal( root.get( queryPath.getPath() ), args.get( 0 ) );
     }
 
     @Override

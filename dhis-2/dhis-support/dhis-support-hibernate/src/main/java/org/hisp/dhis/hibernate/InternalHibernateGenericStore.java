@@ -28,9 +28,8 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.DetachedCriteria;
 import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInfo;
 
@@ -49,45 +48,29 @@ import java.util.function.Function;
 public interface InternalHibernateGenericStore<T>
     extends GenericStore<T>
 {
-    Criteria getCriteria();
-
-    Criteria getSharingCriteria();
-
-    Criteria getSharingCriteria( User user );
-
-    DetachedCriteria getDataSharingDetachedCriteria( User user );
-
-    Criteria getExecutableCriteria( DetachedCriteria detachedCriteria );
-
-    DetachedCriteria getSharingDetachedCriteria();
-
-    DetachedCriteria getSharingDetachedCriteria( String access );
-
-    DetachedCriteria getDataSharingDetachedCriteria( String access );
-
-    DetachedCriteria getSharingDetachedCriteria( User user );
-
     List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder );
-
-    List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo user );
 
     List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user );
 
-    List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, String access );
+    List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo userInfo );
 
-    List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo user, String access );
+    List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, String access );
 
     List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user, String access );
 
-    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder );
+    List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo userInfo,
+        CurrentUserGroupInfo groupInfo, String access );
 
-    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo user );
+    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder );
 
     List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user );
 
+    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo userInfo );
+
     List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, String access );
 
-    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user, String access );
+    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo userInfo,
+        CurrentUserGroupInfo groupInfo, String access );
 
-    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo user, String access );
+    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user, String access );
 }

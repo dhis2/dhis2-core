@@ -78,7 +78,7 @@ import com.google.common.collect.Lists;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Category( IntegrationTest.class )
-public class RegistrationMultiEventsServiceTest
+public class    RegistrationMultiEventsServiceTest
     extends IntegrationTestBase
 {
     @Autowired

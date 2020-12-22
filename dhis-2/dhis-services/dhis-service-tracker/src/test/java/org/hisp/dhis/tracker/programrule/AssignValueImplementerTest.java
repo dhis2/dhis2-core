@@ -28,11 +28,7 @@ package org.hisp.dhis.tracker.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.IOException;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.preheat.PreheatIdentifier;
@@ -57,7 +53,10 @@ import org.hisp.dhis.tracker.validation.AbstractImportValidationTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import java.io.IOException;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class AssignValueImplementerTest
     extends AbstractImportValidationTest
@@ -127,6 +126,7 @@ public class AssignValueImplementerTest
         programRuleService.updateProgramRule( programRule );
         programRule2.setProgramRuleActions( Sets.newHashSet( programRuleAction2 ) );
         programRuleService.updateProgramRule( programRule2 );
+        manager.flush();
     }
 
     @Test

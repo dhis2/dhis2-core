@@ -28,7 +28,6 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
@@ -40,13 +39,26 @@ import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
 
 /**
+ * Buffers Audit messages prior to sending them to the Audit queue. This
+ * scheduler is disabled by default (config key: audit.inmemory-queue.enabled)
+ * and should be used only in very high-traffic environments. Note that upon a
+ * JVM crash, the Audit messages in this queue will be lost.
+ * 
+ * The buffer is based on a {@link DelayQueue} where messages are buffered for 5
+ * seconds, before being de-queued to the Artemis broker.
+ * 
+ * To avoid excessive memory pressure, max 200 messages can stay in the queue:
+ * in-excess messages are processed immediately.
+ *
  * @author Luciano Fiandesio
  */
 @Slf4j
 @Component
 public class AuditScheduler
 {
-    private final long delay = 20_000; // 20 seconds
+    private final static long DELAY = 5_000; // 5 seconds
+
+    private final static int MAX_SIZE = 200;
 
     private final AuditProducerSupplier auditProducerSupplier;
 
@@ -63,15 +75,23 @@ public class AuditScheduler
         {
             log.debug( String.format( "add Audit object with content %s to delayed queue", auditItem.toLog() ) );
         }
-        final QueuedAudit postponed = new QueuedAudit( auditItem, delay );
 
-        if ( !delayed.contains( postponed ) )
+        final QueuedAudit postponed = new QueuedAudit( auditItem, DELAY );
+
+        if ( delayed.size() >= MAX_SIZE )
         {
-            delayed.offer( postponed );
+            auditProducerSupplier.publish( auditItem );
+        }
+        else
+        {
+            if ( !delayed.contains( postponed ) )
+            {
+                delayed.offer( postponed );
+            }
         }
     }
 
-    @Scheduled( fixedDelay = 30_000 ) // TODO this value should come from configuration
+    @Scheduled( fixedDelay = 5_000 )
     public void process()
     {
         final Collection<QueuedAudit> expired = new ArrayList<>();

@@ -299,6 +299,11 @@ public class DefaultMetadataImportService implements MetadataImportService
             object.setUserAccesses( new HashSet<>() );
         }
 
+        if ( object.getSharing().getUsers() == null )
+        {
+            object.getSharing().setDtoUserAccesses( object.getUserAccesses() );
+        }
+
         if ( object.getUserGroupAccesses() == null )
         {
             object.setUserGroupAccesses( new HashSet<>() );
