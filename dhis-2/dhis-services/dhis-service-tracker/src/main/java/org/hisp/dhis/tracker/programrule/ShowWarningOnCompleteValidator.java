@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.programrule;
 import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion;
 import org.springframework.stereotype.Component;
 
-import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 
 /**

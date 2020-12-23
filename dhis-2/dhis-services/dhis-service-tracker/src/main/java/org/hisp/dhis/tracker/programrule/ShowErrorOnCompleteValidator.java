@@ -31,7 +31,7 @@ package org.hisp.dhis.tracker.programrule;
 import org.hisp.dhis.rules.models.RuleActionErrorOnCompletion;
 import org.springframework.stereotype.Component;
 
-import static org.hisp.dhis.tracker.programrule.IssueType.*;
+import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 
 /**
  * This implementer show errors on a completed enrollment  or event calculated by Rule

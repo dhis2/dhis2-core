@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.programrule;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ValidationStrategy;

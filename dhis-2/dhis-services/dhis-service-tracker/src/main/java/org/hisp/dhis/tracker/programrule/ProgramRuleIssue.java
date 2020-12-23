@@ -30,8 +30,6 @@ package org.hisp.dhis.tracker.programrule;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.rules.models.RuleActionShowError;
-import org.springframework.stereotype.Component;
 
 /**
  * A single issue from rule engine that can be either be a Warning or an Error.

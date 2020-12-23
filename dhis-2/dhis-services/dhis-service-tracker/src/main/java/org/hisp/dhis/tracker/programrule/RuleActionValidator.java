@@ -28,10 +28,10 @@
 
 package org.hisp.dhis.tracker.programrule;
 
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+
 import java.util.List;
 import java.util.Map;
-
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
 /**
  * @Author Enrico Colasante
