@@ -28,25 +28,10 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
 import org.hibernate.Hibernate;
-import org.hibernate.collection.spi.PersistentCollection;
-import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.HibernateProxyHelper;
 
-import java.beans.IntrospectionException;
-import java.beans.PropertyDescriptor;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -55,14 +40,8 @@ public class HibernateProxyUtils
 {
     private HibernateProxyUtils()
     {
-        throw new IllegalStateException("Utility class");
+        throw new IllegalStateException( "Utility class" );
     }
-
-    public static boolean isProxy( Object object )
-    {
-        return ((object instanceof HibernateProxy) || (object instanceof PersistentCollection));
-    }
-
 
     @SuppressWarnings( { "rawtypes" } )
     public static Class getRealClass( Object o )
@@ -71,132 +50,15 @@ public class HibernateProxyUtils
 
         if ( o instanceof Class )
         {
-            throw new IllegalArgumentException( "Input can't be of type Class!" );
+            throw new IllegalArgumentException( "Input can't be a Class instance!" );
         }
 
-        if ( isProxy( o ) )
-        {
-            return HibernateProxyHelper.getClassWithoutInitializingProxy( o );
-        }
-        else
-        {
-            return o.getClass();
-        }
+        return HibernateProxyHelper.getClassWithoutInitializingProxy( o );
     }
 
     @SuppressWarnings( { "unchecked" } )
-    public static <T> T unwrap( T proxy )
+    public static <T> T unproxy( T proxy )
     {
         return (T) Hibernate.unproxy( proxy );
-//
-//        if ( !isProxy( proxy ) )
-//        {
-//            return proxy;
-//        }
-//
-//        Hibernate.initialize( proxy );
-//
-//        if ( HibernateProxy.class.isInstance( proxy ) )
-//        {
-//            Object result = ((HibernateProxy) proxy).writeReplace();
-//
-//            if ( !SerializableProxy.class.isInstance( result ) )
-//            {
-//                return (T) result;
-//            }
-//        }
-//
-//        if ( PersistentCollection.class.isInstance( proxy ) )
-//        {
-//            PersistentCollection persistentCollection = (PersistentCollection) proxy;
-//
-//            if ( PersistentSet.class.isInstance( persistentCollection ) )
-//            {
-//                Map<?, ?> map = (Map<?, ?>) persistentCollection.getStoredSnapshot();
-//                return (T) new LinkedHashSet<>( map.keySet() );
-//            }
-//
-//            return (T) persistentCollection.getStoredSnapshot();
-//        }
-//
-//        return proxy;
-    }
-
-    /**
-     * Eager fetch all its collections
-     *
-     * @param proxy Object to check and unwrap
-     * @return fully initialized object
-     */
-    public static <T> T initializeProxy( T proxy )
-    {
-        Preconditions.checkNotNull( proxy, "Proxy can not be null!" );
-
-        if ( !Hibernate.isInitialized( proxy ) )
-        {
-            Hibernate.initialize( proxy );
-        }
-
-        Field[] fields = proxy.getClass().getDeclaredFields();
-
-        Arrays.stream( fields )
-            .filter( f -> Collection.class.isAssignableFrom( f.getType() ) )
-            .forEach( f ->
-            {
-                try
-                {
-                    PropertyDescriptor pd = new PropertyDescriptor( f.getName(), proxy.getClass() );
-
-                    Object persistentObject = pd.getReadMethod().invoke( proxy );
-
-                    if ( persistentObject != null && PersistentCollection.class.isAssignableFrom( persistentObject.getClass() ) )
-                    {
-                        Hibernate.initialize( persistentObject );
-                    }
-                }
-                catch ( IllegalAccessException | IntrospectionException | InvocationTargetException e )
-                {
-                    getStackTrace( e );
-                }
-            } );
-
-        return proxy;
-    }
-
-    public static String getStackTrace( Throwable t )
-    {
-        StringWriter sw = new StringWriter();
-
-        if ( t != null )
-        {
-            PrintWriter pw = new PrintWriter( sw, true );
-            t.printStackTrace( pw );
-            pw.flush();
-            sw.flush();
-        }
-
-        return sw.toString();
-    }
-
-    /**
-     * Convert List of Json String object into List of given klass
-     * @param mapper Object mapper that is configured for given klass
-     * @param content List of Json String
-     * @param klass Class for converting to
-     * @param <T>
-     * @return List of converted Object
-     */
-    public static <T> List<T> convertListJsonToListObject( ObjectMapper mapper, List<String> content, Class<T> klass  )
-    {
-        return content.stream().map( json -> {
-            try
-            {
-                return mapper.readValue( json, klass );
-            }
-            catch ( IOException e )
-            {
-                throw new RuntimeException( e );
-            }
-        } ).collect( Collectors.toList() );
     }
 }

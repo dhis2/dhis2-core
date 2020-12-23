@@ -1149,13 +1149,13 @@ public class DefaultIdentifiableObjectManager
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
         Optional<IdentifiableObject> categoryObjects = DEFAULT_OBJECT_CACHE.get( Category.class.getName(),
-            key -> HibernateProxyUtils.initializeProxy( getByName( Category.class, DEFAULT ) ) );
+            key -> HibernateProxyUtils.unproxy( getByName( Category.class, DEFAULT ) ) );
         Optional<IdentifiableObject> categoryComboObjects = DEFAULT_OBJECT_CACHE.get( CategoryCombo.class.getName(),
-            key -> HibernateProxyUtils.initializeProxy( getByName( CategoryCombo.class, DEFAULT ) ) );
+            key -> HibernateProxyUtils.unproxy( getByName( CategoryCombo.class, DEFAULT ) ) );
         Optional<IdentifiableObject> categoryOptionObjects = DEFAULT_OBJECT_CACHE.get( CategoryOption.class.getName(),
-            key -> HibernateProxyUtils.initializeProxy( getByName( CategoryOption.class, DEFAULT ) ) );
+            key -> HibernateProxyUtils.unproxy( getByName( CategoryOption.class, DEFAULT ) ) );
         Optional<IdentifiableObject> categoryOptionCombo = DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class.getName(),
-            key -> HibernateProxyUtils.initializeProxy( getByName( CategoryOptionCombo.class, DEFAULT ) ) );
+            key -> HibernateProxyUtils.unproxy( getByName( CategoryOptionCombo.class, DEFAULT ) ) );
 
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
             .put( Category.class, Objects.requireNonNull( categoryObjects.orElse( null ) ) )

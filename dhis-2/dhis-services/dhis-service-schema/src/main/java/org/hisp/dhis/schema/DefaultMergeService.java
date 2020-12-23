@@ -60,16 +60,6 @@ public class DefaultMergeService implements MergeService
         T source = mergeParams.getSource();
         T target = mergeParams.getTarget();
 
-        if ( HibernateProxyUtils.isProxy( source ) )
-        {
-            log.error( "Source is a proxy!" );
-        }
-
-        if ( HibernateProxyUtils.isProxy( target ) )
-        {
-            log.error( "Target is a proxy!" );
-        }
-
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( source ) );
 
         for ( Property property : schema.getProperties() )

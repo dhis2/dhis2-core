@@ -187,7 +187,7 @@ public class WorkContextLoader
      */
     private void initUserCredentials( UserCredentials userCredentials )
     {
-        HibernateProxyUtils.initializeProxy( userCredentials );
+        userCredentials = HibernateProxyUtils.unproxy( userCredentials );
 
         userCredentials.isSuper();
     }

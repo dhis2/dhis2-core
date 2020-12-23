@@ -306,7 +306,7 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     @SuppressWarnings( { "unchecked", "rawtypes" } )
     private Object collect( Object object, Property property )
     {
-        object = HibernateProxyUtils.unwrap( object );
+        object = HibernateProxyUtils.unproxy( object );
 
         if ( object instanceof Collection )
         {
