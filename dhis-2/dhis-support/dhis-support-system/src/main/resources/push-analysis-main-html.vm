@@ -51,7 +51,7 @@
                                                 #link ( $itemLink.get( $dashboardItem.getUid() ), "View in Pivot Table app" )
                                             </div>
                                         #else
-                                            #if( $dashboardItem.getType() == "PIVOT_TABLE" )
+                                            #if( $dashboardItem.getType() == "VISUALIZATION" && $dashboardItem.getVisualization().getType() == "PIVOT_TABLE" )
                                                 $itemHtml.get( $dashboardItem.getUid() )
                                             #else
                                                 #img( $itemHtml.get( $dashboardItem.getUid() ) )
