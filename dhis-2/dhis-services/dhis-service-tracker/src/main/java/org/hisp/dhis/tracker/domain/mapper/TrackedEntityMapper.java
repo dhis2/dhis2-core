@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.service;
+package org.hisp.dhis.tracker.domain.mapper;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,65 +28,21 @@ package org.hisp.dhis.webapi.service;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import javax.servlet.http.HttpServletRequest;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface ContextService
+@Mapper( uses = {
+    RelationshipMapper.class,
+    AttributeMapper.class,
+    EnrollmentMapper.class,
+    ProgramOwnerMapper.class }, componentModel = "spring" )
+public interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance, TrackedEntity>
 {
-    /**
-     * Get full path of servlet.
-     *
-     * @return Full HREF to servlet
-     * @see javax.servlet.http.HttpServletRequest
-     */
-    String getServletPath();
-
-    /**
-     * Get HREF to context.
-     *
-     * @return Full HREF to context (context root)
-     * @see javax.servlet.http.HttpServletRequest
-     */
-    String getContextPath();
-
-    /**
-     * Get HREF to Web-API.
-     *
-     * @return Full HREF to Web-API
-     * @see javax.servlet.http.HttpServletRequest
-     */
-    String getApiPath();
-
-    /**
-     * Get active HttpServletRequest
-     *
-     * @return HttpServletRequest
-     */
-    HttpServletRequest getRequest();
-
-    /**
-     * Returns a list of values from a parameter, if the parameter doesn't exist, it will
-     * return a empty list.
-     *
-     * @param name Parameter to get
-     * @return List of parameter values, or empty if not found
-     */
-    Set<String> getParameterValues( String name );
-
-    /**
-     * Get all parameters as a map of key => values, supports more than one pr key (so values is a collection)
-     */
-    Map<String, List<String>> getParameterValuesMap();
-
-    /**
-     * Get a list of fields from request
-     */
-    List<String> getFieldsFromRequest();
-
+    @Mapping( target = "uid", source = "trackedEntityInstance" )
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
 }
