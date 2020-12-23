@@ -105,7 +105,7 @@ public class ValidationUtils
     {
         List<String> notPresentMandatoryDataElements = Lists.newArrayList();
 
-        if ( !needsToValidateMandatoryDataValues( event, programStage ) )
+        if ( !needsToValidateDataValues( event, programStage ) )
         {
             return notPresentMandatoryDataElements;
         }
@@ -125,7 +125,7 @@ public class ValidationUtils
         return notPresentMandatoryDataElements;
     }
 
-    private static boolean needsToValidateMandatoryDataValues( Event event, ProgramStage programStage )
+    public static boolean needsToValidateDataValues( Event event, ProgramStage programStage )
     {
         return !event.getStatus().equals( EventStatus.ACTIVE ) ||
             !programStage.getValidationStrategy().equals( ValidationStrategy.ON_COMPLETE );
