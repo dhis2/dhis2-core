@@ -68,9 +68,9 @@ import lombok.SneakyThrows;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RestController
-@RequestMapping( value = TrackerController.RESOURCE_PATH )
+@RequestMapping( value = TrackerImportController.RESOURCE_PATH )
 @RequiredArgsConstructor
-public class TrackerController
+public class TrackerImportController
 {
     public static final String RESOURCE_PATH = "/tracker";
 
