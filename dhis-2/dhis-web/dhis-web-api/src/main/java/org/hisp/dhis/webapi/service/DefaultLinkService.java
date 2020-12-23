@@ -28,13 +28,11 @@ package org.hisp.dhis.webapi.service;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javassist.util.proxy.ProxyFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-
-
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
@@ -300,7 +298,7 @@ public class DefaultLinkService implements LinkService
 
     private <T> void generateLink( T object, String hrefBase, boolean deepScan )
     {
-        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
         if ( schema == null )
         {
@@ -360,17 +358,12 @@ public class DefaultLinkService implements LinkService
 
     private <T> void generateHref( T object, String hrefBase )
     {
-        if ( object == null || getSetter( object.getClass() ) == null )
+        if ( object == null || getSetter( HibernateProxyUtils.getRealClass( object ) ) == null )
         {
             return;
         }
 
-        Class<?> klass = object.getClass();
-
-        if ( ProxyFactory.isProxyClass( klass ) )
-        {
-            klass = klass.getSuperclass();
-        }
+        Class<?> klass = HibernateProxyUtils.getRealClass( object );
 
         Schema schema = schemaService.getDynamicSchema( klass );
 

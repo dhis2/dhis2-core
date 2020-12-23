@@ -1,4 +1,4 @@
-package org.hisp.dhis.datasource;
+package org.hisp.dhis.utils;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,28 +28,36 @@ package org.hisp.dhis.datasource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.sql.DataSource;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @author Lars Helge Overland
+ * This annotation is used within a Docker-based integration test to inject data into the
+ * Dockerized Postgresql database.
+ * The annotation expects a "path" property to point to the actual SQL file containing the INSERT/UPDATE/DELETE
+ * statements to run prior to each test. The file must be present in the classpath (e.g. src/main/resources/)
+ * The data file is going to be injected only once per each test class.
+ *
+ * <pre>{@code
+ *
+ * @org.junit.experimental.categories.Category( IntegrationTest.class )
+ * @IntegrationTestData(path = "sql/mydata.sql")
+ * public class DefaultTrackedEntityInstanceStoreTest
+ *     extends
+ *     IntegrationTestBase
+ * {
+ *   ...
+ * }
+ * }</pre>
+ *
+ *
+ * @author Luciano Fiandesio
  */
-public interface DataSourceManager
+@Retention( RetentionPolicy.RUNTIME )
+@Target( ElementType.TYPE )
+public @interface IntegrationTestData
 {
-    /**
-     * Returns a data source which should be used for read only queries only. If
-     * read only replicas have been explicitly defined in the configuration, the
-     * data source implementation will be routing to potentially multiple 
-     * underlying data sources. If not, the data source will point to the main 
-     * data source.
-     * 
-     * @return a DataSource instance.
-     */
-    DataSource getReadOnlyDataSource();
-    
-    /**
-     * Returns the number of explicitly defined read only database instances.
-     * 
-     * @return the number of explicitly defined read only database instances.
-     */
-    int getReadReplicaCount();
+    String path();
 }

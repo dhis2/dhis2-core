@@ -29,7 +29,7 @@ package org.hisp.dhis.common;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.TransactionalIntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -60,8 +60,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-public class HibernateIdentifiableObjectStoreTest
-    extends TransactionalIntegrationTestBase
+public class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest
 {
     @Autowired
     private DataElementStore dataElementStore;

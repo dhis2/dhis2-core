@@ -29,7 +29,7 @@ package org.hisp.dhis.dataapproval;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.TransactionalIntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -75,8 +75,7 @@ import static org.junit.Assert.assertTrue;
  * @author Jim Grace
  */
 // FIXME refactor this test to use mocks
-public class DataApprovalAuditServiceTest
-    extends TransactionalIntegrationTestBase
+public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
 {
     private static final String ACCESS_NONE = "--------";
     private static final String ACCESS_READ = "r-------";

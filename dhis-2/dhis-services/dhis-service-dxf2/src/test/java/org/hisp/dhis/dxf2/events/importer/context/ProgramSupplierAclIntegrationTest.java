@@ -1,6 +1,7 @@
 package org.hisp.dhis.dxf2.events.importer.context;
 
-import org.hisp.dhis.TransactionalIntegrationTestBase;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.program.Program;
@@ -34,7 +35,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTestBase
+public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
 {
     @Autowired
     private ProgramSupplier programSupplier;

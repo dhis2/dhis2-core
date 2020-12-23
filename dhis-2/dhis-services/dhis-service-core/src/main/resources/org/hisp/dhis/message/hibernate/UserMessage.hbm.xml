@@ -15,7 +15,7 @@
 
     <property name="key" column="usermessagekey"/>
 
-    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" 
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid"
 	  foreign-key="fk_usermessage_user" not-null="true" index="usermessage_userid" />
 
     <property name="read" column="isread" not-null="true" index="usermessage_isread" />

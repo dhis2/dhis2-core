@@ -47,6 +47,7 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
@@ -461,7 +462,7 @@ public class DefaultPreheatService implements PreheatService
         }
 
         Map<Class<?>, List<?>> map = new HashMap<>();
-        map.put( object.getClass(), Lists.newArrayList( object ) );
+        map.put( HibernateProxyUtils.getRealClass( object ), Lists.newArrayList( object ) );
 
         return collectReferences( map );
     }
@@ -474,7 +475,7 @@ public class DefaultPreheatService implements PreheatService
         }
 
         Map<Class<?>, List<?>> map = new HashMap<>();
-        map.put( objects.iterator().next().getClass(), Lists.newArrayList( objects ) );
+        map.put( HibernateProxyUtils.getRealClass( objects.iterator().next() ), Lists.newArrayList( objects ) );
 
         return collectReferences( map );
     }
@@ -658,7 +659,7 @@ public class DefaultPreheatService implements PreheatService
         }
 
         Map<Class<?>, List<?>> map = new HashMap<>();
-        map.put( object.getClass(), Lists.newArrayList( object ) );
+        map.put( HibernateProxyUtils.getRealClass( object ), Lists.newArrayList( object ) );
 
         return collectObjectReferences( map );
     }
@@ -671,7 +672,7 @@ public class DefaultPreheatService implements PreheatService
         }
 
         Map<Class<?>, List<?>> map = new HashMap<>();
-        map.put( objects.iterator().next().getClass(), Lists.newArrayList( objects ) );
+        map.put( HibernateProxyUtils.getRealClass( objects.iterator().next() ), Lists.newArrayList( objects ) );
 
         return collectObjectReferences( map );
     }
@@ -851,7 +852,7 @@ public class DefaultPreheatService implements PreheatService
             return;
         }
 
-        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
         List<Property> properties = schema.getProperties().stream()
             .filter( p -> p.isPersisted() && p.isOwner() && (PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType()) )
@@ -948,7 +949,7 @@ public class DefaultPreheatService implements PreheatService
         Map<Class<? extends IdentifiableObject>, Set<String>> uidMap = map.get( PreheatIdentifier.UID );
         Map<Class<? extends IdentifiableObject>, Set<String>> codeMap = map.get( PreheatIdentifier.CODE );
 
-        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) ReflectionUtils.getRealClass( identifiableObject.getClass() );
+        Class<? extends IdentifiableObject> klass = HibernateProxyUtils.getRealClass( identifiableObject );
 
         if ( !uidMap.containsKey( klass ) ) uidMap.put( klass, new HashSet<>() );
         if ( !codeMap.containsKey( klass ) ) codeMap.put( klass, new HashSet<>() );

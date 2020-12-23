@@ -1,4 +1,4 @@
-package org.hisp.dhis;
+package org.hisp.dhis.utils;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,36 +28,27 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.aop.TargetSource;
-import org.springframework.aop.framework.Advised;
-import org.springframework.aop.support.AopUtils;
+import org.springframework.core.io.ClassPathResource;
+import org.testcontainers.shaded.com.google.common.io.Files;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ProxyUtils
+public class TestResourceUtils
 {
-    public static <T> T getProxyTarget( Object proxy )
+    public static File getFile( String path )
+        throws IOException
     {
-        if ( !AopUtils.isAopProxy( proxy ) )
-        {
-            throw new IllegalStateException( "Target must be a proxy" );
-        }
-
-        TargetSource targetSource = ((Advised) proxy).getTargetSource();
-        return getTarget( targetSource );
+        return new ClassPathResource( path ).getFile();
     }
 
-    @SuppressWarnings("unchecked")
-    private static <T> T getTarget( TargetSource targetSource )
+    public static String getFileContent( String path )
+        throws IOException
     {
-        try
-        {
-            return (T) targetSource.getTarget();
-        }
-        catch ( Exception e )
-        {
-            throw new IllegalStateException( e );
-        }
+        return Files.toString( getFile( path ), StandardCharsets.UTF_8 );
     }
 }

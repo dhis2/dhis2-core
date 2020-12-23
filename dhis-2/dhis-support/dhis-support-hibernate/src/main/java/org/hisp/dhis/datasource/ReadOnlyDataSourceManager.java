@@ -1,4 +1,4 @@
-package org.hisp.dhis;
+package org.hisp.dhis.datasource;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,43 +28,28 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.ldap.authentication.LdapAuthenticator;
-import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
+import javax.sql.DataSource;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author Lars Helge Overland
  */
-@Configuration
-@ComponentScan( "org.hisp.dhis" )
-public class UnitTestConfig
+public interface ReadOnlyDataSourceManager
 {
-    @Bean( name = "dhisConfigurationProvider" )
-    public DhisConfigurationProvider dhisConfigurationProvider()
-    {
-        return new H2DhisConfigurationProvider();
-    }
-
-    @Bean
-    public PasswordEncoder encoder()
-    {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public LdapAuthenticator ldapAuthenticator()
-    {
-        return authentication -> null;
-    }
-
-    @Bean
-    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator()
-    {
-        return ( dirContextOperations, s ) -> null;
-    }
+    /**
+     * Returns a data source which should be used for read only queries only. If
+     * read only replicas have been explicitly defined in the configuration, the
+     * data source implementation will be routing to potentially multiple 
+     * underlying data sources. If not, the data source will point to the main 
+     * data source.
+     * 
+     * @return a DataSource instance.
+     */
+    DataSource getReadOnlyDataSource();
+    
+    /**
+     * Returns the number of explicitly defined read only database instances.
+     * 
+     * @return the number of explicitly defined read only database instances.
+     */
+    int getReadReplicaCount();
 }

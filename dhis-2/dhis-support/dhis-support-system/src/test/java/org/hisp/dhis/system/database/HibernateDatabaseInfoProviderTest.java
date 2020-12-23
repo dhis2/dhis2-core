@@ -38,7 +38,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -56,7 +56,7 @@ public class HibernateDatabaseInfoProviderTest
     private DhisConfigurationProvider config;
 
     @Mock
-    private JdbcOperations jdbcTemplate;
+    private JdbcTemplate jdbcTemplate;
 
     private MockEnvironment environment = new MockEnvironment();
 

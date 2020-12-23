@@ -46,8 +46,8 @@ import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 
-import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.locationtech.jts.geom.Geometry;
 
 import java.util.ArrayList;
 import java.util.List;

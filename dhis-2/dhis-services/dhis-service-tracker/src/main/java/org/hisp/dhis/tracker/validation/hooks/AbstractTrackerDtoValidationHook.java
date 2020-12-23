@@ -223,7 +223,7 @@ public abstract class AbstractTrackerDtoValidationHook
             }
         }
     }
-    
+
     private void validateEnrollments( TrackerBundle bundle,
         TrackerImportValidationContext context )
     {
@@ -315,7 +315,7 @@ public abstract class AbstractTrackerDtoValidationHook
     /**
      * Signal the implementing Validator hook that, upon validation error, the
      * Tracker entity under validation must be removed from the payload.
-     * 
+     *
      */
     public boolean removeOnError()
     {

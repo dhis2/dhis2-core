@@ -59,8 +59,8 @@ public class DefaultHibernateCacheManager
     @Override
     public void clearObjectCache()
     {
-        sessionFactory.getCache().evictEntityRegions();
-        sessionFactory.getCache().evictCollectionRegions();
+        sessionFactory.getCache().evictEntityData();
+        sessionFactory.getCache().evictCollectionData();
      }
 
     @Override

@@ -29,7 +29,8 @@ package org.hisp.dhis.interpretation;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.TransactionalIntegrationTestBase;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.User;
@@ -57,7 +58,7 @@ import static org.junit.Assert.assertTrue;
  */
 @Ignore
 public class InterpretationServiceTest
-    extends TransactionalIntegrationTestBase
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private UserService _userService;

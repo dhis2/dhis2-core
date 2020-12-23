@@ -1,4 +1,4 @@
-package org.hisp.dhis;
+package org.hisp.dhis.hibernate;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,10 +28,37 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.Hibernate;
+import org.hibernate.proxy.HibernateProxyHelper;
+
+import java.util.Objects;
+
 /**
- * @author Luciano Fiandesio
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class PostgresDhisConfigurationProvider
-    extends H2DhisConfigurationProvider
+public class HibernateProxyUtils
 {
+    private HibernateProxyUtils()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
+
+    @SuppressWarnings( { "rawtypes" } )
+    public static Class getRealClass( Object o )
+    {
+        Objects.requireNonNull( o );
+
+        if ( o instanceof Class )
+        {
+            throw new IllegalArgumentException( "Input can't be a Class instance!" );
+        }
+
+        return HibernateProxyHelper.getClassWithoutInitializingProxy( o );
+    }
+
+    @SuppressWarnings( { "unchecked" } )
+    public static <T> T unproxy( T proxy )
+    {
+        return (T) Hibernate.unproxy( proxy );
+    }
 }

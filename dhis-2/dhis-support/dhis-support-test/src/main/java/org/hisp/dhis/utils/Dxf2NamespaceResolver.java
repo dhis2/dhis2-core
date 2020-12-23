@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis.audit.listener;
+package org.hisp.dhis.utils;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,28 +28,45 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import javax.xml.XMLConstants;
+import javax.xml.namespace.NamespaceContext;
+import java.util.Iterator;
 
 /**
- * Condition that "switches off" the Auditing producer from Hibernate Listener
- * when the system is running in a Test run
- *
- * @author Luciano Fiandesio
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class AuditEnabledCondition
-    extends PropertiesAwareConfigurationCondition
+public class Dxf2NamespaceResolver
+    implements NamespaceContext
 {
     @Override
-    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
+    public String getNamespaceURI( String prefix )
     {
-        return !isTestRun( context ) || isAuditTest( context );
+        if ( prefix == null )
+        {
+            throw new IllegalArgumentException( "No prefix provided!" );
+        }
+        else
+        {
+            if ( prefix.equals( "d" ) )
+            {
+                return "http://dhis2.org/schema/dxf/2.0";
+            }
+            else
+            {
+                return XMLConstants.NULL_NS_URI;
+            }
+        }
     }
 
     @Override
-    public ConfigurationPhase getConfigurationPhase()
+    public String getPrefix( String namespaceURI )
     {
-        return ConfigurationPhase.REGISTER_BEAN;
+        return null;
+    }
+
+    @Override
+    public Iterator<String> getPrefixes( String namespaceURI )
+    {
+        return null;
     }
 }

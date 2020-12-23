@@ -1,4 +1,4 @@
-package org.hisp.dhis;
+package org.hisp.dhis.config;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,36 +28,43 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.ldap.authentication.LdapAuthenticator;
+import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 
 /**
- * This annotation is used within a Docker-based integration test to inject data into the
- * Dockerized Postgresql database.
- * The annotation expects a "path" property to point to the actual SQL file containing the INSERT/UPDATE/DELETE
- * statements to run prior to each test. The file must be present in the classpath (e.g. src/main/resources/)
- * The data file is going to be injected only once per each test class.
- *
- * <pre>{@code
- *
- * @org.junit.experimental.categories.Category( IntegrationTest.class )
- * @IntegrationTestData(path = "sql/mydata.sql")
- * public class DefaultTrackedEntityInstanceStoreTest
- *     extends
- *     IntegrationTestBase
- * {
- *   ...
- * }
- * }</pre>
- *
- *
- * @author Luciano Fiandesio
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Retention( RetentionPolicy.RUNTIME )
-@Target( ElementType.TYPE )
-public @interface IntegrationTestData
+@Configuration
+@ComponentScan( "org.hisp.dhis" )
+public class UnitTestConfig
 {
-    String path();
+    @Bean( name = "dhisConfigurationProvider" )
+    public DhisConfigurationProvider dhisConfigurationProvider()
+    {
+        return new H2DhisConfigurationProvider();
+    }
+
+    @Bean
+    public PasswordEncoder encoder()
+    {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public LdapAuthenticator ldapAuthenticator()
+    {
+        return authentication -> null;
+    }
+
+    @Bean
+    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator()
+    {
+        return ( dirContextOperations, s ) -> null;
+    }
 }

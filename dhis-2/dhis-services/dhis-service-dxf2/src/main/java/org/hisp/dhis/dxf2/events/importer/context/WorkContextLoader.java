@@ -35,7 +35,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.hibernate.HibernateUtils;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -187,7 +187,8 @@ public class WorkContextLoader
      */
     private void initUserCredentials( UserCredentials userCredentials )
     {
-        HibernateUtils.initializeProxy( userCredentials );
+        userCredentials = HibernateProxyUtils.unproxy( userCredentials );
+
         userCredentials.isSuper();
     }
 }

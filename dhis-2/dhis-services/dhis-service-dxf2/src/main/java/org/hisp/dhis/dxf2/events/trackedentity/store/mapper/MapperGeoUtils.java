@@ -32,11 +32,11 @@ import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.geotools.geometry.jts.WKBReader;
+import org.locationtech.jts.io.ParseException;
 import org.springframework.util.StringUtils;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKBReader;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Luciano Fiandesio

@@ -1,4 +1,4 @@
-package org.hisp.dhis.hibernate;
+package org.hisp.dhis.config;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,48 +28,10 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Properties;
-
-import org.springframework.beans.factory.FactoryBean;
-
 /**
- * @author Lars Helge Overland
- * @version $Id$
+ * @author Luciano Fiandesio
  */
-public class HibernatePropertiesFactoryBean
-    implements FactoryBean<Properties>
+public class PostgresDhisConfigurationProvider
+    extends H2DhisConfigurationProvider
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private HibernateConfigurationProvider hibernateConfigurationProvider;
-
-    public void setHibernateConfigurationProvider( HibernateConfigurationProvider hibernateConfigurationProvider )
-    {
-        this.hibernateConfigurationProvider = hibernateConfigurationProvider;
-    }
-
-    // -------------------------------------------------------------------------
-    // FactoryBean implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public Properties getObject()
-        throws Exception
-    {
-        return hibernateConfigurationProvider.getConfiguration().getProperties();
-    }
-
-    @Override
-    public Class<Properties> getObjectType()
-    {
-        return Properties.class;
-    }
-
-    @Override
-    public boolean isSingleton()
-    {
-        return true;
-    }
 }
