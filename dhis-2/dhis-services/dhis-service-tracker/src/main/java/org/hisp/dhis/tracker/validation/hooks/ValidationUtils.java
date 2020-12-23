@@ -30,9 +30,12 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
+import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1012;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1119;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.GEOMETRY_CANT_BE_NULL;
 
 import com.google.api.client.util.Lists;
@@ -43,6 +46,7 @@ import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 
@@ -129,5 +133,18 @@ public class ValidationUtils
     {
         return !event.getStatus().equals( EventStatus.ACTIVE ) ||
             !programStage.getValidationStrategy().equals( ValidationStrategy.ON_COMPLETE );
+    }
+
+    public static void addIssuesToReporter( ValidationErrorReporter reporter, List<ProgramRuleIssue> programRuleIssues )
+    {
+        programRuleIssues
+            .stream()
+            .filter( issue -> issue.getIssueType().equals( ERROR ) )
+            .forEach( e -> reporter.addError( newReport( TrackerErrorCode.E1200 ).addArg( e.getMessage() ) ) );
+
+        programRuleIssues
+            .stream()
+            .filter( issue -> issue.getIssueType().equals( WARNING ) )
+            .forEach( e -> reporter.addWarning( newWarningReport( TrackerErrorCode.E1200 ).addArg( e.getMessage() ) ) );
     }
 }

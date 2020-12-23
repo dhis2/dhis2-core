@@ -28,36 +28,21 @@
 
 package org.hisp.dhis.tracker.programrule;
 
-import org.hisp.dhis.rules.models.RuleActionShowWarning;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.rules.models.RuleActionShowError;
 import org.springframework.stereotype.Component;
 
-import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
-import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
-
 /**
- * This implementer show warnings calculated by Rule Engine.
+ * A single issue from rule engine that can be either be a Warning or an Error.
  *
  * @Author Enrico Colasante
  */
-@Component
-public class ShowWarningValidator
-    extends ErrorWarningImplementer
+@RequiredArgsConstructor
+@Getter
+public class ProgramRuleIssue
 {
-    @Override
-    public Class<RuleActionShowWarning> getActionClass()
-    {
-        return RuleActionShowWarning.class;
-    }
+    private final String message;
 
-    @Override
-    public boolean isOnComplete()
-    {
-        return false;
-    }
-
-    @Override
-    public IssueType getIssueType()
-    {
-        return WARNING;
-    }
+    private final IssueType issueType;
 }

@@ -28,12 +28,18 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.tracker.programrule.IssueType.*;
+import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningReport;
+import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.addIssuesToReporter;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.programrule.IssueType;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.programrule.RuleActionValidator;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -63,22 +69,12 @@ public class EnrollmentRuleValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        validators
+        List<ProgramRuleIssue> programRuleIssues = validators
             .stream()
-            .filter( v -> !v.isWarning() )
-            .flatMap( v -> {
-                List<String> errors = v.validateEnrollments( context.getBundle() ).get( enrollment.getEnrollment() );
-                return errors != null ? errors.stream() : Lists.newArrayList().stream();
-            } )
-            .forEach( e -> reporter.addError( newReport( TrackerErrorCode.E1200 ).addArg( e ) ) );
+            .flatMap( v -> v.validateEnrollments( context.getBundle() )
+                .getOrDefault( enrollment.getEnrollment(), Lists.newArrayList() ).stream() )
+            .collect( Collectors.toList() );
 
-        validators
-            .stream()
-            .filter( RuleActionValidator::isWarning )
-            .flatMap( v -> {
-                List<String> warnings = v.validateEnrollments( context.getBundle() ).get( enrollment.getEnrollment() );
-                return warnings != null ? warnings.stream() : Lists.newArrayList().stream();
-            } )
-            .forEach( e -> reporter.addWarning( newWarningReport( TrackerErrorCode.E1200 ).addArg( e ) ) );
+        addIssuesToReporter( reporter, programRuleIssues );
     }
 }

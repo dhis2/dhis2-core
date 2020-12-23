@@ -31,6 +31,8 @@ package org.hisp.dhis.tracker.programrule;
 import org.hisp.dhis.rules.models.RuleActionShowError;
 import org.springframework.stereotype.Component;
 
+import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
+
 /**
  * This implementer show errors calculated by Rule Engine.
  *
@@ -53,8 +55,8 @@ public class ShowErrorValidator
     }
 
     @Override
-    public boolean isWarning()
+    public IssueType getIssueType()
     {
-        return false;
+        return ERROR;
     }
 }
