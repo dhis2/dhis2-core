@@ -99,8 +99,6 @@ public class ShowErrorWarningImplementerTest
 
     private TrackerBundle bundle;
 
-    private TrackerPreheat preheat;
-
     private ProgramStage programStage;
 
     @Override
@@ -110,7 +108,7 @@ public class ShowErrorWarningImplementerTest
         programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
         programStage.setUid( PROGRAM_STAGE_ID );
 
-        preheat = new TrackerPreheat();
+        TrackerPreheat preheat = new TrackerPreheat();
         preheat.put( TrackerIdentifier.UID, programStage );
 
         bundle = new TrackerBundle();
@@ -122,7 +120,6 @@ public class ShowErrorWarningImplementerTest
 
         programStage = createProgramStage( 'A', 0 );
         programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-//        when( preheat.get( ProgramStage.class, PROGRAM_STAGE_ID ) ).thenReturn( programStage );
     }
 
     @Test
@@ -207,13 +204,12 @@ public class ShowErrorWarningImplementerTest
 
         assertEquals( numberOfErrors, errors.size() );
 
-        errors.entrySet().stream()
-            .forEach( e -> assertTrue( e.getValue().size() == 1 ) );
+        errors.forEach( ( key, value ) -> assertEquals( 1, value.size() ) );
 
         errors
             .values()
             .stream()
-            .flatMap( e -> e.stream() )
+            .flatMap( Collection::stream )
             .forEach( e -> assertTrue( e.contains( prefix + CONTENT + " " + EVALUATED_DATA ) ) );
     }
 
