@@ -147,6 +147,10 @@ public abstract class ErrorWarningImplementer
                 .filter( effect ->
                     ((RuleActionAttribute) effect.ruleAction()).attributeType() != AttributeType.DATA_ELEMENT ||
                         needsToValidateDataValues )
+                .filter( effect ->
+                    ((RuleActionAttribute) effect.ruleAction()).attributeType() != AttributeType.DATA_ELEMENT ||
+                        isDataElementPartOfProgramStage( ((RuleActionMessage) effect.ruleAction()).field(),
+                            programStage ) )
                 .collect( Collectors.toList() );
 
             if ( !ruleEffectsToValidate.isEmpty() )

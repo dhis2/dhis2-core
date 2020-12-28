@@ -28,6 +28,7 @@
 
 package org.hisp.dhis.tracker.programrule;
 
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
 import java.util.List;
@@ -53,4 +54,12 @@ public interface RuleActionValidator extends RuleActionImplementer
      * @return A map of events and list of issues
      */
     Map<String, List<ProgramRuleIssue>> validateEvents( TrackerBundle bundle );
+
+    default boolean isDataElementPartOfProgramStage( String dataElementUid, ProgramStage programStage )
+    {
+        return programStage.getDataElements()
+            .stream()
+            .map( de -> de.getUid() )
+            .anyMatch( de -> de.equals( dataElementUid ) );
+    }
 }
