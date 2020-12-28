@@ -393,8 +393,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
             {
                 session.flush();
             }
-
-            bundle.getObjects( true ).remove( bundle.getPreheatIdentifier(), object );
         }
 
         return typeReport;

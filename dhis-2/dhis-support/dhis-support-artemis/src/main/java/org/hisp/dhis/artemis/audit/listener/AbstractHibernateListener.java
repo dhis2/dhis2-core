@@ -186,12 +186,12 @@ public abstract class AbstractHibernateListener
             String pName = persister.getPropertyNames()[i];
             Property property = properties.get( pName );
 
-            if ( property == null || !property.isOwner() )
+            if ( property == null || (!property.isOwner() && !property.isEmbeddedObject()) )
             {
                 continue;
             }
 
-            if ( shouldInitializeProxy( value ) || ( property != null && property.isEmbeddedObject() ) )
+            if ( shouldInitializeProxy( value ) || property.isEmbeddedObject() )
             {
                 if ( entityProxy == null )
                 {
@@ -203,12 +203,6 @@ public abstract class AbstractHibernateListener
 
             if ( value == null )
             {
-                continue;
-            }
-
-            if ( property != null && property.isEmbeddedObject() )
-            {
-                handleEmbeddedObject( property, value, objectMap );
                 continue;
             }
 
@@ -234,7 +228,8 @@ public abstract class AbstractHibernateListener
 
     private void handleNonIdentifiableCollection( Property property, Object value, Map<String, Object> objectMap )
     {
-        if ( value == null ) return;
+        if ( value == null )
+            return;
 
         Schema schema = schemaService.getSchema( property.getItemKlass() );
 
@@ -244,34 +239,37 @@ public abstract class AbstractHibernateListener
             return;
         }
 
-        List<Map<String,Object>> listProperties = new ArrayList<>();
+        List<Map<String, Object>> listProperties = new ArrayList<>();
 
         List<Property> properties = schema.getProperties();
         Collection collection = (Collection) value;
         collection.forEach( item -> {
             Map<String, Object> propertyMap = new HashMap<>();
-            properties.forEach(  prop  -> putValueToMap( prop, propertyMap, ReflectionUtils.invokeGetterMethod( prop.getFieldName(), item ) ) );
+            properties.forEach( prop -> putValueToMap( prop, propertyMap,
+                ReflectionUtils.invokeGetterMethod( prop.getFieldName(), item ) ) );
             listProperties.add( propertyMap );
-        }  );
+        } );
 
         objectMap.put( property.getFieldName(), listProperties );
     }
 
     private void putValueToMap( Property property, Map<String, Object> objectMap, Object value )
     {
-        if ( value == null ) return;
+        if ( value == null )
+            return;
 
         if ( property.isCollection() )
         {
-            Collection collection = ( Collection ) value;
+            Collection collection = (Collection) value;
 
-            if ( collection.isEmpty() ) return;
+            if ( collection.isEmpty() )
+                return;
 
             if ( BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
             {
                 List<String> uids = IdentifiableObjectUtils.getUids( collection );
 
-                if ( uids != null || !uids.isEmpty() )
+                if ( uids != null && !uids.isEmpty() )
                 {
                     objectMap.put( property.getFieldName(), uids );
                 }
@@ -287,24 +285,6 @@ public abstract class AbstractHibernateListener
         }
     }
 
-
-    private void handleEmbeddedObject( Property property, Object value, Map<String, Object> objectMap )
-    {
-        if ( value == null ) return;
-
-        Schema embeddedSchema = schemaService.getSchema( value.getClass() );
-        if ( embeddedSchema == null )
-        {
-            putValueToMap( property, objectMap, value );
-            return;
-        }
-
-        Map<String, Property> properties = embeddedSchema.getPersistedProperties();
-        properties.forEach( (pName, prop) -> {
-            putValueToMap( prop, objectMap, ReflectionUtils.invokeMethod( value, prop.getGetterMethod() ) );
-        } );
-    }
-
     private Object getPropertyValue( HibernateProxy entityProxy, EntityPersister persister, String pName )
     {
         try
@@ -314,7 +294,7 @@ public abstract class AbstractHibernateListener
         catch ( Exception ex )
         {
             // Ignore if couldn't find property reference object, maybe it was deleted.
-            log.debug( "Couldn't get property: " + pName + " from " + entityProxy.getHibernateLazyInitializer().getEntityName(), DebugUtils.getStackTrace( ex ) );
+            log.debug( "Couldn't get value of property: " + pName , DebugUtils.getStackTrace( ex ) );
         }
 
         return null;
