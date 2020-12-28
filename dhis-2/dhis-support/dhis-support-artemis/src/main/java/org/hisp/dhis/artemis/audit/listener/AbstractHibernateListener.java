@@ -241,11 +241,11 @@ public abstract class AbstractHibernateListener
 
         List<Map<String,Object>> listProperties = new ArrayList<>();
 
-        Map<String, Property> properties = schema.getPersistedProperties();
+        List<Property> properties = schema.getProperties();
         Collection collection = (Collection) value;
         collection.forEach( item -> {
             Map<String, Object> propertyMap = new HashMap<>();
-            properties.forEach( (pName, prop ) -> putValueToMap( prop, propertyMap, ReflectionUtils.invokeGetterMethod( pName, item ) ) );
+            properties.forEach(  prop  -> putValueToMap( prop, propertyMap, ReflectionUtils.invokeGetterMethod( prop.getFieldName(), item ) ) );
             listProperties.add( propertyMap );
         }  );
 
