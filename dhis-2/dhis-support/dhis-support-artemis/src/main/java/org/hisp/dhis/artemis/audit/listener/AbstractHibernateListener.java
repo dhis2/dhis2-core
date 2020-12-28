@@ -51,6 +51,7 @@ import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -231,6 +232,31 @@ public abstract class AbstractHibernateListener
         return null;
     }
 
+    private void handleNonIdentifiableCollection( Property property, Object value, Map<String, Object> objectMap )
+    {
+        if ( value == null ) return;
+
+        Schema schema = schemaService.getSchema( property.getItemKlass() );
+
+        if ( schema == null )
+        {
+            objectMap.put( property.getFieldName(), value );
+            return;
+        }
+
+        List<Map<String,Object>> listProperties = new ArrayList<>();
+
+        List<Property> properties = schema.getProperties();
+        Collection collection = (Collection) value;
+        collection.forEach( item -> {
+            Map<String, Object> propertyMap = new HashMap<>();
+            properties.forEach(  prop  -> putValueToMap( prop, propertyMap, ReflectionUtils.invokeGetterMethod( prop.getFieldName(), item ) ) );
+            listProperties.add( propertyMap );
+        }  );
+
+        objectMap.put( property.getFieldName(), listProperties );
+    }
+
     private void putValueToMap( Property property, Map<String, Object> objectMap, Object value )
     {
         if ( value == null ) return;
@@ -252,7 +278,7 @@ public abstract class AbstractHibernateListener
             }
             else
             {
-                objectMap.put( property.getFieldName(), collection );
+                handleNonIdentifiableCollection( property, value, objectMap );
             }
         }
         else
@@ -260,6 +286,7 @@ public abstract class AbstractHibernateListener
             objectMap.put( property.getFieldName(), getId( value ) );
         }
     }
+
 
     private void handleEmbeddedObject( Property property, Object value, Map<String, Object> objectMap )
     {
