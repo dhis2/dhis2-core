@@ -28,13 +28,6 @@ package org.hisp.dhis.attribute;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.cache.Cache;
@@ -42,9 +35,20 @@ import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -103,8 +107,8 @@ public class DefaultAttributeService
     @Transactional
     public void deleteAttribute( Attribute attribute )
     {
-        attributeCache.invalidate( attribute.getUid() );
         attributeStore.delete( attribute );
+        attributeCache.invalidate( attribute.getUid() );
     }
 
     @Override
@@ -176,7 +180,9 @@ public class DefaultAttributeService
 
     @Override
     @Transactional
-    public <T extends IdentifiableObject> void addAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
+    public <T extends IdentifiableObject> void addAttributeValue( T object, AttributeValue attributeValue )
+        throws NonUniqueAttributeValueException
     {
         if ( object == null || attributeValue == null || attributeValue.getAttribute() == null )
         {
@@ -185,17 +191,16 @@ public class DefaultAttributeService
 
         Attribute attribute = getAttribute( attributeValue.getAttribute().getUid() );
 
-        if ( Objects.isNull( attribute ) || !attribute.getSupportedClasses().contains( object.getClass() ) )
+        Class realClass = HibernateProxyUtils.getRealClass( object );
+
+        if ( Objects.isNull( attribute ) || !attribute.getSupportedClasses().contains( realClass ) )
         {
             return;
         }
-        if ( attribute.isUnique() )
-        {
 
-            if (  !manager.isAttributeValueUnique( object.getClass(), object, attributeValue) )
-            {
-                throw new NonUniqueAttributeValueException( attributeValue );
-            }
+        if ( attribute.isUnique() && !manager.isAttributeValueUnique( realClass, object, attributeValue ) )
+        {
+            throw new NonUniqueAttributeValueException( attributeValue );
         }
 
         object.getAttributeValues().add( attributeValue );

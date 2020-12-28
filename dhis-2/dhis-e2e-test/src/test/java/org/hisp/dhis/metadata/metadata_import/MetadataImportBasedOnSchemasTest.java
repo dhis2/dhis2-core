@@ -102,7 +102,8 @@ public class MetadataImportBasedOnSchemasTest
         List blacklistedEndpoints = Arrays.asList( "jobConfigurations",
             "relationshipTypes",
             "messageConversations",
-            "users" ); //blacklisted because contains conditionally required properties, which are not marked as required
+            "users",
+            "organisationUnitLevels"); //blacklisted because contains conditionally required properties, which are not marked as required
 
         List<SchemaProperty> schemaProperties = schemasActions.getRequiredProperties( schema );
 

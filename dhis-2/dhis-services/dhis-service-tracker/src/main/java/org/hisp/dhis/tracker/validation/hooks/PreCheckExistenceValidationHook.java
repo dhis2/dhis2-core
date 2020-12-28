@@ -110,6 +110,13 @@ public class PreCheckExistenceValidationHook
 
         ProgramInstance existingPi = context.getProgramInstance( enrollment.getEnrollment() );
 
+        // If the tracked entity is soft-deleted no operation is allowed
+        if ( existingPi != null && existingPi.isDeleted() )
+        {
+            addError( reporter, E1113, enrollment.getEnrollment() );
+            return;
+        }
+
         if ( importStrategy.isCreateAndUpdate() )
         {
             if ( existingPi == null )
@@ -124,10 +131,6 @@ public class PreCheckExistenceValidationHook
         else if ( existingPi != null && importStrategy.isCreate() )
         {
             addError( reporter, E1080, enrollment.getEnrollment() );
-        }
-        else if ( existingPi != null && existingPi.isDeleted() && importStrategy.isDelete() )
-        {
-            addError( reporter, E1113, enrollment.getEnrollment() );
         }
         else if ( existingPi == null && importStrategy.isUpdateOrDelete() )
         {

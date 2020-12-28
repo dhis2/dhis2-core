@@ -78,9 +78,6 @@ public class ExpressionStoreTest
 
     private String descriptionB;
 
-    private Set<DataElement> dataElements = new HashSet<>();
-
-    private Set<CategoryOptionCombo> optionCombos;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -100,23 +97,11 @@ public class ExpressionStoreTest
         dataElementIdC = dataElementService.addDataElement( dataElementC );
         dataElementIdD = dataElementService.addDataElement( dataElementD );
 
-        CategoryCombo categoryCombo = categoryService
-            .getCategoryComboByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
-        CategoryOptionCombo categoryOptionCombo = categoryCombo.getOptionCombos().iterator().next();
-
-        optionCombos = new HashSet<>();
-        optionCombos.add( categoryOptionCombo );
-
         expressionA = "[" + dataElementIdA + "] + [" + dataElementIdB + "]";
         expressionB = "[" + dataElementIdC + "] - [" + dataElementIdD + "]";
 
         descriptionA = "Expression A";
         descriptionB = "Expression B";
-
-        dataElements.add( dataElementA );
-        dataElements.add( dataElementB );
-        dataElements.add( dataElementC );
-        dataElements.add( dataElementD );
     }
 
     // -------------------------------------------------------------------------

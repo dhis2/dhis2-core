@@ -60,7 +60,7 @@ public class TokenUtils
         return regex;
     }
 
-    public static boolean test( List<Object> args, Object testValue, String targetValue, boolean caseSensitive,
+    public static <T> boolean test( List<T> args, T testValue, String targetValue, boolean caseSensitive,
         MatchMode matchMode )
     {
         if ( args.isEmpty() || testValue == null )

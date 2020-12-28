@@ -611,6 +611,15 @@ public abstract class AbstractEnrollmentService
     {
         ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
 
+        if ( program == null )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "Program can not be null" );
+            importSummary.incrementIgnored();
+
+            return importSummary;
+        }
+
         if ( !program.isRegistration() )
         {
             importSummary.setStatus( ImportStatus.ERROR );

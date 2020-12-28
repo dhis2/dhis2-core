@@ -30,6 +30,7 @@ package org.hisp.dhis.user;
  */
 
 import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

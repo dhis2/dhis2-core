@@ -29,9 +29,7 @@ package org.hisp.dhis.user;
  */
 
 import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,7 +50,7 @@ public class DefaultUserGroupService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final IdentifiableObjectStore<UserGroup> userGroupStore;
+    private final UserGroupStore userGroupStore;
 
     private final CurrentUserService currentUserService;
 
@@ -60,8 +58,8 @@ public class DefaultUserGroupService
 
     private final HibernateCacheManager cacheManager;
 
-    public DefaultUserGroupService( @Qualifier("org.hisp.dhis.user.UserGroupStore") IdentifiableObjectStore<UserGroup> userGroupStore,
-        CurrentUserService currentUserService, AclService aclService, HibernateCacheManager cacheManager )
+    public DefaultUserGroupService( UserGroupStore userGroupStore,
+        AclService aclService, HibernateCacheManager cacheManager, CurrentUserService currentUserService )
     {
         checkNotNull( userGroupStore );
         checkNotNull( currentUserService );
@@ -69,9 +67,9 @@ public class DefaultUserGroupService
         checkNotNull( cacheManager );
 
         this.userGroupStore = userGroupStore;
-        this.currentUserService = currentUserService;
         this.aclService = aclService;
         this.cacheManager = cacheManager;
+        this.currentUserService = currentUserService;
     }
 
     // -------------------------------------------------------------------------
@@ -83,6 +81,7 @@ public class DefaultUserGroupService
     public long addUserGroup( UserGroup userGroup )
     {
         userGroupStore.save( userGroup );
+
         return userGroup.getId();
     }
 

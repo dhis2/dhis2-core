@@ -40,7 +40,7 @@ public interface UserAccessMapper extends PreheatMapper<UserAccess>
     UserAccessMapper INSTANCE = Mappers.getMapper( UserAccessMapper.class );
 
     @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
+    @Mapping( target = "uid" )
     @Mapping( target = "access" )
     @Mapping( target = "user" )
     UserAccess map( UserAccess userAccess );

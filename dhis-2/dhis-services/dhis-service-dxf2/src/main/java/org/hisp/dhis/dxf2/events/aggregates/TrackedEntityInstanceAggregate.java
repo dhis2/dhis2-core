@@ -28,25 +28,15 @@ package org.hisp.dhis.dxf2.events.aggregates;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static java.util.concurrent.CompletableFuture.allOf;
-import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static org.hisp.dhis.dxf2.events.aggregates.ThreadPoolManager.getPool;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.google.common.collect.Multimap;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang.RandomStringUtils;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.integration.CacheLoader;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
@@ -61,13 +51,23 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Multimap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import static java.util.concurrent.CompletableFuture.allOf;
+import static java.util.concurrent.CompletableFuture.supplyAsync;
+import static org.hisp.dhis.dxf2.events.aggregates.ThreadPoolManager.getPool;
 
 /**
  * @author Luciano Fiandesio
@@ -121,16 +121,20 @@ public class TrackedEntityInstanceAggregate
             }
         } )
         .build();
+
+    private final Cache<String, List<String>> userGroupUIDCache = new Cache2kBuilder<String, List<String>>(){}
+        .name( "userGroupUIDCache" + RandomStringUtils.randomAlphabetic( 5 ) )
+        .expireAfterWrite( 10, TimeUnit.MINUTES ).build();
     
-    private final Cache<Long, AggregateContext> securityCache = new Cache2kBuilder<Long, AggregateContext>() {}
+    private final Cache<String, AggregateContext> securityCache = new Cache2kBuilder<String, AggregateContext>() {}
         .name( "aggregateContextSecurityCache" + RandomStringUtils.randomAlphabetic( 5 ) )
         .expireAfterWrite( 10, TimeUnit.MINUTES )
-        .loader( new CacheLoader<Long, AggregateContext>()
+        .loader( new CacheLoader<String, AggregateContext>()
         {
             @Override
-            public AggregateContext load( Long userId )
+            public AggregateContext load( String userUID )
             {
-                return getSecurityContext( userId );
+                return getSecurityContext( userUID, userGroupUIDCache.get( userUID ) );
             }
         } )
         .build();
@@ -147,15 +151,20 @@ public class TrackedEntityInstanceAggregate
     public List<TrackedEntityInstance> find( List<Long> ids, TrackedEntityInstanceParams params,
         TrackedEntityInstanceQueryParams queryParams )
     {
-        final Long userId = currentUserService.getCurrentUser().getId();
+        final User user = currentUserService.getCurrentUser();
+
+        if ( userGroupUIDCache.get( user.getUid() ) == null && !CollectionUtils.isEmpty( user.getGroups() ) )
+        {
+            userGroupUIDCache.put( user.getUid(), user.getGroups().stream().map( group -> group.getUid() ).collect( Collectors.toList() ) );
+        }
 
         /*
            Create a context with information which will be used to fetch the entities
          */
-        AggregateContext ctx = securityCache.get( userId )
+        AggregateContext ctx = securityCache.get( user.getUid() )
             .toBuilder()
-            .userId( userId )
-            .superUser( currentUserService.getCurrentUser().isSuper() )
+            .userId( user.getId() )
+            .superUser( user.isSuper() )
             .params( params )
             .queryParams( queryParams )
             .build();
@@ -313,23 +322,23 @@ public class TrackedEntityInstanceAggregate
      *
      * - all Relationship Types this user has READ access to
      *
-     * @param userId the user id of a {@see User}
+     * @param userUID the user uid of a {@see User}
      *
      * @return an instance of {@see AggregateContext} populated with ACL-related info
      */
-    private AggregateContext getSecurityContext( Long userId )
+    private AggregateContext getSecurityContext( String userUID, List<String> userGroupUIDs )
     {
         final CompletableFuture<List<Long>> getTeiTypes = supplyAsync(
-            () -> aclStore.getAccessibleTrackedEntityInstanceTypes( userId ), getPool() );
+            () -> aclStore.getAccessibleTrackedEntityInstanceTypes( userUID, userGroupUIDs ), getPool() );
 
-        final CompletableFuture<List<Long>> getPrograms = supplyAsync( () -> aclStore.getAccessiblePrograms( userId ),
+        final CompletableFuture<List<Long>> getPrograms = supplyAsync( () -> aclStore.getAccessiblePrograms( userUID, userGroupUIDs ),
             getPool() );
 
         final CompletableFuture<List<Long>> getProgramStages = supplyAsync(
-            () -> aclStore.getAccessibleProgramStages( userId ), getPool() );
+            () -> aclStore.getAccessibleProgramStages( userUID, userGroupUIDs ), getPool() );
 
         final CompletableFuture<List<Long>> getRelationshipTypes = supplyAsync(
-            () -> aclStore.getAccessibleRelationshipTypes( userId ), getPool() );
+            () -> aclStore.getAccessibleRelationshipTypes( userUID, userGroupUIDs ), getPool() );
 
         return allOf( getTeiTypes, getPrograms, getProgramStages, getRelationshipTypes ).thenApplyAsync(
             fn -> AggregateContext.builder()

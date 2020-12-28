@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

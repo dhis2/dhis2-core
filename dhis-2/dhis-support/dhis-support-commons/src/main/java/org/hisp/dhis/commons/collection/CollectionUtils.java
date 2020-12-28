@@ -122,4 +122,9 @@ public class CollectionUtils
             .filter( item -> !collection.contains( item ) )
             .forEach( item -> collection.add( item ) );
     }
+
+    public static boolean isEmpty( Collection collection )
+    {
+        return collection == null || collection.isEmpty();
+    }
 }

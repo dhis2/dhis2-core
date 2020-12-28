@@ -27,23 +27,14 @@ package org.hisp.dhis.system;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
-import java.util.TimeZone;
-
+import com.google.common.collect.ImmutableList;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
-import org.hisp.dhis.datasource.DataSourceManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
@@ -60,9 +51,16 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Properties;
+import java.util.TimeZone;
 
-import lombok.extern.slf4j.Slf4j;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -84,12 +82,9 @@ public class DefaultSystemService
 
     private final SystemSettingManager systemSettingManager;
 
-    private final DataSourceManager dataSourceManager;
-
     public DefaultSystemService( LocationManager locationManager, DatabaseInfo databaseInfo,
         ConfigurationService configurationService, DhisConfigurationProvider dhisConfig,
-        CalendarService calendarService, SystemSettingManager systemSettingManager,
-        DataSourceManager dataSourceManager )
+        CalendarService calendarService, SystemSettingManager systemSettingManager)
     {
         checkNotNull( locationManager );
         checkNotNull( databaseInfo );
@@ -97,7 +92,6 @@ public class DefaultSystemService
         checkNotNull( dhisConfig );
         checkNotNull( calendarService );
         checkNotNull( systemSettingManager );
-        checkNotNull( dataSourceManager );
 
         this.locationManager = locationManager;
         this.databaseInfo = databaseInfo;
@@ -105,7 +99,6 @@ public class DefaultSystemService
         this.dhisConfig = dhisConfig;
         this.calendarService = calendarService;
         this.systemSettingManager = systemSettingManager;
-        this.dataSourceManager = dataSourceManager;
     }
 
     /**
@@ -250,7 +243,7 @@ public class DefaultSystemService
         // ---------------------------------------------------------------------
 
         info.setDatabaseInfo( databaseInfo.instance() );
-        info.setReadReplicaCount( dataSourceManager.getReadReplicaCount() );
+        info.setReadReplicaCount( Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.ACTIVE_READ_REPLICAS ) ) );
 
         // ---------------------------------------------------------------------
         // System env variables and properties

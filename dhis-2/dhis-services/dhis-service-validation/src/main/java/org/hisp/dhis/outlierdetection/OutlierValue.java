@@ -31,6 +31,7 @@ package org.hisp.dhis.outlierdetection;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import lombok.Data;
 
@@ -38,6 +39,9 @@ import lombok.Data;
  * @author Lars Helge Overland
  */
 @Data
+@JsonPropertyOrder({"de", "deName", "pe", "ou", "ouName",
+    "coc", "cocName", "aoc", "lastUpdated", "value", "mean",
+    "stdDev", "meanAbsDev", "zScore", "lowerBound", "upperBound"})
 public class OutlierValue
 {
     @JsonProperty

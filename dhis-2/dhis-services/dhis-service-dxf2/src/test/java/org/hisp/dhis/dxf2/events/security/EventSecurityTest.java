@@ -29,7 +29,9 @@ package org.hisp.dhis.dxf2.events.security;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisSpringTest;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -60,13 +62,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Date;
 import java.util.HashSet;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class EventSecurityTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private EventService eventService;
@@ -86,15 +90,27 @@ public class EventSecurityTest
     @Autowired
     private UserService _userService;
 
+    @Autowired
+    private CategoryService _categoryService;
+
     private OrganisationUnit organisationUnitA;
     private DataElement dataElementA;
     private Program programA;
     private ProgramStage programStageA;
 
     @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
+    @Override
     protected void setUpTest()
     {
         userService = _userService;
+        categoryService = _categoryService;
+
+        createAndInjectAdminUser();
 
         organisationUnitA = createOrganisationUnit( 'A' );
         manager.save( organisationUnitA );
@@ -142,8 +158,6 @@ public class EventSecurityTest
         manager.update( programA );
         manager.update( programStageA );
 
-        createAndInjectAdminUser();
-
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
@@ -181,11 +195,13 @@ public class EventSecurityTest
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
 
-        manager.update( programA );
-        manager.update( programStageA );
+        manager.updateNoAcl( programA );
+        manager.updateNoAcl( programStageA );
 
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        userService.addUser( user );
 
         injectSecurityContext( user );
 

@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -45,6 +45,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
+import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -75,13 +76,18 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.hisp.dhis.dxf2.metadata.AtomicMode.NONE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ObjectBundleServiceTest
-    extends DhisSpringTest
+public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -326,7 +332,7 @@ public class ObjectBundleServiceTest
         params.setObjectBundleMode( ObjectBundleMode.VALIDATE );
         params.setPreheatIdentifier( PreheatIdentifier.UID );
         params.setImportStrategy( ImportStrategy.UPDATE );
-        params.setAtomicMode( AtomicMode.NONE );
+        params.setAtomicMode( NONE );
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
@@ -869,6 +875,8 @@ public class ObjectBundleServiceTest
 
         objectBundleService.commit( bundle );
 
+        dbmsManager.clearSession();
+
         Section section1 = manager.get( Section.class, "JwcV2ZifEQf" );
         assertNotNull( section1.getDataSet() );
         assertEquals( 1, section1.getCategoryCombos().size() );
@@ -892,9 +900,12 @@ public class ObjectBundleServiceTest
 
         bundle = objectBundleService.create( params );
         validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        final List<ErrorReport> errorReports = validate.getErrorReports();
+        assertTrue( errorReports.isEmpty() );
 
         objectBundleService.commit( bundle );
+
+        manager.flush();
 
         List<DataSet> dataSets = manager.getAll( DataSet.class );
         List<Section> sections = manager.getAll( Section.class );
@@ -1342,7 +1353,7 @@ public class ObjectBundleServiceTest
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setAtomicMode( AtomicMode.NONE );
+        params.setAtomicMode( NONE );
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
@@ -1367,7 +1378,7 @@ public class ObjectBundleServiceTest
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setAtomicMode( AtomicMode.NONE );
+        params.setAtomicMode( NONE );
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
@@ -1451,6 +1462,7 @@ public class ObjectBundleServiceTest
 
         bundle = objectBundleService.create( params );
         validate = objectBundleValidationService.validate( bundle );
+        List<ErrorReport> errorReports = validate.getErrorReports();
         assertTrue( validate.getErrorReports().isEmpty() );
 
         objectBundleService.commit( bundle );

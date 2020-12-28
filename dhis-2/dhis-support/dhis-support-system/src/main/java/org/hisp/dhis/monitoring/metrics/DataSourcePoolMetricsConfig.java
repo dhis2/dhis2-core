@@ -28,14 +28,9 @@ package org.hisp.dhis.monitoring.metrics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_DBPOOL_ENABLED;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-
-import javax.sql.DataSource;
-
+import com.google.common.collect.Lists;
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.monitoring.metrics.jdbc.C3p0MetadataProvider;
 import org.hisp.dhis.monitoring.metrics.jdbc.DataSourcePoolMetadataProvider;
@@ -46,10 +41,12 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
-import com.google.common.collect.Lists;
-import com.mchange.v2.c3p0.ComboPooledDataSource;
+import javax.sql.DataSource;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_DBPOOL_ENABLED;
 
 /**
  * @author Luciano Fiandesio
@@ -108,8 +105,7 @@ public class DataSourcePoolMetricsConfig
     @Bean
     public Collection<DataSourcePoolMetadataProvider> dataSourceMetadataProvider()
     {
-        DataSourcePoolMetadataProvider provider = dataSource -> new C3p0MetadataProvider(
-            (ComboPooledDataSource) dataSource );
+        DataSourcePoolMetadataProvider provider = dataSource -> new C3p0MetadataProvider( (ComboPooledDataSource) dataSource );
 
         return Lists.newArrayList( provider );
     }

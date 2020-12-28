@@ -28,14 +28,14 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.primitives.Primitives;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -45,17 +45,21 @@ import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.system.util.SchemaUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.primitives.Primitives;
-
-import lombok.extern.slf4j.Slf4j;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Default PropertyIntrospectorService implementation that uses Reflection and Jackson annotations
@@ -139,8 +143,6 @@ public class Jackson2PropertyIntrospectorService
                 property.setOwningRole( hibernateProperty.getOwningRole() );
                 property.setInverseRole( hibernateProperty.getInverseRole() );
 
-                property.setGetterMethod( hibernateProperty.getGetterMethod() );
-                property.setSetterMethod( hibernateProperty.getSetterMethod() );
             }
 
             if ( AnnotationUtils.isAnnotationPresent( property.getGetterMethod(), Description.class ) )
@@ -268,6 +270,14 @@ public class Jackson2PropertyIntrospectorService
 
     private List<Property> collectProperties( Class<?> klass )
     {
+        boolean isPrimitiveOrWrapped =
+            ClassUtils.isPrimitiveOrWrapper(klass);
+
+        if ( isPrimitiveOrWrapped )
+        {
+            return Collections.emptyList();
+        }
+
         Multimap<String, Method> multimap = ReflectionUtils.getMethodsMultimap( klass );
         List<String> fieldNames = ReflectionUtils.getAllFields( klass ).stream().map( Field::getName ).collect( Collectors.toList() );
         List<Property> properties = new ArrayList<>();
