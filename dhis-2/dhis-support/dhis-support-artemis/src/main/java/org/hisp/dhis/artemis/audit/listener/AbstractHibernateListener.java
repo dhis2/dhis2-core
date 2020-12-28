@@ -291,7 +291,7 @@ public abstract class AbstractHibernateListener
         catch ( Exception ex )
         {
             // Ignore if couldn't find property reference object, maybe it was deleted.
-            log.debug( "Couldn't get property: " + pName + " from " + entityProxy.getHibernateLazyInitializer().getEntityName(), DebugUtils.getStackTrace( ex ) );
+            log.debug( "Couldn't value of property: " + pName , DebugUtils.getStackTrace( ex ) );
         }
 
         return null;
