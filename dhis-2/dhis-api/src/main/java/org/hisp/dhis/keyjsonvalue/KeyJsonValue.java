@@ -128,7 +128,7 @@ public class KeyJsonValue
     @JsonProperty
     public String getValue()
     {
-        return encrypted ? encryptedValue : jbPlainValue;
+        return encrypted ? getEncryptedValue() : getJbPlainValue();
     }
 
     public void setValue( String value )

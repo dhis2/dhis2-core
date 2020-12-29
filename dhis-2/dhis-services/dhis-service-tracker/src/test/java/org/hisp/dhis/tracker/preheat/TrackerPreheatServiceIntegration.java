@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.preheat;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -55,7 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import static org.junit.Assert.assertNotNull;
 
 public class TrackerPreheatServiceIntegration
-    extends IntegrationTestBase
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private TrackerPreheatService trackerPreheatService;

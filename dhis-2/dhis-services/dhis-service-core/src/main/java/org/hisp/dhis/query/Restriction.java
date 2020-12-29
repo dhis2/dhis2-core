@@ -31,6 +31,8 @@ package org.hisp.dhis.query;
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.QueryPath;
 
+import javax.persistence.criteria.Predicate;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -50,6 +52,14 @@ public class Restriction implements Criterion
      * Query Path.
      */
     private QueryPath queryPath;
+
+    private Predicate predicate;
+
+    public Restriction( String path, Predicate predicate )
+    {
+        this.path = path;
+        this.predicate = predicate;
+    }
 
     public Restriction( String path, Operator operator )
     {
@@ -76,6 +86,16 @@ public class Restriction implements Criterion
     {
         this.queryPath = queryPath;
         return this;
+    }
+
+    public Predicate getPredicate()
+    {
+        return predicate;
+    }
+
+    public void setPredicate( Predicate predicate )
+    {
+        this.predicate = predicate;
     }
 
     public boolean haveQueryPath()

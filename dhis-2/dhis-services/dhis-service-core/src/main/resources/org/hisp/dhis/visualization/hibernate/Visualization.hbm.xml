@@ -215,7 +215,11 @@
                  cascade="all-delete-orphan" foreign-key="fk_visualization_relativeperiodsid"/>
 
     <property name="fontStyle" type="jbVisualizationFontStyle"/>
-    
+
+    <property name="legend" type="jbLegendDefinitions"/>
+
+    <property name="axes" type="jbAxes"/>
+
     <property name="colorSet"/>
 
     <property name="percentStackedValues"/>
@@ -323,23 +327,10 @@
 
     <property name="translations" type="jblTranslations"/>
 
-    <property name="externalAccess"/>
-
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_visualization_userid"/>
 
-    <property name="publicAccess" length="8"/>
-
-    <set name="userGroupAccesses" table="visualization_usergroupaccesses" cascade="all-delete-orphan">
-      <cache usage="read-write"/>
-      <key column="visualizationid"/>
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true"/>
-    </set>
-
-    <set name="userAccesses" table="visualization_useraccesses" cascade="all-delete-orphan">
-      <cache usage="read-write"/>
-      <key column="visualizationid"/>
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true"/>
-    </set>
+    <!-- Sharing -->
+    <property name="sharing" type="jsbObjectSharing"/>
 
   </class>
 </hibernate-mapping>

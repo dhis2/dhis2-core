@@ -28,6 +28,7 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -50,6 +51,9 @@ public class UserStoreTest
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
+
+    @Autowired
+    private UserGroupService userGroupService;
 
     private OrganisationUnit unit1;
     private OrganisationUnit unit2;
@@ -130,5 +134,36 @@ public class UserStoreTest
 
         assertNull( userStore.get( idA ) );
         assertNotNull( userStore.get( idB ) );
+    }
+
+    @Test
+    public void testGetCurrentUserGroupInfo()
+    {
+        User userA = createUser( 'A' );
+        userStore.save( userA );
+        UserGroup userGroupA = createUserGroup( 'A', Sets.newHashSet( userA ) );
+        userGroupService.addUserGroup( userGroupA );
+        UserGroup userGroupB = createUserGroup( 'B', Sets.newHashSet( userA ) );
+        userGroupService.addUserGroup( userGroupB );
+        userA.getGroups().add( userGroupA );
+        userA.getGroups().add( userGroupB );
+
+        CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo( userA.getId() );
+
+        assertNotNull( currentUserGroupInfo );
+        assertEquals( 2, currentUserGroupInfo.getUserGroupUIDs().size() );
+        assertEquals( userA.getUid(), currentUserGroupInfo.getUserUID() );
+    }
+
+    @Test
+    public void testGetCurrentUserGroupInfoWithoutGroup()
+    {
+        User userA = createUser( 'A' );
+        userStore.save( userA );
+        CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo( userA.getId() );
+
+        assertNotNull( currentUserGroupInfo );
+        assertEquals( 0, currentUserGroupInfo.getUserGroupUIDs().size() );
+        assertEquals( userA.getUid(), currentUserGroupInfo.getUserUID() );
     }
 }

@@ -28,20 +28,26 @@
 
 package org.hisp.dhis.tracker.programrule;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.rules.models.AttributeType;
+import org.hisp.dhis.rules.models.RuleActionAttribute;
 import org.hisp.dhis.rules.models.RuleActionMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.validation.hooks.ValidationUtils;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @Author Enrico Colasante
@@ -54,8 +60,10 @@ public abstract class ErrorWarningImplementer
 
     public abstract boolean isOnComplete();
 
+    public abstract IssueType getIssueType();
+
     @Override
-    public Map<String, List<String>> validateEnrollments( TrackerBundle bundle )
+    public Map<String, List<ProgramRuleIssue>> validateEnrollments( TrackerBundle bundle )
     {
         Map<String, List<RuleEffect>> effects =
             getEffects( bundle.getEnrollmentRuleEffects() );
@@ -68,11 +76,11 @@ public abstract class ErrorWarningImplementer
 
         return effects.entrySet().stream()
             .filter( e -> filteredEnrollments.contains( e.getKey() ) )
-            .collect( Collectors.toMap( e -> e.getKey(),
+            .collect( Collectors.toMap( Map.Entry::getKey,
                 e -> parseErrors( e.getValue() ) ) );
     }
-    
-    private List<String> parseErrors( List<RuleEffect> effects )
+
+    private List<ProgramRuleIssue> parseErrors( List<RuleEffect> effects )
     {
         return effects
             .stream()
@@ -94,11 +102,12 @@ public abstract class ErrorWarningImplementer
 
                 return stringBuilder.toString();
             } )
+            .map( message -> new ProgramRuleIssue( message, getIssueType() ) )
             .collect( Collectors.toList() );
     }
 
     @Override
-    public Map<String, List<String>> validateEvents( TrackerBundle bundle )
+    public Map<String, List<ProgramRuleIssue>> validateEvents( TrackerBundle bundle )
     {
         Map<String, List<RuleEffect>> effects = getEffects( bundle.getEventRuleEffects() );
 
@@ -108,10 +117,49 @@ public abstract class ErrorWarningImplementer
             .map( Event::getEvent )
             .collect( Collectors.toList() );
 
-        return effects.entrySet().stream()
+        Map<String, List<RuleEffect>> effectsByEvent = effects.entrySet().stream()
             .filter( e -> filteredEvents.contains( e.getKey() ) )
-            .collect( Collectors.toMap( e -> e.getKey(),
-                e -> parseErrors( e.getValue() ) ) );
+            .collect( Collectors.toMap( Map.Entry::getKey,
+                Map.Entry::getValue ) );
+
+        return filterDataElementEffects( effectsByEvent, bundle.getEvents(), bundle.getPreheat() );
+    }
+
+    /**
+     * Effects that are linked to a data element shouldn't be applied if the {@link Event} is {@link EventStatus#ACTIVE}
+     * and the {@link org.hisp.dhis.program.ValidationStrategy} is {@link org.hisp.dhis.program.ValidationStrategy#ON_COMPLETE}
+     */
+    private Map<String, List<ProgramRuleIssue>> filterDataElementEffects( Map<String, List<RuleEffect>> effectsByEvent,
+        List<Event> events, TrackerPreheat preheat )
+    {
+        Map<String, List<ProgramRuleIssue>> filteredEffects = Maps.newHashMap();
+
+        for ( Map.Entry<String, List<RuleEffect>> eventWithEffects : effectsByEvent.entrySet() )
+        {
+            Event event = events.stream().filter( e -> e.getEvent().equals( eventWithEffects.getKey() ) ).findAny()
+                .get();
+            ProgramStage programStage = preheat.get( ProgramStage.class, event.getProgramStage() );
+
+            boolean needsToValidateDataValues = ValidationUtils.needsToValidateDataValues( event, programStage );
+
+            List<RuleEffect> ruleEffectsToValidate = eventWithEffects.getValue()
+                .stream()
+                .filter( effect ->
+                    ((RuleActionAttribute) effect.ruleAction()).attributeType() != AttributeType.DATA_ELEMENT ||
+                        needsToValidateDataValues )
+                .filter( effect ->
+                    ((RuleActionAttribute) effect.ruleAction()).attributeType() != AttributeType.DATA_ELEMENT ||
+                        isDataElementPartOfProgramStage( ((RuleActionMessage) effect.ruleAction()).field(),
+                            programStage ) )
+                .collect( Collectors.toList() );
+
+            if ( !ruleEffectsToValidate.isEmpty() )
+            {
+                filteredEffects.put( eventWithEffects.getKey(), parseErrors( ruleEffectsToValidate ) );
+            }
+        }
+
+        return filteredEffects;
     }
 
     protected Predicate<Event> filterEvent()

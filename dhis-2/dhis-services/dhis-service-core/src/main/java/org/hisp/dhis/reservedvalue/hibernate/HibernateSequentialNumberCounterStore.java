@@ -54,10 +54,10 @@ public class HibernateSequentialNumberCounterStore
     public List<Integer> getNextValues( String uid, String key, int length )
     {
         int count = (int) sessionFactory.getCurrentSession()
-            .createNativeQuery( "SELECT * FROM incrementSequentialCounter(?0, ?1, ?2)" )
-            .setParameter( 0, uid )
-            .setParameter( 1, key )
-            .setParameter( 2, length )
+            .createNativeQuery( "SELECT * FROM incrementSequentialCounter(:uid, :key, :length)" )
+            .setParameter( "uid", uid )
+            .setParameter( "key", key )
+            .setParameter( "length", length )
             .uniqueResult();
 
         return IntStream.range( count - length, length + (count - length) ).boxed().collect( Collectors.toList() );

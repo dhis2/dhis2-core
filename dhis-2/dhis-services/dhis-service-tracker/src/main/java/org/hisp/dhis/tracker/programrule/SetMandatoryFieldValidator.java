@@ -28,28 +28,26 @@
 
 package org.hisp.dhis.tracker.programrule;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
+import com.google.api.client.util.Lists;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ValidationStrategy;
+import org.hisp.dhis.rules.models.AttributeType;
+import org.hisp.dhis.rules.models.RuleActionAttribute;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerReportUtils;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
-import com.google.api.client.util.Lists;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMandatoryDataValue;
 
@@ -69,7 +67,7 @@ public class SetMandatoryFieldValidator
     }
 
     @Override
-    public Map<String, List<String>> validateEnrollments( TrackerBundle bundle )
+    public Map<String, List<ProgramRuleIssue>> validateEnrollments( TrackerBundle bundle )
     {
         Map<String, List<RuleEffect>> effects = getEffects( bundle.getEnrollmentRuleEffects() );
 
@@ -80,7 +78,7 @@ public class SetMandatoryFieldValidator
     }
 
     @Override
-    public Map<String, List<String>> validateEvents( TrackerBundle bundle )
+    public Map<String, List<ProgramRuleIssue>> validateEvents( TrackerBundle bundle )
     {
         Map<String, List<RuleEffect>> effects = getEffects( bundle.getEventRuleEffects() );
 
@@ -91,13 +89,7 @@ public class SetMandatoryFieldValidator
                     .orElse( Lists.newArrayList() ) ) );
     }
 
-    @Override
-    public boolean isWarning()
-    {
-        return false;
-    }
-
-    private List<String> checkMandatoryTeiAttribute( TrackedEntity tei, List<RuleEffect> effects )
+    private List<ProgramRuleIssue> checkMandatoryTeiAttribute( TrackedEntity tei, List<RuleEffect> effects )
     {
         return effects.stream()
             .map( ruleEffect -> {
@@ -116,21 +108,28 @@ public class SetMandatoryFieldValidator
                 }
             } )
             .filter( e -> !e.isEmpty() )
+            .map( e -> new ProgramRuleIssue( e, IssueType.ERROR ) )
             .collect( Collectors.toList() );
     }
 
-    private List<String> checkMandatoryDataElement( Event event, List<RuleEffect> effects,
+    private List<ProgramRuleIssue> checkMandatoryDataElement( Event event, List<RuleEffect> effects,
         TrackerBundle bundle )
     {
+        ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
+
         List<String> mandatoryDataElements = effects.stream()
+            .filter( effect -> ((RuleActionAttribute) effect.ruleAction()).attributeType() ==
+                AttributeType.DATA_ELEMENT )
+            .filter(
+                effect -> isDataElementPartOfProgramStage( ((RuleActionSetMandatoryField) effect.ruleAction()).field(),
+                    programStage ) )
             .map( effect -> ((RuleActionSetMandatoryField) effect.ruleAction()).field() )
             .collect( Collectors.toList() );
 
-        ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
-
         return validateMandatoryDataValue( programStage, event, mandatoryDataElements )
             .stream()
-            .map( e -> TrackerReportUtils.formatMessage( TrackerErrorCode.E1303, e ) )
+            .map( e -> new ProgramRuleIssue( TrackerReportUtils.formatMessage( TrackerErrorCode.E1303, e ),
+                IssueType.ERROR ) )
             .collect( Collectors.toList() );
     }
 

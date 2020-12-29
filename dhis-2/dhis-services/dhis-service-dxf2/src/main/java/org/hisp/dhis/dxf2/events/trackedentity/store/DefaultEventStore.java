@@ -28,9 +28,7 @@ package org.hisp.dhis.dxf2.events.trackedentity.store;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Multimap;
 import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -42,7 +40,8 @@ import org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.Multimap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Luciano Fiandesio
@@ -73,6 +72,10 @@ public class DefaultEventStore
         "psi.programstageid in (:programStageIds) and p.trackedentitytypeid in (:trackedEntityTypeIds) else true END " +
         "AND pi.programid IN (:programIds)";
 
+    private final static String ACL_FILTER_SQL_NO_PROGRAM_STAGE = "CASE WHEN p.type = 'WITHOUT_REGISTRATION' THEN " +
+        "p.trackedentitytypeid in (:trackedEntityTypeIds) else true END " +
+        "AND pi.programid IN (:programIds)";
+
     public DefaultEventStore( JdbcTemplate jdbcTemplate )
     {
         super( jdbcTemplate );
@@ -89,12 +92,26 @@ public class DefaultEventStore
     {
         EventRowCallbackHandler handler = new EventRowCallbackHandler();
 
-        jdbcTemplate.query( withAclCheck( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL ),
-            createIdsParam( enrollmentsId )
-                .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
-                .addValue( "programStageIds", ctx.getProgramStages() )
-                .addValue( "programIds", ctx.getPrograms() ),
-            handler );
+        List<Long> programStages = ctx.getProgramStages();
+
+        if ( programStages.isEmpty() )
+        {
+            jdbcTemplate.query( withAclCheck( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL_NO_PROGRAM_STAGE ),
+                createIdsParam( enrollmentsId )
+                    .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
+                    .addValue( "programStageIds", programStages )
+                    .addValue( "programIds", ctx.getPrograms() ),
+                handler );
+        }
+        else
+        {
+            jdbcTemplate.query( withAclCheck( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL ),
+                createIdsParam( enrollmentsId )
+                    .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
+                    .addValue( "programStageIds", programStages )
+                    .addValue( "programIds", ctx.getPrograms() ),
+                handler );
+        }
 
         return handler.getItems();
     }

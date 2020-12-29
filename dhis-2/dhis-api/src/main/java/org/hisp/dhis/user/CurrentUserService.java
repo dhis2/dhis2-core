@@ -56,6 +56,9 @@ public interface CurrentUserService
      */
     User getCurrentUser();
 
+    User getCurrentUserInTransaction()
+        throws Exception;
+
     /**
      * @return the user info for the currently logged in user. If no user is
      *          logged in or the auto access admin is active, null is returned.
@@ -85,4 +88,20 @@ public interface CurrentUserService
      * @return UserCredentials of current User
      */
     UserCredentials getCurrentUserCredentials();
+
+    /**
+     * Return {@link CurrentUserGroupInfo} of current User
+     */
+    CurrentUserGroupInfo getCurrentUserGroupsInfo();
+
+    /**
+     * Invalidate UserGroupInfo Cache for given username
+     * Ignore if username doesn't exist
+     */
+    void invalidateUserGroupCache( String username );
+
+    /**
+     * Get {@link CurrentUserGroupInfo} by given {@link UserInfo}
+     */
+    CurrentUserGroupInfo getCurrentUserGroupsInfo( UserInfo userInfo );
 }

@@ -29,7 +29,7 @@ package org.hisp.dhis.query;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -38,6 +38,9 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.jfree.data.time.Year;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -47,13 +50,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Collection;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class CriteriaQueryEngineTest
-    extends DhisSpringTest
+public class CriteriaQueryEngineTest extends TransactionalIntegrationTest
 {
     @Autowired
     private SchemaService schemaService;
@@ -62,14 +66,18 @@ public class CriteriaQueryEngineTest
     private QueryService queryService;
 
     @Autowired
-    private CriteriaQueryEngine<? extends IdentifiableObject> queryEngine;
+    private JpaCriteriaQueryEngine<? extends IdentifiableObject> queryEngine;
 
     @Autowired
     private IdentifiableObjectManager identifiableObjectManager;
 
+    @Autowired
+    private UserService _userService;
+
     @Before
     public void createDataElements()
     {
+        userService = _userService;
         DataElement dataElementA = createDataElement( 'A' );
         dataElementA.setValueType( ValueType.NUMBER );
         dataElementA.setName( "dataElementA" );
@@ -610,5 +618,34 @@ public class CriteriaQueryEngineTest
 
         List<? extends IdentifiableObject> objects = queryService.query( query );
         assertEquals( 6, objects.size() );
+    }
+
+    @Test
+    public void testQueryWithNoAccessPermission()
+    {
+        User userA = createUser( 'A' );
+        userService.addUser( userA );
+        User userB = createUser( 'B' );
+        userService.addUser( userB );
+        DataElement de = identifiableObjectManager.get( DataElement.class, "deabcdefghA" );
+        de.setUser( userB );
+        identifiableObjectManager.save( de, false );
+
+        de = identifiableObjectManager.get( DataElement.class, "deabcdefghA" );
+        assertEquals( AccessStringHelper.DEFAULT, de.getSharing().getPublicAccess() );
+        assertEquals( userB.getUid(), de.getSharing().getOwner() );
+
+        Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
+        query.add( Restrictions.eq( "id", de.getUid()) );
+        query.setUser( userA );
+        List<? extends IdentifiableObject> objects = queryEngine.query( query );
+
+        assertEquals( 0, objects.size() );
+    }
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
     }
 }

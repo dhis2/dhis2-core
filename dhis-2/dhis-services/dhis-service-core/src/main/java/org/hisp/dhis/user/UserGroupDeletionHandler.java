@@ -28,12 +28,11 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -50,15 +49,15 @@ public class UserGroupDeletionHandler
 
     private final IdentifiableObjectManager idObjectManager;
 
-    private final JdbcTemplate jdbcTemplate;
+    private final CurrentUserService currentUserService;
 
-    public UserGroupDeletionHandler( IdentifiableObjectManager idObjectManager, JdbcTemplate jdbcTemplate )
+    public UserGroupDeletionHandler( IdentifiableObjectManager idObjectManager, CurrentUserService currentUserService )
     {
         checkNotNull( idObjectManager );
-        checkNotNull( jdbcTemplate );
+        checkNotNull( currentUserService );
 
         this.idObjectManager = idObjectManager;
-        this.jdbcTemplate = jdbcTemplate;
+        this.currentUserService = currentUserService;
     }
 
     // -------------------------------------------------------------------------
@@ -84,14 +83,6 @@ public class UserGroupDeletionHandler
     }
     
     @Override
-    public String allowDeleteUserGroup( UserGroup group )
-    {
-        int count = jdbcTemplate.queryForObject( "select count(*) from usergroupaccess where usergroupid=" + group.getId(), Integer.class );
-        
-        return count == 0 ? null : "";
-    }
-
-    @Override
     public void deleteUserGroup( UserGroup userGroup )
     {
         Set<UserGroup> userGroups = userGroup.getManagedByGroups();
@@ -101,5 +92,7 @@ public class UserGroupDeletionHandler
             group.getManagedGroups().remove( userGroup );
             idObjectManager.updateNoAcl( group );
         }
+
+        userGroup.getMembers().forEach( member -> currentUserService.invalidateUserGroupCache( member.getUsername() ) );
     }
 }

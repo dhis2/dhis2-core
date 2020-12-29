@@ -35,6 +35,7 @@ import org.hisp.dhis.db.migration.helper.NoOpFlyway;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Profile;
 
 import javax.sql.DataSource;
@@ -52,6 +53,7 @@ public class FlywayConfig
 
     @Bean( value = "flyway", initMethod = "migrate" )
     @Profile( "!test-h2" )
+    @DependsOn( "dataSource" )
     public Flyway flyway( DhisConfigurationProvider configurationProvider, DataSource dataSource )
     {
         ClassicConfiguration classicConfiguration = new ClassicConfiguration();

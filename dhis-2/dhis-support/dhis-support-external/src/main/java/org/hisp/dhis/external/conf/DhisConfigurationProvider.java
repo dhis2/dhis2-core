@@ -28,14 +28,13 @@ package org.hisp.dhis.external.conf;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import org.hisp.dhis.encryption.EncryptionStatus;
+
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-
-import org.hisp.dhis.encryption.EncryptionStatus;
-
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 
 /**
  * Interface which provides access to the DHIS 2 configuration specified through
@@ -66,7 +65,7 @@ public interface DhisConfigurationProvider
      * Get the property value for the given key, or the default value if not
      * exists.
      *
-     * @param key the configuration key.
+     * @param key          the configuration key.
      * @param defaultValue the default value.
      * @return the property value.
      */
@@ -88,6 +87,14 @@ public interface DhisConfigurationProvider
      * @return true if the configuration key is enabled.
      */
     boolean isEnabled( ConfigurationKey key );
+
+    /**
+     * Returns value as boolean, will return false if value is null.
+     *
+     * @param key the configuration key.
+     * @return Will  return true if the value is "true" or "TRUE"
+     */
+    boolean getBoolean( ConfigurationKey key );
 
     /**
      * Indicates whether a value for the given key is equal to "off".
@@ -150,6 +157,7 @@ public interface DhisConfigurationProvider
 
     /**
      * Gets map of all properties except those which are confidential
+     *
      * @return map containing name of property and its value.
      */
     Map<String, Serializable> getConfigurationsAsMap();

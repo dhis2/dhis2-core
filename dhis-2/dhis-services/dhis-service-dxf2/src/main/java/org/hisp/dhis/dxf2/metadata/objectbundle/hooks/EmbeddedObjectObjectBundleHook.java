@@ -35,6 +35,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.DefaultAnalyticalObjectImportHandler;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
@@ -109,7 +110,7 @@ public class EmbeddedObjectObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
-        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
         if ( schema == null || schema.getEmbeddedObjectProperties().isEmpty() )
         {
@@ -124,7 +125,7 @@ public class EmbeddedObjectObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
     {
-        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
         if ( schema == null || schema.getEmbeddedObjectProperties().isEmpty() )
         {
@@ -192,7 +193,8 @@ public class EmbeddedObjectObjectBundleHook
             ((BaseIdentifiableObject) object).setAutoFields();
         }
 
-        Schema embeddedSchema = schemaService.getDynamicSchema( object.getClass() );
+        Schema embeddedSchema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
+
         for ( Property embeddedProperty : embeddedSchema.getPropertyMap().values() )
         {
             if ( PeriodType.class.isAssignableFrom( embeddedProperty.getKlass() ) )

@@ -12,6 +12,8 @@
         <Logger name="org.testcontainers" level="warn" additivity="true"/>
         <Logger name="org.springframework.web" level="warn" additivity="true"/>
         <Logger name="org.springframework.test" level="warn" additivity="true"/>
+        <!--<Logger name="org.hibernate.SQL" level="DEBUG" additivity="true"/>
+        <Logger name="org.hibernate.type" level="trace" additivity="true"/> -->
 
         <Root level="ERROR">
             <AppenderRef ref="console"/>

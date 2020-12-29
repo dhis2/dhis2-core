@@ -34,15 +34,18 @@ import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class BetweenOperator extends Operator
+public class BetweenOperator<T extends Comparable<? super T>> extends Operator<T>
 {
-    public BetweenOperator( Object arg0, Object arg1 )
+    public BetweenOperator( T arg0, T arg1 )
     {
         super( "between", Typed.from( String.class, Number.class, Date.class ), arg0, arg1 );
     }
@@ -51,6 +54,12 @@ public class BetweenOperator extends Operator
     public Criterion getHibernateCriterion( QueryPath queryPath )
     {
         return Restrictions.between( queryPath.getPath(), args.get( 0 ), args.get( 1 ) );
+    }
+
+    @Override
+    public <Y> Predicate getPredicate( CriteriaBuilder builder, Root<Y> root, QueryPath queryPath )
+    {
+        return builder.between( root.get( queryPath.getPath() ),  getArgs().get( 0 ), getArgs().get( 1 ) );
     }
 
     @Override

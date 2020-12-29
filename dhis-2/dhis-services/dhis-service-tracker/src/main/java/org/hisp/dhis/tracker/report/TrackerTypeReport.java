@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 
@@ -53,7 +54,7 @@ public class TrackerTypeReport
     @JsonProperty
     private TrackerStats stats = new TrackerStats();
 
-    @JsonProperty
+    @JsonIgnore
     private List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
 
     private Map<Integer, TrackerObjectReport> objectReportMap = new HashMap<>();

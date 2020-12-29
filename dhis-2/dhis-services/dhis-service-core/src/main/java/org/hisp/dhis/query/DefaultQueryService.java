@@ -28,10 +28,7 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.List;
-
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.preheat.Preheat;
@@ -39,7 +36,9 @@ import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Default implementation of QueryService which works with IdObjects.
@@ -55,14 +54,14 @@ public class DefaultQueryService
 
     private final QueryPlanner queryPlanner;
 
-    private final CriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine;
+    private final JpaCriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine;
 
     private final InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine;
 
     private final Junction.Type DEFAULT_JUNCTION_TYPE = Junction.Type.AND;
 
     public DefaultQueryService( QueryParser queryParser, QueryPlanner queryPlanner,
-        CriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine,
+        JpaCriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine,
         InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine )
     {
         checkNotNull( queryParser );
@@ -97,7 +96,7 @@ public class DefaultQueryService
     }
 
     @Override
-    public int count( Query query )
+    public long count( Query query )
     {
         Query cloned = Query.from( query );
 
@@ -144,7 +143,7 @@ public class DefaultQueryService
     // Helper methods
     //---------------------------------------------------------------------------------------------
 
-    private int countObjects( Query query )
+    private long countObjects( Query query )
     {
         List<? extends IdentifiableObject> objects;
         QueryPlan queryPlan = queryPlanner.planQuery( query );

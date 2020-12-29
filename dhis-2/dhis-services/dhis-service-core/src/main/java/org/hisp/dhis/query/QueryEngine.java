@@ -50,5 +50,5 @@ public interface QueryEngine<T>
      * @param query Query instance to use
      * @return N number of matching objects
      */
-    int count( Query query );
+    long count( Query query );
 }
