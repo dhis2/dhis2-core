@@ -60,7 +60,7 @@ import org.mapstruct.factory.Mappers;
 
 /**
  * Abstract Tracker Preheat strategy that applies to strategies that employ the
- * generic {@link QueryService} to fetch data
+ * generic {@link QueryService} to fetch data (mostly for Metadata classes)
  * 
  * @author Luciano Fiandesio
  */
@@ -97,7 +97,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         return getClass().getAnnotation( StrategyFor.class ).value();
     }
 
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
     protected void queryForIdentifiableObjects( TrackerPreheat preheat, Schema schema, TrackerIdentifier identifier,
         List<List<String>> splitList, Class<? extends PreheatMapper> mapper )
     {
@@ -128,7 +128,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         return schema.getKlass().getSimpleName();
     }
     
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( {"unchecked", "rawtypes"} )
     private List<IdentifiableObject> cacheAwareFetch( User user, Schema schema, TrackerIdentifier identifier, List<String> ids, Class<? extends PreheatMapper> mapper )
     {
         TrackerIdScheme idScheme = identifier.getIdScheme();
@@ -188,6 +188,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         return objects;
     }
     
+    @SuppressWarnings( { "rawtypes", "unchecked" } )
     private List<IdentifiableObject> map( List<IdentifiableObject> objects, Class<? extends PreheatMapper> mapper )
     {
 
@@ -229,6 +230,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         }
     }
 
+    @SuppressWarnings("unchecked")
     private List<IdentifiableObject> cacheAndReturnLookupData( Schema schema )
     {
         List<IdentifiableObject> objects;
@@ -253,6 +255,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         return ids.size() == 1 && ids.contains( ID_WILDCARD );
     }
 
+    @SuppressWarnings( "rawtypes" )
     private Class<? extends PreheatMapper> mapper()
     {
         return getClass().getAnnotation( StrategyFor.class ).mapper();
