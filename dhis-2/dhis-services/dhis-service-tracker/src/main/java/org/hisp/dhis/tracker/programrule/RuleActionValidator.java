@@ -28,10 +28,10 @@
 
 package org.hisp.dhis.tracker.programrule;
 
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+
 import java.util.List;
 import java.util.Map;
-
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
 /**
  * @Author Enrico Colasante
@@ -42,17 +42,15 @@ public interface RuleActionValidator extends RuleActionImplementer
      * Get the validation for enrollment evaluated by rule engine
      *
      * @param bundle
-     * @return A map of enrollment and list of errors
+     * @return A map of enrollment and list of issues
      */
-    Map<String, List<String>> validateEnrollments( TrackerBundle bundle );
+    Map<String, List<ProgramRuleIssue>> validateEnrollments( TrackerBundle bundle );
 
     /**
      * Get the validation for event evaluated by rule engine
      *
      * @param bundle
-     * @return A map of events and list of errors
+     * @return A map of events and list of issues
      */
-    Map<String, List<String>> validateEvents( TrackerBundle bundle );
-
-    boolean isWarning();
+    Map<String, List<ProgramRuleIssue>> validateEvents( TrackerBundle bundle );
 }

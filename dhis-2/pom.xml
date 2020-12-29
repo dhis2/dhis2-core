@@ -2159,7 +2159,7 @@
     <ow2.asm.version>9.0</ow2.asm.version>
     <surefireArgLine>-Xmx1024m</surefireArgLine>
     <dependency-check-maven.version>6.0.3</dependency-check-maven.version>
-    <lombok.version>1.18.10</lombok.version>
+    <lombok.version>1.18.16</lombok.version>
     <mapstruct.version>1.4.1.Final</mapstruct.version>
     <geotools.version>24.0</geotools.version>
     <testcontainers.version>1.15.1</testcontainers.version>

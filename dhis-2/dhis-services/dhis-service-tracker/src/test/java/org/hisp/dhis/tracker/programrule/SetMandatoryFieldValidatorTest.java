@@ -162,7 +162,7 @@ public class SetMandatoryFieldValidatorTest
 
         trackerBundle = trackerBundleService.runRuleEngine( trackerBundle );
 
-        Map<String, List<String>> errors = implementerToTest.validateEvents( trackerBundle );
+        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( trackerBundle );
 
         assertFalse( errors.isEmpty() );
 
@@ -181,16 +181,17 @@ public class SetMandatoryFieldValidatorTest
 
         trackerBundle = trackerBundleService.runRuleEngine( trackerBundle );
 
-        Map<String, List<String>> errors = implementerToTest.validateEvents( trackerBundle );
+        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( trackerBundle );
 
         assertFalse( errors.isEmpty() );
 
         boolean isErrorMessageCorrect =
             errors.values()
                 .stream()
-                .filter( e -> !e.isEmpty() )
+                .flatMap( e -> e.stream() )
                 .allMatch(
-                    e -> e.contains( TrackerReportUtils.formatMessage( TrackerErrorCode.E1303, "DSKTW8qFP0z" ) ) );
+                    e -> e.getMessage()
+                        .equals( TrackerReportUtils.formatMessage( TrackerErrorCode.E1303, "DSKTW8qFP0z" ) ) );
 
         assertTrue( isErrorMessageCorrect );
     }

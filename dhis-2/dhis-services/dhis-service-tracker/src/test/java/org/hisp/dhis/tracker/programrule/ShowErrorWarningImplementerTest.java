@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.programrule;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ValidationStrategy;
@@ -40,7 +40,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -56,9 +56,8 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 @RunWith( MockitoJUnitRunner.class )
-@Ignore
 public class ShowErrorWarningImplementerTest
-    extends DhisSpringTest
+    extends DhisConvenienceTest
 {
     private final static String CONTENT = "SHOW ERROR DATA";
 
@@ -73,14 +72,6 @@ public class ShowErrorWarningImplementerTest
     private final static String ACTIVE_EVENT_ID = "EventUid";
 
     private final static String COMPLETED_EVENT_ID = "CompletedEventUid";
-
-    private final static String ERROR_PREFIX = "Error";
-
-    private final static String WARNING_PREFIX = "Warning";
-
-    private final static String ERROR_ON_COMPLETE_PREFIX = "Error on complete";
-
-    private final static String WARNING_ON_COMPLETE_PREFIX = "Warning on complete";
 
     private final static String PROGRAM_STAGE_ID = "ProrgamStageId";
 
@@ -101,8 +92,8 @@ public class ShowErrorWarningImplementerTest
 
     private ProgramStage programStage;
 
-    @Override
-    protected void setUpTest()
+    @Before
+    public void setUpTest()
     {
         bundle = new TrackerBundle();
         bundle.setEvents( getEvents() );
@@ -119,9 +110,9 @@ public class ShowErrorWarningImplementerTest
     @Test
     public void testValidateShowErrorRuleActionForEvents()
     {
-        Map<String, List<String>> errors = errorImplementer.validateEvents( bundle );
+        Map<String, List<ProgramRuleIssue>> errors = errorImplementer.validateEvents( bundle );
 
-        assertErrors( errors, 2, ERROR_PREFIX );
+        assertErrors( errors, 2 );
     }
 
     @Test
@@ -129,92 +120,102 @@ public class ShowErrorWarningImplementerTest
     {
         programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
         bundle.setEventRuleEffects( getRuleEventEffectsLinkedToDataElement() );
-        Map<String, List<String>> errors = errorImplementer.validateEvents( bundle );
+        Map<String, List<ProgramRuleIssue>> errors = errorImplementer.validateEvents( bundle );
 
-        assertErrors( errors, 1, ERROR_PREFIX );
-        assertErrorsWithDataElement( errors, ERROR_PREFIX );
+        assertErrors( errors, 1 );
+        assertErrorsWithDataElement( errors );
     }
 
     @Test
     public void testValidateShowErrorRuleActionForEnrollment()
     {
-        Map<String, List<String>> errors = errorImplementer.validateEnrollments( bundle );
+        Map<String, List<ProgramRuleIssue>> errors = errorImplementer.validateEnrollments( bundle );
 
-        assertErrors( errors, 2, ERROR_PREFIX );
+        assertErrors( errors, 2 );
     }
 
     @Test
     public void testValidateShowWarningRuleActionForEvents()
     {
-        Map<String, List<String>> warnings = warningImplementer.validateEvents( bundle );
+        Map<String, List<ProgramRuleIssue>> warnings = warningImplementer.validateEvents( bundle );
 
-        assertErrors( warnings, 2, WARNING_PREFIX );
+        assertWarnings( warnings, 2 );
     }
 
     @Test
     public void testValidateShowWarningRuleActionForEnrollment()
     {
-        Map<String, List<String>> warnings = warningImplementer.validateEnrollments( bundle );
+        Map<String, List<ProgramRuleIssue>> warnings = warningImplementer.validateEnrollments( bundle );
 
-        assertErrors( warnings, 2, WARNING_PREFIX );
+        assertWarnings( warnings, 2 );
     }
 
     @Test
     public void testValidateShowErrorOnCompleteRuleActionForEvents()
     {
-        Map<String, List<String>> errors = errorOnCompleteImplementer.validateEvents( bundle );
+        Map<String, List<ProgramRuleIssue>> errors = errorOnCompleteImplementer.validateEvents( bundle );
 
-        assertErrors( errors, 1, ERROR_ON_COMPLETE_PREFIX );
+        assertErrors( errors, 1 );
     }
 
     @Test
     public void testValidateShowErrorOnCompleteRuleActionForEnrollment()
     {
-        Map<String, List<String>> errors = errorOnCompleteImplementer.validateEnrollments( bundle );
+        Map<String, List<ProgramRuleIssue>> errors = errorOnCompleteImplementer.validateEnrollments( bundle );
 
-        assertErrors( errors, 1, ERROR_ON_COMPLETE_PREFIX );
+        assertErrors( errors, 1 );
     }
 
     @Test
     public void testValidateShowWarningOnCompleteRuleActionForEvents()
     {
-        Map<String, List<String>> warnings = warningOnCompleteImplementer.validateEvents( bundle );
+        Map<String, List<ProgramRuleIssue>> warnings = warningOnCompleteImplementer.validateEvents( bundle );
 
-        assertErrors( warnings, 1, WARNING_ON_COMPLETE_PREFIX );
+        assertWarnings( warnings, 1 );
     }
 
     @Test
     public void testValidateShowWarningOnCompleteRuleActionForEnrollment()
     {
-        Map<String, List<String>> warnings = warningOnCompleteImplementer.validateEnrollments( bundle );
+        Map<String, List<ProgramRuleIssue>> warnings = warningOnCompleteImplementer.validateEnrollments( bundle );
 
-        assertErrors( warnings, 1, WARNING_ON_COMPLETE_PREFIX );
+        assertWarnings( warnings, 1 );
     }
 
-    public void assertErrors( Map<String, List<String>> errors, int numberOfErrors, String prefix )
+    public void assertErrors( Map<String, List<ProgramRuleIssue>> errors, int numberOfErrors )
+    {
+        assertIssues( errors, numberOfErrors, IssueType.ERROR );
+    }
+
+    public void assertWarnings( Map<String, List<ProgramRuleIssue>> warnings, int numberOfWarnings )
+    {
+        assertIssues( warnings, numberOfWarnings, IssueType.WARNING );
+    }
+
+    private void assertIssues( Map<String, List<ProgramRuleIssue>> errors, int numberOfErrors, IssueType issueType )
     {
         assertFalse( errors.isEmpty() );
 
         assertEquals( numberOfErrors, errors.size() );
 
-        errors.entrySet().stream()
-            .forEach( e -> assertTrue( e.getValue().size() == 1 ) );
+        errors.forEach( ( key, value ) -> assertEquals( 1, value.size() ) );
 
         errors
             .values()
             .stream()
-            .flatMap( e -> e.stream() )
-            .forEach( e -> assertTrue( e.contains( prefix + CONTENT + " " + EVALUATED_DATA ) ) );
+            .flatMap( Collection::stream )
+            .forEach( e -> assertTrue( e.getMessage().contains( issueType.name() + CONTENT + " " + EVALUATED_DATA ) ) );
     }
 
-    public void assertErrorsWithDataElement( Map<String, List<String>> errors, String prefix )
+    public void assertErrorsWithDataElement( Map<String, List<ProgramRuleIssue>> errors )
     {
         errors
             .values()
             .stream()
             .flatMap( Collection::stream )
             .forEach(
-                e -> assertEquals( e, prefix + CONTENT + " " + EVALUATED_DATA + " (" + DATA_ELEMENT_ID + ")" ) );
+                e -> assertEquals( e.getMessage(),
+                    IssueType.ERROR.name() + CONTENT + " " + EVALUATED_DATA + " (" + DATA_ELEMENT_ID + ")" ) );
     }
 
     private List<Event> getEvents()
@@ -276,13 +277,13 @@ public class ShowErrorWarningImplementerTest
     private List<RuleEffect> getRuleEffects()
     {
         RuleAction actionShowWarning = RuleActionShowWarning
-            .create( WARNING_PREFIX + CONTENT, DATA, "", UNKNOWN );
+            .create( IssueType.WARNING.name() + CONTENT, DATA, "", UNKNOWN );
         RuleAction actionShowWarningOnComplete = RuleActionWarningOnCompletion
-            .create( WARNING_ON_COMPLETE_PREFIX + CONTENT, DATA, "", UNKNOWN );
+            .create( IssueType.WARNING.name() + CONTENT, DATA, "", UNKNOWN );
         RuleAction actionShowError = RuleActionShowError
-            .create( ERROR_PREFIX + CONTENT, DATA, "", UNKNOWN );
+            .create( IssueType.ERROR.name() + CONTENT, DATA, "", UNKNOWN );
         RuleAction actionShowErrorOnCompletion = RuleActionErrorOnCompletion
-            .create( ERROR_ON_COMPLETE_PREFIX + CONTENT, DATA, "", UNKNOWN );
+            .create( IssueType.ERROR.name() + CONTENT, DATA, "", UNKNOWN );
 
         return Lists.newArrayList( RuleEffect.create( actionShowWarning, EVALUATED_DATA ),
             RuleEffect.create( actionShowWarningOnComplete, EVALUATED_DATA ),
@@ -293,13 +294,13 @@ public class ShowErrorWarningImplementerTest
     private List<RuleEffect> getRuleEffectsLinkedToDataElement()
     {
         RuleAction actionShowWarning = RuleActionShowWarning
-            .create( WARNING_PREFIX + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
+            .create( IssueType.WARNING.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
         RuleAction actionShowWarningOnComplete = RuleActionWarningOnCompletion
-            .create( WARNING_ON_COMPLETE_PREFIX + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
+            .create( IssueType.WARNING.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
         RuleAction actionShowError = RuleActionShowError
-            .create( ERROR_PREFIX + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
+            .create( IssueType.ERROR.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
         RuleAction actionShowErrorOnCompletion = RuleActionErrorOnCompletion
-            .create( ERROR_ON_COMPLETE_PREFIX + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
+            .create( IssueType.ERROR.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
 
         return Lists.newArrayList( RuleEffect.create( actionShowWarning, EVALUATED_DATA ),
             RuleEffect.create( actionShowWarningOnComplete, EVALUATED_DATA ),
