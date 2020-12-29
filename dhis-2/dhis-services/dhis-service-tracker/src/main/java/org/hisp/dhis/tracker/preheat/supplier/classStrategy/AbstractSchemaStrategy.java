@@ -156,7 +156,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
                 if ( ids.size() > foundInCache.size() )
                 {
                     // remove from the list of ids the ids found in cache
-                    if ( !foundInCache.isEmpty() ) ids.removeAll( foundInCache.keySet() );
+                    ids.removeAll( foundInCache.keySet() );
 
                     // execute the query, fetching only the ids which are not in cache
                     objects = map(
