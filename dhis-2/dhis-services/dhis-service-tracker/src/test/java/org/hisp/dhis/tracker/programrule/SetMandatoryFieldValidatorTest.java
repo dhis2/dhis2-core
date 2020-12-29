@@ -28,171 +28,266 @@
 
 package org.hisp.dhis.tracker.programrule;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import org.hisp.dhis.common.IdentifiableObject;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.preheat.PreheatIdentifier;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleActionService;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ValidationStrategy;
+import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleService;
+import org.hisp.dhis.tracker.domain.DataValue;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.EnrollmentStatus;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerReportUtils;
-import org.hisp.dhis.tracker.validation.AbstractImportValidationTest;
-import org.hisp.dhis.user.UserService;
+import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
+import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
+import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
+@RunWith( MockitoJUnitRunner.class )
 public class SetMandatoryFieldValidatorTest
-    extends AbstractImportValidationTest
+    extends DhisConvenienceTest
 {
 
-    @Autowired
-    private ObjectBundleService objectBundleService;
+    private final static String CONTENT = "SHOW ERROR DATA";
 
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
+    private final static String DATA = "2 + 2";
 
-    @Autowired
-    private RenderService _renderService;
+    private final static String EVALUATED_DATA = "4.0";
 
-    @Autowired
-    private UserService _userService;
+    private final static String ACTIVE_ENROLLMENT_ID = "ActiveEnrollmentUid";
 
-    @Autowired
-    private TrackerBundleService trackerBundleService;
+    private final static String COMPLETED_ENROLLMENT_ID = "CompletedEnrollmentUid";
 
-    @Autowired
-    private ProgramRuleService programRuleService;
+    private final static String FIRST_EVENT_ID = "EventUid";
 
-    @Autowired
-    private ProgramRuleActionService programRuleActionService;
+    private final static String SECOND_EVENT_ID = "CompletedEventUid";
 
-    @Autowired
-    private ProgramRuleVariableService programRuleVariableService;
+    private final static String DATA_ELEMENT_ID = "DataElementId";
 
-    @Autowired
-    private SetMandatoryFieldValidator implementerToTest;
+    private TrackerBundle bundle;
 
-    @Override
-    protected void setUpTest()
-        throws IOException
+    private final static String DATA_ELEMENT_OLD_VALUE = "1.0";
+
+    private final static String DATA_ELEMENT_NEW_VALUE = "23.0";
+
+    private final static String TEI_ATTRIBUTE_NEW_VALUE = "24.0";
+
+    private static ProgramStage firstProgramStage;
+
+    private static ProgramStage secondProgramStage;
+
+    private static DataElement dataElementA;
+
+    private static DataElement dataElementB;
+
+    private SetMandatoryFieldValidator implementerToTest = new SetMandatoryFieldValidator();
+
+    @Mock
+    private TrackerPreheat preheat;
+
+    @Before
+    public void setUpTest()
     {
-        renderService = _renderService;
-        userService = _userService;
+        firstProgramStage = createProgramStage( 'A', 0 );
+        firstProgramStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
-            .fromMetadata( new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
+        dataElementA = createDataElement( 'A' );
+        ProgramStageDataElement programStageDataElementA = createProgramStageDataElement( firstProgramStage,
+            dataElementA, 0 );
+        firstProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementA ) );
 
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
+        secondProgramStage = createProgramStage( 'B', 0 );
+        secondProgramStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
 
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertTrue( validationReport.getErrorReports().isEmpty() );
+        dataElementB = createDataElement( 'B' );
+        ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( secondProgramStage,
+            dataElementB, 0 );
+        secondProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
 
-        objectBundleService.commit( bundle );
+        when( preheat.get( ProgramStage.class, firstProgramStage.getUid() ) ).thenReturn( firstProgramStage );
+        when( preheat.get( ProgramStage.class, secondProgramStage.getUid() ) ).thenReturn( secondProgramStage );
 
-        Program program = bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJwr" );
-        DataElement dataElement = bundle.getPreheat()
-            .get( PreheatIdentifier.UID, DataElement.class, "DSKTW8qFP0z" );
-        ProgramRuleVariable programRuleVariable = createProgramRuleVariable( 'A', program );
-        programRuleVariable.setDataElement( dataElement );
-        programRuleVariable.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
-        programRuleVariableService.addProgramRuleVariable( programRuleVariable );
-
-        ProgramRule programRule = createProgramRule( 'A',
-            program );
-        programRuleService.addProgramRule( programRule );
-
-        ProgramRuleAction programRuleAction = createProgramRuleAction( 'A', programRule );
-        programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SETMANDATORYFIELD );
-        programRuleActionService.addProgramRuleAction( programRuleAction );
-        programRuleAction.setDataElement( dataElement );
-
-        ProgramRule programRule2 = createProgramRule( 'B',
-            program );
-        programRule2.setCondition( "d2:hasValue(#{ProgramRuleVariableA})" );
-        programRuleService.addProgramRule( programRule2 );
-        ProgramRuleAction programRuleAction2 = createProgramRuleAction( 'B', programRule2 );
-        programRuleAction2.setProgramRuleActionType( ProgramRuleActionType.SHOWERROR );
-        programRuleAction2.setContent( "SHOW ERROR DATA" );
-        programRuleActionService.addProgramRuleAction( programRuleAction2 );
-
-        programRule.setProgramRuleActions( Sets.newHashSet( programRuleAction ) );
-        programRuleService.updateProgramRule( programRule );
-        programRule2.setProgramRuleActions( Sets.newHashSet( programRuleAction2 ) );
-        programRuleService.updateProgramRule( programRule2 );
+        bundle = new TrackerBundle();
+        bundle.setEnrollments( getEnrollments() );
+        bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects() );
+        bundle.setEventRuleEffects( getRuleEventEffects() );
+        bundle.setPreheat( preheat );
     }
 
     @Test
     public void testValidateOkMandatoryFieldsForEvents()
-        throws IOException
     {
-        TrackerImportParams bundleParams = createBundleFromJson( "tracker/event_and_enrollment.json" );
-
-        TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
-
-        trackerBundle = trackerBundleService.runRuleEngine( trackerBundle );
-
-        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( trackerBundle );
+        bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet() ) );
+        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
 
         assertFalse( errors.isEmpty() );
 
-        errors.entrySet().stream()
+        errors.entrySet()
             .forEach( e -> assertTrue( e.getValue().isEmpty() ) );
     }
 
     @Test
     public void testValidateWithErrorMandatoryFieldsForEvents()
-        throws IOException
     {
-        TrackerImportParams bundleParams = createBundleFromJson(
-            "tracker/event_events_and_enrollment_with_null_data_element.json" );
-
-        TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
-
-        trackerBundle = trackerBundleService.runRuleEngine( trackerBundle );
-
-        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( trackerBundle );
+        bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet(), getEventWithMandatoryValueNOTSet() ) );
+        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
 
         assertFalse( errors.isEmpty() );
 
+        List<ProgramRuleIssue> errorMessages = errors.values()
+            .stream()
+            .flatMap( Collection::stream )
+            .collect( Collectors.toList() );
+
+        assertFalse( errorMessages.isEmpty() );
+
         boolean isErrorMessageCorrect =
-            errors.values()
+            errorMessages
                 .stream()
-                .flatMap( e -> e.stream() )
                 .allMatch(
                     e -> e.getMessage()
-                        .equals( TrackerReportUtils.formatMessage( TrackerErrorCode.E1303, "DSKTW8qFP0z" ) ) );
+                        .equals( TrackerReportUtils.formatMessage( TrackerErrorCode.E1303, dataElementA.getUid() ) ) );
 
         assertTrue( isErrorMessageCorrect );
+    }
+
+    @Test
+    public void testValidateOkMandatoryFieldsForValidEventAndNotValidEventInDifferentProgramStage()
+    {
+        bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet(),
+            getEventWithMandatoryValueNOTSetInDifferentProgramStage() ) );
+        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
+
+        assertFalse( errors.isEmpty() );
+
+        errors.entrySet()
+            .forEach( e -> assertTrue( e.getValue().isEmpty() ) );
+    }
+
+    private Event getEventWithMandatoryValueSet()
+    {
+        Event event = new Event();
+        event.setUid( FIRST_EVENT_ID );
+        event.setEvent( FIRST_EVENT_ID );
+        event.setStatus( EventStatus.ACTIVE );
+        event.setProgramStage( firstProgramStage.getUid() );
+        event.setDataValues( getActiveEventDataValues() );
+
+        return event;
+    }
+
+    private Event getEventWithMandatoryValueNOTSet()
+    {
+        Event event = new Event();
+        event.setUid( SECOND_EVENT_ID );
+        event.setEvent( SECOND_EVENT_ID );
+        event.setStatus( EventStatus.ACTIVE );
+        event.setProgramStage( firstProgramStage.getUid() );
+
+        return event;
+    }
+
+    private Event getEventWithMandatoryValueNOTSetInDifferentProgramStage()
+    {
+        Event event = new Event();
+        event.setUid( SECOND_EVENT_ID );
+        event.setEvent( SECOND_EVENT_ID );
+        event.setStatus( EventStatus.ACTIVE );
+        event.setProgramStage( secondProgramStage.getUid() );
+
+        return event;
+    }
+
+    private Set<DataValue> getActiveEventDataValues()
+    {
+        DataValue dataValue = new DataValue();
+        dataValue.setValue( DATA_ELEMENT_OLD_VALUE );
+        dataValue.setDataElement( dataElementA.getUid() );
+        return Sets.newHashSet( dataValue );
+    }
+
+    private List<Enrollment> getEnrollments()
+    {
+        Enrollment activeEnrollment = new Enrollment();
+        activeEnrollment.setUid( ACTIVE_ENROLLMENT_ID );
+        activeEnrollment.setEnrollment( ACTIVE_ENROLLMENT_ID );
+        activeEnrollment.setStatus( EnrollmentStatus.ACTIVE );
+
+        Enrollment completedEnrollment = new Enrollment();
+        completedEnrollment.setUid( COMPLETED_ENROLLMENT_ID );
+        completedEnrollment.setEnrollment( COMPLETED_ENROLLMENT_ID );
+        completedEnrollment.setStatus( EnrollmentStatus.COMPLETED );
+
+        return Lists.newArrayList( activeEnrollment, completedEnrollment );
+    }
+
+    private Map<String, List<RuleEffect>> getRuleEventEffectsLinkedToDataElement()
+    {
+        Map<String, List<RuleEffect>> ruleEffectsByEvent = Maps.newHashMap();
+        ruleEffectsByEvent.put( FIRST_EVENT_ID, getRuleEffectsLinkedToDataElement() );
+        ruleEffectsByEvent.put( SECOND_EVENT_ID, getRuleEffectsLinkedToDataElement() );
+        return ruleEffectsByEvent;
+    }
+
+    private Map<String, List<RuleEffect>> getRuleEventEffects()
+    {
+        Map<String, List<RuleEffect>> ruleEffectsByEvent = Maps.newHashMap();
+        ruleEffectsByEvent.put( FIRST_EVENT_ID, getRuleEffects() );
+        ruleEffectsByEvent.put( SECOND_EVENT_ID, getRuleEffects() );
+        return ruleEffectsByEvent;
+    }
+
+    private Map<String, List<RuleEffect>> getRuleEnrollmentEffects()
+    {
+        Map<String, List<RuleEffect>> ruleEffectsByEnrollment = Maps.newHashMap();
+        ruleEffectsByEnrollment.put( ACTIVE_ENROLLMENT_ID, getRuleEffects() );
+        ruleEffectsByEnrollment.put( COMPLETED_ENROLLMENT_ID, getRuleEffects() );
+        return ruleEffectsByEnrollment;
+    }
+
+    private List<RuleEffect> getRuleEffects()
+    {
+        RuleAction actionAssign = RuleActionSetMandatoryField.create( dataElementA.getUid(), DATA_ELEMENT );
+
+        return Lists.newArrayList( RuleEffect.create( actionAssign ) );
+    }
+
+    private List<RuleEffect> getRuleEffectsLinkedToDataElement()
+    {
+        RuleAction actionShowWarning = RuleActionShowWarning
+            .create( IssueType.WARNING.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
+        RuleAction actionShowWarningOnComplete = RuleActionWarningOnCompletion
+            .create( IssueType.WARNING.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
+        RuleAction actionShowError = RuleActionShowError
+            .create( ERROR.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
+        RuleAction actionShowErrorOnCompletion = RuleActionErrorOnCompletion
+            .create( ERROR.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
+
+        return Lists.newArrayList( RuleEffect.create( actionShowWarning, EVALUATED_DATA ),
+            RuleEffect.create( actionShowWarningOnComplete, EVALUATED_DATA ),
+            RuleEffect.create( actionShowError, EVALUATED_DATA ),
+            RuleEffect.create( actionShowErrorOnCompletion, EVALUATED_DATA ) );
     }
 }

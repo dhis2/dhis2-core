@@ -30,9 +30,12 @@ package org.hisp.dhis.tracker.programrule;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -73,9 +76,13 @@ public class ShowErrorWarningImplementerTest
 
     private final static String COMPLETED_EVENT_ID = "CompletedEventUid";
 
-    private final static String PROGRAM_STAGE_ID = "ProrgamStageId";
+    private final static String PROGRAM_STAGE_ID = "ProgramStageId";
+
+    private final static String ANOTHER_PROGRAM_STAGE_ID = "AnotherProgramStageId";
 
     private final static String DATA_ELEMENT_ID = "DataElementId";
+
+    private final static String ANOTHER_DATA_ELEMENT_ID = "AnotherDataElementId";
 
     private ShowWarningOnCompleteValidator warningOnCompleteImplementer = new ShowWarningOnCompleteValidator();
 
@@ -92,6 +99,8 @@ public class ShowErrorWarningImplementerTest
 
     private ProgramStage programStage;
 
+    private ProgramStage anotherProgramStage;
+
     @Before
     public void setUpTest()
     {
@@ -104,6 +113,20 @@ public class ShowErrorWarningImplementerTest
 
         programStage = createProgramStage( 'A', 0 );
         programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
+        DataElement dataElementA = createDataElement( 'A' );
+        dataElementA.setUid( DATA_ELEMENT_ID );
+        ProgramStageDataElement programStageDataElementA = createProgramStageDataElement( programStage,
+            dataElementA, 0 );
+        programStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementA ) );
+
+        anotherProgramStage = createProgramStage( 'B', 0 );
+        anotherProgramStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
+        DataElement dataElementB = createDataElement( 'B' );
+        dataElementB.setUid( ANOTHER_DATA_ELEMENT_ID );
+        ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( anotherProgramStage,
+            dataElementB, 0 );
+        anotherProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
+
         when( preheat.get( ProgramStage.class, PROGRAM_STAGE_ID ) ).thenReturn( programStage );
     }
 
@@ -120,6 +143,16 @@ public class ShowErrorWarningImplementerTest
     {
         programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
         bundle.setEventRuleEffects( getRuleEventEffectsLinkedToDataElement() );
+        Map<String, List<ProgramRuleIssue>> errors = errorImplementer.validateEvents( bundle );
+
+        assertErrors( errors, 1 );
+        assertErrorsWithDataElement( errors );
+    }
+
+    @Test
+    public void testValidateShowErrorForEventsInDifferentProgramStages()
+    {
+        bundle.setEventRuleEffects( getRuleEventEffectsLinkedTo2DataElementsIn2DifferentProgramStages() );
         Map<String, List<ProgramRuleIssue>> errors = errorImplementer.validateEvents( bundle );
 
         assertErrors( errors, 1 );
@@ -258,6 +291,14 @@ public class ShowErrorWarningImplementerTest
         return ruleEffectsByEvent;
     }
 
+    private Map<String, List<RuleEffect>> getRuleEventEffectsLinkedTo2DataElementsIn2DifferentProgramStages()
+    {
+        Map<String, List<RuleEffect>> ruleEffectsByEvent = Maps.newHashMap();
+        ruleEffectsByEvent.put( ACTIVE_EVENT_ID, getRuleEffectsLinkedToDataElement() );
+        ruleEffectsByEvent.put( COMPLETED_EVENT_ID, getRuleEffectsLinkedToDataAnotherElement() );
+        return ruleEffectsByEvent;
+    }
+
     private Map<String, List<RuleEffect>> getRuleEventEffects()
     {
         Map<String, List<RuleEffect>> ruleEffectsByEvent = Maps.newHashMap();
@@ -301,6 +342,23 @@ public class ShowErrorWarningImplementerTest
             .create( IssueType.ERROR.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
         RuleAction actionShowErrorOnCompletion = RuleActionErrorOnCompletion
             .create( IssueType.ERROR.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
+
+        return Lists.newArrayList( RuleEffect.create( actionShowWarning, EVALUATED_DATA ),
+            RuleEffect.create( actionShowWarningOnComplete, EVALUATED_DATA ),
+            RuleEffect.create( actionShowError, EVALUATED_DATA ),
+            RuleEffect.create( actionShowErrorOnCompletion, EVALUATED_DATA ) );
+    }
+
+    private List<RuleEffect> getRuleEffectsLinkedToDataAnotherElement()
+    {
+        RuleAction actionShowWarning = RuleActionShowWarning
+            .create( IssueType.WARNING.name() + CONTENT, DATA, ANOTHER_DATA_ELEMENT_ID, DATA_ELEMENT );
+        RuleAction actionShowWarningOnComplete = RuleActionWarningOnCompletion
+            .create( IssueType.WARNING.name() + CONTENT, DATA, ANOTHER_DATA_ELEMENT_ID, DATA_ELEMENT );
+        RuleAction actionShowError = RuleActionShowError
+            .create( IssueType.ERROR.name() + CONTENT, DATA, ANOTHER_DATA_ELEMENT_ID, DATA_ELEMENT );
+        RuleAction actionShowErrorOnCompletion = RuleActionErrorOnCompletion
+            .create( IssueType.ERROR.name() + CONTENT, DATA, ANOTHER_DATA_ELEMENT_ID, DATA_ELEMENT );
 
         return Lists.newArrayList( RuleEffect.create( actionShowWarning, EVALUATED_DATA ),
             RuleEffect.create( actionShowWarningOnComplete, EVALUATED_DATA ),
