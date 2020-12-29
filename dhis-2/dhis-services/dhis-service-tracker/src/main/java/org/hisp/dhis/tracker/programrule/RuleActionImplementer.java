@@ -28,11 +28,11 @@
 
 package org.hisp.dhis.tracker.programrule;
 
+import org.hisp.dhis.rules.models.RuleEffect;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import org.hisp.dhis.rules.models.RuleEffect;
 
 /**
  * @author Enrico Colasante

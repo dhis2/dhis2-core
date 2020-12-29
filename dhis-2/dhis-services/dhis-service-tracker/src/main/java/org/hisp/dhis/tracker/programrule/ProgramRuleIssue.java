@@ -28,38 +28,19 @@
 
 package org.hisp.dhis.tracker.programrule;
 
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-
-import java.util.List;
-import java.util.Map;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
+ * A single issue from rule engine that can be either be a Warning or an Error.
+ *
  * @Author Enrico Colasante
  */
-public interface RuleActionValidator extends RuleActionImplementer
+@RequiredArgsConstructor
+@Getter
+public class ProgramRuleIssue
 {
-    /**
-     * Get the validation for enrollment evaluated by rule engine
-     *
-     * @param bundle
-     * @return A map of enrollment and list of issues
-     */
-    Map<String, List<ProgramRuleIssue>> validateEnrollments( TrackerBundle bundle );
+    private final String message;
 
-    /**
-     * Get the validation for event evaluated by rule engine
-     *
-     * @param bundle
-     * @return A map of events and list of issues
-     */
-    Map<String, List<ProgramRuleIssue>> validateEvents( TrackerBundle bundle );
-
-    default boolean isDataElementPartOfProgramStage( String dataElementUid, ProgramStage programStage )
-    {
-        return programStage.getDataElements()
-            .stream()
-            .map( de -> de.getUid() )
-            .anyMatch( de -> de.equals( dataElementUid ) );
-    }
+    private final IssueType issueType;
 }

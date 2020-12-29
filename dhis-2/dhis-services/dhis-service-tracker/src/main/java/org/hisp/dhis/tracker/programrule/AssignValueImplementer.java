@@ -28,10 +28,6 @@
 
 package org.hisp.dhis.tracker.programrule;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -41,6 +37,10 @@ import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @Author Enrico Colasante

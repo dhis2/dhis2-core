@@ -67,7 +67,7 @@ public class SetMandatoryFieldValidator
     }
 
     @Override
-    public Map<String, List<String>> validateEnrollments( TrackerBundle bundle )
+    public Map<String, List<ProgramRuleIssue>> validateEnrollments( TrackerBundle bundle )
     {
         Map<String, List<RuleEffect>> effects = getEffects( bundle.getEnrollmentRuleEffects() );
 
@@ -78,7 +78,7 @@ public class SetMandatoryFieldValidator
     }
 
     @Override
-    public Map<String, List<String>> validateEvents( TrackerBundle bundle )
+    public Map<String, List<ProgramRuleIssue>> validateEvents( TrackerBundle bundle )
     {
         Map<String, List<RuleEffect>> effects = getEffects( bundle.getEventRuleEffects() );
 
@@ -89,13 +89,7 @@ public class SetMandatoryFieldValidator
                     .orElse( Lists.newArrayList() ) ) );
     }
 
-    @Override
-    public boolean isWarning()
-    {
-        return false;
-    }
-
-    private List<String> checkMandatoryTeiAttribute( TrackedEntity tei, List<RuleEffect> effects )
+    private List<ProgramRuleIssue> checkMandatoryTeiAttribute( TrackedEntity tei, List<RuleEffect> effects )
     {
         return effects.stream()
             .map( ruleEffect -> {
@@ -114,23 +108,28 @@ public class SetMandatoryFieldValidator
                 }
             } )
             .filter( e -> !e.isEmpty() )
+            .map( e -> new ProgramRuleIssue( e, IssueType.ERROR ) )
             .collect( Collectors.toList() );
     }
 
-    private List<String> checkMandatoryDataElement( Event event, List<RuleEffect> effects,
+    private List<ProgramRuleIssue> checkMandatoryDataElement( Event event, List<RuleEffect> effects,
         TrackerBundle bundle )
     {
+        ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
+
         List<String> mandatoryDataElements = effects.stream()
             .filter( effect -> ((RuleActionAttribute) effect.ruleAction()).attributeType() ==
                 AttributeType.DATA_ELEMENT )
+            .filter(
+                effect -> isDataElementPartOfProgramStage( ((RuleActionSetMandatoryField) effect.ruleAction()).field(),
+                    programStage ) )
             .map( effect -> ((RuleActionSetMandatoryField) effect.ruleAction()).field() )
             .collect( Collectors.toList() );
 
-        ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
-
         return validateMandatoryDataValue( programStage, event, mandatoryDataElements )
             .stream()
-            .map( e -> TrackerReportUtils.formatMessage( TrackerErrorCode.E1303, e ) )
+            .map( e -> new ProgramRuleIssue( TrackerReportUtils.formatMessage( TrackerErrorCode.E1303, e ),
+                IssueType.ERROR ) )
             .collect( Collectors.toList() );
     }
 

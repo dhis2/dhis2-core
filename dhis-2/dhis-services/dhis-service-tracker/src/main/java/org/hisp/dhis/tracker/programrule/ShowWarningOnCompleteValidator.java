@@ -31,6 +31,8 @@ package org.hisp.dhis.tracker.programrule;
 import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion;
 import org.springframework.stereotype.Component;
 
+import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
+
 /**
  * This implementer show warnings on a completed enrollment or event calculated by Rule
  * Engine.
@@ -54,8 +56,8 @@ public class ShowWarningOnCompleteValidator
     }
 
     @Override
-    public boolean isWarning()
+    public IssueType getIssueType()
     {
-        return true;
+        return WARNING;
     }
 }

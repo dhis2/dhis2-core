@@ -60,8 +60,10 @@ public abstract class ErrorWarningImplementer
 
     public abstract boolean isOnComplete();
 
+    public abstract IssueType getIssueType();
+
     @Override
-    public Map<String, List<String>> validateEnrollments( TrackerBundle bundle )
+    public Map<String, List<ProgramRuleIssue>> validateEnrollments( TrackerBundle bundle )
     {
         Map<String, List<RuleEffect>> effects =
             getEffects( bundle.getEnrollmentRuleEffects() );
@@ -78,7 +80,7 @@ public abstract class ErrorWarningImplementer
                 e -> parseErrors( e.getValue() ) ) );
     }
 
-    private List<String> parseErrors( List<RuleEffect> effects )
+    private List<ProgramRuleIssue> parseErrors( List<RuleEffect> effects )
     {
         return effects
             .stream()
@@ -100,11 +102,12 @@ public abstract class ErrorWarningImplementer
 
                 return stringBuilder.toString();
             } )
+            .map( message -> new ProgramRuleIssue( message, getIssueType() ) )
             .collect( Collectors.toList() );
     }
 
     @Override
-    public Map<String, List<String>> validateEvents( TrackerBundle bundle )
+    public Map<String, List<ProgramRuleIssue>> validateEvents( TrackerBundle bundle )
     {
         Map<String, List<RuleEffect>> effects = getEffects( bundle.getEventRuleEffects() );
 
@@ -126,10 +129,10 @@ public abstract class ErrorWarningImplementer
      * Effects that are linked to a data element shouldn't be applied if the {@link Event} is {@link EventStatus#ACTIVE}
      * and the {@link org.hisp.dhis.program.ValidationStrategy} is {@link org.hisp.dhis.program.ValidationStrategy#ON_COMPLETE}
      */
-    private Map<String, List<String>> filterDataElementEffects( Map<String, List<RuleEffect>> effectsByEvent,
+    private Map<String, List<ProgramRuleIssue>> filterDataElementEffects( Map<String, List<RuleEffect>> effectsByEvent,
         List<Event> events, TrackerPreheat preheat )
     {
-        Map<String, List<String>> filteredEffects = Maps.newHashMap();
+        Map<String, List<ProgramRuleIssue>> filteredEffects = Maps.newHashMap();
 
         for ( Map.Entry<String, List<RuleEffect>> eventWithEffects : effectsByEvent.entrySet() )
         {
@@ -144,6 +147,10 @@ public abstract class ErrorWarningImplementer
                 .filter( effect ->
                     ((RuleActionAttribute) effect.ruleAction()).attributeType() != AttributeType.DATA_ELEMENT ||
                         needsToValidateDataValues )
+                .filter( effect ->
+                    ((RuleActionAttribute) effect.ruleAction()).attributeType() != AttributeType.DATA_ELEMENT ||
+                        isDataElementPartOfProgramStage( ((RuleActionMessage) effect.ruleAction()).field(),
+                            programStage ) )
                 .collect( Collectors.toList() );
 
             if ( !ruleEffectsToValidate.isEmpty() )
