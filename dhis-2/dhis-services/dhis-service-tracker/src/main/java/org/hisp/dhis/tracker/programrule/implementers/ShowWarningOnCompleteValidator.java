@@ -26,9 +26,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.programrule;
+package org.hisp.dhis.tracker.programrule.implementers;
 
+import org.hisp.dhis.rules.models.RuleActionMessage;
 import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion;
+import org.hisp.dhis.tracker.programrule.IssueType;
 import org.springframework.stereotype.Component;
 
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
@@ -41,7 +43,7 @@ import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
  */
 @Component
 public class ShowWarningOnCompleteValidator
-    extends ErrorWarningImplementer
+    extends ErrorWarningImplementer<RuleActionWarningOnCompletion>
 {
     @Override
     public Class<RuleActionWarningOnCompletion> getActionClass()

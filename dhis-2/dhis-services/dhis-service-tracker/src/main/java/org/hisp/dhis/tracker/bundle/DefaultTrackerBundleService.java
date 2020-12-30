@@ -36,6 +36,7 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -48,7 +49,6 @@ import org.hisp.dhis.tracker.bundle.persister.CommitService;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
-import org.hisp.dhis.tracker.programrule.RuleActionApplier;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.sideeffect.SideEffectHandlerService;
@@ -62,6 +62,7 @@ import com.google.common.collect.ImmutableMap;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
+@RequiredArgsConstructor
 public class DefaultTrackerBundleService
     implements TrackerBundleService
 {
@@ -78,14 +79,6 @@ public class DefaultTrackerBundleService
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
 
     private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
-
-    private List<RuleActionApplier> appliers = new ArrayList<>();
-
-    @Autowired( required = false )
-    public void setAppliers( List<RuleActionApplier> appliers )
-    {
-        this.appliers = appliers;
-    }
 
     @Autowired( required = false )
     public void setBundleHooks( List<TrackerBundleHook> bundleHooks )
@@ -125,18 +118,6 @@ public class DefaultTrackerBundleService
             .build();
     }
 
-    public DefaultTrackerBundleService( TrackerPreheatService trackerPreheatService,
-        SessionFactory sessionFactory,
-        TrackerProgramRuleService trackerProgramRuleService,
-        TrackerObjectDeletionService deletionService, CommitService commitService )
-    {
-        this.trackerPreheatService = trackerPreheatService;
-        this.sessionFactory = sessionFactory;
-        this.trackerProgramRuleService = trackerProgramRuleService;
-        this.deletionService = deletionService;
-        this.commitService = commitService;
-    }
-
     @Override
     public TrackerBundle create( TrackerImportParams params )
     {
@@ -157,10 +138,6 @@ public class DefaultTrackerBundleService
         trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
         trackerBundle.setEventRuleEffects( eventRuleEffects );
 
-        for ( RuleActionApplier applier : appliers )
-        {
-            trackerBundle = applier.executeActions( trackerBundle );
-        }
         return trackerBundle;
     }
 
