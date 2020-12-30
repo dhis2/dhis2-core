@@ -44,7 +44,7 @@ public class ProgramRuleEngineListener
 {
     private final ProgramRuleEngineService programRuleEngineService;
 
-    @TransactionalEventListener
+    @TransactionalEventListener( fallbackExecution = true )
     public void onEnrollment( EnrollmentEvaluationEvent event )
     {
         programRuleEngineService.evaluateEnrollmentAndRunEffects( event.getProgramInstance() );

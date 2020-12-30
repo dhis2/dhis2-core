@@ -49,19 +49,19 @@ public class ProgramNotificationListener
 {
     private final ProgramNotificationService programNotificationService;
 
-    @TransactionalEventListener
+    @TransactionalEventListener( fallbackExecution = true )
     public void onEnrollment( ProgramEnrollmentNotificationEvent event )
     {
         programNotificationService.sendEnrollmentNotifications( event.getProgramInstance() );
     }
 
-    @TransactionalEventListener
+    @TransactionalEventListener( fallbackExecution = true )
     public void onCompletion( ProgramEnrollmentCompletionNotificationEvent event )
     {
         programNotificationService.sendEnrollmentCompletionNotifications( event.getProgramInstance() );
     }
 
-    @TransactionalEventListener
+    @TransactionalEventListener( fallbackExecution = true )
     public void onEvent( ProgramStageCompletionNotificationEvent event )
     {
         programNotificationService.sendEventCompletionNotifications( event.getProgramStageInstance() );
