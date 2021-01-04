@@ -68,7 +68,8 @@ public class FlywayConfig
         classicConfiguration.setLocations( new Location( FLYWAY_MIGRATION_FOLDER ) );
         classicConfiguration.setMixed( true );
 
-        return new Flyway( classicConfiguration );
+        return new DhisFlyway( classicConfiguration,
+            Boolean.parseBoolean( configurationProvider.getProperty( FLYWAY_OUT_OF_ORDER_MIGRATION ) ) );
 
     }
 

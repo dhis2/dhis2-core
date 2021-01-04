@@ -87,6 +87,7 @@ public enum ConfigurationKey
     REDIS_ENABLED( "redis.enabled", Constants.FALSE, false ),
     REDIS_USE_SSL( "redis.use.ssl", Constants.FALSE, false ),
     FLYWAY_OUT_OF_ORDER_MIGRATION( "flyway.migrate_out_of_order", Constants.FALSE, false ),
+    FLYWAY_REPAIR_BEFORE_MIGRATION( "flyway.repair_before_migration", Constants.FALSE, false ),
     PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
     ANALYTICS_CACHE_EXPIRATION( "analytics.cache.expiration", "0" ),
