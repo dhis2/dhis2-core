@@ -137,8 +137,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
@@ -2181,14 +2183,14 @@ public abstract class AbstractEventService
                         DateUtils.getDateAfterAddition( referenceDate, program.getCompleteEventsExpiryDays() ) ) )
                     {
                         throw new IllegalQueryException(
-                            "The event's completness date has expired. Not possible to make changes to this event" );
+                            "The event's completeness date has expired. It's not possible to make changes to this event" );
                     }
                 }
             }
 
             PeriodType periodType = program.getExpiryPeriodType();
 
-            if ( periodType != null && program.getExpiryDays() > 0 )
+            if ( periodType != null && program.getExpiryDays() >= 0 )
             {
                 if ( programStageInstance != null )
                 {
@@ -2208,19 +2210,18 @@ public abstract class AbstractEventService
                 }
                 else
                 {
-                    String referenceDate = event.getEventDate() != null ? event.getEventDate()
-                        : event.getDueDate() != null ? event.getDueDate() : null;
+                    Date referenceDate = Stream.of( event.getEventDate(), event.getDueDate())
+                            .filter(Objects::nonNull)
+                            .findFirst()
+                            .map(DateUtils::parseDate)
+                            .orElseThrow(() -> new IllegalQueryException( "Event needs to have at least one (event or schedule) date" ));
 
-                    if ( referenceDate == null )
+                    Period period = periodType.createPeriod( referenceDate );
+                    Date thresholdDate = DateUtils.getDateAfterAddition( period.getEndDate(), program.getExpiryDays());
+
+                    if ( new Date().after( thresholdDate ) )
                     {
-                        throw new IllegalQueryException( "Event needs to have at least one (event or schedule) date" );
-                    }
-
-                    Period period = periodType.createPeriod( new Date() );
-
-                    if ( DateUtils.parseDate( referenceDate ).before( period.getStartDate() ) )
-                    {
-                        throw new IllegalQueryException( "The event's date belongs to an expired period. It is not possble to create such event" );
+                        throw new IllegalQueryException( "The event's date belongs to an expired period. It is not possible to create such event" );
                     }
                 }
             }
