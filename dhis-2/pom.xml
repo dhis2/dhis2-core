@@ -1944,11 +1944,6 @@
         <version>3.4.1.Final</version>
       </dependency>
       <dependency>
-        <groupId>dom4j</groupId>
-        <artifactId>dom4j</artifactId>
-        <version>1.6.1</version>
-      </dependency>
-      <dependency>
         <groupId>org.springframework.restdocs</groupId>
         <artifactId>spring-restdocs-mockmvc</artifactId>
         <version>2.0.4.RELEASE</version>
@@ -1992,12 +1987,6 @@
         <artifactId>mockito-core</artifactId>
         <version>3.4.6</version>
         <scope>test</scope>
-<!--        <exclusions>-->
-<!--          <exclusion>-->
-<!--            <groupId>net.bytebuddy</groupId>-->
-<!--            <artifactId>byte-buddy</artifactId>-->
-<!--          </exclusion>-->
-<!--        </exclusions>-->
       </dependency>
       <dependency>
         <groupId>org.powermock</groupId>
@@ -2140,7 +2129,7 @@
     <spring-data-redis.version>2.3.2.RELEASE</spring-data-redis.version>
     <spring-session-data-redis.version>2.3.0.RELEASE</spring-session-data-redis.version>
     <struts.version>2.5.26</struts.version>
-    <hibernate.version>5.4.26.Final</hibernate.version>
+    <hibernate.version>5.4.27.Final</hibernate.version>
     <hibernate-validator.version>5.0.3.Final</hibernate-validator.version>
     <jclouds.version>2.2.0</jclouds.version>
     <antlr.version>4.7.2</antlr.version>
