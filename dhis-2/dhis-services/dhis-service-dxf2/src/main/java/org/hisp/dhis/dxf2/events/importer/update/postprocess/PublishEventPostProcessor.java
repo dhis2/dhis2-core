@@ -70,9 +70,9 @@ public class PublishEventPostProcessor
 
         if ( !ctx.getImportOptions().isSkipNotifications() && isLinkedWithRuleVariable )
         {
-            ProgramStageInstance programStageInstance = getProgramStageInstance( ctx, event);
+            ProgramStageInstance programStageInstance = getProgramStageInstance( ctx, event );
             ctx.getServiceDelegator().getApplicationEventPublisher().publishEvent(
-                new DataValueUpdatedEvent( this, programStageInstance.getUid() ));
+                new DataValueUpdatedEvent( this, programStageInstance.getUid() ) );
         }
     }
 
