@@ -28,51 +28,29 @@
 
 package org.hisp.dhis.tracker.programrule;
 
-import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author Enrico Colasante
  */
-public interface RuleActionImplementer<T>
+public interface RuleActionImplementer
 {
     /**
-     * @return the class of the action that the implementer work with
+     * Get the validation for enrollment evaluated by rule engine
+     *
+     * @param bundle
+     * @return A map of enrollment and list of issues
      */
-    Class<T> getActionClass();
+    Map<String, List<ProgramRuleIssue>> validateEnrollments( TrackerBundle bundle );
 
     /**
-     * Filter the actions by the action class of the implementer
+     * Get the validation for event evaluated by rule engine
      *
-     * @param effects a map of enrollments/events and effects
-     * @return the same map with the actions in the effects filtered
+     * @param bundle
+     * @return A map of events and list of issues
      */
-    default Map<String, List<RuleEffect>> getEffects( Map<String, List<RuleEffect>> effects )
-    {
-        return effects
-            .entrySet()
-            .stream()
-            .collect( Collectors.toMap( e -> e.getKey(),
-                e -> e.getValue()
-                    .stream()
-                    .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
-                    .collect( Collectors.toList() ) ) );
-    }
-
-    /**
-     * Filter the actions by the action class of the implementer
-     *
-     * @param effects a map of enrollments/events and effects
-     * @return the same map with the actions in the effects filtered
-     */
-    default List<RuleEffect> getEffects( List<RuleEffect> effects )
-    {
-        return effects
-            .stream()
-            .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
-            .collect( Collectors.toList() );
-    }
+    Map<String, List<ProgramRuleIssue>> validateEvents( TrackerBundle bundle );
 }

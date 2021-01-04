@@ -1,3 +1,5 @@
+package org.hisp.dhis.tracker.programrule;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,37 +28,43 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.programrule;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.rules.models.AttributeType;
+import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.DataValue;
+import org.hisp.dhis.tracker.domain.Enrollment;
 
-import org.hisp.dhis.rules.models.RuleActionShowWarning;
-import org.springframework.stereotype.Component;
+import java.util.Optional;
 
-import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
-
-/**
- * This implementer show warnings calculated by Rule Engine.
- *
- * @Author Enrico Colasante
- */
-@Component
-public class ShowWarningValidator
-    extends ErrorWarningImplementer
+@Getter
+@RequiredArgsConstructor
+@AllArgsConstructor
+public class EnrollmentActionRule
+    implements ActionRule
 {
-    @Override
-    public Class<RuleActionShowWarning> getActionClass()
-    {
-        return RuleActionShowWarning.class;
-    }
+    private final Enrollment enrollment;
 
-    @Override
-    public boolean isOnComplete()
-    {
-        return false;
-    }
+    private final String data;
 
-    @Override
-    public IssueType getIssueType()
+    private final String field;
+
+    private final AttributeType attributeType;
+
+    private String content;
+
+    public Optional<Attribute> getAttribute()
     {
-        return WARNING;
+        if ( attributeType.equals( AttributeType.TRACKED_ENTITY_ATTRIBUTE ) )
+        {
+            return enrollment.getAttributes()
+                .stream()
+                .filter( at -> at.getAttribute().equals( field ) )
+                .findAny();
+        }
+
+        return Optional.empty();
+
     }
 }

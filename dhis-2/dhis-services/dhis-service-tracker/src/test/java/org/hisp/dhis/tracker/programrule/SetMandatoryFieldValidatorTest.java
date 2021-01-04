@@ -39,14 +39,13 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.DataValue;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.EnrollmentStatus;
-import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.programrule.implementers.SetMandatoryFieldValidator;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerReportUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -57,7 +56,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
@@ -86,13 +84,13 @@ public class SetMandatoryFieldValidatorTest
 
     private final static String DATA_ELEMENT_ID = "DataElementId";
 
-    private TrackerBundle bundle;
+    private final static String ATTRIBUTE_ID = "AttributeId";
 
-    private final static String DATA_ELEMENT_OLD_VALUE = "1.0";
+    private final static String TEI_ID = "TeiId";
 
-    private final static String DATA_ELEMENT_NEW_VALUE = "23.0";
+    private final static String DATA_ELEMENT_VALUE = "1.0";
 
-    private final static String TEI_ATTRIBUTE_NEW_VALUE = "24.0";
+    private final static String ATTRIBUTE_VALUE = "23.0";
 
     private static ProgramStage firstProgramStage;
 
@@ -103,6 +101,8 @@ public class SetMandatoryFieldValidatorTest
     private static DataElement dataElementB;
 
     private SetMandatoryFieldValidator implementerToTest = new SetMandatoryFieldValidator();
+
+    private TrackerBundle bundle;
 
     @Mock
     private TrackerPreheat preheat;
@@ -130,7 +130,6 @@ public class SetMandatoryFieldValidatorTest
         when( preheat.get( ProgramStage.class, secondProgramStage.getUid() ) ).thenReturn( secondProgramStage );
 
         bundle = new TrackerBundle();
-        bundle.setEnrollments( getEnrollments() );
         bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects() );
         bundle.setEventRuleEffects( getRuleEventEffects() );
         bundle.setPreheat( preheat );
@@ -142,10 +141,7 @@ public class SetMandatoryFieldValidatorTest
         bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet() ) );
         Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
 
-        assertFalse( errors.isEmpty() );
-
-        errors.entrySet()
-            .forEach( e -> assertTrue( e.getValue().isEmpty() ) );
+        assertTrue( errors.isEmpty() );
     }
 
     @Test
@@ -180,10 +176,44 @@ public class SetMandatoryFieldValidatorTest
             getEventWithMandatoryValueNOTSetInDifferentProgramStage() ) );
         Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
 
+        assertTrue( errors.isEmpty() );
+    }
+
+    @Test
+    public void testValidateOkMandatoryFieldsForEnrollment()
+    {
+        bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet() ) );
+        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
+
+        assertTrue( errors.isEmpty() );
+    }
+
+    @Test
+    @Ignore // TODO: fix the logic in the implementer
+    public void testValidateWithErrorMandatoryFieldsForEnrollments()
+    {
+        bundle.setEnrollments(
+            Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet(),
+                getEnrollmentWithMandatoryAttributeNOTSet() ) );
+        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEnrollments( bundle );
+
         assertFalse( errors.isEmpty() );
 
-        errors.entrySet()
-            .forEach( e -> assertTrue( e.getValue().isEmpty() ) );
+        List<ProgramRuleIssue> errorMessages = errors.values()
+            .stream()
+            .flatMap( Collection::stream )
+            .collect( Collectors.toList() );
+
+        assertFalse( errorMessages.isEmpty() );
+
+        boolean isErrorMessageCorrect =
+            errorMessages
+                .stream()
+                .allMatch(
+                    e -> e.getMessage()
+                        .equals( TrackerReportUtils.formatMessage( TrackerErrorCode.E1306, ATTRIBUTE_ID ) ) );
+
+        assertTrue( isErrorMessageCorrect );
     }
 
     private Event getEventWithMandatoryValueSet()
@@ -223,24 +253,40 @@ public class SetMandatoryFieldValidatorTest
     private Set<DataValue> getActiveEventDataValues()
     {
         DataValue dataValue = new DataValue();
-        dataValue.setValue( DATA_ELEMENT_OLD_VALUE );
+        dataValue.setValue( DATA_ELEMENT_VALUE );
         dataValue.setDataElement( dataElementA.getUid() );
         return Sets.newHashSet( dataValue );
     }
 
-    private List<Enrollment> getEnrollments()
+    private Enrollment getEnrollmentWithMandatoryAttributeSet()
     {
-        Enrollment activeEnrollment = new Enrollment();
-        activeEnrollment.setUid( ACTIVE_ENROLLMENT_ID );
-        activeEnrollment.setEnrollment( ACTIVE_ENROLLMENT_ID );
-        activeEnrollment.setStatus( EnrollmentStatus.ACTIVE );
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( ACTIVE_ENROLLMENT_ID );
+        enrollment.setEnrollment( ACTIVE_ENROLLMENT_ID );
+        enrollment.setTrackedEntity( TEI_ID );
+        enrollment.setStatus( EnrollmentStatus.ACTIVE );
+        enrollment.setAttributes( getAttributes() );
 
-        Enrollment completedEnrollment = new Enrollment();
-        completedEnrollment.setUid( COMPLETED_ENROLLMENT_ID );
-        completedEnrollment.setEnrollment( COMPLETED_ENROLLMENT_ID );
-        completedEnrollment.setStatus( EnrollmentStatus.COMPLETED );
+        return enrollment;
+    }
 
-        return Lists.newArrayList( activeEnrollment, completedEnrollment );
+    private Enrollment getEnrollmentWithMandatoryAttributeNOTSet()
+    {
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( COMPLETED_ENROLLMENT_ID );
+        enrollment.setEnrollment( COMPLETED_ENROLLMENT_ID );
+        enrollment.setTrackedEntity( TEI_ID );
+        enrollment.setStatus( EnrollmentStatus.COMPLETED );
+
+        return enrollment;
+    }
+
+    private List<Attribute> getAttributes()
+    {
+        Attribute attribute = new Attribute();
+        attribute.setAttribute( ATTRIBUTE_ID );
+        attribute.setValue( ATTRIBUTE_VALUE );
+        return Lists.newArrayList( attribute );
     }
 
     private Map<String, List<RuleEffect>> getRuleEventEffectsLinkedToDataElement()

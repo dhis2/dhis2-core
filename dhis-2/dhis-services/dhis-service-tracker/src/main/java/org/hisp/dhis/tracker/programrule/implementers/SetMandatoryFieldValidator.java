@@ -26,20 +26,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.programrule;
+package org.hisp.dhis.tracker.programrule.implementers;
 
 import com.google.api.client.util.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.rules.models.AttributeType;
-import org.hisp.dhis.rules.models.RuleActionAttribute;
-import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
-import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
-import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.programrule.*;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerReportUtils;
 import org.springframework.stereotype.Component;
@@ -58,49 +55,49 @@ import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMan
  */
 @Component
 public class SetMandatoryFieldValidator
-    implements RuleActionValidator
+    extends AbstractRuleActionImplementer<RuleActionSetMandatoryField>
+    implements RuleActionImplementer
 {
     @Override
-    public Class<?> getActionClass()
+    public Class<RuleActionSetMandatoryField> getActionClass()
     {
         return RuleActionSetMandatoryField.class;
     }
 
     @Override
-    public Map<String, List<ProgramRuleIssue>> validateEnrollments( TrackerBundle bundle )
+    public String getField( RuleActionSetMandatoryField ruleAction )
     {
-        Map<String, List<RuleEffect>> effects = getEffects( bundle.getEnrollmentRuleEffects() );
-
-        return effects.entrySet().stream()
-            .collect( Collectors.toMap( Map.Entry::getKey,
-                e -> getTrackedEntityFromEnrollment( bundle, e.getKey() )
-                    .map( tei -> checkMandatoryTeiAttribute( tei, e.getValue() ) ).orElse( Lists.newArrayList() ) ) );
+        return ruleAction.field();
     }
 
     @Override
-    public Map<String, List<ProgramRuleIssue>> validateEvents( TrackerBundle bundle )
+    List<ProgramRuleIssue> applyToEvents( Map.Entry<String, List<EventActionRule>> eventClasses, TrackerBundle bundle )
     {
-        Map<String, List<RuleEffect>> effects = getEffects( bundle.getEventRuleEffects() );
-
-        return effects.entrySet().stream()
-            .collect( Collectors.toMap( Map.Entry::getKey,
-                e -> getEvent( bundle, e.getKey() )
-                    .map( event -> checkMandatoryDataElement( event, e.getValue(), bundle ) )
-                    .orElse( Lists.newArrayList() ) ) );
+        return checkMandatoryDataElement( getEvent( bundle, eventClasses.getKey() ).get(), eventClasses.getValue(),
+            bundle );
     }
 
-    private List<ProgramRuleIssue> checkMandatoryTeiAttribute( TrackedEntity tei, List<RuleEffect> effects )
+    @Override
+        // TODO: review this logic. Check with Giuseppe
+    List<ProgramRuleIssue> applyToEnrollments( Map.Entry<String, List<EnrollmentActionRule>> enrollmentActionRules,
+        TrackerBundle bundle )
+    {
+        return getTrackedEntityFromEnrollment( bundle, enrollmentActionRules.getKey() )
+            .map( tei -> checkMandatoryTeiAttribute( tei, enrollmentActionRules.getValue() ) )
+            .orElse( Lists.newArrayList() );
+    }
+
+    private List<ProgramRuleIssue> checkMandatoryTeiAttribute( TrackedEntity tei, List<EnrollmentActionRule> effects )
     {
         return effects.stream()
-            .map( ruleEffect -> {
-                RuleActionSetMandatoryField action = (RuleActionSetMandatoryField) ruleEffect.ruleAction();
-                String teiAttributeUid = action.field();
+            .map( action -> {
+                String teiAttributeUid = action.getField();
                 Optional<Attribute> any = tei.getAttributes().stream()
                     .filter( teiAttribute -> teiAttribute.getAttribute().equals( teiAttributeUid ) )
                     .findAny();
                 if ( any.isPresent() && StringUtils.isEmpty( any.get().getValue() ) )
                 {
-                    return "TEI Attribute " + teiAttributeUid + " is missing for tei " + tei.getTrackedEntity();
+                    return TrackerReportUtils.formatMessage( TrackerErrorCode.E1306, teiAttributeUid );
                 }
                 else
                 {
@@ -112,18 +109,14 @@ public class SetMandatoryFieldValidator
             .collect( Collectors.toList() );
     }
 
-    private List<ProgramRuleIssue> checkMandatoryDataElement( Event event, List<RuleEffect> effects,
+    private List<ProgramRuleIssue> checkMandatoryDataElement( Event event, List<EventActionRule> actionRules,
         TrackerBundle bundle )
     {
         ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
 
-        List<String> mandatoryDataElements = effects.stream()
-            .filter( effect -> ((RuleActionAttribute) effect.ruleAction()).attributeType() ==
-                AttributeType.DATA_ELEMENT )
-            .filter(
-                effect -> isDataElementPartOfProgramStage( ((RuleActionSetMandatoryField) effect.ruleAction()).field(),
-                    programStage ) )
-            .map( effect -> ((RuleActionSetMandatoryField) effect.ruleAction()).field() )
+        List<String> mandatoryDataElements = actionRules.stream()
+            .filter( eventActionRule -> eventActionRule.getAttributeType() == AttributeType.DATA_ELEMENT )
+            .map( EventActionRule::getField )
             .collect( Collectors.toList() );
 
         return validateMandatoryDataValue( programStage, event, mandatoryDataElements )
@@ -131,31 +124,5 @@ public class SetMandatoryFieldValidator
             .map( e -> new ProgramRuleIssue( TrackerReportUtils.formatMessage( TrackerErrorCode.E1303, e ),
                 IssueType.ERROR ) )
             .collect( Collectors.toList() );
-    }
-
-    private Optional<Event> getEvent( TrackerBundle bundle, String eventUid )
-    {
-        return bundle.getEvents()
-            .stream()
-            .filter( e -> e.getEvent().equals( eventUid ) )
-            .findAny();
-    }
-
-    private Optional<TrackedEntity> getTrackedEntity( TrackerBundle bundle, String teiUid )
-    {
-        return bundle.getTrackedEntities()
-            .stream()
-            .filter( e -> e.getTrackedEntity().equals( teiUid ) )
-            .findAny();
-    }
-
-    private Optional<TrackedEntity> getTrackedEntityFromEnrollment( TrackerBundle bundle, String enrollmentUid )
-    {
-        return bundle.getEnrollments()
-            .stream()
-            .filter( e -> e.getEnrollment().equals( enrollmentUid ) )
-            .map( Enrollment::getTrackedEntity )
-            .findAny()
-            .flatMap( tei -> getTrackedEntity( bundle, tei ) );
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat.supplier;
+package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,55 +28,24 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.preheat.DetachUtils;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.preheat.mappers.TrackedEntityTypeMapper;
 import org.springframework.stereotype.Component;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
 /**
  * @author Luciano Fiandesio
  */
-@RequiredArgsConstructor
 @Component
-public class TrackedEntityTypeSupplier
-    extends AbstractPreheatSupplier
+@StrategyFor( value = TrackedEntityType.class, mapper = TrackedEntityTypeMapper.class, cache = true, ttl = 10 )
+public class TrackedEntityTypeStrategy extends AbstractSchemaStrategy
 {
-
-    @NonNull
-    private final IdentifiableObjectManager manager;
-
-    @NonNull
-    private final PreheatCacheService cache;
-
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
+    public TrackedEntityTypeStrategy( SchemaService schemaService, QueryService queryService,
+        IdentifiableObjectManager manager, PreheatCacheService cacheService )
     {
-        preheat.put( TrackerIdentifier.UID,
-            DetachUtils.detach( TrackedEntityTypeMapper.INSTANCE, manager.getAll( TrackedEntityType.class ) ) );
-
-        if ( cache.hasKey( TrackedEntityType.class.getName() ) )
-        {
-            addToPreheat( preheat, cache.getAll( TrackedEntityType.class.getName() ).stream()
-                .map( (rt -> (TrackedEntityType) rt) ).collect( Collectors.toList() ) );
-        }
-        else
-        {
-            final List<TrackedEntityType> trackedEntityTypes = DetachUtils.detach( TrackedEntityTypeMapper.INSTANCE,
-                manager.getAll( TrackedEntityType.class ) );
-
-            addToPreheat( preheat, trackedEntityTypes );
-            addToCache( cache, trackedEntityTypes );
-        }
+        super( schemaService, queryService, manager, cacheService );
     }
 }

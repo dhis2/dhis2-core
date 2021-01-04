@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat.supplier;
-
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,48 +26,38 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.stream.Collectors;
+package org.hisp.dhis.tracker.programrule.implementers;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.preheat.DetachUtils;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.hisp.dhis.tracker.preheat.mappers.RelationshipTypeMapper;
+import org.hisp.dhis.rules.models.RuleActionShowError;
+import org.hisp.dhis.tracker.programrule.IssueType;
 import org.springframework.stereotype.Component;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 
 /**
- * @author Luciano Fiandesio
+ * This implementer show errors calculated by Rule Engine.
+ *
+ * @Author Enrico Colasante
  */
-@RequiredArgsConstructor
 @Component
-public class RelationshipTypeSupplier extends AbstractPreheatSupplier
+public class ShowErrorValidator
+    extends ErrorWarningImplementer<RuleActionShowError>
 {
-    @NonNull
-    private final IdentifiableObjectManager manager;
-
-    @NonNull
-    private final PreheatCacheService cache;
+    @Override
+    public Class<RuleActionShowError> getActionClass()
+    {
+        return RuleActionShowError.class;
+    }
 
     @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
+    public boolean isOnComplete()
     {
-        if ( cache.hasKey( RelationshipType.class.getName() ) )
-        {
-            addToPreheat( preheat, cache.getAll( RelationshipType.class.getName() ).stream()
-                .map( (rt -> (RelationshipType) rt) ).collect( Collectors.toList() ) );
-        }
-        else
-        {
-            final List<RelationshipType> relationshipTypes = manager.getAll( RelationshipType.class );
+        return false;
+    }
 
-            addToPreheat( preheat, DetachUtils.detach( RelationshipTypeMapper.INSTANCE, relationshipTypes ) );
-            addToCache( cache, relationshipTypes );
-        }
+    @Override
+    public IssueType getIssueType()
+    {
+        return ERROR;
     }
 }
