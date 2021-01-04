@@ -43,6 +43,7 @@ import javax.sql.DataSource;
 import java.util.HashMap;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.FLYWAY_OUT_OF_ORDER_MIGRATION;
+import static org.hisp.dhis.external.conf.ConfigurationKey.FLYWAY_REPAIR_BEFORE_MIGRATION;
 
 /**
  * @author Luciano Fiandesio
@@ -76,7 +77,8 @@ public class FlywayConfig
         placeHolders.put( "encryption.password", configurationProvider.getProperty( ConfigurationKey.ENCRYPTION_PASSWORD ) );
         classicConfiguration.setPlaceholders( placeHolders );
 
-        return new Flyway( classicConfiguration );
+        return new DhisFlyway( classicConfiguration,
+            Boolean.parseBoolean( configurationProvider.getProperty( FLYWAY_REPAIR_BEFORE_MIGRATION ) ) );
 
     }
 
