@@ -37,8 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -51,15 +50,13 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-@Category( IntegrationTest.class )
-public class GmlImportServiceTest extends IntegrationTestBase
+public class GmlImportServiceTest extends TransactionalIntegrationTest
 {
     private InputStream inputStream;
 
@@ -70,12 +67,6 @@ public class GmlImportServiceTest extends IntegrationTestBase
     private ImportOptions importOptions;
 
     private JobConfiguration id;
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 
     // -------------------------------------------------------------------------
     // Dependencies

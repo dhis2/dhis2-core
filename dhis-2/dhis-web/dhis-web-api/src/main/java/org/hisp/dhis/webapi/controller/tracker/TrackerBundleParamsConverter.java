@@ -286,7 +286,8 @@ public class TrackerBundleParamsConverter
     {
         event.setEvent( updateReference( event.getEvent() ) );
         event.setEnrollment( StringUtils.isEmpty( enrollment ) ? null : enrollment );
-        event.setTrackedEntity( StringUtils.isEmpty( trackedEntity ) ? null : trackedEntity  );
+        event.setEnrollment( StringUtils.isEmpty( enrollment ) ? null : enrollment );
+        event.setTrackedEntity( StringUtils.isEmpty( trackedEntity ) ? null : trackedEntity );
     }
 
     /**

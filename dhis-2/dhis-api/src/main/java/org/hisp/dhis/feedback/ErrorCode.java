@@ -44,7 +44,7 @@ package org.hisp.dhis.feedback;
  */
 public enum ErrorCode
 {
-    /* Miscellaneous */
+    /* General */
     E1000( "API query must be specified" ),
     E1001( "API query contains an illegal string" ),
     E1002( "API version is invalid" ),
@@ -68,6 +68,16 @@ public enum ErrorCode
     E2015( "Unable to parse order param: `{0}`" ),
     E2016( "Unable to parse element `{0}` on filter `{1}`. The values available are: {2}" ),
 
+    /* Outlier detection */
+    E2200( "At least one data element must be specified" ),
+    E2201( "Start date and end date must be specified" ),
+    E2202( "Start date must be before end date" ),
+    E2203( "At least one organisation unit must be specified" ),
+    E2204( "Threshold must be a positive number" ),
+    E2205( "Max results must be a positive number" ),
+    E2206( "Max results exceeds the allowed max limit: `{0}`" ),
+    E2207( "Non-numeric data values encountered during outlier value detection" ),
+
     /* Security */
     E3000( "User `{0}` is not allowed to create objects of type {1}." ),
     E3001( "User `{0}` is not allowed to update object `{1}`." ),
@@ -80,7 +90,14 @@ public enum ErrorCode
     E3009( "User `{0}` is not allowed to make private objects of type `{1}`." ),
     E3010( "Invalid access string `{0}`." ),
     E3011( "Data sharing is not enabled for type `{0}`, but one or more access strings contains data sharing read or write." ),
-    E3012( "User `{0}` does not have read access for object {1}." ),
+    E3012( "User `{0}` does not have read access for object `{1}`." ),
+    E3013( "Sharing settings of system default metadata object of type `{0}` cannot be modified."),
+    E3014( "You do not have manage access to this object." ),
+    E3015( "Invalid public access string: `{0}`" ),
+    E3016( "Data sharing is not enabled for this object" ),
+    E3017( "Invalid user group access string: `{0}`" ),
+    E3018( "Invalid user access string: `{0}`" ),
+
 
     /* Metadata Validation */
     E4000( "Missing required property `{0}`." ),
@@ -159,7 +176,7 @@ public enum ErrorCode
     E7007( "Failed to add/update job configuration - Delay must be not null for jobs with scheduling type FIXED_DELAY: `{0}`" ),
     E7010( "Failed to validate job runtime - `{0}`" ),
 
-    /* Aggregete analytics */
+    /* Aggregate analytics */
     E7100( "Query parameters cannot be null" ),
     E7101( "At least one dimension must be specified" ),
     E7102( "At least one data dimension item or data element group set dimension item must be specified" ),

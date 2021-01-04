@@ -29,7 +29,6 @@ package org.hisp.dhis.dataapproval;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -37,11 +36,11 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.category.hibernate.HibernateCategoryOptionGroupStore;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
-import org.hisp.dhis.category.hibernate.HibernateCategoryOptionGroupStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.mock.MockCurrentUserService;
@@ -52,20 +51,38 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.*;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupAccessService;
+import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Jim Grace
  */
-@Category( IntegrationTest.class )
+@Ignore
 public class DataApprovalServiceCategoryOptionGroupTest
     extends IntegrationTestBase
 {
@@ -236,6 +253,11 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
         userGroupService.addUserGroup( userGroup );
 
+        users.forEach( user ->{
+            user.getGroups().add( userGroup );
+            userService.updateUser( user );
+        } );
+
         return userGroup;
     }
 
@@ -253,20 +275,14 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
     private void setPrivateAccess( BaseIdentifiableObject object, UserGroup... userGroups )
     {
-        object.setPublicAccess( ACCESS_NONE );
-        object.setUser( userA ); // Needed for sharing to work
-
+        object.getSharing().setPublicAccess( ACCESS_NONE );
+//        object.getSharing().setOwner( userA ); // Needed for sharing to work
+//        object.setUser( userA );
+        object.getSharing().resetUserGroupAccesses();
+        object.getSharing().resetUserAccesses();
         for ( UserGroup group : userGroups )
         {
-            UserGroupAccess userGroupAccess = new UserGroupAccess();
-
-            userGroupAccess.setAccess( ACCESS_READ );
-
-            userGroupAccess.setUserGroup( group );
-
-            userGroupAccessService.addUserGroupAccess( userGroupAccess );
-
-            object.getUserGroupAccesses().add( userGroupAccess );
+            object.getSharing().addUserGroupAccess(  new UserGroupAccess( group, ACCESS_READ ) );
         }
 
         identifiableObjectManager.updateNoAcl( object );
@@ -524,12 +540,6 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
         systemSettingManager.saveSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD, 0 );
         systemSettingManager.saveSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, true );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 
     @Override

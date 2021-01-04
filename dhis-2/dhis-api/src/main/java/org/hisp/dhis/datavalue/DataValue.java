@@ -93,7 +93,7 @@ public class DataValue
     private String comment;
 
     private Boolean followup;
-    
+
     private boolean deleted;
 
     // -------------------------------------------------------------------------
@@ -123,8 +123,8 @@ public class DataValue
      * @param categoryOptionCombo  the category option combo.
      * @param attributeOptionCombo the attribute option combo.
      */
-    public DataValue(DataElement dataElement, Period period, OrganisationUnit source,
-                     CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
+    public DataValue( DataElement dataElement, Period period, OrganisationUnit source,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
     {
         this.dataElement = dataElement;
         this.period = period;
@@ -199,7 +199,10 @@ public class DataValue
      */
     public boolean isZero()
     {
-        return dataElement != null && dataElement.getValueType().isNumeric() && value != null && ZERO_PATTERN.matcher( value ).find();
+        return dataElement != null &&
+            dataElement.getValueType().isNumeric() &&
+            value != null &&
+            ZERO_PATTERN.matcher( value ).find();
     }
 
     /**
@@ -214,7 +217,7 @@ public class DataValue
     {
         return followup != null && followup;
     }
-    
+
     public boolean hasComment()
     {
         return comment != null && !comment.isEmpty();
@@ -242,7 +245,7 @@ public class DataValue
         this.followup = other.isFollowup();
         this.deleted = other.isDeleted();
     }
-    
+
     // -------------------------------------------------------------------------
     // hashCode and equals
     // -------------------------------------------------------------------------
@@ -297,7 +300,7 @@ public class DataValue
             ", period: " + period.getUid() +
             ", source: " + source.getUid() +
             ", category option combo: " + categoryOptionCombo.getUid() +
-            ", attribute option combo: " + attributeOptionCombo.getUid() + 
+            ", attribute option combo: " + attributeOptionCombo.getUid() +
             ", value: " + value +
             ", deleted: " + deleted + "]";
     }

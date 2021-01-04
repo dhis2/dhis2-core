@@ -28,13 +28,15 @@ package org.hisp.dhis.dxf2.metadata.attribute;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
@@ -49,7 +51,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 
 public class AttributeValueImportTest
-    extends IntegrationTestBase
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private RenderService renderService;
@@ -70,7 +72,8 @@ public class AttributeValueImportTest
         params.setImportStrategy( ImportStrategy.CREATE );
         params.setObjects( attributes );
 
-        importService.importMetadata( params );
+        final ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> dataSets = renderService.fromMetadata(
             new ClassPathResource( "attribute/dataSet.json" ).getInputStream(), RenderFormat.JSON );
@@ -80,7 +83,9 @@ public class AttributeValueImportTest
         params.setImportStrategy( ImportStrategy.CREATE );
         params.setObjects( dataSets );
 
-        importService.importMetadata( params );
+        final ImportReport importReport = importService.importMetadata( params );
+        assertEquals( Status.OK, importReport.getStatus() );
+
         manager.flush();
 
         DataSet dataSet = manager.get( DataSet.class, "sPnR8BCInMV" );
@@ -95,7 +100,8 @@ public class AttributeValueImportTest
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.setObjects( attributesUpdate );
 
-        importService.importMetadata( params );
+        final ImportReport importReport1 = importService.importMetadata( params );
+        assertEquals( Status.OK, importReport1.getStatus() );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> dataSetUpdate = renderService.fromMetadata(
             new ClassPathResource( "attribute/dataSet_update.json" ).getInputStream(), RenderFormat.JSON );
@@ -105,16 +111,11 @@ public class AttributeValueImportTest
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.setObjects( dataSetUpdate );
 
-        importService.importMetadata( params );
+        final ImportReport importReport2 = importService.importMetadata( params );
+        assertEquals( Status.OK, importReport2.getStatus() );
 
         DataSet updatedDataSet = manager.get( DataSet.class, "sPnR8BCInMV" );
 
         assertEquals( "false", updatedDataSet.getAttributeValue( "PtyV6lLcmol" ).getValue() );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }

@@ -42,11 +42,18 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.util.ObjectUtils;
 
+import static java.text.MessageFormat.*;
+
 /**
  * @author Luciano Fiandesio
  */
 public class TrackerReportUtils
 {
+    public static String formatMessage( TrackerErrorCode errorCode, String... arguments )
+    {
+        return format( errorCode.getMessage(), arguments );
+    }
+
     protected static List<String> buildArgumentList( TrackerBundle bundle, List<Object> arguments )
     {
         final TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( bundle.getIdentifier() ).build();

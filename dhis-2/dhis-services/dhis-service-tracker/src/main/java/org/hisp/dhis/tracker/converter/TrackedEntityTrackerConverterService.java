@@ -33,7 +33,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -101,9 +100,9 @@ public class TrackedEntityTrackerConverterService
 
     private TrackedEntityInstance from( TrackerPreheat preheat, TrackedEntity te, TrackedEntityInstance tei )
     {
-        OrganisationUnit organisationUnit = preheat.get( TrackerIdScheme.UID, OrganisationUnit.class,
+        OrganisationUnit organisationUnit = preheat.get( OrganisationUnit.class,
             te.getOrgUnit() );
-        TrackedEntityType trackedEntityType = preheat.get( TrackerIdScheme.UID, TrackedEntityType.class,
+        TrackedEntityType trackedEntityType = preheat.get( TrackedEntityType.class,
             te.getTrackedEntityType() );
 
         if ( isNewEntity( tei ) )

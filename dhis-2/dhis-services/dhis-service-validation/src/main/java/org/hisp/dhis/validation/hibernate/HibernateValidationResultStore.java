@@ -32,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +47,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultStore;
 import org.hisp.dhis.validation.ValidationRule;
@@ -251,10 +253,26 @@ public class HibernateValidationResultStore
      */
     private String isReadable( String x, User u )
     {
-        return "( " + x + ".publicAccess is null" +
-            " or substring(" + x + ".publicAccess, 0, 1) = 'r'" +
-            " or " + x + ".user is not null and " + x + ".user.id = " + u.getId() +
-            " or exists (select 'x' from UserGroupAccess a join a.userGroup.members u" +
-            " where a in elements(" + x + ".userGroupAccesses) and u.id = " + u.getId() + ") )";
+        String groupUids = null;
+
+        if ( !u.getGroups().isEmpty() )
+        {
+            Set<String> groups = u.getGroups().stream().map( group -> group.getUid() ).collect( Collectors.toSet() );
+            groupUids = "{" + String.join( ",", groups ) + "}";
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append( "( function('jsonb_extract_path_text'," + x + ".sharing, 'public') is null" +
+            " or function('jsonb_extract_path_text'," + x + ".sharing, 'public') like 'r%'" +
+            " or   function('jsonb_extract_path_text'," + x + ".sharing, 'owner')= '" + u.getUid() +"'" );
+
+        if ( groupUids != null )
+        {
+            builder.append( " or function('jsonb_has_user_group_ids'," + x + ".sharing, '" + groupUids + "') = true and function('jsonb_check_user_groups_access'," + x + ".sharing, 'r%', '" + groupUids + "') = true" );
+        }
+
+        builder.append( " )  " );
+
+        return builder.toString();
     }
 }

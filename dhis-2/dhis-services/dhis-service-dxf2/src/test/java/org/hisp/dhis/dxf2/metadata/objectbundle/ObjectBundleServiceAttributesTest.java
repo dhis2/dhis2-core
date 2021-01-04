@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -62,14 +61,12 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Category( IntegrationTest.class )
 public class ObjectBundleServiceAttributesTest
     extends IntegrationTestBase
 {
@@ -113,7 +110,11 @@ public class ObjectBundleServiceAttributesTest
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         assertTrue( validationReport.getErrorReports().isEmpty() );
 
-        objectBundleService.commit( bundle );
+        transactionTemplate.execute( status -> {
+            objectBundleService.commit( bundle );
+
+            return null;
+        } );
 
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );
@@ -282,11 +283,5 @@ public class ObjectBundleServiceAttributesTest
 
         User user = createUser( 'A' );
         manager.save( user );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }

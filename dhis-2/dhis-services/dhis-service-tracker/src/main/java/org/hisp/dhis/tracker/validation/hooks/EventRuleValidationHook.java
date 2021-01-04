@@ -28,20 +28,19 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningReport;
-
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.programrule.RuleActionValidator;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.addIssuesToReporter;
 
 /**
  * @author Enrico Colasante
@@ -63,22 +62,13 @@ public class EventRuleValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        validators
+        List<ProgramRuleIssue> programRuleIssues = validators
             .stream()
-            .filter( v -> !v.isWarning() )
-            .flatMap( v -> {
-                List<String> errors = v.validateEvents( context.getBundle() ).get( event.getEvent() );
-                return errors != null ? errors.stream() : Lists.newArrayList().stream();
-            } )
-            .forEach( e -> reporter.addError( newReport( TrackerErrorCode.E1200 ).addArg( e ) ) );
+            .flatMap(
+                v -> v.validateEvents( context.getBundle() )
+                    .getOrDefault( event.getEvent(), Lists.newArrayList() ).stream() )
+            .collect( Collectors.toList() );
 
-        validators
-            .stream()
-            .filter( RuleActionValidator::isWarning )
-            .flatMap( v -> {
-                List<String> warnings = v.validateEvents( context.getBundle() ).get( event.getEvent() );
-                return warnings != null ? warnings.stream() : Lists.newArrayList().stream();
-            } )
-            .forEach( e -> reporter.addWarning( newWarningReport( TrackerErrorCode.E1200 ).addArg( e ) ) );
+        addIssuesToReporter( reporter, programRuleIssues );
     }
 }

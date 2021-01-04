@@ -28,6 +28,7 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
 
@@ -57,6 +58,7 @@ import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.io.IOException;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -413,7 +415,7 @@ public class HibernateGenericStore<T>
     @Override
     public void delete( T object )
     {
-        if ( !ObjectDeletionRequestedEvent.shouldSkip( object.getClass() ) )
+        if ( !ObjectDeletionRequestedEvent.shouldSkip( HibernateProxyUtils.getRealClass( object ) ) )
         {
             publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
         }
@@ -494,7 +496,7 @@ public class HibernateGenericStore<T>
 
         List<String> result = getSession().createQuery( query ).list();
 
-        return JsonAttributeValueBinaryType.convertListJsonToListObject( result );
+        return convertListJsonToListObject( JsonAttributeValueBinaryType.MAPPER, result, AttributeValue.class );
     }
 
     @Override
@@ -576,7 +578,7 @@ public class HibernateGenericStore<T>
 
         List<String> result = getSession().createQuery( query ).list();
 
-        return JsonAttributeValueBinaryType.convertListJsonToListObject( result );
+        return convertListJsonToListObject( JsonAttributeValueBinaryType.MAPPER, result , AttributeValue.class );
     }
 
     @Override
@@ -627,5 +629,27 @@ public class HibernateGenericStore<T>
     protected JpaQueryParameters<T> newJpaParameters()
     {
         return new JpaQueryParameters<>();
+    }
+
+    /**
+     * Convert List of Json String object into List of given klass
+     * @param mapper Object mapper that is configured for given klass
+     * @param content List of Json String
+     * @param klass Class for converting to
+     * @param <T>
+     * @return List of converted Object
+     */
+    public static <T> List<T> convertListJsonToListObject( ObjectMapper mapper, List<String> content, Class<T> klass  )
+    {
+        return content.stream().map( json -> {
+            try
+            {
+                return mapper.readValue( json, klass );
+            }
+            catch ( IOException e )
+            {
+                throw new RuntimeException( e );
+            }
+        } ).collect( Collectors.toList() );
     }
 }

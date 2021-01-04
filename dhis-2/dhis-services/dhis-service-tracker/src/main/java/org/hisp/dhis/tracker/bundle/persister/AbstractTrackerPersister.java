@@ -46,7 +46,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleHook;
@@ -165,7 +164,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             {
                 final String msg = "A Tracker Entity of type '" + getType().getName() + "' (" + trackerDto.getUid()
                     + ") failed to persist.";
-                
+
                 if ( bundle.getAtomicMode().equals( AtomicMode.ALL ) )
                 {
                     throw new PersistenceException( msg , e );
@@ -301,7 +300,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 
     private void assignFileResource( Session session, TrackerPreheat preheat, String fr, boolean isAssign )
     {
-        FileResource fileResource = preheat.get( TrackerIdScheme.UID, FileResource.class, fr );
+        FileResource fileResource = preheat.get( FileResource.class, fr );
 
         if ( fileResource == null )
         {
@@ -323,8 +322,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         for ( Attribute at : payloadAttributes )
         {
             boolean isNew = false;
-            TrackedEntityAttribute attribute = preheat.get( TrackerIdScheme.UID, TrackedEntityAttribute.class,
-                at.getAttribute() );
+            TrackedEntityAttribute attribute = preheat.get( TrackedEntityAttribute.class, at.getAttribute() );
 
             checkNotNull( attribute,
                 "Attribute should never be NULL here if validation is enforced before commit." );

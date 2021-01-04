@@ -29,7 +29,8 @@ package org.hisp.dhis.program;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.IntegrationTestBase;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -48,7 +49,7 @@ import static org.junit.Assert.assertTrue;
  * @author Chau Thu Tran
  */
 public class ProgramStageSectionIntegrationTest
-    extends IntegrationTestBase
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private ProgramStageService programStageService;
@@ -74,12 +75,6 @@ public class ProgramStageSectionIntegrationTest
     private ProgramStageDataElement programStageDataElementA;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     public void setUpTest()
     {
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
@@ -102,25 +97,28 @@ public class ProgramStageSectionIntegrationTest
         stageA.setUid( "UID-A" );
         stageA.setProgramStageSections( Sets.newHashSet( sectionA ) );
         stageA.setProgramStageDataElements(Sets.newHashSet( programStageDataElementA ));
-
     }
 
     @Test
     public void testRemoveProgramStageSectionWillDeleteOrphans()
     {
-        long idA = programStageService.saveProgramStage( stageA );
 
-        assertNotNull( programStageService.getProgramStage( idA ) );
+        Pair<Long,Long> idPair = transactionTemplate.execute( status -> {
+            long idA = programStageService.saveProgramStage( stageA );
+            assertNotNull( programStageService.getProgramStage( idA ) );
 
-        long sectionId = stageA.getProgramStageSections().stream().findFirst().get().getId();
+            long sectionId = stageA.getProgramStageSections().stream().findFirst().get().getId();
+            assertNotNull( programStageSectionService.getProgramStageSection( sectionId ) );
 
-        assertNotNull( programStageSectionService.getProgramStageSection( sectionId ) );
+            stageA.getProgramStageSections().clear();
 
-        stageA.getProgramStageSections().clear();
+            programStageService.saveProgramStage( stageA );
 
-        programStageService.saveProgramStage( stageA );
+            dbmsManager.clearSession();
+            return Pair.of( idA, sectionId );
+        } );
 
-        assertTrue( programStageService.getProgramStage( idA ).getProgramStageSections().isEmpty() );
-        assertNull( programStageSectionService.getProgramStageSection( sectionId ) );
+        assertTrue( programStageService.getProgramStage( idPair.getLeft() ).getProgramStageSections().isEmpty() );
+        assertNull( programStageSectionService.getProgramStageSection( idPair.getRight() ) );
     }
 }

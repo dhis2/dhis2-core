@@ -35,6 +35,7 @@ import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.UserOverrideMode;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
@@ -297,6 +298,7 @@ public class ObjectBundleParams
         return this;
     }
 
+    @SuppressWarnings( { "unchecked" } )
     public ObjectBundleParams addObject( IdentifiableObject object )
     {
         if ( object == null )
@@ -304,12 +306,9 @@ public class ObjectBundleParams
             return this;
         }
 
-        if ( !objects.containsKey( object.getClass() ) )
-        {
-            objects.put( object.getClass(), new ArrayList<>() );
-        }
+        Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( object );
 
-        objects.get( object.getClass() ).add( object );
+        objects.computeIfAbsent( realClass, k -> new ArrayList<>() ).add( object );
 
         return this;
     }

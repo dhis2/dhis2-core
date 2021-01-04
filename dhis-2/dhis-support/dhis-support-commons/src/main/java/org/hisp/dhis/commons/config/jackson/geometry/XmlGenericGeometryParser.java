@@ -31,11 +31,11 @@ package org.hisp.dhis.commons.config.jackson.geometry;
 import com.bedatadriven.jackson.datatype.jts.parsers.BaseParser;
 import com.bedatadriven.jackson.datatype.jts.parsers.GeometryParser;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
+import org.locationtech.jts.geom.Geometry;
 import lombok.extern.slf4j.Slf4j;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 
 /**
  * @author Enrico Colasante

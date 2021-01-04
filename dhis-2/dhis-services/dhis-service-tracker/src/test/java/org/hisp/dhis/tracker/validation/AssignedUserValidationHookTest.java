@@ -28,13 +28,11 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Date;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -55,8 +53,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.Date;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class AssignedUserValidationHookTest
     extends AbstractImportValidationTest
@@ -96,6 +96,7 @@ public class AssignedUserValidationHookTest
 
         userCredentials.setAutoFields();
         userCredentials.setUserInfo( user );
+        user.setUserCredentials( userCredentials );
 
         _userService.addUser( user );
 
@@ -122,7 +123,6 @@ public class AssignedUserValidationHookTest
         pi.setIncidentDate( new Date() );
 
         manager.save( pi );
-
     }
 
     @Test
@@ -147,6 +147,7 @@ public class AssignedUserValidationHookTest
             .events( Lists.newArrayList( event ) )
             .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
             .userId( user.getUid() )
+            .user( user )
             .build();
 
         TrackerImportReport report = trackerImportService.importTracker( params );
@@ -178,6 +179,7 @@ public class AssignedUserValidationHookTest
             .events( Lists.newArrayList( event ) )
             .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
             .userId( user.getUid() )
+            .user( user )
             .build();
 
         TrackerImportReport report = trackerImportService.importTracker( params );
@@ -190,7 +192,6 @@ public class AssignedUserValidationHookTest
     @Test
     public void testAssignedUserExists()
     {
-
         Event event = new Event();
 
         event.setEvent( CodeGenerator.generateUid() );
@@ -206,17 +207,17 @@ public class AssignedUserValidationHookTest
             .events( Lists.newArrayList( event ) )
             .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
             .userId( user.getUid() )
+            .user( user )
             .build();
 
         TrackerImportReport report = trackerImportService.importTracker( params );
 
-        assertTrue( report.getValidationReport().getErrorReports().isEmpty() );
+        assertTrue( CollectionUtils.isEmpty( report.getValidationReport().getErrorReports() ) );
     }
 
     @Test
     public void testAssignedUserIsNull()
     {
-
         Event event = new Event();
 
         event.setAssignedUser( null );
@@ -231,6 +232,7 @@ public class AssignedUserValidationHookTest
             .events( Lists.newArrayList( event ) )
             .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
             .userId( user.getUid() )
+            .user( user )
             .build();
 
         TrackerImportReport report = trackerImportService.importTracker( params );

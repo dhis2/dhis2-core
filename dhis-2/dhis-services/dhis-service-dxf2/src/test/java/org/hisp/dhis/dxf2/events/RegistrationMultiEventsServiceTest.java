@@ -39,7 +39,7 @@ import java.util.HashSet;
 
 import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -69,7 +69,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -77,9 +76,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Category( IntegrationTest.class )
-public class RegistrationMultiEventsServiceTest
-    extends IntegrationTestBase
+public class RegistrationMultiEventsServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
     private EventService eventService;
@@ -115,12 +112,6 @@ public class RegistrationMultiEventsServiceTest
     private DataElement dataElementB;
     private ProgramStage programStageA;
     private ProgramStage programStageB;
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 
     @Override
     protected void setUpTest()
@@ -357,7 +348,7 @@ public class RegistrationMultiEventsServiceTest
 
         enrollment.setStatus( EnrollmentStatus.COMPLETED );
         enrollment.setCompletedDate( new DateTime( 2019, 8, 20, 0, 0, 0, 0 ).toDate() );
-        
+
         enrollmentService.updateEnrollment( enrollment, null );
         importSummary = enrollmentService.updateEnrollment( enrollment, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -375,7 +366,7 @@ public class RegistrationMultiEventsServiceTest
         assertEquals( 2, eventService.getEvents( params ).getEvents().size() );
 
         enrollmentService.incompleteEnrollment( enrollment.getEnrollment() );
-        
+
         enrollment = enrollmentService.getEnrollment( enrollment.getEnrollment() );
         assertEquals( EnrollmentStatus.ACTIVE, enrollment.getStatus() );
 

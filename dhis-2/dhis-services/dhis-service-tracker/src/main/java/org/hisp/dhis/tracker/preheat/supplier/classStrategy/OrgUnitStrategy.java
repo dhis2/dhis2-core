@@ -32,6 +32,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.preheat.mappers.OrganisationUnitMapper;
 import org.springframework.stereotype.Component;
 
@@ -39,11 +40,12 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor( value = OrganisationUnit.class, mapper = OrganisationUnitMapper.class )
+@StrategyFor( value = OrganisationUnit.class, mapper = OrganisationUnitMapper.class, cache = true, ttl = 30, capacity = 2000 )
 public class OrgUnitStrategy extends AbstractSchemaStrategy
 {
-    public OrgUnitStrategy( SchemaService schemaService, QueryService queryService, IdentifiableObjectManager manager )
+    public OrgUnitStrategy( SchemaService schemaService, QueryService queryService, IdentifiableObjectManager manager,
+        PreheatCacheService cacheService )
     {
-        super( schemaService, queryService, manager );
+        super( schemaService, queryService, manager, cacheService );
     }
 }

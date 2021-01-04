@@ -73,7 +73,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     private final TrackedEntityCommentService trackedEntityCommentService;
 
     private final TrackerSideEffectConverterService sideEffectConverterService;
-    
+
     public EventPersister( List<TrackerBundleHook> bundleHooks, ReservedValueService reservedValueService,
         TrackerConverterService<Event, ProgramStageInstance> eventConverter,
         TrackedEntityCommentService trackedEntityCommentService, TrackerSideEffectConverterService sideEffectConverterService )
@@ -177,7 +177,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
         for ( DataValue dv : payloadDataValues )
         {
-            DataElement dateElement = preheat.get( TrackerIdScheme.UID, DataElement.class, dv.getDataElement() );
+            DataElement dateElement = preheat.get( DataElement.class, dv.getDataElement() );
 
             checkNotNull( dateElement,
                 "Data element should never be NULL here if validation is enforced before commit." );

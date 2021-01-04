@@ -55,6 +55,7 @@ import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -64,6 +65,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationRule;
@@ -164,7 +166,8 @@ public class DataAnalysisController
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody
     List<ValidationResultView> performValidationRulesAnalysis(
-        @RequestBody ValidationRulesAnalysisParams validationRulesAnalysisParams, HttpSession session )
+        @RequestBody ValidationRulesAnalysisParams validationRulesAnalysisParams,
+        HttpSession session )
         throws WebMessageException
     {
         I18nFormat format = i18nManager.getI18nFormat();
@@ -192,7 +195,7 @@ public class DataAnalysisController
             .withMaxResults( ValidationService.MAX_INTERACTIVE_ALERTS )
             .build();
 
-        List<ValidationResult> validationResults = new ArrayList<>( validationService.validationAnalysis( params ) );
+        List<ValidationResult> validationResults = validationService.validationAnalysis( params );
 
         validationResults.sort( new ValidationResultComparator() );
 
@@ -204,9 +207,10 @@ public class DataAnalysisController
 
     @RequestMapping( value = "validationRulesExpression", method = RequestMethod.GET )
     @ResponseStatus( HttpStatus.OK )
-    public @ResponseBody
-    ValidationRuleExpressionDetails getValidationRuleExpressionDetials( @RequestParam String validationRuleId,
-        @RequestParam String periodId, @RequestParam String organisationUnitId,
+    public @ResponseBody ValidationRuleExpressionDetails getValidationRuleExpressionDetials(
+        @RequestParam String validationRuleId,
+        @RequestParam String periodId,
+        @RequestParam String organisationUnitId,
         @RequestParam( required = false ) String attributeOptionComboId )
         throws WebMessageException
     {
@@ -257,7 +261,8 @@ public class DataAnalysisController
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody
     List<DeflatedDataValue> performStdDevOutlierAnalysis(
-        @RequestBody DataAnalysisParams stdDevOutlierAnalysisParams, HttpSession session )
+        @RequestBody DataAnalysisParams stdDevOutlierAnalysisParams,
+        HttpSession session )
         throws WebMessageException
     {
         I18nFormat format = i18nManager.getI18nFormat();
@@ -304,7 +309,8 @@ public class DataAnalysisController
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody
     List<DeflatedDataValue> performMinMaxOutlierAnalysis(
-        @RequestBody DataAnalysisParams params, HttpSession session )
+        @RequestBody DataAnalysisParams params,
+        HttpSession session )
         throws WebMessageException
     {
         I18nFormat format = i18nManager.getI18nFormat();
@@ -621,16 +627,17 @@ public class DataAnalysisController
             {
                 OrganisationUnit unit = validationResult.getOrganisationUnit();
                 Period period = validationResult.getPeriod();
+                Importance importance = validationResult.getValidationRule().getImportance();
+                Operator operator = validationResult.getValidationRule().getOperator();
 
                 grid.addRow();
                 grid.addValue( unit.getName() );
                 grid.addValue( format.formatPeriod( period ) );
                 grid.addValue( validationResult.getValidationRule().getName() );
-                grid.addValue(
-                    i18n.getString( validationResult.getValidationRule().getImportance().toString().toLowerCase() ) );
+                grid.addValue( i18n.getString( importance.toString().toLowerCase() ) );
                 grid.addValue( validationResult.getValidationRule().getLeftSide().getDescription() );
                 grid.addValue( String.valueOf( validationResult.getLeftsideValue() ) );
-                grid.addValue( i18n.getString( validationResult.getValidationRule().getOperator().toString() ) );
+                grid.addValue( i18n.getString( operator.toString() ) );
                 grid.addValue( String.valueOf( validationResult.getRightsideValue() ) );
                 grid.addValue( validationResult.getValidationRule().getRightSide().getDescription() );
             }

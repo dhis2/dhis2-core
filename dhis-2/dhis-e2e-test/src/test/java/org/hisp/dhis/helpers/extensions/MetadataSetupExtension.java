@@ -77,9 +77,7 @@ public class MetadataSetupExtension
             String[] files = {
                 "src/test/resources/setup/userGroups.json",
                 "src/test/resources/setup/metadata.json",
-                "src/test/resources/setup/metadata.json",
                 "src/test/resources/setup/userRoles.json",
-                "src/test/resources/setup/users.json",
                 "src/test/resources/setup/users.json"
             };
 

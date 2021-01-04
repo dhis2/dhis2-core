@@ -389,12 +389,6 @@ public class ValidationServiceTest
         defaultCombo = categoryService.getDefaultCategoryOptionCombo();
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     // -------------------------------------------------------------------------
     // Local convenience methods
     // -------------------------------------------------------------------------

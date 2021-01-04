@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.preheat.mappers;
 
 import java.util.Set;
 
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
@@ -39,7 +40,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = { DebugMapper.class, UserGroupAccessMapper.class, UserGroupAccessMapper.class, ProgramMapper.class } )
+@Mapper( uses = { DebugMapper.class, UserGroupAccessMapper.class, UserGroupAccessMapper.class } )
 public interface ProgramStageMapper extends PreheatMapper<ProgramStage>
 {
     ProgramStageMapper INSTANCE = Mappers.getMapper( ProgramStageMapper.class );
@@ -48,17 +49,18 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage>
     @Mapping( target = "id" )
     @Mapping( target = "uid" )
     @Mapping( target = "code" )
+    @Mapping( target = "name" )
     @Mapping( target = "user" )
     @Mapping( target = "publicAccess" )
     @Mapping( target = "externalAccess" )
     @Mapping( target = "userGroupAccesses", qualifiedByName = "userGroupAccesses" )
     @Mapping( target = "userAccesses", qualifiedByName = "userAccesses" )
-    @Mapping( target = "program" )
-    @Mapping( target = "name" )
+    @Mapping( target = "program", qualifiedByName = "program" )
     @Mapping( target = "repeatable" )
     @Mapping( target = "programStageDataElements" )
     @Mapping( target = "enableUserAssignment" )
     @Mapping( target = "validationStrategy" )
+    @Mapping( target = "featureType" )
     ProgramStage map( ProgramStage programStage );
 
     @Named( "userGroupAccesses" )
@@ -66,4 +68,14 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage>
 
     @Named( "userAccesses" )
     Set<UserAccess> mapUserAccessPsi( Set<UserAccess> userAccesses );
+
+    @Named( "program" )
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "id" )
+    @Mapping( target = "uid" )
+    @Mapping( target = "code" )
+    @Mapping( target = "name" )
+    @Mapping( target = "trackedEntityType" )
+    @Mapping( target = "programType" )
+    Program mapProgram( Program p );
 }

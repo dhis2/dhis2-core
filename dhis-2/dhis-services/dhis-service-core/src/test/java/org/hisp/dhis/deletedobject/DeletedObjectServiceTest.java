@@ -36,7 +36,9 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.junit.Assert.assertEquals;
@@ -129,25 +131,27 @@ public class DeletedObjectServiceTest
         OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
         OrganisationUnit organisationUnitB = createOrganisationUnit( 'B' );
 
-        manager.save( dataElementA );
-        manager.save( dataElementB );
-        manager.save( dataElementC );
-        manager.save( organisationUnitA );
-        manager.save( organisationUnitB );
+        transactionTemplate.execute( status -> {
+            manager.save( dataElementA );
+            manager.save( dataElementB );
+            manager.save( dataElementC );
+            manager.save( organisationUnitA );
+            manager.save( organisationUnitB );
 
-        manager.delete( dataElementA );
-        manager.delete( dataElementB );
-        manager.delete( dataElementC );
-        manager.delete( organisationUnitA );
-        manager.delete( organisationUnitB );
+            manager.delete( dataElementA );
+            manager.delete( dataElementB );
+            manager.delete( dataElementC );
+            manager.delete( organisationUnitA );
+            manager.delete( organisationUnitB );
+
+            dbmsManager.clearSession();
+            return null;
+        } );
+
+        await().atMost( 10, TimeUnit.SECONDS ).until( () -> deletedObjectService.countDeletedObjects() > 0 );
 
         assertEquals( 5, deletedObjectService.countDeletedObjects() );
         assertEquals( 3, deletedObjectService.getDeletedObjectsByKlass( "DataElement" ).size() );
         assertEquals( 2, deletedObjectService.getDeletedObjectsByKlass( "OrganisationUnit" ).size() );
-    }
-
-    @Override public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }

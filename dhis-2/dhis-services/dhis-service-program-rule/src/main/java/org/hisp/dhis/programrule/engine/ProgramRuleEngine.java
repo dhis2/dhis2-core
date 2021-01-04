@@ -30,12 +30,10 @@ package org.hisp.dhis.programrule.engine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import com.google.api.client.util.Sets;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -102,7 +100,12 @@ public class ProgramRuleEngine
 
     public List<RuleEffect> evaluate( ProgramInstance enrollment, Set<ProgramStageInstance> events )
     {
-        return evaluateProgramRules( enrollment, null, events );
+        return evaluateProgramRules( enrollment, null, events, enrollment.getProgram() );
+    }
+
+    public List<RuleEffect> evaluateProgramEvent( ProgramStageInstance event, Program program )
+    {
+        return evaluateProgramRules( null, event, Sets.newHashSet(), program );
     }
 
     public List<RuleEffect> evaluate( ProgramInstance enrollment, ProgramStageInstance programStageInstance,
@@ -112,11 +115,11 @@ public class ProgramRuleEngine
         {
             return Lists.newArrayList();
         }
-        return evaluateProgramRules( enrollment, programStageInstance, events );
+        return evaluateProgramRules( enrollment, programStageInstance, events, enrollment.getProgram() );
     }
 
     private List<RuleEffect> evaluateProgramRules( ProgramInstance enrollment,
-        ProgramStageInstance programStageInstance, Set<ProgramStageInstance> events )
+        ProgramStageInstance programStageInstance, Set<ProgramStageInstance> events, Program program )
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
@@ -126,12 +129,18 @@ public class ProgramRuleEngine
 
         try
         {
-            RuleEngine ruleEngine = getRuleEngineContext( enrollment.getProgram() )
+            RuleEngine.Builder builder = getRuleEngineContext( program,
+                programStageInstance != null ? programStageInstance.getProgramStage().getUid() : null )
                 .toEngineBuilder()
                 .triggerEnvironment( TriggerEnvironment.SERVER )
-                .events( ruleEvents )
-                .enrollment( ruleEnrollment )
-                .build();
+                .events( ruleEvents );
+
+            if ( ruleEnrollment != null )
+            {
+                builder.enrollment( ruleEnrollment );
+            }
+
+            RuleEngine ruleEngine = builder.build();
 
             ruleEffects = getRuleEngineEvaluation( ruleEngine, ruleEnrollment,
                 programStageInstance );
@@ -174,12 +183,16 @@ public class ProgramRuleEngine
         return ruleEngine.evaluate( condition );
     }
 
-    private RuleEngineContext getRuleEngineContext( Program program )
+    private RuleEngineContext getRuleEngineContext( Program program, String uid )
     {
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService
             .getProgramRuleVariable( program );
         List<ProgramRule> programRules = implementableRuleService
-            .getImplementableRules( program );
+            .getImplementableRules( program )
+            .stream()
+            .filter( rule -> Objects.isNull( rule.getProgramStage() ) ||
+                Objects.equals( rule.getProgramStage().getUid(), uid ) )
+            .collect( Collectors.toList() );
 
         Map<String, String> constantMap = constantService.getConstantMap().entrySet()
             .stream()

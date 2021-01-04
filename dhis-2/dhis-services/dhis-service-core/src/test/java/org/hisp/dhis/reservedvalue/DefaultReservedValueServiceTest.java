@@ -28,12 +28,18 @@ package org.hisp.dhis.reservedvalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static java.util.Calendar.DATE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Lists;
+import org.apache.commons.collections4.ListUtils;
+import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Objects;
+import org.hisp.dhis.textpattern.TextPattern;
+import org.hisp.dhis.textpattern.TextPatternParser;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.Commit;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -41,23 +47,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.collections4.ListUtils;
-import org.hisp.dhis.IntegrationTestBase;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.Objects;
-import org.hisp.dhis.textpattern.TextPattern;
-import org.hisp.dhis.textpattern.TextPatternParser;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static java.util.Calendar.DATE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
-import com.google.common.collect.Lists;
-
-public class DefaultReservedValueServiceTest
-    extends IntegrationTestBase
+@Commit
+public class DefaultReservedValueServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
     private ReservedValueService reservedValueService;
@@ -97,26 +95,6 @@ public class DefaultReservedValueServiceTest
 
         // Set up reserved values
         simpleReservedValue = createReservedValue( tea, "FOOBAR" );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
-    @Before
-    public void setUpTest()
-        throws Exception
-    {
-        reservedValueStore.getAll().forEach( reservedValueStore::delete );
-    }
-
-    @After
-    public void tearDown()
-    {
-        reservedValueStore.getAll().forEach( reservedValueStore::delete );
     }
 
     @Test

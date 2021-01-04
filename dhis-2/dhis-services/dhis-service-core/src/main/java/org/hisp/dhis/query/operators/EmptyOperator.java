@@ -34,12 +34,15 @@ import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.Collection;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public class EmptyOperator extends Operator
+public class EmptyOperator<T extends Comparable<? super T>> extends Operator<T>
 {
     public EmptyOperator()
     {
@@ -50,6 +53,12 @@ public class EmptyOperator extends Operator
     public Criterion getHibernateCriterion( QueryPath queryPath )
     {
         return Restrictions.sizeEq( queryPath.getPath(),0 );
+    }
+
+    @Override
+    public <Y> Predicate getPredicate( CriteriaBuilder builder, Root<Y> root, QueryPath queryPath )
+    {
+        return builder.equal( builder.size( root.get( queryPath.getPath() ) ), 0 );
     }
 
     @Override

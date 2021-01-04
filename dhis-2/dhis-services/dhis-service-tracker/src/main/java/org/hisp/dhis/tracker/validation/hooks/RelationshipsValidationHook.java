@@ -52,7 +52,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -84,7 +83,7 @@ public class RelationshipsValidationHook
         }
 
         boolean isValid = validateMandatoryData( reporter, relationship,
-                bundle.getPreheat().getAll( TrackerIdScheme.UID, RelationshipType.class ) );
+                bundle.getPreheat().getAll( RelationshipType.class ) );
 
         // No need to check additional data if there are missing information on the
         // Relationship
@@ -116,7 +115,7 @@ public class RelationshipsValidationHook
     private void validateRelationshipConstraint( ValidationErrorReporter reporter, Relationship relationship,
                                                  TrackerBundle bundle )
     {
-        getRelationshipType( bundle.getPreheat().getAll( TrackerIdScheme.UID, RelationshipType.class ),
+        getRelationshipType( bundle.getPreheat().getAll( RelationshipType.class ),
                 relationship.getRelationshipType() ).ifPresent( relationshipType -> {
 
                 validateRelationshipConstraint( "from", relationship.getFrom(), relationshipType.getFromConstraint(),

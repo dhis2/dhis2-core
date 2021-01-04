@@ -38,7 +38,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -83,7 +82,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -93,7 +91,6 @@ import com.google.common.collect.Sets;
  *
  * @author Jim Grace
  */
-@Category( IntegrationTest.class )
 public class EventPredictionServiceTest
     extends IntegrationTestBase
 {
@@ -341,12 +338,6 @@ public class EventPredictionServiceTest
     {
         setDependency( predictionService, "analyticsService", analyticsService, AnalyticsService.class );
         setDependency( predictionService, "currentUserService", currentUserService, CurrentUserService.class );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 
     // -------------------------------------------------------------------------

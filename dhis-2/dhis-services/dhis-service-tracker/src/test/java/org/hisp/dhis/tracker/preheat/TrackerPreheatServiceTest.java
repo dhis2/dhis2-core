@@ -43,6 +43,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
@@ -73,7 +75,9 @@ public class TrackerPreheatServiceTest extends TrackerTest
     {
         TrackerImportParams params = new TrackerImportParams();
         Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params );
-        assertTrue( collectedMap.isEmpty() );
+        assertEquals( collectedMap.keySet().size(), 2 );
+        assertTrue( collectedMap.containsKey( TrackedEntityType.class ) );
+        assertTrue( collectedMap.containsKey( RelationshipType.class ) );
     }
 
     @Test
@@ -186,14 +190,13 @@ public class TrackerPreheatServiceTest extends TrackerTest
 
         assertNotNull( preheat );
         assertNotNull( preheat.getMap() );
-        assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ) );
-        assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( DataElement.class ) );
-        assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( OrganisationUnit.class ) );
-        assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( Program.class ) );
-        assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( ProgramStage.class ) );
-        assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( CategoryOptionCombo.class ) );
+        assertNotNull( preheat.getMap().get( DataElement.class ) );
+        assertNotNull( preheat.getMap().get( OrganisationUnit.class ) );
+        assertNotNull( preheat.getMap().get( Program.class ) );
+        assertNotNull( preheat.getMap().get( ProgramStage.class ) );
+        assertNotNull( preheat.getMap().get( CategoryOptionCombo.class ) );
 
-        assertNotNull( preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, "XXXvX50cXC0" ) );
-        assertNotNull( preheat.get( TrackerIdScheme.UID, CategoryOption.class, "XXXrKDKCefk" ) );
+        assertNotNull( preheat.get( CategoryOptionCombo.class, "XXXvX50cXC0" ) );
+        assertNotNull( preheat.get( CategoryOption.class, "XXXrKDKCefk" ) );
     }
 }

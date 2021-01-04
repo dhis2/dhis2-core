@@ -28,27 +28,13 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.exparity.hamcrest.date.DateMatchers;
 import org.hamcrest.CoreMatchers;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.DhisSpringTest;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -90,14 +76,28 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static junit.framework.TestCase.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 public class EventImportTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private EventService eventService;
@@ -154,6 +154,12 @@ public class EventImportTest
     private ProgramInstance pi;
 
     private Event event;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest()
@@ -564,7 +570,7 @@ public class EventImportTest
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
 
         // FETCH NEWLY CREATED EVENT
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( uid );
+        programStageInstanceService.getProgramStageInstance( uid );
 
         // UPDATE EVENT - Program is not specified
         Event event = new Event();

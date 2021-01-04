@@ -28,24 +28,7 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.core.Every.everyItem;
-import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
+import lombok.SneakyThrows;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -77,6 +60,25 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.core.Every.everyItem;
+import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
+import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -95,6 +97,12 @@ public class EventImportValidationTest
 
     @Autowired
     private ProgramStageInstanceService programStageServiceInstance;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest()
@@ -247,13 +255,10 @@ public class EventImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
-        assertEquals( 2, report.getErrorReports().size() );
+        assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1088 ) ) ) );
-
-        assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1035 ) ) ) );
     }
 
     @Test
@@ -268,10 +273,25 @@ public class EventImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
-        assertEquals( 2, report.getErrorReports().size() );
+        assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1086 ) ) ) );
+    }
+
+    @Test
+    public void testEventMissingProgramStageProgramIsWithoutRegistration()
+        throws IOException
+    {
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-pstage-missing-withoutreg.json" );
+
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
+            TrackerImportStrategy.CREATE );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1035 ) ) ) );
@@ -383,7 +403,7 @@ public class EventImportValidationTest
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -474,7 +494,7 @@ public class EventImportValidationTest
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -511,7 +531,7 @@ public class EventImportValidationTest
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -537,7 +557,7 @@ public class EventImportValidationTest
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -610,7 +630,7 @@ public class EventImportValidationTest
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -885,6 +905,45 @@ public class EventImportValidationTest
             assertNull( comment.getCreator() );
             assertNull( comment.getLastUpdatedBy() );
         } );
+    }
+
+    @SneakyThrows
+    private void testDeletedEventFails( TrackerImportStrategy importStrategy )
+    {
+        // Given -> Creates an event
+        createEvent( "tracker/validations/events-with-notes-data.json" );
+
+        ProgramStageInstance event = programStageServiceInstance.getProgramStageInstance( "uLxFbxfYDQE" );
+        assertNotNull( event );
+
+        // When -> Soft-delete the event
+        programStageServiceInstance.deleteProgramStageInstance( event );
+
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events-with-notes-data.json" );
+
+        // Then
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams, importStrategy );
+
+        assertEquals( 0, createAndUpdate.getTrackerBundle().getEvents().size() );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+        assertEquals( 1, report.getErrorReports().size() );
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1082 ) ) ) );
+    }
+
+    @Test
+    public void testUpdateDeleteEventFails()
+    {
+        testDeletedEventFails( UPDATE );
+    }
+
+    @Test
+    public void testInserDeleteEventFails()
+        throws IOException
+    {
+        testDeletedEventFails( CREATE_AND_UPDATE );
     }
 
     private ValidateAndCommitTestUnit createEvent( String jsonPayload )

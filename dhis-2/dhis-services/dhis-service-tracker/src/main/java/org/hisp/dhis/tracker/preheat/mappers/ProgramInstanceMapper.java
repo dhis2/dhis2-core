@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.preheat.mappers;
 
 import java.util.Set;
 
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
@@ -54,13 +55,14 @@ public interface ProgramInstanceMapper extends PreheatMapper<ProgramInstance>
     @Mapping( target = "externalAccess" )
     @Mapping( target = "userGroupAccesses", qualifiedByName = "userGroupAccessesPi" )
     @Mapping( target = "userAccesses", qualifiedByName = "userAccessesPi" )
-    @Mapping( target = "program" )
+    @Mapping( target = "program", qualifiedByName = "program")
     @Mapping( target = "entityInstance" )
     @Mapping( target = "organisationUnit" )
     @Mapping( target = "created" )
+    @Mapping( target = "incidentDate" )
     @Mapping( target = "enrollmentDate" )
     @Mapping( target = "comments" )
-
+    @Mapping( target = "deleted" )
     ProgramInstance map( ProgramInstance programInstance );
 
     @Named( "userGroupAccessesPi" )
@@ -68,4 +70,14 @@ public interface ProgramInstanceMapper extends PreheatMapper<ProgramInstance>
 
     @Named( "userAccessesPi" )
     Set<UserAccess> mapUserAccessProgramInstance( Set<UserAccess> userAccesses );
+
+    @Named( "program" )
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "id" )
+    @Mapping( target = "uid" )
+    @Mapping( target = "code" )
+    @Mapping( target = "name" )
+    @Mapping( target = "trackedEntityType" )
+    @Mapping( target = "programType" )
+    Program mapProgram( Program p );
 }

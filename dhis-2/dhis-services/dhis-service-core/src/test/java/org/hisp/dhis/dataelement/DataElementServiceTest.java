@@ -36,7 +36,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.junit.Test;
@@ -46,7 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Kristian Nordal
  */
 public class DataElementServiceTest
-    extends IntegrationTestBase
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private DataElementService dataElementService;
@@ -410,11 +410,5 @@ public class DataElementServiceTest
         long id = dataElementService.addDataElement( de );
 
         assertNotNull( dataElementService.getDataElement( id ) );
-
-    }
-
-    @Override public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }

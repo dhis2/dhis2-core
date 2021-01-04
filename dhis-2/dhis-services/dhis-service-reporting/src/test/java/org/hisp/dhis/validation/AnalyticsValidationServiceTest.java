@@ -28,25 +28,9 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertTrue;
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
-import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.hisp.dhis.expression.Operator.not_equal_to;
-import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
-import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.IntegrationTestBase;
+import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.category.CategoryManager;
@@ -85,17 +69,30 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertTrue;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.hisp.dhis.expression.Operator.not_equal_to;
+import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 
 /**
  * @author Jim Grace
  */
-@Category( IntegrationTest.class )
-public class AnalyticsValidationServiceTest
-    extends IntegrationTestBase
+@Slf4j
+public class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
@@ -292,12 +289,6 @@ public class AnalyticsValidationServiceTest
     public void tearDownTest()
     {
         setDependency( validationService, "analyticsService", analyticsService, AnalyticsService.class );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 
     // -------------------------------------------------------------------------

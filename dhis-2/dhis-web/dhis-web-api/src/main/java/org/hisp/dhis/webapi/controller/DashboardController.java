@@ -114,7 +114,7 @@ public class DashboardController
     /**
      * Logic required to keep the backward compatibility with Chart and ReporTable.
      * Otherwise it would always return VISUALIZATION type for any Chart or ReportTable.
-     *
+     * <p>
      * Only needed during the transition from Chart/ReportTable APIs to Visualization API.
      * Once the Visualization API is fully enabled this logic should be removed.
      *
@@ -124,8 +124,8 @@ public class DashboardController
      */
     @Override
     @Deprecated
-    protected void postProcessResponseEntities(final List<Dashboard> dashboards, final WebOptions options,
-                                               final java.util.Map<String, String> parameters )
+    protected void postProcessResponseEntities( final List<Dashboard> dashboards, final WebOptions options,
+        final java.util.Map<String, String> parameters )
     {
         if ( isNotEmpty( dashboards ) )
         {
@@ -139,7 +139,7 @@ public class DashboardController
     /**
      * Logic required to keep the backward compatibility with Chart and ReportTable.
      * Otherwise it would always return VISUALIZATION type for any Chart or ReportTable.
-     *
+     * <p>
      * Only needed during the transition from Chart/ReportTable APIs to Visualization API.
      * Once the Visualization API is fully enabled this logic should be removed.
      *
@@ -158,29 +158,36 @@ public class DashboardController
 
             for ( final DashboardItem dashboardItem : dashboardItems )
             {
+                if ( dashboardItem == null )
+                {
+                    continue;
+                }
+
                 if ( dashboardItem.getVisualization() != null )
                 {
                     final VisualizationType type = dashboardItem.getVisualization().getType();
 
                     switch ( type )
                     {
-                    case PIVOT_TABLE:
-                        dashboardItem.setReportTable( convertToReportTable ( dashboardItem.getVisualization()) );
-                        break;
-                    case AREA:
-                    case BAR:
-                    case COLUMN:
-                    case GAUGE:
-                    case LINE:
-                    case PIE:
-                    case RADAR:
-                    case SINGLE_VALUE:
-                    case STACKED_BAR:
-                    case STACKED_COLUMN:
-                    case YEAR_OVER_YEAR_COLUMN:
-                    case YEAR_OVER_YEAR_LINE:
-                        dashboardItem.setChart( convertToChart ( dashboardItem.getVisualization() ) );
-                        break;
+                        case PIVOT_TABLE:
+                            dashboardItem.setReportTable( convertToReportTable( dashboardItem.getVisualization() ) );
+                            break;
+                        case AREA:
+                        case BAR:
+                        case COLUMN:
+                        case GAUGE:
+                        case LINE:
+                        case PIE:
+                        case RADAR:
+                        case SINGLE_VALUE:
+                        case STACKED_BAR:
+                        case STACKED_COLUMN:
+                        case YEAR_OVER_YEAR_COLUMN:
+                        case YEAR_OVER_YEAR_LINE:
+                        case SCATTER:
+                        case BUBBLE:
+                            dashboardItem.setChart( convertToChart( dashboardItem.getVisualization() ) );
+                            break;
                     }
                 }
             }

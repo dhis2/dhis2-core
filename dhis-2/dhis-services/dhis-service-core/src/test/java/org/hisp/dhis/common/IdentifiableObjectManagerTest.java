@@ -28,20 +28,11 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -54,20 +45,28 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class IdentifiableObjectManagerTest
-    extends IntegrationTestBase
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private SessionFactory sessionFactory;
@@ -80,11 +79,6 @@ public class IdentifiableObjectManagerTest
 
     @Autowired
     private UserService _userService;
-
-    @Override public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 
     @Override
     protected void setUpTest() throws Exception
@@ -382,6 +376,11 @@ public class IdentifiableObjectManagerTest
 
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( loginUser ) );
         identifiableObjectManager.save( userGroup );
+        user.getGroups().add( userGroup );
+        loginUser.getGroups().add( userGroup );
+
+        identifiableObjectManager.save( loginUser );
+        identifiableObjectManager.save( user );
 
         identifiableObjectManager.save( createDataElement( 'A' ) );
         identifiableObjectManager.save( createDataElement( 'B' ) );
@@ -395,18 +394,13 @@ public class IdentifiableObjectManagerTest
 
         for ( DataElement dataElement : dataElements )
         {
-            dataElement.setUser( user );
-            dataElement.setPublicAccess( AccessStringHelper.newInstance().build() );
-
-            UserGroupAccess userGroupAccess = new UserGroupAccess();
-            userGroupAccess.setAccess( AccessStringHelper.READ );
-            userGroupAccess.setUserGroup( userGroup );
-
-            sessionFactory.getCurrentSession().save( userGroupAccess );
-
-            dataElement.getUserGroupAccesses().add( userGroupAccess );
+            dataElement.getSharing().setOwner( user );
+            dataElement.getSharing().setPublicAccess( AccessStringHelper.newInstance().build() );
+            dataElement.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, AccessStringHelper.READ ) );
             sessionFactory.getCurrentSession().update( dataElement );
         }
+
+        identifiableObjectManager.flush();
 
         assertEquals( 4, identifiableObjectManager.getCount( DataElement.class ) );
         assertEquals( 4, identifiableObjectManager.getAll( DataElement.class ).size() );

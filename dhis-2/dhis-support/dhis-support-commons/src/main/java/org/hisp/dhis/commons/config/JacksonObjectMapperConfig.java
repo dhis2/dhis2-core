@@ -46,12 +46,14 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.PrecisionModel;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.PrecisionModel;
 
 /**
  * Main Jackson Mapper configuration. Any component that requires JSON/XML
@@ -63,24 +65,29 @@ import com.vividsolutions.jts.geom.PrecisionModel;
 public class JacksonObjectMapperConfig
 {
     /*
-     * Default JSON mapper
+     * Standard JSON mapper.
      */
     public static final ObjectMapper jsonMapper = configureMapper( new ObjectMapper() );
 
     /*
-     * JSON mapper that have {@link Hibernate5Module} registered
+     * Standard mapper that have {@link Hibernate5Module} registered.
      */
     public static final ObjectMapper hibernateAwareJsonMapper = configureMapper( new ObjectMapper() );
 
     /*
-     * Default JSON mapper for Program Stage Instance data values
+     * Standard JSON mapper for Program Stage Instance data values.
      */
     public static final ObjectMapper dataValueJsonMapper = configureMapper( new ObjectMapper(), true );
 
     /*
-     * Default XML mapper
+     * Standard XML mapper.
      */
     public static final ObjectMapper xmlMapper = configureMapper( new XmlMapper() );
+
+    /**
+     * Standard CSV mapper.
+     */
+    public static final CsvMapper csvMapper = configureCsvMapper( new CsvMapper() );
 
     @Primary
     @Bean( "jsonMapper" )
@@ -170,5 +177,17 @@ public class JacksonObjectMapperConfig
         objectMapper.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
 
         return objectMapper;
+    }
+
+    /**
+     * Configures the shared CSV mapper.
+     *
+     * @param mapper the {@link CsvMapper}.
+     * @return the {@link CsvMapper}.
+     */
+    private static CsvMapper configureCsvMapper( CsvMapper mapper )
+    {
+        mapper.disable( CsvParser.Feature.FAIL_ON_MISSING_COLUMNS );
+        return mapper;
     }
 }

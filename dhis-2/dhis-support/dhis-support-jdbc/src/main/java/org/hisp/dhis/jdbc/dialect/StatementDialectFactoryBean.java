@@ -28,8 +28,6 @@ package org.hisp.dhis.jdbc.dialect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.cfg.Configuration;
-import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.hisp.quick.StatementDialect;
 import org.springframework.beans.factory.FactoryBean;
 
@@ -44,10 +42,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class StatementDialectFactoryBean
     implements FactoryBean<StatementDialect>
 {
-    private static final String KEY_DIALECT = "hibernate.dialect";
-    
     private static Map<String, StatementDialect> dialectMap;
-    
+
     static
     {
         dialectMap = new HashMap<>();
@@ -56,47 +52,44 @@ public class StatementDialectFactoryBean
         dialectMap.put( "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect", StatementDialect.POSTGRESQL );
         dialectMap.put( "org.hibernate.dialect.HSQLDialect", StatementDialect.HSQL );
         dialectMap.put( "org.hibernate.dialect.H2Dialect", StatementDialect.H2 );
-        dialectMap.put( "org.hisp.dhis.hibernate.dialect.DhisH2Dialect",StatementDialect.H2 );
+        dialectMap.put( "org.hisp.dhis.hibernate.dialect.DhisH2Dialect", StatementDialect.H2 );
     }
-    
+
+    private final String dialectTypeKey;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-    
-    private final HibernateConfigurationProvider hibernateConfigurationProvider;
 
-    public StatementDialectFactoryBean( HibernateConfigurationProvider hibernateConfigurationProvider )
+    public StatementDialectFactoryBean( String dialectTypeKey )
     {
-        checkNotNull( hibernateConfigurationProvider );
-        this.hibernateConfigurationProvider = hibernateConfigurationProvider;
+        checkNotNull( dialectTypeKey );
+        this.dialectTypeKey = dialectTypeKey;
     }
 
     private StatementDialect statementDialect;
-    
+
     // -------------------------------------------------------------------------
     // Initialisation
     // -------------------------------------------------------------------------
-    
+
     public void init()
     {
-        Configuration hibernateConfiguration = hibernateConfigurationProvider.getConfiguration();
-        
-        String dialect = hibernateConfiguration.getProperty( KEY_DIALECT );
+        statementDialect = dialectMap.get( dialectTypeKey );
 
-        statementDialect = dialectMap.get( dialect );
-        
         if ( statementDialect == null )
         {
-            throw new RuntimeException( "Unsupported dialect: " + dialect );
+            throw new RuntimeException( "Unsupported dialect: " + dialectTypeKey );
         }
     }
 
     // -------------------------------------------------------------------------
     // FactoryBean implementation
     // -------------------------------------------------------------------------
-        
+
     @Override
-    public StatementDialect getObject() {
+    public StatementDialect getObject()
+    {
         return statementDialect;
     }
 

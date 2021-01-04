@@ -34,7 +34,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.schema.annotation.Property;
 
 import java.io.Serializable;
@@ -45,15 +44,13 @@ import java.util.Objects;
  */
 @JacksonXmlRootElement( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
 public class UserAccess
-    implements Serializable, EmbeddedObject
+    implements Serializable
 {
-    private int id;
-
     private String access;
 
-    private User user;
+    private transient User user;
 
-    private transient String uid;
+    private String uid;
 
     public UserAccess()
     {
@@ -65,15 +62,9 @@ public class UserAccess
         this.access = access;
     }
 
-    public int getId()
+    public String getId()
     {
-        return id;
-    }
-
-    @JsonIgnore
-    public void setId( int id )
-    {
-        this.id = id;
+        return uid;
     }
 
     @JsonProperty

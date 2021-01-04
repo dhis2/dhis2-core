@@ -228,7 +228,7 @@ public class ChartImageGenerator {
         }
         else
         {
-            throw new IllegalArgumentException( "Illegal or no chart type: " + visualization.getType() );
+            throw new IllegalArgumentException( "Illegal or not supported chart type: " + visualization.getType() );
         }
 
         if ( visualization.isRegression() )

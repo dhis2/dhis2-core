@@ -46,7 +46,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +54,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 public class HibernateSequentialNumberCounterStoreTest
-    extends IntegrationTestBase
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private DummyService dummyService;
@@ -101,7 +101,7 @@ public class HibernateSequentialNumberCounterStoreTest
         }
 
         assertEquals( threadCount, futures.size() );
-        
+
         Set<Integer> allIds = new HashSet<>();
         List<Integer> allIdList = new ArrayList<>();
         for ( List<Integer> integers : resultList )
@@ -158,7 +158,7 @@ public class HibernateSequentialNumberCounterStoreTest
     {
         test( 32 );
     }
-    
+
     @Test
     public void deleteCounter()
     {
@@ -177,12 +177,6 @@ public class HibernateSequentialNumberCounterStoreTest
         assertTrue( dummyService.getNextValues( "ABC", "ABC-###", 3 ).contains( 1 ) );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-    
     @Configuration
     static class TestConfig
     {

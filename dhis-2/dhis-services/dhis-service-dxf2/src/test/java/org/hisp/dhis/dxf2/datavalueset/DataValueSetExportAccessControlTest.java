@@ -31,7 +31,8 @@ package org.hisp.dhis.dxf2.datavalueset;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisTest;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -58,17 +59,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Lars Helge Overland
  */
 public class DataValueSetExportAccessControlTest
-    extends DhisTest
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private DataValueSetService dataValueSetService;
@@ -119,15 +123,11 @@ public class DataValueSetExportAccessControlTest
     private OrganisationUnit ouA;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     public void setUpTest()
     {
         userService = _userService;
+
+        createAndInjectAdminUser();
 
         // Metadata
 
@@ -138,14 +138,17 @@ public class DataValueSetExportAccessControlTest
         idObjectManager.save( Lists.newArrayList( deA, deB ) );
 
         coA = createCategoryOption( 'A' );
-        coA.setPublicAccess( DEFAULT );
+        coA.getSharing().setPublicAccess( DEFAULT );
         coB = createCategoryOption( 'B' );
-        coB.setPublicAccess( DEFAULT );
+        coB.getSharing().setPublicAccess( DEFAULT );
         coC = createCategoryOption( 'C' );
-        coC.setPublicAccess( DEFAULT );
+        coC.getSharing().setPublicAccess( DEFAULT );
         coD = createCategoryOption( 'D' );
-        coD.setPublicAccess( DEFAULT );
-        idObjectManager.save( Lists.newArrayList( coA, coB, coC, coD ) );
+        coD.getSharing().setPublicAccess( DEFAULT );
+        idObjectManager.save( coA, false );
+        idObjectManager.save( coB, false );
+        idObjectManager.save( coC, false );
+        idObjectManager.save( coD, false );
 
         caA = createCategory( 'A', coA, coB );
         caB = createCategory( 'B', coC, coD );
@@ -161,10 +164,10 @@ public class DataValueSetExportAccessControlTest
         idObjectManager.save( Lists.newArrayList( cocA, cocB, cocC, cocD ) );
 
         dsA = createDataSet( 'A', ptA, ccA );
-        dsA.setPublicAccess( DEFAULT );
+        dsA.getSharing().setPublicAccess( DEFAULT );
         dsA.addDataSetElement( deA );
         dsA.addDataSetElement( deB );
-        idObjectManager.save( dsA );
+        idObjectManager.save( dsA, false );
 
         peA = createPeriod( "201901" );
         idObjectManager.save( peA );
@@ -215,6 +218,8 @@ public class DataValueSetExportAccessControlTest
             .setPeriods( Sets.newHashSet( peA ) )
             .setOrganisationUnits( Sets.newHashSet( ouA ) );
 
+        dbmsManager.flushSession();
+
         dataValueSetService.writeDataValueSetJson( params, out );
 
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
@@ -264,12 +269,18 @@ public class DataValueSetExportAccessControlTest
             .setPeriods( Sets.newHashSet( peA ) )
             .setOrganisationUnits( Sets.newHashSet( ouA ) );
 
+        dbmsManager.flushSession();
+
         dataValueSetService.writeDataValueSetJson( params, out );
 
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
 
+        List<DataValue> alldvs = dataValueService.getAllDataValues();
+
+        List<CategoryOptionCombo> cocs = idObjectManager.getAll( CategoryOptionCombo.class );
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
+
         assertEquals( 4, dvs.getDataValues().size() );
     }
 
@@ -305,6 +316,8 @@ public class DataValueSetExportAccessControlTest
             .setPeriods( Sets.newHashSet( peA ) )
             .setOrganisationUnits( Sets.newHashSet( ouA ) );
 
+        dbmsManager.flushSession();
+
         dataValueSetService.writeDataValueSetJson( params, out );
     }
 
@@ -328,6 +341,8 @@ public class DataValueSetExportAccessControlTest
 
         idObjectManager.update( coA );
         idObjectManager.update( dsA );
+
+        dbmsManager.flushSession();
 
         // Test
 

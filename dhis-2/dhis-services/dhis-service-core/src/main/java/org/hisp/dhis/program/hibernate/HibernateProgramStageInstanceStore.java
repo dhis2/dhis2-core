@@ -68,6 +68,8 @@ public class HibernateProgramStageInstanceStore
     extends SoftDeleteHibernateObjectStore<ProgramStageInstance>
     implements ProgramStageInstanceStore
 {
+    private final static String PSI_HQL_BY_UIDS = "from ProgramStageInstance as psi where psi.uid in (:uids)";
+
     private final static Set<NotificationTrigger> SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS =
         Sets.intersection(
             NotificationTrigger.getAllApplicableToProgramStageInstance(),
@@ -134,8 +136,8 @@ public class HibernateProgramStageInstanceStore
         }
 
         Query query = getSession().createNativeQuery(
-            "select exists(select 1 from programstageinstance where uid=? and deleted is false)" );
-        query.setParameter( 1, uid );
+            "select exists(select 1 from programstageinstance where uid=:uid and deleted is false)" );
+        query.setParameter( "uid", uid );
 
         return ((Boolean) query.getSingleResult()).booleanValue();
     }
@@ -149,8 +151,8 @@ public class HibernateProgramStageInstanceStore
         }
 
         Query query = getSession().createNativeQuery(
-            "select exists(select 1 from programstageinstance where uid=?)" );
-        query.setParameter( 1, uid );
+            "select exists(select 1 from programstageinstance where uid=:uid)" );
+        query.setParameter( "uid", uid );
 
         return ((Boolean) query.getSingleResult()).booleanValue();
     }
@@ -158,7 +160,7 @@ public class HibernateProgramStageInstanceStore
     @Override
     public List<String> getUidsIncludingDeleted( List<String> uids )
     {
-        String hql = "select psi.uid from ProgramStageInstance as psi where psi.uid in (:uids)";
+        final String hql = "select psi.uid " + PSI_HQL_BY_UIDS;
         List<String> resultUids = new ArrayList<>();
         List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
 
@@ -172,6 +174,25 @@ public class HibernateProgramStageInstanceStore
 
         return resultUids;
     }
+
+    @Override
+    public List<ProgramStageInstance> getIncludingDeleted( List<String> uids )
+    {
+        List<ProgramStageInstance> programStageInstances = new ArrayList<>();
+        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
+
+        for ( List<String> uidsPartition : uidsPartitions )
+        {
+            if ( !uidsPartition.isEmpty() )
+            {
+                programStageInstances.addAll( getSession().createQuery( PSI_HQL_BY_UIDS, ProgramStageInstance.class )
+                    .setParameter( "uids", uidsPartition ).list() );
+            }
+        }
+
+        return programStageInstances;
+    }
+
 
     @Override
     public void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized )
