@@ -38,6 +38,8 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -45,6 +47,7 @@ import org.hisp.dhis.tracker.programrule.implementers.AssignValueImplementer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -99,12 +102,16 @@ public class AssignValueImplementerTest
 
     private static DataElement dataElementB;
 
-    private final AssignValueImplementer implementerToTest = new AssignValueImplementer();
-
     private TrackerBundle bundle;
 
     @Mock
     private TrackerPreheat preheat;
+
+    @Mock
+    private SystemSettingManager systemSettingManager;
+
+    @InjectMocks
+    private AssignValueImplementer implementerToTest;
 
     @Before
     public void setUpTest()
@@ -128,9 +135,13 @@ public class AssignValueImplementerTest
         secondProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
 
         when( preheat.get( ProgramStage.class, firstProgramStage.getUid() ) ).thenReturn( firstProgramStage );
+        when( preheat.get( ProgramStage.class, secondProgramStage.getUid() ) ).thenReturn( secondProgramStage );
 
         bundle = new TrackerBundle();
         bundle.setPreheat( preheat );
+
+        when( systemSettingManager.getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
+            .thenReturn( Boolean.FALSE );
     }
 
     @Test
@@ -154,6 +165,23 @@ public class AssignValueImplementerTest
     }
 
     @Test
+    public void testAssignDataElementValueForEventsWhenDataElementIsEmptyAndFromDifferentProgramStage()
+    {
+        List<Event> events = Lists.newArrayList( getEventWithDataValueNOTSetInDifferentProgramStage() );
+        bundle.setEvents( events );
+        bundle.setEventRuleEffects( getRuleEventEffects( events ) );
+        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+
+        Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( SECOND_EVENT_ID ) )
+            .findAny().get();
+        Optional<DataValue> newDataValue = event.getDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( dataElementA.getUid() ) ).findAny();
+
+        assertTrue( !newDataValue.isPresent() );
+        assertTrue( eventIssues.isEmpty() );
+    }
+
+    @Test
     public void testAssignDataElementValueForEventsWhenDataElementIsAlreadyPresent()
     {
         List<Event> events = Lists.newArrayList( getEventWithDataValueSet() );
@@ -174,7 +202,29 @@ public class AssignValueImplementerTest
     }
 
     @Test
-    public void testAssignAttributeValueForEnrollmentssWhenAttributeIsEmpty()
+    public void testAssignDataElementValueForEventsWhenDataElementIsAlreadyPresentAndSystemSettingToOverwriteIsTrue()
+    {
+        List<Event> events = Lists.newArrayList( getEventWithDataValueSet() );
+        bundle.setEvents( events );
+        bundle.setEventRuleEffects( getRuleEventEffects( events ) );
+        when( systemSettingManager.getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
+            .thenReturn( Boolean.TRUE );
+        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+
+        Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) )
+            .findAny().get();
+        Optional<DataValue> newDataValue = event.getDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( dataElementA.getUid() ) ).findAny();
+
+        assertTrue( newDataValue.isPresent() );
+        assertEquals( DATA_ELEMENT_NEW_VALUE, newDataValue.get().getValue() );
+        assertEquals( 1, eventIssues.size() );
+        assertEquals( 1, eventIssues.get( FIRST_EVENT_ID ).size() );
+        assertEquals( WARNING, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueType() );
+    }
+
+    @Test
+    public void testAssignAttributeValueForEnrollmentsWhenAttributeIsEmpty()
     {
         List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeNOTSet() );
         bundle.setEnrollments( enrollments );
@@ -211,6 +261,28 @@ public class AssignValueImplementerTest
         assertEquals( 1, enrollmentIssues.size() );
         assertEquals( 1, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).size() );
         assertEquals( ERROR, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).get( 0 ).getIssueType() );
+    }
+
+    @Test
+    public void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentAndSystemSettingToOverwriteIsTrue()
+    {
+        List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeSet() );
+        bundle.setEnrollments( enrollments );
+        bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects( enrollments ) );
+        when( systemSettingManager.getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
+            .thenReturn( Boolean.TRUE );
+        Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
+
+        Enrollment enrollment = bundle.getEnrollments().stream().filter( e -> e.getEnrollment().equals(
+            FIRST_ENROLLMENT_ID ) ).findAny().get();
+        Optional<Attribute> attribute = enrollment.getAttributes().stream()
+            .filter( at -> at.getAttribute().equals( ATTRIBUTE_ID ) ).findAny();
+
+        assertTrue( attribute.isPresent() );
+        assertEquals( TEI_ATTRIBUTE_NEW_VALUE, attribute.get().getValue() );
+        assertEquals( 1, enrollmentIssues.size() );
+        assertEquals( 1, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).size() );
+        assertEquals( WARNING, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).get( 0 ).getIssueType() );
     }
 
     private Event getEventWithDataValueSet()
