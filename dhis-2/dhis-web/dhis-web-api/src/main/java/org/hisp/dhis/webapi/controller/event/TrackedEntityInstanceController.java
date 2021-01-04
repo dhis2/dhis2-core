@@ -81,7 +81,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.TrackedEntityInstanceSupportService;
@@ -151,22 +150,12 @@ public class TrackedEntityInstanceController
     @GetMapping( produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_XML, ContextUtils.CONTENT_TYPE_CSV } )
     public @ResponseBody RootNode getTrackedEntityInstances( TrackedEntityInstanceCriteria criteria, HttpServletResponse response )
     {
-        List<TrackedEntityInstance> trackedEntityInstances;
-
         List<String> fields = contextService.getFieldsFromRequest();
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        if ( criteria.isUseLegacy() ) // FIXME luciano: this has to be removed!
-        {
-            trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
+        List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
                 getTrackedEntityInstanceParams( fields ), false );
-        }
-        else
-        {
-            trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances2( queryParams,
-                getTrackedEntityInstanceParams( fields ), false );
-        }
 
         RootNode rootNode = NodeUtils.createMetadata();
 
@@ -343,8 +332,6 @@ public class TrackedEntityInstanceController
     public @ResponseBody RootNode getTrackedEntityInstanceById(
         @PathVariable( "id" ) String pvId,
         @RequestParam( required = false ) String program )
-        throws WebMessageException,
-        NotFoundException
     {
         List<String> fields = contextService.getFieldsFromRequest();
 

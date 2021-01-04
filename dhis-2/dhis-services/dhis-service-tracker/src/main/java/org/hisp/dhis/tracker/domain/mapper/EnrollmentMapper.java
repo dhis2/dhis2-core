@@ -37,7 +37,7 @@ import org.mapstruct.Mapping;
     RelationshipMapper.class,
     AttributeMapper.class,
     NoteMapper.class,
-    EventMapper.class }, componentModel = "spring" )
+    EventMapper.class } )
 public interface EnrollmentMapper extends DomainMapper<org.hisp.dhis.dxf2.events.enrollment.Enrollment, Enrollment>
 {
     @Mapping( target = "uid", source = "enrollment" )

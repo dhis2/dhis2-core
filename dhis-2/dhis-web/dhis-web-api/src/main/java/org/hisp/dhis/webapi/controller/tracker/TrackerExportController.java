@@ -40,10 +40,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.mapper.TrackedEntityMapper;
 import org.hisp.dhis.tracker.domain.web.PagingWrapper;
+import org.hisp.dhis.tracker.preheat.mappers.UserGroupAccessMapper;
 import org.hisp.dhis.webapi.controller.event.TrackedEntityInstanceCriteria;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.TrackedEntityInstanceSupportService;
+import org.mapstruct.factory.Mappers;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,7 +65,7 @@ public class TrackerExportController
 
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    private final TrackedEntityMapper trackedEntityMapper;
+    private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER = Mappers.getMapper( TrackedEntityMapper.class );
 
     private final TrackedEntityInstanceSupportService trackedEntityInstanceSupportService;
 
@@ -74,8 +76,8 @@ public class TrackerExportController
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        Collection<TrackedEntity> trackedEntityInstances = trackedEntityMapper
-            .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances2( queryParams,
+        Collection<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
+            .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
                 trackedEntityInstanceSupportService.getTrackedEntityInstanceParams( fields ), false ) );
 
         int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, false );
@@ -95,7 +97,7 @@ public class TrackerExportController
     public TrackedEntity getTrackedEntityInstanceById( @PathVariable( "id" ) String pvId,
         @RequestParam( required = false ) String program )
     {
-        return trackedEntityMapper.from( trackedEntityInstanceSupportService.getTrackedEntityInstance( pvId, program,
+        return TRACKED_ENTITY_MAPPER.from( trackedEntityInstanceSupportService.getTrackedEntityInstance( pvId, program,
             contextService.getFieldsFromRequest() ) );
     }
 }

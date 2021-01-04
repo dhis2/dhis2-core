@@ -33,7 +33,7 @@ import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( componentModel = "spring" )
+@Mapper
 public interface RelationshipItemMapper
     extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem, RelationshipItem>
 {

@@ -33,7 +33,7 @@ import org.hisp.dhis.tracker.domain.DataValue;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( componentModel = "spring" )
+@Mapper
 public interface DataValueMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.DataValue, DataValue>
 {
     @Mapping( target = "createdAt", source = "created" )

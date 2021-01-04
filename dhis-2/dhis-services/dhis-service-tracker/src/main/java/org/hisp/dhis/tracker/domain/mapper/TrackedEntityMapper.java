@@ -37,7 +37,7 @@ import org.mapstruct.Mapping;
     RelationshipMapper.class,
     AttributeMapper.class,
     EnrollmentMapper.class,
-    ProgramOwnerMapper.class }, componentModel = "spring" )
+    ProgramOwnerMapper.class } )
 public interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance, TrackedEntity>
 {
     @Mapping( target = "uid", source = "trackedEntityInstance" )

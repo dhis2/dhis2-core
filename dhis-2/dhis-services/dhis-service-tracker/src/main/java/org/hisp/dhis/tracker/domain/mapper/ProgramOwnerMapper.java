@@ -33,7 +33,7 @@ import org.hisp.dhis.tracker.domain.ProgramOwner;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( componentModel = "spring" )
+@Mapper
 public interface ProgramOwnerMapper
     extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner, ProgramOwner>
 {

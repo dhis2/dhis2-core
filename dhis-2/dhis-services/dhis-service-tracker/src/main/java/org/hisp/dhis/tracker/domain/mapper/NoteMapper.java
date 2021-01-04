@@ -33,7 +33,7 @@ import org.hisp.dhis.tracker.domain.Note;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( componentModel = "spring" )
+@Mapper
 public interface NoteMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Note, Note>
 {
     @Mapping( target = "storedAt", source = "storedDate" )

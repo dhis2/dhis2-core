@@ -33,9 +33,10 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( componentModel = "spring" )
+@Mapper
 public interface AttributeMapper extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.Attribute, Attribute>
 {
+
     @Mapping( target = "createdAt", source = "created" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
     Attribute from( org.hisp.dhis.dxf2.events.trackedentity.Attribute attribute );
