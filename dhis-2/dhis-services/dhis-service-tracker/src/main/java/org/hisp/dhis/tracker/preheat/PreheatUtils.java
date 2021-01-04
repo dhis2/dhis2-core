@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.preheat;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,41 +26,42 @@ package org.hisp.dhis.tracker.validation;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
-import java.util.List;
+import java.util.Optional;
 
-import org.hisp.dhis.tracker.preheat.supplier.ClassBasedSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.FileResourceSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.PeriodTypeSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.PreheatSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.ProgramInstanceByTeiSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.ProgramInstanceSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.ProgramInstancesWithAtLeastOneEventSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.ProgramStageInstanceProgramStageMapSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.UniqueAttributesSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.UserSupplier;
-
-import com.google.common.collect.ImmutableList;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 
 import lombok.experimental.UtilityClass;
 
 /**
- * Configuration class for the pre-heat stage. This class holds the list of
- * pre-heat suppliers executed during import
+ * @author Luciano Fiandesio
  */
 @UtilityClass
-public class TrackerImportPreheatConfig
+public class PreheatUtils
 {
-    public static final List<Class<? extends PreheatSupplier>> PREHEAT_ORDER = ImmutableList.of(
-        ClassBasedSupplier.class,
-        ProgramInstanceSupplier.class,
-        ProgramInstanceByTeiSupplier.class,
-        ProgramInstancesWithAtLeastOneEventSupplier.class,
-        ProgramStageInstanceProgramStageMapSupplier.class,
-        PeriodTypeSupplier.class,
-        UniqueAttributesSupplier.class,
-        UserSupplier.class,
-        FileResourceSupplier.class );
+    public <T extends IdentifiableObject> Optional<String> resolveKey( TrackerIdentifier identifier, T object )
+    {
+        if ( identifier.getIdScheme().equals( TrackerIdScheme.UID ) )
+        {
+            return Optional.ofNullable( object.getUid() );
+        }
+        else if ( identifier.getIdScheme().equals( TrackerIdScheme.CODE ) )
+        {
+            return Optional.ofNullable( object.getCode() );
+        }
+        else if ( identifier.getIdScheme().equals( TrackerIdScheme.NAME ) )
+        {
+            return Optional.ofNullable( object.getName() );
+        }
+        else if ( identifier.getIdScheme().equals( TrackerIdScheme.ATTRIBUTE ) )
+        {
+            return Optional.ofNullable( identifier.getIdentifier( object ) );
+        }
+        // TODO TrackerIdScheme.AUTO ??
+
+        return Optional.empty();
+    }
 }

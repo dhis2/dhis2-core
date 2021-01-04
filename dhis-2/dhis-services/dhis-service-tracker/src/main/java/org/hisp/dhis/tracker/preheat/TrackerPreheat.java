@@ -290,7 +290,7 @@ public class TrackerPreheat
             }
         }
 
-        resolveKey( identifier, object ).ifPresent( k -> map.get( klass ).put( k, object ) );
+        PreheatUtils.resolveKey( identifier, object ).ifPresent( k -> map.get( klass ).put( k, object ) );
 
         return this;
     }
@@ -512,29 +512,4 @@ public class TrackerPreheat
             .add( "map=" + map )
             .toString();
     }
-
-    private <T extends IdentifiableObject> Optional<String> resolveKey( TrackerIdentifier identifier, T object )
-    {
-        if ( identifier.getIdScheme().equals( TrackerIdScheme.UID ) )
-        {
-            return Optional.ofNullable( object.getUid() );
-        }
-        else if ( identifier.getIdScheme().equals( TrackerIdScheme.CODE ) )
-        {
-            return Optional.ofNullable( object.getCode() );
-        }
-        else if ( identifier.getIdScheme().equals( TrackerIdScheme.NAME ) )
-        {
-            return Optional.ofNullable( object.getName() );
-        }
-        else if ( identifier.getIdScheme().equals( TrackerIdScheme.ATTRIBUTE ) )
-        {
-            return Optional.ofNullable( identifier.getIdentifier( object ) );
-        }
-        // TODO TrackerIdScheme.AUTO ??
-
-        return Optional.empty();
-
-    }
-
 }

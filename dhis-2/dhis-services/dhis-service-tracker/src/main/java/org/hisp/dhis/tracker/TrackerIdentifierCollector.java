@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -42,7 +43,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -50,9 +53,9 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.springframework.util.StringUtils;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * This class "collects" identifiers from all input objects.
@@ -64,6 +67,8 @@ import com.google.common.base.MoreObjects;
  */
 public class TrackerIdentifierCollector
 {
+    public final static String ID_WILDCARD = "*";
+
     public static Map<Class<?>, Set<String>> collect( TrackerImportParams params )
     {
         Map<Class<?>, Set<String>> map = new HashMap<>();
@@ -71,7 +76,10 @@ public class TrackerIdentifierCollector
         collectTrackedEntities( map, params.getIdentifiers(), params.getTrackedEntities() );
         collectEnrollments( map, params.getIdentifiers(), params.getEnrollments() );
         collectEvents( map, params.getIdentifiers(), params.getEvents() );
-        collectRelationships( map, params.getIdentifiers(), params.getRelationships() );
+        collectRelationships( map, params.getRelationships() );
+        // Using "*" signals that all the entities of the given type have to be preloaded in the Preheat
+        map.put( TrackedEntityType.class, ImmutableSet.of( ID_WILDCARD ) );
+        map.put( RelationshipType.class, ImmutableSet.of( ID_WILDCARD ) );
 
         return map;
     }
@@ -151,7 +159,7 @@ public class TrackerIdentifierCollector
     }
 
     private static void collectRelationships(
-        Map<Class<?>, Set<String>> map, TrackerIdentifierParams params, List<Relationship> relationships )
+        Map<Class<?>, Set<String>> map, List<Relationship> relationships )
     {
         relationships.parallelStream().forEach( relationship -> {
             addIdentifier( map, Relationship.class, TrackerIdScheme.UID, relationship.getRelationship() );
