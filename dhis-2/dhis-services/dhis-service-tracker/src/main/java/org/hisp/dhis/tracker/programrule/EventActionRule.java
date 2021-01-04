@@ -28,13 +28,42 @@ package org.hisp.dhis.tracker.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * The type of an issue.
- *
- * @Author Enrico Colasante
- */
-public enum IssueType
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.rules.models.AttributeType;
+import org.hisp.dhis.tracker.domain.DataValue;
+import org.hisp.dhis.tracker.domain.Event;
+
+import java.util.Optional;
+
+@Getter
+@RequiredArgsConstructor
+@AllArgsConstructor
+public class EventActionRule
+    implements ActionRule
 {
-    WARNING,
-    ERROR;
+    private final Event event;
+
+    private final String data;
+
+    private final String field;
+
+    private final AttributeType attributeType;
+
+    private String content;
+
+    public Optional<DataValue> getDataValue()
+    {
+        if ( attributeType.equals( AttributeType.DATA_ELEMENT ) )
+        {
+            return event.getDataValues()
+                .stream()
+                .filter( dv -> dv.getDataElement().equals( field ) )
+                .findAny();
+        }
+
+        return Optional.empty();
+
+    }
 }

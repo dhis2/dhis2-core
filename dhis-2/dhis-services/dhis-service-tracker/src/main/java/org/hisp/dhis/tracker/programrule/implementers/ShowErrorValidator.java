@@ -26,40 +26,38 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.programrule;
+package org.hisp.dhis.tracker.programrule.implementers;
 
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.rules.models.RuleActionShowError;
+import org.hisp.dhis.tracker.programrule.IssueType;
+import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
+import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 
 /**
+ * This implementer show errors calculated by Rule Engine.
+ *
  * @Author Enrico Colasante
  */
-public interface RuleActionValidator extends RuleActionImplementer
+@Component
+public class ShowErrorValidator
+    extends ErrorWarningImplementer<RuleActionShowError>
 {
-    /**
-     * Get the validation for enrollment evaluated by rule engine
-     *
-     * @param bundle
-     * @return A map of enrollment and list of issues
-     */
-    Map<String, List<ProgramRuleIssue>> validateEnrollments( TrackerBundle bundle );
-
-    /**
-     * Get the validation for event evaluated by rule engine
-     *
-     * @param bundle
-     * @return A map of events and list of issues
-     */
-    Map<String, List<ProgramRuleIssue>> validateEvents( TrackerBundle bundle );
-
-    default boolean isDataElementPartOfProgramStage( String dataElementUid, ProgramStage programStage )
+    @Override
+    public Class<RuleActionShowError> getActionClass()
     {
-        return programStage.getDataElements()
-            .stream()
-            .map( de -> de.getUid() )
-            .anyMatch( de -> de.equals( dataElementUid ) );
+        return RuleActionShowError.class;
+    }
+
+    @Override
+    public boolean isOnComplete()
+    {
+        return false;
+    }
+
+    @Override
+    public IssueType getIssueType()
+    {
+        return ERROR;
     }
 }
