@@ -72,7 +72,7 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
     @Before
     public void setUp()
     {
-        this.subject = new ProgramSupplier( jdbcTemplate, objectMapper, env );
+        this.subject = new ProgramSupplier( jdbcTemplate, env );
         when( env.getActiveProfiles() ).thenReturn( new String[] { "tets" } );
     }
 
