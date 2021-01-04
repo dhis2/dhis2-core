@@ -29,9 +29,12 @@ package org.hisp.dhis.jdbc.config;
  */
 
 import com.google.common.collect.Lists;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.hisp.dhis.jdbc.dialect.StatementDialectFactoryBean;
 import org.hisp.dhis.jdbc.statementbuilder.StatementBuilderFactoryBean;
+import org.hisp.quick.StatementDialect;
 import org.hisp.quick.StatementInterceptor;
 import org.hisp.quick.configuration.JdbcConfigurationFactoryBean;
 import org.hisp.quick.factory.DefaultBatchHandlerFactory;
@@ -39,15 +42,20 @@ import org.hisp.quick.statement.JdbcStatementManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 
 /**
  * @author Luciano Fiandesio
  */
 @Configuration
+@DependsOn( "dataSource" )
 public class JdbcConfig
 {
     @Autowired
     private HibernateConfigurationProvider hibernateConfigurationProvider;
+
+    @Autowired
+    private DhisConfigurationProvider dhisConfigurationProvider;
 
     @Bean
     public JdbcStatementManager statementManager()
@@ -61,18 +69,20 @@ public class JdbcConfig
     @Bean( initMethod = "init" )
     public StatementDialectFactoryBean statementDialect()
     {
-        return new StatementDialectFactoryBean( this.hibernateConfigurationProvider );
+        return new StatementDialectFactoryBean( dhisConfigurationProvider.getProperty( ConfigurationKey.CONNECTION_DIALECT ) );
     }
 
     @Bean( initMethod = "init" )
     public JdbcConfigurationFactoryBean jdbcConfiguration()
     {
         JdbcConfigurationFactoryBean jdbcConf = new JdbcConfigurationFactoryBean();
-        jdbcConf.setDialect( statementDialect().getObject() );
-        jdbcConf.setDriverClass( (String) getConnectionProperty( "hibernate.connection.driver_class" ) );
-        jdbcConf.setConnectionUrl( (String) getConnectionProperty( "hibernate.connection.url" ) );
-        jdbcConf.setUsername( (String) getConnectionProperty( "hibernate.connection.username" ) );
-        jdbcConf.setPassword( (String) getConnectionProperty( "hibernate.connection.password" ) );
+        StatementDialect statementDialect = statementDialect().getObject();
+        jdbcConf.setDialect( statementDialect );
+        jdbcConf.setDriverClass( dhisConfigurationProvider.getProperty( ConfigurationKey.CONNECTION_DRIVER_CLASS ) );
+        jdbcConf.setConnectionUrl( dhisConfigurationProvider.getProperty( ConfigurationKey.CONNECTION_URL ) );
+        jdbcConf.setUsername( dhisConfigurationProvider.getProperty( ConfigurationKey.CONNECTION_USERNAME ) );
+        jdbcConf.setPassword( dhisConfigurationProvider.getProperty( ConfigurationKey.CONNECTION_PASSWORD ) );
+
         return jdbcConf;
     }
 
@@ -99,10 +109,4 @@ public class JdbcConfig
         statementInterceptor.setStatementManagers( Lists.newArrayList( statementManager() ) );
         return statementInterceptor;
     }
-
-    private Object getConnectionProperty( String key )
-    {
-        return hibernateConfigurationProvider.getConfiguration().getProperty( key );
-    }
-
 }

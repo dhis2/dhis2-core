@@ -28,14 +28,12 @@ package org.hisp.dhis.system.deletion;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javassist.util.proxy.ProxyObject;
-
-
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
@@ -179,13 +177,6 @@ public class DefaultDeletionManager
 
     private Class<?> getClazz( Object object )
     {
-        Class<?> clazz = object.getClass();
-
-        while ( ProxyObject.class.isAssignableFrom( clazz ) )
-        {
-            clazz = clazz.getSuperclass();
-        }
-
-        return clazz;
+        return HibernateProxyUtils.getRealClass( object );
     }
 }

@@ -28,6 +28,8 @@ package org.hisp.dhis.dxf2.events.trackedentity.store;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -48,44 +50,26 @@ public class DefaultAclStore
 
     private final static String USER_SQL_PARAM_NAME = "userId";
 
-    private final static String PUBLIC_ACCESS_CONDITION = "(publicaccess LIKE '__r%' OR publicaccess IS NULL)";
+    private final static String USER_GROUP_SQL_PARAM_NAME = "userGroupUIDs";
 
-    private final static String USERACCESS_CONDITION = "(SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :"
-        + USER_SQL_PARAM_NAME + ")";
+    private final static String PUBLIC_ACCESS_CONDITION = "sharing->>'public' LIKE '__r%' OR sharing->>'public' IS NULL";
 
-    private final static String USERGROUPACCESS_CONDITION = "(SELECT usergroupaccessid FROM usergroupaccess "
-        + "WHERE access LIKE '__r%' AND usergroupid IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :" + USER_SQL_PARAM_NAME
-        + "))";
+    private final static String USERACCESS_CONDITION = "sharing->'users'->:" + USER_SQL_PARAM_NAME + "->>'access' LIKE '__r%'";
+
+    private final static String USERGROUPACCESS_CONDITION =  JsonbFunctions.HAS_USER_GROUP_IDS + "( sharing, :" + USER_GROUP_SQL_PARAM_NAME + ") = true " +
+        "and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "(sharing, '__r%', :" + USER_GROUP_SQL_PARAM_NAME + ") = true";
 
     private final static String GET_TEI_TYPE_ACL = "SELECT trackedentitytypeid FROM trackedentitytype "
-        + "WHERE " + PUBLIC_ACCESS_CONDITION
-        + "OR trackedentitytypeid IN  (SELECT trackedentitytypeid "
-        + "FROM trackedentitytypeuseraccesses WHERE useraccessid IN " + USERACCESS_CONDITION + ")"
-        + "OR trackedentitytypeid IN (SELECT trackedentitytypeid "
-        + "FROM trackedentitytypeusergroupaccesses WHERE usergroupaccessid IN "
-        + USERGROUPACCESS_CONDITION + ")";
-
-    final static String GET_PROGRAM_ACL = "SELECT p.programid FROM program p WHERE "
-        + PUBLIC_ACCESS_CONDITION + " OR ( p.programid IN (SELECT programid "
-        + "FROM programuseraccesses pua WHERE pua.useraccessid IN " + USERACCESS_CONDITION
-        + ") OR p.programid IN (SELECT programid FROM programusergroupaccesses puga "
-        + "WHERE puga.usergroupaccessid IN " + USERGROUPACCESS_CONDITION + "))";
+        + " WHERE " + PUBLIC_ACCESS_CONDITION + " OR " + USERACCESS_CONDITION;
+    final static String GET_PROGRAM_ACL = "SELECT p.programid FROM program p "
+        + " WHERE " + PUBLIC_ACCESS_CONDITION + " OR " + USERACCESS_CONDITION;
 
     final static String GET_PROGRAMSTAGE_ACL = "SELECT ps.programstageid FROM programstage ps "
-        + "WHERE " + PUBLIC_ACCESS_CONDITION + " OR ( "
-        + "ps.programstageid IN (SELECT psua.programstageid "
-        + "FROM programstageuseraccesses psua WHERE psua.useraccessid IN " + USERACCESS_CONDITION + ")"
-        + "OR ps.programid IN "
-        + "(SELECT psuga.programid FROM programstageusergroupaccesses psuga "
-        + "WHERE psuga.usergroupaccessid IN " + USERGROUPACCESS_CONDITION + "))";
+        + " WHERE " + PUBLIC_ACCESS_CONDITION + " OR " + USERACCESS_CONDITION;
 
     private final static String GET_RELATIONSHIPTYPE_ACL = "SELECT rs.relationshiptypeid "
-        + "FROM relationshiptype rs WHERE " + PUBLIC_ACCESS_CONDITION + " OR ( "
-        + "rs.relationshiptypeid IN (SELECT rtua.relationshiptypeid "
-        + "FROM relationshiptypeuseraccesses rtua WHERE rtua.useraccessid IN " + USERACCESS_CONDITION
-        + ") OR rs.relationshiptypeid IN (SELECT rtuga.relationshiptypeid "
-        + "FROM relationshiptypeusergroupaccesses rtuga "
-        + "WHERE rtuga.usergroupaccessid IN " + USERGROUPACCESS_CONDITION + "))";
+        + "FROM relationshiptype rs"
+        + " WHERE " + PUBLIC_ACCESS_CONDITION + " OR " + USERACCESS_CONDITION;
 
     public DefaultAclStore( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
@@ -93,33 +77,41 @@ public class DefaultAclStore
     }
 
     @Override
-    public List<Long> getAccessibleTrackedEntityInstanceTypes( Long userId )
+    public List<Long> getAccessibleTrackedEntityInstanceTypes( String userUID, List<String> userGroupUIDs )
     {
-        return executeAclQuery( userId, GET_TEI_TYPE_ACL, "trackedentitytypeid" );
+        return executeAclQuery( userUID, userGroupUIDs, GET_TEI_TYPE_ACL, "trackedentitytypeid" );
     }
 
     @Override
-    public List<Long> getAccessiblePrograms( Long userId )
+    public List<Long> getAccessiblePrograms( String userUID, List<String> userGroupUIDs )
     {
-        return executeAclQuery( userId, GET_PROGRAM_ACL, "programid" );
+        return executeAclQuery( userUID, userGroupUIDs, GET_PROGRAM_ACL, "programid" );
     }
 
     @Override
-    public List<Long> getAccessibleProgramStages( Long userId )
+    public List<Long> getAccessibleProgramStages( String userUID, List<String> userGroupUIDs )
     {
-        return executeAclQuery( userId, GET_PROGRAMSTAGE_ACL, "programstageid" );
+        return executeAclQuery( userUID, userGroupUIDs, GET_PROGRAMSTAGE_ACL, "programstageid" );
     }
 
     @Override
-    public List<Long> getAccessibleRelationshipTypes( Long userId )
+    public List<Long> getAccessibleRelationshipTypes( String userUID, List<String> userGroupUIDs )
     {
-        return executeAclQuery( userId, GET_RELATIONSHIPTYPE_ACL, "relationshiptypeid" );
+        return executeAclQuery( userUID, userGroupUIDs, GET_RELATIONSHIPTYPE_ACL, "relationshiptypeid" );
     }
 
-    private List<Long> executeAclQuery( Long userId, String sql, String primaryKey )
+    private List<Long> executeAclQuery( String userUID,  List<String> userGroupUIDs, String sql, String primaryKey )
     {
-        return jdbcTemplate.query( sql, new MapSqlParameterSource( USER_SQL_PARAM_NAME, userId ),
-            ( rs, i ) -> rs.getLong( primaryKey ) );
+        MapSqlParameterSource parameterMap = new MapSqlParameterSource();
+        parameterMap.addValue( USER_SQL_PARAM_NAME, "'" + userUID + "'" );
+
+        if ( !CollectionUtils.isEmpty( userGroupUIDs ) )
+        {
+            sql += " OR " + USERGROUPACCESS_CONDITION;
+            parameterMap.addValue( USER_GROUP_SQL_PARAM_NAME, "{" + String.join( ",", userGroupUIDs ) + "}" );
+        }
+
+        return jdbcTemplate.query( sql, parameterMap, ( rs, i ) -> rs.getLong( primaryKey ) );
     }
 
 }

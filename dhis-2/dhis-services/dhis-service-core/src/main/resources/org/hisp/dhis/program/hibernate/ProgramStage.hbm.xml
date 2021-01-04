@@ -100,25 +100,12 @@
       foreign-key="fk_programstage_periodtypeid" />
 
     <!-- Dynamic attribute values -->
-
     <property name="attributeValues" type="jsbAttributeValues"/>
-    <!-- Access properties -->
 
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_programstage_userid" />
 
-    <property name="publicAccess" length="8" />
-
-    <set name="userGroupAccesses" table="programstageusergroupaccesses" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="programid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
-    </set>
-
-    <set name="userAccesses" table="programstageuseraccesses" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="programstageid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
-    </set>
+    <!-- Sharing -->
+    <property name="sharing" type="jsbObjectSharing"/>
 
     <many-to-one name="nextScheduleDate" class="org.hisp.dhis.dataelement.DataElement" column="nextscheduledateid"
       foreign-key="fk_programstage_nextscheduledateid" />

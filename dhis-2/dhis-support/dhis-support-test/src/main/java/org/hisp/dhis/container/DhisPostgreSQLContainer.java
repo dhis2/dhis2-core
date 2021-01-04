@@ -28,11 +28,12 @@ package org.hisp.dhis.container;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.utility.DockerImageName;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Custom {@link PostgreSQLContainer} that provides additional fluent API to
@@ -44,7 +45,7 @@ public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>>
 {
     private Set<String> customPostgresConfigs = new HashSet<>();
 
-    public DhisPostgreSQLContainer( final String dockerImageName )
+    public DhisPostgreSQLContainer( DockerImageName dockerImageName )
     {
         super( dockerImageName );
     }
@@ -81,7 +82,7 @@ public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>>
      * add multiple custom commands.
      *
      * @param configAndValue The configuration and value of the form
-     *        "configName=configValue"
+     *                       "configName=configValue"
      * @return the DhisPostgreSQLContainer
      */
     public SELF appendCustomPostgresConfig( String configAndValue )
@@ -92,6 +93,4 @@ public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>>
         }
         return self();
     }
-
-
 }

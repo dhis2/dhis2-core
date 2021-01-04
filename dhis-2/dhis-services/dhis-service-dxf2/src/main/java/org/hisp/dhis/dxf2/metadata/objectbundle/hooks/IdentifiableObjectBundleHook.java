@@ -33,6 +33,7 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.core.annotation.Order;
@@ -71,7 +72,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             baseIdentifiableObject.setUser( bundle.getUser() );
         }
 
-        Schema schema = schemaService.getDynamicSchema( identifiableObject.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( identifiableObject ) );
         handleAttributeValues( identifiableObject, bundle, schema );
         handleSkipSharing( identifiableObject, bundle );
     }
@@ -88,7 +89,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             baseIdentifiableObject.setUser( bundle.getUser() );
         }
 
-        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
         handleAttributeValues( object, bundle, schema );
     }
 

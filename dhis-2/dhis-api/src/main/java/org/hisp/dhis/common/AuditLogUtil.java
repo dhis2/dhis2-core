@@ -28,7 +28,7 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javassist.util.proxy.ProxyFactory;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.slf4j.Logger;
 
 public class AuditLogUtil
@@ -59,14 +59,9 @@ public class AuditLogUtil
 
                 builder.append( "'" ).append( username ).append( "' " ).append( action );
 
-                if ( !ProxyFactory.isProxyClass( object.getClass() ) )
-                {
-                    builder.append( " " ).append( object.getClass().getName() );
-                }
-                else
-                {
-                    builder.append( " " ).append( object.getClass().getSuperclass().getName() );
-                }
+                Class<?> klass = HibernateProxyUtils.getRealClass( object );
+
+                builder.append( " " ).append( klass.getName() );
 
                 if ( idObject.getName() != null && !idObject.getName().isEmpty() )
                 {

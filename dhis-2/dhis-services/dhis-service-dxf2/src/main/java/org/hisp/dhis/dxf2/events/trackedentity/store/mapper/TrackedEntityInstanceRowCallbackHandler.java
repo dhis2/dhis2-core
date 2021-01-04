@@ -52,7 +52,7 @@ import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Luciano Fiandesio

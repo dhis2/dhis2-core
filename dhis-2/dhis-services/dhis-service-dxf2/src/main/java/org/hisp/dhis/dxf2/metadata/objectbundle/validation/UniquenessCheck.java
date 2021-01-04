@@ -33,6 +33,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
@@ -106,14 +107,14 @@ public class UniquenessCheck
         if ( object == null || preheat.isDefault( object ) )
             return errorReports;
 
-        if ( !preheat.getUniquenessMap().containsKey( object.getClass() ) )
+        if ( !preheat.getUniquenessMap().containsKey( HibernateProxyUtils.getRealClass( object ) ) )
         {
-            preheat.getUniquenessMap().put( object.getClass(), new HashMap<>() );
+            preheat.getUniquenessMap().put( HibernateProxyUtils.getRealClass( object ), new HashMap<>() );
         }
 
-        Map<String, Map<Object, String>> uniquenessMap = preheat.getUniquenessMap().get( object.getClass() );
+        Map<String, Map<Object, String>> uniquenessMap = preheat.getUniquenessMap().get( HibernateProxyUtils.getRealClass( object ) );
 
-        Schema schema = ctx.getSchemaService().getDynamicSchema( object.getClass() );
+        Schema schema = ctx.getSchemaService().getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
         List<Property> uniqueProperties = schema.getProperties().stream()
             .filter( p -> p.isPersisted() && p.isOwner() && p.isUnique() && p.isSimple() )
             .collect( Collectors.toList() );
@@ -134,7 +135,7 @@ public class UniquenessCheck
                 {
                     if ( !identifier.getIdentifier( object ).equals( objectIdentifier ) )
                     {
-                        errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E5003, property.getName(),
+                        errorReports.add( new ErrorReport( HibernateProxyUtils.getRealClass( object ), ErrorCode.E5003, property.getName(),
                             value, identifier.getIdentifiersWithName( object ), objectIdentifier ).setMainId( objectIdentifier )
                             .setErrorProperty( property.getName() ) );
                     }

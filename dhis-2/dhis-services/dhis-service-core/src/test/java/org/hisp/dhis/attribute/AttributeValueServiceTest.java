@@ -29,8 +29,7 @@ package org.hisp.dhis.attribute;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.TransactionalIntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DeleteNotAllowedException;
@@ -41,22 +40,20 @@ import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserInfo;
 import org.hisp.dhis.user.UserService;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Category( IntegrationTest.class )
-public class AttributeValueServiceTest
-    extends TransactionalIntegrationTestBase
+public class AttributeValueServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
     private AttributeService attributeService;
@@ -83,13 +80,6 @@ public class AttributeValueServiceTest
     private Attribute attribute2;
     private Attribute attribute3;
     private UserInfo currentUserInfo;
-
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 
     @Override
     protected void setUpTest()

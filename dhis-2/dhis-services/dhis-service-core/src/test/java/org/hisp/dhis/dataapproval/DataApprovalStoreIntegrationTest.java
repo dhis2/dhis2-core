@@ -29,8 +29,7 @@ package org.hisp.dhis.dataapproval;
  */
 
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.TransactionalIntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -52,10 +51,8 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
@@ -68,7 +65,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.List;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * DataApprovalStore tests that no longer work in the H2 database but must
@@ -76,10 +73,7 @@ import static org.junit.Assert.*;
  *
  * @author Jim Grace
  */
-@Category( IntegrationTest.class )
-@Ignore
-public class DataApprovalStoreIntegrationTest
-    extends TransactionalIntegrationTestBase
+public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest
 {
     private HibernateDataApprovalStore dataApprovalStore;
 
@@ -224,44 +218,42 @@ public class DataApprovalStoreIntegrationTest
         categoryService.updateCategoryCombo( categoryComboA );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Test
     public void testGetDataApprovalStatusesWithOpenPeriodsAfterCoEndDate()
     {
-        dataApprovalLevelService.addDataApprovalLevel( level1 );
-
         Period periodJan = createPeriod( "202001" );
         Period periodFeb = createPeriod( "202002" );
         Period periodMay = createPeriod( "202005" );
         Period periodJun = createPeriod( "202006" );
-
-        periodService.addPeriod( periodJan );
-        periodService.addPeriod( periodFeb );
-        periodService.addPeriod( periodMay );
-        periodService.addPeriod( periodJun );
-
         List<DataApprovalLevel> userApprovalLevels = ListUtils.newList( level1 );
 
-        Mockito.when( currentUserService.getCurrentUser() ).thenReturn( userA );
+        transactionTemplate.execute( status -> {
+            dataApprovalLevelService.addDataApprovalLevel( level1 );
 
-        assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodJan, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
-        assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodFeb, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
-        assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodMay, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
-        assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodJun, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
+            periodService.addPeriod( periodJan );
+            periodService.addPeriod( periodFeb );
+            periodService.addPeriod( periodMay );
+            periodService.addPeriod( periodJun );
 
-        categoryOptionA.setStartDate( new DateTime( 2020, 1, 1, 0, 0 ).toDate() );
-        categoryOptionA.setEndDate( new DateTime( 2020, 5, 30, 0, 0 ).toDate() );
+            Mockito.when( currentUserService.getCurrentUser() ).thenReturn( userA );
 
-        categoryOptionB.setStartDate( new DateTime( 2020, 2, 1, 0, 0 ).toDate() );
-        categoryOptionB.setEndDate( new DateTime( 2020, 6, 30, 0, 0 ).toDate() );
+            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodJan, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
+            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodFeb, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
+            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodMay, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
+            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodJun, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
 
-        categoryService.updateCategoryOption( categoryOptionA );
-        categoryService.updateCategoryOption( categoryOptionB );
+            categoryOptionA.setStartDate( new DateTime( 2020, 1, 1, 0, 0 ).toDate() );
+            categoryOptionA.setEndDate( new DateTime( 2020, 5, 30, 0, 0 ).toDate() );
+
+            categoryOptionB.setStartDate( new DateTime( 2020, 2, 1, 0, 0 ).toDate() );
+            categoryOptionB.setEndDate( new DateTime( 2020, 6, 30, 0, 0 ).toDate() );
+
+            categoryService.updateCategoryOption( categoryOptionA );
+            categoryService.updateCategoryOption( categoryOptionB );
+
+            dbmsManager.clearSession();
+            return null;
+        } );
 
         assertEquals( 0, dataApprovalStore.getDataApprovalStatuses( workflowA, periodJan, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
         assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodFeb, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );

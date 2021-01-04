@@ -1,21 +1,7 @@
 package org.hisp.dhis.dxf2.events.importer.context;
 
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hisp.dhis.dxf2.common.ImportOptions.getDefaultImportOptions;
-import static org.junit.Assert.assertFalse;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertTrue;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.program.Program;
@@ -31,10 +17,25 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hisp.dhis.dxf2.common.ImportOptions.getDefaultImportOptions;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramSupplierAclIntegrationTest extends DhisSpringTest
+public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
 {
     @Autowired
     private ProgramSupplier programSupplier;
@@ -51,10 +52,17 @@ public class ProgramSupplierAclIntegrationTest extends DhisSpringTest
     private Event event = new Event();
 
     @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
+    @Override
     protected void setUpTest()
         throws Exception
     {
         userService = _userService;
+        createAndInjectAdminUser();
     }
 
     //
@@ -67,8 +75,9 @@ public class ProgramSupplierAclIntegrationTest extends DhisSpringTest
         // Given
         final User demo = createUser( "demo" );
         final Program program = createProgram( 'A' );
-        program.setPublicAccess( AccessStringHelper.DEFAULT );
+        program.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( program, false );
+        dbmsManager.flushSession();
 
         // When
         final Map<String, Program> programs = programSupplier.get( getDefaultImportOptions(), singletonList( event ) );
@@ -113,6 +122,7 @@ public class ProgramSupplierAclIntegrationTest extends DhisSpringTest
 
         UserGroup userGroup = new UserGroup( "test-group", singleton( user ) );
         manager.save( userGroup, true );
+        user.getGroups().add( userGroup );
 
         UserGroupAccess userGroupAccess = new UserGroupAccess();
         userGroupAccess.setUserGroup( userGroup );
@@ -216,11 +226,9 @@ public class ProgramSupplierAclIntegrationTest extends DhisSpringTest
         UserGroup userGroup = new UserGroup( "test-group-programstage", singleton( user ) );
         manager.save( userGroup, true );
 
-        UserGroupAccess userGroupAccess = new UserGroupAccess();
-        userGroupAccess.setUserGroup( userGroup );
-        userGroupAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
+        user.getGroups().add( userGroup );
 
-        programStage.setUserGroupAccesses( singleton( userGroupAccess ) );
+        programStage.getSharing().addUserGroupAccess( new org.hisp.dhis.user.sharing.UserGroupAccess( userGroup, AccessStringHelper.DATA_READ_WRITE ) );
         manager.save( programStage, false );
 
         final Program program = createProgram( 'A' );
@@ -335,6 +343,7 @@ public class ProgramSupplierAclIntegrationTest extends DhisSpringTest
 
         UserGroup userGroup = new UserGroup( "test-group-tet", singleton( user ) );
         manager.save( userGroup, true );
+        user.getGroups().add( userGroup );
 
         UserGroupAccess userGroupAccess = new UserGroupAccess();
         userGroupAccess.setUserGroup( userGroup );

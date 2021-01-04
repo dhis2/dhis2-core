@@ -33,6 +33,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.MappingException;
 import org.hibernate.SessionFactory;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
@@ -40,7 +41,6 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.schema.descriptors.*;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.system.util.AnnotationUtils;
-import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -61,6 +61,7 @@ import static java.util.stream.Collectors.toSet;
  * @author Morten Olav Hansen <mortenoh@gmail.com> descriptors
  */
 @Service( "org.hisp.dhis.schema.SchemaService" )
+@Slf4j
 public class DefaultSchemaService
     implements SchemaService
 {
@@ -244,10 +245,15 @@ public class DefaultSchemaService
     {
         if ( klass == null )
         {
+            log.error( "getSchema() Error, input class should not be null!" );
             return null;
         }
 
-        klass = ReflectionUtils.getRealClass( klass );
+        if ( klass.getName().contains( "Proxy" ) )
+        {
+            log.error( "Error, can't use Hibernate proxy class names!!!" );
+            throw new IllegalStateException( "Input class must not be Hibernate proxy class!!!" );
+        }
 
         if ( classSchemaMap.containsKey( klass ) )
         {
@@ -267,7 +273,14 @@ public class DefaultSchemaService
     {
         if ( klass == null )
         {
+            log.error( "getDynamicSchema() Error, input class should not be null!" );
             return null;
+        }
+
+        if ( klass.getName().contains( "Proxy" ) )
+        {
+            log.error( "Error, can't use Hibernate proxy class names!!!" );
+            throw new IllegalStateException( "Input class must not be Hibernate proxy class!!!" );
         }
 
         Schema schema = getSchema( klass );
@@ -276,8 +289,6 @@ public class DefaultSchemaService
         {
             return schema;
         }
-
-        klass = propertyIntrospectorService.getConcreteClass( ReflectionUtils.getRealClass( klass ) );
 
         String name = getName( klass );
 

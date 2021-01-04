@@ -111,7 +111,7 @@ public enum TrackerErrorCode
     E1049( "Could not find OrganisationUnit: `{0}`, linked to Tracked Entity." ),
     // TODO: Delete not working yet
     E1082( "Event: `{0}`, is already deleted and can't be modified." ),
-    E1113( "Enrollment: `{0}`, is already deleted." ),
+    E1113( "Enrollment: `{0}`, is already deleted and can't be modified." ),
     E1114( "TrackedEntity: `{0}`, is already deleted and can't be modified." ),
     E1118( "Assigned user `{0}` is not a valid uid."),
     E1119( "A Tracker Note with uid `{0}` already exists."),
@@ -146,6 +146,11 @@ public enum TrackerErrorCode
     E1303( "Mandatory DataElement `{0}` is not present" ),
     E1304( "DataElement `{0}` is not a valid data element" ),
     E1305( "DataElement `{0}` is not part of `{1}` program stage" ),
+    E1306( "Mandatory Attribute `{0}` is not present" ),
+    E1307( "DataElement `{0}` is already present in event `{1}`" ),
+    E1308( "DataElement `{0}` is being replaced in event `{1}`" ),
+    E1309( "Attribute `{0}` is already present in tei `{1}`" ),
+    E1310( "Attribute `{0}` is being replaced in tei `{1}`" ),
 
     E4000( "Relationship: `{0}` cannot link to itself" ),
     E4001( "Relationship Item `{0}` for Relationship `{1}` is invalid: an Item can link only one Tracker entity." ),
