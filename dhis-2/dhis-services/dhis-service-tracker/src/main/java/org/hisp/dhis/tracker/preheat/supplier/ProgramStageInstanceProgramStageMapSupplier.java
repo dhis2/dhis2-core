@@ -28,16 +28,17 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This supplier adds to the pre-heat object a List of all Program Stages UIDs
@@ -47,14 +48,20 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class ProgramStageInstanceProgramStageMapSupplier extends JdbcAbstractPreheatSupplier
+public class ProgramStageInstanceProgramStageMapSupplier
+    extends JdbcAbstractPreheatSupplier
 {
-    private final static String COLUMN = "uid";
+    private static final String PS_UID = "programStageUid";
 
-    private final static String SQL = "select " + COLUMN + " from programstage ps " +
-        "where exists( select programstageinstanceid from programstageinstance psi where  psi.deleted = false " +
-        "and psi.status != 'SKIPPED' and ps.programstageid = psi.programstageid) " +
-        "and ps.uid in (:ids)";
+    private static final String PI_UID = "programInstanceUid";
+
+    private static final String SQL = "select ps.uid as " + PS_UID + ", pi.uid as " + PI_UID + " " +
+        " from programstage AS ps " +
+        " JOIN programinstance AS pi ON pi.programid = ps.programid " +
+        " where exists( select programstageinstanceid from programstageinstance psi where  psi.deleted = false " +
+        " and psi.status != 'SKIPPED' and ps.programstageid = psi.programstageid " +
+        " and pi.programinstanceid = psi.programinstanceid ) " +
+        " and ps.uid in (:ids)";
 
     protected ProgramStageInstanceProgramStageMapSupplier( JdbcTemplate jdbcTemplate )
     {
@@ -74,13 +81,13 @@ public class ProgramStageInstanceProgramStageMapSupplier extends JdbcAbstractPre
 
         if ( !programStageUids.isEmpty() )
         {
-            List<String> programStageWithEvents = new ArrayList<>();
+            List<Pair<String, String>> programStageWithEvents = new ArrayList<>();
 
             MapSqlParameterSource parameters = new MapSqlParameterSource();
             parameters.addValue( "ids", programStageUids );
             jdbcTemplate.query( SQL, parameters, rs -> {
 
-                programStageWithEvents.add( rs.getString( COLUMN ) );
+                programStageWithEvents.add( Pair.of( rs.getString( PS_UID ), rs.getString( PI_UID ) ) );
 
             } );
 

@@ -16,7 +16,6 @@
     <module>dhis-web-commons-resources</module>
     <module>dhis-web-api</module>
     <module>dhis-web-api-test</module>
-    <module>dhis-web-maintenance</module>
     <module>dhis-web-dataentry</module>
     <module>dhis-web-approval</module>
     <module>dhis-web-portal</module>
@@ -43,7 +42,7 @@
           <plugin>
             <groupId>org.zeroturnaround</groupId>
             <artifactId>jrebel-maven-plugin</artifactId>
-            <version>1.1.6</version>
+            <version>${jrebel-maven-plugin.version}</version>
             <executions>
               <execution>
                 <id>generate-rebel-xml</id>
@@ -64,7 +63,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
-        <version>2.4</version>
+        <version>${maven-war-plugin.version}</version>
         <configuration>
             <failOnMissingWebXml>false</failOnMissingWebXml>
           <archiveClasses>true</archiveClasses>
@@ -74,10 +73,11 @@
           </archive>
         </configuration>
       </plugin>
+
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>properties-maven-plugin</artifactId>
-        <version>1.0.0</version>
+        <version>${properties-maven-plugin.version}</version>
         <executions>
           <execution>
             <goals>
@@ -85,6 +85,10 @@
             </goals>
             <configuration>
               <properties>
+                <property>
+                  <name>org.eclipse.jetty.util.log.IGNORED</name>
+                  <value>true</value>
+                </property>
                 <property>
                   <name>log4j.configurationFile</name>
                   <value>${project.baseUri}/../dhis-web-commons/src/main/resources/log4j2-jetty.xml</value>
@@ -94,10 +98,11 @@
           </execution>
         </executions>
       </plugin>
+
       <plugin>
         <groupId>org.codehaus.cargo</groupId>
         <artifactId>cargo-maven2-plugin</artifactId>
-        <version>1.7.7</version>
+        <version>${cargo-maven2-plugin.version}</version>
         <configuration>
           <container>
             <containerId>tomcat8x</containerId>
@@ -127,11 +132,19 @@
           </deployables>
         </configuration>
       </plugin>
+
       <plugin>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-maven-plugin</artifactId>
         <version>${maven-jetty-plugin.version}</version>
         <configuration>
+          <requestLog implementation="org.eclipse.jetty.server.NCSARequestLog">
+            <filename>/tmp/request.log</filename>
+            <retainDays>2</retainDays>
+            <append>true</append>
+            <extended>false</extended>
+            <logTimeZone>GMT</logTimeZone>
+          </requestLog>
           <systemProperties>
             <systemProperty>
               <name>org.eclipse.jetty.server.Request.maxFormContentSize</name>
@@ -144,6 +157,8 @@
           </webAppConfig>
         </configuration>
       </plugin>
+
+
     </plugins>
   </build>
 
@@ -182,8 +197,12 @@
 
   <properties>
     <rootDir>../</rootDir>
-    <useWarCompression>true</useWarCompression>
-    <maven-jetty-plugin.version>9.4.31.v20200723</maven-jetty-plugin.version>
+    <useWarCompression>false</useWarCompression>
+    <maven-jetty-plugin.version>9.4.35.v20201120</maven-jetty-plugin.version>
     <tomcat.version>8.5.47</tomcat.version>
+    <jrebel-maven-plugin.version>1.1.6</jrebel-maven-plugin.version>
+    <maven-war-plugin.version>2.4</maven-war-plugin.version>
+    <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
+    <cargo-maven2-plugin.version>1.7.7</cargo-maven2-plugin.version>
   </properties>
 </project>

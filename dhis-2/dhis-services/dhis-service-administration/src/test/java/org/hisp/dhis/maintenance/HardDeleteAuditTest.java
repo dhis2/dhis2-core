@@ -27,6 +27,7 @@ public class HardDeleteAuditTest
     extends IntegrationTestBase
 {
     private static final int TIMEOUT = 5;
+
     @Autowired
     private AuditService auditService;
 
@@ -44,14 +45,19 @@ public class HardDeleteAuditTest
     {
         OrganisationUnit ou = createOrganisationUnit( 'A' );
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
-        manager.save( ou );
-        manager.save( attribute );
-
         TrackedEntityInstance tei = createTrackedEntityInstance( 'A', ou, attribute );
 
-        trackedEntityInstanceService.addTrackedEntityInstance( tei );
+        transactionTemplate.execute( status ->
+        {
+            manager.save( ou );
+            manager.save( attribute );
 
-        trackedEntityInstanceService.deleteTrackedEntityInstance( tei );
+            trackedEntityInstanceService.addTrackedEntityInstance( tei );
+            trackedEntityInstanceService.deleteTrackedEntityInstance( tei );
+
+            dbmsManager.clearSession();
+            return null;
+        } );
 
         final AuditQuery query = AuditQuery.builder()
             .uid( Sets.newHashSet( tei.getUid() ) )
@@ -60,10 +66,15 @@ public class HardDeleteAuditTest
         await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) > 0 );
 
         List<Audit> audits = auditService.getAudits( query );
-
         assertEquals( 2, audits.size() );
 
-        jdbcMaintenanceStore.deleteSoftDeletedTrackedEntityInstances();
+        transactionTemplate.execute( status ->
+        {
+            jdbcMaintenanceStore.deleteSoftDeletedTrackedEntityInstances();
+
+            dbmsManager.clearSession();
+            return null;
+        } );
 
         final AuditQuery deleteQuery = AuditQuery.builder()
             .uid( Sets.newHashSet( tei.getUid() ) )
@@ -71,7 +82,6 @@ public class HardDeleteAuditTest
             .build();
 
         audits = auditService.getAudits( deleteQuery );
-
         await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( deleteQuery ) > 0 );
 
         assertEquals( 1, audits.size() );
@@ -79,11 +89,5 @@ public class HardDeleteAuditTest
         assertEquals( AuditType.DELETE, audit.getAuditType() );
         assertEquals( TrackedEntityInstance.class.getName(), audit.getKlass() );
         assertEquals( tei.getUid(), audit.getUid() );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }

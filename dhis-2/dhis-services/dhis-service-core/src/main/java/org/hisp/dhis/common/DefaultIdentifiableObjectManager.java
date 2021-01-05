@@ -44,7 +44,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.hibernate.HibernateUtils;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.translation.Translation;
@@ -65,11 +65,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
 
 /**
  * Note that it is required for nameable object stores to have concrete implementation
@@ -83,6 +84,8 @@ import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
 public class DefaultIdentifiableObjectManager
     implements IdentifiableObjectManager
 {
+    public static final String DEFAULT = "default";
+
     /**
      * Cache for default category objects. Disabled during test phase.
      */
@@ -157,7 +160,7 @@ public class DefaultIdentifiableObjectManager
     @Transactional
     public void save( IdentifiableObject object, boolean clearSharing )
     {
-        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( HibernateProxyUtils.getRealClass( object ) );
 
         if ( store != null )
         {
@@ -183,7 +186,7 @@ public class DefaultIdentifiableObjectManager
     @Transactional
     public void update( IdentifiableObject object, User user )
     {
-        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( HibernateProxyUtils.getRealClass( object ) );
 
         if ( store != null )
         {
@@ -247,7 +250,7 @@ public class DefaultIdentifiableObjectManager
     @Transactional
     public void delete( IdentifiableObject object, User user )
     {
-        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( HibernateProxyUtils.getRealClass( object ) );
 
         if ( store != null )
         {
@@ -419,7 +422,7 @@ public class DefaultIdentifiableObjectManager
     @Override
     @Transactional( readOnly = true )
     public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
-        String value, UserInfo currentUserInfo )
+        String value, UserInfo userInfo )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
@@ -428,7 +431,7 @@ public class DefaultIdentifiableObjectManager
             return null;
         }
 
-        return (T) store.getByUniqueAttributeValue( attribute, value, currentUserInfo );
+        return (T) store.getByUniqueAttributeValue( attribute, value, userInfo );
     }
 
     @Override
@@ -1011,6 +1014,13 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional
+    public void clear()
+    {
+        sessionFactory.getCurrentSession().clear();
+    }
+
+    @Override
+    @Transactional
     public void evict( Object object )
     {
         sessionFactory.getCurrentSession().evict( object );
@@ -1035,7 +1045,7 @@ public class DefaultIdentifiableObjectManager
     @Transactional
     public <T extends IdentifiableObject> void updateNoAcl( T object )
     {
-        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( HibernateProxyUtils.getRealClass( object ) );
 
         if ( store != null )
         {
@@ -1138,11 +1148,20 @@ public class DefaultIdentifiableObjectManager
     @Override
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
+        Optional<IdentifiableObject> categoryObjects = DEFAULT_OBJECT_CACHE.get( Category.class.getName(),
+            key -> HibernateProxyUtils.unproxy( getByName( Category.class, DEFAULT ) ) );
+        Optional<IdentifiableObject> categoryComboObjects = DEFAULT_OBJECT_CACHE.get( CategoryCombo.class.getName(),
+            key -> HibernateProxyUtils.unproxy( getByName( CategoryCombo.class, DEFAULT ) ) );
+        Optional<IdentifiableObject> categoryOptionObjects = DEFAULT_OBJECT_CACHE.get( CategoryOption.class.getName(),
+            key -> HibernateProxyUtils.unproxy( getByName( CategoryOption.class, DEFAULT ) ) );
+        Optional<IdentifiableObject> categoryOptionCombo = DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class.getName(),
+            key -> HibernateProxyUtils.unproxy( getByName( CategoryOptionCombo.class, DEFAULT ) ) );
+
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
-            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class.getName(), key -> HibernateUtils.initializeProxy( getByName( Category.class, "default" ) ) ).orElse( null ) )
-            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class.getName(), key -> HibernateUtils.initializeProxy( getByName( CategoryCombo.class, "default" ) ) ).orElse( null ) )
-            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class.getName(), key -> HibernateUtils.initializeProxy( getByName( CategoryOption.class, "default" ) ) ).orElse( null ) )
-            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class.getName(), key -> HibernateUtils.initializeProxy( getByName( CategoryOptionCombo.class, "default" ) ) ).orElse( null ) )
+            .put( Category.class, Objects.requireNonNull( categoryObjects.orElse( null ) ) )
+            .put( CategoryCombo.class, Objects.requireNonNull( categoryComboObjects.orElse( null ) ) )
+            .put( CategoryOption.class, Objects.requireNonNull( categoryOptionObjects.orElse( null ) ) )
+            .put( CategoryOptionCombo.class, Objects.requireNonNull( categoryOptionCombo.orElse( null ) ) )
             .build();
     }
 
@@ -1175,7 +1194,8 @@ public class DefaultIdentifiableObjectManager
             return false;
         }
 
-        Class<?> realClass = getRealClass( object.getClass() );
+        Class<?> realClass = HibernateProxyUtils.getRealClass( object );
+
         if ( !defaults.containsKey( realClass ) )
         {
             return false;

@@ -37,7 +37,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -116,11 +115,11 @@ public class EnrollmentTrackerConverterService
     private ProgramInstance from( TrackerPreheat preheat, Enrollment enrollment, ProgramInstance programInstance )
     {
         OrganisationUnit organisationUnit = preheat
-            .get( TrackerIdScheme.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
+            .get( OrganisationUnit.class, enrollment.getOrgUnit() );
 
         checkNotNull( organisationUnit, TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL );
 
-        Program program = preheat.get( TrackerIdScheme.UID, Program.class, enrollment.getProgram() );
+        Program program = preheat.get( Program.class, enrollment.getProgram() );
 
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
@@ -138,8 +137,11 @@ public class EnrollmentTrackerConverterService
             programInstance.setLastUpdated( now );
             programInstance.setLastUpdatedAtClient( now );
 
-            programInstance.setEnrollmentDate( DateUtils.parseDate( enrollment.getEnrolledAt() ) );
-            programInstance.setIncidentDate( DateUtils.parseDate( enrollment.getOccurredAt() ) );
+            Date enrollmentDate = DateUtils.parseDate( enrollment.getEnrolledAt() );
+            Date incidentDate = DateUtils.parseDate( enrollment.getOccurredAt() );
+
+            programInstance.setEnrollmentDate( enrollmentDate );
+            programInstance.setIncidentDate( incidentDate != null ? incidentDate : enrollmentDate );
             programInstance.setOrganisationUnit( organisationUnit );
             programInstance.setProgram( program );
             programInstance.setEntityInstance( trackedEntityInstance );

@@ -31,6 +31,7 @@ package org.hisp.dhis.hibernate.dialect;
 import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.spatial.dialect.postgis.PostgisPG95Dialect;
 import org.hibernate.type.StandardBasicTypes;
+import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 
 import java.sql.Types;
 
@@ -43,9 +44,16 @@ public class DhisPostgresDialect
 {
     public DhisPostgresDialect()
     {
+        super();
         registerColumnType( Types.JAVA_OBJECT, "jsonb" );
         registerHibernateType( Types.OTHER, "pg-uuid" );
-        registerFunction( "jsonb_extract_path", new StandardSQLFunction( "jsonb_extract_path", StandardBasicTypes.STRING ) );
-        registerFunction( "jsonb_extract_path_text", new StandardSQLFunction( "jsonb_extract_path_text", StandardBasicTypes.STRING ) );
+        registerFunction( JsonbFunctions.EXTRACT_PATH, new StandardSQLFunction( JsonbFunctions.EXTRACT_PATH, StandardBasicTypes.STRING ) );
+        registerFunction( JsonbFunctions.EXTRACT_PATH_TEXT, new StandardSQLFunction( JsonbFunctions.EXTRACT_PATH_TEXT, StandardBasicTypes.STRING ) );
+        registerFunction( JsonbFunctions.HAS_USER_GROUP_IDS, new StandardSQLFunction( JsonbFunctions.HAS_USER_GROUP_IDS, StandardBasicTypes.BOOLEAN ) );
+        registerFunction( JsonbFunctions.CHECK_USER_GROUPS_ACCESS, new StandardSQLFunction( JsonbFunctions.CHECK_USER_GROUPS_ACCESS, StandardBasicTypes.BOOLEAN ) );
+        registerFunction( JsonbFunctions.HAS_USER_ID, new StandardSQLFunction( JsonbFunctions.HAS_USER_ID, StandardBasicTypes.BOOLEAN ) );
+        registerFunction( JsonbFunctions.CHECK_USER_ACCESS, new StandardSQLFunction( JsonbFunctions.CHECK_USER_ACCESS, StandardBasicTypes.BOOLEAN ) );
+        registerFunction( JsonbFunctions.REGEXP_SEARCH, new StandardSQLFunction( JsonbFunctions.REGEXP_SEARCH, StandardBasicTypes.BOOLEAN ) );
+
     }
 }

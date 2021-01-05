@@ -39,12 +39,10 @@ import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramInstance;
@@ -67,7 +65,6 @@ import com.google.api.client.util.Lists;
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
 
-import javassist.util.proxy.ProxyFactory;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -84,10 +81,11 @@ public class TrackerPreheat
     private User user;
 
     /**
-     * Internal map of all objects mapped by identifier => class type => uid.
+     * Internal map of all metadata objects mapped by class type => [id] The value
+     * of each id can be either the metadata object's uid, code, name or attribute value
      */
     @Getter
-    private Map<TrackerIdScheme, Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>>> map = new HashMap<>();
+    private Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>> map = new HashMap<>();
 
     /**
      * Internal tree of all payload references which are not present in the
@@ -207,7 +205,7 @@ public class TrackerPreheat
      */
     @Getter
     @Setter
-    private List<String> programStageWithEvents = Lists.newArrayList();
+    private List<Pair<String, String>> programStageWithEvents = Lists.newArrayList();
     
     /**
      * Identifier map
@@ -225,113 +223,65 @@ public class TrackerPreheat
         return User.username( user );
     }
 
-    public <T extends IdentifiableObject> T get( TrackerIdentifier identifier,
-        Class<? extends IdentifiableObject> klass, IdentifiableObject object )
-    {
-        return get( identifier.getIdScheme(), klass, identifier.getIdentifier( object ) );
-    }
-
+    /**
+     * Fetch a metadata object from the pre-heat, based on the type of the object
+     * and the cached identifier.
+     *
+     * @param klass The metadata class to fetch
+     * @param key The key used during the pre-heat creation
+     * @return A metadata object or null
+     */
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> T get( TrackerIdScheme identifier, Class<? extends IdentifiableObject> klass,
+    public <T extends IdentifiableObject> T get( Class<? extends IdentifiableObject> klass,
         String key )
     {
-        if ( !containsKey( identifier, klass, key ) )
-        {
-            return null;
-        }
-
-        return (T) map.get( identifier ).get( klass ).get( key );
+        return (T) map.getOrDefault( klass, new HashMap<>() ).get( key );
     }
 
-    public <T extends IdentifiableObject> List<T> getAll( TrackerIdentifier identifier, List<T> keys )
-    {
-        List<T> objects = new ArrayList<>();
-
-        for ( T key : keys )
-        {
-            T identifiableObject = get( identifier, key );
-
-            if ( identifiableObject != null )
-            {
-                objects.add( identifiableObject );
-            }
-        }
-
-        return objects;
-    }
-
+    /**
+     * Fetch all the metadata objects from the pre-heat, by object type
+     * 
+     * @param klass The metadata class to fetch
+     *
+     * @return a List of pre-heated object or empty list
+     */
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> List<T> getAll( TrackerIdScheme identifier, Class<T> klass )
+    public <T extends IdentifiableObject> List<T> getAll( Class<T> klass )
     {
-        if ( !map.containsKey( identifier ) || !map.get( identifier ).containsKey( klass ) )
-        {
-            return new ArrayList<>();
-        }
-
-        return new ArrayList<>( (Collection<? extends T>) map.get( identifier ).get( klass ).values() );
-    }
-
-    @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> T get( TrackerIdentifier identifier, T object )
-    {
-        if ( object == null )
-        {
-            return null;
-        }
-
-        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) getRealClass(
-            object.getClass() );
-
-        return get( identifier.getIdScheme(), klass, identifier.getIdentifier( object ) );
-    }
-
-    public boolean containsKey( TrackerIdScheme identifier, Class<? extends IdentifiableObject> klass, String key )
-    {
-        return !(isEmpty() || isEmpty( identifier ) || isEmpty( identifier, klass )) &&
-            map.get( identifier ).get( klass ).containsKey( key );
-    }
+        return new ArrayList<>( (Collection<? extends T>) map.getOrDefault( klass, new HashMap<>() ).values() );
+    }    
 
     public boolean isEmpty()
     {
         return map.isEmpty();
     }
 
-    public boolean isEmpty( TrackerIdScheme identifier )
-    {
-        return !map.containsKey( identifier ) || map.get( identifier ).isEmpty();
-    }
-
-    public boolean isEmpty( TrackerIdScheme identifier, Class<? extends IdentifiableObject> klass )
-    {
-        return isEmpty( identifier ) || !map.get( identifier ).containsKey( klass ) ||
-            map.get( identifier ).get( klass ).isEmpty();
-    }
-
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> TrackerPreheat put( TrackerIdentifier identifier, T object )
     {
-        TrackerIdScheme idScheme = identifier.getIdScheme();
         if ( object == null )
+        {
             return this;
+        }
 
-        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) getRealClass(
-            object.getClass() );
+        Class<? extends IdentifiableObject> klass =
+            (Class<? extends IdentifiableObject>) HibernateProxyUtils.getRealClass( object );
 
-        if ( !map.containsKey( idScheme ) )
-            map.put( idScheme, new HashMap<>() );
-        if ( !map.get( idScheme ).containsKey( klass ) )
-            map.get( idScheme ).put( klass, new HashMap<>() );
+        if ( !map.containsKey( klass ) )
+        {
+            map.put( klass, new HashMap<>() );
+        }
 
         if ( User.class.isAssignableFrom( klass ) )
         {
-            if ( !map.get( idScheme ).containsKey( UserCredentials.class ) )
+            if ( !map.containsKey( UserCredentials.class ) )
             {
-                map.get( idScheme ).put( UserCredentials.class, new HashMap<>() );
+                map.put( UserCredentials.class, new HashMap<>() );
             }
 
             User user = (User) object;
 
-            Map<String, IdentifiableObject> identifierMap = map.get( idScheme ).get( UserCredentials.class );
+            Map<String, IdentifiableObject> identifierMap = map.get( UserCredentials.class );
 
             if ( !StringUtils.isEmpty( identifier.getIdentifier( user ) ) &&
                 !identifierMap.containsKey( identifier.getIdentifier( user ) ) )
@@ -340,57 +290,7 @@ public class TrackerPreheat
             }
         }
 
-        Map<String, IdentifiableObject> identifierMap = map.get( idScheme ).get( klass );
-        String key = identifier.getIdentifier( object );
-
-        if ( !StringUtils.isEmpty( key ) && !identifierMap.containsKey( key ) )
-        {
-            identifierMap.put( key, object );
-        }
-
-        return this;
-    }
-
-    @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> TrackerPreheat replace( TrackerIdentifier identifier, T object )
-    {
-        TrackerIdScheme idScheme = identifier.getIdScheme();
-        if ( object == null )
-            return this;
-
-        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) getRealClass(
-            object.getClass() );
-
-        if ( !map.containsKey( idScheme ) )
-            map.put( idScheme, new HashMap<>() );
-        if ( !map.get( idScheme ).containsKey( klass ) )
-            map.get( idScheme ).put( klass, new HashMap<>() );
-
-        if ( User.class.isAssignableFrom( klass ) )
-        {
-            if ( !map.get( idScheme ).containsKey( UserCredentials.class ) )
-            {
-                map.get( idScheme ).put( UserCredentials.class, new HashMap<>() );
-            }
-
-            User user = (User) object;
-
-            Map<String, IdentifiableObject> identifierMap = map.get( idScheme ).get( UserCredentials.class );
-
-            if ( !StringUtils.isEmpty( identifier.getIdentifier( user ) ) &&
-                !identifierMap.containsKey( identifier.getIdentifier( user ) ) )
-            {
-                identifierMap.put( identifier.getIdentifier( user ), user.getUserCredentials() );
-            }
-        }
-
-        Map<String, IdentifiableObject> identifierMap = map.get( idScheme ).get( klass );
-        String key = identifier.getIdentifier( object );
-
-        if ( !StringUtils.isEmpty( key ) )
-        {
-            identifierMap.put( key, object );
-        }
+        PreheatUtils.resolveKey( identifier, object ).ifPresent( k -> map.get( klass ).put( k, object ) );
 
         return this;
     }
@@ -400,44 +300,6 @@ public class TrackerPreheat
         for ( T object : objects )
         {
             put( identifier, object );
-        }
-
-        return this;
-    }
-
-    public TrackerPreheat remove( TrackerIdScheme identifier, Class<? extends IdentifiableObject> klass, String key )
-    {
-        if ( containsKey( identifier, klass, key ) )
-        {
-            map.get( identifier ).get( klass ).remove( key );
-        }
-
-        return this;
-    }
-
-    @SuppressWarnings( "unchecked" )
-    public TrackerPreheat remove( TrackerIdentifier identifier, IdentifiableObject object )
-    {
-        TrackerIdScheme idScheme = identifier.getIdScheme();
-        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) getRealClass(
-            object.getClass() );
-
-        String key = identifier.getIdentifier( object );
-
-        if ( containsKey( idScheme, klass, key ) )
-        {
-            map.get( idScheme ).get( klass ).remove( key );
-        }
-
-        return this;
-    }
-
-    public TrackerPreheat remove( TrackerIdScheme identifier, Class<? extends IdentifiableObject> klass,
-        Collection<String> keys )
-    {
-        for ( String key : keys )
-        {
-            remove( identifier, klass, key );
         }
 
         return this;
@@ -601,42 +463,6 @@ public class TrackerPreheat
         relationships.get( identifier ).put( relationshipUid, relationship );
     }
 
-    public static Class<?> getRealClass( Class<?> klass )
-    {
-        if ( ProxyFactory.isProxyClass( klass ) )
-        {
-            klass = klass.getSuperclass();
-        }
-
-        return klass;
-    }
-
-    public static boolean isDefaultClass( IdentifiableObject object )
-    {
-        return object != null && isDefaultClass( getRealClass( object.getClass() ) );
-    }
-
-    public static boolean isDefaultClass( Class<?> klass )
-    {
-        klass = getRealClass( klass );
-
-        return Category.class.isAssignableFrom( klass ) || CategoryOption.class.isAssignableFrom( klass )
-            || CategoryCombo.class.isAssignableFrom( klass ) || CategoryOptionCombo.class.isAssignableFrom( klass );
-    }
-
-    public boolean isDefault( IdentifiableObject object )
-    {
-        if ( !isDefaultClass( object ) )
-        {
-            return false;
-        }
-
-        Class<?> klass = getRealClass( object.getClass() );
-        IdentifiableObject defaultObject = getDefaults().get( klass );
-
-        return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
-    }
-    
     public ProgramInstance getProgramInstancesWithoutRegistration( String programUid )
     {
         return programInstancesWithoutRegistration.get( programUid );
@@ -686,5 +512,4 @@ public class TrackerPreheat
             .add( "map=" + map )
             .toString();
     }
-
 }

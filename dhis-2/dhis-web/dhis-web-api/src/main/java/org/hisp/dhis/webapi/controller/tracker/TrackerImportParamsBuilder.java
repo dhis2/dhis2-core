@@ -1,8 +1,27 @@
 package org.hisp.dhis.webapi.controller.tracker;
 
+import static org.hisp.dhis.tracker.AtomicMode.ALL;
+import static org.hisp.dhis.tracker.FlushMode.AUTO;
+import static org.hisp.dhis.tracker.TrackerIdScheme.UID;
+import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
+import static org.hisp.dhis.tracker.ValidationMode.FULL;
+import static org.hisp.dhis.tracker.bundle.TrackerBundleMode.COMMIT;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.ATOMIC_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.DATA_ELEMENT_ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.FLUSH_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.IMPORT_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.IMPORT_STRATEGY_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.ORG_UNIT_ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.PROGRAM_ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.PROGRAM_STAGE_ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.SKIP_RULE_ENGINE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.VALIDATION_MODE_KEY;
+
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.tracker.AtomicMode;
@@ -17,97 +36,89 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 
 import com.google.common.base.Enums;
 
+import lombok.Getter;
+
 /**
  * @author Luciano Fiandesio
  */
 public class TrackerImportParamsBuilder
 {
-    public static String VALIDATION_MODE_KEY = "validationMode";
-
-    public static String IMPORT_MODE_KEY = "importMode";
-
-    public static String IMPORT_STRATEGY_KEY = "importStrategy";
-
-    public static String ATOMIC_MODE_KEY = "atomicMode";
-
-    public static String FLUSH_MODE_KEY = "flushMode";
 
     public static TrackerImportParams build( Map<String, List<String>> parameters )
     {
-        TrackerImportParams params = new TrackerImportParams();
+        return builder( parameters )
+            .build();
+    }
 
-        params.setValidationMode( getEnumWithDefault( ValidationMode.class, parameters, VALIDATION_MODE_KEY,
-            ValidationMode.FULL ) );
-        params.setImportMode(
-            getEnumWithDefault( TrackerBundleMode.class, parameters, IMPORT_MODE_KEY, TrackerBundleMode.COMMIT ) );
-        params.setIdentifiers( getTrackerIdentifiers( parameters ) );
-        params.setImportStrategy( getEnumWithDefault( TrackerImportStrategy.class, parameters, IMPORT_STRATEGY_KEY,
-            TrackerImportStrategy.CREATE_AND_UPDATE ) );
-        params.setAtomicMode( getEnumWithDefault( AtomicMode.class, parameters, ATOMIC_MODE_KEY, AtomicMode.ALL ) );
-        params.setFlushMode( getEnumWithDefault( FlushMode.class, parameters, FLUSH_MODE_KEY, FlushMode.AUTO ) );
-
-        return params;
-
+    public static TrackerImportParams.TrackerImportParamsBuilder builder( Map<String, List<String>> parameters )
+    {
+        return TrackerImportParams.builder()
+            .validationMode( getEnumWithDefault( ValidationMode.class, parameters, VALIDATION_MODE_KEY, FULL ) )
+            .importMode( getEnumWithDefault( TrackerBundleMode.class, parameters, IMPORT_MODE_KEY, COMMIT ) )
+            .identifiers( getTrackerIdentifiers( parameters ) )
+            .importStrategy( getEnumWithDefault( TrackerImportStrategy.class, parameters, IMPORT_STRATEGY_KEY, CREATE_AND_UPDATE ) )
+            .atomicMode( getEnumWithDefault( AtomicMode.class, parameters, ATOMIC_MODE_KEY, ALL ) )
+            .flushMode( getEnumWithDefault( FlushMode.class, parameters, FLUSH_MODE_KEY, AUTO ) )
+            .skipRuleEngine( getBooleanValueOrDefault( parameters, SKIP_RULE_ENGINE_KEY ) );
     }
 
     private static <T extends Enum<T>> T getEnumWithDefault( Class<T> enumKlass, Map<String, List<String>> parameters,
-        String key, T defaultValue )
+        TrackerImportParamKey trackerImportParamKey, T defaultValue )
     {
-        if ( parameters == null || parameters.get( key ) == null || parameters.get( key ).isEmpty() )
+        if ( parameters == null || parameters.get( trackerImportParamKey.getKey() ) == null || parameters.get( trackerImportParamKey.getKey() ).isEmpty() )
         {
             return defaultValue;
         }
 
-        if ( TrackerIdScheme.class.equals( enumKlass ) && IdScheme.isAttribute( parameters.get( key ).get( 0 ) ) )
+        if ( TrackerIdScheme.class.equals( enumKlass ) && IdScheme.isAttribute( parameters.get( trackerImportParamKey.getKey() ).get( 0 ) ) )
         {
             return Enums.getIfPresent( enumKlass, "ATTRIBUTE" ).orNull();
         }
 
-        String value = String.valueOf( parameters.get( key ).get( 0 ) );
+        String value = String.valueOf( parameters.get( trackerImportParamKey.getKey() ).get( 0 ) );
 
         return Enums.getIfPresent( enumKlass, value ).or( defaultValue );
     }
 
     private static TrackerIdentifierParams getTrackerIdentifiers( Map<String, List<String>> parameters )
     {
-        TrackerIdScheme idScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, "idScheme",
-            TrackerIdScheme.UID );
-        TrackerIdScheme orgUnitIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, "orgUnitIdScheme",
-            idScheme );
-        TrackerIdScheme programIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, "programIdScheme",
-            idScheme );
-        TrackerIdScheme programStageIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters,
-            "programStageIdScheme", idScheme );
-        TrackerIdScheme dataElementIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters,
-            "dataElementIdScheme", idScheme );
+        TrackerIdScheme idScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, ID_SCHEME_KEY, UID );
 
         return TrackerIdentifierParams.builder()
-            .idScheme( TrackerIdentifier.builder().idScheme( idScheme )
-                .value( getAttributeUidOrNull( parameters, "idScheme" ) ).build() )
-            .orgUnitIdScheme( TrackerIdentifier.builder().idScheme( orgUnitIdScheme )
-                .value( getAttributeUidOrNull( parameters, "orgUnitIdScheme" ) ).build() )
-            .programIdScheme( TrackerIdentifier.builder().idScheme( programIdScheme )
-                .value( getAttributeUidOrNull( parameters, "programIdScheme" ) ).build() )
-            .programStageIdScheme( TrackerIdentifier.builder().idScheme( programStageIdScheme )
-                .value( getAttributeUidOrNull( parameters, "programStageIdScheme" ) ).build() )
-            .dataElementIdScheme( TrackerIdentifier.builder().idScheme( dataElementIdScheme )
-                .value( getAttributeUidOrNull( parameters, "dataElementIdScheme" ) ).build() )
+            .idScheme( bySchemeAndKey( parameters, ID_SCHEME_KEY, idScheme ) )
+            .orgUnitIdScheme( bySchemeAndKey( parameters, ORG_UNIT_ID_SCHEME_KEY, idScheme ) )
+            .programIdScheme( bySchemeAndKey( parameters, PROGRAM_ID_SCHEME_KEY, idScheme ) )
+            .programStageIdScheme( bySchemeAndKey( parameters, PROGRAM_STAGE_ID_SCHEME_KEY, idScheme ) )
+            .dataElementIdScheme( bySchemeAndKey( parameters, DATA_ELEMENT_ID_SCHEME_KEY, idScheme ) )
             .build();
     }
 
-    private static String getAttributeUidOrNull( Map<String, List<String>> parameters, String key )
+    private static Boolean getBooleanValueOrDefault( Map<String, List<String>> parameters,
+                                                     TrackerImportParamKey trackerImportParamKey )
     {
-        if ( parameters == null || parameters.get( key ) == null || parameters.get( key ).isEmpty() )
+        if ( parameters == null || parameters.get( trackerImportParamKey.getKey() ) == null || parameters.get( trackerImportParamKey.getKey() ).isEmpty() )
+        {
+            return false;
+        }
+
+        return BooleanUtils.toBooleanObject( parameters.get( trackerImportParamKey.getKey() ).get( 0 ) );
+    }
+
+    private static String getAttributeUidOrNull( Map<String, List<String>> parameters,
+                                                 TrackerImportParamKey trackerImportParamKey )
+    {
+        if ( parameters == null || parameters.get( trackerImportParamKey.getKey() ) == null
+            || parameters.get( trackerImportParamKey.getKey() ).isEmpty() )
         {
             return null;
         }
 
-        if ( IdScheme.isAttribute( parameters.get( key ).get( 0 ) ) )
+        if ( IdScheme.isAttribute( parameters.get( trackerImportParamKey.getKey() ).get( 0 ) ) )
         {
             String uid = "";
 
             // Get second half of string, separated by ':'
-            String[] splitParam = parameters.get( key ).get( 0 ).split( ":" );
+            String[] splitParam = parameters.get( trackerImportParamKey.getKey() ).get( 0 ).split( ":" );
 
             if ( splitParam.length > 1 )
             {
@@ -121,5 +132,39 @@ public class TrackerImportParamsBuilder
         }
 
         return null;
+    }
+
+    private static TrackerIdentifier bySchemeAndKey( Map<String, List<String>> parameters,
+                                                     TrackerImportParamKey trackerImportParameterKey,
+                                                     TrackerIdScheme defaultIdScheme )
+    {
+
+        TrackerIdScheme trackerIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters,
+            trackerImportParameterKey, defaultIdScheme );
+
+        return TrackerIdentifier.of( trackerIdScheme, getAttributeUidOrNull( parameters, trackerImportParameterKey ) );
+    }
+
+    enum TrackerImportParamKey
+    {
+        VALIDATION_MODE_KEY( "validationMode" ),
+        IMPORT_MODE_KEY( "importMode" ),
+        IMPORT_STRATEGY_KEY( "importStrategy" ),
+        ATOMIC_MODE_KEY( "atomicMode" ),
+        FLUSH_MODE_KEY( "flushMode" ),
+        SKIP_RULE_ENGINE_KEY( "skipRuleEngine" ),
+        ID_SCHEME_KEY( "idScheme" ),
+        ORG_UNIT_ID_SCHEME_KEY( "orgUnitIdScheme" ),
+        PROGRAM_ID_SCHEME_KEY( "programIdScheme" ),
+        PROGRAM_STAGE_ID_SCHEME_KEY( "programStageIdScheme" ),
+        DATA_ELEMENT_ID_SCHEME_KEY( "dataElementIdScheme" );
+
+        @Getter
+        private final String key;
+
+        TrackerImportParamKey( String key )
+        {
+            this.key = key;
+        }
     }
 }

@@ -50,7 +50,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -170,12 +170,6 @@ public class DataSetServiceTest
         user.setSurname( "Doe" );
 
         userService.addUser( mockCurrentUserService.getCurrentUser() );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 
     @Override
@@ -539,7 +533,7 @@ public class DataSetServiceTest
         userAccess.setUser( user );
         userAccess.setAccess( AccessStringHelper.DATA_READ_WRITE  );
 
-        dataSet.getUserAccesses().add( userAccess );
+        dataSet.getSharing().addUserAccess( userAccess );
 
         Access access = aclService.getAccess( dataSet, user );
         assertTrue( access.getData().isRead() );

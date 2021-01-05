@@ -73,7 +73,7 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
     public void setUp()
     {
         this.subject = new ProgramSupplier( jdbcTemplate, objectMapper, env );
-        when( env.getActiveProfiles() ).thenReturn( new String[] { "tets" } );
+        when( env.getActiveProfiles() ).thenReturn( new String[] { "test" } );
     }
 
     @Override
@@ -87,7 +87,7 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
         when( mockResultSet.getString( "code" ) ).thenReturn( "ALFA" );
         when( mockResultSet.getString( "name" ) ).thenReturn( "My Program" );
         when( mockResultSet.getString( "type" ) ).thenReturn( ProgramType.WITHOUT_REGISTRATION.getValue() );
-        when( mockResultSet.getString( "publicaccess" ) ).thenReturn( "rw------" );
+        when( mockResultSet.getString( "program_sharing" ) ).thenReturn( generateSharing( null,  "rw------", false ) );
 
         when( mockResultSet.getLong( "catcombo_id" ) ).thenReturn( 200L );
         when( mockResultSet.getString( "catcombo_uid" ) ).thenReturn( "389dh83" );
@@ -99,7 +99,7 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
         when( mockResultSet.getString( "ps_code" ) ).thenReturn( "cod5", "cod6" );
         when( mockResultSet.getString( "ps_name" ) ).thenReturn( "name5", "name6" );
         when( mockResultSet.getInt( "sort_order" ) ).thenReturn( 1, 2 );
-        when( mockResultSet.getString( "ps_public_access" ) ).thenReturn( "rw------" );
+        when( mockResultSet.getString( "ps_sharing" ) ).thenReturn( generateSharing( null,  "rw------", false ) );
         when( mockResultSet.getString( "ps_feature_type" ) ).thenReturn( null, "POINT" );
         when( mockResultSet.getBoolean( "ps_repeatable" ) ).thenReturn( true, false );
         when( mockResultSet.getString( "validationstrategy" ) ).thenReturn( "ON_COMPLETE" );
@@ -124,7 +124,7 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
         assertThat( program.getCode(), is( "ALFA" ) );
         assertThat( program.getName(), is( "My Program" ) );
         assertThat( program.getProgramType(), is( ProgramType.WITHOUT_REGISTRATION ) );
-        assertThat( program.getPublicAccess(), is( "rw------" ) );
+        assertThat( program.getSharing().getPublicAccess(), is( "rw------" ) );
         assertThat( program.getCategoryCombo(), is( notNullValue() ) );
         assertThat( program.getCategoryCombo().getId(), is( 200L ) );
         assertThat( program.getCategoryCombo().getUid(), is( "389dh83" ) );
@@ -152,5 +152,10 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
             return "My Program";
         }
         return null;
+    }
+
+    private String generateSharing( String owner, String publicAccess, boolean external )
+    {
+        return "{\"owner\": \"" + owner + "\", \"public\": \"" + publicAccess + "\", \"external\": "+ external +"}";
     }
 }

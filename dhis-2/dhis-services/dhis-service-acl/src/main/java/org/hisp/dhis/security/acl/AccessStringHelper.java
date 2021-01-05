@@ -29,8 +29,6 @@ package org.hisp.dhis.security.acl;
  */
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.util.Assert;
 
 /**
@@ -231,12 +229,11 @@ public class AccessStringHelper
 
     public static <T extends BaseIdentifiableObject> void copySharing( T source, T target )
     {
-        target.setPublicAccess( source.getPublicAccess() );
-        target.setExternalAccess( source.getExternalAccess() );
+        target.setSharing( source.getSharing().copy() );
+    }
 
-        source.getUserAccesses().forEach(
-            ua -> target.getUserAccesses().add( new UserAccess( ua.getUser(), ua.getAccess() ) ) );
-        source.getUserGroupAccesses().forEach(
-            uga -> target.getUserGroupAccesses().add( new UserGroupAccess( uga.getUserGroup(), uga.getAccess() ) ) );
+    public static String disableDataSharing( String access )
+    {
+       return AccessStringHelper.newInstance( access.toCharArray() ).disable( Permission.DATA_READ ).disable( Permission.DATA_WRITE ).toString();
     }
 }

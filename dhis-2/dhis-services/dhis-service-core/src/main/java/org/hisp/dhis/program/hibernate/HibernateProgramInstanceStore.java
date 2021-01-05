@@ -82,6 +82,8 @@ public class HibernateProgramInstanceStore
     extends SoftDeleteHibernateObjectStore<ProgramInstance>
     implements ProgramInstanceStore
 {
+    private final static String PI_HQL_BY_UIDS = "from ProgramInstance as pi where pi.uid in (:uids)";
+
     private final static String STATUS = "status";
 
     private static final Set<NotificationTrigger> SCHEDULED_PROGRAM_INSTANCE_TRIGGERS =
@@ -245,8 +247,8 @@ public class HibernateProgramInstanceStore
         }
 
         Query query = getSession().createNativeQuery(
-            "select exists(select 1 from programinstance where uid=? and deleted is false)" );
-        query.setParameter( 1, uid );
+            "select exists(select 1 from programinstance where uid=:uid and deleted is false)" );
+        query.setParameter( "uid", uid );
 
         return ((Boolean) query.getSingleResult()).booleanValue();
     }
@@ -260,8 +262,8 @@ public class HibernateProgramInstanceStore
         }
 
         Query query = getSession().createNativeQuery(
-            "select exists(select 1 from programinstance where uid=?)" );
-        query.setParameter( 1, uid );
+            "select exists(select 1 from programinstance where uid=:uid)" );
+        query.setParameter( "uid", uid );
 
         return ((Boolean) query.getSingleResult()).booleanValue();
     }
@@ -269,7 +271,7 @@ public class HibernateProgramInstanceStore
     @Override
     public List<String> getUidsIncludingDeleted( List<String> uids )
     {
-        String hql = "select pi.uid from ProgramInstance as pi where pi.uid in (:uids)";
+        String hql = "select pi.uid " + PI_HQL_BY_UIDS;
         List<String> resultUids = new ArrayList<>();
         List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
 
@@ -282,6 +284,24 @@ public class HibernateProgramInstanceStore
         }
 
         return resultUids;
+    }
+
+    @Override
+    public List<ProgramInstance> getIncludingDeleted( List<String> uids )
+    {
+        List<ProgramInstance> programInstances = new ArrayList<>();
+        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
+
+        for ( List<String> uidsPartition : uidsPartitions )
+        {
+            if ( !uidsPartition.isEmpty() )
+            {
+                programInstances.addAll( getSession().createQuery( PI_HQL_BY_UIDS, ProgramInstance.class )
+                    .setParameter( "uids", uidsPartition ).list() );
+            }
+        }
+
+        return programInstances;
     }
 
     @Override

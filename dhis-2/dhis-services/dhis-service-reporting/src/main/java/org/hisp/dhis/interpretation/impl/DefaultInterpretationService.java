@@ -28,18 +28,11 @@ package org.hisp.dhis.interpretation.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -64,6 +57,14 @@ import org.jsoup.Jsoup;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -242,7 +243,7 @@ public class DefaultInterpretationService
     private long sendNotificationMessage( Set<User> users, Interpretation interpretation, InterpretationComment comment, NotificationType notificationType )
     {
         I18n i18n = i18nManager.getI18n();
-        String currentUsername = currentUserService.getCurrentUser().getUsername();
+        String currentUsername = currentUserService.getCurrentUsername();
         String interpretableName = interpretation.getObject().getName();
         String actionString;
         String details;
@@ -292,7 +293,7 @@ public class DefaultInterpretationService
     private void notifySubscribers( Interpretation interpretation, InterpretationComment comment, NotificationType notificationType )
     {
         IdentifiableObject interpretableObject = interpretation.getObject();
-        Schema interpretableObjectSchema = schemaService.getDynamicSchema( interpretableObject.getClass() );
+        Schema interpretableObjectSchema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( interpretableObject ) );
 
         if ( interpretableObjectSchema.isSubscribable() )
         {
@@ -378,13 +379,13 @@ public class DefaultInterpretationService
     {
         boolean modified = false;
         IdentifiableObject interpretationObject = interpretation.getObject();
-        Set<UserAccess> interpretationUserAccesses = interpretationObject.getUserAccesses();
+        Set<org.hisp.dhis.user.UserAccess> interpretationUserAccesses = interpretationObject.getUserAccesses();
 
         for ( User user : users )
         {
             if ( !aclService.canRead( user, interpretationObject ) )
             {
-                interpretationUserAccesses.add( new UserAccess( user, AccessStringHelper.READ ) );
+                interpretationObject.getSharing().addDtoUserAccess( new UserAccess( user, AccessStringHelper.READ ) );
                 modified = true;
             }
         }

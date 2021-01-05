@@ -101,14 +101,14 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         assertThat( trackedEntityInstances, hasSize( 4 ) );
         assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 0 ) );
-        
+
         //Check further for explicit uid in param
         queryParams.getTrackedEntityInstanceUids()
             .addAll( trackedEntityInstances.stream().limit( 2 ).map( t -> t.getTrackedEntityInstance() ).collect( Collectors.toSet() ) );
-        
+
         final List<TrackedEntityInstance> limitedTTrackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances2( queryParams, params, false );
- 
+
         assertThat( limitedTTrackedEntityInstances, hasSize( 2 ) );
     }
 
@@ -593,11 +593,5 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         assertTrue(
             "Timestamp is higher than expected interval. Expecting: " + milliseconds + " got: " + interval,
             Math.abs( interval ) < milliseconds );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }

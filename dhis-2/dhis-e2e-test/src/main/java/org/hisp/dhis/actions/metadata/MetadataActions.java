@@ -53,7 +53,7 @@ public class MetadataActions
     {
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder.addAll( queryParams );
-        queryParamsBuilder.addAll( "atomicMode=OBJECT", "importReportMode=FULL" );
+        queryParamsBuilder.addAll( "importReportMode=FULL" );
 
         ApiResponse response = postFile( file, queryParamsBuilder );
         response.validate().statusCode( 200 );

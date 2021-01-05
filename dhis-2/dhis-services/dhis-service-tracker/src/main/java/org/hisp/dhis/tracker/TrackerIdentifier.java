@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -43,18 +44,22 @@ import org.hisp.dhis.util.ObjectUtils;
 @Data
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor(staticName = "of")
 public class TrackerIdentifier
 {
     public final static TrackerIdentifier UID = builder().idScheme( TrackerIdScheme.UID ).build();
 
     public final static TrackerIdentifier CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
 
+    public final static TrackerIdentifier NAME = builder().idScheme( TrackerIdScheme.NAME ).build();
+
     public final static TrackerIdentifier AUTO = builder().idScheme( TrackerIdScheme.AUTO ).build();
 
+    @JsonProperty
     @Builder.Default
     private TrackerIdScheme idScheme = TrackerIdScheme.UID;
 
+    @JsonProperty
     @Builder.Default
     private String value = null;
 
@@ -66,6 +71,8 @@ public class TrackerIdentifier
             return object.getUid();
         case CODE:
             return object.getCode();
+        case NAME:
+            return object.getName();
         case ATTRIBUTE:
             return object.getAttributeValues()
                 .stream()

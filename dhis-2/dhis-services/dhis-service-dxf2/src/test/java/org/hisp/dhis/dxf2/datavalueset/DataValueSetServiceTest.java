@@ -31,7 +31,7 @@ package org.hisp.dhis.dxf2.datavalueset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
-import org.hisp.dhis.TransactionalIntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -95,8 +95,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Lars Helge Overland
  */
-public class DataValueSetServiceTest
-    extends TransactionalIntegrationTestBase
+public class DataValueSetServiceTest extends TransactionalIntegrationTest
 {
     private String ATTRIBUTE_UID = "uh6H2ff562G";
 
@@ -168,12 +167,6 @@ public class DataValueSetServiceTest
     private MockBatchHandler<DataValue> mockDataValueBatchHandler = null;
     private MockBatchHandler<DataValueAudit> mockDataValueAuditBatchHandler = null;
     private MockBatchHandlerFactory mockBatchHandlerFactory = null;
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 
     @Override
     public void setUpTest()

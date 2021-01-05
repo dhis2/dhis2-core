@@ -791,6 +791,7 @@ public class DefaultCsvImportService
             if ( values != null && values.length > 0 )
             {
                 OptionGroupSet optionGroupSet = new OptionGroupSet();
+                optionGroupSet.setAutoFields();
                 setIdentifiableObject( optionGroupSet, values );
                 optionGroupSet.setDescription( getSafe( values, 4, null, null ) );
                 optionGroupSet.setDataDimension( Boolean.valueOf( getSafe( values, 3,  Boolean.FALSE.toString(), 40 ) ) ); // boolean
@@ -835,9 +836,11 @@ public class DefaultCsvImportService
     public List<OptionGroupSet> optionGroupSetMembersFromCsv( CsvReader reader )
         throws IOException
     {
-        CachingMap<String, OptionGroupSet> uidMap = new CachingMap<>();
-        CachingMap<String, OptionGroupSet> persistedGroupSetMap = new CachingMap<>();
-
+        // NOSONAR
+        CachingMap<String, OptionGroupSet> uidMap = new CachingMap<>(); // NOSONAR
+        //TODO: Why is this? Looks like it is not in use? See: https://github.com/dhis2/dhis2-core/security/code-scanning/1347
+        // NOSONAR
+        CachingMap<String, OptionGroupSet> persistedGroupSetMap = new CachingMap<>(); // NOSONAR
 
         while ( reader.readRecord() )
         {
@@ -858,12 +861,14 @@ public class DefaultCsvImportService
                 {
                     OptionGroupSet optionSetGroup = uidMap.get( groupSetUid, () -> {
                         OptionGroupSet nonPersistedGroup = new OptionGroupSet();
+                        nonPersistedGroup.setAutoFields();
                         nonPersistedGroup.setUid( persistedGroupSet.getUid() );
                         nonPersistedGroup.setName( persistedGroupSet.getName() );
                         return nonPersistedGroup;
                     } );
 
                     OptionGroup member = new OptionGroup();
+                    member.setAutoFields();
                     member.setUid( groupUid );
                     optionSetGroup.addOptionGroup( member );
                 }

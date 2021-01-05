@@ -28,12 +28,6 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.tracker.report.TrackerTimingsStats.COMMIT_OPS;
-import static org.hisp.dhis.tracker.report.TrackerTimingsStats.PREHEAT_OPS;
-import static org.hisp.dhis.tracker.report.TrackerTimingsStats.PROGRAMRULE_OPS;
-import static org.hisp.dhis.tracker.report.TrackerTimingsStats.TOTAL_OPS;
-import static org.hisp.dhis.tracker.report.TrackerTimingsStats.VALIDATION_OPS;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -62,6 +56,8 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import static org.hisp.dhis.tracker.report.TrackerTimingsStats.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -112,7 +108,7 @@ public class DefaultTrackerImportService
             //
             // preprocess
             //
-            opsTimer.execVoid( PROGRAMRULE_OPS,
+            opsTimer.execVoid( PREPROCESS_OPS,
                 () -> preProcessBundle( trackerBundle ) );
 
             //
@@ -123,38 +119,39 @@ public class DefaultTrackerImportService
 
             notifier.notifyOps( VALIDATION_OPS, opsTimer );
 
-
-            if ( validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL )
+            if ( exitOnError( validationReport, params ) )
             {
-                TrackerImportReport trackerImportReport = TrackerImportReport
-                    .withValidationErrors( validationReport, opsTimer.stopTimer(),
-                        bundleSize.values().stream().mapToInt( Integer::intValue ).sum() );
+                return buildReportAndNotify( validationReport, opsTimer, bundleSize, notifier );
+            }
 
-                notifier.endImport( trackerImportReport );
+            validationReport = execRuleEngine( opsTimer, trackerBundle, validationReport, notifier );
 
-                return trackerImportReport;
+            if ( exitOnError( validationReport, params ) )
+            {
+                return buildReportAndNotify( validationReport, opsTimer, bundleSize, notifier );
+            }
+
+            //
+            // commit
+            //
+            if ( TrackerImportStrategy.DELETE == params.getImportStrategy() )
+            {
+                bundleReport = opsTimer.exec( COMMIT_OPS, () -> deleteBundle( trackerBundle ) );
             }
             else
             {
-                if ( TrackerImportStrategy.DELETE == params.getImportStrategy() )
-                {
-                    bundleReport = opsTimer.exec( COMMIT_OPS, () -> deleteBundle( trackerBundle) );
-                }
-                else
-                {
-                    bundleReport = opsTimer.exec( COMMIT_OPS, () -> commitBundle( trackerBundle) );
-                }
-
-                notifier.notifyOps( COMMIT_OPS, opsTimer );
-
-                TrackerImportReport trackerImportReport = TrackerImportReport.withImportCompleted( TrackerStatus.OK,
-                    bundleReport, validationReport,
-                    opsTimer.stopTimer(), bundleSize );
-
-                notifier.endImport( trackerImportReport );
-
-                return trackerImportReport;
+                bundleReport = opsTimer.exec( COMMIT_OPS, () -> commitBundle( trackerBundle ) );
             }
+
+            notifier.notifyOps( COMMIT_OPS, opsTimer );
+
+            TrackerImportReport trackerImportReport = TrackerImportReport.withImportCompleted( TrackerStatus.OK,
+                bundleReport, validationReport,
+                opsTimer.stopTimer(), bundleSize );
+
+            notifier.endImport( trackerImportReport );
+
+            return trackerImportReport;
         }
         catch ( Exception e )
         {
@@ -169,9 +166,54 @@ public class DefaultTrackerImportService
         }
     }
 
+    private TrackerValidationReport execRuleEngine( TrackerTimingsStats opsTimer, TrackerBundle trackerBundle,
+        TrackerValidationReport report, ImportNotifier notifier )
+    {
+        if ( trackerBundle.isSkipRuleEngine() )
+        {
+            return report;
+        }
+
+        //
+        // rule engine
+        //
+        opsTimer.execVoid( PROGRAMRULE_OPS,
+            () -> runRuleEngine( trackerBundle ) );
+
+        notifier.notifyOps( PROGRAMRULE_OPS, opsTimer );
+
+        //
+        // rule engine
+        //
+        TrackerValidationReport finalValidationReport = report;
+        report = opsTimer.exec( VALIDATE_PROGRAMRULE_OPS,
+            () -> validateRuleEngine( trackerBundle, finalValidationReport ) );
+
+        notifier.notifyOps( VALIDATE_PROGRAMRULE_OPS, opsTimer );
+
+        return report;
+    }
+
+    private TrackerImportReport buildReportAndNotify( TrackerValidationReport validationReport,
+        TrackerTimingsStats opsTimer, Map<TrackerType, Integer> bundleSize, ImportNotifier notifier )
+    {
+        TrackerImportReport trackerImportReport = TrackerImportReport
+            .withValidationErrors( validationReport, opsTimer.stopTimer(),
+                bundleSize.values().stream().mapToInt( Integer::intValue ).sum() );
+
+        notifier.endImport( trackerImportReport );
+
+        return trackerImportReport;
+    }
+
+    private boolean exitOnError( TrackerValidationReport validationReport, TrackerImportParams params )
+    {
+        return validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL;
+    }
+
     private Map<TrackerType, Integer> calculatePayloadSize( TrackerBundle bundle )
     {
-        return ImmutableMap.<TrackerType, Integer> builder()
+        return ImmutableMap.<TrackerType, Integer>builder()
             .put( TrackerType.TRACKED_ENTITY, bundle.getTrackedEntities().size() )
             .put( TrackerType.ENROLLMENT, bundle.getEnrollments().size() )
             .put( TrackerType.EVENT, bundle.getEvents().size() )
@@ -180,13 +222,17 @@ public class DefaultTrackerImportService
 
     protected TrackerBundle preheatBundle( TrackerImportParams params )
     {
-        return  trackerBundleService.create( params );
+        return trackerBundleService.create( params );
     }
 
     protected void preProcessBundle( TrackerBundle bundle )
     {
-        TrackerBundle trackerBundle = trackerBundleService.runRuleEngine( bundle );
-        trackerPreprocessService.preprocess( trackerBundle );
+        trackerPreprocessService.preprocess( bundle );
+    }
+
+    protected void runRuleEngine( TrackerBundle bundle )
+    {
+        trackerBundleService.runRuleEngine( bundle );
     }
 
     protected TrackerBundleReport commitBundle( TrackerBundle trackerBundle )
@@ -203,7 +249,7 @@ public class DefaultTrackerImportService
         return bundleReport;
     }
 
-    List<TrackerSideEffectDataBundle> safelyGetSideEffectsDataBundles( TrackerBundleReport bundleReport,
+    private List<TrackerSideEffectDataBundle> safelyGetSideEffectsDataBundles( TrackerBundleReport bundleReport,
         TrackerType trackerType )
     {
         return Optional.ofNullable( bundleReport )
@@ -223,8 +269,20 @@ public class DefaultTrackerImportService
         TrackerValidationReport validationReport = new TrackerValidationReport();
 
         validationReport.add( trackerValidationService.validate( trackerBundle ) );
-        
+
         return validationReport;
+    }
+
+    protected TrackerValidationReport validateRuleEngine( TrackerBundle trackerBundle,
+        TrackerValidationReport validationReport )
+    {
+        TrackerValidationReport ruleEngineValidationReport = new TrackerValidationReport();
+
+        ruleEngineValidationReport.add( trackerValidationService.validateRuleEngine( trackerBundle ) );
+
+        ruleEngineValidationReport.add( validationReport );
+
+        return ruleEngineValidationReport;
     }
 
     @Override

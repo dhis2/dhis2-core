@@ -47,6 +47,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -72,7 +73,6 @@ import java.util.Map;
  */
 @Slf4j
 @Service( "org.hisp.dhis.dxf2.metadata.MetadataImportService" )
-@Transactional
 public class DefaultMetadataImportService implements MetadataImportService
 {
     @Autowired
@@ -94,6 +94,7 @@ public class DefaultMetadataImportService implements MetadataImportService
     private Notifier notifier;
 
     @Override
+    @Transactional
     public ImportReport importMetadata( MetadataImportParams params )
     {
         Timer timer = new SystemTimer().start();
@@ -130,7 +131,9 @@ public class DefaultMetadataImportService implements MetadataImportService
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         importReport.addTypeReports( validationReport.getTypeReportMap() );
 
-        if ( !(!validationReport.getErrorReports().isEmpty() && AtomicMode.ALL == bundle.getAtomicMode()) )
+        List<ErrorReport> errorReports = validationReport.getErrorReports();
+
+        if ( errorReports.isEmpty() || AtomicMode.NONE == bundle.getAtomicMode() )
         {
             Timer commitTimer = new SystemTimer().start();
 
@@ -198,6 +201,7 @@ public class DefaultMetadataImportService implements MetadataImportService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public MetadataImportParams getParamsFromMap( Map<String, List<String>> parameters )
     {
         MetadataImportParams params = new MetadataImportParams();
@@ -297,6 +301,11 @@ public class DefaultMetadataImportService implements MetadataImportService
         if ( object.getUserAccesses() == null )
         {
             object.setUserAccesses( new HashSet<>() );
+        }
+
+        if ( object.getSharing().getUsers() == null )
+        {
+            object.getSharing().setDtoUserAccesses( object.getUserAccesses() );
         }
 
         if ( object.getUserGroupAccesses() == null )

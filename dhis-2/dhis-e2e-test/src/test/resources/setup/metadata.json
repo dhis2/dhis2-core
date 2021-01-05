@@ -3516,6 +3516,7 @@
   ],
   "programIndicators": [
     {
+      "id": "lb7AqqrlP6k",
       "aggregationType": "SUM",
       "code": "AAAAAAA-1234",
       "decimals": 1,

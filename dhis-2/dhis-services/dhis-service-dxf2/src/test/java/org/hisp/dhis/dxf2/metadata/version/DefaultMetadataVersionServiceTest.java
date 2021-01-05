@@ -28,17 +28,9 @@ package org.hisp.dhis.dxf2.metadata.version;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.security.NoSuchAlgorithmException;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.commons.lang.time.DateUtils;
-import org.hisp.dhis.DhisSpringTest;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.systemsettings.MetadataSystemSettingService;
@@ -54,11 +46,20 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.security.NoSuchAlgorithmException;
+import java.util.Date;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author sultanm
  */
 public class DefaultMetadataVersionServiceTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private MetadataVersionService versionService;
@@ -95,6 +96,12 @@ public class DefaultMetadataVersionServiceTest
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest()
@@ -271,6 +278,8 @@ public class DefaultMetadataVersionServiceTest
     public void testShouldStoreSnapshotInMetadataStore()
     {
         versionService.createMetadataVersionInDataStore( "myVersion", "mySnapshot" );
+
+        dbmsManager.flushSession();
 
         assertEquals( "mySnapshot", versionService.getVersionData( "myVersion" ) );
     }

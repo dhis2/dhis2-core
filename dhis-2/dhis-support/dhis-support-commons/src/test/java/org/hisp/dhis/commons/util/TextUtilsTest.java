@@ -35,6 +35,7 @@ import java.util.AbstractSequentialList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -202,4 +203,27 @@ public class TextUtilsTest
         assertThat( TextUtils.getCommaDelimitedString( null ), is( "" ) );
     }
 
+    @Test
+    public void testToLinesUnix()
+    {
+        String string = "one,two,three\naa,bb,cc";
+
+        List<String> lines = TextUtils.toLines( string );
+
+        assertEquals( 2, lines.size() );
+        assertEquals( "one,two,three", lines.get( 0 ) );
+        assertEquals( "aa,bb,cc", lines.get( 1 ) );
+    }
+
+    @Test
+    public void testToLinesWindows()
+    {
+        String string = "one,two,three\r\naa,bb,cc";
+
+        List<String> lines = TextUtils.toLines( string );
+
+        assertEquals( 2, lines.size() );
+        assertEquals( "one,two,three", lines.get( 0 ) );
+        assertEquals( "aa,bb,cc", lines.get( 1 ) );
+    }
 }

@@ -39,6 +39,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -65,8 +66,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 @ActiveProfiles( profiles = { "test-audit" } )
-public class AuditIntegrationTest
-    extends IntegrationTestBase
+public class AuditIntegrationTest extends IntegrationTestBase
 {
     private static final int TIMEOUT = 5;
 
@@ -93,18 +93,6 @@ public class AuditIntegrationTest
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 
     @Test
     public void testSaveMetadata()
@@ -279,8 +267,8 @@ public class AuditIntegrationTest
         assertEquals( programStage.getUid(), audit.getUid() );
 
         Map<String, Object> deserializeProgramStage = objectMapper.readValue( audit.getData(), Map.class );
-        assertNotNull( deserializeProgramStage.get("programStageDataElements") );
-        List uids = (List<String>) deserializeProgramStage.get( "programStageDataElements" );
+        assertNotNull( deserializeProgramStage.get( "programStageDataElements" ) );
+        List<String> uids = (List<String>) deserializeProgramStage.get( "programStageDataElements" );
         assertEquals( 1, uids.size() );
     }
 
@@ -289,11 +277,30 @@ public class AuditIntegrationTest
         throws JsonProcessingException
     {
         DataElement dataElement = createDataElement( 'A' );
-        manager.save( dataElement );
         PeriodType periodType = PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME );
-        DataSet dataSet = createDataSet( 'A', periodType );
-        dataSet.addDataSetElement( dataElement );
-        manager.save( dataSet );
+        DataSet dataSet = createDataSet( 'A' );
+        dataSet.setPeriodType( periodType );
+
+        Period period = createPeriod( periodType, getDate( 2000, 2, 1 ), getDate( 2000, 2, 28 ) );
+
+        periodService.addPeriod( period );
+
+        transactionTemplate.execute( status -> {
+            manager.save( dataElement );
+
+            dbmsManager.clearSession();
+            return null;
+        } );
+
+        transactionTemplate.execute( status -> {
+
+            manager.save( dataSet );
+
+            dataSet.addDataSetElement( dataElement );
+
+            dbmsManager.clearSession();
+            return null;
+        } );
 
         AuditQuery query = AuditQuery.builder().uid( Sets.newHashSet( dataSet.getUid() ) ).build();
         await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
@@ -306,8 +313,8 @@ public class AuditIntegrationTest
         assertEquals( dataSet.getUid(), audit.getUid() );
 
         Map<String, Object> deserializeProgramStage = objectMapper.readValue( audit.getData(), Map.class );
-        assertNotNull( deserializeProgramStage.get("dataSetElements") );
-        List uids = (List<String>) deserializeProgramStage.get( "dataSetElements" );
+        assertNotNull( deserializeProgramStage.get( "dataSetElements" ) );
+        List<String> uids = (List<String>) deserializeProgramStage.get( "dataSetElements" );
         assertEquals( 1, uids.size() );
     }
 }

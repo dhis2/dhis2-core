@@ -1,17 +1,12 @@
 package org.hisp.dhis.tracker;
 
-import static org.junit.Assert.assertTrue;
-
-import java.beans.Introspector;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.hisp.dhis.DhisSpringTest;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -29,11 +24,21 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
+import java.beans.Introspector;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Luciano Fiandesio
  */
-public abstract class TrackerTest extends DhisSpringTest
+public abstract class TrackerTest extends TransactionalIntegrationTest
 {
+    @Autowired
+    protected IdentifiableObjectManager manager;
+
     @Autowired
     private RenderService _renderService;
 
@@ -60,6 +65,9 @@ public abstract class TrackerTest extends DhisSpringTest
         userService = _userService;
 
         initTest();
+
+        // Clear the session to simulate different API call after the setup
+        manager.clear();
     }
 
     protected abstract void initTest()
@@ -165,5 +173,11 @@ public abstract class TrackerTest extends DhisSpringTest
     protected void assertNoImportErrors( TrackerImportReport report )
     {
         assertTrue( report.getValidationReport().getErrorReports().isEmpty() );
+    }
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
     }
 }

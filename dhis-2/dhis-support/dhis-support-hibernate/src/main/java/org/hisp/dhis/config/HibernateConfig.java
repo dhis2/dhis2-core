@@ -28,185 +28,104 @@ package org.hisp.dhis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
-import org.hisp.dhis.datasource.DataSourceManager;
-import org.hisp.dhis.datasource.DefaultDataSourceManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dbms.HibernateDbmsManager;
 import org.hisp.dhis.deletedobject.DeletedObject;
-import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.DefaultHibernateConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
-import org.hisp.dhis.hibernate.HibernatePropertiesFactoryBean;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
-import java.beans.PropertyVetoException;
 import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
 
 /**
  * @author Luciano Fiandesio
+ * @author Morten Svanæs
  */
+@Slf4j
 @Configuration
 @EnableTransactionManagement
 public class HibernateConfig
 {
-    @Autowired
-    private DhisConfigurationProvider dhisConfigurationProvider;
-
-    @Bean
-    public HibernateConfigurationProvider hibernateConfigurationProvider()
+    @Bean( "hibernateConfigurationProvider" )
+    public HibernateConfigurationProvider hibernateConfigurationProvider( DhisConfigurationProvider dhisConfig )
     {
         DefaultHibernateConfigurationProvider hibernateConfigurationProvider = new DefaultHibernateConfigurationProvider();
-        hibernateConfigurationProvider.setConfigurationProvider( dhisConfigurationProvider );
+        hibernateConfigurationProvider.setConfigProvider( dhisConfig );
         return hibernateConfigurationProvider;
     }
 
-    private HibernatePropertiesFactoryBean hibernateProperties()
-    {
-        HibernatePropertiesFactoryBean hibernatePropertiesFactoryBean = new HibernatePropertiesFactoryBean();
-        hibernatePropertiesFactoryBean.setHibernateConfigurationProvider( hibernateConfigurationProvider() );
-        return hibernatePropertiesFactoryBean;
-    }
-
     @Bean
-    @DependsOn("flyway")
-    public LocalSessionFactoryBean sessionFactory()
-        throws Exception
+    @DependsOn( "flyway" )
+    public LocalSessionFactoryBean sessionFactory( DataSource dataSource,
+        @Qualifier( "hibernateConfigurationProvider" ) HibernateConfigurationProvider hibernateConfigurationProvider )
     {
+        Objects.requireNonNull( dataSource );
+        Objects.requireNonNull( hibernateConfigurationProvider );
+
+        Properties hibernateProperties = hibernateConfigurationProvider.getConfiguration().getProperties();
+        Objects.requireNonNull( hibernateProperties );
+
+        List<Resource> jarResources = hibernateConfigurationProvider.getJarResources();
+        List<Resource> directoryResources = hibernateConfigurationProvider.getDirectoryResources();
+
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
-        sessionFactory.setDataSource( dataSource() );
-
-        sessionFactory.setHibernateProperties( hibernateProperties().getObject() );
-
-        List<Resource> jarResources = hibernateConfigurationProvider().getJarResources();
-        sessionFactory.setMappingJarLocations( jarResources.toArray( new Resource[jarResources.size()] ) );
-
-        List<Resource> directoryResources = hibernateConfigurationProvider().getDirectoryResources();
-        sessionFactory
-            .setMappingDirectoryLocations( directoryResources.toArray( new Resource[directoryResources.size()] ) );
-
+        sessionFactory.setDataSource( dataSource );
+        sessionFactory.setMappingJarLocations( jarResources.toArray( new Resource[0] ) );
+        sessionFactory.setMappingDirectoryLocations( directoryResources.toArray( new Resource[0] ) );
         sessionFactory.setAnnotatedClasses( DeletedObject.class );
-
-        sessionFactory.setHibernateProperties( hibernateProperties().getObject() );
+        sessionFactory.setHibernateProperties( hibernateProperties );
 
         return sessionFactory;
     }
 
     @Bean
-    public DataSource dataSource()
-        throws PropertyVetoException
-    {
-        // FIXME LUCIANO destroyMethod ? destroy-method="close"
-        ComboPooledDataSource dataSource = new ComboPooledDataSource();
-        dataSource.setDriverClass( (String) getConnectionProperty( "hibernate.connection.driver_class" ) );
-        dataSource.setJdbcUrl( (String) getConnectionProperty( "hibernate.connection.url" ) );
-        dataSource.setUser( (String) getConnectionProperty( "hibernate.connection.username" ) );
-        dataSource.setPassword( (String) getConnectionProperty( "hibernate.connection.password" ) );
-        dataSource.setMaxPoolSize( Integer.parseInt( (String) getConnectionProperty( "hibernate.c3p0.max_size" ) ) );
-        dataSource.setMinPoolSize( Integer
-            .parseInt( (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_MIN_SIZE.getKey() ) ) );
-        dataSource.setInitialPoolSize( Integer
-            .parseInt( (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE.getKey() ) ) );
-        dataSource.setAcquireIncrement( Integer
-            .parseInt( (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR.getKey() ) ) );
-        dataSource.setMaxIdleTime( Integer
-            .parseInt( (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME.getKey() ) ) );
-        dataSource.setTestConnectionOnCheckin( Boolean.parseBoolean(
-            (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN.getKey() ) ) );
-        dataSource.setTestConnectionOnCheckout( Boolean.parseBoolean(
-            (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT.getKey() ) ) );
-        dataSource.setMaxIdleTimeExcessConnections( Integer.parseInt(
-            (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON.getKey() ) ) );
-        dataSource.setIdleConnectionTestPeriod( Integer.parseInt(
-            (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD.getKey() ) ) );
-
-        return dataSource;
-    }
-
-    @Bean
-    public DataSourceManager dataSourceManager() throws PropertyVetoException
-    {
-        return new DefaultDataSourceManager( dhisConfigurationProvider, dataSource() );
-    }
-
-    @Bean
-    public DataSource readOnlyDataSource() throws PropertyVetoException
-    {
-        return dataSourceManager().getReadOnlyDataSource();
-    }
-
-    @Bean
-    public PlatformTransactionManager hibernateTransactionManager()
-        throws Exception
+    public HibernateTransactionManager hibernateTransactionManager( DataSource dataSource, SessionFactory sessionFactory )
     {
         HibernateTransactionManager transactionManager = new HibernateTransactionManager();
-        transactionManager.setSessionFactory( sessionFactory().getObject() );
-        transactionManager.setDataSource( dataSource() );
+        transactionManager.setSessionFactory( sessionFactory );
+        transactionManager.setDataSource( dataSource );
+
         return transactionManager;
     }
 
     @Bean
-    public TransactionTemplate transactionTemplate()
-        throws Exception
+    public TransactionTemplate transactionTemplate( HibernateTransactionManager transactionManager )
     {
-        return new TransactionTemplate( hibernateTransactionManager() );
+        return new TransactionTemplate( transactionManager );
     }
 
     @Bean
-    public DefaultHibernateCacheManager cacheManager()
-        throws Exception
+    public DefaultHibernateCacheManager cacheManager( SessionFactory sessionFactory )
     {
         DefaultHibernateCacheManager cacheManager = new DefaultHibernateCacheManager();
-        cacheManager.setSessionFactory(sessionFactory().getObject());
+        cacheManager.setSessionFactory( sessionFactory );
         return cacheManager;
     }
 
     @Bean
-    public DbmsManager dbmsManager()
-        throws Exception
+    public DbmsManager dbmsManager( JdbcTemplate jdbcTemplate, SessionFactory sessionFactory,
+        DefaultHibernateCacheManager cacheManager )
     {
         HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
-        hibernateDbmsManager.setCacheManager( cacheManager() );
-        hibernateDbmsManager.setSessionFactory(sessionFactory().getObject());
-        hibernateDbmsManager.setJdbcTemplate( jdbcTemplate() );
+        hibernateDbmsManager.setCacheManager( cacheManager );
+        hibernateDbmsManager.setSessionFactory( sessionFactory );
+        hibernateDbmsManager.setJdbcTemplate( jdbcTemplate );
         return hibernateDbmsManager;
-    }
-
-    @Bean( "jdbcTemplate" )
-    @Primary
-    public JdbcTemplate jdbcTemplate()
-        throws PropertyVetoException
-    {
-        JdbcTemplate jdbcTemplate = new JdbcTemplate( dataSource() );
-        jdbcTemplate.setFetchSize( 1000 );
-        return jdbcTemplate;
-    }
-
-    @Bean( "readOnlyJdbcTemplate" )
-    public JdbcTemplate readOnlyJdbcTemplate()
-        throws PropertyVetoException
-    {
-        JdbcTemplate jdbcTemplate = new JdbcTemplate( readOnlyDataSource() );
-        jdbcTemplate.setFetchSize( 1000 );
-        return jdbcTemplate;
-    }
-
-    private Object getConnectionProperty( String key )
-    {
-        return hibernateConfigurationProvider().getConfiguration().getProperty( key );
     }
 }

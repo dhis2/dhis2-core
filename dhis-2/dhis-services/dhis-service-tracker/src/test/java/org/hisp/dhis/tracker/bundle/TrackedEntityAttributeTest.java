@@ -30,41 +30,23 @@ package org.hisp.dhis.tracker.bundle;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.tracker.ParamsConverter;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -99,12 +81,12 @@ public class TrackedEntityAttributeTest
 
         TrackerPreheat preheat = trackerPreheatService.preheat( trackerImportParams );
 
-        assertNotNull( preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, "cNEZTkdAvmg" ) );
-        assertNotNull( preheat.get( TrackerIdScheme.UID, TrackedEntityType.class, "KrYIdvLxkMb" ) );
+        assertNotNull( preheat.get( OrganisationUnit.class, "cNEZTkdAvmg" ) );
+        assertNotNull( preheat.get( TrackedEntityType.class, "KrYIdvLxkMb" ) );
 
-        assertNotNull( preheat.get( TrackerIdScheme.UID, TrackedEntityAttribute.class, "sYn3tkL3XKa" ) );
-        assertNotNull( preheat.get( TrackerIdScheme.UID, TrackedEntityAttribute.class, "TsfP85GKsU5" ) );
-        assertNotNull( preheat.get( TrackerIdScheme.UID, TrackedEntityAttribute.class, "sTGqP5JNy6E" ) );
+        assertNotNull( preheat.get( TrackedEntityAttribute.class, "sYn3tkL3XKa" ) );
+        assertNotNull( preheat.get( TrackedEntityAttribute.class, "TsfP85GKsU5" ) );
+        assertNotNull( preheat.get( TrackedEntityAttribute.class, "sTGqP5JNy6E" ) );
     }
 
     @Test

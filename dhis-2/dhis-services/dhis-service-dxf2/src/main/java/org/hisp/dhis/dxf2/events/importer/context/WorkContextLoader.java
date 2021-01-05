@@ -35,7 +35,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.hibernate.HibernateUtils;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
@@ -65,6 +66,8 @@ public class WorkContextLoader
 
     private final NoteSupplier noteSupplier;
 
+    private final ProgramOrgUnitSupplier programOrgUnitSupplier;
+
     private final AssignedUserSupplier assignedUserSupplier;
 
     private final ServiceDelegatorSupplier serviceDelegatorSupplier;
@@ -85,6 +88,7 @@ public class WorkContextLoader
         NoteSupplier noteSupplier,
         AssignedUserSupplier assignedUserSupplier,
         ServiceDelegatorSupplier serviceDelegatorSupplier,
+        ProgramOrgUnitSupplier programOrgUnitSupplier,
         SessionFactory sessionFactory
     // @formatter:on
     )
@@ -98,6 +102,7 @@ public class WorkContextLoader
         this.dataElementSupplier = dataElementSupplier;
         this.noteSupplier = noteSupplier;
         this.assignedUserSupplier = assignedUserSupplier;
+        this.programOrgUnitSupplier = programOrgUnitSupplier;
         this.serviceDelegatorSupplier = serviceDelegatorSupplier;
         this.sessionFactory = sessionFactory;
     }
@@ -125,11 +130,13 @@ public class WorkContextLoader
         final Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = trackedEntityInstanceSupplier
             .get( localImportOptions, events );
 
+        final Map<String, OrganisationUnit> orgUniMap = organisationUnitSupplier.get( localImportOptions, events );
+
         return WorkContext.builder()
             .importOptions( localImportOptions )
             .programsMap( programSupplier.get( localImportOptions, events ) )
             .programStageInstanceMap( programStageInstanceMap )
-            .organisationUnitMap( organisationUnitSupplier.get( localImportOptions, events ) )
+            .organisationUnitMap( orgUniMap )
             .trackedEntityInstanceMap( teiMap )
             .programInstanceMap( programInstanceSupplier.get( localImportOptions, teiMap, events ) )
             .categoryOptionComboMap( categoryOptionComboSupplier.get( localImportOptions, events ) )
@@ -138,6 +145,7 @@ public class WorkContextLoader
             .assignedUserMap( assignedUserSupplier.get( localImportOptions, events ) )
             .eventDataValueMap( new EventDataValueAggregator().aggregateDataValues( events, programStageInstanceMap,
                 localImportOptions ) )
+            .programWithOrgUnitsMap( programOrgUnitSupplier.get( localImportOptions, events, orgUniMap ) )
             .serviceDelegator( serviceDelegatorSupplier.get() )
             .build();
     }
@@ -179,8 +187,8 @@ public class WorkContextLoader
      */
     private void initUserCredentials( UserCredentials userCredentials )
     {
-        HibernateUtils.initializeProxy( userCredentials );
-        userCredentials.isSuper();
+        userCredentials = HibernateProxyUtils.unproxy( userCredentials );
 
+        userCredentials.isSuper();
     }
 }

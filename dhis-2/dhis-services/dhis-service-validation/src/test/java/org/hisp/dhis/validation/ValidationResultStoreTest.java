@@ -30,7 +30,8 @@ package org.hisp.dhis.validation;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisTest;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -54,7 +55,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
@@ -75,7 +76,7 @@ import static org.junit.Assert.assertTrue;
  * @author Jim Grace
  */
 public class ValidationResultStoreTest
-    extends DhisTest
+    extends TransactionalIntegrationTest
 {
     private static final String ACCESS_NONE = "--------";
     private static final String ACCESS_READ = "r-------";
@@ -85,6 +86,9 @@ public class ValidationResultStoreTest
 
     @Autowired
     private ValidationResultStore validationResultStore;
+
+    @Autowired
+    private ValidationResultService validationResultService;
 
     @Autowired
     private PeriodService periodService;
@@ -191,8 +195,10 @@ public class ValidationResultStoreTest
 
     private void setPrivateAccess( BaseIdentifiableObject object, UserGroup... userGroups )
     {
-        object.setPublicAccess( ACCESS_NONE );
-        object.setUser( userZ ); // Needed for sharing to work
+//        object.setPublicAccess( ACCESS_NONE );
+//        object.setUser( userZ ); // Needed for sharing to work
+        object.getSharing().setOwner( userZ );
+        object.getSharing().setPublicAccess( ACCESS_NONE );
 
         for ( UserGroup group : userGroups )
         {
@@ -202,9 +208,7 @@ public class ValidationResultStoreTest
 
             userGroupAccess.setUserGroup( group );
 
-            userGroupAccessService.addUserGroupAccess( userGroupAccess );
-
-            object.getUserGroupAccesses().add( userGroupAccess );
+            object.getSharing().addUserGroupAccess( userGroupAccess );
         }
 
         identifiableObjectManager.updateNoAcl( object );
@@ -213,6 +217,12 @@ public class ValidationResultStoreTest
     // -------------------------------------------------------------------------
     // Set up/tear down
     // -------------------------------------------------------------------------
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     public void setUpTest() throws Exception
@@ -245,8 +255,15 @@ public class ValidationResultStoreTest
 
         UserGroup userGroupC = createUserGroup( 'A', Sets.newHashSet( userCService.getCurrentUser() ) );
         UserGroup userGroupD = createUserGroup( 'B', Sets.newHashSet( userDService.getCurrentUser() ) );
+
         userGroupService.addUserGroup( userGroupC );
         userGroupService.addUserGroup( userGroupD );
+
+        userCService.getCurrentUser().getGroups().add( userGroupC );
+        userService.updateUser( userCService.getCurrentUser() );
+
+        userDService.getCurrentUser().getGroups().add( userGroupD );
+        userService.updateUser( userDService.getCurrentUser() );
 
         optionA = new CategoryOption( "CategoryOptionA" );
         optionB = new CategoryOption( "CategoryOptionB" );
@@ -310,12 +327,6 @@ public class ValidationResultStoreTest
         validationResultCA = new ValidationResult( validationRuleB, periodB, sourceC, optionComboA, 1.0, 2.0, 3 );
 
         validationResultAB.setNotificationSent( true );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 
     @Override
@@ -531,12 +542,7 @@ public class ValidationResultStoreTest
     @Test
     public void testCount() throws Exception
     {
-        validationResultStore.save( validationResultAA );
-        validationResultStore.save( validationResultAB );
-        validationResultStore.save( validationResultAC );
-        validationResultStore.save( validationResultBA );
-        validationResultStore.save( validationResultBB );
-        validationResultStore.save( validationResultBC );
+        validationResultService.saveValidationResults( Lists.newArrayList( validationResultAA , validationResultAB, validationResultAC, validationResultBA, validationResultBB, validationResultBC ));
 
         ValidationResultQuery validationResultQuery = new ValidationResultQuery();
 

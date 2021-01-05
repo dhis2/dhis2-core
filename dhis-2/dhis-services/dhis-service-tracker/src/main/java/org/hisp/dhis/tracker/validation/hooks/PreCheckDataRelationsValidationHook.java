@@ -241,7 +241,7 @@ public class PreCheckDataRelationsValidationHook
 
         if ( programStage != null && programInstance != null
             && !programStage.getRepeatable()
-            && context.programStageHasEvents( programStage.getUid() ) )
+            && context.programStageHasEvents( programStage.getUid(), programInstance.getUid() ) )
         {
             addError( reporter, E1039, programStage );
         }

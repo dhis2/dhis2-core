@@ -50,9 +50,9 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.util.SharingUtils;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -125,7 +125,7 @@ public class BaseIdentifiableObject
     /**
      * This object is available as external read-only.
      */
-    protected boolean externalAccess;
+    protected transient boolean externalAccess;
 
     /**
      * Access string for public access.
@@ -140,12 +140,12 @@ public class BaseIdentifiableObject
     /**
      * Access for user groups.
      */
-    protected Set<UserGroupAccess> userGroupAccesses = new HashSet<>();
+    protected transient Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses = new HashSet<>();
 
     /**
      * Access for users.
      */
-    protected Set<UserAccess> userAccesses = new HashSet<>();
+    protected transient Set<org.hisp.dhis.user.UserAccess> userAccesses = new HashSet<>();
 
     /**
      * Access information for this object. Applies to current user.
@@ -161,6 +161,11 @@ public class BaseIdentifiableObject
      * Last user updated this object.
      */
     protected User lastUpdatedBy;
+
+    /**
+     * Jsonb Sharing
+     */
+    protected Sharing sharing = new Sharing();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -438,9 +443,18 @@ public class BaseIdentifiableObject
         return user;
     }
 
+    @Override
     public void setUser( User user )
     {
         this.user = user;
+
+        //TODO remove this after implemented functions for using Owner property
+        this.setOwner( user != null ? user.getUid() : null );
+    }
+
+    public void setOwner( String userId )
+    {
+         getSharing().setOwner( userId );
     }
 
     @Override
@@ -449,12 +463,12 @@ public class BaseIdentifiableObject
     @PropertyRange( min = 8, max = 8 )
     public String getPublicAccess()
     {
-        return publicAccess;
+        return getSharing().getPublicAccess();
     }
 
     public void setPublicAccess( String publicAccess )
     {
-        this.publicAccess = publicAccess;
+        getSharing().setPublicAccess( publicAccess );
     }
 
     @Override
@@ -462,25 +476,30 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean getExternalAccess()
     {
-        return externalAccess;
+        if ( sharing == null )
+        {
+            sharing = new Sharing();
+        }
+        return sharing.isExternal();
     }
 
     public void setExternalAccess( Boolean externalAccess )
     {
-        this.externalAccess = externalAccess == null ? false : externalAccess;
+         getSharing().setExternal( externalAccess );
     }
 
     @Override
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "userGroupAccesses", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<UserGroupAccess> getUserGroupAccesses()
+    public Set<org.hisp.dhis.user.UserGroupAccess> getUserGroupAccesses()
     {
-        return userGroupAccesses;
+        return SharingUtils.getDtoUserGroupAccesses( getSharing() );
     }
 
-    public void setUserGroupAccesses( Set<UserGroupAccess> userGroupAccesses )
+    public void setUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses )
     {
+         getSharing().setDtoUserGroupAccesses( userGroupAccesses );
         this.userGroupAccesses = userGroupAccesses;
     }
 
@@ -488,13 +507,14 @@ public class BaseIdentifiableObject
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "userAccesses", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<UserAccess> getUserAccesses()
+    public Set<org.hisp.dhis.user.UserAccess> getUserAccesses()
     {
-        return userAccesses;
+       return SharingUtils.getDtoUserAccess( sharing );
     }
 
-    public void setUserAccesses( Set<UserAccess> userAccesses )
+    public void setUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )
     {
+         getSharing().setDtoUserAccesses( userAccesses );
         this.userAccesses = userAccesses;
     }
 
@@ -533,6 +553,24 @@ public class BaseIdentifiableObject
         User user = UserContext.getUser();
 
         return user != null && favorites != null ? favorites.contains( user.getUid() ) : false;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Sharing getSharing()
+    {
+        if ( sharing == null )
+        {
+            sharing = SharingUtils.generateSharingFromIdentifiableObject( this );
+        }
+
+        return sharing;
+    }
+
+    public void setSharing( Sharing sharing )
+    {
+         this.sharing = sharing;
     }
 
     @Override

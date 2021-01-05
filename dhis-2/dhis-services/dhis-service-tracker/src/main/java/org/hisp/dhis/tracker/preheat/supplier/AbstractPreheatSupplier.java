@@ -28,11 +28,16 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.time.StopWatch;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,6 +50,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class AbstractPreheatSupplier implements PreheatSupplier
 {
+    private final int CACHE_TTL = 60;
+
+    private final long CACHE_CAPACITY = 1000;
+
     @Override
     public void add( TrackerImportParams params, TrackerPreheat preheat )
     {
@@ -73,4 +82,20 @@ public abstract class AbstractPreheatSupplier implements PreheatSupplier
      * Template method: executes preheat logic from the subclass
      */
     public abstract void preheatAdd( TrackerImportParams params, TrackerPreheat preheat );
+
+    protected void addToPreheat( TrackerPreheat preheat, List<? extends IdentifiableObject> relationshipTypes )
+    {
+        preheat.put( TrackerIdentifier.UID, relationshipTypes );
+    }
+
+    protected void addToCache( PreheatCacheService cache, List<? extends IdentifiableObject> objects, int ttl,
+        long capacity )
+    {
+        objects.forEach( rt -> cache.put( HibernateProxyUtils.getRealClass( rt ).getName(), rt.getUid(), rt, ttl, capacity ) );
+    }
+
+    protected void addToCache( PreheatCacheService cache, List<? extends IdentifiableObject> objects )
+    {
+        objects.forEach( rt -> cache.put( HibernateProxyUtils.getRealClass( rt ).getName(), rt.getUid(), rt, CACHE_TTL, CACHE_CAPACITY ) );
+    }
 }

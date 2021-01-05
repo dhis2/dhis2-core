@@ -37,11 +37,8 @@ import java.util.function.Function;
 /**
  * @author Luciano Fiandesio
  */
-public class TestCache<V>
-    implements
-    Cache<V>
+public class TestCache<V> implements Cache<V>
 {
-
     private Map<String, V> mapCache = new HashMap<>();
 
     @Override

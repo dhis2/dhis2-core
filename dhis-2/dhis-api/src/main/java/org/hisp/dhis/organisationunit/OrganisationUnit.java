@@ -70,18 +70,15 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Kristian Nordal
  */
 @JacksonXmlRootElement( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnit
-    extends
-    BaseDimensionalItemObject
-    implements
-    MetadataObject,
-    CoordinateObject
+    extends BaseDimensionalItemObject
+        implements MetadataObject, CoordinateObject
 {
     private static final String PATH_SEP = "/";
 

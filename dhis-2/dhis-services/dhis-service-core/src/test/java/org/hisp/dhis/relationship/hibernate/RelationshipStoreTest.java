@@ -36,8 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
-import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.*;
@@ -45,12 +44,9 @@ import org.hisp.dhis.relationship.*;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Category( IntegrationTest.class )
-public class RelationshipStoreTest
-    extends IntegrationTestBase
+public class RelationshipStoreTest extends TransactionalIntegrationTest
 {
     @Autowired
     private RelationshipService relationshipService;
@@ -186,12 +182,5 @@ public class RelationshipStoreTest
         Optional<Relationship> existing = relationshipService.getRelationshipByRelationship( relationship );
 
         assertTrue( existing.isPresent() );
-    }
-
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }

@@ -60,8 +60,7 @@ public class EventStrategy implements ClassBasedSupplierStrategy
     {
         for ( List<String> ids : splitList )
         {
-            List<ProgramStageInstance> programStageInstances = programStageInstanceStore
-                .getByUid( ids, preheat.getUser() );
+            List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getIncludingDeleted( ids );
 
             final List<String> rootEntities = params.getEvents().stream().map( Event::getEvent )
                 .collect( Collectors.toList() );

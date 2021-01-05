@@ -29,17 +29,17 @@ package org.hisp.dhis.dataapproval;
  */
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisTest;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -52,10 +52,10 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -64,7 +64,10 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static org.hisp.dhis.dataapproval.DataApprovalAction.*;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.ACCEPT;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.UNACCEPT;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.UNAPPROVE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -72,8 +75,7 @@ import static org.junit.Assert.assertTrue;
  * @author Jim Grace
  */
 // FIXME refactor this test to use mocks
-public class DataApprovalAuditServiceTest
-    extends DhisTest
+public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
 {
     private static final String ACCESS_NONE = "--------";
     private static final String ACCESS_READ = "r-------";
@@ -213,20 +215,13 @@ public class DataApprovalAuditServiceTest
 
     private void setPrivateAccess( BaseIdentifiableObject object, UserGroup... userGroups )
     {
-        object.setPublicAccess( ACCESS_NONE );
+        object.getSharing().setPublicAccess( ACCESS_NONE );
         object.setUser( userZ ); // Needed for sharing to work
+        object.getSharing().setOwner( userZ );
 
         for ( UserGroup group : userGroups )
         {
-            UserGroupAccess userGroupAccess = new UserGroupAccess();
-
-            userGroupAccess.setAccess( ACCESS_READ );
-
-            userGroupAccess.setUserGroup( group );
-
-            userGroupAccessService.addUserGroupAccess( userGroupAccess );
-
-            object.getUserGroupAccesses().add( userGroupAccess );
+            object.getSharing().addUserGroupAccess( new UserGroupAccess( group, ACCESS_READ ) );
         }
 
         identifiableObjectManager.updateNoAcl( object );
@@ -235,6 +230,12 @@ public class DataApprovalAuditServiceTest
     // -------------------------------------------------------------------------
     // Set up/tear down
     // -------------------------------------------------------------------------
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     public void setUpTest() throws Exception
@@ -265,6 +266,9 @@ public class DataApprovalAuditServiceTest
 
         UserGroup userGroupC = getUserGroup( "UserGroupA", Sets.newHashSet( userCService.getCurrentUser() ) );
         UserGroup userGroupD = getUserGroup( "UserGroupB", Sets.newHashSet( userDService.getCurrentUser() ) );
+
+        userCService.getCurrentUser().getGroups().add( userGroupC );
+        userDService.getCurrentUser().getGroups().add( userGroupD );
 
         optionA = new CategoryOption( "CategoryOptionA" );
         optionB = new CategoryOption( "CategoryOptionB" );
@@ -353,12 +357,6 @@ public class DataApprovalAuditServiceTest
         dataApprovalAuditStore.save( auditBA3 );
         dataApprovalAuditStore.save( auditBB3 );
         dataApprovalAuditStore.save( auditBC3 );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 
     @Override
