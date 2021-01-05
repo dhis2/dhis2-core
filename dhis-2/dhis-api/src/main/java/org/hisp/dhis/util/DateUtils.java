@@ -818,7 +818,7 @@ public class DateUtils
         {
             return formatter.parseDateTime( dateString ).toDate();
         }
-        catch( IllegalInstantException e )
+        catch ( IllegalInstantException e )
         {
             return formatter.parseLocalDateTime( dateString ).toDate();
         }

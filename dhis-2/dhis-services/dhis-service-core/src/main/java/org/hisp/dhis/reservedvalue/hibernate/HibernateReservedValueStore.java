@@ -227,9 +227,9 @@ public class HibernateReservedValueStore
         if ( Objects.valueOf( reservedValue.getOwnerObject() ).equals( TRACKEDENTITYATTRIBUTE ) )
         {
             values.removeAll( getUntypedSqlQuery(
-                "SELECT value FROM trackedentityattributevalue WHERE trackedentityattributeid = (SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid = ?1) AND value IN ?2" )
-                .setParameter( 1, reservedValue.getOwnerUid() )
-                .setParameter( 2, values )
+                "SELECT value FROM trackedentityattributevalue WHERE trackedentityattributeid = (SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid = :uid) AND value IN :values" )
+                .setParameter( "uid", reservedValue.getOwnerUid() )
+                .setParameter( "values", values )
                 .list() );
         }
 

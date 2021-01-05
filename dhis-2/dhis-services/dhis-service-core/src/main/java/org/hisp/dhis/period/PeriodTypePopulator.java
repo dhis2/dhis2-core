@@ -28,24 +28,21 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Collection;
-import java.util.List;
-
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
-import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.Collection;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Torgeir Lorange Ostby
  */
 @Slf4j
-@Component( "org.hisp.dhis.period.PeriodTypePopulator" )
 public class PeriodTypePopulator
     extends TransactionContextStartupRoutine
 {

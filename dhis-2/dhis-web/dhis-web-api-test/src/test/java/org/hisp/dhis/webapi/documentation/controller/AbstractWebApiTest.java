@@ -90,8 +90,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public abstract class AbstractWebApiTest<T extends IdentifiableObject>
-    extends DhisWebSpringTest
+public abstract class AbstractWebApiTest<T extends IdentifiableObject> extends DhisWebSpringTest
 {
     protected Class<T> testClass;
 

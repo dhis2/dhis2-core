@@ -54,13 +54,13 @@ import java.util.Map;
  */
 public final class QueryUtils
 {
-    public static <T> T parseValue( Class<T> klass, Object objectValue )
+    public static <T> T parseValue( Class<?> klass, Object objectValue )
     {
         return parseValue( klass, null, objectValue );
     }
 
     @SuppressWarnings( "unchecked" )
-    public static <T> T parseValue( Class<T> klass, Class<?> secondaryKlass, Object objectValue )
+    public static <T> T parseValue( Class<?> klass, Class<?> secondaryKlass, Object objectValue )
     {
         if ( klass.isInstance( objectValue ) )
         {
@@ -186,7 +186,7 @@ public final class QueryUtils
      * @param value the enum value.
      */
     @SuppressWarnings( { "unchecked", "rawtypes" } )
-    public static <T> T getEnumValue( Class<T> klass, String value )
+    public static <T> T getEnumValue( Class<?> klass, String value )
     {
         Optional<? extends Enum<?>> enumValue = Enums.getIfPresent( (Class<? extends Enum>) klass, value );
 
@@ -307,114 +307,114 @@ public final class QueryUtils
 
         switch ( operator )
         {
-            case "eq":
-            {
-                return "= " + QueryUtils.parseValue( value );
-            }
-            case "!eq":
-            {
-                return "!= " + QueryUtils.parseValue( value );
-            }
-            case "ne":
-            {
-                return "!= " + QueryUtils.parseValue( value );
-            }
-            case "neq":
-            {
-                return "!= " + QueryUtils.parseValue( value );
-            }
-            case "gt":
-            {
-                return "> " + QueryUtils.parseValue( value );
-            }
-            case "lt":
-            {
-                return "< " + QueryUtils.parseValue( value );
-            }
-            case "gte":
-            {
-                return ">= " + QueryUtils.parseValue( value );
-            }
-            case "ge":
-            {
-                return ">= " + QueryUtils.parseValue( value );
-            }
-            case "lte":
-            {
-                return "<= " + QueryUtils.parseValue( value );
-            }
-            case "le":
-            {
-                return "<= " + QueryUtils.parseValue( value );
-            }
-            case "like":
-            {
-                return "like '%" + value + "%'";
-            }
-            case "!like":
-            {
-                return "not like '%" + value + "%'";
-            }
-            case "^like":
-            {
-                return " like '" + value + "%'";
-            }
-            case "!^like":
-            {
-                return " not like '" + value + "%'";
-            }
-            case "$like":
-            {
-                return " like '%" + value + "'";
-            }
-            case "!$like":
-            {
-                return " not like '%" + value + "'";
-            }
-            case "ilike":
-            {
-                return " ilike '%" + value + "%'";
-            }
-            case "!ilike":
-            {
-                return " not ilike '%" + value + "%'";
-            }
-            case "^ilike":
-            {
-                return " ilike '" + value + "%'";
-            }
-            case "!^ilike":
-            {
-                return " not ilike '" + value + "%'";
-            }
-            case "$ilike":
-            {
-                return " ilike '%" + value + "'";
-            }
-            case "!$ilike":
-            {
-                return " not ilike '%" + value + "'";
-            }
-            case "in":
-            {
-                return "in " + QueryUtils.convertCollectionValue( value );
-            }
-            case "!in":
-            {
-                return " not in " + QueryUtils.convertCollectionValue( value );
-            }
-            case "null":
-            {
-                return "is null";
-            }
-            case "!null":
-            {
-                return "is not null";
-            }
-            default:
-            {
-                throw new QueryParserException( "`" + operator + "` is not a valid operator." );
-            }
+        case "eq":
+        {
+            return "= " + QueryUtils.parseValue( value );
+        }
+        case "!eq":
+        {
+            return "!= " + QueryUtils.parseValue( value );
+        }
+        case "ne":
+        {
+            return "!= " + QueryUtils.parseValue( value );
+        }
+        case "neq":
+        {
+            return "!= " + QueryUtils.parseValue( value );
+        }
+        case "gt":
+        {
+            return "> " + QueryUtils.parseValue( value );
+        }
+        case "lt":
+        {
+            return "< " + QueryUtils.parseValue( value );
+        }
+        case "gte":
+        {
+            return ">= " + QueryUtils.parseValue( value );
+        }
+        case "ge":
+        {
+            return ">= " + QueryUtils.parseValue( value );
+        }
+        case "lte":
+        {
+            return "<= " + QueryUtils.parseValue( value );
+        }
+        case "le":
+        {
+            return "<= " + QueryUtils.parseValue( value );
+        }
+        case "like":
+        {
+            return "like '%" + value + "%'";
+        }
+        case "!like":
+        {
+            return "not like '%" + value + "%'";
+        }
+        case "^like":
+        {
+            return " like '" + value + "%'";
+        }
+        case "!^like":
+        {
+            return " not like '" + value + "%'";
+        }
+        case "$like":
+        {
+            return " like '%" + value + "'";
+        }
+        case "!$like":
+        {
+            return " not like '%" + value + "'";
+        }
+        case "ilike":
+        {
+            return " ilike '%" + value + "%'";
+        }
+        case "!ilike":
+        {
+            return " not ilike '%" + value + "%'";
+        }
+        case "^ilike":
+        {
+            return " ilike '" + value + "%'";
+        }
+        case "!^ilike":
+        {
+            return " not ilike '" + value + "%'";
+        }
+        case "$ilike":
+        {
+            return " ilike '%" + value + "'";
+        }
+        case "!$ilike":
+        {
+            return " not ilike '%" + value + "'";
+        }
+        case "in":
+        {
+            return "in " + QueryUtils.convertCollectionValue( value );
+        }
+        case "!in":
+        {
+            return " not in " + QueryUtils.convertCollectionValue( value );
+        }
+        case "null":
+        {
+            return "is null";
+        }
+        case "!null":
+        {
+            return "is not null";
+        }
+        default:
+        {
+            throw new QueryParserException( "`" + operator + "` is not a valid operator." );
+        }
         }
     }
 

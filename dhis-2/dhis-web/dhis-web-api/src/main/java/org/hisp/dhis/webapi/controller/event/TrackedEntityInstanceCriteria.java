@@ -189,12 +189,6 @@ public class TrackedEntityInstanceCriteria
      */
     private String attachment;
 
-    /**
-     * FIXME: luciano - temporary request attribute used to select the TEI fetching
-     * implementation
-     */
-    private boolean useLegacy;
-
     public Set<String> getOrgUnits()
     {
         return ou != null ? TextUtils.splitToArray( ou, TextUtils.SEMICOLON ) : new HashSet<>();

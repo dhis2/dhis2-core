@@ -6,7 +6,7 @@ import java.util.Date;
 
 import org.postgis.PGgeometry;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 import lombok.experimental.UtilityClass;
 

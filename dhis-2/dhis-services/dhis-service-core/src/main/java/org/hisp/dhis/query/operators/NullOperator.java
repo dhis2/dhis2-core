@@ -33,12 +33,15 @@ import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class NullOperator extends Operator
+public class NullOperator<T extends Comparable<? super T>> extends Operator<T>
 {
     public NullOperator()
     {
@@ -49,6 +52,12 @@ public class NullOperator extends Operator
     public Criterion getHibernateCriterion( QueryPath queryPath )
     {
         return Restrictions.isNull( queryPath.getPath() );
+    }
+
+    @Override
+    public <Y> Predicate getPredicate( CriteriaBuilder builder, Root<Y> root, QueryPath queryPath )
+    {
+        return builder.isNull( root.get( queryPath.getPath() ) );
     }
 
     @Override

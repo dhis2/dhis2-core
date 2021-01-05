@@ -33,6 +33,7 @@ import com.google.common.base.Enums;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
@@ -105,7 +106,7 @@ public class DefaultPatchService implements PatchService
             return;
         }
 
-        Schema schema = schemaService.getDynamicSchema( target.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( target ) );
 
         if ( schema == null )
         {
@@ -119,12 +120,12 @@ public class DefaultPatchService implements PatchService
     {
         Patch patch = new Patch();
 
-        if ( source == null || !source.getClass().isInstance( target ) )
+        if ( source == null || !HibernateProxyUtils.getRealClass( source ).isInstance( target ) )
         {
             return patch;
         }
 
-        Schema schema = schemaService.getDynamicSchema( target.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( target ) );
 
         if ( schema == null )
         {
@@ -378,8 +379,9 @@ public class DefaultPatchService implements PatchService
         }
     }
 
+    // TODO fix type cast from object to T
     @SuppressWarnings( "unchecked" )
-    private void applyMutation( Mutation mutation, Property property, Object target )
+    private <T extends Comparable<? super T>> void applyMutation( Mutation mutation, Property property, Object target )
     {
         Object value = mutation.getValue();
 
@@ -407,7 +409,9 @@ public class DefaultPatchService implements PatchService
                     Schema schema = schemaService.getDynamicSchema( property.getItemKlass() );
 
                     Query query = Query.from( schema );
-                    query.add( Restrictions.eq( "id", object ) ); // optimize by using .in(..) query
+
+
+                    query.add( Restrictions.eq( "id", (T) object ) ); // optimize by using .in(..) query
 
                     List<? extends IdentifiableObject> objects = queryService.query( query );
 
@@ -453,7 +457,7 @@ public class DefaultPatchService implements PatchService
             Schema schema = schemaService.getDynamicSchema( property.getKlass() );
 
             Query query = Query.from( schema );
-            query.add( Restrictions.eq( "id", value ) );
+            query.add( Restrictions.eq( "id", (T) value ) );
 
             List<? extends IdentifiableObject> objects = queryService.query( query );
 

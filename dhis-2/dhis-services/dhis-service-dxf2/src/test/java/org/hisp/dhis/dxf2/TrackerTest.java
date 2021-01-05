@@ -1,24 +1,6 @@
 package org.hisp.dhis.dxf2;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
-
-import java.lang.reflect.InvocationTargetException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.google.common.collect.Sets;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.IntegrationTestBase;
@@ -60,7 +42,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.google.common.collect.Sets;
+import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.fail;
 
 /**
  * @author Luciano Fiandesio
@@ -107,7 +106,10 @@ public abstract class TrackerTest extends IntegrationTestBase
 
     protected RelationshipType relationshipType;
 
-    protected final static String DEF_COC_UID = CodeGenerator.generateUid();
+    /**
+     * Default COC created in DefaultCategoryService
+     */
+    protected final static String DEF_COC_UID = "HllvX50cXC0";
 
     @Override
     protected void setUpTest()
@@ -164,8 +166,6 @@ public abstract class TrackerTest extends IntegrationTestBase
 
             manager.save( categoryComboA );
 
-            manager.save( defaultCategoryOptionCombo );
-
             manager.save( programA );
 
             manager.save( relationshipType );
@@ -175,12 +175,6 @@ public abstract class TrackerTest extends IntegrationTestBase
         super.userService = this.userService;
 
         mockCurrentUserService();
-    }
-
-    @Override
-    public void tearDownTest()
-    {
-        dbmsManager.emptyDatabase();
     }
 
     public TrackedEntityInstance persistTrackedEntityInstance()

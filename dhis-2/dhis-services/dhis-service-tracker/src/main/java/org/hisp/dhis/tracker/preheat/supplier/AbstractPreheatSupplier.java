@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.time.StopWatch;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -90,11 +91,11 @@ public abstract class AbstractPreheatSupplier implements PreheatSupplier
     protected void addToCache( PreheatCacheService cache, List<? extends IdentifiableObject> objects, int ttl,
         long capacity )
     {
-        objects.forEach( rt -> cache.put( rt.getClass().getName(), rt.getUid(), rt, ttl, capacity ) );
+        objects.forEach( rt -> cache.put( HibernateProxyUtils.getRealClass( rt ).getName(), rt.getUid(), rt, ttl, capacity ) );
     }
 
     protected void addToCache( PreheatCacheService cache, List<? extends IdentifiableObject> objects )
     {
-        objects.forEach( rt -> cache.put( rt.getClass().getName(), rt.getUid(), rt, CACHE_TTL, CACHE_CAPACITY ) );
+        objects.forEach( rt -> cache.put( HibernateProxyUtils.getRealClass( rt ).getName(), rt.getUid(), rt, CACHE_TTL, CACHE_CAPACITY ) );
     }
 }

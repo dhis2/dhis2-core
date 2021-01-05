@@ -108,12 +108,11 @@ public class DefaultPreheatCacheService implements PreheatCacheService
     public void put( final String cacheKey, final String id, IdentifiableObject object,
         final int cacheTTL, final long capacity )
     {
+        if ( cacheKey == null || id == null || object == null )
+            return;
+
         if ( isCacheEnabled() )
         {
-            if ( object == null )
-            {
-                return;
-            }
             if ( cache.containsKey( cacheKey ) )
             {
                 cache.get( cacheKey ).put( id, object );

@@ -34,14 +34,13 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.core.env.Environment;
-import org.springframework.jdbc.core.JdbcOperations;
-
-import javax.annotation.Nonnull;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -54,7 +53,9 @@ public class HibernateDatabaseInfoProvider
     implements DatabaseInfoProvider
 {
     private static final String POSTGIS_MISSING_ERROR = "Postgis extension is not installed. Execute \"CREATE EXTENSION postgis;\" as a superuser and start the application again.";
+
     private static final String POSTGRES_VERSION_REGEX = "^([a-zA-Z_-]+ \\d+\\.+\\d+)?[ ,].*$";
+
     private static final Pattern POSTGRES_VERSION_PATTERN = Pattern.compile( POSTGRES_VERSION_REGEX );
 
     private DatabaseInfo info;
@@ -64,10 +65,12 @@ public class HibernateDatabaseInfoProvider
     // -------------------------------------------------------------------------
 
     private final DhisConfigurationProvider config;
-    private final JdbcOperations jdbcTemplate;
+
+    private final JdbcTemplate jdbcTemplate;
+
     private final Environment environment;
 
-    public HibernateDatabaseInfoProvider( DhisConfigurationProvider config, JdbcOperations jdbcTemplate,
+    public HibernateDatabaseInfoProvider( DhisConfigurationProvider config, JdbcTemplate jdbcTemplate,
         Environment environment )
     {
         checkNotNull( config );
@@ -78,7 +81,7 @@ public class HibernateDatabaseInfoProvider
         this.jdbcTemplate = jdbcTemplate;
         this.environment = environment;
     }
-    
+
     @PostConstruct
     public void init()
     {
@@ -88,7 +91,7 @@ public class HibernateDatabaseInfoProvider
 
         // Check if postgis is installed, fail startup if not
 
-        if ( !SystemUtils.isTestRun(environment.getActiveProfiles()) )
+        if ( !SystemUtils.isTestRun( environment.getActiveProfiles() ) )
         {
             spatialSupport = isSpatialSupport();
 

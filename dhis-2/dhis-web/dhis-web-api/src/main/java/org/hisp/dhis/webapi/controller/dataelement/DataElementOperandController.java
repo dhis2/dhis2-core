@@ -28,11 +28,7 @@ package org.hisp.dhis.webapi.controller.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.collect.Lists;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.category.CategoryService;
@@ -71,7 +67,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -92,7 +91,7 @@ public class DataElementOperandController
     private final CategoryService dataElementCategoryService;
     private final CurrentUserService currentUserService;
 
-    private Cache<String,Integer> paginationCountCache = new Cache2kBuilder<String, Integer>() {}
+    private Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>() {}
         .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
 
@@ -181,7 +180,7 @@ public class DataElementOperandController
         if ( options.hasPaging() && pager == null )
         {
             // fetch the count for the current query from a short-lived cache
-            int count = paginationCountCache.computeIfAbsent(
+            long count = paginationCountCache.computeIfAbsent(
                 calculatePaginationCountKey( currentUserService.getCurrentUser(), filters, options ),
                 () -> queryService.count( query ) );
             pager = new Pager( options.getPage(), count, options.getPageSize() );

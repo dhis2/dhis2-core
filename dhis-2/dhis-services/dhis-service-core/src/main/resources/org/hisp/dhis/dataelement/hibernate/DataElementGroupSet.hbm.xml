@@ -33,22 +33,10 @@
         foreign-key="fk_dataelementgroupset_dataelementgroupid" />
     </list>
 
-    <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dataelementgroupset_userid" />
 
-    <property name="publicAccess" length="8" />
-
-    <set name="userGroupAccesses" table="dataelementgroupsetusergroupaccesses" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="dataelementgroupsetid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
-    </set>
-
-    <set name="userAccesses" table="dataelementgroupsetuseraccesses" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="dataelementgroupsetid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
-    </set>
+    <!-- Sharing -->
+    <property name="sharing" type="jsbObjectSharing"/>
 
     <!-- Dynamic attribute values -->
 

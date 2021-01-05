@@ -155,7 +155,7 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         if ( params.getClasses().isEmpty() )
         {
-            schemaService.getMetadataSchemas().stream().filter( Schema::isIdentifiableObject ).filter( s -> !s.isSecondaryMetadata() )
+            schemaService.getMetadataSchemas().stream().filter( schema -> schema.isIdentifiableObject() && schema.isPersisted() ).filter( s -> !s.isSecondaryMetadata() )
                 .forEach( schema -> params.getClasses().add( (Class<? extends IdentifiableObject>) schema.getKlass() ) );
         }
 

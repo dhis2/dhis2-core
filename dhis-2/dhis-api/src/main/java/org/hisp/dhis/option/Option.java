@@ -40,6 +40,8 @@ import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
+import java.util.Objects;
+
 /**
  * @author Chau Thu Tran
  */
@@ -70,6 +72,10 @@ public class Option
     public Option( String name, String code )
     {
         this();
+
+        Objects.requireNonNull( name );
+        Objects.requireNonNull( code );
+
         this.name = name;
         this.code = code;
     }
@@ -77,6 +83,11 @@ public class Option
     public Option( String name, String code, Integer sortOrder )
     {
         this();
+
+        Objects.requireNonNull( name );
+        Objects.requireNonNull( code );
+        Objects.requireNonNull( sortOrder );
+
         this.name = name;
         this.code = code;
         this.sortOrder = sortOrder;

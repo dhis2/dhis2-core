@@ -37,6 +37,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.springframework.core.Ordered;
 
@@ -793,7 +794,7 @@ public class Property implements Ordered, Klass
 
     public void setDefaultValue( Object defaultValue )
     {
-        if ( defaultValue != null && klass.isAssignableFrom( defaultValue.getClass() ) )
+        if ( defaultValue != null && klass.isAssignableFrom( HibernateProxyUtils.getRealClass( defaultValue ) ) )
         {
             this.defaultValue = defaultValue;
         }
