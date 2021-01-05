@@ -38,6 +38,9 @@ import org.junit.Test;
 
 import com.google.common.collect.Lists;
 
+/**
+ * @author Lars Helge Overland
+ */
 public class OutlierDetectionUtilsTest
 {
     @Test
@@ -52,5 +55,4 @@ public class OutlierDetectionUtilsTest
 
         assertEquals( expected, OutlierDetectionUtils.getOrgUnitPathClause( orgUnits ) );
     }
-
 }

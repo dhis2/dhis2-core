@@ -39,6 +39,9 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 
+/**
+ * @author Lars Helge Overland
+ */
 public class OutlierDetectionUtils
 {
     /**
