@@ -2,7 +2,8 @@ package org.hisp.dhis.tracker;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.hisp.dhis.TransactionalIntegrationTestBase;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -33,7 +34,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Luciano Fiandesio
  */
-public abstract class TrackerTest extends TransactionalIntegrationTestBase
+public abstract class TrackerTest extends TransactionalIntegrationTest
 {
     @Autowired
     protected IdentifiableObjectManager manager;

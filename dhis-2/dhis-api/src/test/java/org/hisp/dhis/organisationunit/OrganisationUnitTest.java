@@ -41,7 +41,7 @@ import org.hisp.dhis.common.coordinate.CoordinateUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Lars Helge Overland

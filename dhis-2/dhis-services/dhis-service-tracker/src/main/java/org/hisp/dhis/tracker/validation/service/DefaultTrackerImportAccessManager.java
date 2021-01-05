@@ -37,8 +37,6 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -54,6 +52,9 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -220,10 +221,11 @@ public class DefaultTrackerImportAccessManager
         {
             checkProgramStageWriteAccess( reporter, user, programStage );
             // at this point the link between program and program stage should be validated
-            // so it is safe to fetch the Program from the pre-heat
-            final String identifier = reporter.getValidationContext().getIdentifiers().getProgramIdScheme()
-                .getIdentifier( programStage.getProgram() );
-            final Program program = reporter.getValidationContext().getProgram( identifier );
+            // so it is safe to fetch the Program from the program stage
+            final String programUid = programStage.getProgram().getUid();
+            final Program program = reporter.getPreheat().getAll( Program.class )
+                .stream().filter( p -> p.getUid().equals( programUid ) ).findAny()
+                .orElseThrow( () -> new NullPointerException( PROGRAM_CANT_BE_NULL ) );
 
             checkProgramReadAccess( reporter, user, program );
 

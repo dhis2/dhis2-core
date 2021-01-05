@@ -164,7 +164,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             {
                 final String msg = "A Tracker Entity of type '" + getType().getName() + "' (" + trackerDto.getUid()
                     + ") failed to persist.";
-                
+
                 if ( bundle.getAtomicMode().equals( AtomicMode.ALL ) )
                 {
                     throw new PersistenceException( msg , e );

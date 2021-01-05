@@ -29,6 +29,7 @@ package org.hisp.dhis.feedback;
  */
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
@@ -59,7 +60,7 @@ public class TypedIndexedObjectContainer implements ObjectIndexProvider
     @Override
     public Integer mergeObjectIndex( @Nonnull IdentifiableObject object )
     {
-        return getTypedContainer( object.getClass() ).mergeObjectIndex( object );
+        return getTypedContainer( HibernateProxyUtils.getRealClass( object ) ).mergeObjectIndex( object );
     }
 
     /**
@@ -68,7 +69,7 @@ public class TypedIndexedObjectContainer implements ObjectIndexProvider
      */
     public boolean containsObject( @Nonnull IdentifiableObject object )
     {
-        final IndexedObjectContainer indexedObjectContainer = typedIndexedObjectContainers.get( object.getClass() );
+        final IndexedObjectContainer indexedObjectContainer = typedIndexedObjectContainers.get( HibernateProxyUtils.getRealClass( object ) );
         return indexedObjectContainer != null && indexedObjectContainer.containsObject( object );
     }
 
@@ -79,6 +80,6 @@ public class TypedIndexedObjectContainer implements ObjectIndexProvider
      */
     public void add( @Nonnull IdentifiableObject identifiableObject )
     {
-        getTypedContainer( identifiableObject.getClass() ).add( identifiableObject );
+        getTypedContainer( HibernateProxyUtils.getRealClass( identifiableObject ) ).add( identifiableObject );
     }
 }

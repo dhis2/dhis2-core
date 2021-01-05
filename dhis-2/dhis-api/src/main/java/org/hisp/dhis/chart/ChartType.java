@@ -44,5 +44,7 @@ public enum ChartType
     GAUGE,
     YEAR_OVER_YEAR_LINE,
     YEAR_OVER_YEAR_COLUMN,
-    SINGLE_VALUE
+    SINGLE_VALUE,
+    SCATTER,
+    BUBBLE
 }

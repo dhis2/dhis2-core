@@ -30,8 +30,7 @@ package org.hisp.dhis.system.util;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import javassist.util.proxy.ProxyFactory;
-import org.hibernate.collection.spi.PersistentCollection;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.schema.Property;
 import org.springframework.util.StringUtils;
 
@@ -54,6 +53,7 @@ import java.util.stream.Collectors;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 public class ReflectionUtils
 {
     public static final List<String> SHARING_PROPS = Arrays.asList(
@@ -435,6 +435,16 @@ public class ReflectionUtils
         {
             throw new RuntimeException( e );
         }
+        catch ( ClassCastException e )
+        {
+            log.error( "fail, ClassCastException:" + e.getMessage(), e );
+            throw e;
+        }
+        catch ( IllegalArgumentException e )
+        {
+            log.error( "fail, IllegalArgumentException:" + e.getMessage(), e );
+            throw e;
+        }
     }
 
     public static Collection<Field> collectFields( Class<?> clazz, Predicate<Field> predicate )
@@ -476,21 +486,6 @@ public class ReflectionUtils
         {
             throw new RuntimeException( "Unknown Collection type." );
         }
-    }
-
-    public static Class<?> getRealClass( Class<?> klass )
-    {
-        if ( ProxyFactory.isProxyClass( klass ) )
-        {
-            klass = klass.getSuperclass();
-        }
-
-        while ( PersistentCollection.class.isAssignableFrom( klass ) )
-        {
-            klass = klass.getSuperclass();
-        }
-
-        return klass;
     }
 
     /**

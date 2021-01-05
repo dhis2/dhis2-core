@@ -120,7 +120,8 @@ public class SharingController
     // -------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
-    public void getSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response ) throws IOException, WebMessageException
+    public void getSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response )
+        throws IOException, WebMessageException
     {
         type = getSharingType( type );
 
@@ -146,8 +147,8 @@ public class SharingController
 
         Sharing sharing = new Sharing();
 
-        sharing.getMeta().setAllowPublicAccess( aclService.canMakePublic( user, object.getClass() ) );
-        sharing.getMeta().setAllowExternalAccess( aclService.canMakeExternal( user, object.getClass() ) );
+        sharing.getMeta().setAllowPublicAccess( aclService.canMakePublic( user, object ) );
+        sharing.getMeta().setAllowExternalAccess( aclService.canMakeExternal( user, object ) );
 
         sharing.getObject().setId( object.getUid() );
         sharing.getObject().setName( object.getDisplayName() );
@@ -158,7 +159,7 @@ public class SharingController
         {
             String access;
 
-            if ( aclService.canMakePublic( user, klass ) )
+            if ( aclService.canMakeClassPublic( user, klass ) )
             {
                 access = AccessStringHelper.newInstance().enable( AccessStringHelper.Permission.READ ).enable( AccessStringHelper.Permission.WRITE ).build();
             }
@@ -224,7 +225,7 @@ public class SharingController
 
         Class<? extends IdentifiableObject> sharingClass = aclService.classForType( type );
 
-        if ( sharingClass == null || !aclService.isShareable( sharingClass ) )
+        if ( sharingClass == null || !aclService.isClassShareable( sharingClass ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Type " + type + " is not supported." ) );
         }
@@ -259,7 +260,7 @@ public class SharingController
         // Ignore externalAccess if user is not allowed to make objects external
         // ---------------------------------------------------------------------
 
-        if ( aclService.canMakeExternal( user, object.getClass() ) )
+        if ( aclService.canMakeExternal( user, object ) )
         {
             object.setExternalAccess( sharing.getObject().hasExternalAccess() );
         }
@@ -270,7 +271,7 @@ public class SharingController
 
         Schema schema = schemaService.getDynamicSchema( sharingClass );
 
-        if ( aclService.canMakePublic( user, object.getClass() ) )
+        if ( aclService.canMakePublic( user, object ) )
         {
             object.setPublicAccess( sharing.getObject().getPublicAccess() );
         }

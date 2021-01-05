@@ -49,4 +49,6 @@ public interface HibernateConfigurationProvider
     List<Resource> getDirectoryResources();
     
     List<String> getClusterHostnames();
+
+    Object getConnectionProperty( String key );
 }

@@ -873,7 +873,7 @@ public class EventImportValidationTest
             assertTrue( comment.getCreated().getTime() > now.getTime() );
             assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
             assertNull( comment.getCreator() );
-            assertNotNull( comment.getLastUpdatedBy() );
+            assertNull( comment.getLastUpdatedBy() );
         } );
     }
 
@@ -903,7 +903,7 @@ public class EventImportValidationTest
             assertTrue( comment.getCreated().getTime() > now.getTime() );
             assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
             assertNull( comment.getCreator() );
-            assertNotNull( comment.getLastUpdatedBy() );
+            assertNull( comment.getLastUpdatedBy() );
         } );
     }
 

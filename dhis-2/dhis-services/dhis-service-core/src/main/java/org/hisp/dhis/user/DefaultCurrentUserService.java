@@ -115,7 +115,6 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public User getCurrentUser()
     {
         String username = getCurrentUsername();
@@ -134,8 +133,74 @@ public class DefaultCurrentUserService
 
         User user = userStore.getUser( userId );
 
+        if ( user == null )
+        {
+            UserCredentials credentials = userStore.getUserCredentialsByUsername( username );
+
+            user = userStore.getUser( credentials.getId() );
+
+            if ( user == null )
+            {
+                throw new RuntimeException("Could not retrieve current user!");
+            }
+        }
+
+        if ( user.getUserCredentials() == null )
+        {
+            throw new RuntimeException("Could not retrieve current user credentials!");
+        }
+
         // TODO: this is pretty ugly way to retrieve auths
         user.getUserCredentials().getAllAuthorities();
+        return user;
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public User getCurrentUserInTransaction()
+        throws Exception
+    {
+        String username = getCurrentUsername();
+
+        if ( username == null )
+        {
+            throw new Exception("Could not retrieve current username!");
+        }
+
+        User user = null;
+
+        Long userId = USERNAME_ID_CACHE.get( username, this::getUserId ).orElse( null );
+
+        if ( userId != null )
+        {
+            user = userStore.getUser(userId);
+        }
+
+        if ( user == null )
+        {
+            UserCredentials credentials = userStore.getUserCredentialsByUsername( username );
+
+            // Happens when user is anonymous aka. not logged in yet.
+            if ( credentials == null )
+            {
+                return null;
+            }
+
+            user = userStore.getUser( credentials.getId() );
+
+            if ( user == null )
+            {
+                throw new Exception("Could not retrieve current user!");
+            }
+        }
+
+        if ( user.getUserCredentials() == null )
+        {
+            throw new Exception("Could not retrieve current user credentials!");
+        }
+
+        user.getUserCredentials().getAllAuthorities();
+
         return user;
     }
 

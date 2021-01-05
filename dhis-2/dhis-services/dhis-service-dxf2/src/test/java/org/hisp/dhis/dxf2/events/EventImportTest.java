@@ -33,7 +33,8 @@ import com.google.common.collect.Sets;
 import org.exparity.hamcrest.date.DateMatchers;
 import org.hamcrest.CoreMatchers;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.TransactionalIntegrationTestBase;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -96,7 +97,7 @@ import static org.junit.Assert.assertNull;
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 public class EventImportTest
-    extends TransactionalIntegrationTestBase
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private EventService eventService;

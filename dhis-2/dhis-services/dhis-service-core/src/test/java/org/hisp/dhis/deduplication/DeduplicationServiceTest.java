@@ -28,14 +28,12 @@ package org.hisp.dhis.deduplication;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
@@ -43,7 +41,6 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-@Category( IntegrationTest.class )
 public class DeduplicationServiceTest
     extends IntegrationTestBase
 {

@@ -215,7 +215,11 @@
                  cascade="all-delete-orphan" foreign-key="fk_visualization_relativeperiodsid"/>
 
     <property name="fontStyle" type="jbVisualizationFontStyle"/>
-    
+
+    <property name="legend" type="jbLegendDefinitions"/>
+
+    <property name="axes" type="jbAxes"/>
+
     <property name="colorSet"/>
 
     <property name="percentStackedValues"/>

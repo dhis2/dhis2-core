@@ -29,7 +29,8 @@ package org.hisp.dhis.dxf2.metadata.version;
  */
 
 import org.apache.commons.lang.time.DateUtils;
-import org.hisp.dhis.TransactionalIntegrationTestBase;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.systemsettings.MetadataSystemSettingService;
@@ -58,7 +59,7 @@ import static org.junit.Assert.assertTrue;
  * @author sultanm
  */
 public class DefaultMetadataVersionServiceTest
-    extends TransactionalIntegrationTestBase
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private MetadataVersionService versionService;
