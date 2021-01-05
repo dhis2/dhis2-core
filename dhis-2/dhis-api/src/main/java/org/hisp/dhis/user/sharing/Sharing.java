@@ -62,7 +62,7 @@ public class Sharing
     private String owner;
 
     @JsonProperty("public")
-    private String publicAccess = null;
+    private String publicAccess;
 
     @JsonProperty
     private boolean external;
