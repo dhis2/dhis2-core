@@ -96,13 +96,14 @@ public class SqlUtils
     }
 
     /**
-     * Cast the given value to numeric (CAST(X) AS NUMERIC)
-     * @param value a value
-     * @return a string with the numeric cast statement
+     * Cast the given value to numeric (cast(X as numeric).
+     *
+     * @param value the value.
+     * @return a string with the numeric cast statement.
      */
     public static String castToNumber( String value )
     {
-        return "CAST (" + value + " AS NUMERIC )";
+        return "cast (" + value + " as numeric)";
     }
 
     public static String lower( String value )

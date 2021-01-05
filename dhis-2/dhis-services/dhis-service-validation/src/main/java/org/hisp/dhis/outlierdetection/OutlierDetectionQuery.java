@@ -60,6 +60,9 @@ public class OutlierDetectionQuery
     private List<String> ou = new ArrayList<>();
 
     @JsonProperty
+    private OutlierDetectionAlgorithm algorithm = OutlierDetectionAlgorithm.Z_SCORE;
+
+    @JsonProperty
     private Double threshold;
 
     @JsonProperty

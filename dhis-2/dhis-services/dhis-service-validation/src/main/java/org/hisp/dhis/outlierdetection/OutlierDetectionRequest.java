@@ -57,7 +57,7 @@ public class OutlierDetectionRequest
 
     private OrgUnitSelection orgUnitSelection;
 
-    private OutlierDetectionAlgorithm outlierAlgorithm = OutlierDetectionAlgorithm.Z_SCORE;
+    private OutlierDetectionAlgorithm algorithm;
 
     private double threshold;
 
@@ -88,7 +88,7 @@ public class OutlierDetectionRequest
             this.query = new OutlierDetectionRequest();
 
             this.query.orgUnitSelection = OrgUnitSelection.DESCENDANTS;
-            this.query.outlierAlgorithm = OutlierDetectionAlgorithm.Z_SCORE;
+            this.query.algorithm = OutlierDetectionAlgorithm.Z_SCORE;
             this.query.threshold = 3.0d;
             this.query.orderBy = Order.MEAN_ABS_DEV;
             this.query.maxResults = 500;
@@ -113,6 +113,12 @@ public class OutlierDetectionRequest
             return this;
         }
 
+        public Builder withAlgorithm( OutlierDetectionAlgorithm algorithm )
+        {
+            this.query.algorithm = algorithm;
+            return this;
+        }
+
         public Builder withThreshold( double threshold )
         {
             this.query.threshold = threshold;
@@ -134,7 +140,7 @@ public class OutlierDetectionRequest
         public OutlierDetectionRequest build()
         {
             Preconditions.checkNotNull( this.query.orgUnitSelection );
-            Preconditions.checkNotNull( this.query.outlierAlgorithm );
+            Preconditions.checkNotNull( this.query.algorithm );
             Preconditions.checkNotNull( this.query.orderBy );
             return this.query;
         }
