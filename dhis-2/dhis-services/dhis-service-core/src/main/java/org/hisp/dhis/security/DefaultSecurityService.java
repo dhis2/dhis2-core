@@ -587,8 +587,8 @@ public class DefaultSecurityService
     @Override
     public boolean canCreatePublic( IdentifiableObject identifiableObject )
     {
-        return !aclService.isShareable( identifiableObject.getClass() )
-            || aclService.canMakePublic( currentUserService.getCurrentUser(), identifiableObject.getClass() );
+        return !aclService.isShareable( identifiableObject )
+            || aclService.canMakePublic( currentUserService.getCurrentUser(), identifiableObject );
     }
 
     @Override
@@ -596,15 +596,15 @@ public class DefaultSecurityService
     {
         Class<? extends IdentifiableObject> klass = aclService.classForType( type );
 
-        return !aclService.isShareable( klass )
-            || aclService.canMakePublic( currentUserService.getCurrentUser(), klass );
+        return !aclService.isClassShareable( klass )
+            || aclService.canMakeClassPublic( currentUserService.getCurrentUser(), klass );
     }
 
     @Override
     public boolean canCreatePrivate( IdentifiableObject identifiableObject )
     {
-        return !aclService.isShareable( identifiableObject.getClass() )
-            || aclService.canMakePrivate( currentUserService.getCurrentUser(), identifiableObject.getClass() );
+        return !aclService.isShareable( identifiableObject )
+            || aclService.canMakePrivate( currentUserService.getCurrentUser(), identifiableObject );
     }
 
     @Override
@@ -620,42 +620,42 @@ public class DefaultSecurityService
     {
         Class<? extends IdentifiableObject> klass = aclService.classForType( type );
 
-        return !aclService.isShareable( klass )
-            || aclService.canMakePrivate( currentUserService.getCurrentUser(), klass );
+        return !aclService.isClassShareable( klass )
+            || aclService.canMakeClassPrivate( currentUserService.getCurrentUser(), klass );
     }
 
     @Override
     public boolean canRead( IdentifiableObject identifiableObject )
     {
-        return !aclService.isSupported( identifiableObject.getClass() )
+        return !aclService.isSupported( identifiableObject )
             || aclService.canRead( currentUserService.getCurrentUser(), identifiableObject );
     }
 
     @Override
     public boolean canWrite( IdentifiableObject identifiableObject )
     {
-        return !aclService.isSupported( identifiableObject.getClass() )
+        return !aclService.isSupported( identifiableObject )
             || aclService.canWrite( currentUserService.getCurrentUser(), identifiableObject );
     }
 
     @Override
     public boolean canUpdate( IdentifiableObject identifiableObject )
     {
-        return !aclService.isSupported( identifiableObject.getClass() )
+        return !aclService.isSupported( identifiableObject )
             || aclService.canUpdate( currentUserService.getCurrentUser(), identifiableObject );
     }
 
     @Override
     public boolean canDelete( IdentifiableObject identifiableObject )
     {
-        return !aclService.isSupported( identifiableObject.getClass() )
+        return !aclService.isSupported( identifiableObject )
             || aclService.canDelete( currentUserService.getCurrentUser(), identifiableObject );
     }
 
     @Override
     public boolean canManage( IdentifiableObject identifiableObject )
     {
-        return !aclService.isShareable( identifiableObject.getClass() )
+        return !aclService.isShareable( identifiableObject )
             || aclService.canManage( currentUserService.getCurrentUser(), identifiableObject );
     }
 
@@ -700,14 +700,14 @@ public class DefaultSecurityService
     @Override
     public boolean canDataWrite( IdentifiableObject identifiableObject )
     {
-        return !aclService.isSupported( identifiableObject.getClass() )
+        return !aclService.isSupported( identifiableObject )
             || aclService.canDataWrite( currentUserService.getCurrentUser(), identifiableObject );
     }
 
     @Override
     public boolean canDataRead( IdentifiableObject identifiableObject )
     {
-        return !aclService.isSupported( identifiableObject.getClass() )
+        return !aclService.isSupported( identifiableObject )
             || aclService.canDataRead( currentUserService.getCurrentUser(), identifiableObject );
     }
 }

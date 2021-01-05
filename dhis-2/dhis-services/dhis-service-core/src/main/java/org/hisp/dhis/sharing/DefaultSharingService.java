@@ -118,7 +118,7 @@ public class DefaultSharingService implements SharingService
         // Ignore externalAccess if user is not allowed to make objects external
         // ---------------------------------------------------------------------
 
-        if ( aclService.canMakeExternal( user, entityClass ) )
+        if ( aclService.canMakeClassExternal( user, entityClass ) )
         {
             object.getSharing().setExternal( sharing.isExternal() );
         }
@@ -129,7 +129,7 @@ public class DefaultSharingService implements SharingService
 
         Schema schema = schemaService.getDynamicSchema( entityClass );
 
-        if ( aclService.canMakePublic( user, object.getClass() ) )
+        if ( aclService.canMakePublic( user, object ) )
         {
             object.getSharing().setPublicAccess( sharing.getPublicAccess() );
         }

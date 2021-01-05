@@ -28,11 +28,14 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -41,6 +44,7 @@ import java.util.stream.Collectors;
  */
 @Service( "org.hisp.dhis.schema.MergeService" )
 @Transactional
+@Slf4j
 public class DefaultMergeService implements MergeService
 {
     private final SchemaService schemaService;
@@ -56,7 +60,7 @@ public class DefaultMergeService implements MergeService
         T source = mergeParams.getSource();
         T target = mergeParams.getTarget();
 
-        Schema schema = schemaService.getDynamicSchema( source.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( source ) );
 
         for ( Property property : schema.getProperties() )
         {
@@ -133,11 +137,13 @@ public class DefaultMergeService implements MergeService
 
         try
         {
-            return merge( new MergeParams<>( source, (T) source.getClass().newInstance() )
+            return merge( new MergeParams<>( source,
+                (T) HibernateProxyUtils.getRealClass( source ).getDeclaredConstructor().newInstance() )
                 .setMergeMode( MergeMode.REPLACE ) );
         }
-        catch ( InstantiationException | IllegalAccessException ignored )
+        catch ( InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e )
         {
+            log.info( "Failed to clone source object, source=" + source, e );
         }
 
         return null;

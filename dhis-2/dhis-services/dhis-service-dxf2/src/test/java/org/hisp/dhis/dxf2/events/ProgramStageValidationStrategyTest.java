@@ -28,7 +28,7 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.TransactionalIntegrationTestBase;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasItem;
@@ -43,6 +43,7 @@ import java.util.stream.Stream;
 
 import org.hamcrest.Matchers;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
@@ -79,7 +80,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author David Katuscak
  */
-public class ProgramStageValidationStrategyTest extends TransactionalIntegrationTestBase
+public class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
 {
     @Autowired
     private EventService eventService;

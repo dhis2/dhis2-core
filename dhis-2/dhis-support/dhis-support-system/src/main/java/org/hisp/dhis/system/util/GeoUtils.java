@@ -40,10 +40,10 @@ import org.geotools.referencing.GeodeticCalculator;
 import org.hisp.dhis.common.coordinate.CoordinateUtils;
 import org.hisp.dhis.organisationunit.FeatureType;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.MultiPolygon;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
 
 /**
  * @author Lars Helge Overland

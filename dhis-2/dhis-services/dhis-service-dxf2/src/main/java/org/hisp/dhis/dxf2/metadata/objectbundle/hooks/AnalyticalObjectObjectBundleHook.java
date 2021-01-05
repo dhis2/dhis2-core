@@ -34,6 +34,7 @@ import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.AnalyticalObjectImportHandler;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
@@ -55,7 +56,7 @@ public class AnalyticalObjectObjectBundleHook
     {
         if ( !AnalyticalObject.class.isInstance( object ) ) return;
         BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
-        Schema schema = schemaService.getDynamicSchema( analyticalObject.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( analyticalObject ) );
         Session session = sessionFactory.getCurrentSession();
 
         analyticalObjectImportHandler.handleAnalyticalObject( session, schema, analyticalObject, bundle );
@@ -68,7 +69,7 @@ public class AnalyticalObjectObjectBundleHook
 
         BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
 
-        Schema schema = schemaService.getDynamicSchema( analyticalObject.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( analyticalObject ) );
         Session session = sessionFactory.getCurrentSession();
 
         analyticalObjectImportHandler.handleAnalyticalObject( session, schema, analyticalObject, bundle );

@@ -82,7 +82,7 @@ public class SharingControllerTest
         final OrganisationUnit organisationUnit = new OrganisationUnit();
 
         doReturn( OrganisationUnit.class ).when( aclService ).classForType( eq( "organisationUnit" ) );
-        when( aclService.isShareable( eq( OrganisationUnit.class ) ) ).thenReturn( true );
+        when( aclService.isClassShareable( eq( OrganisationUnit.class ) ) ).thenReturn( true );
         doReturn( organisationUnit ).when( manager ).get( eq( OrganisationUnit.class ), eq( "kkSjhdhks" ) );
 
         sharingController.setSharing( "organisationUnit", "kkSjhdhks", response, request );
@@ -95,7 +95,7 @@ public class SharingControllerTest
         category.setName( Category.DEFAULT_NAME + "x" );
 
         doReturn( Category.class ).when( aclService ).classForType( eq( "category" ) );
-        when( aclService.isShareable( eq( Category.class ) ) ).thenReturn( true );
+        when( aclService.isClassShareable( eq( Category.class ) ) ).thenReturn( true );
         when( manager.get( eq( Category.class ), eq( "kkSjhdhks" ) ) ).thenReturn( category );
 
         sharingController.setSharing( "category", "kkSjhdhks", response, request );
@@ -108,7 +108,7 @@ public class SharingControllerTest
         category.setName( Category.DEFAULT_NAME );
 
         doReturn( Category.class ).when( aclService ).classForType( eq( "category" ) );
-        when( aclService.isShareable( eq( Category.class ) ) ).thenReturn( true );
+        when( aclService.isClassShareable( eq( Category.class ) ) ).thenReturn( true );
         when( manager.get( eq( Category.class ), eq( "kkSjhdhks" ) ) ).thenReturn( category );
 
         try

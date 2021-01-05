@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
@@ -162,6 +163,6 @@ public class DefaultNodeService implements NodeService
         Assert.notNull( objects, "objects can not be null" );
         Assert.isTrue( objects.size() > 0, "objects list must be larger than 0" );
 
-        return fieldFilterService.toCollectionNode( objects.get( 0 ).getClass(), new FieldFilterParams( objects, new ArrayList<>() ) );
+        return fieldFilterService.toCollectionNode( HibernateProxyUtils.getRealClass( objects.get( 0 ) ), new FieldFilterParams( objects, new ArrayList<>() ) );
     }
 }

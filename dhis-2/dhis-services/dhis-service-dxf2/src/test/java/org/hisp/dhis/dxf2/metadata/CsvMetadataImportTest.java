@@ -37,6 +37,7 @@ import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.csv.CsvImportOptions;
 import org.hisp.dhis.dxf2.csv.CsvImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionService;
@@ -213,7 +214,8 @@ public class CsvMetadataImportTest
         OptionSet optionSet = optionService.getOptionSetByCode( "COLOR" );
 
         // Total 5 Options added
-        assertEquals( 5, optionSet.getOptions().size() );
+        List<Option> options = optionSet.getOptions();
+        assertEquals( 5, options.size() );
     }
 
     @Test

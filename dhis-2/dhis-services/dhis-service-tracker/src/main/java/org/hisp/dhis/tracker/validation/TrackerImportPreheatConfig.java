@@ -32,16 +32,14 @@ package org.hisp.dhis.tracker.validation;
 import java.util.List;
 
 import org.hisp.dhis.tracker.preheat.supplier.ClassBasedSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.ProgramInstancesWithAtLeastOneEventSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.FileResourceSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.PeriodTypeSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.PreheatSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.ProgramInstanceByTeiSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.ProgramInstanceSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.ProgramInstancesWithAtLeastOneEventSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.ProgramOrgUnitsSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.ProgramStageInstanceProgramStageMapSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.RelationshipTypeSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.TrackedEntityTypeSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.UniqueAttributesSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.UserSupplier;
 
@@ -63,8 +61,6 @@ public class TrackerImportPreheatConfig
         ProgramInstancesWithAtLeastOneEventSupplier.class,
         ProgramStageInstanceProgramStageMapSupplier.class,
         ProgramOrgUnitsSupplier.class,
-        TrackedEntityTypeSupplier.class,
-        RelationshipTypeSupplier.class,
         PeriodTypeSupplier.class,
         UniqueAttributesSupplier.class,
         UserSupplier.class,

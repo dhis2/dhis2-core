@@ -99,6 +99,13 @@ public class MockCurrentUserService
     }
 
     @Override
+    public User getCurrentUserInTransaction()
+    {
+        return currentUser;
+    }
+
+
+    @Override
     public UserInfo getCurrentUserInfo()
     {
         return new UserInfo( currentUser.getId(),

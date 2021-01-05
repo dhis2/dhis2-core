@@ -28,10 +28,11 @@ package org.hisp.dhis.webapi.service;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -82,4 +83,10 @@ public interface ContextService
      * Get all parameters as a map of key => values, supports more than one pr key (so values is a collection)
      */
     Map<String, List<String>> getParameterValuesMap();
+
+    /**
+     * Get a list of fields from request
+     */
+    List<String> getFieldsFromRequest();
+
 }
