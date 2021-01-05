@@ -85,7 +85,7 @@ public class ClassBasedSupplier extends AbstractPreheatSupplier implements Appli
          * reference type (e.g. Enrollment) and the value is a Set of identifiers (e.g.
          * a list of all Enrollment UIDs found in the payload)
          */
-        Map<Class<?>, Set<String>> identifierMap = TrackerIdentifierCollector.collect( params );
+        Map<Class<?>, Set<String>> identifierMap = TrackerIdentifierCollector.collect( params, preheat.getDefaults() );
 
         for ( Class<?> klass : identifierMap.keySet() )
         {

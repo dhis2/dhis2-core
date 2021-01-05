@@ -316,8 +316,8 @@ public class PreCheckDataRelationsValidationHook
     {
         if ( categoryOptionCombo == null )
         {
-            CategoryOptionCombo defaultCategoryCombo = (CategoryOptionCombo) preheat.getDefaults()
-                .get( CategoryOptionCombo.class );
+            CategoryOptionCombo defaultCategoryCombo = preheat
+                .getDefault( CategoryOptionCombo.class );
 
             if ( defaultCategoryCombo != null && !aocIsEmpty )
             {

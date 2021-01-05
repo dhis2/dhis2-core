@@ -28,6 +28,7 @@ package org.hisp.dhis.tracker.preheat.mappers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.mapstruct.BeanMapping;
@@ -38,21 +39,16 @@ import org.mapstruct.factory.Mappers;
 
 import java.util.Set;
 
-@Mapper( uses = { DebugMapper.class, CategoryOptionMapper.class, CategoryComboMapper.class } )
-public interface CategoryOptionComboMapper
-    extends PreheatMapper<CategoryOptionCombo>
+@Mapper( uses = DebugMapper.class )
+public interface CategoryComboMapper
+    extends PreheatMapper<CategoryCombo>
 {
-    CategoryOptionComboMapper INSTANCE = Mappers.getMapper( CategoryOptionComboMapper.class );
+    CategoryComboMapper INSTANCE = Mappers.getMapper( CategoryComboMapper.class );
 
     @BeanMapping( ignoreByDefault = true )
     @Mapping( target = "id" )
     @Mapping( target = "uid" )
     @Mapping( target = "name" )
     @Mapping( target = "code" )
-    @Mapping( target = "categoryOptions", qualifiedByName = "categoryOptions" )
-    @Mapping( target = "categoryCombo" )
-    CategoryOptionCombo map( CategoryOptionCombo categoryOptionCombo );
-
-    @Named( "categoryOptions" )
-    Set<CategoryOption> mapCategoryOptions( Set<CategoryOption> categoryOptionSet );
+    CategoryCombo map( CategoryCombo categoryCombo );
 }
