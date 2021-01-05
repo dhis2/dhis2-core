@@ -98,12 +98,6 @@ public class DefaultMinMaxDataElementService
     }
 
     @Override
-    public List<MinMaxDataElement> getMinMaxDataElements( OrganisationUnit source, DataElement dataElement )
-    {
-        return minMaxDataElementStore.get( source, dataElement );
-    }
-
-    @Override
     public List<MinMaxDataElement> getMinMaxDataElements( OrganisationUnit source, Collection<DataElement> dataElements )
     {
         return minMaxDataElementStore.get( source, dataElements );

@@ -28,16 +28,14 @@ package org.hisp.dhis.outlierdetection.service;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
+import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.getIsoPeriod;
+import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.getOrgUnitPathClause;
+
 import java.util.List;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.period.PeriodType;
@@ -51,30 +49,31 @@ import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Manager for database queries related to outlier data detection.
+ * Manager for database queries related to outlier data detection
+ * based on z-score.
  *
  * @author Lars Helge Overland
  */
 @Slf4j
 @Service
-public class OutlierDetectionManager
+public class ZScoreOutlierDetectionManager
 {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public OutlierDetectionManager( NamedParameterJdbcTemplate jdbcTemplate )
+    public ZScoreOutlierDetectionManager( NamedParameterJdbcTemplate jdbcTemplate )
     {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     /**
-     * Returns a list of outlier data values for the given request.
+     * Returns a list of outlier data values based on z-score for the given request.
      *
      * @param request the {@link OutlierDetectionRequest}.
      * @return a list of {@link OutlierValue}.
      */
-    public List<OutlierValue> getZScoreOutlierValues( OutlierDetectionRequest request )
+    public List<OutlierValue> getOutlierValues( OutlierDetectionRequest request )
     {
-        String ouPathClause = getOrgUnitPathClause( request );
+        final String ouPathClause = getOrgUnitPathClause( request.getOrgUnits() );
 
         final String sql =
             // Outer select
@@ -166,9 +165,13 @@ public class OutlierDetectionManager
     {
         return ( rs, rowNum ) -> {
             final OutlierValue outlier = new OutlierValue();
+
+            final String isoPeriod = getIsoPeriod( calendar,
+                rs.getString( "pt_name" ), rs.getDate( "pe_start_date" ) );
+
             outlier.setDe( rs.getString( "de_uid" ) );
             outlier.setDeName( rs.getString( "de_name" ) );
-            outlier.setPe( getIsoPeriod( calendar, rs ) );
+            outlier.setPe( isoPeriod );
             outlier.setOu( rs.getString( "ou_uid" ) );
             outlier.setOuName( rs.getString( "ou_name" ) );
             outlier.setCoc( rs.getString( "coc_uid" ) );
@@ -182,40 +185,9 @@ public class OutlierDetectionManager
             outlier.setZScore( rs.getDouble( "z_score" ) );
             outlier.setLowerBound( rs.getDouble( "lower_bound" ) );
             outlier.setUpperBound( rs.getDouble( "upper_bound" ) );
+
             return outlier;
         };
     }
 
-    /**
-     * Returns the ISO period name for the given {@link ResultSet} row.
-     *
-     * @param calendar the {@link Calendar}.
-     * @param rs the {@link ResultSet}.
-     * @return the ISO period name.
-     */
-    private String getIsoPeriod( Calendar calendar, ResultSet rs )
-        throws SQLException
-    {
-        final Date startDate = rs.getDate( "pe_start_date" );
-        final PeriodType pt = PeriodType.getPeriodTypeByName( rs.getString( "pt_name" ) );
-        return pt.createPeriod( startDate, calendar ).getIsoDate();
-    }
-
-    /**
-     * Returns an organisation unit 'path' "like" clause for the given query.
-     *
-     * @param query the {@link OutlierDetectionRequest}.
-     * @return an organisation unit 'path' "like" clause.
-     */
-    private String getOrgUnitPathClause( OutlierDetectionRequest query )
-    {
-        String sql = "(";
-
-        for ( OrganisationUnit ou : query.getOrgUnits() )
-        {
-            sql += "ou.\"path\" like '" + ou.getPath() + "%' or ";
-        }
-
-        return TextUtils.removeLastOr( sql ) + ")";
-    }
 }

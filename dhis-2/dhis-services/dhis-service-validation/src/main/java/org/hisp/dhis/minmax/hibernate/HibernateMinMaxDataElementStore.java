@@ -78,9 +78,9 @@ public class HibernateMinMaxDataElementStore
     {
         super( sessionFactory, jdbcTemplate, publisher, MinMaxDataElement.class, false );
 
-        checkNotNull(queryParser);
-        checkNotNull(queryPlanner);
-        checkNotNull(schemaService);
+        checkNotNull( queryParser );
+        checkNotNull( queryPlanner );
+        checkNotNull( schemaService );
 
         this.queryParser = queryParser;
         this.queryPlanner = queryPlanner;
@@ -101,16 +101,6 @@ public class HibernateMinMaxDataElementStore
             .addPredicate( root -> builder.equal( root.get( "source" ), source ) )
             .addPredicate( root -> builder.equal( root.get( "dataElement" ), dataElement ) )
             .addPredicate( root -> builder.equal( root.get( "optionCombo" ), optionCombo ) ) );
-    }
-
-    @Override
-    public List<MinMaxDataElement> get( OrganisationUnit source, DataElement dataElement )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "source" ), source ) )
-            .addPredicate( root -> builder.equal( root.get( "dataElement" ), dataElement ) ) );
     }
 
     @Override

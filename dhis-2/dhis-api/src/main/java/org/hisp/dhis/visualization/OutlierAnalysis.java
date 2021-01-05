@@ -1,4 +1,4 @@
-package org.hisp.dhis.outlierdetection;
+package org.hisp.dhis.visualization;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,13 +28,26 @@ package org.hisp.dhis.outlierdetection;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
+import java.io.Serializable;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
+import lombok.Data;
+
 /**
- * Algorithm for outlier value detection.
- *
- * @author Lars Helge Overland
+ * Class responsible for keeping the settings related to outlier analysis in Visualization.
  */
-public enum OutlierDetectionAlgorithm
+@Data
+public class OutlierAnalysis implements Serializable
 {
-    Z_SCORE,
-    MIN_MAX;
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private boolean enabled;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private Double stdDevThreshold;
 }

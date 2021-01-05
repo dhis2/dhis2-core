@@ -183,6 +183,11 @@ public class Visualization
      */
     private List<Series> series = new ArrayList<>();
 
+    /**
+     * Outlier analysis settings.
+     */
+     private OutlierAnalysis outlierAnalysis;
+
     // -------------------------------------------------------------------------
     // Display definitions
     // -------------------------------------------------------------------------
@@ -1089,6 +1094,18 @@ public class Visualization
     public void setYearlySeries( List<String> yearlySeries )
     {
         this.yearlySeries = yearlySeries;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public OutlierAnalysis getOutlierAnalysis()
+    {
+        return outlierAnalysis;
+    }
+
+    public void setOutlierAnalysis( OutlierAnalysis outlierAnalysis )
+    {
+        this.outlierAnalysis = outlierAnalysis;
     }
 
     @JsonProperty( value = "legend" )

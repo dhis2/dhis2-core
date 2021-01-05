@@ -1,4 +1,4 @@
-package org.hisp.dhis.outlierdetection;
+package org.hisp.dhis.outlierdetection.util;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,46 +28,54 @@ package org.hisp.dhis.outlierdetection;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodType;
 
 /**
- * Encapsulation of a web API request for outlier value detection.
- *
  * @author Lars Helge Overland
  */
-@Data
-public class OutlierDetectionQuery
+public class OutlierDetectionUtils
 {
-    @JsonProperty
-    private List<String> ds = new ArrayList<>();
+    /**
+     * Returns the ISO period name for the given {@link ResultSet} row. Requires
+     * that a column <code>pe_start_date</code> of type date and a column
+     * <code>pt_name</code> are present.
+     *
+     * @param calendar the {@link Calendar}.
+     * @param rs the {@link ResultSet}.
+     * @return the ISO period name.
+     */
+    public static String getIsoPeriod( Calendar calendar, String periodType, Date startDate )
+        throws SQLException
+    {
+        final PeriodType pt = PeriodType.getPeriodTypeByName( periodType );
+        return pt.createPeriod( startDate, calendar ).getIsoDate();
+    }
 
-    @JsonProperty
-    private List<String> de = new ArrayList<>();
+    /**
+     * Returns an organisation unit 'path' "like" clause for the given list
+     * of {@link OrganisationUnit}.
+     *
+     * @param query the list of {@link OrganisationUnit}.
+     * @return an organisation unit 'path' "like" clause.
+     */
+    public static String getOrgUnitPathClause( List<OrganisationUnit> orgUnits )
+    {
+        String sql = "(";
 
-    @JsonProperty
-    private Date startDate;
+        for ( OrganisationUnit ou : orgUnits )
+        {
+            sql += "ou.\"path\" like '" + ou.getPath() + "%' or ";
+        }
 
-    @JsonProperty
-    private Date endDate;
-
-    @JsonProperty
-    private List<String> ou = new ArrayList<>();
-
-    @JsonProperty
-    private OutlierDetectionAlgorithm algorithm = OutlierDetectionAlgorithm.Z_SCORE;
-
-    @JsonProperty
-    private Double threshold;
-
-    @JsonProperty
-    private Order orderBy;
-
-    @JsonProperty
-    private Integer maxResults;
+        return StringUtils.trim( TextUtils.removeLastOr( sql ) ) + ")";
+    }
 }

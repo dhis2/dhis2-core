@@ -216,6 +216,8 @@
 
     <property name="fontStyle" type="jbVisualizationFontStyle"/>
 
+    <property name="outlierAnalysis" type="jbOutlierAnalysis"/>
+
     <property name="legend" type="jbLegendDefinitions"/>
 
     <property name="axes" type="jbAxes"/>

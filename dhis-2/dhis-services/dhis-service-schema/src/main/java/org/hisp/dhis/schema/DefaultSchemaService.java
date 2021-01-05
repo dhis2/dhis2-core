@@ -292,6 +292,9 @@ public class DefaultSchemaService
             return schema;
         }
 
+        // Lookup the implementation class of core interfaces, if the input klass is a core interface
+        klass = propertyIntrospectorService.getConcreteClass( klass );
+
         String name = getName( klass );
 
         schema = new Schema( klass, name, name + "s" );

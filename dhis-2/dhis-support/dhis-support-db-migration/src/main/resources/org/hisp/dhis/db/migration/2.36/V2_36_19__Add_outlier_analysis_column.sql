@@ -1,4 +1,3 @@
-package org.hisp.dhis.outlierdetection;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,13 +27,12 @@ package org.hisp.dhis.outlierdetection;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Algorithm for outlier value detection.
- *
- * @author Lars Helge Overland
- */
-public enum OutlierDetectionAlgorithm
-{
-    Z_SCORE,
-    MIN_MAX;
-}
+-- This script is responsible for creating a new JSONB column in the Visualization table.
+-- See Feature DHIS2-10079.
+
+-- What it does?
+-- 1) creates a new JSONB column("outlieranalysis") into Visualization table;
+
+
+-- Step 1) creates the JSONB column("outlieranalysis") into Visualization table;
+alter table if exists visualization add column if not exists outlieranalysis jsonb;

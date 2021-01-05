@@ -1,4 +1,4 @@
-package org.hisp.dhis.outlierdetection;
+package org.hisp.dhis.outlierdetection.util;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,13 +28,31 @@ package org.hisp.dhis.outlierdetection;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.junit.Assert.assertEquals;
+
+import java.util.List;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.junit.Test;
+
+import com.google.common.collect.Lists;
+
 /**
- * Algorithm for outlier value detection.
- *
  * @author Lars Helge Overland
  */
-public enum OutlierDetectionAlgorithm
+public class OutlierDetectionUtilsTest
 {
-    Z_SCORE,
-    MIN_MAX;
+    @Test
+    public void testGetOrgUnitPathClause()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
+        OrganisationUnit ouC = createOrganisationUnit( 'C' );
+        List<OrganisationUnit> orgUnits = Lists.newArrayList( ouA, ouB, ouC );
+
+        String expected = "(ou.\"path\" like '/ouabcdefghA%' or ou.\"path\" like '/ouabcdefghB%' or ou.\"path\" like '/ouabcdefghC%')";
+
+        assertEquals( expected, OutlierDetectionUtils.getOrgUnitPathClause( orgUnits ) );
+    }
 }
