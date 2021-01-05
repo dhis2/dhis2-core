@@ -32,7 +32,6 @@ import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSetting;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -82,7 +81,7 @@ public class AssignValueImplementer
 
         for ( EventActionRule actionRule : eventClasses.getValue() )
         {
-            if ( !actionRule.getDataValue().isPresent() || canOverwrite )
+            if ( !actionRule.getDataValue().isPresent() || Boolean.TRUE.equals( canOverwrite ) )
             {
                 addOrOverwriteDataValue( actionRule );
                 issues.add( new ProgramRuleIssue( TrackerReportUtils
@@ -111,7 +110,7 @@ public class AssignValueImplementer
 
         for ( EnrollmentActionRule actionRule : enrollmentActionRules.getValue() )
         {
-            if ( !actionRule.getAttribute().isPresent() || canOverwrite )
+            if ( !actionRule.getAttribute().isPresent() || Boolean.TRUE.equals( canOverwrite ) )
             {
                 addOrOverwriteAttribute( actionRule );
                 issues.add( new ProgramRuleIssue( TrackerReportUtils
