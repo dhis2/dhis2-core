@@ -40,7 +40,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.mapper.TrackedEntityMapper;
 import org.hisp.dhis.tracker.domain.web.PagingWrapper;
-import org.hisp.dhis.tracker.preheat.mappers.UserGroupAccessMapper;
 import org.hisp.dhis.webapi.controller.event.TrackedEntityInstanceCriteria;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -55,10 +54,12 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping( value = RESOURCE_PATH )
+@RequestMapping( value = RESOURCE_PATH + "/" + TrackerTrackedEntitiesExportController.TRACKED_ENTITIES )
 @RequiredArgsConstructor
-public class TrackerExportController
+public class TrackerTrackedEntitiesExportController
 {
+    protected final static String TRACKED_ENTITIES = "trackedEntities";
+
     private final ContextService contextService;
 
     private final TrackedEntityCriteriaMapper criteriaMapper;
@@ -93,7 +94,7 @@ public class TrackerExportController
         return trackedEntityInstancePagingWrapper.withInstances( trackedEntityInstances );
     }
 
-    @GetMapping( value = "/{id}" )
+    @GetMapping( value = "{id}" )
     public TrackedEntity getTrackedEntityInstanceById( @PathVariable( "id" ) String pvId,
         @RequestParam( required = false ) String program )
     {
