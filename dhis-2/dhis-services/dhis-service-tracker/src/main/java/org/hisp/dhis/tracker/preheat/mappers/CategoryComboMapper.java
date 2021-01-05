@@ -29,15 +29,10 @@ package org.hisp.dhis.tracker.preheat.mappers;
  */
 
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
-
-import java.util.Set;
 
 @Mapper( uses = DebugMapper.class )
 public interface CategoryComboMapper

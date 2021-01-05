@@ -91,9 +91,8 @@ public class TrackerIdentifierCollector
         TrackerIdentifierParams params,
         Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults )
     {
-        defaults.forEach( ( defaultClass, defaultMetadata ) -> {
-            addIdentifier( map, defaultClass, params.getIdScheme().getIdScheme(), defaultMetadata.getUid() );
-        } );
+        defaults.forEach( ( defaultClass, defaultMetadata ) ->
+            addIdentifier( map, defaultClass, params.getIdScheme().getIdScheme(), defaultMetadata.getUid() ) );
     }
 
     private static void collectTrackedEntities(
