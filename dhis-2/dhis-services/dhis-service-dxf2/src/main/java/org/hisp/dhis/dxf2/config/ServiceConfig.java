@@ -261,6 +261,7 @@ public class ServiceConfig
     {
         return ImmutableMap.of( CREATE, newArrayList(
             ProgramNotificationPostProcessor.class,
+            PublishEventPostProcessor.class,
             EventInsertAuditPostProcessor.class,
             FilteringOutUndeclaredDataElementsProcessor.class ) );
     }
