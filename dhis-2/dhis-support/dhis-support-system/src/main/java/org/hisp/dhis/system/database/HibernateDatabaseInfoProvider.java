@@ -78,7 +78,7 @@ public class HibernateDatabaseInfoProvider
         this.jdbcTemplate = jdbcTemplate;
         this.environment = environment;
     }
-    
+
     @PostConstruct
     public void init()
     {
@@ -88,7 +88,7 @@ public class HibernateDatabaseInfoProvider
 
         // Check if postgis is installed, fail startup if not
 
-        if ( !SystemUtils.isTestRun(environment.getActiveProfiles()) )
+        if ( !SystemUtils.isTestRun( environment.getActiveProfiles() ) )
         {
             spatialSupport = isSpatialSupport();
 
