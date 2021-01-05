@@ -45,6 +45,10 @@
     <param name="clazz">org.hisp.dhis.visualization.StyledObject</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbOutlierAnalysis">
+    <param name="clazz">org.hisp.dhis.visualization.OutlierAnalysis</param>
+  </typedef>
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbTextPattern">
     <param name="clazz">org.hisp.dhis.textpattern.TextPattern</param>
   </typedef>
