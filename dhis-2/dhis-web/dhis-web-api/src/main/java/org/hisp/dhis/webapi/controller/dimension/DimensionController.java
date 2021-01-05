@@ -125,7 +125,6 @@ public class DimensionController
     @Override
     protected List<DimensionalObject> getEntity( String uid, WebOptions options )
     {
-        // This check prevents a NPE. Otherwise it will result in HTTP 500 to the client.
         if ( isNotBlank( uid ) && isValidUid( uid ) )
         {
             return newArrayList( dimensionService.getDimensionalObjectCopy( uid, true ) );
@@ -150,19 +149,15 @@ public class DimensionController
             fields.addAll( Preset.defaultPreset().getFields() );
         }
 
-        // Retrieving all items available for the given uid.
         List<DimensionalItemObject> totalItems = dimensionService.getCanReadDimensionItems( uid );
 
-        // Creating a query based on the previous items found and pagination data/rules.
         Query query = queryService.getQueryFromUrl( DimensionalItemObject.class, filters, orders,
             getPaginationData( options ) );
         query.setObjects( totalItems );
         query.setDefaultOrder();
 
-        // Querying the items based on the query rules built.
         List<DimensionalItemObject> paginatedItems = (List<DimensionalItemObject>) queryService.query( query );
 
-        // Creating the response root node.
         RootNode rootNode = NodeUtils.createMetadata();
 
         CollectionNode collectionNode = rootNode
@@ -175,7 +170,6 @@ public class DimensionController
             ((AbstractNode) node).setName( "item" );
         }
 
-        // Adding pagination elements to the root node.
         final int totalOfItems = isNotEmpty( totalItems ) ? totalItems.size() : 0;
         dimensionItemPageHandler.addPaginationToNodeIfEnabled( rootNode, options, uid, totalOfItems );
 

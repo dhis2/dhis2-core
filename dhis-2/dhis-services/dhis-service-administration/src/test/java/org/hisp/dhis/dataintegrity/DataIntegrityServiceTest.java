@@ -81,7 +81,6 @@ import org.mockito.junit.MockitoRule;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public class DataIntegrityServiceTest
 {
