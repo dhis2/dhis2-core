@@ -283,6 +283,8 @@ public class DefaultSchemaService
             throw new IllegalStateException( "Input class must not be Hibernate proxy class!!!" );
         }
 
+        klass = propertyIntrospectorService.getConcreteClass(  klass );
+
         Schema schema = getSchema( klass );
 
         if ( schema != null )
