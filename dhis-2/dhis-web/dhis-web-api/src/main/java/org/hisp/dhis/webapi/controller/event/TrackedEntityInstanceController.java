@@ -28,7 +28,6 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.TEI_IMPORT;
 
@@ -44,7 +43,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Grid;
@@ -55,7 +53,6 @@ import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.ImportTrackedEntitiesTask;
-import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -74,25 +71,19 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.service.TrackedEntityInstanceSupportService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
@@ -110,6 +101,8 @@ import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 
+import lombok.RequiredArgsConstructor;
+
 /**
  * The following statements are added not to cause api break. They need to be
  * remove say in 2.26 or so once users are aware of the changes.
@@ -123,13 +116,12 @@ import com.google.common.collect.Lists;
 @Controller
 @RequestMapping( value = TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequiredArgsConstructor
 public class TrackedEntityInstanceController
 {
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     private final org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
-
-    private final TrackedEntityTypeService trackedEntityTypeService;
 
     private final ContextUtils contextUtils;
 
@@ -147,46 +139,9 @@ public class TrackedEntityInstanceController
 
     private final SchedulingManager schedulingManager;
 
-    private final ProgramService programService;
+    private final TrackedEntityInstanceSupportService trackedEntityInstanceSupportService;
 
     private final TrackedEntityCriteriaMapper criteriaMapper;
-
-    public TrackedEntityInstanceController( TrackedEntityInstanceService trackedEntityInstanceService,
-        org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService,
-        TrackedEntityTypeService trackedEntityTypeService, ContextUtils contextUtils,
-        FieldFilterService fieldFilterService, ContextService contextService, WebMessageService webMessageService,
-        CurrentUserService currentUserService, FileResourceService fileResourceService,
-        TrackerAccessManager trackerAccessManager, SchedulingManager schedulingManager, ProgramService programService,
-        TrackedEntityCriteriaMapper criteriaMapper )
-    {
-        checkNotNull( trackedEntityInstanceService );
-        checkNotNull( instanceService );
-        checkNotNull( trackedEntityTypeService );
-        checkNotNull( contextUtils );
-        checkNotNull( fieldFilterService );
-        checkNotNull( contextService );
-        checkNotNull( webMessageService );
-        checkNotNull( currentUserService );
-        checkNotNull( fileResourceService );
-        checkNotNull( trackerAccessManager );
-        checkNotNull( schedulingManager );
-        checkNotNull( programService );
-        checkNotNull( criteriaMapper );
-
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.instanceService = instanceService;
-        this.trackedEntityTypeService = trackedEntityTypeService;
-        this.contextUtils = contextUtils;
-        this.fieldFilterService = fieldFilterService;
-        this.contextService = contextService;
-        this.webMessageService = webMessageService;
-        this.currentUserService = currentUserService;
-        this.fileResourceService = fileResourceService;
-        this.trackerAccessManager = trackerAccessManager;
-        this.schedulingManager = schedulingManager;
-        this.programService = programService;
-        this.criteriaMapper = criteriaMapper;
-    }
 
     // -------------------------------------------------------------------------
     // READ
@@ -195,22 +150,12 @@ public class TrackedEntityInstanceController
     @GetMapping( produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_XML, ContextUtils.CONTENT_TYPE_CSV } )
     public @ResponseBody RootNode getTrackedEntityInstances( TrackedEntityInstanceCriteria criteria, HttpServletResponse response )
     {
-        List<TrackedEntityInstance> trackedEntityInstances;
-
-        List<String> fields = getFieldsFromRequest();
+        List<String> fields = contextService.getFieldsFromRequest();
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        if ( criteria.isUseLegacy() ) // FIXME luciano: this has to be removed!
-        {
-            trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
+        List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
                 getTrackedEntityInstanceParams( fields ), false );
-        }
-        else
-        {
-            trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances2( queryParams,
-                getTrackedEntityInstanceParams( fields ), false );
-        }
 
         RootNode rootNode = NodeUtils.createMetadata();
 
@@ -387,13 +332,12 @@ public class TrackedEntityInstanceController
     public @ResponseBody RootNode getTrackedEntityInstanceById(
         @PathVariable( "id" ) String pvId,
         @RequestParam( required = false ) String program )
-        throws WebMessageException,
-        NotFoundException
     {
-        List<String> fields = getFieldsFromRequest();
+        List<String> fields = contextService.getFieldsFromRequest();
 
         CollectionNode collectionNode = fieldFilterService.toCollectionNode( TrackedEntityInstance.class,
-            new FieldFilterParams( Lists.newArrayList( getTrackedEntityInstance( pvId, program, fields ) ), fields ) );
+            new FieldFilterParams( Lists.newArrayList(
+                trackedEntityInstanceSupportService.getTrackedEntityInstance( pvId, program, fields ) ), fields ) );
 
         RootNode rootNode = new RootNode( collectionNode.getChildren().get( 0 ) );
         rootNode.setDefaultNamespace( DxfNamespaces.DXF_2_0 );
@@ -584,72 +528,6 @@ public class TrackedEntityInstanceController
         webMessageService.send( jobConfigurationReport( jobId ), response, request );
     }
 
-    private TrackedEntityInstance getTrackedEntityInstance( String id, String pr, List<String> fields )
-        throws NotFoundException,
-        WebMessageException
-    {
-        TrackedEntityInstanceParams trackedEntityInstanceParams = getTrackedEntityInstanceParams( fields );
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( id,
-            trackedEntityInstanceParams );
-
-        if ( trackedEntityInstance == null )
-        {
-            throw new NotFoundException( "TrackedEntityInstance", id );
-        }
-
-        User user = currentUserService.getCurrentUser();
-
-        if ( pr != null )
-        {
-            Program program = programService.getProgram( pr );
-
-            if ( program == null )
-            {
-                throw new NotFoundException( "Program", pr );
-            }
-
-            List<String> errors = trackerAccessManager.canRead( user,
-                instanceService.getTrackedEntityInstance( trackedEntityInstance.getTrackedEntityInstance() ), program,
-                false );
-
-            if ( !errors.isEmpty() )
-            {
-                if ( program.getAccessLevel() == AccessLevel.CLOSED )
-                {
-                    throw new WebMessageException(
-                        WebMessageUtils.unathorized( TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED ) );
-                }
-                throw new WebMessageException(
-                    WebMessageUtils.unathorized( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED ) );
-            }
-
-            if ( trackedEntityInstanceParams.isIncludeProgramOwners() )
-            {
-                List<ProgramOwner> filteredProgramOwners = trackedEntityInstance.getProgramOwners().stream()
-                    .filter( tei -> tei.getProgram().equals( pr ) ).collect( Collectors.toList() );
-                trackedEntityInstance.setProgramOwners( filteredProgramOwners );
-            }
-        }
-        else
-        {
-            // return only tracked entity type attributes
-
-            TrackedEntityType trackedEntityType = trackedEntityTypeService
-                .getTrackedEntityType( trackedEntityInstance.getTrackedEntityType() );
-
-            if ( trackedEntityType != null )
-            {
-                List<String> tetAttributes = trackedEntityType.getTrackedEntityAttributes().stream()
-                    .map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() );
-
-                trackedEntityInstance.setAttributes( trackedEntityInstance.getAttributes().stream()
-                    .filter( att -> tetAttributes.contains( att.getAttribute() ) ).collect( Collectors.toList() ) );
-            }
-        }
-
-        return trackedEntityInstance;
-    }
-
     private String getResourcePath( HttpServletRequest request, ImportSummary importSummary )
     {
         return ContextUtils.getContextPath( request ) + "/api/" + "trackedEntityInstances" + "/"
@@ -688,16 +566,5 @@ public class TrackedEntityInstanceController
         }
 
         return params;
-    }
-
-    private List<String> getFieldsFromRequest()
-    {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-
-        if ( fields.isEmpty() )
-        {
-            fields.add( ":all" );
-        }
-        return fields;
     }
 }

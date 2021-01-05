@@ -115,7 +115,7 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances2( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false );
 
 
         assertAttributes( trackedEntityInstances.get( 0 ).getAttributes(), "A","B","C","E" );
@@ -132,7 +132,7 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
 
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances2( queryParams, TrackedEntityInstanceParams.TRUE, false );
+            .getTrackedEntityInstances( queryParams, TrackedEntityInstanceParams.TRUE, false );
 
 
         assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 1 ) );
@@ -153,7 +153,7 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances2( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false );
 
         assertAttributes( trackedEntityInstances.get( 0 ).getAttributes(), "A","B","C" );
 
@@ -171,7 +171,7 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances2( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false );
 
         assertAttributes( trackedEntityInstances.get( 0 ).getAttributes(), "A","B","E" );
     }
@@ -188,7 +188,7 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances2( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false );
 
         assertAttributes( trackedEntityInstances.get( 0 ).getAttributes(), "A","B","C" );
     }

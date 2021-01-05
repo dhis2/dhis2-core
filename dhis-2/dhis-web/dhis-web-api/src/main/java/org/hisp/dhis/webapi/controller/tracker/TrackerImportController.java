@@ -28,7 +28,9 @@ package org.hisp.dhis.webapi.controller.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.util.List;
@@ -51,7 +53,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -68,12 +69,10 @@ import lombok.SneakyThrows;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RestController
-@RequestMapping( value = TrackerController.RESOURCE_PATH )
+@RequestMapping( value = RESOURCE_PATH )
 @RequiredArgsConstructor
-public class TrackerController
+public class TrackerImportController
 {
-    public static final String RESOURCE_PATH = "/tracker";
-
     static final String TRACKER_JOB_ADDED = "Tracker job added";
 
     private final TrackerImportService trackerImportService;
@@ -86,7 +85,7 @@ public class TrackerController
 
     private final Notifier notifier;
 
-    @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE )
     // @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
     public void asyncPostJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser )
         throws IOException
@@ -97,7 +96,7 @@ public class TrackerController
 
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
         response.setHeader( "Location", location );
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
 
         renderService.toJson( response.getOutputStream(), new WebMessage()
             .setMessage( TRACKER_JOB_ADDED )
@@ -107,7 +106,7 @@ public class TrackerController
                     .build() ) );
     }
 
-    @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE, params = { "async=false" } )
+    @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, params = { "async=false" } )
     // @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
     public TrackerImportReport syncPostJsonTracker(
         @RequestParam( defaultValue = "full", required = false ) String reportMode,
@@ -157,7 +156,7 @@ public class TrackerController
                 .build();
     }
 
-    @GetMapping( value = "/jobs/{uid}", produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( value = "/jobs/{uid}", produces = APPLICATION_JSON_VALUE )
     public List<Notification> getJob( @PathVariable String uid, HttpServletResponse response )
         throws HttpStatusCodeException
     {
@@ -167,7 +166,7 @@ public class TrackerController
         return notifications;
     }
 
-    @GetMapping( value = "/jobs/{uid}/report", produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( value = "/jobs/{uid}/report", produces = APPLICATION_JSON_VALUE )
     public TrackerImportReport getJobReport( @PathVariable String uid,
         @RequestParam( defaultValue = "errors", required = false ) String reportMode,
         HttpServletResponse response )

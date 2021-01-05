@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker;
  *
  */
 
-import static org.hisp.dhis.webapi.controller.tracker.TrackerController.TRACKER_JOB_ADDED;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportController.TRACKER_JOB_ADDED;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -54,7 +54,6 @@ import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerTimingsStats;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
-import org.hisp.dhis.webapi.controller.tracker.TrackerController;
 import org.hisp.dhis.webapi.service.DefaultContextService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -69,9 +68,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public class TrackerControllerTest
+public class TrackerImportControllerTest
 {
-    private final static String ENDPOINT = TrackerController.RESOURCE_PATH;
+    private final static String ENDPOINT = TrackerControllerSupport.RESOURCE_PATH;
 
     private MockMvc mockMvc;
 
@@ -107,7 +106,7 @@ public class TrackerControllerTest
             mock( SchemaService.class ) );
 
         // Controller under test
-        final TrackerController controller = new TrackerController( trackerImportService, renderService,
+        final TrackerImportController controller = new TrackerImportController( trackerImportService, renderService,
             new DefaultContextService(), trackerMessageManager, notifier );
 
         mockMvc = MockMvcBuilders.standaloneSetup( controller ).build();
