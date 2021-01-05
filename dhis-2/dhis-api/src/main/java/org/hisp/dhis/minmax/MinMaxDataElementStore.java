@@ -38,7 +38,6 @@ import java.util.List;
 
 /**
  * @author Kristian Nordal
- * @version $Id: MinMaxDataElementStore.java 5012 2008-04-24 21:14:40Z larshelg $
  */
 public interface MinMaxDataElementStore
     extends GenericStore<MinMaxDataElement>
@@ -46,8 +45,6 @@ public interface MinMaxDataElementStore
     String ID = MinMaxDataElementStore.class.getName();
 
     MinMaxDataElement get( OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo );
-    
-    List<MinMaxDataElement> get( OrganisationUnit source, DataElement dataElement );  
 
     List<MinMaxDataElement> get( OrganisationUnit source, Collection<DataElement> dataElements );
 
@@ -56,10 +53,10 @@ public interface MinMaxDataElementStore
     int countMinMaxDataElements( MinMaxDataElementQueryParams query );
 
     void delete( OrganisationUnit organisationUnit );
-    
+
     void delete( DataElement dataElement );
-    
+
     void delete( CategoryOptionCombo optionCombo );
-    
+
     void delete( Collection<DataElement> dataElements, OrganisationUnit parent );
 }
