@@ -41,6 +41,7 @@ import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
@@ -202,7 +203,7 @@ public class DefaultFieldFilterService implements FieldFilterService
         }
 
         FieldMap fieldMap = new FieldMap();
-        Schema schema = schemaService.getDynamicSchema( objects.get( 0 ).getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( objects.get( 0 ) ) );
 
         if ( StringUtils.isEmpty( fields ) )
         {
@@ -250,7 +251,8 @@ public class DefaultFieldFilterService implements FieldFilterService
     private boolean shouldExclude( Object object, Defaults defaults )
     {
         return Defaults.EXCLUDE == defaults && object instanceof IdentifiableObject &&
-            Preheat.isDefaultClass( (IdentifiableObject) object ) && "default".equals( ((IdentifiableObject) object).getName() );
+            Preheat.isDefaultObject( (IdentifiableObject) object )
+            && "default".equals( ((IdentifiableObject) object).getName() );
     }
 
     private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, User user, String nodeName, Defaults defaults )
@@ -431,7 +433,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                         if ( property.hasPropertyTransformer() )
                         {
                             // if it has a transformer, re-get the schema (the item klass has probably changed)
-                            Schema sch = schemaService.getDynamicSchema( collectionObject.getClass() );
+                            Schema sch = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( collectionObject ) );
                             node = buildNode( fieldValue, sch.getKlass(), collectionObject, user, property.getName(), defaults );
                         }
                         else
@@ -628,7 +630,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         if ( currentProperty.hasPropertyTransformer() )
         {
-            schema = schemaService.getDynamicSchema( object.getClass() );
+            schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
         }
         else if ( currentProperty.isCollection() )
         {

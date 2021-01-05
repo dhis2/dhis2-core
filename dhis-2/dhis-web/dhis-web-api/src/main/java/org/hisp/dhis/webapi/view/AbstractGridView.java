@@ -32,6 +32,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.PredicateUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
@@ -75,14 +76,14 @@ public abstract class AbstractGridView extends AbstractView
                 }
 
                 Grid grid = new ListGrid();
-                grid.setTitle( identifiableObjects.get( 0 ).getClass().getSimpleName() + "s" );
+                grid.setTitle( HibernateProxyUtils.getRealClass( identifiableObjects.get( 0 ) ).getSimpleName() + "s" );
 
                 boolean nameable = false;
 
                 grid.addHeader( new GridHeader( "UID", false, false ) );
                 grid.addHeader( new GridHeader( "Name", false, false ) );
 
-                if ( NameableObject.class.isAssignableFrom( identifiableObjects.get( 0 ).getClass() ) )
+                if ( NameableObject.class.isAssignableFrom( HibernateProxyUtils.getRealClass( HibernateProxyUtils.getRealClass( object ) ) ) )
                 {
                     grid.addHeader( new GridHeader( "ShortName", false, false ) );
                     nameable = true;
@@ -112,13 +113,13 @@ public abstract class AbstractGridView extends AbstractView
             IdentifiableObject identifiableObject = (IdentifiableObject) object;
 
             Grid grid = new ListGrid();
-            grid.setTitle( identifiableObject.getClass().getSimpleName() );
+            grid.setTitle( HibernateProxyUtils.getRealClass( identifiableObject ).getSimpleName() );
             grid.addEmptyHeaders( 2 );
 
             grid.addRow().addValue( "UID" ).addValue( identifiableObject.getUid() );
             grid.addRow().addValue( "Name" ).addValue( identifiableObject.getName() );
 
-            if ( NameableObject.class.isAssignableFrom( identifiableObject.getClass() ) )
+            if ( NameableObject.class.isAssignableFrom( HibernateProxyUtils.getRealClass( identifiableObject ) ) )
             {
                 grid.addRow().addValue( "ShortName" ).addValue( ((NameableObject) identifiableObject).getShortName() );
                 grid.addRow().addValue( "Description" ).addValue( ((NameableObject) identifiableObject).getDescription() );

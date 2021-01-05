@@ -177,12 +177,6 @@ public abstract class TrackerTest extends IntegrationTestBase
         mockCurrentUserService();
     }
 
-    @Override
-    public void tearDownTest()
-    {
-        dbmsManager.emptyDatabase();
-    }
-
     public TrackedEntityInstance persistTrackedEntityInstance()
     {
         TrackedEntityInstance entityInstance = createTrackedEntityInstance( organisationUnitA );

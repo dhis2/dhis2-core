@@ -33,6 +33,7 @@ import com.google.common.base.Enums;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
@@ -105,7 +106,7 @@ public class DefaultPatchService implements PatchService
             return;
         }
 
-        Schema schema = schemaService.getDynamicSchema( target.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( target ) );
 
         if ( schema == null )
         {
@@ -119,12 +120,12 @@ public class DefaultPatchService implements PatchService
     {
         Patch patch = new Patch();
 
-        if ( source == null || !source.getClass().isInstance( target ) )
+        if ( source == null || !HibernateProxyUtils.getRealClass( source ).isInstance( target ) )
         {
             return patch;
         }
 
-        Schema schema = schemaService.getDynamicSchema( target.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( target ) );
 
         if ( schema == null )
         {

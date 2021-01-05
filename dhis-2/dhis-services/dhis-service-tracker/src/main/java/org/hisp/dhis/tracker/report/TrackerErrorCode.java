@@ -146,6 +146,11 @@ public enum TrackerErrorCode
     E1303( "Mandatory DataElement `{0}` is not present" ),
     E1304( "DataElement `{0}` is not a valid data element" ),
     E1305( "DataElement `{0}` is not part of `{1}` program stage" ),
+    E1306( "Mandatory Attribute `{0}` is not present" ),
+    E1307( "DataElement `{0}` is already present in event `{1}`" ),
+    E1308( "DataElement `{0}` is being replaced in event `{1}`" ),
+    E1309( "Attribute `{0}` is already present in tei `{1}`" ),
+    E1310( "Attribute `{0}` is being replaced in tei `{1}`" ),
 
     E4000( "Relationship: `{0}` cannot link to itself" ),
     E4001( "Relationship Item `{0}` for Relationship `{1}` is invalid: an Item can link only one Tracker entity." ),

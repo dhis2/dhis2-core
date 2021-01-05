@@ -32,7 +32,7 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PagerUtils;
-import org.hisp.dhis.hibernate.HibernateUtils;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -306,9 +306,9 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     @SuppressWarnings( { "unchecked", "rawtypes" } )
     private Object collect( Object object, Property property )
     {
-        object = HibernateUtils.unwrap( object );
+        object = HibernateProxyUtils.unproxy( object );
 
-        if ( Collection.class.isInstance( object ) )
+        if ( object instanceof Collection )
         {
             Collection<?> collection = (Collection<?>) object;
             List<Object> items = new ArrayList<>();
@@ -317,7 +317,7 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
             {
                 Object collect = collect( item, property );
 
-                if ( Collection.class.isInstance( collect ) )
+                if ( collect instanceof Collection )
                 {
                     items.addAll( ((Collection) collect) );
                 }

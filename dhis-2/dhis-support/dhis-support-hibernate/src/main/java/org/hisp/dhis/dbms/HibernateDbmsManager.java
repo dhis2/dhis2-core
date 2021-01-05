@@ -224,6 +224,7 @@ public class HibernateDbmsManager
 
         emptyTable( "lockexception" );
 
+        emptyTable( "sectiongreyedfields" );
         emptyTable( "sectiondataelements" );
         emptyTable( "section" );
 
@@ -391,6 +392,8 @@ public class HibernateDbmsManager
         cacheManager.clearCache();
 
         log.debug( "Cleared Hibernate cache" );
+
+        flushSession();
     }
 
     @Override

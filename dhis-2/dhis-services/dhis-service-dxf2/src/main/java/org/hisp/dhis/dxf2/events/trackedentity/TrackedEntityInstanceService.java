@@ -56,9 +56,6 @@ public interface TrackedEntityInstanceService
 
     List<TrackedEntityInstance> getTrackedEntityInstancesXml( InputStream inputStream ) throws IOException;
 
-    List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams,
-        TrackedEntityInstanceParams params, boolean skipAccessValidation );
-
     /**
      * Fetches a List of {@see TrackedEntityInstance} based on the specified
      * parameters. This methods beh
@@ -72,7 +69,7 @@ public interface TrackedEntityInstanceService
      *
      * @return a List of {@see TrackedEntityInstance}
      */
-    List<TrackedEntityInstance> getTrackedEntityInstances2( TrackedEntityInstanceQueryParams queryParams,
+    List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams,
         TrackedEntityInstanceParams params, boolean skipAccessValidation );
 
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );

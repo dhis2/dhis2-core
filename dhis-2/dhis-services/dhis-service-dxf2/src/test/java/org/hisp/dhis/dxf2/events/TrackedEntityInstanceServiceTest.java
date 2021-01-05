@@ -32,7 +32,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.TransactionalIntegrationTestBase;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -91,7 +92,7 @@ import static org.junit.Assert.assertTrue;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class TrackedEntityInstanceServiceTest
-    extends TransactionalIntegrationTestBase
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
