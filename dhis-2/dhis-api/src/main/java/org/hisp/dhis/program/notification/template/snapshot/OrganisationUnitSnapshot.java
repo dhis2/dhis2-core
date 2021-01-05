@@ -32,8 +32,10 @@ package org.hisp.dhis.program.notification.template.snapshot;
 import java.util.Set;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=true)
 public class OrganisationUnitSnapshot extends IdentifiableObjectSnapshot
 {
     private String name;

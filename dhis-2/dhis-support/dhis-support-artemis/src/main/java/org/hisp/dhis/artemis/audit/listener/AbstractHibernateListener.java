@@ -266,7 +266,7 @@ public abstract class AbstractHibernateListener
             {
                 List<String> uids = IdentifiableObjectUtils.getUids( collection );
 
-                if ( uids != null || !uids.isEmpty() )
+                if ( uids != null && !uids.isEmpty() )
                 {
                     objectMap.put( property.getFieldName(), uids );
                 }

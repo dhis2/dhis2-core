@@ -379,7 +379,6 @@ public class DefaultInterpretationService
     {
         boolean modified = false;
         IdentifiableObject interpretationObject = interpretation.getObject();
-        Set<org.hisp.dhis.user.UserAccess> interpretationUserAccesses = interpretationObject.getUserAccesses();
 
         for ( User user : users )
         {

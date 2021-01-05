@@ -30,8 +30,10 @@
 package org.hisp.dhis.program.notification.template.snapshot;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=true)
 public class UserCredentialsSnapshot extends IdentifiableObjectSnapshot
 {
     private String username;

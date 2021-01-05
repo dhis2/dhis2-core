@@ -59,7 +59,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 
 import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
@@ -275,9 +274,6 @@ public class DataValueSetExportAccessControlTest
 
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
 
-        List<DataValue> alldvs = dataValueService.getAllDataValues();
-
-        List<CategoryOptionCombo> cocs = idObjectManager.getAll( CategoryOptionCombo.class );
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
 
