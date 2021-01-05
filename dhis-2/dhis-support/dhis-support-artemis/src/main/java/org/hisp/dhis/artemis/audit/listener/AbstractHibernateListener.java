@@ -241,11 +241,11 @@ public abstract class AbstractHibernateListener
 
         List<Map<String,Object>> listProperties = new ArrayList<>();
 
-        Map<String, Property> properties = schema.getPersistedProperties();
+        List<Property> properties = schema.getProperties();
         Collection collection = (Collection) value;
         collection.forEach( item -> {
             Map<String, Object> propertyMap = new HashMap<>();
-            properties.forEach( (pName, prop ) -> putValueToMap( prop, propertyMap, ReflectionUtils.invokeGetterMethod( pName, item ) ) );
+            properties.forEach(  prop  -> putValueToMap( prop, propertyMap, ReflectionUtils.invokeGetterMethod( prop.getFieldName(), item ) ) );
             listProperties.add( propertyMap );
         }  );
 
@@ -291,7 +291,7 @@ public abstract class AbstractHibernateListener
         catch ( Exception ex )
         {
             // Ignore if couldn't find property reference object, maybe it was deleted.
-            log.debug( "Couldn't get property: " + pName + " from " + entityProxy, DebugUtils.getStackTrace( ex ) );
+            log.debug( "Couldn't value of property: " + pName , DebugUtils.getStackTrace( ex ) );
         }
 
         return null;

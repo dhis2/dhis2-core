@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.db.migration.config;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,41 +26,39 @@ package org.hisp.dhis.tracker.validation;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
-import java.util.List;
-
-import org.hisp.dhis.tracker.preheat.supplier.ClassBasedSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.FileResourceSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.PeriodTypeSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.PreheatSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.ProgramInstanceByTeiSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.ProgramInstanceSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.ProgramInstancesWithAtLeastOneEventSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.ProgramStageInstanceProgramStageMapSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.UniqueAttributesSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.UserSupplier;
-
-import com.google.common.collect.ImmutableList;
-
-import lombok.experimental.UtilityClass;
+import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.FlywayException;
+import org.flywaydb.core.api.configuration.Configuration;
+import org.flywaydb.core.api.output.MigrateResult;
 
 /**
- * Configuration class for the pre-heat stage. This class holds the list of
- * pre-heat suppliers executed during import
+ * Customised Flyway to optionally run repair before migrate based on a flag.
+ * 
+ * @author Ameen Mohamed
+ *
  */
-@UtilityClass
-public class TrackerImportPreheatConfig
+public class DhisFlyway
+    extends
+    Flyway
 {
-    public static final List<Class<? extends PreheatSupplier>> PREHEAT_ORDER = ImmutableList.of(
-        ClassBasedSupplier.class,
-        ProgramInstanceSupplier.class,
-        ProgramInstanceByTeiSupplier.class,
-        ProgramInstancesWithAtLeastOneEventSupplier.class,
-        ProgramStageInstanceProgramStageMapSupplier.class,
-        PeriodTypeSupplier.class,
-        UniqueAttributesSupplier.class,
-        UserSupplier.class,
-        FileResourceSupplier.class );
+    private boolean repairBeforeMigrate = false;
+
+    public DhisFlyway( Configuration configuration, boolean repairBeforeMigrate )
+    {
+        super( configuration );
+        this.repairBeforeMigrate = repairBeforeMigrate;
+    }
+
+    @Override
+    public MigrateResult migrate()
+        throws FlywayException
+    {
+        if ( repairBeforeMigrate )
+        {
+            super.repair();
+        }
+        return super.migrate();
+    }
 }

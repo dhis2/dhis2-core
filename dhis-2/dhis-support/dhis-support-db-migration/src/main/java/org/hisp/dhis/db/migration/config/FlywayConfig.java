@@ -41,6 +41,7 @@ import org.springframework.context.annotation.Profile;
 import javax.sql.DataSource;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.FLYWAY_OUT_OF_ORDER_MIGRATION;
+import static org.hisp.dhis.external.conf.ConfigurationKey.FLYWAY_REPAIR_BEFORE_MIGRATION;
 
 /**
  * @author Luciano Fiandesio
@@ -68,7 +69,8 @@ public class FlywayConfig
         classicConfiguration.setLocations( new Location( FLYWAY_MIGRATION_FOLDER ) );
         classicConfiguration.setMixed( true );
 
-        return new Flyway( classicConfiguration );
+        return new DhisFlyway( classicConfiguration,
+            Boolean.parseBoolean( configurationProvider.getProperty( FLYWAY_REPAIR_BEFORE_MIGRATION ) ) );
 
     }
 
