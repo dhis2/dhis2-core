@@ -28,6 +28,9 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Calendar;
@@ -44,6 +47,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -56,6 +61,8 @@ import org.hisp.dhis.user.User;
  */
 public class SmsUtils
 {
+    private static final Log log = LogFactory.getLog( SmsUtils.class );
+
     private static final int MAX_CHAR = 160;
 
     private static final String COMMAND_PATTERN = "([A-Za-z])\\w+";
@@ -84,9 +91,31 @@ public class SmsUtils
 
     public static boolean isBase64( IncomingSms sms )
     {
+        return isBase64( sms.getText() );
+    }
+
+    public static String encode( String value )
+    {
+        if ( !StringUtils.isBlank( value ) )
+        {
+            try
+            {
+                return URLEncoder.encode( value, StandardCharsets.UTF_8.toString() );
+            }
+            catch( UnsupportedEncodingException e )
+            {
+                log.error( "SMS text encoding failed: ", e );
+            }
+        }
+
+        return value;
+    }
+
+    public static boolean isBase64( String sms )
+    {
         try
         {
-            Base64.getDecoder().decode( sms.getText() );
+            Base64.getDecoder().decode( sms );
             return true;
         }
         catch ( IllegalArgumentException e )
