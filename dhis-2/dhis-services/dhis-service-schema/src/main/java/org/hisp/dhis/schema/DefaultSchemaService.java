@@ -41,7 +41,6 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.schema.descriptors.*;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.system.util.AnnotationUtils;
-import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
