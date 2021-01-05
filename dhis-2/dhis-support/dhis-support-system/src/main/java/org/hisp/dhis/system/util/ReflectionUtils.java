@@ -29,6 +29,7 @@ package org.hisp.dhis.system.util;
  */
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.schema.Property;
@@ -56,8 +57,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ReflectionUtils
 {
-    public static final List<String> SHARING_PROPS = Arrays.asList(
-            "publicAccess", "externalAccess", "userGroupAccesses", "userAccesses", "sharing" );
+    public static final List<String> SHARING_PROPS = ImmutableList.of(
+        "publicAccess", "externalAccess", "userGroupAccesses", "userAccesses", "sharing" );
 
     /**
      * Invokes method getId() for this object and returns the return value. An
@@ -253,7 +254,7 @@ public class ReflectionUtils
 
     public static Method findGetterMethod( String fieldName, Class<?> clazz )
     {
-        String[] getterNames = new String[]{
+        final String[] getterNames = new String[]{
             "get",
             "is",
             "has"
@@ -293,12 +294,12 @@ public class ReflectionUtils
 
     public static Method findSetterMethod( String fieldName, Object target )
     {
-        if ( target == null || StringUtils.isEmpty( fieldName ) )
+        if ( target == null || !StringUtils.hasLength( fieldName ) )
         {
             return null;
         }
 
-        String[] setterNames = new String[]{
+        final String[] setterNames = new String[]{
             "set"
         };
 
@@ -354,8 +355,7 @@ public class ReflectionUtils
 
             for ( Field field : fields )
             {
-                // && (type == null || type.equals( field.getType() ))
-                if ( (name == null || name.equals( field.getName() )) )
+                if ( ( name == null || name.equals( field.getName() ) ) )
                 {
                     return field;
                 }

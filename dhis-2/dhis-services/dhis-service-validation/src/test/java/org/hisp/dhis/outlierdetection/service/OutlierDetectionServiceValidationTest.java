@@ -62,7 +62,7 @@ public class OutlierDetectionServiceValidationTest
     private IdentifiableObjectManager idObjectManager;
 
     @Mock
-    private OutlierDetectionManager outlierDetectionManager;
+    private ZScoreOutlierDetectionManager outlierDetectionManager;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();

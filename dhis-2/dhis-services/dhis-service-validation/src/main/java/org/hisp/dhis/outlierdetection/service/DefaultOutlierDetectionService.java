@@ -65,13 +65,13 @@ public class DefaultOutlierDetectionService
 
     private final IdentifiableObjectManager idObjectManager;
 
-    private final OutlierDetectionManager outlierDetectionManager;
+    private final ZScoreOutlierDetectionManager zScoreOutlierDetectionManager;
 
     public DefaultOutlierDetectionService( IdentifiableObjectManager idObjectManager,
-        OutlierDetectionManager outlierDetectionManager )
+        ZScoreOutlierDetectionManager zScoreOutlierDetectionManager )
     {
         this.idObjectManager = idObjectManager;
-        this.outlierDetectionManager = outlierDetectionManager;
+        this.zScoreOutlierDetectionManager = zScoreOutlierDetectionManager;
     }
 
     @Override
@@ -153,6 +153,11 @@ public class DefaultOutlierDetectionService
             .withStartEndDate( query.getStartDate(), query.getEndDate() )
             .withOrgUnits( orgUnits );
 
+        if ( query.getAlgorithm() != null )
+        {
+            request.withAlgorithm( query.getAlgorithm() );
+        }
+
         if ( query.getThreshold() != null )
         {
             request.withThreshold( query.getThreshold() );
@@ -178,7 +183,7 @@ public class DefaultOutlierDetectionService
         validate( request );
 
         final OutlierDetectionResponse response = new OutlierDetectionResponse();
-        response.setOutlierValues( outlierDetectionManager.getZScoreOutlierValues( request ) );
+        response.setOutlierValues( zScoreOutlierDetectionManager.getOutlierValues( request ) );
         response.setMetadata( getMetadata( request, response.getOutlierValues() ) );
         return response;
     }
@@ -201,7 +206,7 @@ public class DefaultOutlierDetectionService
     {
         final OutlierDetectionMetadata metadata = new OutlierDetectionMetadata();
         metadata.setCount( outlierValues.size() );
-        metadata.setOutlierAlgorithm( request.getOutlierAlgorithm() );
+        metadata.setAlgorithm( request.getAlgorithm() );
         metadata.setThreshold( request.getThreshold() );
         metadata.setOrderBy( request.getOrderBy() );
         metadata.setMaxResults( request.getMaxResults() );

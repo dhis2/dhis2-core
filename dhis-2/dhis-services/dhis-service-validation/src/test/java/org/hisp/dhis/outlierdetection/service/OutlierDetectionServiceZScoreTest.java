@@ -46,6 +46,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
@@ -63,7 +64,7 @@ import com.google.common.math.StatsAccumulator;
 /**
  * @author Lars Helge Overland
  */
-public class OutlierDetectionServiceTest
+public class OutlierDetectionServiceZScoreTest
     extends IntegrationTestBase
 {
     @Autowired
@@ -145,6 +146,7 @@ public class OutlierDetectionServiceTest
         query.setStartDate( getDate( 2020, 1, 1 ) );
         query.setEndDate( getDate( 2020, 6, 1 ) );
         query.setOu( Lists.newArrayList( "ouabcdefghA", "ouabcdefghB" ) );
+        query.setAlgorithm( OutlierDetectionAlgorithm.Z_SCORE );
         query.setThreshold( 2.5 );
         query.setMaxResults( 100 );
 
@@ -182,6 +184,7 @@ public class OutlierDetectionServiceTest
             .withDataElements( Lists.newArrayList( deA, deB ) )
             .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) )
             .withOrgUnits( Lists.newArrayList( ouA ) )
+            .withAlgorithm( OutlierDetectionAlgorithm.Z_SCORE )
             .withThreshold( 2.0 ).build();
 
         OutlierDetectionResponse response = subject.getOutlierValues( request );
@@ -214,6 +217,7 @@ public class OutlierDetectionServiceTest
             .withDataElements( Lists.newArrayList( deA, deB ) )
             .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) )
             .withOrgUnits( Lists.newArrayList( ouA ) )
+            .withAlgorithm( OutlierDetectionAlgorithm.Z_SCORE )
             .withThreshold( 2.0 ).build();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -267,6 +271,7 @@ public class OutlierDetectionServiceTest
             .withDataElements( Lists.newArrayList( deA, deB ) )
             .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) )
             .withOrgUnits( Lists.newArrayList( ouA ) )
+            .withAlgorithm( OutlierDetectionAlgorithm.Z_SCORE )
             .withThreshold( threshold ).build();
 
         OutlierDetectionResponse response = subject.getOutlierValues( request );

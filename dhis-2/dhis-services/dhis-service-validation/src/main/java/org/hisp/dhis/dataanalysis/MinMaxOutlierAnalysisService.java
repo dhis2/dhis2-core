@@ -110,8 +110,6 @@ public class MinMaxOutlierAnalysisService
     {
         log.info( "Starting min-max value generation, no of data elements: " + dataElements.size() + ", parent: " + parent.getUid() );
 
-        //Set<Integer> orgUnitIds = new HashSet<>( IdentifiableObjectUtils.getIdentifiers( organisationUnits ) );
-
         Date from = new DateTime( 1, 1, 1, 1, 1 ).toDate();
 
         minMaxDataElementService.removeMinMaxDataElements( dataElements, parent );
