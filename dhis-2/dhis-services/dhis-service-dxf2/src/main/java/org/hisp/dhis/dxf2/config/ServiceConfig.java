@@ -258,6 +258,7 @@ public class ServiceConfig
     public Map<ImportStrategy, List<Class<? extends Processor>>> eventInsertPostProcessorMap()
     {
         return ImmutableMap.of( CREATE, newArrayList(
+            PublishEventPostProcessor.class,
             ProgramNotificationPostProcessor.class,
             EventInsertAuditPostProcessor.class ) );
     }

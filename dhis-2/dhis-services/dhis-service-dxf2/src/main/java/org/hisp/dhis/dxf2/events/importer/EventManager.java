@@ -59,6 +59,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -151,8 +152,9 @@ public class EventManager
 
             // Post processing only the events that passed validation and were persisted
             // correctly.
-            processingManager.getPostInsertProcessorFactory().process( workContext, events.stream()
-                .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
+            List<Event> savedEvents = events.stream().filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
+
+            processingManager.getPostInsertProcessorFactory().process( workContext, savedEvents );
 
             incrementSummaryTotals( events, importSummaries, CREATE );
 
@@ -216,8 +218,10 @@ public class EventManager
 
             // Post processing only the events that passed validation and were persisted
             // correctly.
-            processingManager.getPostUpdateProcessorFactory().process( workContext, events.stream()
-                .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
+
+            List<Event> savedEvents = events.stream().filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
+
+            processingManager.getPostUpdateProcessorFactory().process( workContext, savedEvents );
 
             incrementSummaryTotals( events, importSummaries, UPDATE );
 
