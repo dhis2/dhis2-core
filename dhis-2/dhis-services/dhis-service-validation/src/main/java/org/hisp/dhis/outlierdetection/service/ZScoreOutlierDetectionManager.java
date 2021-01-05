@@ -73,7 +73,7 @@ public class ZScoreOutlierDetectionManager
      */
     public List<OutlierValue> getOutlierValues( OutlierDetectionRequest request )
     {
-        String ouPathClause = getOrgUnitPathClause( request );
+        final String ouPathClause = getOrgUnitPathClause( request.getOrgUnits() );
 
         final String sql =
             // Outer select
