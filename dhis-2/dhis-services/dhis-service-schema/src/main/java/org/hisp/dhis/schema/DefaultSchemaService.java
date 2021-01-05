@@ -41,6 +41,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.schema.descriptors.*;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.system.util.AnnotationUtils;
+import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -289,6 +290,9 @@ public class DefaultSchemaService
         {
             return schema;
         }
+
+        // Lookup the implementation class of core interfaces, if the input klass is a core interface
+        klass = propertyIntrospectorService.getConcreteClass( klass );
 
         String name = getName( klass );
 
