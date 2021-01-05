@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.api.client.util.Maps;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -74,7 +75,7 @@ public class TrackerPreheatServiceTest extends TrackerTest
     public void testCollectIdentifiersSimple()
     {
         TrackerImportParams params = new TrackerImportParams();
-        Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params );
+        Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params, Maps.newHashMap() );
         assertEquals( collectedMap.keySet().size(), 2 );
         assertTrue( collectedMap.containsKey( TrackedEntityType.class ) );
         assertTrue( collectedMap.containsKey( RelationshipType.class ) );
@@ -90,7 +91,7 @@ public class TrackerPreheatServiceTest extends TrackerTest
         assertTrue( params.getEnrollments().isEmpty() );
         assertFalse( params.getEvents().isEmpty() );
 
-        Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params );
+        Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params, Maps.newHashMap() );
 
         assertTrue( collectedMap.containsKey( DataElement.class ) );
         assertTrue( collectedMap.containsKey( Program.class ) );
@@ -147,7 +148,7 @@ public class TrackerPreheatServiceTest extends TrackerTest
         assertTrue( params.getEnrollments().isEmpty() );
         assertTrue( params.getEvents().isEmpty() );
 
-        Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params );
+        Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params, Maps.newHashMap() );
 
         assertTrue( collectedMap.containsKey( TrackedEntity.class ) );
         Set<String> trackedEntities = collectedMap.get( TrackedEntity.class );

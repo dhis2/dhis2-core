@@ -38,6 +38,7 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -69,7 +70,8 @@ public class TrackerIdentifierCollector
 {
     public final static String ID_WILDCARD = "*";
 
-    public static Map<Class<?>, Set<String>> collect( TrackerImportParams params )
+    public static Map<Class<?>, Set<String>> collect( TrackerImportParams params,
+        Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults )
     {
         Map<Class<?>, Set<String>> map = new HashMap<>();
 
@@ -80,8 +82,17 @@ public class TrackerIdentifierCollector
         // Using "*" signals that all the entities of the given type have to be preloaded in the Preheat
         map.put( TrackedEntityType.class, ImmutableSet.of( ID_WILDCARD ) );
         map.put( RelationshipType.class, ImmutableSet.of( ID_WILDCARD ) );
+        collectDefaults( map, params.getIdentifiers(), defaults );
 
         return map;
+    }
+
+    private static void collectDefaults( Map<Class<?>, Set<String>> map,
+        TrackerIdentifierParams params,
+        Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults )
+    {
+        defaults.forEach( ( defaultClass, defaultMetadata ) ->
+            addIdentifier( map, defaultClass, params.getIdScheme().getIdScheme(), defaultMetadata.getUid() ) );
     }
 
     private static void collectTrackedEntities(

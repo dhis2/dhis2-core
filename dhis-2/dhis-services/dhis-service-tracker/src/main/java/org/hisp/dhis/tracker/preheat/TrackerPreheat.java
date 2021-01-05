@@ -224,11 +224,23 @@ public class TrackerPreheat
     }
 
     /**
+     * Get a default value from the Preheat
+     *
+     * @param defaultClass The type of object to retrieve
+     * @return The default object of the class provided
+     */
+    public <T extends IdentifiableObject> T getDefault( Class<T> defaultClass )
+    {
+        String uid = this.defaults.get( defaultClass ).getUid();
+        return this.get( defaultClass, uid );
+    }
+
+    /**
      * Fetch a metadata object from the pre-heat, based on the type of the object
      * and the cached identifier.
      *
      * @param klass The metadata class to fetch
-     * @param key The key used during the pre-heat creation
+     * @param key   The key used during the pre-heat creation
      * @return A metadata object or null
      */
     @SuppressWarnings( "unchecked" )
