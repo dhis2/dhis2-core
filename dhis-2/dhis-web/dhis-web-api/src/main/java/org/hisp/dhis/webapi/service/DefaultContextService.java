@@ -131,9 +131,15 @@ public class DefaultContextService implements ContextService
 
     private List<String> getRequestParameterValues( String paramName )
     {
-        return Arrays.stream( getRequest().getParameterValues( paramName ) )
-                .distinct()
-                .collect(Collectors.toList());
+        String[] parameterValues = getRequest().getParameterValues(paramName);
+
+        if ( parameterValues != null ) {
+            return Arrays.stream(parameterValues)
+                    .distinct()
+                    .collect(Collectors.toList());
+        }
+
+        return Collections.emptyList();
     }
 
     @Override
