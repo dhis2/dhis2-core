@@ -272,10 +272,10 @@ public class DataValue
 
         return
             dataElement.equals( other.getDataElement() ) &&
-                period.equals( other.getPeriod() ) &&
-                source.equals( other.getSource() ) &&
-                categoryOptionCombo.equals( other.getCategoryOptionCombo() ) &&
-                attributeOptionCombo.equals( other.getAttributeOptionCombo() );
+            period.equals( other.getPeriod() ) &&
+            source.equals( other.getSource() ) &&
+            categoryOptionCombo.equals( other.getCategoryOptionCombo() ) &&
+            attributeOptionCombo.equals( other.getAttributeOptionCombo() );
     }
 
     @Override
