@@ -263,7 +263,8 @@ public class DefaultProgramInstanceService
         params.setProgramStartDate( programStartDate );
         params.setProgramEndDate( programEndDate );
         params.setTrackedEntityType( te );
-        params.setTrackedEntityInstanceUid(Optional.ofNullable(tei).map(BaseIdentifiableObject::getUid).orElse(null));
+        params.setTrackedEntityInstanceUid(
+            Optional.ofNullable( tei ).map( BaseIdentifiableObject::getUid ).orElse( null ) );
         params.setOrganisationUnitMode( ouMode );
         params.setPage( page );
         params.setPageSize( pageSize );

@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -89,5 +88,5 @@ public interface ContextService
      */
     List<String> getFieldsFromRequestOrAll();
 
-    List<String> getFieldsFromRequestOrElse(String s);
+    List<String> getFieldsFromRequestOrElse( String s );
 }
