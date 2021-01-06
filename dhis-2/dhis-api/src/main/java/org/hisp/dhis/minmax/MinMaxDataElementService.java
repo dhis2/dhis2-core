@@ -49,20 +49,18 @@ public interface MinMaxDataElementService
     MinMaxDataElement getMinMaxDataElement( long id );
 
     MinMaxDataElement getMinMaxDataElement( OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo );
-    
-    List<MinMaxDataElement> getMinMaxDataElements( OrganisationUnit source, DataElement dataElement );
 
     List<MinMaxDataElement> getMinMaxDataElements( OrganisationUnit source, Collection<DataElement> dataElements );
-    
+
     List<MinMaxDataElement> getMinMaxDataElements( MinMaxDataElementQueryParams query );
 
     int countMinMaxDataElements( MinMaxDataElementQueryParams query );
 
     void removeMinMaxDataElements( OrganisationUnit organisationUnit );
-    
+
     void removeMinMaxDataElements( DataElement dataElement );
-    
+
     void removeMinMaxDataElements( CategoryOptionCombo optionCombo );
-    
+
     void removeMinMaxDataElements( Collection<DataElement> dataElements, OrganisationUnit parent );
 }

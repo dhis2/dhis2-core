@@ -1,3 +1,5 @@
+package org.hisp.dhis.tracker.programrule;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,14 +28,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.programrule;
-
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-
 /**
- * @author Enrico Colasante
+ * The type of an issue.
+ *
+ * @Author Enrico Colasante
  */
-public interface RuleActionApplier extends RuleActionImplementer
+public enum IssueType
 {
-    TrackerBundle executeActions( TrackerBundle bundle );
+    WARNING,
+    ERROR;
 }

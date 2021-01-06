@@ -33,7 +33,11 @@ import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.dxf2.events.importer.mapper.ProgramStageInstanceMapper;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
+
+import java.util.Optional;
 
 /**
  * @author maikel arabori
@@ -42,7 +46,6 @@ public class PublishEventPostProcessor
     implements
     Processor
 {
-
     @Override
     public void process( final Event event, final WorkContext ctx )
     {
@@ -67,8 +70,15 @@ public class PublishEventPostProcessor
 
         if ( !ctx.getImportOptions().isSkipNotifications() && isLinkedWithRuleVariable )
         {
+            ProgramStageInstance programStageInstance = getProgramStageInstance( ctx, event );
             ctx.getServiceDelegator().getApplicationEventPublisher().publishEvent(
-                new DataValueUpdatedEvent( this, ctx.getProgramStageInstanceMap().get( event.getEvent() ).getId() ) );
+                new DataValueUpdatedEvent( this, programStageInstance.getUid() ) );
         }
+    }
+
+    private ProgramStageInstance getProgramStageInstance( WorkContext ctx, Event event )
+    {
+        return Optional.ofNullable( ctx.getProgramStageInstanceMap().get( event.getUid() ) )
+            .orElseGet( () -> new ProgramStageInstanceMapper( ctx ).map( event ) );
     }
 }

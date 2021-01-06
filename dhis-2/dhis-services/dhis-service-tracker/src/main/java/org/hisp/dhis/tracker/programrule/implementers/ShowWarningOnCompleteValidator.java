@@ -26,25 +26,29 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.programrule;
+package org.hisp.dhis.tracker.programrule.implementers;
 
-import org.hisp.dhis.rules.models.RuleActionErrorOnCompletion;
+import org.hisp.dhis.rules.models.RuleActionMessage;
+import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion;
+import org.hisp.dhis.tracker.programrule.IssueType;
 import org.springframework.stereotype.Component;
 
+import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
+
 /**
- * This implementer show errors on a completed enrollment  or event calculated by Rule
+ * This implementer show warnings on a completed enrollment or event calculated by Rule
  * Engine.
  *
  * @Author Enrico Colasante
  */
 @Component
-public class ShowErrorOnCompleteValidator
-    extends ErrorWarningImplementer
+public class ShowWarningOnCompleteValidator
+    extends ErrorWarningImplementer<RuleActionWarningOnCompletion>
 {
     @Override
-    public Class<RuleActionErrorOnCompletion> getActionClass()
+    public Class<RuleActionWarningOnCompletion> getActionClass()
     {
-        return RuleActionErrorOnCompletion.class;
+        return RuleActionWarningOnCompletion.class;
     }
 
     @Override
@@ -54,9 +58,8 @@ public class ShowErrorOnCompleteValidator
     }
 
     @Override
-    public boolean isWarning()
+    public IssueType getIssueType()
     {
-        return false;
+        return WARNING;
     }
-
 }

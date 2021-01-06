@@ -30,9 +30,13 @@ package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
-import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.*;
+import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
@@ -152,13 +156,14 @@ public abstract class AbstractJdbcEventAnalyticsManager
         return sql;
     }
 
-    private String getSortColumns(EventQueryParams params , SortOrder order) {
-
+    private String getSortColumns( EventQueryParams params, SortOrder order )
+    {
         String sql = "";
 
         for ( DimensionalItemObject item : order.equals( SortOrder.ASC ) ? params.getAsc() : params.getDesc() )
         {
-            if ( DimensionItemType.PROGRAM_INDICATOR.equals( item.getDimensionItemType() ) )
+            if ( DimensionItemType.PROGRAM_INDICATOR.equals( item.getDimensionItemType() )
+                || DimensionItemType.DATA_ELEMENT.equals( item.getDimensionItemType() ) )
             {
                 sql += quote( item.getUid() );
             }

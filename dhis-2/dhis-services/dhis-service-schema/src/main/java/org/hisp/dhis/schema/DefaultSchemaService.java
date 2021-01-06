@@ -65,7 +65,9 @@ import static java.util.stream.Collectors.toSet;
 public class DefaultSchemaService
     implements SchemaService
 {
-    private ImmutableList<SchemaDescriptor> descriptors = new ImmutableList.Builder<SchemaDescriptor>().
+    private static final String PROPERTY_SELF = "__self__";
+
+    private static final ImmutableList<SchemaDescriptor> DESCRIPTORS = new ImmutableList.Builder<SchemaDescriptor>().
         add( new MetadataVersionSchemaDescriptor() ).
         add( new AnalyticsTableHookSchemaDescriptor() ).
         add( new AttributeSchemaDescriptor() ).
@@ -177,17 +179,17 @@ public class DefaultSchemaService
         add( new VisualizationSchemaDescriptor() ).
         build();
 
-    private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
+    private final Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
 
-    private Map<String, Schema> singularSchemaMap = new HashMap<>();
+    private final Map<String, Schema> singularSchemaMap = new HashMap<>();
 
-    private Map<String, Schema> pluralSchemaMap = new HashMap<>();
+    private final Map<String, Schema> pluralSchemaMap = new HashMap<>();
 
-    private Map<Class<?>, Schema> dynamicClassSchemaMap = new HashMap<>();
+    private final Map<Class<?>, Schema> dynamicClassSchemaMap = new HashMap<>();
 
-    private PropertyIntrospectorService propertyIntrospectorService;
+    private final PropertyIntrospectorService propertyIntrospectorService;
 
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
 
     @Autowired
     public DefaultSchemaService( PropertyIntrospectorService propertyIntrospectorService,
@@ -203,7 +205,7 @@ public class DefaultSchemaService
     @EventListener
     public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
     {
-        for ( SchemaDescriptor descriptor : descriptors )
+        for ( SchemaDescriptor descriptor : DESCRIPTORS )
         {
             Schema schema = descriptor.getSchema();
 
@@ -290,6 +292,9 @@ public class DefaultSchemaService
             return schema;
         }
 
+        // Lookup the implementation class of core interfaces, if the input klass is a core interface
+        klass = propertyIntrospectorService.getConcreteClass( klass );
+
         String name = getName( klass );
 
         schema = new Schema( klass, name, name + "s" );
@@ -367,14 +372,13 @@ public class DefaultSchemaService
 
     private void updateSelf( Schema schema )
     {
-        if ( schema.haveProperty( "__self__" ) )
+        if ( schema.haveProperty( PROPERTY_SELF ) )
         {
-            Property property = schema.getProperty( "__self__" );
+            Property property = schema.getProperty( PROPERTY_SELF );
             schema.setName( property.getName() );
             schema.setCollectionName( schema.getPlural() );
             schema.setNamespace( property.getNamespace() );
-
-            schema.getPropertyMap().remove( "__self__" );
+            schema.getPropertyMap().remove( PROPERTY_SELF );
         }
     }
 

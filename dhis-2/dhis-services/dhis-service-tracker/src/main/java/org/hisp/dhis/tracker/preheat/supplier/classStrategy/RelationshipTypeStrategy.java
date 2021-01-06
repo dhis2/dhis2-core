@@ -1,3 +1,5 @@
+package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,33 +28,25 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.programrule;
-
-import java.util.List;
-import java.util.Map;
-
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
+import org.hisp.dhis.tracker.preheat.mappers.RelationshipTypeMapper;
+import org.hisp.dhis.tracker.preheat.mappers.TrackedEntityTypeMapper;
+import org.springframework.stereotype.Component;
 
 /**
- * @Author Enrico Colasante
+ * @author Luciano Fiandesio
  */
-public interface RuleActionValidator extends RuleActionImplementer
+@Component
+@StrategyFor( value = RelationshipType.class, mapper = RelationshipTypeMapper.class, cache = true, ttl = 10 )
+public class RelationshipTypeStrategy extends AbstractSchemaStrategy
 {
-    /**
-     * Get the validation for enrollment evaluated by rule engine
-     *
-     * @param bundle
-     * @return A map of enrollment and list of errors
-     */
-    Map<String, List<String>> validateEnrollments( TrackerBundle bundle );
-
-    /**
-     * Get the validation for event evaluated by rule engine
-     *
-     * @param bundle
-     * @return A map of events and list of errors
-     */
-    Map<String, List<String>> validateEvents( TrackerBundle bundle );
-
-    boolean isWarning();
+    public RelationshipTypeStrategy( SchemaService schemaService, QueryService queryService,
+        IdentifiableObjectManager manager, PreheatCacheService cacheService )
+    {
+        super( schemaService, queryService, manager, cacheService );
+    }
 }

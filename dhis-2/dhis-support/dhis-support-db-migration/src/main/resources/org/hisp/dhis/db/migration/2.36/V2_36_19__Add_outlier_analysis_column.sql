@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,35 +27,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.programrule;
+-- This script is responsible for creating a new JSONB column in the Visualization table.
+-- See Feature DHIS2-10079.
 
-import org.hisp.dhis.rules.models.RuleActionShowError;
-import org.springframework.stereotype.Component;
+-- What it does?
+-- 1) creates a new JSONB column("outlieranalysis") into Visualization table;
 
-/**
- * This implementer show errors calculated by Rule Engine.
- *
- * @Author Enrico Colasante
- */
-@Component
-public class ShowErrorValidator
-    extends ErrorWarningImplementer
-{
-    @Override
-    public Class<RuleActionShowError> getActionClass()
-    {
-        return RuleActionShowError.class;
-    }
 
-    @Override
-    public boolean isOnComplete()
-    {
-        return false;
-    }
-
-    @Override
-    public boolean isWarning()
-    {
-        return false;
-    }
-}
+-- Step 1) creates the JSONB column("outlieranalysis") into Visualization table;
+alter table if exists visualization add column if not exists outlieranalysis jsonb;
