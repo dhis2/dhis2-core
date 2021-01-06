@@ -140,7 +140,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         {
             if ( isLoadAllEntities( ids ) )
             {
-                return cacheAndReturnLookupData( schema );
+                return map( cacheAndReturnLookupData( schema ), mapper );
             }   
             else
             {
@@ -236,7 +236,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         List<IdentifiableObject> objects;
         if ( cache.hasKey( buildCacheKey( schema ) ) )
         {
-            objects = new ArrayList<>( cache.getAll( schema.getKlass().getName() ) );
+            objects = new ArrayList<>( cache.getAll( buildCacheKey( schema ) ) );
 
         }
         else

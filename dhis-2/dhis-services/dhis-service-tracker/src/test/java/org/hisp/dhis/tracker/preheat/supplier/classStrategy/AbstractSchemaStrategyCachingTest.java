@@ -43,6 +43,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 
+import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIConversion;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -61,12 +62,18 @@ import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.preheat.mappers.CopyMapper;
 import org.hisp.dhis.tracker.preheat.mappers.ProgramMapper;
 import org.hisp.dhis.tracker.preheat.mappers.RelationshipTypeMapper;
+import org.hisp.dhis.tracker.preheat.mappers.RelationshipTypeMapperImpl;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Luciano Fiandesio
@@ -113,7 +120,7 @@ public class AbstractSchemaStrategyCachingTest
 
         // When
         strategy.queryForIdentifiableObjects( preheat, schema, TrackerIdentifier.UID,
-            singletonList( singletonList( ID_WILDCARD ) ), RelationshipTypeMapper.INSTANCE.getClass() );
+            singletonList( singletonList( ID_WILDCARD ) ), RelationshipTypeMapper.class );
 
         // Then
         assertThat( preheat.getAll( RelationshipType.class ), hasSize( 5 ) );
