@@ -906,27 +906,15 @@
         <version>${spring-data-redis.version}</version>
       </dependency>
 
-      <!-- Jasypt -->
+      <!-- Servlet -->
       <dependency>
-        <groupId>org.jasypt</groupId>
-        <artifactId>jasypt</artifactId>
-        <version>1.9.3</version>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+        <version>${javax.servlet-api.version}</version>
+        <scope>provided</scope>
       </dependency>
 
-      <!-- Image Processing -->
-      <dependency>
-        <groupId>org.imgscalr</groupId>
-        <artifactId>imgscalr-lib</artifactId>
-        <version>4.2</version>
-      </dependency>
-
-      <dependency>
-        <groupId>net.ttddyy</groupId>
-        <artifactId>datasource-proxy</artifactId>
-        <version>1.7</version>
-      </dependency>
-
-      <!-- Javassist from hibernate-core -->
+      <!-- Struts -->
       <dependency>
         <groupId>org.apache.struts</groupId>
         <artifactId>struts2-core</artifactId>
@@ -946,7 +934,7 @@
       <dependency>
         <groupId>org.apache.velocity</groupId>
         <artifactId>velocity</artifactId>
-        <version>1.7</version>
+        <version>${velocity.version}</version>
         <exclusions>
           <exclusion>
             <groupId>commons-lang</groupId>
@@ -961,7 +949,7 @@
       <dependency>
         <groupId>org.apache.velocity</groupId>
         <artifactId>velocity-tools</artifactId>
-        <version>2.0</version>
+        <version>${velocity-tools.version}</version>
         <exclusions>
           <exclusion>
             <groupId>dom4j</groupId>
@@ -997,16 +985,22 @@
           </exclusion>
         </exclusions>
       </dependency>
+
+      <!-- Jasypt -->
       <dependency>
-        <groupId>org.apache.poi</groupId>
-        <artifactId>poi</artifactId>
-        <version>4.1.1</version>
+        <groupId>org.jasypt</groupId>
+        <artifactId>jasypt</artifactId>
+        <version>1.9.3</version>
       </dependency>
+
+      <!-- Image Processing -->
       <dependency>
-        <groupId>org.apache.poi</groupId>
-        <artifactId>poi-ooxml</artifactId>
-        <version>4.1.1</version>
+        <groupId>org.imgscalr</groupId>
+        <artifactId>imgscalr-lib</artifactId>
+        <version>4.2</version>
       </dependency>
+
+      <!-- Hisp Quick-->
       <dependency>
         <groupId>org.hisp</groupId>
         <artifactId>quick</artifactId>
@@ -1018,6 +1012,8 @@
           </exclusion>
         </exclusions>
       </dependency>
+
+      <!-- Hisp Staxwax-->
       <dependency>
         <groupId>org.hisp</groupId>
         <artifactId>staxwax</artifactId>
@@ -1060,6 +1056,7 @@
           </exclusion>
         </exclusions>
       </dependency>
+
       <dependency>
         <groupId>org.scijava</groupId>
         <artifactId>jep</artifactId>
@@ -1760,10 +1757,11 @@
         <type>pom</type>
       </dependency>
 
+      <!-- AMQP -->
       <dependency>
-          <groupId>org.apache.activemq</groupId>
-          <artifactId>activemq-artemis-native</artifactId>
-        <version>1.0.2</version>
+        <groupId>org.apache.activemq</groupId>
+        <artifactId>activemq-artemis-native</artifactId>
+        <version>${activemq-artemis-native.version}</version>
         <exclusions>
           <exclusion>
             <groupId>org.jboss.logmanager</groupId>
@@ -1771,7 +1769,6 @@
           </exclusion>
         </exclusions>
       </dependency>
-      <!-- AMQP -->
       <dependency>
         <groupId>org.apache.activemq</groupId>
         <artifactId>artemis-server</artifactId>
@@ -2139,13 +2136,36 @@
     <lettuce.version>5.2.0.RELEASE</lettuce.version>
     <spring-data-redis.version>2.3.2.RELEASE</spring-data-redis.version>
     <spring-session-data-redis.version>2.3.0.RELEASE</spring-session-data-redis.version>
-    <struts.version>2.5.26</struts.version>
+    <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
+    <spring-hateoas.version>1.0.1.RELEASE</spring-hateoas.version>
+    <spring-retry.version>1.2.4.RELEASE</spring-retry.version>
+    <spring-restdocs-mockmvc.version>2.0.4.RELEASE</spring-restdocs-mockmvc.version>
+    <cache2k-api.version>1.6.0.Final</cache2k-api.version>
+    <lettuce.version>5.2.0.RELEASE</lettuce.version>
+
+    <!--DBMS -->
+    <flyway-core.version>7.0.4</flyway-core.version>
     <hibernate.version>5.4.27.Final</hibernate.version>
-    <hibernate-validator.version>5.0.3.Final</hibernate-validator.version>
-    <jclouds.version>2.2.0</jclouds.version>
-    <antlr.version>4.7.2</antlr.version>
-    <!-- unit test dependencies-->
-    <powermock.version>2.0.4</powermock.version>
+    <!-- Keep in sync with Hibernate! -->
+    <byte-buddy.version>1.10.18</byte-buddy.version>
+    <!-- Keep in sync with Hibernate! -->
+    <javassist.version>3.27.0-GA</javassist.version>
+    <!-- Data sources,db pools and db drivers-->
+    <c3p0.version>0.9.5.5</c3p0.version>
+    <HikariCP.version>3.4.5</HikariCP.version>
+    <postgresql-driver.version>42.2.5</postgresql-driver.version>
+    <postgis-jdbc.version>2.5.0</postgis-jdbc.version>
+    <datasource-proxy.version>1.7</datasource-proxy.version>
+
+    <!-- Servlet-->
+    <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
+
+    <!-- Struts -->
+    <struts.version>2.5.26</struts.version>
+    <velocity.version>1.7</velocity.version>
+    <velocity-tools.version>2.0</velocity-tools.version>
+
+    <!-- Jackson -->
     <jackson.version>2.11.2</jackson.version>
     <log4j.version>2.13.0</log4j.version>
     <slf4j.version>1.7.30</slf4j.version>
