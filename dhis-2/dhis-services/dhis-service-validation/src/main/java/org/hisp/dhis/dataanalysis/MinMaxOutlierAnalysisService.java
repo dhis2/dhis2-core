@@ -150,7 +150,7 @@ public class MinMaxOutlierAnalysisService
                     CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
                     categoryOptionCombo.setId( measures.getCategoryOptionComboId() );
 
-                    batchHandler.addObject( new MinMaxDataElement( orgUnit, dataElement, categoryOptionCombo, min, max, true ) );
+                    batchHandler.addObject( new MinMaxDataElement( dataElement, orgUnit, categoryOptionCombo, min, max, true ) );
                 }
             }
         }
