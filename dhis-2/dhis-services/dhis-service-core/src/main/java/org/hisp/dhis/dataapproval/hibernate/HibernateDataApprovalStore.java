@@ -28,16 +28,7 @@ package org.hisp.dhis.dataapproval.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.dataapproval.DataApprovalState.*;
-
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
-import javax.persistence.criteria.CriteriaBuilder;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
@@ -48,12 +39,19 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.dataapproval.*;
+import org.hisp.dhis.dataapproval.DataApproval;
+import org.hisp.dhis.dataapproval.DataApprovalLevel;
+import org.hisp.dhis.dataapproval.DataApprovalState;
+import org.hisp.dhis.dataapproval.DataApprovalStatus;
+import org.hisp.dhis.dataapproval.DataApprovalStore;
+import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -65,7 +63,24 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
-import lombok.extern.slf4j.Slf4j;
+import javax.annotation.PostConstruct;
+import javax.persistence.criteria.CriteriaBuilder;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.dataapproval.DataApprovalState.ACCEPTED_HERE;
+import static org.hisp.dhis.dataapproval.DataApprovalState.APPROVED_ABOVE;
+import static org.hisp.dhis.dataapproval.DataApprovalState.APPROVED_HERE;
+import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVABLE;
+import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_ABOVE;
+import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_READY;
+import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_WAITING;
 
 /**
  * @author Jim Grace
@@ -80,6 +95,7 @@ public class HibernateDataApprovalStore
 
     private static final String SQL_CONCAT = "-";
     private static final String SQL_CAT = StatementBuilder.QUOTE + SQL_CONCAT + StatementBuilder.QUOTE;
+
 
     private Cache<Boolean> IS_APPROVED_CACHE;
 
@@ -264,6 +280,11 @@ public class HibernateDataApprovalStore
         // ---------------------------------------------------------------------
 
         final User user = currentUserService.getCurrentUser();
+        final String strArrayUserGroups = CollectionUtils.isEmpty( user.getGroups() ) ? null : "{" + String.join( ",", user.getGroups().stream().map( group -> group.getUid() ).collect(
+            Collectors.toList()) ) + "}";
+        final String co_sharing_check_query = strArrayUserGroups != null ?  " " + JsonbFunctions.HAS_USER_GROUP_IDS +" co.sharing, "+ strArrayUserGroups +") = false" +
+            JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( co.sharing, {"+ strArrayUserGroups +"}, '"+ AclService.LIKE_READ_METADATA+"')" : "";
+
 
         List<DataApprovalLevel> approvalLevels = workflow.getSortedLevels();
 
@@ -541,11 +562,8 @@ public class HibernateDataApprovalStore
                         ") " +
                     ") " +
                     ( isSuperUser ? "" : // Filter out COs the user doesn't have permission to see.
-                    "or ( co.publicaccess is not null and left(co.publicaccess, 1) != 'r' and co.userid is not null and co.userid != " + user.getId() + " and not exists ( " +
-                        "select 1 from dataelementcategoryoptionusergroupaccesses couga " +
-                        "left join usergroupaccess uga on uga.usergroupaccessid = couga.usergroupaccessid " +
-                        "left join usergroupmembers ugm on ugm.usergroupid = uga.usergroupid " +
-                        "where couga.categoryoptionid = cocco.categoryoptionid and ugm.userid = " + user.getId() + ") ) " ) +
+                    "or ( co.sharing->>'publicaccess' is not null and left(co.sharing->>'publicaccess', 1) != 'r' and co.sharing->>'owner' is not null and co.sharing->>'owner' != '" + user.getUid() + "' " +
+                        co_sharing_check_query   + " ) ") +
                 ") " +
             ") " +
             ( attributeCombo == null ? "" : "and coc.categoryoptioncomboid in (select c9.categoryoptioncomboid from categorycombos_optioncombos c9 where c9.categorycomboid = " + attributeCombo.getId() + " ) " ) +
