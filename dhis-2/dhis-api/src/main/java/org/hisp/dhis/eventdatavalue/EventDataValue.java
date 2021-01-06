@@ -36,6 +36,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
 /**
  * @author David Katuscak
@@ -52,7 +53,11 @@ public class EventDataValue implements Serializable
 
     private Date created = new Date();
 
+    private UserInfoSnapshot createdByUserInfo;
+
     private Date lastUpdated = new Date();
+
+    private UserInfoSnapshot lastUpdatedByUserInfo;
 
     private String value;
 
@@ -85,10 +90,12 @@ public class EventDataValue implements Serializable
         setValue( value );
     }
 
-    public EventDataValue( String dataElement, String value, String storedBy )
+    public EventDataValue( String dataElement, String value, UserInfoSnapshot userInfo )
     {
         this.dataElement = dataElement;
-        this.storedBy = storedBy;
+        this.storedBy = userInfo.getUsername();
+        this.createdByUserInfo = userInfo;
+        this.lastUpdatedByUserInfo = userInfo;
         setValue( value );
     }
 
@@ -165,10 +172,30 @@ public class EventDataValue implements Serializable
         this.created = created;
     }
 
+    public UserInfoSnapshot getCreatedByUserInfo()
+    {
+        return createdByUserInfo;
+    }
+
+    public void setCreatedByUserInfo( UserInfoSnapshot createdByUserInfo )
+    {
+        this.createdByUserInfo = createdByUserInfo;
+    }
+
     @JsonProperty
     public Date getLastUpdated()
     {
         return lastUpdated;
+    }
+
+    public UserInfoSnapshot getLastUpdatedByUserInfo()
+    {
+        return lastUpdatedByUserInfo;
+    }
+
+    public void setLastUpdatedByUserInfo( UserInfoSnapshot lastUpdatedByUserInfo )
+    {
+        this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
     }
 
     public void setLastUpdated( Date lastUpdated )

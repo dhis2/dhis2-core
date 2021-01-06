@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -91,7 +92,11 @@ public class Event
 
     private String created;
 
+    private UserInfoSnapshot createdByUserInfo;
+
     private String lastUpdated;
+
+    private UserInfoSnapshot lastUpdatedByUserInfo;
 
     private String createdAtClient;
 
@@ -345,6 +350,18 @@ public class Event
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public UserInfoSnapshot getCreatedByUserInfo()
+    {
+        return createdByUserInfo;
+    }
+
+    public void setCreatedByUserInfo( UserInfoSnapshot createdByUserInfo )
+    {
+        this.createdByUserInfo = createdByUserInfo;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getLastUpdated()
     {
         return lastUpdated;
@@ -353,6 +370,18 @@ public class Event
     public void setLastUpdated( String lastUpdated )
     {
         this.lastUpdated = lastUpdated;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public UserInfoSnapshot getLastUpdatedByUserInfo()
+    {
+        return lastUpdatedByUserInfo;
+    }
+
+    public void setLastUpdatedByUserInfo( UserInfoSnapshot lastUpdatedByUserInfo )
+    {
+        this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
     }
 
     @JsonProperty( required = true )

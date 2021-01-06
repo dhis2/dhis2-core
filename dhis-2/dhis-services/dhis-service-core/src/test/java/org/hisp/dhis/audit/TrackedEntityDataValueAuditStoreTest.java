@@ -131,7 +131,7 @@ public class TrackedEntityDataValueAuditStoreTest
         stageInstance = programStageInstanceService.createProgramStageInstance( programInstance,
             stageA, new Date(), new Date(), organisationUnit );
 
-        dataValueA = new EventDataValue( dataElementA.getUid(), "1", "test-user" );
+        dataValueA = new EventDataValue( dataElementA.getUid(), "1", UserInfoTestHelper.testUserInfo("test-user") );
     }
 
     @Test
