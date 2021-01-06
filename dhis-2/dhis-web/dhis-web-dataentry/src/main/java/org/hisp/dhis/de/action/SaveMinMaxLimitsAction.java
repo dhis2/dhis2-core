@@ -149,8 +149,8 @@ public class SaveMinMaxLimitsAction
 
         if ( minMaxDataElement == null )
         {
-            minMaxDataElement = new MinMaxDataElement( organisationUnit, dataElement, optionCombo, minLimit, maxLimit,
-                false );
+            minMaxDataElement = new MinMaxDataElement( dataElement, organisationUnit, optionCombo,
+                minLimit, maxLimit, false );
 
             minMaxDataElementService.addMinMaxDataElement( minMaxDataElement );
         }
