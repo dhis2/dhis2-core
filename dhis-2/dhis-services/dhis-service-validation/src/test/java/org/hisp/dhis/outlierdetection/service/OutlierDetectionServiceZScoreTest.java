@@ -285,13 +285,13 @@ public class OutlierDetectionServiceZScoreTest
         assertEquals( ouA.getUid(), outlier.getOu() );
         assertEquals( m04.getIsoDate(), outlier.getPe() );
 
-        assertEquals( outlier.getValue(), outlierValue, DELTA );
-        assertEquals( outlier.getMean(), mean, DELTA );
-        assertEquals( outlier.getStdDev(), stdDev, DELTA );
-        assertEquals( outlier.getZScore(), zScore, DELTA );
-        assertEquals( outlier.getMeanAbsDev(), meanAbsDev, DELTA );
-        assertEquals( outlier.getLowerBound(), lowerBound, DELTA );
-        assertEquals( outlier.getUpperBound(), upperBound, DELTA );
+        assertEquals( outlierValue, outlier.getValue(), DELTA );
+        assertEquals( mean, outlier.getMean(), DELTA );
+        assertEquals( stdDev, outlier.getStdDev(), DELTA );
+        assertEquals( zScore, outlier.getZScore(), DELTA );
+        assertEquals( meanAbsDev, outlier.getAbsDev(), DELTA );
+        assertEquals( lowerBound, outlier.getLowerBound(), DELTA );
+        assertEquals( upperBound, outlier.getUpperBound(), DELTA );
     }
 
     private void addDataValues( DataValue... dataValues )

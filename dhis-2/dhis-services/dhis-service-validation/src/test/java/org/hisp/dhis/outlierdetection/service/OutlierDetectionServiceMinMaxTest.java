@@ -49,6 +49,7 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.hisp.dhis.outlierdetection.OutlierDetectionService;
+import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -146,7 +147,6 @@ public class OutlierDetectionServiceMinMaxTest
         query.setEndDate( getDate( 2020, 6, 1 ) );
         query.setOu( Lists.newArrayList( "ouabcdefghA", "ouabcdefghB" ) );
         query.setAlgorithm( OutlierDetectionAlgorithm.MIN_MAX );
-        query.setThreshold( 3.0 );
         query.setMaxResults( 200 );
 
         OutlierDetectionRequest request = subject.getFromQuery( query );
@@ -156,41 +156,78 @@ public class OutlierDetectionServiceMinMaxTest
         assertEquals( getDate( 2020, 1, 1 ), request.getStartDate() );
         assertEquals( getDate( 2020, 6, 1 ), request.getEndDate() );
         assertEquals( OutlierDetectionAlgorithm.MIN_MAX, request.getAlgorithm() );
-        assertEquals( 3.0, request.getThreshold(), DELTA );
         assertEquals( 200, request.getMaxResults() );
     }
 
     @Test
     public void testGetOutlierValues()
     {
+        addMinMaxValues(
+            new MinMaxDataElement( deA, ouA, coc, 40, 60 ),
+            new MinMaxDataElement( deB, ouA, coc, 45, 65 ) );
+
+        // 34, 39, 68, 91, 42, 45, 68, 87 are outlier values outside the min-max range
+
         addDataValues(
             new DataValue( deA, m01, ouA, coc, coc, "50" ), new DataValue( deA, m07, ouA, coc, coc, "51" ),
-            new DataValue( deA, m02, ouA, coc, coc, "53" ), new DataValue( deA, m08, ouA, coc, coc, "59" ),
-            new DataValue( deA, m03, ouA, coc, coc, "58" ), new DataValue( deA, m09, ouA, coc, coc, "55" ),
-            new DataValue( deA, m04, ouA, coc, coc, "55" ), new DataValue( deA, m10, ouA, coc, coc, "52" ),
+            new DataValue( deA, m02, ouA, coc, coc, "34" ), new DataValue( deA, m08, ouA, coc, coc, "59" ),
+            new DataValue( deA, m03, ouA, coc, coc, "58" ), new DataValue( deA, m09, ouA, coc, coc, "39" ),
+            new DataValue( deA, m04, ouA, coc, coc, "68" ), new DataValue( deA, m10, ouA, coc, coc, "52" ),
             new DataValue( deA, m05, ouA, coc, coc, "51" ), new DataValue( deA, m11, ouA, coc, coc, "58" ),
-            new DataValue( deA, m06, ouA, coc, coc, "12" ), new DataValue( deA, m12, ouA, coc, coc, "91" ),
+            new DataValue( deA, m06, ouA, coc, coc, "40" ), new DataValue( deA, m12, ouA, coc, coc, "91" ),
 
-            new DataValue( deB, m01, ouA, coc, coc, "41" ), new DataValue( deB, m02, ouA, coc, coc, "48" ),
+            new DataValue( deB, m01, ouA, coc, coc, "42" ), new DataValue( deB, m02, ouA, coc, coc, "48" ),
             new DataValue( deB, m03, ouA, coc, coc, "45" ), new DataValue( deB, m04, ouA, coc, coc, "46" ),
-            new DataValue( deB, m05, ouA, coc, coc, "49" ), new DataValue( deB, m06, ouA, coc, coc, "41" ),
-            new DataValue( deB, m07, ouA, coc, coc, "41" ), new DataValue( deB, m08, ouA, coc, coc, "49" ),
-            new DataValue( deB, m09, ouA, coc, coc, "42" ), new DataValue( deB, m10, ouA, coc, coc, "47" ),
+            new DataValue( deB, m05, ouA, coc, coc, "49" ), new DataValue( deB, m06, ouA, coc, coc, "68" ),
+            new DataValue( deB, m07, ouA, coc, coc, "48" ), new DataValue( deB, m08, ouA, coc, coc, "49" ),
+            new DataValue( deB, m09, ouA, coc, coc, "52" ), new DataValue( deB, m10, ouA, coc, coc, "47" ),
             new DataValue( deB, m11, ouA, coc, coc, "11" ), new DataValue( deB, m12, ouA, coc, coc, "87" ) );
 
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withDataElements( Lists.newArrayList( deA, deB ) )
             .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) )
             .withOrgUnits( Lists.newArrayList( ouA ) )
-            .withAlgorithm( OutlierDetectionAlgorithm.MIN_MAX )
-            .withThreshold( 2.0 ).build();
+            .withAlgorithm( OutlierDetectionAlgorithm.MIN_MAX ).build();
 
         OutlierDetectionResponse response = subject.getOutlierValues( request );
 
-        // assertEquals( 4, response.getOutlierValues().size() );
+        assertEquals( 8, response.getOutlierValues().size() );
     }
 
-    private void addMinMaxValues( MinMaxDataElement minMaxValues )
+    @Test
+    public void testGetOutlierValue()
+    {
+        addMinMaxValues(
+            new MinMaxDataElement( deA, ouA, coc, 40, 60 ),
+            new MinMaxDataElement( deB, ouA, coc, 45, 65 ) );
+
+        addDataValues(
+            new DataValue( deA, m01, ouA, coc, coc, "32" ), new DataValue( deA, m07, ouA, coc, coc, "42" ),
+            new DataValue( deB, m03, ouA, coc, coc, "45" ), new DataValue( deB, m04, ouA, coc, coc, "62" ) );
+
+        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
+            .withDataElements( Lists.newArrayList( deA, deB ) )
+            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) )
+            .withOrgUnits( Lists.newArrayList( ouA ) )
+            .withAlgorithm( OutlierDetectionAlgorithm.MIN_MAX ).build();
+
+        OutlierDetectionResponse response = subject.getOutlierValues( request );
+
+        assertEquals( 1, response.getOutlierValues().size() );
+
+        OutlierValue outlier = response.getOutlierValues().get( 0 );
+
+        assertEquals( deA.getUid(), outlier.getDe() );
+        assertEquals( ouA.getUid(), outlier.getOu() );
+        assertEquals( m01.getIsoDate(), outlier.getPe() );
+
+        assertEquals( 32, outlier.getValue().intValue() );
+        assertEquals( 40, outlier.getLowerBound().intValue() );
+        assertEquals( 60, outlier.getUpperBound().intValue() );
+        assertEquals( 8, outlier.getAbsDev().intValue() );
+    }
+
+    private void addMinMaxValues( MinMaxDataElement... minMaxValues )
     {
         Stream.of( minMaxValues ).forEach( mv -> minMaxService.addMinMaxDataElement( mv ) );
     }

@@ -41,7 +41,7 @@ import lombok.Data;
 @Data
 @JsonPropertyOrder({"de", "deName", "pe", "ou", "ouName",
     "coc", "cocName", "aoc", "lastUpdated", "value", "mean",
-    "stdDev", "meanAbsDev", "zScore", "lowerBound", "upperBound"})
+    "stdDev", "absDev", "zScore", "lowerBound", "upperBound"})
 public class OutlierValue
 {
     @JsonProperty
@@ -84,7 +84,7 @@ public class OutlierValue
     private Double stdDev;
 
     @JsonProperty
-    private Double meanAbsDev;
+    private Double absDev;
 
     @JsonProperty
     private Double zScore;

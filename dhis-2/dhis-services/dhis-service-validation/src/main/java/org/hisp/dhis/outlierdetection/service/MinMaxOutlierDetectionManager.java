@@ -80,7 +80,7 @@ public class MinMaxOutlierDetectionManager
                 "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, " +
                 "pe.startdate as pe_start_date, pt.name as pt_name, " +
                 "dv.value::double precision, " +
-                "least(abs(dv.value::double precision - mm.minimumvalue), abs(dv.value::double precision - mm.maximumvalue)) as bound_dev, " +
+                "least(abs(dv.value::double precision - mm.minimumvalue), abs(dv.value::double precision - mm.maximumvalue)) as bound_abs_dev, " +
                 "mm.minimumvalue as lower_bound, " +
                 "mm.maximumvalue as upper_bound " +
             "from datavalue dv " +
@@ -147,7 +147,7 @@ public class MinMaxOutlierDetectionManager
             outlier.setAoc( rs.getString( "aoc_uid" ) );
             outlier.setAocName( rs.getString( "aoc_name" ) );
             outlier.setValue( rs.getDouble( "value" ) );
-            outlier.setMean( rs.getDouble( "bound_dev" ) );
+            outlier.setAbsDev( rs.getDouble( "bound_abs_dev" ) );
             outlier.setLowerBound( rs.getDouble( "lower_bound" ) );
             outlier.setUpperBound( rs.getDouble( "upper_bound" ) );
 

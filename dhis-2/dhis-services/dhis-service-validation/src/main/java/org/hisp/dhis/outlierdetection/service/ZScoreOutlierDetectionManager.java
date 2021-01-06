@@ -181,7 +181,7 @@ public class ZScoreOutlierDetectionManager
             outlier.setValue( rs.getDouble( "value" ) );
             outlier.setMean( rs.getDouble( "mean" ) );
             outlier.setStdDev( rs.getDouble( "std_dev" ) );
-            outlier.setMeanAbsDev( rs.getDouble( "mean_abs_dev" ) );
+            outlier.setAbsDev( rs.getDouble( "mean_abs_dev" ) );
             outlier.setZScore( rs.getDouble( "z_score" ) );
             outlier.setLowerBound( rs.getDouble( "lower_bound" ) );
             outlier.setUpperBound( rs.getDouble( "upper_bound" ) );
