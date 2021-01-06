@@ -77,7 +77,7 @@ public class ZScoreOutlierDetectionManager
 
         final String sql =
             // Outer select
-            "select dvs.de_uid, dvs.periodid, dvs.ou_uid, dvs.coc_uid, dvs.aoc_uid, " +
+            "select dvs.de_uid, dvs.ou_uid, dvs.coc_uid, dvs.aoc_uid, " +
                 "dvs.de_name, dvs.ou_name, dvs.coc_name, dvs.aoc_name, dvs.value, " +
                 "dvs.pe_start_date, dvs.pt_name, " +
                 "stats.mean as mean, " +
@@ -189,5 +189,5 @@ public class ZScoreOutlierDetectionManager
             return outlier;
         };
     }
-
 }
+
