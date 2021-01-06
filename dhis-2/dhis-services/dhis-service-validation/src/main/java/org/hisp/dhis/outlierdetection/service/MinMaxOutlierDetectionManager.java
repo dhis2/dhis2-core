@@ -98,7 +98,7 @@ public class MinMaxOutlierDetectionManager
             "and " + ouPathClause + " " +
             "and dv.deleted is false " +
             "and (dv.value::double precision < mm.minimumvalue or dv.value::double precision > mm.maximumvalue) " +
-            "order by bound_dev desc " +
+            "order by bound_abs_dev desc " +
             "limit :max_results;";
 
         final SqlParameterSource params = new MapSqlParameterSource()
