@@ -90,7 +90,7 @@ public class MinMaxOutlierDetectionManager
             "inner join period pe on dv.periodid = pe.periodid " +
             "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
             "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
-            "left join minmaxdataelement mm on (dv.dataelementid = mm.dataelementid " +
+            "inner join minmaxdataelement mm on (dv.dataelementid = mm.dataelementid " +
                 "and dv.sourceid = mm.sourceid and dv.categoryoptioncomboid = mm.categoryoptioncomboid) " +
             "where dv.dataelementid in (:data_element_ids) " +
             "and pe.startdate >= :start_date " +
