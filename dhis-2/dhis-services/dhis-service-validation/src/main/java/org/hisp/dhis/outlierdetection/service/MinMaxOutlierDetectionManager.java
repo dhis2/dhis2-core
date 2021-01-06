@@ -76,7 +76,6 @@ public class MinMaxOutlierDetectionManager
         final String ouPathClause = getOrgUnitPathClause( request.getOrgUnits() );
 
         final String sql =
-            // Main select
             "select de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, " +
                 "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, " +
                 "pe.startdate as pe_start_date, pt.name as pt_name, " +
