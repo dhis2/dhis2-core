@@ -179,7 +179,7 @@ public class MinMaxOutlierAnalysisServiceTest
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
 
-        minMaxDataElement = new MinMaxDataElement( organisationUnitA, dataElementA, categoryOptionCombo, -40, 40, false );
+        minMaxDataElement = new MinMaxDataElement( dataElementA, organisationUnitA, categoryOptionCombo, -40, 40, false );
         minMaxDataElementService.addMinMaxDataElement( minMaxDataElement );
 
         List<Period> periods = new ArrayList<>();

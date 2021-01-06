@@ -52,7 +52,7 @@ public class MinMaxDataElementStoreTest
 {
     @Autowired
     private DataElementService dataElementService;
-    
+
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
@@ -82,18 +82,18 @@ public class MinMaxDataElementStoreTest
         dataElementService.addDataElement( dataElement4 );
 
         CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
-        
-        MinMaxDataElement minMaxDataElement1 = new MinMaxDataElement( source1, dataElement1, optionCombo, 0, 100, false );
-        MinMaxDataElement minMaxDataElement2 = new MinMaxDataElement( source2, dataElement2, optionCombo, 0, 100, false );
-        MinMaxDataElement minMaxDataElement3 = new MinMaxDataElement( source2, dataElement3, optionCombo, 0, 100, false );
-        MinMaxDataElement minMaxDataElement4 = new MinMaxDataElement( source2, dataElement4, optionCombo, 0, 100, false );
+
+        MinMaxDataElement minMaxDataElement1 = new MinMaxDataElement( dataElement1, source1, optionCombo, 0, 100, false );
+        MinMaxDataElement minMaxDataElement2 = new MinMaxDataElement( dataElement2, source2, optionCombo, 0, 100, false );
+        MinMaxDataElement minMaxDataElement3 = new MinMaxDataElement( dataElement3, source2, optionCombo, 0, 100, false );
+        MinMaxDataElement minMaxDataElement4 = new MinMaxDataElement( dataElement4, source2, optionCombo, 0, 100, false );
 
         minMaxDataElementStore.save( minMaxDataElement1 );
         long mmdeid1 = minMaxDataElement1.getId();
         minMaxDataElementStore.save( minMaxDataElement2 );
         minMaxDataElementStore.save( minMaxDataElement3 );
         minMaxDataElementStore.save( minMaxDataElement4 );
-        
+
         // ----------------------------------------------------------------------
         // Assertions
         // ----------------------------------------------------------------------
@@ -142,10 +142,10 @@ public class MinMaxDataElementStoreTest
 
         CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
 
-        MinMaxDataElement minMaxDataElement1 = new MinMaxDataElement( source1, dataElement1, optionCombo, 0, 100, false );
-        MinMaxDataElement minMaxDataElement2 = new MinMaxDataElement( source2, dataElement2, optionCombo, 0, 100, false );
-        MinMaxDataElement minMaxDataElement3 = new MinMaxDataElement( source2, dataElement3, optionCombo, 0, 100, false );
-        MinMaxDataElement minMaxDataElement4 = new MinMaxDataElement( source2, dataElement4, optionCombo, 0, 100, false );
+        MinMaxDataElement minMaxDataElement1 = new MinMaxDataElement( dataElement1, source1, optionCombo, 0, 100, false );
+        MinMaxDataElement minMaxDataElement2 = new MinMaxDataElement( dataElement2, source2, optionCombo, 0, 100, false );
+        MinMaxDataElement minMaxDataElement3 = new MinMaxDataElement( dataElement3, source2, optionCombo, 0, 100, false );
+        MinMaxDataElement minMaxDataElement4 = new MinMaxDataElement( dataElement4, source2, optionCombo, 0, 100, false );
 
         minMaxDataElementStore.save( minMaxDataElement1 );
         minMaxDataElementStore.save( minMaxDataElement2 );
