@@ -1,3 +1,5 @@
+package org.hisp.dhis.webapi.service;
+
 /*
  *  Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -26,8 +28,6 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-
-package org.hisp.dhis.webapi.service;
 
 import java.util.List;
 import java.util.stream.Collectors;

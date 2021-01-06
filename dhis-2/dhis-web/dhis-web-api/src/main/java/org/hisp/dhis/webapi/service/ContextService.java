@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -77,7 +76,7 @@ public interface ContextService
      * @param name Parameter to get
      * @return List of parameter values, or empty if not found
      */
-    Set<String> getParameterValues( String name );
+    List<String> getParameterValues( String name );
 
     /**
      * Get all parameters as a map of key => values, supports more than one pr key (so values is a collection)
@@ -87,6 +86,7 @@ public interface ContextService
     /**
      * Get a list of fields from request
      */
-    List<String> getFieldsFromRequest();
+    List<String> getFieldsFromRequestOrAll();
 
+    List<String> getFieldsFromRequestOrElse( String s );
 }

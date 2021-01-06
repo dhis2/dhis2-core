@@ -35,8 +35,10 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -261,7 +263,8 @@ public class DefaultProgramInstanceService
         params.setProgramStartDate( programStartDate );
         params.setProgramEndDate( programEndDate );
         params.setTrackedEntityType( te );
-        params.setTrackedEntityInstanceUid( tei.getUid() );
+        params.setTrackedEntityInstanceUid(
+            Optional.ofNullable( tei ).map( BaseIdentifiableObject::getUid ).orElse( null ) );
         params.setOrganisationUnitMode( ouMode );
         params.setPage( page );
         params.setPageSize( pageSize );
