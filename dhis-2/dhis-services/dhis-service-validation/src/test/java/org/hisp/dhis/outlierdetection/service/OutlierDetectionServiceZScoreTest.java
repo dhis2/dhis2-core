@@ -156,7 +156,8 @@ public class OutlierDetectionServiceZScoreTest
         assertEquals( 2, request.getOrgUnits().size() );
         assertEquals( getDate( 2020, 1, 1 ), request.getStartDate() );
         assertEquals( getDate( 2020, 6, 1 ), request.getEndDate() );
-        assertEquals( request.getThreshold(), 2.5, DELTA );
+        assertEquals( OutlierDetectionAlgorithm.Z_SCORE, request.getAlgorithm() );
+        assertEquals( 2.5, request.getThreshold(), DELTA );
         assertEquals( 100, request.getMaxResults() );
     }
 
