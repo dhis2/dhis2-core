@@ -32,6 +32,8 @@ import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.ClickatellRequestEntity;
 import org.hisp.dhis.sms.outbound.ClickatellResponseEntity;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -48,8 +50,15 @@ import java.util.stream.Collectors;
  */
 @Component( "org.hisp.dhis.sms.config.ClickatellGateway" )
 public class ClickatellHttpGateway
-    extends SmsGateway
+        extends SmsGateway
 {
+    private final PBEStringEncryptor pbeStringEncryptor;
+
+    public ClickatellHttpGateway( @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor )
+    {
+        this.pbeStringEncryptor = pbeStringEncryptor;
+    }
+
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
@@ -64,9 +73,9 @@ public class ClickatellHttpGateway
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig config )
     {
         return batch.getMessages()
-            .parallelStream()
-            .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), config ) )
-            .collect( Collectors.toList() );
+                .parallelStream()
+                .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), config ) )
+                .collect( Collectors.toList() );
     }
 
     @Override
@@ -74,7 +83,7 @@ public class ClickatellHttpGateway
     {
         ClickatellGatewayConfig clickatellConfiguration = (ClickatellGatewayConfig) config;
         HttpEntity<ClickatellRequestEntity> request =
-            new HttpEntity<>( getRequestBody( text, recipients ), getRequestHeaderParameters( clickatellConfiguration ) );
+                new HttpEntity<>( getRequestBody( text, recipients ), getRequestHeaderParameters( clickatellConfiguration ) );
 
         HttpStatus httpStatus = send( clickatellConfiguration.getUrlTemplate() + MAX_MESSAGE_PART, request, HttpMethod.POST ,ClickatellResponseEntity.class );
 
@@ -100,7 +109,7 @@ public class ClickatellHttpGateway
         headers.set( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
         headers.set( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
         headers.set( PROTOCOL_VERSION, "1" );
-        headers.set( HttpHeaders.AUTHORIZATION, clickatellConfiguration.getAuthToken() );
+        headers.set( HttpHeaders.AUTHORIZATION, pbeStringEncryptor.decrypt( clickatellConfiguration.getPassword() ) );
 
         return headers;
     }

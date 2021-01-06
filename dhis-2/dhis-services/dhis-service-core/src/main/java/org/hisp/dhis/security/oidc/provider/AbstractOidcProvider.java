@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis.audit;
+package org.hisp.dhis.security.oidc.provider;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,29 +28,48 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Value;
-
 /**
- * @author Luciano Fiandesio
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Value
-@AllArgsConstructor
-public class AuditableEntity
+public abstract class AbstractOidcProvider
 {
-    /**
-     * Class of the AuditableEntity
-     * It will be used by {@link org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory#collectAuditAttributes(Object)}
-     */
-    Class entityClass;
+    protected static final String DEFAULT_REDIRECT_TEMPLATE_URL = "{baseUrl}/login/oauth2/code/{registrationId}";
 
-    /**
-     * An object that is ready for serialized by Jackson.
-     * Means that this object should:
-     * 1. Only includes referenced properties that are owned by the current Audit Entity. Means that the property's schema has attribute "owner = true"
-     * 2. Do not include any lazy HibernateProxy or PersistentCollection that is not loaded.
-     * 3. All referenced properties that extend BaseIdentifiableObject should be mapped to only UID string
-     * This object could be a Map<String, Object>  with key is property name and value is the property value
-     */
-    Object entity;
+    public static final String DEFAULT_MAPPING_CLAIM = "email";
+
+    public static final String DEFAULT_SCOPE = "openid";
+
+    public final static String PROVIDER_ID = "provider_id";
+
+    public final static String CLIENT_ID = "client_id";
+
+    public final static String CLIENT_SECRET = "client_secret";
+
+    public final static String MAPPING_CLAIM = "mapping_claim";
+
+    public final static String REDIRECT_URL = "redirect_url";
+
+    public final static String AUTHORIZATION_URI = "authorization_uri";
+
+    public final static String TOKEN_URI = "token_uri";
+
+    public final static String USERINFO_URI = "user_info_uri";
+
+    public final static String JWK_URI = "jwk_uri";
+
+    public final static String END_SESSION_ENDPOINT = "end_session_endpoint";
+
+    public final static String DISPLAY_ALIAS = "display_alias";
+
+    public final static String ENABLE_LOGOUT = "enable_logout";
+
+    public final static String SCOPES = "scopes";
+
+    public final static String LOGO_IMAGE = "logo_image";
+
+    public final static String LOGO_IMAGE_PADDING = "logo_image_padding";
+
+    public final static String ENABLE_PKCE = "enable_pkce";
+
+    public final static String EXTRA_REQUEST_PARAMETERS = "extra_request_parameters";
 }

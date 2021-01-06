@@ -31,6 +31,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -138,6 +139,7 @@ public class EventDataValue implements Serializable
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
+    @JsonProperty
     public Boolean getProvidedElsewhere()
     {
         return providedElsewhere;
@@ -159,6 +161,7 @@ public class EventDataValue implements Serializable
         return dataElement;
     }
 
+    @JsonProperty
     public Date getCreated()
     {
         return created;
@@ -179,6 +182,7 @@ public class EventDataValue implements Serializable
         this.createdByUserInfo = createdByUserInfo;
     }
 
+    @JsonProperty
     public Date getLastUpdated()
     {
         return lastUpdated;
@@ -212,11 +216,13 @@ public class EventDataValue implements Serializable
         this.value = value;
     }
 
+    @JsonProperty
     public String getValue()
     {
         return value;
     }
 
+    @JsonProperty
     public String getStoredBy()
     {
         return storedBy;

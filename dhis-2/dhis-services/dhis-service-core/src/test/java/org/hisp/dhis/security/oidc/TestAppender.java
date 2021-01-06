@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis.audit;
+package org.hisp.dhis.security.oidc;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,29 +28,36 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Value;
+import org.apache.log4j.AppenderSkeleton;
+import org.apache.log4j.spi.LoggingEvent;
 
-/**
- * @author Luciano Fiandesio
- */
-@Value
-@AllArgsConstructor
-public class AuditableEntity
+import java.util.ArrayList;
+import java.util.List;
+
+class TestAppender extends AppenderSkeleton
 {
-    /**
-     * Class of the AuditableEntity
-     * It will be used by {@link org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory#collectAuditAttributes(Object)}
-     */
-    Class entityClass;
+    private final List<LoggingEvent> log = new ArrayList<>();
 
-    /**
-     * An object that is ready for serialized by Jackson.
-     * Means that this object should:
-     * 1. Only includes referenced properties that are owned by the current Audit Entity. Means that the property's schema has attribute "owner = true"
-     * 2. Do not include any lazy HibernateProxy or PersistentCollection that is not loaded.
-     * 3. All referenced properties that extend BaseIdentifiableObject should be mapped to only UID string
-     * This object could be a Map<String, Object>  with key is property name and value is the property value
-     */
-    Object entity;
+    @Override
+    public boolean requiresLayout()
+    {
+        return false;
+    }
+
+    @Override
+    protected void append( final LoggingEvent loggingEvent )
+    {
+        log.add( loggingEvent );
+    }
+
+    @Override
+    public void close()
+    {
+
+    }
+
+    public List<LoggingEvent> getLog()
+    {
+        return new ArrayList<>( log );
+    }
 }

@@ -28,9 +28,9 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -39,6 +39,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -145,13 +146,20 @@ public class ProgramDeletionHandler
 
         for ( Program program : programs )
         {
+            List<ProgramTrackedEntityAttribute> removeList = new ArrayList<>();
+
             for ( ProgramTrackedEntityAttribute programAttribute : program.getProgramAttributes() )
             {
                 if ( programAttribute.getAttribute().equals( trackedEntityAttribute ) )
                 {
-                    program.getProgramAttributes().remove( programAttribute );
-                    idObjectManager.updateNoAcl( program );
+                    removeList.add( programAttribute );
                 }
+            }
+
+            if ( !removeList.isEmpty() )
+            {
+                program.getProgramAttributes().removeAll( removeList );
+                idObjectManager.updateNoAcl( program );
             }
         }
     }

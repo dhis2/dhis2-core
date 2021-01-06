@@ -364,7 +364,7 @@ public class Schema implements Ordered, Klass
     public boolean isShareable()
     {
         return shareable != null ? shareable :
-            (havePersistedProperty( "user" ) && havePersistedProperty( "userGroupAccesses" ) && havePersistedProperty( "publicAccess" ));
+                (havePersistedProperty( "user" ) && havePersistedProperty( "userGroupAccesses" ) && havePersistedProperty( "publicAccess" ));
     }
 
     public void setShareable( boolean shareable )
@@ -553,8 +553,8 @@ public class Schema implements Ordered, Klass
         if ( references == null )
         {
             references = getProperties().stream()
-                .filter( p -> p.isCollection() ? PropertyType.REFERENCE == p.getItemPropertyType() : PropertyType.REFERENCE == p.getPropertyType() )
-                .map( p -> p.isCollection() ? p.getItemKlass() : p.getKlass() ).collect( Collectors.toSet() );
+                    .filter( p -> p.isCollection() ? PropertyType.REFERENCE == p.getItemPropertyType() : PropertyType.REFERENCE == p.getPropertyType() )
+                    .map( p -> p.isCollection() ? p.getItemKlass() : p.getKlass() ).collect( Collectors.toSet() );
         }
 
         return references;
@@ -565,8 +565,8 @@ public class Schema implements Ordered, Klass
         if ( readableProperties.isEmpty() )
         {
             getPropertyMap().entrySet().stream()
-                .filter( entry -> entry.getValue().isReadable() )
-                .forEach( entry -> readableProperties.put( entry.getKey(), entry.getValue() ) );
+                    .filter( entry -> entry.getValue().isReadable() )
+                    .forEach( entry -> readableProperties.put( entry.getKey(), entry.getValue() ) );
         }
 
         return readableProperties;
@@ -577,8 +577,8 @@ public class Schema implements Ordered, Klass
         if ( persistedProperties.isEmpty() )
         {
             getPropertyMap().entrySet().stream()
-                .filter( entry -> entry.getValue().isPersisted() )
-                .forEach( entry -> persistedProperties.put( entry.getKey(), entry.getValue() ) );
+                    .filter( entry -> entry.getValue().isPersisted() )
+                    .forEach( entry -> persistedProperties.put( entry.getKey(), entry.getValue() ) );
         }
 
         return persistedProperties;
@@ -589,8 +589,8 @@ public class Schema implements Ordered, Klass
         if ( nonPersistedProperties.isEmpty() )
         {
             getPropertyMap().entrySet().stream()
-                .filter( entry -> !entry.getValue().isPersisted() )
-                .forEach( entry -> nonPersistedProperties.put( entry.getKey(), entry.getValue() ) );
+                    .filter( entry -> !entry.getValue().isPersisted() )
+                    .forEach( entry -> nonPersistedProperties.put( entry.getKey(), entry.getValue() ) );
         }
 
         return nonPersistedProperties;
@@ -603,8 +603,8 @@ public class Schema implements Ordered, Klass
             embeddedObjectProperties = new HashMap<>();
 
             getPropertyMap().entrySet().stream()
-                .filter( entry -> entry.getValue().isEmbeddedObject() )
-                .forEach( entry -> embeddedObjectProperties.put( entry.getKey(), entry.getValue() ) );
+                    .filter( entry -> entry.getValue().isEmbeddedObject() )
+                    .forEach( entry -> embeddedObjectProperties.put( entry.getKey(), entry.getValue() ) );
         }
 
         return embeddedObjectProperties;
@@ -669,8 +669,8 @@ public class Schema implements Ordered, Klass
 
         final List<String> list = new ArrayList<>();
         authorities.stream()
-            .filter( authority -> type.equals( authority.getType() ) )
-            .forEach( authority -> list.addAll( authority.getAuthorities() ) );
+                .filter( authority -> type.equals( authority.getType() ) )
+                .forEach( authority -> list.addAll( authority.getAuthorities() ) );
         authorityList = Collections.unmodifiableList( list );
 
         final Map<AuthorityType, List<String>> authoritiesByType = new HashMap<>();
@@ -704,20 +704,25 @@ public class Schema implements Ordered, Klass
     /**
      * Gets a list of properties marked as unique for this schema
      *
-      * @return a List of {@see Property}
+     * @return a List of {@see Property}
      */
     public List<Property> getUniqueProperties()
     {
         return this.getProperties().stream()
-            .filter( p -> p.isPersisted() && p.isOwner() && p.isUnique() && p.isSimple() )
-            .collect( Collectors.toList() );
+                .filter( p -> p.isPersisted() && p.isOwner() && p.isUnique() && p.isSimple() )
+                .collect( Collectors.toList() );
+    }
+
+    public Map<String, Property> getFieldNameMapProperties()
+    {
+        return this.getPersistedProperties().entrySet().stream().collect( Collectors.toMap( p->p.getValue().getFieldName(), p -> p.getValue() ) );
     }
 
     @Override
     public int hashCode()
     {
         return Objects.hash( klass, identifiableObject, nameableObject, singular, plural, namespace, name,
-            collectionName, shareable, relativeApiEndpoint, metadata, authorities, propertyMap, order );
+                collectionName, shareable, relativeApiEndpoint, metadata, authorities, propertyMap, order );
     }
 
     @Override

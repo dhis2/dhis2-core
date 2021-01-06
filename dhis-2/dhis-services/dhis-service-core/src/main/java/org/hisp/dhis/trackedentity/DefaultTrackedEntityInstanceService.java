@@ -675,7 +675,7 @@ public class DefaultTrackedEntityInstanceService
         Boolean followUp, Date lastUpdatedStartDate, Date lastUpdatedEndDate, String lastUpdatedDuration,
         Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate,
         Date programIncidentEndDate, String trackedEntityType, String programStage, EventStatus eventStatus, Date eventStartDate,
-        Date eventEndDate, AssignedUserSelectionMode assignedUserSelectionMode, Set<String> assignedUsers,
+        Date eventEndDate, AssignedUserSelectionMode assignedUserSelectionMode, Set<String> assignedUsers, Set<String> trackedEntityInstanceUids,
         boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging,
         boolean includeDeleted, boolean includeAllAttributes, List<String> orders )
     {
@@ -771,6 +771,13 @@ public class DefaultTrackedEntityInstanceService
                 .collect( Collectors.toSet() );
         }
 
+        if ( trackedEntityInstanceUids != null )
+        {
+            trackedEntityInstanceUids = trackedEntityInstanceUids.stream()
+                .filter( CodeGenerator::isValidUid )
+                .collect( Collectors.toSet() );
+        }
+        
         params.setQuery( queryFilter )
             .setProgram( pr )
             .setProgramStatus( programStatus )
@@ -790,6 +797,7 @@ public class DefaultTrackedEntityInstanceService
             .setEventEndDate( eventEndDate )
             .setAssignedUserSelectionMode( assignedUserSelectionMode )
             .setAssignedUsers( assignedUsers )
+            .setTrackedEntityInstanceUids( trackedEntityInstanceUids )
             .setSkipMeta( skipMeta )
             .setPage( page )
             .setPageSize( pageSize )

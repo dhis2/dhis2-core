@@ -36,6 +36,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
 import org.hisp.dhis.sms.config.ClickatellGatewayConfig;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
+import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
 import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
@@ -148,9 +149,9 @@ public class SmsGatewayController
         throws IOException
     {
         SmsGatewayConfig payLoad = renderService.fromJson( request.getInputStream(),
-                SmsGatewayConfig.class );
+                GenericHttpGatewayConfig.class );
 
-        if ( gatewayAdminService.addGateway( payLoad ) )
+        if ( gatewayAdminService.addOrUpdateGateway( payLoad, GenericHttpGatewayConfig.class ) )
         {
             webMessageService.send( WebMessageUtils.ok( "SAVED" ), response, request );
         }

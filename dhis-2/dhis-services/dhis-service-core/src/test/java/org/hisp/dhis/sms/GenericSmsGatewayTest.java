@@ -28,19 +28,34 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.google.common.collect.Sets;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.sms.config.ContentType;
 import org.hisp.dhis.sms.config.GenericGatewayParameter;
 import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
 import org.hisp.dhis.sms.config.SimplisticHttpGetGateWay;
 import org.hisp.dhis.sms.config.SmsGateway;
+import org.hisp.dhis.system.util.SmsUtils;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -55,20 +70,10 @@ import org.springframework.web.client.RestTemplate;
 import org.testcontainers.shaded.org.apache.commons.lang.StringUtils;
 import org.testcontainers.shaded.org.apache.commons.lang.text.StrSubstitutor;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.net.URI;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.collect.Sets;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
 public class GenericSmsGatewayTest
 {
@@ -84,11 +89,11 @@ public class GenericSmsGatewayTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
     @Mock
     private RestTemplate restTemplate;
+
+    @Mock
+    private PBEStringEncryptor pbeStringEncryptor;
 
     @Captor
     private ArgumentCaptor<HttpEntity<String>> httpEntityArgumentCaptor;
@@ -113,7 +118,7 @@ public class GenericSmsGatewayTest
     @Before
     public void setUp()
     {
-        subject = new SimplisticHttpGetGateWay( restTemplate );
+        subject = new SimplisticHttpGetGateWay( restTemplate, pbeStringEncryptor );
 
         gatewayConfig = new GenericHttpGatewayConfig();
         gatewayConfig.setUseGet( false );
@@ -127,7 +132,7 @@ public class GenericSmsGatewayTest
         username.setValue( "user_uio" );
         username.setEncode( false );
         username.setHeader( true );
-        username.setConfidential( true );
+        username.setConfidential( false );
 
         password = new GenericGatewayParameter();
         password.setKey( "password" );
@@ -136,7 +141,7 @@ public class GenericSmsGatewayTest
         password.setHeader( true );
         password.setConfidential( true );
 
-        valueStore.put( SmsGateway.KEY_TEXT, TEXT );
+        valueStore.put( SmsGateway.KEY_TEXT, SmsUtils.encode( TEXT ) );
         valueStore.put( SmsGateway.KEY_RECIPIENT, StringUtils.join( RECIPIENTS, "," ) );
     }
 
@@ -154,7 +159,7 @@ public class GenericSmsGatewayTest
         ResponseEntity<String> responseEntity = new ResponseEntity<>( "success", HttpStatus.OK );
 
         when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
-            .thenReturn( responseEntity );
+                .thenReturn( responseEntity );
 
         assertThat( subject.send( SUBJECT, TEXT, RECIPIENTS, gatewayConfig ).isOk(), is( true ) );
 
@@ -180,7 +185,7 @@ public class GenericSmsGatewayTest
             if ( parameter.isHeader() )
             {
                 assertTrue( httpHeaders.containsKey( parameter.getKey() ) );
-                assertEquals( parameter.getDisplayValue(), httpHeaders.get( parameter.getKey() ).get( 0 ) );
+                assertEquals( parameter.getValue(), httpHeaders.get( parameter.getKey() ).get( 0 ) );
             }
         }
     }
@@ -190,9 +195,10 @@ public class GenericSmsGatewayTest
     {
         username.setHeader( false );
         password.setHeader( false );
+        password.setConfidential( true );
 
-        valueStore.put( username.getKey(), username.getDisplayValue() );
-        valueStore.put( password.getKey(), password.getDisplayValue() );
+        valueStore.put( username.getKey(), username.getValue() );
+        valueStore.put( password.getKey(), password.getValue() );
 
         strSubstitutor = new StrSubstitutor( valueStore );
 
@@ -205,8 +211,9 @@ public class GenericSmsGatewayTest
 
         ResponseEntity<String> responseEntity = new ResponseEntity<>( "success", HttpStatus.OK );
 
+        when( pbeStringEncryptor.decrypt( anyString() ) ).thenReturn( password.getValue() );
         when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
-            .thenReturn( responseEntity );
+                .thenReturn( responseEntity );
 
         assertThat( subject.send( SUBJECT, TEXT, RECIPIENTS, gatewayConfig ).isOk(), is( true ) );
 

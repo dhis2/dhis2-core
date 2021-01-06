@@ -28,6 +28,7 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,6 +48,7 @@ public class GatewayAdministrationServiceTest
 {
     private static final String BULKSMS = "bulksms";
     private static final String CLICKATELL = "clickatell";
+    private static final String CLICKATELL_UPDATED = "clickatell-updated";
     private static final String GENERIC_GATEWAY = "generic";
 
     private BulkSmsGatewayConfig bulkConfig;
@@ -64,13 +66,16 @@ public class GatewayAdministrationServiceTest
     @Mock
     private SmsConfigurationManager smsConfigurationManager;
 
+    @Mock
+    private PBEStringEncryptor pbeStringEncryptor;
+
     private DefaultGatewayAdministrationService subject;
 
     @Before
     public void setUp()
     {
 
-        subject = new DefaultGatewayAdministrationService( smsConfigurationManager );
+        subject = new DefaultGatewayAdministrationService( smsConfigurationManager, pbeStringEncryptor );
 
         spyConfiguration = new SmsConfiguration();
         bulkConfig = new BulkSmsGatewayConfig();
@@ -137,7 +142,6 @@ public class GatewayAdministrationServiceTest
         assertTrue( subject.addGateway( bulkConfig ) );
         assertEquals( bulkConfig, subject.getDefaultGateway() );
         assertEquals( BULKSMS, subject.getDefaultGateway().getName() );
-        assertEquals( bulkConfig, subject.getDefaultGateway() );
 
         BulkSmsGatewayConfig updated = new BulkSmsGatewayConfig();
         updated.setName( "changedbulksms" );
@@ -155,14 +159,13 @@ public class GatewayAdministrationServiceTest
         assertTrue( subject.addGateway( bulkConfig ) );
         assertEquals( bulkConfig, subject.getDefaultGateway() );
         assertEquals( BULKSMS, subject.getDefaultGateway().getName() );
-        assertEquals( bulkConfig, subject.getDefaultGateway() );
 
         subject.addGateway( clickatellConfig );
 
         assertEquals( 2, spyConfiguration.getGateways().size() );
 
         ClickatellGatewayConfig updated = new ClickatellGatewayConfig();
-        updated.setName( "changedclickatell" );
+        updated.setName( CLICKATELL );
         updated.setUid( "tempUId" );
 
         subject.updateGateway( clickatellConfig, updated );

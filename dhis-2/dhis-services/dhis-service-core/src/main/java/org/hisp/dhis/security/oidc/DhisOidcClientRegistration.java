@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis.audit;
+package org.hisp.dhis.security.oidc;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -26,31 +26,32 @@ package org.hisp.dhis.artemis.audit;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Value;
+import lombok.Builder;
+import lombok.Data;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
 
 /**
- * @author Luciano Fiandesio
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Value
-@AllArgsConstructor
-public class AuditableEntity
+@Data
+@Builder
+public class DhisOidcClientRegistration
 {
-    /**
-     * Class of the AuditableEntity
-     * It will be used by {@link org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory#collectAuditAttributes(Object)}
-     */
-    Class entityClass;
+    private ClientRegistration clientRegistration;
 
-    /**
-     * An object that is ready for serialized by Jackson.
-     * Means that this object should:
-     * 1. Only includes referenced properties that are owned by the current Audit Entity. Means that the property's schema has attribute "owner = true"
-     * 2. Do not include any lazy HibernateProxy or PersistentCollection that is not loaded.
-     * 3. All referenced properties that extend BaseIdentifiableObject should be mapped to only UID string
-     * This object could be a Map<String, Object>  with key is property name and value is the property value
-     */
-    Object entity;
+    private String mappingClaimKey;
+
+    private String loginIcon;
+
+    private String loginIconPadding;
+
+    private String loginText;
+
+    public String getRegistrationId()
+    {
+        return clientRegistration.getRegistrationId();
+    }
 }

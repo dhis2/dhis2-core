@@ -28,6 +28,9 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Calendar;
@@ -44,6 +47,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -122,6 +126,21 @@ public class SmsUtils
         }
 
         return userOrgUnitMap;
+    }
+
+    public static String encode( String value )
+    {
+        String v = "";
+        try
+        {
+            v = URLEncoder.encode( value, StandardCharsets.UTF_8.toString() );
+        }
+        catch( UnsupportedEncodingException e )
+        {
+            DebugUtils.getStackTrace( e );
+        }
+
+        return v;
     }
 
     public static Date lookForDate( String message )

@@ -28,17 +28,35 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.sms.config.*;
+import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
+import org.hisp.dhis.sms.config.BulkSmsHttpGateway;
+import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
+import org.hisp.dhis.sms.config.SmsGateway;
+import org.hisp.dhis.sms.config.SmsGatewayConfig;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
@@ -49,14 +67,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Zubair Asghar.
@@ -72,11 +82,11 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
     @Mock
     private RestTemplate restTemplate;
+
+    @Mock
+    private PBEStringEncryptor pbeStringEncryptor;
 
     @InjectMocks
     private BulkSmsHttpGateway bulkSmsGateway;
@@ -104,6 +114,8 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
         outboundMessageList.add( new OutboundMessage( SUBJECT,MESSAGE, recipients ) );
 
         batch = new OutboundMessageBatch( outboundMessageList, DeliveryChannel.SMS );
+
+        when( pbeStringEncryptor.decrypt( anyString() ) ).thenReturn( smsGatewayConfig.getPassword() );
     }
 
     @Test
@@ -125,7 +137,7 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
         ResponseEntity<String> successResponse = new ResponseEntity<>( SUCCESS_RESPONSE_STRING, HttpStatus.OK );
 
         when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
-            .thenReturn( successResponse );
+                .thenReturn( successResponse );
 
         OutboundMessageResponse status = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
 
@@ -139,7 +151,7 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
         ResponseEntity<String> successResponse = new ResponseEntity<>( SUCCESS_RESPONSE_STRING, HttpStatus.OK );
 
         when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
-            .thenReturn( successResponse );
+                .thenReturn( successResponse );
 
         List<OutboundMessageResponse> responses = bulkSmsGateway.sendBatch( batch, smsGatewayConfig );
 
@@ -153,7 +165,7 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
         ResponseEntity<String> errorResponse = new ResponseEntity<>( ERROR_RESPONSE_STRING, HttpStatus.CONFLICT );
 
         when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
-            .thenReturn( errorResponse );
+                .thenReturn( errorResponse );
 
         OutboundMessageResponse status = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
 
@@ -166,7 +178,7 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
     public void testWhenServerResponseIsNull()
     {
         when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
-            .thenReturn( null );
+                .thenReturn( null );
 
         OutboundMessageResponse status2 = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
 
@@ -179,7 +191,7 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
     public void testException()
     {
         when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
-            .thenThrow( HttpClientErrorException.class );
+                .thenThrow( HttpClientErrorException.class );
 
         OutboundMessageResponse status2 = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
 
