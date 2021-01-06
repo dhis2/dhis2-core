@@ -76,6 +76,7 @@ public class MinMaxOutlierDetectionManager
         final String ouPathClause = getOrgUnitPathClause( request.getOrgUnits() );
 
         final String sql =
+            // Main select
             "select de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, " +
                 "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, " +
                 "pe.startdate as pe_start_date, pt.name as pt_name, " +
@@ -90,6 +91,7 @@ public class MinMaxOutlierDetectionManager
             "inner join period pe on dv.periodid = pe.periodid " +
             "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
             "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
+            // Min-max data element join
             "inner join minmaxdataelement mm on (dv.dataelementid = mm.dataelementid " +
                 "and dv.sourceid = mm.sourceid and dv.categoryoptioncomboid = mm.categoryoptioncomboid) " +
             "where dv.dataelementid in (:data_element_ids) " +
@@ -97,7 +99,9 @@ public class MinMaxOutlierDetectionManager
             "and pe.enddate <= :end_date " +
             "and " + ouPathClause + " " +
             "and dv.deleted is false " +
+            // Filter for values outside the min-max range
             "and (dv.value::double precision < mm.minimumvalue or dv.value::double precision > mm.maximumvalue) " +
+            // Order and limit
             "order by bound_abs_dev desc " +
             "limit :max_results;";
 
