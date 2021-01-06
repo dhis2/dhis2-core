@@ -2124,6 +2124,12 @@
         <version>${mapstruct.version}</version>
       </dependency>
 
+      <dependency>
+        <groupId>javax.validation</groupId>
+        <artifactId>validation-api</artifactId>
+        <version>2.0.1.Final</version>
+      </dependency>
+
     </dependencies>
 
 
@@ -2141,7 +2147,7 @@
     <spring-session-data-redis.version>2.3.0.RELEASE</spring-session-data-redis.version>
     <struts.version>2.5.26</struts.version>
     <hibernate.version>5.4.27.Final</hibernate.version>
-    <hibernate-validator.version>5.0.3.Final</hibernate-validator.version>
+    <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
     <jclouds.version>2.2.0</jclouds.version>
     <antlr.version>4.7.2</antlr.version>
     <!-- unit test dependencies-->
