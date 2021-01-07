@@ -32,8 +32,10 @@ package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.EventImporterUserService;
 import org.hisp.dhis.dxf2.events.importer.Processor;
@@ -57,8 +59,21 @@ public abstract class AbstractUserInfoPreProcessor implements Processor
         {
             UserInfoSnapshot userInfo = UserInfoSnapshot.from( user );
             updateEventUserInfo( event, userInfo );
+
+            Set<String> updatableDataValues = Optional.ofNullable( event )
+                .map( Event::getDataValues )
+                .orElse( Collections.emptySet() )
+                .stream()
+                .map( DataValue::getDataElement )
+                .collect( Collectors.toSet() );
+
+            Set<EventDataValue> eventDataValuesToUpdate = getWorkContextDataValueMapEntry( workContext, event.getUid() )
+                .stream()
+                .filter( eventDataValue -> updatableDataValues.contains( eventDataValue.getDataElement() ) )
+                .collect( Collectors.toSet() );
+
             updateDataValuesUserInfo( getExistingPsi( workContext, event.getUid() ),
-                getWorkContextDataValueMapEntry( workContext, event.getUid() ), userInfo );
+                eventDataValuesToUpdate, userInfo );
         }
     }
 
