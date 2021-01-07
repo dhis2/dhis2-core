@@ -65,17 +65,17 @@ public class DefaultOutlierDetectionService
 
     private final IdentifiableObjectManager idObjectManager;
 
-    private final ZScoreOutlierDetectionManager zScoreOutlierDetectionManager;
+    private final ZScoreOutlierDetectionManager zScoreOutlierDetection;
 
-    private final MinMaxOutlierDetectionManager minMaxOutlierDetectionManager;
+    private final MinMaxOutlierDetectionManager minMaxOutlierDetection;
 
     public DefaultOutlierDetectionService( IdentifiableObjectManager idObjectManager,
-        ZScoreOutlierDetectionManager zScoreOutlierDetectionManager,
-        MinMaxOutlierDetectionManager minMaxOutlierDetectionManager )
+        ZScoreOutlierDetectionManager zScoreOutlierDetection,
+        MinMaxOutlierDetectionManager minMaxOutlierDetection )
     {
         this.idObjectManager = idObjectManager;
-        this.zScoreOutlierDetectionManager = zScoreOutlierDetectionManager;
-        this.minMaxOutlierDetectionManager = minMaxOutlierDetectionManager;
+        this.zScoreOutlierDetection = zScoreOutlierDetection;
+        this.minMaxOutlierDetection = minMaxOutlierDetection;
     }
 
     @Override
@@ -227,11 +227,11 @@ public class DefaultOutlierDetectionService
     {
         if ( request.getAlgorithm() == OutlierDetectionAlgorithm.Z_SCORE )
         {
-            return zScoreOutlierDetectionManager.getOutlierValues( request );
+            return zScoreOutlierDetection.getOutlierValues( request );
         }
         else if ( request.getAlgorithm() == OutlierDetectionAlgorithm.MIN_MAX )
         {
-            return minMaxOutlierDetectionManager.getOutlierValues( request );
+            return minMaxOutlierDetection.getOutlierValues( request );
         }
         else
         {
