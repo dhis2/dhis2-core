@@ -28,28 +28,21 @@ package org.hisp.dhis.tracker.preheat.mappers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-import java.util.List;
-
-@Mapper( uses = { DebugMapper.class, TrackedEntityTypeAttributeMapper.class } )
-public interface TrackedEntityTypeMapper
-    extends PreheatMapper<TrackedEntityType>
+@Mapper( uses = { DebugMapper.class, TrackedEntityAttributeMapper.class } )
+public interface TrackedEntityTypeAttributeMapper
+    extends PreheatMapper<TrackedEntityTypeAttribute>
 {
-    TrackedEntityTypeMapper INSTANCE = Mappers.getMapper( TrackedEntityTypeMapper.class );
+    TrackedEntityTypeAttributeMapper INSTANCE = Mappers.getMapper( TrackedEntityTypeAttributeMapper.class );
 
     @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
     @Mapping( target = "uid" )
-    @Mapping( target = "featureType" )
-    @Mapping( target = "sharing" )
-    @Mapping( target = "trackedEntityTypeAttributes" )
-    TrackedEntityType map( TrackedEntityType trackedEntityType );
-
-    List<TrackedEntityTypeAttribute> map( List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes );
+    @Mapping( target = "mandatory" )
+    @Mapping( target = "trackedEntityAttribute" )
+    TrackedEntityTypeAttribute map( TrackedEntityTypeAttribute trackedEntityTypeAttribute );
 }
