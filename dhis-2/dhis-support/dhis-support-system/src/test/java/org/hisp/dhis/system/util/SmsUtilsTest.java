@@ -175,7 +175,7 @@ public class SmsUtilsTest
         assertNotEquals( reference, d );
     }
 
-    @Test(expected = SMSParserException.class)
+    @Test( expected = SMSParserException.class )
     public void testGetUser()
     {
         User returnedUser = SmsUtils.getUser( "", new SMSCommand(), Lists.newArrayList( userA ) );
@@ -219,7 +219,7 @@ public class SmsUtilsTest
         assertTrue( SmsUtils.getRecipientsEmail( Lists.newArrayList( userA ) ).contains( email ) );
     }
 
-    @Test(expected = SMSParserException.class)
+    @Test( expected = SMSParserException.class )
     public void testSelectOrganisationUnit()
     {
         OrganisationUnit expected = organisationUnitA;
