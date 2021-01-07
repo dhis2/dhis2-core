@@ -285,12 +285,12 @@ public class OutlierDetectionServiceZScoreTest
 
     private void addPeriods( Period... periods )
     {
-        Stream.of( periods ).forEach( pe -> periodService.addPeriod( pe ) );
+        Stream.of( periods ).forEach( periodService::addPeriod );
     }
 
     private void addDataValues( DataValue... dataValues )
     {
-        Stream.of( dataValues ).forEach( dv -> dataValueService.addDataValue( dv ) );
+        Stream.of( dataValues ).forEach( dataValueService::addDataValue );
     }
 }
 

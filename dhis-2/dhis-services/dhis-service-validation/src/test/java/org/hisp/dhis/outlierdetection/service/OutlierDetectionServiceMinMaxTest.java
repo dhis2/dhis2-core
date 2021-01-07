@@ -218,16 +218,16 @@ public class OutlierDetectionServiceMinMaxTest
 
     private void addPeriods( Period... periods )
     {
-        Stream.of( periods ).forEach( pe -> periodService.addPeriod( pe ) );
+        Stream.of( periods ).forEach( periodService::addPeriod );
     }
 
     private void addMinMaxValues( MinMaxDataElement... minMaxValues )
     {
-        Stream.of( minMaxValues ).forEach( mv -> minMaxService.addMinMaxDataElement( mv ) );
+        Stream.of( minMaxValues ).forEach( minMaxService::addMinMaxDataElement );
     }
 
     private void addDataValues( DataValue... dataValues )
     {
-        Stream.of( dataValues ).forEach( dv -> dataValueService.addDataValue( dv ) );
+        Stream.of( dataValues ).forEach( dataValueService::addDataValue );
     }
 }
