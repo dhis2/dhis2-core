@@ -30,12 +30,16 @@ package org.hisp.dhis.tracker.programrule.implementers;
 
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.*;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerReportUtils;
@@ -81,7 +85,9 @@ public class AssignValueImplementer
 
         for ( EventActionRule actionRule : eventClasses.getValue() )
         {
-            if ( !actionRule.getDataValue().isPresent() || Boolean.TRUE.equals( canOverwrite ) )
+            if ( !actionRule.getDataValue().isPresent() ||
+                Boolean.TRUE.equals( canOverwrite ) ||
+                isTheSameValue( actionRule, bundle.getPreheat() ) )
             {
                 addOrOverwriteDataValue( actionRule );
                 issues.add( new ProgramRuleIssue( TrackerReportUtils
@@ -128,6 +134,34 @@ public class AssignValueImplementer
         return issues;
     }
 
+    private boolean isTheSameValue( EventActionRule actionRule, TrackerPreheat preheat )
+    {
+        DataElement dataElement = preheat.get( DataElement.class, actionRule.getField() );
+        String dataValue = actionRule.getValue();
+        Optional<DataValue> optionalDataValue = actionRule.getEvent().getDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( actionRule.getField() ) )
+            .findAny();
+        if ( optionalDataValue.isPresent() )
+        {
+            return areEquals( dataValue, optionalDataValue.get().getValue(), dataElement.getValueType() );
+        }
+
+        return false;
+    }
+
+    private boolean areEquals( String dataValue, String value, ValueType valueType )
+    {
+        if ( valueType.isNumeric() )
+        {
+            return NumberUtils.isParsable( dataValue ) &&
+                Double.parseDouble( value ) == Double.parseDouble( dataValue );
+        }
+        else
+        {
+            return value.equals( dataValue );
+        }
+    }
+
     private void addOrOverwriteDataValue( EventActionRule actionRule )
     {
         Set<DataValue> dataValues = actionRule.getEvent().getDataValues();
@@ -136,11 +170,11 @@ public class AssignValueImplementer
             .findAny();
         if ( optionalDataValue.isPresent() )
         {
-            optionalDataValue.get().setValue( actionRule.getData() );
+            optionalDataValue.get().setValue( actionRule.getValue() );
         }
         else
         {
-            dataValues.add( createDataValue( actionRule.getField(), actionRule.getData() ) );
+            dataValues.add( createDataValue( actionRule.getField(), actionRule.getValue() ) );
         }
     }
 

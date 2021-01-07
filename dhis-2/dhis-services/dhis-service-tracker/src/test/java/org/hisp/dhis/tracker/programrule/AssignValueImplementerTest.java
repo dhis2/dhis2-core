@@ -86,7 +86,9 @@ public class AssignValueImplementerTest
 
     private final static String ATTRIBUTE_ID = "AttributeId";
 
-    private final static String DATA_ELEMENT_OLD_VALUE = "1.0";
+    private final static String DATA_ELEMENT_OLD_VALUE = "1";
+
+    private final static String DATA_ELEMENT_NEW_VALUE_PAYLOAD = "23";
 
     private final static String DATA_ELEMENT_NEW_VALUE = "23.0";
 
@@ -136,6 +138,7 @@ public class AssignValueImplementerTest
 
         when( preheat.get( ProgramStage.class, firstProgramStage.getUid() ) ).thenReturn( firstProgramStage );
         when( preheat.get( ProgramStage.class, secondProgramStage.getUid() ) ).thenReturn( secondProgramStage );
+        when( preheat.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
 
         bundle = new TrackerBundle();
         bundle.setPreheat( preheat );
@@ -199,6 +202,26 @@ public class AssignValueImplementerTest
         assertEquals( 1, eventIssues.size() );
         assertEquals( 1, eventIssues.get( FIRST_EVENT_ID ).size() );
         assertEquals( ERROR, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueType() );
+    }
+
+    @Test
+    public void testAssignDataElementValueForEventsWhenDataElementIsAlreadyPresentAndHasSameValue()
+    {
+        List<Event> events = Lists.newArrayList( getEventWithDataValueSetSameValue() );
+        bundle.setEvents( events );
+        bundle.setEventRuleEffects( getRuleEventEffects( events ) );
+        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+
+        Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) )
+            .findAny().get();
+        Optional<DataValue> newDataValue = event.getDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( dataElementA.getUid() ) ).findAny();
+
+        assertTrue( newDataValue.isPresent() );
+        assertEquals( DATA_ELEMENT_NEW_VALUE, newDataValue.get().getValue() );
+        assertEquals( 1, eventIssues.size() );
+        assertEquals( 1, eventIssues.get( FIRST_EVENT_ID ).size() );
+        assertEquals( WARNING, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueType() );
     }
 
     @Test
@@ -297,6 +320,18 @@ public class AssignValueImplementerTest
         return event;
     }
 
+    private Event getEventWithDataValueSetSameValue()
+    {
+        Event event = new Event();
+        event.setUid( FIRST_EVENT_ID );
+        event.setEvent( FIRST_EVENT_ID );
+        event.setStatus( EventStatus.ACTIVE );
+        event.setProgramStage( firstProgramStage.getUid() );
+        event.setDataValues( getEventDataValuesSameValue() );
+
+        return event;
+    }
+
     private Event getEventWithDataValueNOTSet()
     {
         Event event = new Event();
@@ -323,6 +358,14 @@ public class AssignValueImplementerTest
     {
         DataValue dataValue = new DataValue();
         dataValue.setValue( DATA_ELEMENT_OLD_VALUE );
+        dataValue.setDataElement( DATA_ELEMENT_ID );
+        return Sets.newHashSet( dataValue );
+    }
+
+    private Set<DataValue> getEventDataValuesSameValue()
+    {
+        DataValue dataValue = new DataValue();
+        dataValue.setValue( DATA_ELEMENT_NEW_VALUE_PAYLOAD );
         dataValue.setDataElement( DATA_ELEMENT_ID );
         return Sets.newHashSet( dataValue );
     }
@@ -354,14 +397,6 @@ public class AssignValueImplementerTest
         attribute.setAttribute( ATTRIBUTE_ID );
         attribute.setValue( TEI_ATTRIBUTE_OLD_VALUE );
         return Lists.newArrayList( attribute );
-    }
-
-    private Map<String, List<RuleEffect>> getRuleEventEffectsLinkedToDataElement()
-    {
-        Map<String, List<RuleEffect>> ruleEffectsByEvent = Maps.newHashMap();
-        ruleEffectsByEvent.put( FIRST_EVENT_ID, getRuleEffectsLinkedToDataElement() );
-        ruleEffectsByEvent.put( SECOND_EVENT_ID, getRuleEffectsLinkedToDataElement() );
-        return ruleEffectsByEvent;
     }
 
     private Map<String, List<RuleEffect>> getRuleEventEffects( List<Event> events )
@@ -402,22 +437,5 @@ public class AssignValueImplementerTest
             .create( null, TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, TRACKED_ENTITY_ATTRIBUTE );
 
         return Lists.newArrayList( RuleEffect.create( actionAssign, TEI_ATTRIBUTE_NEW_VALUE ) );
-    }
-
-    private List<RuleEffect> getRuleEffectsLinkedToDataElement()
-    {
-        RuleAction actionShowWarning = RuleActionShowWarning
-            .create( IssueType.WARNING.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
-        RuleAction actionShowWarningOnComplete = RuleActionWarningOnCompletion
-            .create( IssueType.WARNING.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
-        RuleAction actionShowError = RuleActionShowError
-            .create( ERROR.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
-        RuleAction actionShowErrorOnCompletion = RuleActionErrorOnCompletion
-            .create( ERROR.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
-
-        return Lists.newArrayList( RuleEffect.create( actionShowWarning, EVALUATED_DATA ),
-            RuleEffect.create( actionShowWarningOnComplete, EVALUATED_DATA ),
-            RuleEffect.create( actionShowError, EVALUATED_DATA ),
-            RuleEffect.create( actionShowErrorOnCompletion, EVALUATED_DATA ) );
     }
 }

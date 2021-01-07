@@ -106,6 +106,13 @@ public class DefaultProgramRuleService
 
     @Override
     @Transactional( readOnly = true )
+    public List<ProgramRule> getProgramRuleByProgram( Set<String> programs )
+    {
+        return programRuleStore.getByProgram( programs );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public List<ProgramRule> getAllProgramRule()
     {
         return programRuleStore.getAll();
