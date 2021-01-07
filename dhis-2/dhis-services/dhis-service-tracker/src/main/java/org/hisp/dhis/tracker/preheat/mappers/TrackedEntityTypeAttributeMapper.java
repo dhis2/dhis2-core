@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.service;
+package org.hisp.dhis.tracker.preheat.mappers;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,65 +28,21 @@ package org.hisp.dhis.webapi.service;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Map;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-import javax.servlet.http.HttpServletRequest;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface ContextService
+@Mapper( uses = { DebugMapper.class, TrackedEntityAttributeMapper.class } )
+public interface TrackedEntityTypeAttributeMapper
+    extends PreheatMapper<TrackedEntityTypeAttribute>
 {
-    /**
-     * Get full path of servlet.
-     *
-     * @return Full HREF to servlet
-     * @see javax.servlet.http.HttpServletRequest
-     */
-    String getServletPath();
+    TrackedEntityTypeAttributeMapper INSTANCE = Mappers.getMapper( TrackedEntityTypeAttributeMapper.class );
 
-    /**
-     * Get HREF to context.
-     *
-     * @return Full HREF to context (context root)
-     * @see javax.servlet.http.HttpServletRequest
-     */
-    String getContextPath();
-
-    /**
-     * Get HREF to Web-API.
-     *
-     * @return Full HREF to Web-API
-     * @see javax.servlet.http.HttpServletRequest
-     */
-    String getApiPath();
-
-    /**
-     * Get active HttpServletRequest
-     *
-     * @return HttpServletRequest
-     */
-    HttpServletRequest getRequest();
-
-    /**
-     * Returns a list of values from a parameter, if the parameter doesn't exist, it will
-     * return a empty list.
-     *
-     * @param name Parameter to get
-     * @return List of parameter values, or empty if not found
-     */
-    List<String> getParameterValues( String name );
-
-    /**
-     * Get all parameters as a map of key => values, supports more than one pr key (so values is a collection)
-     */
-    Map<String, List<String>> getParameterValuesMap();
-
-    /**
-     * Get a list of fields from request
-     */
-    List<String> getFieldsFromRequestOrAll();
-
-    List<String> getFieldsFromRequestOrElse( String s );
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "uid" )
+    @Mapping( target = "mandatory" )
+    @Mapping( target = "trackedEntityAttribute" )
+    TrackedEntityTypeAttribute map( TrackedEntityTypeAttribute trackedEntityTypeAttribute );
 }

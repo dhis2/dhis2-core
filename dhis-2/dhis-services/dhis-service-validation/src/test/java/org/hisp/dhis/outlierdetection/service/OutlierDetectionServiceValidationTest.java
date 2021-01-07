@@ -62,7 +62,10 @@ public class OutlierDetectionServiceValidationTest
     private IdentifiableObjectManager idObjectManager;
 
     @Mock
-    private ZScoreOutlierDetectionManager outlierDetectionManager;
+    private ZScoreOutlierDetectionManager zScoreOutlierManager;
+
+    @Mock
+    private MinMaxOutlierDetectionManager minMaxOutlierManager;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -83,7 +86,7 @@ public class OutlierDetectionServiceValidationTest
     @Before
     public void setUp()
     {
-        subject = new DefaultOutlierDetectionService( idObjectManager, outlierDetectionManager );
+        subject = new DefaultOutlierDetectionService( idObjectManager, zScoreOutlierManager, minMaxOutlierManager );
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );

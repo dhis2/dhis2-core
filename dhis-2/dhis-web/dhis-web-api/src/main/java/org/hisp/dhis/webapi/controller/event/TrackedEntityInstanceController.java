@@ -150,7 +150,7 @@ public class TrackedEntityInstanceController
     @GetMapping( produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_XML, ContextUtils.CONTENT_TYPE_CSV } )
     public @ResponseBody RootNode getTrackedEntityInstances( TrackedEntityInstanceCriteria criteria, HttpServletResponse response )
     {
-        List<String> fields = contextService.getFieldsFromRequest();
+        List<String> fields = contextService.getFieldsFromRequestOrAll();
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
@@ -333,7 +333,7 @@ public class TrackedEntityInstanceController
         @PathVariable( "id" ) String pvId,
         @RequestParam( required = false ) String program )
     {
-        List<String> fields = contextService.getFieldsFromRequest();
+        List<String> fields = contextService.getFieldsFromRequestOrAll();
 
         CollectionNode collectionNode = fieldFilterService.toCollectionNode( TrackedEntityInstance.class,
             new FieldFilterParams( Lists.newArrayList(
