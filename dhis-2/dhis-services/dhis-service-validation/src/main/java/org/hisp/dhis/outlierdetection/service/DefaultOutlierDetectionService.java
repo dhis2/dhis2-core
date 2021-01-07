@@ -221,7 +221,7 @@ public class DefaultOutlierDetectionService
      * Returns outlier values using the algorithm defined in the request.
      *
      * @param request the {@link OutlierDetectionRequest}.
-     * @return a {@link OutlierDetectionMetadata} instance.
+     * @return a list of {@link OutlierValue}.
      */
     private List<OutlierValue> getOutliers( OutlierDetectionRequest request )
     {
