@@ -110,18 +110,7 @@ public class OutlierDetectionServiceMinMaxTest
         m11 = pt.createPeriod( "202011" );
         m12 = pt.createPeriod( "202012" );
 
-        periodService.addPeriod( m01 );
-        periodService.addPeriod( m02 );
-        periodService.addPeriod( m03 );
-        periodService.addPeriod( m04 );
-        periodService.addPeriod( m05 );
-        periodService.addPeriod( m06 );
-        periodService.addPeriod( m07 );
-        periodService.addPeriod( m08 );
-        periodService.addPeriod( m09 );
-        periodService.addPeriod( m10 );
-        periodService.addPeriod( m11 );
-        periodService.addPeriod( m12 );
+        addPeriods( m01, m02, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12 );
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
@@ -225,6 +214,11 @@ public class OutlierDetectionServiceMinMaxTest
         assertEquals( 40, outlier.getLowerBound().intValue() );
         assertEquals( 60, outlier.getUpperBound().intValue() );
         assertEquals( 8, outlier.getAbsDev().intValue() );
+    }
+
+    private void addPeriods( Period... periods )
+    {
+        Stream.of( periods ).forEach( pe -> periodService.addPeriod( pe ) );
     }
 
     private void addMinMaxValues( MinMaxDataElement... minMaxValues )
