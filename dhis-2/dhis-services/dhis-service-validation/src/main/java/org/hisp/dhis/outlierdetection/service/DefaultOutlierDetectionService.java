@@ -30,7 +30,6 @@ package org.hisp.dhis.outlierdetection.service;
 
 import java.io.IOException;
 import java.io.OutputStream;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,6 +41,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionMetadata;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
@@ -65,13 +65,17 @@ public class DefaultOutlierDetectionService
 
     private final IdentifiableObjectManager idObjectManager;
 
-    private final ZScoreOutlierDetectionManager zScoreOutlierDetectionManager;
+    private final ZScoreOutlierDetectionManager zScoreOutlierDetection;
+
+    private final MinMaxOutlierDetectionManager minMaxOutlierDetection;
 
     public DefaultOutlierDetectionService( IdentifiableObjectManager idObjectManager,
-        ZScoreOutlierDetectionManager zScoreOutlierDetectionManager )
+        ZScoreOutlierDetectionManager zScoreOutlierDetection,
+        MinMaxOutlierDetectionManager minMaxOutlierDetection )
     {
         this.idObjectManager = idObjectManager;
-        this.zScoreOutlierDetectionManager = zScoreOutlierDetectionManager;
+        this.zScoreOutlierDetection = zScoreOutlierDetection;
+        this.minMaxOutlierDetection = minMaxOutlierDetection;
     }
 
     @Override
@@ -183,7 +187,7 @@ public class DefaultOutlierDetectionService
         validate( request );
 
         final OutlierDetectionResponse response = new OutlierDetectionResponse();
-        response.setOutlierValues( zScoreOutlierDetectionManager.getOutlierValues( request ) );
+        response.setOutlierValues( getOutliers( request ) );
         response.setMetadata( getMetadata( request, response.getOutlierValues() ) );
         return response;
     }
@@ -198,7 +202,7 @@ public class DefaultOutlierDetectionService
     /**
      * Returns metadata for the given request.
      *
-     * @param request the {@link Request}.
+     * @param request the {@link OutlierDetectionRequest}.
      * @param outlierValues the list of {@link OutlierValue}.
      * @return a {@link OutlierDetectionMetadata} instance.
      */
@@ -212,4 +216,28 @@ public class DefaultOutlierDetectionService
         metadata.setMaxResults( request.getMaxResults() );
         return metadata;
     }
+
+    /**
+     * Returns outlier values using the algorithm defined in the request.
+     *
+     * @param request the {@link OutlierDetectionRequest}.
+     * @return a list of {@link OutlierValue}.
+     */
+    private List<OutlierValue> getOutliers( OutlierDetectionRequest request )
+    {
+        if ( request.getAlgorithm() == OutlierDetectionAlgorithm.Z_SCORE )
+        {
+            return zScoreOutlierDetection.getOutlierValues( request );
+        }
+        else if ( request.getAlgorithm() == OutlierDetectionAlgorithm.MIN_MAX )
+        {
+            return minMaxOutlierDetection.getOutlierValues( request );
+        }
+        else
+        {
+            throw new IllegalStateException( String.format(
+                "Outlier detection algorithm not supported: %s", request.getAlgorithm() ) );
+        }
+    }
 }
+

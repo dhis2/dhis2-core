@@ -74,13 +74,20 @@ public class MinMaxDataElement
     }
 
     public MinMaxDataElement( DataElement dataElement, OrganisationUnit source, CategoryOptionCombo optionCombo,
-        int min, int max, boolean generated )
+        int min, int max )
     {
         this.dataElement = dataElement;
         this.source = source;
         this.optionCombo = optionCombo;
         this.min = min;
         this.max = max;
+        this.generated = false;
+    }
+
+    public MinMaxDataElement( DataElement dataElement, OrganisationUnit source, CategoryOptionCombo optionCombo,
+        int min, int max, boolean generated )
+    {
+        this( dataElement, source, optionCombo, min, max );
         this.generated = generated;
     }
 
