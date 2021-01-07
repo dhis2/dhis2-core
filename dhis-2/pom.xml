@@ -36,12 +36,15 @@
   </licenses>
 
   <properties>
+    <!-- Build Properties-->
     <rootDir></rootDir>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-    <!-- Build Properties-->
+    <minimum-maven.version>3.6.0</minimum-maven.version>
+    <minimum-java.version>1.8</minimum-java.version>
+
     <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     <sonar.organization>dhis2</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
@@ -52,13 +55,9 @@
     <!-- DHIS2 Rule Engine-->
     <dhis2-rule-engine.version>2.0.16-SNAPSHOT</dhis2-rule-engine.version>
 
-    <!-- Hisp Quick-->
+    <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.3.5</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>1.4</dhis-hisp-staxwax.version>
-
-    <!-- Logging-->
-    <log4j.version>2.13.0</log4j.version>
-    <slf4j.version>1.7.30</slf4j.version>
 
     <!-- Security-->
     <spring-security.version>5.4.2</spring-security.version>
@@ -184,6 +183,10 @@
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.5</micrometer-spring-legacy.version>
     <micrometer-registry-prometheus.version>1.3.5</micrometer-registry-prometheus.version>
+
+    <!-- Logging-->
+    <log4j.version>2.13.0</log4j.version>
+    <slf4j.version>1.7.30</slf4j.version>
 
     <!-- Test -->
     <junit.version>4.13.1</junit.version>
@@ -683,10 +686,10 @@
               <rules>
                 <banDuplicatePomDependencyVersions/>
                 <requireMavenVersion>
-                  <version>3.6.0</version>
+                  <version>${minimum-maven.version}</version>
                 </requireMavenVersion>
                 <requireJavaVersion>
-                  <version>1.8</version>
+                  <version>${minimum-java.version}</version>
                 </requireJavaVersion>
               </rules>
             </configuration>
