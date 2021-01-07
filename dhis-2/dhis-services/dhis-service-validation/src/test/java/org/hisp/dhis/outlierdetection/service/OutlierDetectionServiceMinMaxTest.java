@@ -29,10 +29,7 @@ package org.hisp.dhis.outlierdetection.service;
  */
 
 import static org.junit.Assert.assertEquals;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
+
 import java.util.stream.Stream;
 
 import org.hisp.dhis.IntegrationTestBase;
@@ -41,10 +38,11 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.minmax.MinMaxDataElement;
+import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
@@ -59,12 +57,11 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
-import com.google.common.math.StatsAccumulator;
 
 /**
  * @author Lars Helge Overland
  */
-public class OutlierDetectionServiceZScoreTest
+public class OutlierDetectionServiceMinMaxTest
     extends IntegrationTestBase
 {
     @Autowired
@@ -75,6 +72,9 @@ public class OutlierDetectionServiceZScoreTest
 
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private MinMaxDataElementService minMaxService;
 
     @Autowired
     private DataValueService dataValueService;
@@ -135,9 +135,8 @@ public class OutlierDetectionServiceZScoreTest
         query.setStartDate( getDate( 2020, 1, 1 ) );
         query.setEndDate( getDate( 2020, 6, 1 ) );
         query.setOu( Lists.newArrayList( "ouabcdefghA", "ouabcdefghB" ) );
-        query.setAlgorithm( OutlierDetectionAlgorithm.Z_SCORE );
-        query.setThreshold( 2.5 );
-        query.setMaxResults( 100 );
+        query.setAlgorithm( OutlierDetectionAlgorithm.MIN_MAX );
+        query.setMaxResults( 200 );
 
         OutlierDetectionRequest request = subject.getFromQuery( query );
 
@@ -145,124 +144,61 @@ public class OutlierDetectionServiceZScoreTest
         assertEquals( 2, request.getOrgUnits().size() );
         assertEquals( getDate( 2020, 1, 1 ), request.getStartDate() );
         assertEquals( getDate( 2020, 6, 1 ), request.getEndDate() );
-        assertEquals( OutlierDetectionAlgorithm.Z_SCORE, request.getAlgorithm() );
-        assertEquals( 2.5, request.getThreshold(), DELTA );
-        assertEquals( 100, request.getMaxResults() );
+        assertEquals( OutlierDetectionAlgorithm.MIN_MAX, request.getAlgorithm() );
+        assertEquals( 200, request.getMaxResults() );
     }
 
     @Test
     public void testGetOutlierValues()
     {
-        // 12, 91, 11, 87 are outlier values with a z-score above 2.0
+        addMinMaxValues(
+            new MinMaxDataElement( deA, ouA, coc, 40, 60 ),
+            new MinMaxDataElement( deB, ouA, coc, 45, 65 ) );
+
+        // 34, 39, 68, 91, 42, 45, 68, 87 are outlier values outside the min-max range
 
         addDataValues(
             new DataValue( deA, m01, ouA, coc, coc, "50" ), new DataValue( deA, m07, ouA, coc, coc, "51" ),
-            new DataValue( deA, m02, ouA, coc, coc, "53" ), new DataValue( deA, m08, ouA, coc, coc, "59" ),
-            new DataValue( deA, m03, ouA, coc, coc, "58" ), new DataValue( deA, m09, ouA, coc, coc, "55" ),
-            new DataValue( deA, m04, ouA, coc, coc, "55" ), new DataValue( deA, m10, ouA, coc, coc, "52" ),
+            new DataValue( deA, m02, ouA, coc, coc, "34" ), new DataValue( deA, m08, ouA, coc, coc, "59" ),
+            new DataValue( deA, m03, ouA, coc, coc, "58" ), new DataValue( deA, m09, ouA, coc, coc, "39" ),
+            new DataValue( deA, m04, ouA, coc, coc, "68" ), new DataValue( deA, m10, ouA, coc, coc, "52" ),
             new DataValue( deA, m05, ouA, coc, coc, "51" ), new DataValue( deA, m11, ouA, coc, coc, "58" ),
-            new DataValue( deA, m06, ouA, coc, coc, "12" ), new DataValue( deA, m12, ouA, coc, coc, "91" ),
+            new DataValue( deA, m06, ouA, coc, coc, "40" ), new DataValue( deA, m12, ouA, coc, coc, "91" ),
 
-            new DataValue( deB, m01, ouA, coc, coc, "41" ), new DataValue( deB, m02, ouA, coc, coc, "48" ),
+            new DataValue( deB, m01, ouA, coc, coc, "42" ), new DataValue( deB, m02, ouA, coc, coc, "48" ),
             new DataValue( deB, m03, ouA, coc, coc, "45" ), new DataValue( deB, m04, ouA, coc, coc, "46" ),
-            new DataValue( deB, m05, ouA, coc, coc, "49" ), new DataValue( deB, m06, ouA, coc, coc, "41" ),
-            new DataValue( deB, m07, ouA, coc, coc, "41" ), new DataValue( deB, m08, ouA, coc, coc, "49" ),
-            new DataValue( deB, m09, ouA, coc, coc, "42" ), new DataValue( deB, m10, ouA, coc, coc, "47" ),
+            new DataValue( deB, m05, ouA, coc, coc, "49" ), new DataValue( deB, m06, ouA, coc, coc, "68" ),
+            new DataValue( deB, m07, ouA, coc, coc, "48" ), new DataValue( deB, m08, ouA, coc, coc, "49" ),
+            new DataValue( deB, m09, ouA, coc, coc, "52" ), new DataValue( deB, m10, ouA, coc, coc, "47" ),
             new DataValue( deB, m11, ouA, coc, coc, "11" ), new DataValue( deB, m12, ouA, coc, coc, "87" ) );
 
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withDataElements( Lists.newArrayList( deA, deB ) )
             .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) )
             .withOrgUnits( Lists.newArrayList( ouA ) )
-            .withAlgorithm( OutlierDetectionAlgorithm.Z_SCORE )
-            .withThreshold( 2.0 ).build();
+            .withAlgorithm( OutlierDetectionAlgorithm.MIN_MAX ).build();
 
         OutlierDetectionResponse response = subject.getOutlierValues( request );
 
-        assertEquals( 4, response.getOutlierValues().size() );
-    }
-
-    @Test
-    public void testGetOutlierValuesAsCsv()
-        throws IOException
-    {
-        // 12, 91, 11, 87 are outlier values with a z-score above 2.0
-
-        addDataValues(
-            new DataValue( deA, m01, ouA, coc, coc, "50" ), new DataValue( deA, m07, ouA, coc, coc, "51" ),
-            new DataValue( deA, m02, ouA, coc, coc, "53" ), new DataValue( deA, m08, ouA, coc, coc, "59" ),
-            new DataValue( deA, m03, ouA, coc, coc, "58" ), new DataValue( deA, m09, ouA, coc, coc, "55" ),
-            new DataValue( deA, m04, ouA, coc, coc, "55" ), new DataValue( deA, m10, ouA, coc, coc, "52" ),
-            new DataValue( deA, m05, ouA, coc, coc, "51" ), new DataValue( deA, m11, ouA, coc, coc, "58" ),
-            new DataValue( deA, m06, ouA, coc, coc, "12" ), new DataValue( deA, m12, ouA, coc, coc, "91" ),
-
-            new DataValue( deB, m01, ouA, coc, coc, "41" ), new DataValue( deB, m02, ouA, coc, coc, "48" ),
-            new DataValue( deB, m03, ouA, coc, coc, "45" ), new DataValue( deB, m04, ouA, coc, coc, "46" ),
-            new DataValue( deB, m05, ouA, coc, coc, "49" ), new DataValue( deB, m06, ouA, coc, coc, "41" ),
-            new DataValue( deB, m07, ouA, coc, coc, "41" ), new DataValue( deB, m08, ouA, coc, coc, "49" ),
-            new DataValue( deB, m09, ouA, coc, coc, "42" ), new DataValue( deB, m10, ouA, coc, coc, "47" ),
-            new DataValue( deB, m11, ouA, coc, coc, "11" ), new DataValue( deB, m12, ouA, coc, coc, "87" ) );
-
-        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
-            .withDataElements( Lists.newArrayList( deA, deB ) )
-            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) )
-            .withOrgUnits( Lists.newArrayList( ouA ) )
-            .withAlgorithm( OutlierDetectionAlgorithm.Z_SCORE )
-            .withThreshold( 2.0 ).build();
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        subject.getOutlierValuesAsCsv( request, out );
-
-        List<String> csvLines = TextUtils.toLines( new String( out.toByteArray(), StandardCharsets.UTF_8 ) );
-
-        final int endIndex = 61;
-
-        assertEquals( 5, csvLines.size() );
-
-        assertEquals( "de,deName,pe,ou,ouName,coc,cocName,aoc,lastUpdated,value,mean", csvLines.get( 0 ).substring( 0, endIndex ) );
-        assertEquals( "deabcdefghA,DataElementA,202006,ouabcdefghA,OrganisationUnitA", csvLines.get( 1 ).substring( 0, endIndex ) );
-        assertEquals( "deabcdefghB,DataElementB,202012,ouabcdefghA,OrganisationUnitA", csvLines.get( 2 ).substring( 0, endIndex ) );
-        assertEquals( "deabcdefghA,DataElementA,202012,ouabcdefghA,OrganisationUnitA", csvLines.get( 3 ).substring( 0, endIndex ) );
-        assertEquals( "deabcdefghB,DataElementB,202011,ouabcdefghA,OrganisationUnitA", csvLines.get( 4 ).substring( 0, endIndex ) );
+        assertEquals( 8, response.getOutlierValues().size() );
     }
 
     @Test
     public void testGetOutlierValue()
     {
-        StatsAccumulator stats = new StatsAccumulator();
-        stats.addAll( 31, 34, 38, 81, 39, 33 );
-
-        double outlierValue = 81d;
-        double threshold = 2.0;
-        double mean = stats.mean();
-        double stdDev = stats.populationStandardDeviation();
-        double zScore = Math.abs( outlierValue - mean ) / stdDev;
-        double meanAbsDev = Math.abs( outlierValue - mean );
-        double lowerBound = mean - ( stdDev * threshold );
-        double upperBound = mean + ( stdDev * threshold );
-
-        assertEquals( 42.666, mean, DELTA );
-        assertEquals( 17.365, stdDev, DELTA );
-        assertEquals( 2.207, zScore, DELTA );
-        assertEquals( 38.333, meanAbsDev, DELTA );
-        assertEquals( 7.936, lowerBound, DELTA );
-        assertEquals( 77.397, upperBound, DELTA );
+        addMinMaxValues(
+            new MinMaxDataElement( deA, ouA, coc, 40, 60 ),
+            new MinMaxDataElement( deB, ouA, coc, 45, 65 ) );
 
         addDataValues(
-            new DataValue( deA, m01, ouA, coc, coc, "31" ),
-            new DataValue( deA, m02, ouA, coc, coc, "34" ),
-            new DataValue( deA, m03, ouA, coc, coc, "38" ),
-            new DataValue( deA, m04, ouA, coc, coc, "81" ),
-            new DataValue( deA, m05, ouA, coc, coc, "39" ),
-            new DataValue( deA, m06, ouA, coc, coc, "33" ) );
+            new DataValue( deA, m01, ouA, coc, coc, "32" ), new DataValue( deA, m07, ouA, coc, coc, "42" ),
+            new DataValue( deB, m03, ouA, coc, coc, "45" ), new DataValue( deB, m04, ouA, coc, coc, "62" ) );
 
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withDataElements( Lists.newArrayList( deA, deB ) )
             .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) )
             .withOrgUnits( Lists.newArrayList( ouA ) )
-            .withAlgorithm( OutlierDetectionAlgorithm.Z_SCORE )
-            .withThreshold( threshold ).build();
+            .withAlgorithm( OutlierDetectionAlgorithm.MIN_MAX ).build();
 
         OutlierDetectionResponse response = subject.getOutlierValues( request );
 
@@ -272,15 +208,12 @@ public class OutlierDetectionServiceZScoreTest
 
         assertEquals( deA.getUid(), outlier.getDe() );
         assertEquals( ouA.getUid(), outlier.getOu() );
-        assertEquals( m04.getIsoDate(), outlier.getPe() );
+        assertEquals( m01.getIsoDate(), outlier.getPe() );
 
-        assertEquals( outlierValue, outlier.getValue(), DELTA );
-        assertEquals( mean, outlier.getMean(), DELTA );
-        assertEquals( stdDev, outlier.getStdDev(), DELTA );
-        assertEquals( zScore, outlier.getZScore(), DELTA );
-        assertEquals( meanAbsDev, outlier.getAbsDev(), DELTA );
-        assertEquals( lowerBound, outlier.getLowerBound(), DELTA );
-        assertEquals( upperBound, outlier.getUpperBound(), DELTA );
+        assertEquals( 32, outlier.getValue().intValue() );
+        assertEquals( 40, outlier.getLowerBound().intValue() );
+        assertEquals( 60, outlier.getUpperBound().intValue() );
+        assertEquals( 8, outlier.getAbsDev().intValue() );
     }
 
     private void addPeriods( Period... periods )
@@ -288,9 +221,13 @@ public class OutlierDetectionServiceZScoreTest
         Stream.of( periods ).forEach( periodService::addPeriod );
     }
 
+    private void addMinMaxValues( MinMaxDataElement... minMaxValues )
+    {
+        Stream.of( minMaxValues ).forEach( minMaxService::addMinMaxDataElement );
+    }
+
     private void addDataValues( DataValue... dataValues )
     {
         Stream.of( dataValues ).forEach( dataValueService::addDataValue );
     }
 }
-

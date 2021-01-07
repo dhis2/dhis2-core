@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -73,7 +73,7 @@ public class TrackerTrackedEntitiesExportController
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<TrackedEntity> getInstances( TrackedEntityInstanceCriteria criteria )
     {
-        List<String> fields = contextService.getFieldsFromRequest();
+        List<String> fields = contextService.getFieldsFromRequestOrAll();
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
@@ -95,10 +95,10 @@ public class TrackerTrackedEntitiesExportController
     }
 
     @GetMapping( value = "{id}" )
-    public TrackedEntity getTrackedEntityInstanceById( @PathVariable( "id" ) String pvId,
+    public TrackedEntity getTrackedEntityInstanceById( @PathVariable String id,
         @RequestParam( required = false ) String program )
     {
-        return TRACKED_ENTITY_MAPPER.from( trackedEntityInstanceSupportService.getTrackedEntityInstance( pvId, program,
-            contextService.getFieldsFromRequest() ) );
+        return TRACKED_ENTITY_MAPPER.from( trackedEntityInstanceSupportService.getTrackedEntityInstance( id, program,
+            contextService.getFieldsFromRequestOrAll() ) );
     }
 }

@@ -28,21 +28,6 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static java.util.Collections.singletonList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.tracker.TrackerIdentifierCollector.ID_WILDCARD;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.List;
-import java.util.Optional;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -67,6 +52,16 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import java.util.List;
+import java.util.Optional;
+
+import static java.util.Collections.singletonList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.tracker.TrackerIdentifierCollector.ID_WILDCARD;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Luciano Fiandesio
@@ -113,7 +108,7 @@ public class AbstractSchemaStrategyCachingTest
 
         // When
         strategy.queryForIdentifiableObjects( preheat, schema, TrackerIdentifier.UID,
-            singletonList( singletonList( ID_WILDCARD ) ), RelationshipTypeMapper.INSTANCE.getClass() );
+            singletonList( singletonList( ID_WILDCARD ) ), RelationshipTypeMapper.class );
 
         // Then
         assertThat( preheat.getAll( RelationshipType.class ), hasSize( 5 ) );

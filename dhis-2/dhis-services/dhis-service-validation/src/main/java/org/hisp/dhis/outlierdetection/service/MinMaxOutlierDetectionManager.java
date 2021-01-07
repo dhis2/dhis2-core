@@ -50,23 +50,23 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Manager for database queries related to outlier data detection
- * based on z-score.
+ * based on min-max values.
  *
  * @author Lars Helge Overland
  */
 @Slf4j
 @Repository
-public class ZScoreOutlierDetectionManager
+public class MinMaxOutlierDetectionManager
 {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public ZScoreOutlierDetectionManager( NamedParameterJdbcTemplate jdbcTemplate )
+    public MinMaxOutlierDetectionManager( NamedParameterJdbcTemplate jdbcTemplate )
     {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     /**
-     * Returns a list of outlier data values based on z-score for the given request.
+     * Returns a list of outlier data values based on min-max values for the given request.
      *
      * @param request the {@link OutlierDetectionRequest}.
      * @return a list of {@link OutlierValue}.
@@ -76,64 +76,35 @@ public class ZScoreOutlierDetectionManager
         final String ouPathClause = getOrgUnitPathClause( request.getOrgUnits() );
 
         final String sql =
-            // Outer select
-            "select dvs.de_uid, dvs.ou_uid, dvs.coc_uid, dvs.aoc_uid, " +
-                "dvs.de_name, dvs.ou_name, dvs.coc_name, dvs.aoc_name, dvs.value, " +
-                "dvs.pe_start_date, dvs.pt_name, " +
-                "stats.mean as mean, " +
-                "stats.std_dev as std_dev, " +
-                "abs(dvs.value::double precision - stats.mean) as mean_abs_dev, " +
-                "abs(dvs.value::double precision - stats.mean) / stats.std_dev as z_score, " +
-                "stats.mean - (stats.std_dev * :threshold) as lower_bound, " +
-                "stats.mean + (stats.std_dev * :threshold) as upper_bound " +
-            // Data value query
-            "from (" +
-                "select dv.dataelementid, dv.sourceid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, " +
-                "de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, " +
+            "select de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, " +
                 "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, " +
                 "pe.startdate as pe_start_date, pt.name as pt_name, " +
-                "dv.value " +
-                "from datavalue dv " +
-                "inner join dataelement de on dv.dataelementid = de.dataelementid " +
-                "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
-                "inner join categoryoptioncombo aoc on dv.attributeoptioncomboid = aoc.categoryoptioncomboid " +
-                "inner join period pe on dv.periodid = pe.periodid " +
-                "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
-                "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
-                "where dv.dataelementid in (:data_element_ids) " +
-                "and pe.startdate >= :start_date " +
-                "and pe.enddate <= :end_date " +
-                "and " + ouPathClause + " " +
-                "and dv.deleted is false" +
-            ") as dvs " +
-            // Mean and std dev mapping query
-            "inner join (" +
-                "select dv.dataelementid as dataelementid, dv.sourceid as sourceid, " +
-                "dv.categoryoptioncomboid as categoryoptioncomboid, " +
-                "dv.attributeoptioncomboid as attributeoptioncomboid, " +
-                "avg(dv.value::double precision) as mean, " +
-                "stddev_pop(dv.value::double precision) as std_dev " +
-                "from datavalue dv " +
-                "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
-                "where dv.dataelementid in (:data_element_ids) " +
-                "and " + ouPathClause + " " +
-                "and dv.deleted is false " +
-                "group by dv.dataelementid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid" +
-            ") as stats " +
-            // Query join
-            "on dvs.dataelementid = stats.dataelementid " +
-            "and dvs.sourceid = stats.sourceid " +
-            "and dvs.categoryoptioncomboid = stats.categoryoptioncomboid " +
-            "and dvs.attributeoptioncomboid = stats.attributeoptioncomboid " +
-            "where stats.std_dev != 0.0 " +
-            // Filter on z-score threshold
-            "and (abs(dvs.value::double precision - stats.mean) / stats.std_dev) >= :threshold " +
+                "dv.value::double precision, " +
+                "least(abs(dv.value::double precision - mm.minimumvalue), abs(dv.value::double precision - mm.maximumvalue)) as bound_abs_dev, " +
+                "mm.minimumvalue as lower_bound, " +
+                "mm.maximumvalue as upper_bound " +
+            "from datavalue dv " +
+            "inner join dataelement de on dv.dataelementid = de.dataelementid " +
+            "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
+            "inner join categoryoptioncombo aoc on dv.attributeoptioncomboid = aoc.categoryoptioncomboid " +
+            "inner join period pe on dv.periodid = pe.periodid " +
+            "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
+            "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
+            // Min-max data element join
+            "inner join minmaxdataelement mm on (dv.dataelementid = mm.dataelementid " +
+                "and dv.sourceid = mm.sourceid and dv.categoryoptioncomboid = mm.categoryoptioncomboid) " +
+            "where dv.dataelementid in (:data_element_ids) " +
+            "and pe.startdate >= :start_date " +
+            "and pe.enddate <= :end_date " +
+            "and " + ouPathClause + " " +
+            "and dv.deleted is false " +
+            // Filter for values outside the min-max range
+            "and (dv.value::double precision < mm.minimumvalue or dv.value::double precision > mm.maximumvalue) " +
             // Order and limit
-            "order by " + request.getOrderBy().getKey() + " desc " +
+            "order by bound_abs_dev desc " +
             "limit :max_results;";
 
         final SqlParameterSource params = new MapSqlParameterSource()
-            .addValue( "threshold", request.getThreshold() )
             .addValue( "data_element_ids", request.getDataElementIds() )
             .addValue( "start_date", request.getStartDate() )
             .addValue( "end_date", request.getEndDate() )
@@ -179,10 +150,7 @@ public class ZScoreOutlierDetectionManager
             outlier.setAoc( rs.getString( "aoc_uid" ) );
             outlier.setAocName( rs.getString( "aoc_name" ) );
             outlier.setValue( rs.getDouble( "value" ) );
-            outlier.setMean( rs.getDouble( "mean" ) );
-            outlier.setStdDev( rs.getDouble( "std_dev" ) );
-            outlier.setAbsDev( rs.getDouble( "mean_abs_dev" ) );
-            outlier.setZScore( rs.getDouble( "z_score" ) );
+            outlier.setAbsDev( rs.getDouble( "bound_abs_dev" ) );
             outlier.setLowerBound( rs.getDouble( "lower_bound" ) );
             outlier.setUpperBound( rs.getDouble( "upper_bound" ) );
 
@@ -190,4 +158,3 @@ public class ZScoreOutlierDetectionManager
         };
     }
 }
-
