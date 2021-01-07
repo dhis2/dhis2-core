@@ -622,11 +622,6 @@
           "id": "Q9GufDoplCL"
         }
       },
-      "user": {
-        "displayName": "TA Admin",
-        "id": "PQD6wXJ2r5k",
-        "username": "taadmin"
-      },
       "userGroupAccesses": [
         {
           "access": "rwrw----",

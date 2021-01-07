@@ -31,6 +31,7 @@ package org.hisp.dhis.actions;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 
 import java.util.List;
 
@@ -53,21 +54,17 @@ public class UserActions
     {
         String id = idGenerator.generateUniqueId();
 
-        JsonObject user = new JsonObject();
-
-        user.addProperty( "id", id );
-        user.addProperty( "firstName", firstName );
-        user.addProperty( "surname", surname );
-
-        JsonObject credentials = new JsonObject();
-        credentials.addProperty( "username", username );
-        credentials.addProperty( "password", password );
-
-        JsonObject userInfo = new JsonObject();
-        userInfo.addProperty( "id", id );
-
-        credentials.add( "userInfo", userInfo );
-        user.add( "userCredentials", credentials );
+        JsonObject user = new JsonObjectBuilder()
+            .addProperty( "id", id)
+            .addProperty( "firstName", firstName )
+            .addProperty( "surname", surname )
+            .addObject( "userCredentials", new JsonObjectBuilder()
+                .addProperty( "username", username )
+                .addProperty( "password", password ))
+                .addObject( "userInfo", new JsonObjectBuilder().addProperty( "id", id ) )
+            .addObject( "userInfo", new JsonObjectBuilder()
+                .addProperty( "id", id ))
+            .build();
 
         ApiResponse response = this.post( user );
 

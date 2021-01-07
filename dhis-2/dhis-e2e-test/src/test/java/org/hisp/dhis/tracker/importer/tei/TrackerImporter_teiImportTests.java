@@ -46,7 +46,9 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.io.File;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -56,13 +58,10 @@ public class TrackerImporter_teiImportTests
 {
     private TrackerActions trackerActions;
 
-    private TEIActions teiActions;
-
     @BeforeAll
     public void beforeAll()
     {
         trackerActions = new TrackerActions();
-        teiActions = new TEIActions();
 
         new LoginActions().loginAsSuperUser();
     }
@@ -90,12 +89,12 @@ public class TrackerImporter_teiImportTests
         // assert that the tei was imported
         String teiId = response.extractImportedTeis().get( 0 );
 
-        ApiResponse teiResponse = teiActions.get( teiId );
+        ApiResponse teiResponse = trackerActions.get( "/trackedEntities/" + teiId );
+
         teiResponse.validate()
             .statusCode( 200 );
 
-        JSONAssert.assertEquals( trackedEntities.get( "trackedEntities" ).getAsJsonArray().get( 0 ).toString(),
-            teiResponse.getBody().toString(), false );
+        assertThat( teiResponse.getBody(), matchesJSON( trackedEntities.get( "trackedEntities" ).getAsJsonArray().get( 0 ) ) );
     }
 
     @Test
@@ -118,14 +117,12 @@ public class TrackerImporter_teiImportTests
         // assert that the TEI was imported
         String teiId = response.extractImportedTeis().get( 0 );
 
-        ApiResponse teiResponse = teiActions.get( teiId );
+        ApiResponse teiResponse = trackerActions.get( "/trackedEntities/" + teiId );
 
         teiResponse.validate()
             .statusCode( 200 );
 
-        JSONAssert
-            .assertEquals( teiBody.get( "trackedEntities" ).getAsJsonArray().get( 0 ).toString(), teiResponse.getBody().toString(),
-                false );
+        assertThat( teiResponse.getBody(), matchesJSON( teiBody.get( "trackedEntities" ).getAsJsonArray().get( 0 ) ) );
     }
 
     @Test
@@ -133,11 +130,11 @@ public class TrackerImporter_teiImportTests
         throws Exception
     {
         // the file contains 2 teis with 1 enrollment and 1 event each
-        JsonObject teiBody = new FileReaderUtils()
+        JsonObject teiPayload = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) );
 
         // act
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( teiBody );
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( teiPayload );
 
         response.validateSuccessfulImport()
             .validate()
@@ -147,11 +144,15 @@ public class TrackerImporter_teiImportTests
             .body( "bundleReport.typeReportMap.EVENT.objectReports", hasSize( 2 ) )
             .body( "bundleReport.typeReportMap.RELATIONSHIP.objectReports", hasSize( 1 ) );
 
-        teiActions.get( response.extractImportedTeis().get( 0 ), new QueryParamsBuilder().addAll( "fields=*" ) )
-            .validate()
-            .statusCode( 200 )
-            .body( "enrollments", notNullValue() )
-            .body( "enrollments.events.", notNullValue() );
+
+        JsonObject teiBody = teiPayload.get( "trackedEntities" ).getAsJsonArray().get( 0 ).getAsJsonObject() ;
+
+        ApiResponse trackedEntityResponse = trackerActions.get( "/trackedEntities/" + teiBody.get( "trackedEntity" ).getAsString(), new QueryParamsBuilder().addAll( "fields=*" ) );
+
+        trackedEntityResponse.validate()
+            .statusCode( 200 );
+
+        assertThat( trackedEntityResponse.getBody(), matchesJSON( teiBody) );
     }
 
 }

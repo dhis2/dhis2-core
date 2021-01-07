@@ -58,13 +58,10 @@ public class TrackerImporter_enrollmentsTests
 {
     private TrackerActions trackerActions;
 
-    private RestApiActions enrollmentActions;
-
     @BeforeAll
     public void beforeAll()
     {
         trackerActions = new TrackerActions();
-        enrollmentActions = new RestApiActions( "/enrollments" );
 
         new LoginActions().loginAsSuperUser();
     }
@@ -91,10 +88,10 @@ public class TrackerImporter_enrollmentsTests
         String teiId = response.extractImportedTeis().get( 0 );
         String enrollmentId = response.extractImportedEnrollments().get( 0 );
 
-        enrollmentActions.get( enrollmentId )
+        trackerActions.get( "/enrollments/" + enrollmentId )
             .validate()
             .statusCode( 200 )
-            .body( "trackedEntityInstance", equalTo( teiId ) );
+            .body( "trackedEntity", equalTo( teiId ) );
 
     }
 
@@ -121,10 +118,10 @@ public class TrackerImporter_enrollmentsTests
         String teiId = response.extractImportedTeis().get( 0 );
         String enrollmentId = response.extractImportedEnrollments().get( 0 );
 
-        enrollmentActions.get( enrollmentId )
+        trackerActions.get( "/enrollments/" + enrollmentId )
             .validate()
             .statusCode( 200 )
-            .body( "trackedEntityInstance", equalTo( teiId ) );
+            .body( "trackedEntity", equalTo( teiId ) );
     }
 
     @Test
@@ -134,8 +131,7 @@ public class TrackerImporter_enrollmentsTests
         JsonObject teiPayload = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/teis/tei.json" ) )
             .get( JsonObject.class );
 
-        String teiId = trackerActions.postAndGetJobReport( teiPayload ).extractImportedTeis().get( 0 );
-        assertNotNull( "Tei wasn't imported", teiId );
+        String teiId = trackerActions.postAndGetJobReport( teiPayload ).validateSuccessfulImport().extractImportedTeis().get( 0 );
 
         JsonObject enrollmentPayload = new FileReaderUtils()
             .read( new File( "src/test/resources/tracker/importer/enrollments/enrollment.json" ) )
@@ -152,21 +148,8 @@ public class TrackerImporter_enrollmentsTests
 
         String enrollmentId = response.extractImportedEnrollments().get( 0 );
 
-        ApiResponse enrollmentResponse = enrollmentActions.get( enrollmentId );
+        ApiResponse enrollmentResponse = trackerActions.get( "/enrollments/" + enrollmentId );
 
-        enrollmentResponse
-            .validate()
-            .statusCode( 200 )
-            .body( "trackedEntityInstance", equalTo( teiId ) );
-
-        // todo change when the exporter is ready
-        JsonObject objToMatch = enrollmentPayload.get( "enrollments" ).getAsJsonArray().get( 0 ).getAsJsonObject();
-        objToMatch.addProperty( "enrollmentDate", objToMatch.get( "enrolledAt" ).getAsString() );
-        objToMatch.addProperty( "incidentDate", objToMatch.get( "occurredAt" ).getAsString() );
-        objToMatch.remove( "enrolledAt" );
-        objToMatch.remove( "occurredAt" );
-        objToMatch.remove( "trackedEntity" );
-
-        assertThat( enrollmentResponse.getBody(), matchesJSON( objToMatch) );
+        assertThat( enrollmentResponse.getBody(), matchesJSON(  enrollmentPayload.get( "enrollments" ).getAsJsonArray().get( 0 ).getAsJsonObject()) );
     }
 }

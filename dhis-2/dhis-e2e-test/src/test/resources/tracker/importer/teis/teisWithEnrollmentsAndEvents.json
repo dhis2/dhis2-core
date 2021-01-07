@@ -3,21 +3,13 @@
     {
       "orgUnit": "O6uvpzGd5pu",
       "trackedEntity": "Kj6vYde4LHh",
-      "lastUpdated": "2019-08-19T13:59:13.706",
       "trackedEntityType": "Q9GufDoplCL",
       "featureType": "POLYGON",
-      "programOwners": [
-        {
-          "ownerOrgUnit": "O6uvpzGd5pu",
-          "program": "f1AyMswryyQ",
-          "trackedEntityInstance": "Kj6vYde4LHh"
-        }
-      ],
       "enrollments": [
         {
           "orgUnit": "O6uvpzGd5pu",
           "program": "f1AyMswryyQ",
-          "trackedEntityInstance": "Kj6vYde4LHh",
+          "trackedEntity": "Kj6vYde4LHh",
           "enrollment": "MNWZ6hnuhSw",
           "trackedEntityType": "Q9GufDoplCL",
           "enrolledAt": "2019-08-19T00:00:00.000",
@@ -29,13 +21,12 @@
           "attributes": [],
           "events": [
             {
-              "dueDate": "2019-08-19T13:59:13.688",
-              "createdAtClient": "2019-08-19T13:58:26.964",
+              "scheduledAt": "2019-08-19T13:59:13.688",
               "program": "f1AyMswryyQ",
               "event": "ZwwuwNp6gVd",
               "programStage": "nlXNK4b7LVr",
               "orgUnit": "O6uvpzGd5pu",
-              "trackedEntityInstance": "Kj6vYde4LHh",
+              "trackedEntity": "Kj6vYde4LHh",
               "enrollment": "MNWZ6hnuhSw",
               "enrollmentStatus": "ACTIVE",
               "status": "ACTIVE",
@@ -46,25 +37,22 @@
               "attributeOptionCombo": "HllvX50cXC0",
               "dataValues": [
                 {
-                  "lastUpdated": "2019-08-19T13:58:37.477",
+                  "updatedAt": "2019-08-19T13:58:37.477",
                   "storedBy": "admin",
-                  "created": "2019-08-19T13:58:37.477",
                   "dataElement": "BuZ5LGNfGEU",
                   "value": "20",
                   "providedElsewhere": false
                 },
                 {
-                  "lastUpdated": "2019-08-19T13:58:40.031",
+                  "updatedAt": "2019-08-19T13:58:40.031",
                   "storedBy": "admin",
-                  "created": "2019-08-19T13:58:40.031",
                   "dataElement": "ZrqtjjveTFc",
                   "value": "Male",
                   "providedElsewhere": false
                 },
                 {
-                  "lastUpdated": "2019-08-19T13:59:13.691",
+                  "updatedAt": "2019-08-19T13:59:13.691",
                   "storedBy": "admin",
-                  "created": "2019-08-19T13:59:13.691",
                   "dataElement": "mB2QHw1tU96",
                   "value": "[-11.566044,9.477801]",
                   "providedElsewhere": false
@@ -95,7 +83,6 @@
           "value": "John"
         },
         {
-          "created": "2019-08-19T13:58:26.829",
           "valueType": "TEXT",
           "attribute": "kZeSYCgaHTk",
           "value": "Bravo"
@@ -109,13 +96,6 @@
       "inactive": false,
       "deleted": false,
       "featureType": "NONE",
-      "programOwners": [
-        {
-          "ownerOrgUnit": "O6uvpzGd5pu",
-          "program": "f1AyMswryyQ",
-          "trackedEntityInstance": "Nav6inZRw1u"
-        }
-      ],
       "enrollments": [
         {
           "orgUnit": "O6uvpzGd5pu",
@@ -131,12 +111,12 @@
           "attributes": [],
           "events": [
             {
-              "dueDate": "2019-08-19T13:34:52.793",
+              "scheduledAt": "2019-08-19T13:34:52.793",
               "program": "f1AyMswryyQ",
               "event": "olfXZzSGacW",
               "programStage": "nlXNK4b7LVr",
               "orgUnit": "O6uvpzGd5pu",
-              "trackedEntityInstance": "Nav6inZRw1u",
+              "trackedEntity": "Nav6inZRw1u",
               "enrollment": "PuBvJxDB73z",
               "enrollmentStatus": "ACTIVE",
               "status": "ACTIVE",
@@ -146,9 +126,8 @@
               "attributeOptionCombo": "HllvX50cXC0",
               "dataValues": [
                 {
-                  "lastUpdated": "2019-08-19T13:34:47.403",
+                  "updatedAt": "2019-08-19T13:34:47.403",
                   "storedBy": "admin",
-                  "created": "2019-08-19T13:34:47.403",
                   "dataElement": "BuZ5LGNfGEU",
                   "value": "22",
                   "providedElsewhere": false

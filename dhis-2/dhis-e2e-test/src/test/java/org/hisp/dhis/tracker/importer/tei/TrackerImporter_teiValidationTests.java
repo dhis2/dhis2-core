@@ -152,10 +152,7 @@ public class TrackerImporter_teiValidationTests
         response
             .validateErrorReport()
             .body( "trackerType", hasItem( "ENROLLMENT" ) )
-            .body( "message", hasItem( stringContainsInOrder(
-                "Missing mandatory attribute"
-            ) ) )
-            .body( "errorCode", hasItem( "E1090" ) );
+            .body( "errorCode", hasItem( "E1018" ) );
     }
 
     private void setupData()

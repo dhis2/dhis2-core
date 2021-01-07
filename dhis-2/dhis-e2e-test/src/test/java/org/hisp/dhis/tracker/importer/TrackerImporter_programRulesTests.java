@@ -74,7 +74,7 @@ public class TrackerImporter_programRulesTests extends ApiTest
     @CsvSource( {"nH8zfPSUSN1,true", "yKg8CY252Yk,false" } )
     public void shouldShowErrorOnEventWhenProgramRuleStageMatches( String programStage, boolean shouldReturnError ) {
         //arrange
-        JsonObject object = trackerActions.createTeiWithEnrollmentAndEvent( Constants.ORG_UNIT_IDS[0], trackerProgramId, programStage);
+        JsonObject object = trackerActions.buildTeiWithEnrollmentAndEvent( Constants.ORG_UNIT_IDS[0], trackerProgramId, programStage);
         JsonObjectBuilder.jsonObject(object)
             .addPropertyByJsonPath( "trackedEntities[0].enrollments[0].enrolledAt", Instant.now().plus(
                 1, ChronoUnit.DAYS).toString() );
@@ -98,26 +98,42 @@ public class TrackerImporter_programRulesTests extends ApiTest
 
 
     @Test
-    public void shouldShowErrorOnComplete() {
-        JsonObject payload = trackerActions.createEventsBody( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK");
+    public void shouldShowErrorOnCompleteOnEvents() {
+        JsonObject payload = trackerActions.buildEvent( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK");
+        JsonObjectBuilder.jsonObject(payload).addPropertyByJsonPath( "events[0].status", "COMPLETED" );
 
-        JsonObjectBuilder.jsonObject(payload)
-            .addPropertyByJsonPath( "events[0].status", "COMPLETED" );
-
-        System.out.println(payload);
         TrackerApiResponse response = trackerActions.postAndGetJobReport( payload );
 
+        response.validateErrorReport()
+            .body( "trackerType", hasItem( "EVENT" ) )
+            .body( "message", hasItem( stringContainsInOrder( "ERROR ON COMPLETE " ) ) );
+    }
 
-        response.validateErrorReport();
+    @Test
+    public void shouldShowErrorOnCompleteInTrackerEvents() {
+        JsonObject payload = trackerActions.buildTeiWithEnrollmentAndEvent( Constants.ORG_UNIT_IDS[0], trackerProgramId
+            , "nH8zfPSUSN1");
+
+        JsonObjectBuilder.jsonObject(payload)
+            .addPropertyByJsonPath( "trackedEntities[0].enrollments[0].enrolledAt", Instant.now().plus(
+                1, ChronoUnit.DAYS).toString() )
+            .addPropertyByJsonPath( "trackedEntities[0].enrollments[0].events[0].status", "COMPLETED" );
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( payload );
+
+        response.validateErrorReport()
+            .body( "trackerType", hasItem( "EVENT" ) )
+            .body( "message", hasItem( stringContainsInOrder( "ERROR ON COMPLETE " ) ) );
     }
 
     @Test
     public void shouldSetMandatoryField() {
-        JsonObject payload = trackerActions.createEventsBody( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK");
+        JsonObject payload = trackerActions.buildEvent( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK");
 
         //JsonObject payload = trackerActions.createTeiWithEnrollmentAndEvent( Constants.ORG_UNIT_IDS[0], trackerProgramId, "nH8zfPSUSN1");
 
         JsonObjectBuilder.jsonObject(payload)
+            //.addProperty( "events[0].status", "COMPLETED" )
             .addArrayByJsonPath( "events[0]", "dataValues", new JsonObjectBuilder()
                     .addProperty( "dataElement", "ILRgzHhzFkg" )
                     .addProperty( "value", "true" )
@@ -136,7 +152,7 @@ public class TrackerImporter_programRulesTests extends ApiTest
 
     @Test
     public void shouldAssignValue() {
-        JsonObject payload = trackerActions.createEventsBody( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK");
+        JsonObject payload = trackerActions.buildEvent( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK");
         System.out.println(payload);
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( payload );
@@ -151,7 +167,7 @@ public class TrackerImporter_programRulesTests extends ApiTest
 
     @Test
     public void shouldSendNotification() {
-        JsonObject payload = trackerActions.createEventsBody( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK");
+        JsonObject payload = trackerActions.buildEvent( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK");
 
         JsonObjectBuilder.jsonObject(payload)
             .addArrayByJsonPath( "events[0]", "dataValues", new JsonObjectBuilder()
@@ -180,7 +196,7 @@ public class TrackerImporter_programRulesTests extends ApiTest
 
     @Test
     public void shouldAddErrorForEnrollmentsAndEventsWhenRuleHasNoStage() {
-        JsonObject object = trackerActions.createTeiWithEnrollmentAndEvent( Constants.ORG_UNIT_IDS[0], trackerProgramId, "yKg8CY252Yk");
+        JsonObject object = trackerActions.buildTeiWithEnrollmentAndEvent( Constants.ORG_UNIT_IDS[0], trackerProgramId, "yKg8CY252Yk");
 
         JsonObjectBuilder.jsonObject(object)
             .addPropertyByJsonPath( "trackedEntities[0].enrollments[0].enrolledAt", Instant.now().minus( 1, ChronoUnit.DAYS).toString() );
@@ -200,7 +216,7 @@ public class TrackerImporter_programRulesTests extends ApiTest
     public void shouldImportWhenWarnings() {
         // arrange
 
-        JsonObject object = trackerActions.createTeiWithEnrollmentAndEvent( Constants.ORG_UNIT_IDS[0], trackerProgramId, "yKg8CY252Yk");
+        JsonObject object = trackerActions.buildTeiWithEnrollmentAndEvent( Constants.ORG_UNIT_IDS[0], trackerProgramId, "yKg8CY252Yk");
 
         JsonObjectBuilder.jsonObject(object)
             .addPropertyByJsonPath( "trackedEntities[0].enrollments[0].enrolledAt", Instant.now().minus( 1, ChronoUnit.DAYS).toString() );

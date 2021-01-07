@@ -126,7 +126,7 @@ public class TrackerImporter_eventValidationTests
     @ParameterizedTest
     public void shouldValidateEventDate( String status, String occurredAt, String error )
     {
-        JsonObject object = trackerActions.createEventsBody( OU_ID, trackerProgramId, trackerProgramStageId );
+        JsonObject object = trackerActions.buildEvent( OU_ID, trackerProgramId, trackerProgramStageId );
 
         JsonObject event = object.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject();
         event.addProperty( "occurredAt", occurredAt );
@@ -141,7 +141,7 @@ public class TrackerImporter_eventValidationTests
     @Test
     public void shouldSetDueDate()
     {
-        JsonObject object = trackerActions.createEventsBody( OU_ID, trackerProgramId, trackerProgramStageId );
+        JsonObject object = trackerActions.buildEvent( OU_ID, trackerProgramId, trackerProgramStageId );
         object.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject().addProperty( "enrollment", enrollment );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( object );
@@ -156,7 +156,7 @@ public class TrackerImporter_eventValidationTests
     @MethodSource( "provideValidationArguments" )
     public void eventImportShouldValidateReferences( String ouId, String programId, String programStageId, String errorCode )
     {
-        JsonObject jsonObject = trackerActions.createEventsBody( ouId, programId, programStageId );
+        JsonObject jsonObject = trackerActions.buildEvent( ouId, programId, programStageId );
 
         System.out.println( jsonObject );
         TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
@@ -185,7 +185,7 @@ public class TrackerImporter_eventValidationTests
         ouIdWithoutAccess = new OrgUnitActions().createOrgUnit();
         new UserActions().grantCurrentUserAccessToOrgUnit( ouIdWithoutAccess );
 
-        enrollment = trackerActions.postAndGetJobReport( trackerActions.createTeiAndEnrollmentBody( OU_ID, trackerProgramId ) )
+        enrollment = trackerActions.postAndGetJobReport( trackerActions.buildTeiAndEnrollment( OU_ID, trackerProgramId ) )
             .validateSuccessfulImport().extractImportedEnrollments().get( 0 );
 
     }

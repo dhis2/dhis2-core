@@ -133,7 +133,7 @@ public class TrackerImporter_eventsDataValueValidationTests
     @Test
     public void shouldImportEventsWithCompulsoryDataValues()
     {
-        JsonObject events = trackerActions.createEventsBody( OU_ID, programId, programStageId );
+        JsonObject events = trackerActions.buildEvent( OU_ID, programId, programStageId );
 
         addDataValue( events.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject(), mandatoryDataElementId, "TEXT VALUE" );
 
@@ -157,7 +157,7 @@ public class TrackerImporter_eventsDataValueValidationTests
 
     private JsonObject createEventBodyWithStatus( String status )
     {
-        JsonObject body = trackerActions.createEventsBody( OU_ID, programId, programStageId );
+        JsonObject body = trackerActions.buildEvent( OU_ID, programId, programStageId );
 
         body.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject().addProperty( "status", status );
         return body;

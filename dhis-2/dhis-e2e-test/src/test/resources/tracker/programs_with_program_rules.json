@@ -528,7 +528,7 @@
       "remindCompleted": false,
       "displayGenerateEventBox": true,
       "generatedByEnrollmentDate": false,
-      "validationStrategy": "ON_COMPLETE",
+      "validationStrategy": "ON_UPDATE_AND_INSERT",
       "autoGenerateEvent": true,
       "sortOrder": 1,
       "hideDueDate": false,
@@ -728,7 +728,7 @@
       "repeatable": false,
       "remindCompleted": false,
       "displayGenerateEventBox": true,
-      "validationStrategy": "ON_COMPLETE",
+      "validationStrategy": "ON_UPDATE_AND_INSERT",
       "autoGenerateEvent": true,
       "blockEntryForm": false,
       "program": {
@@ -979,6 +979,9 @@
       "programRuleActions": [
         {
           "id": "hyJMNkTi9YG"
+        },
+        {
+          "id": "gYMwXjEMRlS"
         }
       ],
       "userAccesses": []
@@ -989,7 +992,7 @@
       "name": "TA event program rule - showerror",
       "displayName": "TA event program rule - showerror",
       "externalAccess": false,
-      "condition": "1 == 1",
+      "condition": "true",
       "favorite": false,
       "program": {
         "id": "uHi4GZJOD3n"
@@ -1005,7 +1008,7 @@
       "attributeValues": [],
       "programRuleActions": [
         {
-          "id": "hyJMNkTi9YE"
+          "id": "BU1pK9RQLu4"
         }
       ],
       "userAccesses": []
@@ -1068,7 +1071,7 @@
       "name": "TA event program - set mandatory DE - if has diabetes",
       "displayName": "TA event program - set mandatory DE - if has diabetes",
       "externalAccess": false,
-      "condition": "#{TADiabetes}",
+      "condition": "d2:hasValue( #{TADiabetes})",
       "favorite": false,
       "program": {
         "id": "uHi4GZJOD3n"
@@ -1119,28 +1122,26 @@
       "userAccesses": []
     },
     {
-      "id": "hyJMNkTi9YE",
-      "content": "ON COMPLETE",
-      "externalAccess": false,
-      "displayContent": "First name is required",
+      "content": "ERROR ON COMPLETE",
+      "id": "gYMwXjEMRlS",
       "programRuleActionType": "ERRORONCOMPLETE",
-      "evaluationTime": "ALWAYS",
-      "favorite": false,
       "programRule": {
-        "id": "Xh9idCUkyaS"
+        "id": "Xh9idCUkyaE"
+      },
+      "dataElement": {
+        "id": "z3Z4TD3oBCP"
+      }
+    },
+    {
+      "content": "TA ERROR ON COMPLETE",
+      "id": "BU1pK9RQLu4",
+      "programRuleActionType": "ERRORONCOMPLETE",
+      "programRule": {
+        "id": "Xh9idCUkyaE"
       },
       "dataElement": {
         "id": "BuZ5LGNfGEU"
-      },
-      "favorites": [],
-      "evaluationEnvironments": [
-        "WEB",
-        "ANDROID"
-      ],
-      "translations": [],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": []
+      }
     },
     {
       "id": "hyJMNkTi9YF",

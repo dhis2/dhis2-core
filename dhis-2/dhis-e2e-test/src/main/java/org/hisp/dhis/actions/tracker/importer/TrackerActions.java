@@ -154,7 +154,7 @@ public class TrackerActions
 
     }
 
-    public JsonObject createEventsBody( String ouId, String programId, String programStageId )
+    public JsonObject buildEvent( String ouId, String programId, String programStageId )
     {
         JsonObject object = new JsonObjectBuilder()
             .addProperty( "programStage", programStageId )
@@ -167,7 +167,7 @@ public class TrackerActions
         return object;
     }
 
-    public JsonObject createTeiAndEnrollmentBody(String ouId, String programId) {
+    public JsonObject buildTeiAndEnrollment(String ouId, String programId) {
         JsonObject jsonObject = new JsonObjectBuilder()
             .addProperty( "trackedEntityType", "Q9GufDoplCL" )
             .addProperty( "orgUnit", ouId )
@@ -182,14 +182,13 @@ public class TrackerActions
         return jsonObject;
     }
 
-    public JsonObject createTeiWithEnrollmentAndEvent( String ouId, String programId, String programStageId) {
-        JsonObject object = createTeiAndEnrollmentBody( ouId, programId );
+    public JsonObject buildTeiWithEnrollmentAndEvent( String ouId, String programId, String programStageId) {
+        JsonObject object = buildTeiAndEnrollment( ouId, programId );
 
-        JsonArray events = createEventsBody( ouId, programId, programStageId ).getAsJsonArray("events");
+        JsonArray events = buildEvent( ouId, programId, programStageId ).getAsJsonArray("events");
 
         JsonObjectBuilder.jsonObject(object)
             .addObjectByJsonPath( "trackedEntities[0].enrollments[0]", "events", events );
-        //object.add( "events", event );
 
         return object;
     }

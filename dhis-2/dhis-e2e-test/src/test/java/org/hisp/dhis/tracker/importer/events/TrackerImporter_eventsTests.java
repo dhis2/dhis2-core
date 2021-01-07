@@ -55,7 +55,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.io.File;
 import java.util.stream.Stream;
 
-import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -160,7 +159,7 @@ public class TrackerImporter_eventsTests
         String teiId = response.extractImportedTeis().get( 0 );
         String enrollmentId = response.extractImportedEnrollments().get( 0 );
 
-        JsonObject event = trackerActions.createEventsBody( Constants.ORG_UNIT_IDS[0], program, programStage )
+        JsonObject event = trackerActions.buildEvent( Constants.ORG_UNIT_IDS[0], program, programStage )
             .getAsJsonArray( "events" ).get( 0 ).getAsJsonObject();
         event.addProperty( "trackedEntity", teiId );
         event.addProperty( "enrollment", enrollmentId );
@@ -198,7 +197,7 @@ public class TrackerImporter_eventsTests
         String enrollmentId = response.extractImportedEnrollments().get( 0 );
 
         JsonObject event = new JsonObjectBuilder(
-            trackerActions.createEventsBody( Constants.ORG_UNIT_IDS[1], programId, programStageId ).getAsJsonArray(
+            trackerActions.buildEvent( Constants.ORG_UNIT_IDS[1], programId, programStageId ).getAsJsonArray(
                 "events"
             ).get( 0 ).getAsJsonObject() )
             .addProperty( "trackedEntity", teiId )
