@@ -44,7 +44,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,7 +55,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Service
+@Repository
 public class ZScoreOutlierDetectionManager
 {
     private final NamedParameterJdbcTemplate jdbcTemplate;
