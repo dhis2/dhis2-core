@@ -29,7 +29,10 @@
 package org.hisp.dhis.tracker.programrule.implementers;
 
 import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.rules.models.RuleActionAssign;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
@@ -40,6 +43,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * This implementer assign a value to a field if it is empty, otherwise returns an error
@@ -47,10 +52,13 @@ import java.util.Map;
  * @Author Enrico Colasante
  */
 @Component
+@RequiredArgsConstructor
 public class AssignValueImplementer
     extends AbstractRuleActionImplementer<RuleActionAssign>
     implements RuleActionImplementer
 {
+    private final SystemSettingManager systemSettingManager;
+
     @Override
     public Class<RuleActionAssign> getActionClass()
     {
@@ -68,13 +76,14 @@ public class AssignValueImplementer
         TrackerBundle bundle )
     {
         List<ProgramRuleIssue> issues = Lists.newArrayList();
+        Boolean canOverwrite = (Boolean) systemSettingManager
+            .getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE );
 
         for ( EventActionRule actionRule : eventClasses.getValue() )
         {
-            if ( !actionRule.getDataValue().isPresent() )
+            if ( !actionRule.getDataValue().isPresent() || Boolean.TRUE.equals( canOverwrite ) )
             {
-                actionRule.getEvent().getDataValues()
-                    .add( createDataValue( actionRule.getField(), actionRule.getData() ) );
+                addOrOverwriteDataValue( actionRule );
                 issues.add( new ProgramRuleIssue( TrackerReportUtils
                     .formatMessage( TrackerErrorCode.E1308, actionRule.getDataValue().get().getDataElement(),
                         actionRule.getEvent().getEvent() ), IssueType.WARNING ) );
@@ -96,13 +105,14 @@ public class AssignValueImplementer
         TrackerBundle bundle )
     {
         List<ProgramRuleIssue> issues = Lists.newArrayList();
+        Boolean canOverwrite = (Boolean) systemSettingManager
+            .getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE );
 
         for ( EnrollmentActionRule actionRule : enrollmentActionRules.getValue() )
         {
-            if ( !actionRule.getAttribute().isPresent() )
+            if ( !actionRule.getAttribute().isPresent() || Boolean.TRUE.equals( canOverwrite ) )
             {
-                actionRule.getEnrollment().getAttributes()
-                    .add( createAttribute( actionRule.getField(), actionRule.getData() ) );
+                addOrOverwriteAttribute( actionRule );
                 issues.add( new ProgramRuleIssue( TrackerReportUtils
                     .formatMessage( TrackerErrorCode.E1310, actionRule.getAttribute().get().getAttribute(),
                         actionRule.getEnrollment().getEnrollment() ), IssueType.WARNING ) );
@@ -116,6 +126,38 @@ public class AssignValueImplementer
         }
 
         return issues;
+    }
+
+    private void addOrOverwriteDataValue( EventActionRule actionRule )
+    {
+        Set<DataValue> dataValues = actionRule.getEvent().getDataValues();
+        Optional<DataValue> optionalDataValue = dataValues.stream()
+            .filter( dv -> dv.getDataElement().equals( actionRule.getField() ) )
+            .findAny();
+        if ( optionalDataValue.isPresent() )
+        {
+            optionalDataValue.get().setValue( actionRule.getData() );
+        }
+        else
+        {
+            dataValues.add( createDataValue( actionRule.getField(), actionRule.getData() ) );
+        }
+    }
+
+    private void addOrOverwriteAttribute( EnrollmentActionRule actionRule )
+    {
+        List<Attribute> attributes = actionRule.getEnrollment().getAttributes();
+        Optional<Attribute> optionalAttribute = attributes.stream()
+            .filter( at -> at.getAttribute().equals( actionRule.getField() ) )
+            .findAny();
+        if ( optionalAttribute.isPresent() )
+        {
+            optionalAttribute.get().setValue( actionRule.getData() );
+        }
+        else
+        {
+            attributes.add( createAttribute( actionRule.getField(), actionRule.getData() ) );
+        }
     }
 
     private Attribute createAttribute( String attributeUid, String newValue )
