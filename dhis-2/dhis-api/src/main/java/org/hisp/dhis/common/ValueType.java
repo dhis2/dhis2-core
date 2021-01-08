@@ -70,7 +70,9 @@ public enum ValueType
     AGE( Date.class, false ),
     URL( String.class, false ),
     FILE_RESOURCE( String.class, false ),
-    IMAGE( String.class, false );
+    IMAGE( String.class, false ),
+    // NOT QUITE SURE HOW TO LINK THIS CLASS WITH THE COMPLEX and vv.
+    COMPLEX( ComplexValueType.class, false );
 
     public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.of(
         INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE );

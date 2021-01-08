@@ -1,0 +1,1 @@
+alter table dataelement add column if not exists complexvaluetype jsonb default '{}'::jsonb;
