@@ -265,7 +265,7 @@ public class DefaultTrackerPreheatServiceTest
 
         IntStream.range( 0, 3 ).forEach( i -> {
             enrollments.get( i ).setNotes( Collections.singletonList(
-                new Note( CodeGenerator.generateUid(), "", "", RandomStringUtils.randomAlphabetic( 3 ) ) ) );
+                new Note( CodeGenerator.generateUid(), "", "", RandomStringUtils.randomAlphabetic( 3 ), "" ) ) );
             preheatPi.get( i ).setUid( enrollments.get( i ).getUid() );
             notes.get( 0 ).setUid( enrollments.get( i ).getNotes().get( 0 ).getNote() );
         } );
@@ -297,7 +297,7 @@ public class DefaultTrackerPreheatServiceTest
 
         IntStream.range( 0, 3 ).forEach( i -> {
             events.get( i ).setNotes( Collections.singletonList(
-                    new Note( CodeGenerator.generateUid(), "", "", RandomStringUtils.randomAlphabetic( 3 ) ) ) );
+                new Note( CodeGenerator.generateUid(), "", "", RandomStringUtils.randomAlphabetic( 3 ), "" ) ) );
             preheatPsi.get( i ).setUid( events.get( i ).getUid() );
             notes.get( 0 ).setUid( events.get( i ).getNotes().get( 0 ).getNote() );
         } );
