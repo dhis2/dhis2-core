@@ -50,6 +50,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
+import org.joda.time.IllegalInstantException;
 import org.joda.time.LocalDate;
 import org.joda.time.Months;
 import org.joda.time.format.DateTimeFormat;
@@ -59,7 +60,6 @@ import org.joda.time.format.DateTimeParser;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 import org.springframework.util.StringUtils;
-import org.joda.time.IllegalInstantException;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -69,8 +69,13 @@ import com.google.common.collect.Lists;
  */
 public class DateUtils
 {
-    private static DateTimeFormatter ISO8601 = DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSZ" );
-    private static DateTimeFormatter ISO8601_NO_TZ = DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSS" );
+    public static final String ISO8601_NO_TZ_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+
+    private static DateTimeFormatter ISO8601_NO_TZ = DateTimeFormat.forPattern( ISO8601_NO_TZ_PATTERN );
+
+    public static final String ISO8601_PATTERN = ISO8601_NO_TZ_PATTERN + "Z";
+
+    private static DateTimeFormatter ISO8601 = DateTimeFormat.forPattern( ISO8601_PATTERN );
 
     private static final String DEFAULT_DATE_REGEX = "\\b(?<year>\\d{4})-(?<month>0[1-9]|1[0-2])-(?<day>0[1-9]|[1-2][0-9]|3[0-2])(?<time>.*)\\b";
     private static final Pattern DEFAULT_DATE_REGEX_PATTERN = Pattern.compile( DEFAULT_DATE_REGEX );

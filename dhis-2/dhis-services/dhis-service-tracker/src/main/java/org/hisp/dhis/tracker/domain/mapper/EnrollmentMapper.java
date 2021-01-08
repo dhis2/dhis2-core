@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.domain.mapper;
  */
 
 import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.util.DateUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -44,8 +45,8 @@ public interface EnrollmentMapper extends DomainMapper<org.hisp.dhis.dxf2.events
     @Mapping( target = "createdAt", source = "created" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
     @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    @Mapping( target = "enrolledAt", source = "enrollmentDate" )
-    @Mapping( target = "occurredAt", source = "incidentDate" )
-    @Mapping( target = "completedAt", source = "completedDate" )
+    @Mapping( target = "enrolledAt", source = "enrollmentDate", dateFormat = DateUtils.ISO8601_NO_TZ_PATTERN )
+    @Mapping( target = "occurredAt", source = "incidentDate", dateFormat = DateUtils.ISO8601_NO_TZ_PATTERN )
+    @Mapping( target = "completedAt", source = "completedDate", dateFormat = DateUtils.ISO8601_NO_TZ_PATTERN )
     Enrollment from( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment );
 }
