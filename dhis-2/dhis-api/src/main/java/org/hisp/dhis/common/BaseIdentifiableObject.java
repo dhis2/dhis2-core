@@ -135,7 +135,12 @@ public class BaseIdentifiableObject
     /**
      * Owner of this object.
      */
-    protected User user;
+    protected User createdBy;
+
+    /**
+     * {@link Deprecated} This is replaced by createdBy property
+     */
+    protected transient User user;
 
     /**
      * Access for user groups.
@@ -438,18 +443,35 @@ public class BaseIdentifiableObject
     @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
     @PropertyTransformer( UserPropertyTransformer.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public User getUser()
+    public User getCreatedBy()
     {
-        return user;
+        return createdBy;
     }
 
     @Override
+    @JsonProperty
+    @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
+    @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
+    @PropertyTransformer( UserPropertyTransformer.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public User getUser()
+    {
+        return createdBy;
+    }
+
+    @Override
+    public void setCreatedBy( User createdBy )
+    {
+        this.createdBy = createdBy;
+
+        //TODO remove this after implemented functions for using Owner property
+        this.setOwner( createdBy != null ? createdBy.getUid() : null );
+    }
+
     public void setUser( User user )
     {
         this.user = user;
-
-        //TODO remove this after implemented functions for using Owner property
-        this.setOwner( user != null ? user.getUid() : null );
+        setCreatedBy( user );
     }
 
     public void setOwner( String userId )

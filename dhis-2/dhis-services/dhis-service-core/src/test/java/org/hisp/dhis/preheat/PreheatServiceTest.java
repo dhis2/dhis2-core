@@ -151,7 +151,7 @@ public class PreheatServiceTest
         deg1.addDataElement( de2 );
         deg1.addDataElement( de3 );
 
-        deg1.setUser( user );
+        deg1.setCreatedBy( user );
 
         Map<Class<? extends IdentifiableObject>, Set<String>> references = preheatService.collectReferences( deg1 )
             .get( PreheatIdentifier.UID );
@@ -209,7 +209,7 @@ public class PreheatServiceTest
         dataElementGroup.addDataElement( de2 );
         dataElementGroup.addDataElement( de3 );
 
-        dataElementGroup.setUser( user );
+        dataElementGroup.setCreatedBy( user );
 
         Map<Class<? extends IdentifiableObject>, Set<String>> references = preheatService.collectReferences( dataElementGroup )
             .get( PreheatIdentifier.CODE );
@@ -274,7 +274,7 @@ public class PreheatServiceTest
         dataElementGroup.addDataElement( de2 );
         dataElementGroup.addDataElement( de3 );
 
-        dataElementGroup.setUser( user );
+        dataElementGroup.setCreatedBy( user );
         manager.save( dataElementGroup );
 
         PreheatParams params = new PreheatParams();
@@ -318,7 +318,7 @@ public class PreheatServiceTest
         dataElementGroup.addDataElement( de2 );
         dataElementGroup.addDataElement( de3 );
 
-        dataElementGroup.setUser( user );
+        dataElementGroup.setCreatedBy( user );
         manager.save( dataElementGroup );
 
         PreheatParams params = new PreheatParams();
@@ -361,7 +361,7 @@ public class PreheatServiceTest
         dataElementGroup.addDataElement( de2 );
         dataElementGroup.addDataElement( de3 );
 
-        dataElementGroup.setUser( user );
+        dataElementGroup.setCreatedBy( user );
         manager.save( dataElementGroup );
 
         PreheatParams params = new PreheatParams();
@@ -407,7 +407,7 @@ public class PreheatServiceTest
         dataElementGroup.addDataElement( de2 );
         dataElementGroup.addDataElement( de3 );
 
-        dataElementGroup.setUser( user );
+        dataElementGroup.setCreatedBy( user );
         manager.save( dataElementGroup );
 
         PreheatParams params = new PreheatParams();
@@ -504,9 +504,9 @@ public class PreheatServiceTest
         assertContains(members, "DataElementB", "DataElementCodeB");
         assertContains(members, "DataElementC", "DataElementCodeC");
 
-        assertEquals( "FirstNameA", dataElementGroup.getUser().getFirstName() );
-        assertEquals( "SurnameA", dataElementGroup.getUser().getSurname() );
-        assertEquals( "UserCodeA", dataElementGroup.getUser().getCode() );
+        assertEquals( "FirstNameA", dataElementGroup.getCreatedBy().getFirstName() );
+        assertEquals( "SurnameA", dataElementGroup.getCreatedBy().getSurname() );
+        assertEquals( "UserCodeA", dataElementGroup.getCreatedBy().getCode() );
     }
 
     @Test
@@ -530,9 +530,9 @@ public class PreheatServiceTest
         assertContains(members, "DataElementB", "DataElementCodeB");
         assertContains(members, "DataElementC", "DataElementCodeC");
 
-        assertEquals( "FirstNameA", dataElementGroup.getUser().getFirstName() );
-        assertEquals( "SurnameA", dataElementGroup.getUser().getSurname() );
-        assertEquals( "UserCodeA", dataElementGroup.getUser().getCode() );
+        assertEquals( "FirstNameA", dataElementGroup.getCreatedBy().getFirstName() );
+        assertEquals( "SurnameA", dataElementGroup.getCreatedBy().getSurname() );
+        assertEquals( "UserCodeA", dataElementGroup.getCreatedBy().getCode() );
     }
 
     @Test

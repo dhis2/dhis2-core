@@ -199,7 +199,7 @@ public class PatchServiceTest
 
         assertEquals( DataElementDomain.TRACKER, dataElement.getDomainType() );
         assertEquals( ValueType.BOOLEAN, dataElement.getValueType() );
-        assertEquals( user.getUid(), dataElement.getUser().getUid() );
+        assertEquals( user.getUid(), dataElement.getCreatedBy().getUid() );
     }
 
     @Test

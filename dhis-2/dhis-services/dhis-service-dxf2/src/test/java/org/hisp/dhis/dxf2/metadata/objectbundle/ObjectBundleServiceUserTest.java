@@ -123,12 +123,12 @@ public class ObjectBundleServiceUserTest
         assertEquals( "UserA", userA.getUserCredentials().getUserInfo().getUserCredentials().getUsername() );
         assertEquals( "UserB", userB.getUserCredentials().getUserInfo().getUserCredentials().getUsername() );
 
-        assertNotNull( userA.getUserCredentials().getUser() );
-        assertNotNull( userB.getUserCredentials().getUser() );
-        assertNotNull( userA.getUserCredentials().getUser().getUserCredentials() );
-        assertNotNull( userB.getUserCredentials().getUser().getUserCredentials() );
-        assertEquals( "admin", userA.getUserCredentials().getUser().getUserCredentials().getUsername() );
-        assertEquals( "admin", userB.getUserCredentials().getUser().getUserCredentials().getUsername() );
+        assertNotNull( userA.getUserCredentials().getCreatedBy() );
+        assertNotNull( userB.getUserCredentials().getCreatedBy() );
+        assertNotNull( userA.getUserCredentials().getCreatedBy().getUserCredentials() );
+        assertNotNull( userB.getUserCredentials().getCreatedBy().getUserCredentials() );
+        assertEquals( "admin", userA.getUserCredentials().getCreatedBy().getUserCredentials().getUsername() );
+        assertEquals( "admin", userB.getUserCredentials().getCreatedBy().getUserCredentials().getUsername() );
 
         assertEquals( 1, userA.getOrganisationUnits().size() );
         assertEquals( 1, userB.getOrganisationUnits().size() );
@@ -182,12 +182,12 @@ public class ObjectBundleServiceUserTest
         assertEquals( "UserAA", userA.getUserCredentials().getUserInfo().getUserCredentials().getUsername() );
         assertEquals( "UserBB", userB.getUserCredentials().getUserInfo().getUserCredentials().getUsername() );
 
-        assertNotNull( userA.getUserCredentials().getUser() );
-        assertNotNull( userB.getUserCredentials().getUser() );
-        assertNotNull( userA.getUserCredentials().getUser().getUserCredentials() );
-        assertNotNull( userB.getUserCredentials().getUser().getUserCredentials() );
-        assertEquals( "admin", userA.getUserCredentials().getUser().getUserCredentials().getUsername() );
-        assertEquals( "admin", userB.getUserCredentials().getUser().getUserCredentials().getUsername() );
+        assertNotNull( userA.getUserCredentials().getCreatedBy() );
+        assertNotNull( userB.getUserCredentials().getCreatedBy() );
+        assertNotNull( userA.getUserCredentials().getCreatedBy().getUserCredentials() );
+        assertNotNull( userB.getUserCredentials().getCreatedBy().getUserCredentials() );
+        assertEquals( "admin", userA.getUserCredentials().getCreatedBy().getUserCredentials().getUsername() );
+        assertEquals( "admin", userB.getUserCredentials().getCreatedBy().getUserCredentials().getUsername() );
     }
 
     @Test
@@ -295,7 +295,7 @@ public class ObjectBundleServiceUserTest
         userManagerRole.getSharing().resetUserAccesses();
         userManagerRole.getSharing().addUserAccess( new UserAccess( userB, "rw------" ) );
         userManagerRole.setPublicAccess( "--------" );
-        userManagerRole.setUser( userB );
+        userManagerRole.setCreatedBy( userB );
         manager.update( userManagerRole );
 
         SecurityContextHolder.clearContext();

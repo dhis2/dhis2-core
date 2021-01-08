@@ -311,7 +311,7 @@ public class DefaultPreheatService implements PreheatService
         objects.forEach( ( klass, list ) -> list.forEach( object ->
         {
             object.getSharing().setExternal( object.getExternalAccess() );
-            object.getSharing().setOwner( object.getUser() );
+            object.getSharing().setOwner( object.getCreatedBy() );
             object.getSharing().setPublicAccess( object.getPublicAccess() );
             object.getUserAccesses().forEach( ua ->
             {
@@ -516,9 +516,9 @@ public class DefaultPreheatService implements PreheatService
                     identifiableObject.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
                     identifiableObject.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
 
-                    if ( identifiableObject.getUser() != null )
+                    if ( identifiableObject.getCreatedBy() != null )
                     {
-                        addIdentifiers( map, identifiableObject.getUser() );
+                        addIdentifiers( map, identifiableObject.getCreatedBy() );
                     }
 
                     addIdentifiers( map, identifiableObject );

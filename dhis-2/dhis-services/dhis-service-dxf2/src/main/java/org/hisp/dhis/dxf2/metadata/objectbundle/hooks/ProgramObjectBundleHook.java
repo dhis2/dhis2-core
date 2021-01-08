@@ -124,7 +124,7 @@ public class ProgramObjectBundleHook
         ProgramStage programStage = program.getProgramStages().iterator().next();
         AccessStringHelper.copySharing( program, programStage );
 
-        programStage.setUser( program.getUser() );
+        programStage.setCreatedBy( program.getCreatedBy() );
         programStageService.updateProgramStage( programStage );
     }
 

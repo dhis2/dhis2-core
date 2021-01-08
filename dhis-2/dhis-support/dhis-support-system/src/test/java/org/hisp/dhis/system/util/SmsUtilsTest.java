@@ -107,7 +107,7 @@ public class SmsUtilsTest
         organisationUnitC.setCode( "TESTORGC" );
 
         incomingSms = new IncomingSms();
-        incomingSms.setUser( userA );
+        incomingSms.setCreatedBy( userA );
 
         keyValueCommand = new SMSCommand();
         keyValueCommand.setParserType( ParserType.KEY_VALUE_PARSER );

@@ -160,12 +160,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
                 identifiableObject.getSharing().resetUserAccesses();
             }
 
-            if ( identifiableObject.getUser() == null )
+            if ( identifiableObject.getCreatedBy() == null )
             {
-                identifiableObject.setUser( user );
+                identifiableObject.setCreatedBy( user );
             }
 
-            if ( identifiableObject.getSharing().getOwner() == null && identifiableObject.getUser() != null )
+            if ( identifiableObject.getSharing().getOwner() == null && identifiableObject.getCreatedBy() != null )
             {
                 identifiableObject.getSharing().setOwner( user );
             }

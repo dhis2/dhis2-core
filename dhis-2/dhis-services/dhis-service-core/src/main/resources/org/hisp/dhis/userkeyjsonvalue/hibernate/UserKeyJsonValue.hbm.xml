@@ -15,9 +15,9 @@
     </id>
     &identifiableProperties;
 
-    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid"
-      foreign-key="fk_userkeyjsonvalue_user" not-null="true" index="userkeyjsonvalue_user"
-      unique-key="userkeyjsonvalue_unique_key_on_user_and_namespace" />
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
+                 foreign-key="fk_userkeyjsonvalue_user" not-null="true" index="userkeyjsonvalue_user"
+                 unique-key="userkeyjsonvalue_unique_key_on_user_and_namespace" />
 
     <property name="namespace" column="namespace" type="string" not-null="true" length="255"
       unique-key="userkeyjsonvalue_unique_key_on_user_and_namespace" />

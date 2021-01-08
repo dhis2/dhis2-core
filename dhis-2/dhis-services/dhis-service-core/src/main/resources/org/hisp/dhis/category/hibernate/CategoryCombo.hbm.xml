@@ -38,7 +38,7 @@
 
     <property name="skipTotal" column="skiptotal" not-null="true" />
 
-    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_categorycombo_userid" />
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_categorycombo_userid" />
 
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>

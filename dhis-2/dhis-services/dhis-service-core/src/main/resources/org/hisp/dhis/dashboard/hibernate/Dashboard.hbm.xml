@@ -29,7 +29,7 @@
         foreign-key="fk_dashboard_items_dashboarditemid" />
     </list>
 
-    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dashboard_userid" />
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dashboard_userid" />
 
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>

@@ -174,7 +174,7 @@ public class UserKeyJsonValueController
         UserKeyJsonValue userKeyJsonValue = new UserKeyJsonValue();
 
         userKeyJsonValue.setKey( key );
-        userKeyJsonValue.setUser( currentUserService.getCurrentUser() );
+        userKeyJsonValue.setCreatedBy( currentUserService.getCurrentUser() );
         userKeyJsonValue.setNamespace( namespace );
         userKeyJsonValue.setValue( body );
         userKeyJsonValue.setEncrypted( encrypt );

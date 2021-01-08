@@ -86,17 +86,17 @@ public class JacksonObjectMapperConfigTest
     {
         User user = new User();
         user.setAutoFields();
-        user.setUser( user );
+        user.setCreatedBy( user );
         user.setLastUpdatedBy( user );
 
         String payload = jsonMapper.writeValueAsString( user );
         User testUser = jsonMapper.readValue( payload, User.class );
 
-        assertNotNull( user.getUser() );
+        assertNotNull( user.getCreatedBy() );
         assertNotNull( user.getLastUpdatedBy() );
 
         assertEquals( user.getUid(), testUser.getUid() );
-        assertEquals( user.getUid(), user.getUser().getUid() );
+        assertEquals( user.getUid(), user.getCreatedBy().getUid() );
         assertEquals( user.getUid(), user.getLastUpdatedBy().getUid() );
     }
 

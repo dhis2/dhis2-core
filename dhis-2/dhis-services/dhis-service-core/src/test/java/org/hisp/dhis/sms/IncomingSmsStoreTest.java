@@ -81,7 +81,7 @@ public class IncomingSmsStoreTest
         sms.setText( "testMessage" );
         sms.setOriginator( "474000000" );
         sms.setGatewayId( "testGateway" );
-        sms.setUser( user );
+        sms.setCreatedBy( user );
         sms.setSentDate( new Date() );
         sms.setReceivedDate( new Date() );
 

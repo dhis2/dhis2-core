@@ -67,9 +67,9 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         baseIdentifiableObject.setAutoFields();
         baseIdentifiableObject.setLastUpdatedBy( bundle.getUser() );
 
-        if ( baseIdentifiableObject.getUser() == null )
+        if ( baseIdentifiableObject.getCreatedBy() == null )
         {
-            baseIdentifiableObject.setUser( bundle.getUser() );
+            baseIdentifiableObject.setCreatedBy( bundle.getUser() );
         }
 
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( identifiableObject ) );
@@ -84,9 +84,9 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         baseIdentifiableObject.setAutoFields();
         baseIdentifiableObject.setLastUpdatedBy( bundle.getUser() );
 
-        if ( baseIdentifiableObject.getUser() == null )
+        if ( baseIdentifiableObject.getCreatedBy() == null )
         {
-            baseIdentifiableObject.setUser( bundle.getUser() );
+            baseIdentifiableObject.setCreatedBy( bundle.getUser() );
         }
 
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );

@@ -102,7 +102,7 @@
     <!-- Dynamic attribute values -->
     <property name="attributeValues" type="jsbAttributeValues"/>
 
-    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_programstage_userid" />
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_programstage_userid" />
 
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>

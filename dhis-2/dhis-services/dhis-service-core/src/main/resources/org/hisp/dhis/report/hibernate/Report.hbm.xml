@@ -48,7 +48,7 @@
       </type>
     </property>
 
-    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_report_userid" />
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_report_userid" />
 
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>

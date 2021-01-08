@@ -139,7 +139,7 @@ public class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrati
         DataElement dataElement = createDataElement( 'A' );
         String dataElementUid = "deabcdefghA";
         dataElement.setUid(dataElementUid);
-        dataElement.setUser(admin);
+        dataElement.setCreatedBy(admin);
 
         Sharing sharing = Sharing.builder()
             .external( false )

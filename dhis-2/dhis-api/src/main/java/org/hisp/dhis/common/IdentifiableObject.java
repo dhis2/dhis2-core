@@ -84,7 +84,11 @@ public interface IdentifiableObject
     // Sharing
     //-----------------------------------------------------------------------------
 
+    User getCreatedBy();
+
     User getUser();
+
+    void setCreatedBy( User createdBy );
 
     void setUser( User user );
 

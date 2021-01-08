@@ -224,7 +224,7 @@ public class MapView
         this.relativeOrganisationUnit = organisationUnit;
         this.organisationUnitsAtLevel = organisationUnitsAtLevel;
         this.organisationUnitsInGroups = organisationUnitsInGroups;
-        this.setUser( user );
+        this.setCreatedBy( user );
     }
 
     /**
@@ -259,7 +259,7 @@ public class MapView
 
     public List<OrganisationUnit> getAllOrganisationUnits()
     {
-        DimensionalObject object = getDimensionalObject( ORGUNIT_DIM_ID, relativePeriodDate, getUser(), true, organisationUnitsAtLevel, organisationUnitsInGroups, format );
+        DimensionalObject object = getDimensionalObject( ORGUNIT_DIM_ID, relativePeriodDate, getCreatedBy(), true, organisationUnitsAtLevel, organisationUnitsInGroups, format );
 
         return object != null ? DimensionalObjectUtils.asTypedList( object.getItems() ) : null;
     }

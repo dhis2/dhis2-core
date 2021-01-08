@@ -45,7 +45,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -927,7 +926,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         DataSet dataSet = dataSets.get( 0 );
         assertEquals( "Updated Data Set", dataSet.getName() );
         assertEquals( 2, dataSet.getSections().size() );
-        assertNotNull( dataSet.getUser() );
+        assertNotNull( dataSet.getCreatedBy() );
 
         section1 = manager.get( Section.class, "JwcV2ZifEQf" );
         assertNotNull( section1.getDataSet() );

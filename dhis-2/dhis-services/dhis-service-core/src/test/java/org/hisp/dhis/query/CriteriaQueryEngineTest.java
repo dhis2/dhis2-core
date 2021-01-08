@@ -628,7 +628,7 @@ public class CriteriaQueryEngineTest extends TransactionalIntegrationTest
         User userB = createUser( 'B' );
         userService.addUser( userB );
         DataElement de = identifiableObjectManager.get( DataElement.class, "deabcdefghA" );
-        de.setUser( userB );
+        de.setCreatedBy( userB );
         identifiableObjectManager.save( de, false );
 
         de = identifiableObjectManager.get( DataElement.class, "deabcdefghA" );

@@ -197,8 +197,8 @@ public class IdentifiableObjectManagerTest
         DataElement dataElement = createDataElement( 'A' );
         identifiableObjectManager.save( dataElement );
 
-        assertNotNull( dataElement.getUser() );
-        assertEquals( user, dataElement.getUser() );
+        assertNotNull( dataElement.getCreatedBy() );
+        assertEquals( user, dataElement.getCreatedBy() );
     }
 
     @Test
@@ -318,7 +318,7 @@ public class IdentifiableObjectManagerTest
         DataElement dataElement = createDataElement( 'A' );
         identifiableObjectManager.save( dataElement );
 
-        dataElement.setUser( user );
+        dataElement.setCreatedBy( user );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
         sessionFactory.getCurrentSession().update( dataElement );
 
@@ -356,7 +356,7 @@ public class IdentifiableObjectManagerTest
 
         for ( DataElement dataElement : dataElements )
         {
-            dataElement.setUser( user );
+            dataElement.setCreatedBy( user );
             dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
 
             sessionFactory.getCurrentSession().update( dataElement );
