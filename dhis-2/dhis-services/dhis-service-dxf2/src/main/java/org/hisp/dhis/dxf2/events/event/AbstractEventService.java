@@ -1458,29 +1458,14 @@ public abstract class AbstractEventService
         // 1. only once for whole event
         // 2. only if data value is associated with any ProgramRuleVariable
 
-        boolean isLinkedWithRuleVariable = false;
-
-        for ( DataValue dv : event.getDataValues() )
-        {
-            DataElement dataElement = dataElementCache.get( dv.getDataElement() );
-
-            if ( dataElement != null )
-            {
-                isLinkedWithRuleVariable = ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement );
-
-                if ( isLinkedWithRuleVariable )
-                {
-                    break;
-                }
-            }
-        }
+        boolean isLinkedWithRuleVariable = isDataElementLinked( event, program );
 
         if ( !importOptions.isSkipNotifications() && isLinkedWithRuleVariable )
         {
             eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance.getId() ) );
         }
 
-        sendProgramNotification( programStageInstance, importOptions );
+        sendProgramNotification( programStageInstance, importOptions, false );
 
         if ( !importOptions.isSkipLastUpdated() )
         {
@@ -1894,7 +1879,10 @@ public abstract class AbstractEventService
         }
 
         programInstanceCache.put( programInstance.getUid(), programInstance );
-        sendProgramNotification( programStageInstance, importOptions );
+
+        boolean isLinkedWithRuleVariable = isDataElementLinked( event, program );
+
+        sendProgramNotification( programStageInstance, importOptions, isLinkedWithRuleVariable );
 
         if ( importSummary.getConflicts().size() > 0 )
         {
@@ -1910,10 +1898,16 @@ public abstract class AbstractEventService
         return importSummary;
     }
 
-    private void sendProgramNotification( ProgramStageInstance programStageInstance, ImportOptions importOptions )
+    private void sendProgramNotification( ProgramStageInstance programStageInstance, ImportOptions importOptions,
+        boolean isLinkedWithRuleVariable )
     {
         if ( !importOptions.isSkipNotifications() )
         {
+            if ( isLinkedWithRuleVariable )
+            {
+                eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance.getId() ) );
+            }
+
             if ( programStageInstance.isCompleted() )
             {
                 eventPublisher.publishEvent( new ProgramStageCompletionNotificationEvent( this, programStageInstance.getId() ) );
@@ -2648,5 +2642,27 @@ public abstract class AbstractEventService
         }
 
         return errors;
+    }
+
+    private boolean isDataElementLinked( Event event, Program program )
+    {
+        boolean isLinkedWithRuleVariable = false;
+
+        for ( DataValue dv : event.getDataValues() )
+        {
+            DataElement dataElement = dataElementCache.get( dv.getDataElement() );
+
+            if ( dataElement != null )
+            {
+                isLinkedWithRuleVariable = ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement );
+
+                if ( isLinkedWithRuleVariable )
+                {
+                    break;
+                }
+            }
+        }
+
+        return isLinkedWithRuleVariable;
     }
 }

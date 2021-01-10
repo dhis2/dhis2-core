@@ -50,25 +50,25 @@ public class ProgramRuleEngineListener
         this.programRuleEngineService = programRuleEngineService;
     }
 
-    @TransactionalEventListener
+    @TransactionalEventListener( fallbackExecution = true )
     public void onEnrollment( EnrollmentEvaluationEvent event )
     {
         programRuleEngineService.evaluateEnrollmentAndRunEffects( event.getProgramInstance() );
     }
 
-    @TransactionalEventListener
+    @TransactionalEventListener( fallbackExecution = true )
     public void onDataValueChange( DataValueUpdatedEvent event )
     {
         programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
     }
 
-    @TransactionalEventListener
+    @TransactionalEventListener( fallbackExecution = true )
     public void onEventCompletion( StageCompletionEvaluationEvent event )
     {
         programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
     }
 
-    @TransactionalEventListener
+    @TransactionalEventListener( fallbackExecution = true )
     public void onScheduledEvent( StageScheduledEvaluationEvent event )
     {
         programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );

@@ -54,32 +54,32 @@ public class ProgramNotificationListener
         this.programNotificationService = programNotificationService;
     }
 
-    @TransactionalEventListener
+    @TransactionalEventListener( fallbackExecution = true )
     public void onEnrollment( ProgramEnrollmentNotificationEvent event )
     {
         programNotificationService.sendEnrollmentNotifications( event.getProgramInstance() );
     }
 
-    @TransactionalEventListener
+    @TransactionalEventListener( fallbackExecution = true )
     public void onCompletion( ProgramEnrollmentCompletionNotificationEvent event )
     {
         programNotificationService.sendEnrollmentCompletionNotifications( event.getProgramInstance() );
     }
 
-    @TransactionalEventListener
+    @TransactionalEventListener( fallbackExecution = true )
     public void onEvent( ProgramStageCompletionNotificationEvent event )
     {
         programNotificationService.sendEventCompletionNotifications( event.getProgramStageInstance() );
     }
 
     // Published by rule engine
-    @TransactionalEventListener
+    @TransactionalEventListener( fallbackExecution = true )
     public void onProgramRuleEnrollment( ProgramRuleEnrollmentEvent event )
     {
         programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramInstance() );
     }
 
-    @TransactionalEventListener
+    @TransactionalEventListener( fallbackExecution = true )
     public void onProgramRuleEvent( ProgramRuleStageEvent event )
     {
         programNotificationService.sendProgramRuleTriggeredEventNotifications( event.getTemplate(), event.getProgramStageInstance() );
