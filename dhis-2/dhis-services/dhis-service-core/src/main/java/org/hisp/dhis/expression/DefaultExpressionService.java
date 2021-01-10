@@ -34,10 +34,9 @@ import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.DimensionService;
-import org.hisp.dhis.common.DimensionalItemId;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -68,7 +67,6 @@ import org.hisp.dhis.parser.expression.function.VectorPercentileCont;
 import org.hisp.dhis.parser.expression.function.VectorStddevPop;
 import org.hisp.dhis.parser.expression.function.VectorStddevSamp;
 import org.hisp.dhis.parser.expression.function.VectorSum;
-import org.hisp.dhis.parser.expression.literal.RegenerateLiteral;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -82,6 +80,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -105,7 +105,6 @@ import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_EVALUATE;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_IDS;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_ORG_UNIT_GROUPS;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_REGENERATE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 import static org.springframework.util.ObjectUtils.isEmpty;
 
@@ -138,6 +137,8 @@ public class DefaultExpressionService
     private final OrganisationUnitGroupService organisationUnitGroupService;
 
     private final DimensionService dimensionService;
+
+    private IdentifiableObjectManager idObjectManager;
 
     // -------------------------------------------------------------------------
     // Static data
@@ -182,6 +183,23 @@ public class DefaultExpressionService
             .put( SIMPLE_TEST, COMMON_EXPRESSION_ITEMS )
             .build();
 
+    private final static String CONSTANT_EXPRESSION = "C\\{(?<id>[a-zA-Z]\\w{10})\\}";
+    private final static String OU_GROUP_EXPRESSION = "OUG\\{(?<id>[a-zA-Z]\\w{10})\\}";
+
+    private final static String GROUP_ID = "id";
+
+    private final static String NULL_REPLACEMENT = "0";
+
+    /**
+     * Constant pattern. Contains the named group {@code id}.
+     */
+    private final static Pattern CONSTANT_PATTERN = Pattern.compile( CONSTANT_EXPRESSION );
+
+    /**
+     * Organisation unit groups pattern. Contains the named group {@code id}.
+     */
+    private final static Pattern OU_GROUP_PATTERN = Pattern.compile( OU_GROUP_EXPRESSION );
+
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
@@ -189,7 +207,8 @@ public class DefaultExpressionService
     public DefaultExpressionService(
         @Qualifier( "org.hisp.dhis.expression.ExpressionStore" ) HibernateGenericStore<Expression> expressionStore,
         DataElementService dataElementService, ConstantService constantService, CategoryService categoryService,
-        OrganisationUnitGroupService organisationUnitGroupService, DimensionService dimensionService )
+        OrganisationUnitGroupService organisationUnitGroupService, DimensionService dimensionService,
+        IdentifiableObjectManager idObjectManager )
     {
         checkNotNull( expressionStore );
         checkNotNull( dataElementService );
@@ -204,6 +223,7 @@ public class DefaultExpressionService
         this.categoryService = categoryService;
         this.organisationUnitGroupService = organisationUnitGroupService;
         this.dimensionService = dimensionService;
+        this.idObjectManager = idObjectManager;
     }
 
     // -------------------------------------------------------------------------
@@ -272,8 +292,22 @@ public class DefaultExpressionService
         {
             for ( Indicator indicator : indicators )
             {
-                groups.addAll( getExpressionOrgUnitGroups( indicator.getNumerator(), INDICATOR_EXPRESSION ) );
-                groups.addAll( getExpressionOrgUnitGroups( indicator.getDenominator(), INDICATOR_EXPRESSION ) );
+                try
+                {
+                    groups.addAll( getExpressionOrgUnitGroups( indicator.getNumerator(), INDICATOR_EXPRESSION ) );
+                }
+                catch ( Exception e )
+                {
+                    log.warn( "Parsing error in indicator " + indicator.getUid() + " numerator '" + indicator.getNumerator() + "': " + e.toString() );
+                }
+                try
+                {
+                    groups.addAll( getExpressionOrgUnitGroups( indicator.getDenominator(), INDICATOR_EXPRESSION ) );
+                }
+                catch ( Exception e )
+                {
+                    log.warn( "Parsing error in indicator " + indicator.getUid() + " denominator '" + indicator.getDenominator() + "': " + e.toString() );
+                }
             }
         }
 
@@ -327,21 +361,21 @@ public class DefaultExpressionService
     @Transactional
     public void substituteIndicatorExpressions( Collection<Indicator> indicators )
     {
-        if ( indicators != null && !indicators.isEmpty() )
+        if ( indicators == null || indicators.isEmpty() )
         {
-            Map<String, Constant> constantMap = constantService.getConstantMap();
+            return;
+        }
 
-            Map<String, Integer> orgUnitCountMap = getIndicatorOrgUnitGroups( indicators ).stream()
-                .collect(
-                    Collectors.toMap(
-                        OrganisationUnitGroup::getUid,
-                        oug -> oug.getMembers().size() ) );
+        Map<String, Constant> constants = new CachingMap<String, Constant>()
+            .load( idObjectManager.getAllNoAcl( Constant.class ), c -> c.getUid() );
 
-            for ( Indicator indicator : indicators )
-            {
-                indicator.setExplodedNumerator( regenerateIndicatorExpression( indicator.getNumerator(), constantMap, orgUnitCountMap ) );
-                indicator.setExplodedDenominator( regenerateIndicatorExpression( indicator.getDenominator(), constantMap, orgUnitCountMap ) );
-            }
+        Map<String, OrganisationUnitGroup> orgUnitGroups = new CachingMap<String, OrganisationUnitGroup>()
+            .load( idObjectManager.getAllNoAcl( OrganisationUnitGroup.class ), g -> g.getUid() );
+
+        for ( Indicator indicator : indicators )
+        {
+            indicator.setExplodedNumerator( regenerateIndicatorExpression( indicator.getNumerator(), constants, orgUnitGroups ) );
+            indicator.setExplodedDenominator( regenerateIndicatorExpression( indicator.getDenominator(), constants, orgUnitGroups ) );
         }
     }
 
@@ -674,20 +708,59 @@ public class DefaultExpressionService
      * substituted for constants and orgUnitCounts.
      *
      * @param expression the expresion to regenerate.
-     * @param constantMap map of constants to use for calculation.
-     * @param orgUnitCountMap the map of organisation unit group member counts.
+     * @param constants map of constants to use for calculation.
+     * @param orgUnitGroups map of organisation unit groups.
      * @return the regenerated expression string.
      */
     private String regenerateIndicatorExpression( String expression,
-        Map<String, Constant> constantMap, Map<String, Integer> orgUnitCountMap )
+        Map<String, Constant> constants, Map<String, OrganisationUnitGroup> orgUnitGroups )
     {
-        CommonExpressionVisitor visitor = newVisitor( INDICATOR_EXPRESSION, ITEM_REGENERATE,
-            DEFAULT_SAMPLE_PERIODS, constantMap, NEVER_SKIP );
+        if ( expression == null || expression.isEmpty() )
+        {
+            return null;
+        }
 
-        visitor.setOrgUnitCountMap( orgUnitCountMap );
-        visitor.setExpressionLiteral( new RegenerateLiteral() );
+        // ---------------------------------------------------------------------
+        // Constants
+        // ---------------------------------------------------------------------
 
-        return castString( visit( expression, DataType.TEXT, visitor, true ) );
+        StringBuffer sb = new StringBuffer();
+        Matcher matcher = CONSTANT_PATTERN.matcher( expression );
+
+        while ( matcher.find() )
+        {
+            String co = matcher.group( GROUP_ID );
+
+            Constant constant = constants.get( co );
+
+            String replacement = constant != null ? String.valueOf( constant.getValue() ) : NULL_REPLACEMENT;
+
+            matcher.appendReplacement( sb, Matcher.quoteReplacement( replacement ) );
+        }
+
+        expression = TextUtils.appendTail( matcher, sb );
+
+        // ---------------------------------------------------------------------
+        // Org unit groups
+        // ---------------------------------------------------------------------
+
+        sb = new StringBuffer();
+        matcher = OU_GROUP_PATTERN.matcher( expression );
+
+        while ( matcher.find() )
+        {
+            String oug = matcher.group( GROUP_ID );
+
+            OrganisationUnitGroup group = orgUnitGroups.get( oug );
+
+            String replacement = group != null ? String.valueOf( group.getMembers().size() ) : NULL_REPLACEMENT;
+
+            matcher.appendReplacement( sb, replacement );
+
+            // TODO sub tree
+        }
+
+        return TextUtils.appendTail( matcher, sb );
     }
 
     /**
