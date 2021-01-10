@@ -29,7 +29,6 @@ package org.hisp.dhis.expression;
  */
 
 import static org.hamcrest.CoreMatchers.allOf;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
@@ -37,15 +36,13 @@ import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ParseType.*;
 import static org.hisp.dhis.expression.ExpressionService.*;
 import static org.hisp.dhis.expression.MissingValueStrategy.*;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+
 import java.util.*;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.math3.util.Precision;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
@@ -96,6 +93,8 @@ public class ExpressionService2Test
     private OrganisationUnitGroupService organisationUnitGroupService;
     @Mock
     private DimensionService dimensionService;
+    @Mock
+    private IdentifiableObjectManager idObjectManager;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -171,7 +170,7 @@ public class ExpressionService2Test
     public void setUp()
     {
         target = new DefaultExpressionService( hibernateGenericStore, dataElementService, constantService,
-            categoryService, organisationUnitGroupService, dimensionService );
+            categoryService, organisationUnitGroupService, dimensionService, idObjectManager );
 
         rnd = new BeanRandomizer();
 
@@ -679,12 +678,7 @@ public class ExpressionService2Test
     @Test
     public void testSubstituteIndicatorExpressions()
     {
-        when( constantService.getConstantMap() ).thenReturn(
-            ImmutableMap.<String, Constant>builder()
-                .put( constantA.getUid(), constantA )
-                .put( constantB.getUid(), constantB )
-                .build() );
-        String expressionZ = "if(\"A\" < 'B' and true,C{notFound123},OUG{notFound456})";
+        String expressionZ = "if(\"A\" < 'B' and true,0,0)";
 
         IndicatorType indicatorType = new IndicatorType( "A", 100, false );
 
@@ -698,7 +692,17 @@ public class ExpressionService2Test
 
         List<Indicator> indicators = Lists.newArrayList( indicatorA, indicatorB );
 
-        when( organisationUnitGroupService.getOrganisationUnitGroup( groupA.getUid() ) ).thenReturn( groupA );
+        List<Constant> constants = ImmutableList.<Constant>builder()
+            .add( constantA )
+            .add( constantB )
+            .build();
+
+        List<OrganisationUnitGroup> orgUnitGroups = ImmutableList.<OrganisationUnitGroup>builder()
+            .add( groupA )
+            .build();
+
+        when( idObjectManager.getAllNoAcl( Constant.class ) ).thenReturn( constants );
+        when( idObjectManager.getAllNoAcl( OrganisationUnitGroup.class ) ).thenReturn( orgUnitGroups );
 
         target.substituteIndicatorExpressions( indicators );
 
