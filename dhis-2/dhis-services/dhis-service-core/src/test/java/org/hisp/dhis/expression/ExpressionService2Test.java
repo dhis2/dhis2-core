@@ -42,6 +42,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.*;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.math3.util.Precision;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
@@ -92,6 +93,8 @@ public class ExpressionService2Test
     private OrganisationUnitGroupService organisationUnitGroupService;
     @Mock
     private DimensionService dimensionService;
+    @Mock
+    private IdentifiableObjectManager idObjectManager;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -167,7 +170,7 @@ public class ExpressionService2Test
     public void setUp()
     {
         target = new DefaultExpressionService( hibernateGenericStore, dataElementService, constantService,
-            categoryService, organisationUnitGroupService, dimensionService );
+            categoryService, organisationUnitGroupService, dimensionService, idObjectManager );
 
         rnd = new BeanRandomizer();
 
@@ -675,12 +678,7 @@ public class ExpressionService2Test
     @Test
     public void testSubstituteIndicatorExpressions()
     {
-        when( constantService.getConstantMap() ).thenReturn(
-            ImmutableMap.<String, Constant>builder()
-                .put( constantA.getUid(), constantA )
-                .put( constantB.getUid(), constantB )
-                .build() );
-        String expressionZ = "if(\"A\" < 'B' and true,C{notFound123},OUG{notFound456})";
+        String expressionZ = "if(\"A\" < 'B' and true,0,0)";
 
         IndicatorType indicatorType = new IndicatorType( "A", 100, false );
 
@@ -694,7 +692,17 @@ public class ExpressionService2Test
 
         List<Indicator> indicators = Lists.newArrayList( indicatorA, indicatorB );
 
-        when( organisationUnitGroupService.getOrganisationUnitGroup( groupA.getUid() ) ).thenReturn( groupA );
+        List<Constant> constants = ImmutableList.<Constant>builder()
+            .add( constantA )
+            .add( constantB )
+            .build();
+
+        List<OrganisationUnitGroup> orgUnitGroups = ImmutableList.<OrganisationUnitGroup>builder()
+            .add( groupA )
+            .build();
+
+        when( idObjectManager.getAllNoAcl( Constant.class ) ).thenReturn( constants );
+        when( idObjectManager.getAllNoAcl( OrganisationUnitGroup.class ) ).thenReturn( orgUnitGroups );
 
         target.substituteIndicatorExpressions( indicators );
 
