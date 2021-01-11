@@ -154,12 +154,12 @@ public class EnrollmentTrackerConverterService
             }
 
             programInstance.setStatus( enrollment.getStatus().getProgramStatus() );
+        }
 
-            if ( isNotEmpty( enrollment.getNotes() ) )
-            {
-                programInstance.getComments()
-                    .addAll( notesConverterService.from( preheat, enrollment.getNotes() ) );
-            }
+        if ( isNotEmpty( enrollment.getNotes() ) )
+        {
+            programInstance.getComments()
+                .addAll( notesConverterService.from( preheat, enrollment.getNotes() ) );
         }
         return programInstance;
     }

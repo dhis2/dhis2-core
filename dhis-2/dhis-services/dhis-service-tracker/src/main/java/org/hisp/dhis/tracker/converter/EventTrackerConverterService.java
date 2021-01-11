@@ -228,11 +228,6 @@ public class EventTrackerConverterService
                 programStageInstance.setCompletedBy( event.getCompletedBy() );
             }
 
-            if ( isNotEmpty( event.getNotes() ) )
-            {
-                programStageInstance.getComments().addAll( notesConverterService.from( preheat, event.getNotes() ) );
-            }
-
             if ( programStage.isEnableUserAssignment() )
             {
                 User assignedUser = preheat.get( User.class, event.getAssignedUser() );
@@ -257,6 +252,12 @@ public class EventTrackerConverterService
                 programStageInstance.getEventDataValues().add( eventDataValue );
             }
         }
+
+        if ( isNotEmpty( event.getNotes() ) )
+        {
+            programStageInstance.getComments().addAll( notesConverterService.from( preheat, event.getNotes() ) );
+        }
+
         return programStageInstance;
     }
 
