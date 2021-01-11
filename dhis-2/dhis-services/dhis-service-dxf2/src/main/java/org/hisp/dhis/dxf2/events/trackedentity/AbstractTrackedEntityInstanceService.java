@@ -83,11 +83,11 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
-import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -1173,12 +1173,6 @@ public abstract class AbstractTrackedEntityInstanceService
                 {
                     importConflicts.add( new ImportConflict( "Attribute.attribute", "Invalid attribute " + attribute.getAttribute() ) );
                     continue;
-                }
-
-                if ( attribute.getValue().length() > TEA_VALUE_MAX_LENGTH )
-                {
-                    // We shorten the value to first 25 characters, since we dont want to post a 1200+ string back.
-                    importConflicts.add( new ImportConflict( "Attribute.value", String.format( "Value exceeds the character limit of %s characters: '%s...'", TEA_VALUE_MAX_LENGTH, attribute.getValue().substring( 0, 25 ) ) ) );
                 }
 
                 if ( daoEntityAttribute.isGenerated() && daoEntityAttribute.getTextPattern() != null && !importOptions.isSkipPatternValidation() )
