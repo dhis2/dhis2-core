@@ -28,12 +28,6 @@ package org.hisp.dhis.message.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -49,6 +43,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -143,7 +141,7 @@ public class HibernateMessageConversationStore
     {
         Assert.notNull( user, "User must be specified" );
 
-        String hql = "select count(*) from MessageConversation m join m.userMessages u where u.createdBy = :user and u.read = false";
+        String hql = "select count(*) from MessageConversation m join m.userMessages u where u.user = :user and u.read = false";
 
         Query<Long> query = getTypedQuery( hql );
         query.setParameter( "user", user );
@@ -178,7 +176,7 @@ public class HibernateMessageConversationStore
 
         getSqlQuery( sql ).executeUpdate();
 
-        String hql = "delete UserMessage u where u.createdBy = :user";
+        String hql = "delete UserMessage u where u.user = :user";
 
         return getQuery( hql )
             .setParameter( "user", user )
