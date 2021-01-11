@@ -1,4 +1,4 @@
-package org.hisp.dhis.db.migration.v35;
+package org.hisp.dhis.db.migration.v33;
 
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
@@ -22,12 +22,12 @@ import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALU
  *
  * @author Stian
  */
-public class V2_35_1__Add_teav_btree_index
+public class V2_33_33__Add_teav_btree_index
     extends BaseJavaMigration
 {
     private final static String COP_POST_URL = "https://community.dhis2.org/t/important-database-upgrade-for-tracker-performance/38766";
 
-    private static final Logger log = LoggerFactory.getLogger( V2_35_1__Add_teav_btree_index.class );
+    private static final Logger log = LoggerFactory.getLogger( V2_33_33__Add_teav_btree_index.class );
 
     @Override
     public void migrate( Context context )
