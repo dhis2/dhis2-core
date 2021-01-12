@@ -27,10 +27,13 @@ package org.hisp.dhis.validation.comparator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
+import java.util.List;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
+
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Stian Sandvold
@@ -48,6 +51,27 @@ public class ValidationResultQuery
     private int pageSize = Pager.DEFAULT_PAGE_SIZE;
 
     private long total;
+
+    /**
+     * Optional list of validation rule uids to filter.
+     * If empty the list is not restricting the query.
+     */
+    private List<String> vr;
+
+    /**
+     * Optional list of organisation unit uids to filter.
+     * If empty the list is not restricting the query.
+     */
+    private List<String> ou;
+
+
+    /**
+     * Optional list of period ID or ISO-Date expressions to filter.
+     * IDs and ISO-expressions can be mixed.
+     * Anything not recognised as an ISO expression is assumed to be an ID.
+     * If empty the list is not restricting the query.
+     */
+    private List<String> pe;
 
     public ValidationResultQuery()
     {
@@ -108,6 +132,30 @@ public class ValidationResultQuery
         return PagerUtils.isSkipPaging( skipPaging, paging ) ? null : new Pager( page, total, pageSize );
     }
 
+    public List<String> getVr() {
+        return vr;
+    }
+
+    public void setVr(List<String> vr) {
+        this.vr = vr;
+    }
+
+    public List<String> getOu() {
+        return ou;
+    }
+
+    public void setOu(List<String> ou) {
+        this.ou = ou;
+    }
+
+    public List<String> getPe() {
+        return pe;
+    }
+
+    public void setPe(List<String> pe) {
+        this.pe = pe;
+    }
+
     @Override
     public String toString()
     {
@@ -115,6 +163,9 @@ public class ValidationResultQuery
             .add( "page", page )
             .add( "pageSize", pageSize )
             .add( "total", total )
+            .add( "ou", ou )
+            .add( "vr", vr )
+            .add( "pe", pe )
             .toString();
     }
 }

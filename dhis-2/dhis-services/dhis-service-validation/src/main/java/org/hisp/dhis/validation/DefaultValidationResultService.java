@@ -92,7 +92,7 @@ public class DefaultValidationResultService
     @Override
     public void updateValidationResults( Set<ValidationResult> validationResults )
     {
-        validationResults.forEach( vr -> validationResultStore.update( vr ) );
+        validationResults.forEach(validationResultStore::update);
     }
 
     @Override
