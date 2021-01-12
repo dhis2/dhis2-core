@@ -70,12 +70,14 @@ public class Sharing
     /**
      * Map of UserAccess. Key is User uid
      */
+    @Builder.Default
     @JsonProperty
     private Map<String, UserAccess> users = new HashMap<>();
 
     /**
      * Map of UserGroupAccess. Key is UserGroup uid
      */
+    @Builder.Default
     @JsonProperty
     private Map<String, UserGroupAccess> userGroups = new HashMap<>();
 

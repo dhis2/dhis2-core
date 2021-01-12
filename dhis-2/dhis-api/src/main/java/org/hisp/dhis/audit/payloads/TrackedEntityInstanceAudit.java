@@ -39,8 +39,9 @@ import java.util.Date;
 import java.util.Objects;
 
 /**
+ * This class is deprecated.
+ *
  * @author Abyot Asalefew Gizaw abyota@gmail.com
- * @deprecated Will be removed soon.
  */
 @JacksonXmlRootElement( localName = "trackedEntityInstanceAudit", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityInstanceAudit

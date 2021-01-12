@@ -1,5 +1,7 @@
 package org.hisp.dhis.common;
 
+import org.apache.commons.lang3.StringUtils;
+
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -31,7 +33,6 @@ package org.hisp.dhis.common;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingKey;
-import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 import java.util.HashMap;

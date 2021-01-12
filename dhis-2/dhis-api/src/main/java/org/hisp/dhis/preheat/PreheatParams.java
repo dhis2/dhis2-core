@@ -127,7 +127,6 @@ public class PreheatParams
         this.objects = objects;
     }
 
-    @SuppressWarnings( { "unchecked" } )
     public PreheatParams addObject( IdentifiableObject object )
     {
         if ( object == null )
