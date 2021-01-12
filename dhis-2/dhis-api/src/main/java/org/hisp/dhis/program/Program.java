@@ -188,6 +188,11 @@ public class Program
     {
     }
 
+    public Program( String name )
+    {
+        this.name = name;
+    }
+
     public Program( String name, String description )
     {
         this.name = name;
@@ -374,6 +379,10 @@ public class Program
         return programStages != null && programStages.size() == 1;
     }
 
+    /**
+     * @deprecated use {@link ProgramService.hasOrgUnit()} instead.
+     */
+    @Deprecated
     public boolean hasOrganisationUnit( OrganisationUnit unit )
     {
         return organisationUnits.contains( unit );
@@ -423,6 +432,7 @@ public class Program
         this.version = version;
     }
 
+    @Override
     @JsonProperty( "organisationUnits" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0 )
@@ -432,6 +442,7 @@ public class Program
         return organisationUnits;
     }
 
+    @Override
     public void setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
     {
         this.organisationUnits = organisationUnits;
@@ -829,6 +840,7 @@ public class Program
         this.style = style;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getFormName()
@@ -836,6 +848,7 @@ public class Program
         return formName;
     }
 
+    @Override
     public void setFormName( String formName )
     {
         this.formName = formName;
