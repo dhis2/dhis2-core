@@ -151,6 +151,7 @@ public class Preheat
         return objects;
     }
 
+    @SuppressWarnings("unchecked")
     public <T extends IdentifiableObject> T get( PreheatIdentifier identifier, T object )
     {
         if ( object == null )
@@ -195,6 +196,7 @@ public class Preheat
         return isEmpty( identifier ) || !map.get( identifier ).containsKey( klass ) || map.get( identifier ).get( klass ).isEmpty();
     }
 
+    @SuppressWarnings("unchecked")
     public <T extends IdentifiableObject> Preheat put( PreheatIdentifier identifier, T object )
     {
         if ( object == null )
@@ -279,6 +281,7 @@ public class Preheat
         return this;
     }
 
+    @SuppressWarnings("unchecked")
     public <T extends IdentifiableObject> Preheat replace( PreheatIdentifier identifier, T object )
     {
         if ( object == null )
@@ -380,6 +383,7 @@ public class Preheat
         return this;
     }
 
+    @SuppressWarnings("unchecked")
     public Preheat remove( PreheatIdentifier identifier, IdentifiableObject object )
     {
         Class<? extends IdentifiableObject> klass = HibernateProxyUtils.getRealClass( object );;

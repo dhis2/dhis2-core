@@ -43,8 +43,8 @@ public class HibernateProxyUtils
         throw new IllegalStateException( "Utility class" );
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T> Class<T> getRealClass( Object object )
+    @SuppressWarnings("rawtypes")
+    public static Class getRealClass( Object object )
     {
         Objects.requireNonNull( object );
 
