@@ -29,8 +29,9 @@ package org.hisp.dhis.preheat;
  */
 
 import com.google.common.collect.Lists;
+
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
