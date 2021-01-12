@@ -258,4 +258,9 @@ public class TrackerImportValidationContext
     {
         return bundle.getPreheat().getIdentifiers();
     }
+    
+    public Map<Long, List<Long>> getProgramWithOrgUnitsMap()
+    {
+        return bundle.getPreheat().getProgramWithOrgUnitsMap();
+    }
 }

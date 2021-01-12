@@ -178,6 +178,8 @@ public class SimpleEventSMSListenerTest
             updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
             return updatedIncomingSms;
         } ).when( incomingSmsService ).update( any() );
+
+        when( programService.hasOrgUnit( any( Program.class ), any( OrganisationUnit.class ) ) ).thenReturn( true );
     }
 
     @Test
