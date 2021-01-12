@@ -30,6 +30,8 @@ package org.hisp.dhis.program;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -47,11 +49,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Abyot Asalefew
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.program.ProgramService" )
 public class DefaultProgramService
     implements ProgramService
@@ -60,23 +61,11 @@ public class DefaultProgramService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final ProgramStore programStore;
+    @NonNull private final ProgramStore programStore;
 
-    private final CurrentUserService currentUserService;
+    @NonNull private final CurrentUserService currentUserService;
 
-    private final OrganisationUnitService organisationUnitService;
-
-    public DefaultProgramService( ProgramStore programStore, CurrentUserService currentUserService,
-        OrganisationUnitService organisationUnitService )
-    {
-        checkNotNull( programStore );
-        checkNotNull( currentUserService );
-        checkNotNull( organisationUnitService );
-
-        this.programStore = programStore;
-        this.currentUserService = currentUserService;
-        this.organisationUnitService = organisationUnitService;
-    }
+    @NonNull private final OrganisationUnitService organisationUnitService;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -224,5 +213,11 @@ public class DefaultProgramService
         Collections.sort( programDataElements );
 
         return programDataElements;
+    }
+
+    @Override
+    public boolean hasOrgUnit( Program program, OrganisationUnit organisationUnit )
+    {
+        return this.programStore.hasOrgUnit( program, organisationUnit );
     }
 }
