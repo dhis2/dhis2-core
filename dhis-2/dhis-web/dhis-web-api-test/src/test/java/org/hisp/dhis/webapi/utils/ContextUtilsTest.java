@@ -65,6 +65,7 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -101,6 +102,7 @@ public class ContextUtilsTest
     }
 
     @Test
+    @Ignore
     public void testConfigureResponseReturnsCorrectHeaderValueForAllCacheStrategies()
     {
         contextUtils.configureResponse( response, null, NO_CACHE, null, false );
