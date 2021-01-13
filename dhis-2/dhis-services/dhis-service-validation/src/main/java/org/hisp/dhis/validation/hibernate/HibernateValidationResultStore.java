@@ -31,7 +31,11 @@ package org.hisp.dhis.validation.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -196,10 +200,11 @@ public class HibernateValidationResultStore
         restrictions.append(getUserRestrictions(sqlHelper ));
         if ( !isEmpty( query.getOu() ) )
         {
-            restrictions.append(" " + sqlHelper.whereAnd() + " vr.organisationUnit.uid in :orgUnitsUids ");
+            restrictions.append( " " + sqlHelper.whereAnd() + " vr.organisationUnit.uid in :orgUnitsUids " );
         }
-        if ( !isEmpty( query.getVr() )) {
-            restrictions.append(" " + sqlHelper.whereAnd() + " vr.validationRule.uid in :validationRulesUids ");
+        if ( !isEmpty( query.getVr() ) )
+        {
+            restrictions.append( " " + sqlHelper.whereAnd() + " vr.validationRule.uid in :validationRulesUids " );
         }
         if ( !isEmpty( query.getPe() ) )
         {
@@ -236,14 +241,14 @@ public class HibernateValidationResultStore
      */
     private String getUserRestrictions( SqlHelper sqlHelper )
     {
-        String restrictions = "";
-
         final User user = currentUserService.getCurrentUser();
 
         if ( user == null || currentUserService.currentUserIsSuper() )
         {
-            return restrictions;
+            return "";
         }
+
+        StringBuilder restrictions = new StringBuilder();
 
         // ---------------------------------------------------------------------
         // Restrict by the user's organisation unit sub-trees, if any
@@ -255,10 +260,10 @@ public class HibernateValidationResultStore
         {
             for ( OrganisationUnit ou : userOrgUnits )
             {
-                restrictions += ( restrictions.length() == 0 ? " " + sqlHelper.whereAnd() + " (" : " or " )
-                    + "locate('" + ou.getUid() + "',vr.organisationUnit.path) <> 0";
+                restrictions.append( (restrictions.length() == 0 ? " " + sqlHelper.whereAnd() + " (" : " or ")
+                    + "locate('" + ou.getUid() + "',vr.organisationUnit.path) <> 0" );
             }
-            restrictions += ")";
+            restrictions.append( ")" );
         }
 
         // ---------------------------------------------------------------------
@@ -274,9 +279,9 @@ public class HibernateValidationResultStore
                 " and exists (select 'x' from Category c where co in elements(c.categoryOptions)" +
                 " and c.id in (" + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( categories ), "," ) + ") )";
 
-            restrictions += " " + sqlHelper.whereAnd() + " 1 = (select min(case when " +  validCategoryOptionByCategory + " then 1 else 0 end)" +
+            restrictions.append( " " + sqlHelper.whereAnd() + " 1 = (select min(case when " +  validCategoryOptionByCategory + " then 1 else 0 end)" +
                 " from CategoryOption co" +
-                " where co in elements(vr.attributeOptionCombo.categoryOptions) )";
+                " where co in elements(vr.attributeOptionCombo.categoryOptions) )" );
         }
 
         // ---------------------------------------------------------------------
@@ -294,15 +299,15 @@ public class HibernateValidationResultStore
                     " and s.id in (" + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( cogsets ), "," ) + ")" +
                     " and " + isReadable( "g", user ) + " )";
 
-            restrictions += " " + sqlHelper.whereAnd() +
+            restrictions.append( " " + sqlHelper.whereAnd() +
                 " 1 = (select min(case when " +  validCategoryOptionByCategoryOptionGroup + " then 1 else 0 end)" +
                 " from CategoryOption co" +
-                " where co in elements(vr.attributeOptionCombo.categoryOptions) )";
+                " where co in elements(vr.attributeOptionCombo.categoryOptions) )" );
         }
 
         log.debug( "Restrictions = " + restrictions );
 
-        return restrictions;
+        return restrictions.toString();
     }
 
     /**
