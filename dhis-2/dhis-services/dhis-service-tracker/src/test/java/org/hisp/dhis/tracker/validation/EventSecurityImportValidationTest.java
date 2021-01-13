@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.validation;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,6 @@ package org.hisp.dhis.tracker.validation;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -49,6 +48,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
@@ -90,6 +90,9 @@ public class EventSecurityImportValidationTest
 
     @Autowired
     private ProgramStageInstanceService programStageServiceInstance;
+
+    @Autowired
+    private ProgramService programService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -258,6 +261,11 @@ public class EventSecurityImportValidationTest
         OrganisationUnit qfUVllTs6cS = organisationUnitService.getOrganisationUnit( "QfUVllTs6cS" );
         user.addOrganisationUnit( qfUVllTs6cS );
         user.addOrganisationUnit( organisationUnitA );
+
+        Program p = programService.getProgram( "prabcdefghA" );
+        p.addOrganisationUnit( qfUVllTs6cS );
+
+        programService.updateProgram( p );
 
         manager.update( user );
     }

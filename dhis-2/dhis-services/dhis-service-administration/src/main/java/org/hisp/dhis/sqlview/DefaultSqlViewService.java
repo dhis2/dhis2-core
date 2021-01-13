@@ -1,7 +1,7 @@
 package org.hisp.dhis.sqlview;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -190,7 +190,7 @@ public class DefaultSqlViewService
         grid.setTitle( sqlView.getName() );
         grid.setSubtitle( sqlView.getDescription() );
 
-        log.info( String.format( "Retriving data for SQL view: '%s'", sqlView.getUid() ) );
+        log.info( String.format( "Retrieving data for SQL view: '%s'", sqlView.getUid() ) );
 
         String sql = sqlView.isQuery() ?
             getSqlForQuery( sqlView, criteria, variables, filters, fields ) :
