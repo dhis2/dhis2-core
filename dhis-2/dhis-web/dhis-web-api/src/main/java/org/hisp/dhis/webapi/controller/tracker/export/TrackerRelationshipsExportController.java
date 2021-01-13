@@ -112,23 +112,38 @@ public class TrackerRelationshipsExportController
         @RequestParam( required = false ) String event )
         throws WebMessageException
     {
-        List<org.hisp.dhis.tracker.domain.Relationship> relationships = tryGetRelationshipFrom( tei,
-            TrackedEntityInstance.class, () -> notFound( "No trackedEntityInstance '" + tei + "' found." ) )
-                .orElseGet( () -> tryGetRelationshipFrom( enrollment, ProgramInstance.class,
-                    () -> notFound( "No enrollment '" + enrollment + "' found." ) )
-                        .orElseGet( () -> tryGetRelationshipFrom( event, ProgramStageInstance.class,
-                            () -> notFound( "No event '" + event + "' found." ) )
-                                .orElse( null ) ) );
+
+        List<org.hisp.dhis.tracker.domain.Relationship> relationships = tryGetRelationshipFrom(
+            tei,
+            TrackedEntityInstance.class,
+            () -> notFound( "No trackedEntityInstance '" + tei + "' found." ) );
+
+        if ( Objects.isNull( relationships ) )
+        {
+            relationships = tryGetRelationshipFrom(
+                enrollment,
+                ProgramInstance.class,
+                () -> notFound( "No enrollment '" + enrollment + "' found." ) );
+        }
+
+        if ( Objects.isNull( relationships ) )
+        {
+            relationships = tryGetRelationshipFrom(
+                event,
+                ProgramStageInstance.class,
+                () -> notFound( "No event '" + event + "' found." ) );
+        }
 
         if ( Objects.isNull( relationships ) )
         {
             throw new WebMessageException( badRequest( "Missing required parameter 'tei', 'enrollment' or 'event'." ) );
         }
+
         return relationships;
     }
 
     @SneakyThrows
-    private Optional<List<org.hisp.dhis.tracker.domain.Relationship>> tryGetRelationshipFrom(
+    private List<org.hisp.dhis.tracker.domain.Relationship> tryGetRelationshipFrom(
         String identifier,
         Class<?> type,
         Supplier<WebMessage> notFoundMessageSupplier )
@@ -138,15 +153,14 @@ public class TrackerRelationshipsExportController
             Object object = getObjectRetriever( type ).apply( identifier );
             if ( object != null )
             {
-                return Optional
-                    .of( RELATIONSHIP_MAPPER.fromCollection( getRelationshipRetriever( type ).apply( object ) ) );
+                return RELATIONSHIP_MAPPER.fromCollection( getRelationshipRetriever( type ).apply( object ) );
             }
             else
             {
                 throw new WebMessageException( notFoundMessageSupplier.get() );
             }
         }
-        return Optional.empty();
+        return null;
     }
 
     private Function<Object, List<Relationship>> getRelationshipRetriever( Class<?> type )
