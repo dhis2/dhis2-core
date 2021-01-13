@@ -34,6 +34,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.translation.Translatable;
+import org.hisp.dhis.translation.TranslationProperty;
 
 /**
  * @author Bob Jolliffe
@@ -205,6 +207,7 @@ public class BaseNameableObject
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( translationProperty = TranslationProperty.SHORT_NAME )
     public String getDisplayShortName()
     {
         return getTranslation( TranslationProperty.SHORT_NAME, getShortName() );
@@ -227,6 +230,7 @@ public class BaseNameableObject
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( translationProperty = TranslationProperty.DESCRIPTION )
     public String getDisplayDescription()
     {
         return getTranslation( TranslationProperty.DESCRIPTION, getDescription() );
@@ -234,6 +238,7 @@ public class BaseNameableObject
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( translationProperty = TranslationProperty.FORM_NAME )
     public String getDisplayFormName()
     {
         return getTranslation( TranslationProperty.FORM_NAME, getFormNameFallback() );

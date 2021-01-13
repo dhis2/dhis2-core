@@ -34,10 +34,13 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.i18n.I18nLocaleService;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.TranslationUtils;
@@ -92,6 +95,9 @@ public class I18nAction
 
     @Autowired
     private I18nLocaleService i18nLocaleService;
+
+    @Autowired
+    private SchemaService schemaService;
 
     // -------------------------------------------------------------------------
     // Input
@@ -187,7 +193,9 @@ public class I18nAction
 
         referenceTranslations = TranslationUtils.getObjectPropertyValues( object );
 
-        propertyNames = TranslationUtils.getObjectPropertyNames( object );
+        Schema schema = schemaService.getSchema( object.getClass() );
+
+        propertyNames = schema.getTranslatableProperties().stream().map( p -> p.getName() ).collect( Collectors.toList());
 
         return SUCCESS;
     }

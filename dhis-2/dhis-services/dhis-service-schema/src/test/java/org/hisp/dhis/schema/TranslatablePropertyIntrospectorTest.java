@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2004-2021, University of Oslo
+package org.hisp.dhis.schema;/*
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
-import org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.dataelement.DataElement;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * @author Viet Nguyen <viet@dhis.org>
- */
-public class TranslationPropertyUserType
-    extends JsonSetBinaryType
+import java.util.Map;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class TranslatablePropertyIntrospectorTest extends DhisSpringTest
 {
-    public TranslationPropertyUserType()
+    @Autowired
+    private SchemaService schemaService;
+
+    @Test
+    public void testGetTranslatableProperties()
     {
-        super();
+        Schema deSchema = schemaService.getSchema( DataElement.class );
+        Map<String, Property> propertyMap = deSchema.getPropertyMap();
+        assertTrue( propertyMap.containsKey( "name" ) );
+        assertTrue( propertyMap.containsKey( "code" ) );
+        assertTrue( propertyMap.get( "name" ).isTranslatable() );
+        assertFalse( propertyMap.get( "code" ).isTranslatable() );
     }
 }

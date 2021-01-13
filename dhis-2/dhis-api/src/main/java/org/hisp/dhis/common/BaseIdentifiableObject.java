@@ -47,6 +47,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
@@ -287,6 +288,7 @@ public class BaseIdentifiableObject
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( translationProperty = TranslationProperty.NAME )
     public String getDisplayName()
     {
         return getTranslation( TranslationProperty.NAME, getName() );
@@ -405,7 +407,7 @@ public class BaseIdentifiableObject
 
         loadTranslationsCacheIfEmpty();
 
-        String cacheKey = Translation.getCacheKey( locale.toString(), property );
+        String cacheKey = Translation.getCacheKey( locale.toString(), property.getName() );
 
         return translationCache.getOrDefault( cacheKey, defaultValue );
     }
@@ -422,7 +424,7 @@ public class BaseIdentifiableObject
                 if ( translation.getLocale() != null && translation.getProperty() != null
                     && !StringUtils.isEmpty( translation.getValue() ) )
                 {
-                    String key = Translation.getCacheKey( translation.getLocale(), translation.getProperty() );
+                    String key = Translation.getCacheKey( translation.getLocale(), translation.getProperty().getName() );
                     translationCache.put( key, translation.getValue() );
                 }
             }

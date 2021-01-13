@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.system.util;
 
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.commons.lang3.reflect.MethodUtils;
+import org.hisp.dhis.translation.Translatable;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -34,9 +38,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang3.reflect.FieldUtils;
-import org.hisp.dhis.audit.AuditAttribute;
 
 /**
  * @author Lars Helge Overland
@@ -102,10 +103,37 @@ public class AnnotationUtils
                 return;
             }
 
-            if ( field.isAnnotationPresent( AuditAttribute.class )
-                || getter.isAnnotationPresent( AuditAttribute.class ) )
+            if ( field.isAnnotationPresent( annotationType )  || getter.isAnnotationPresent( annotationType ) )
             {
-                mapFields.put( field, getter );
+               mapFields.put( field, getter );
+            }
+        } );
+
+        return mapFields;
+    }
+
+    /**
+     * Scan through all fields and getters of given class and return those with {@link Translatable} marked.
+     * Return Map<String,String> with key is fieldName and value is translation key.
+     * This translation key is used for storing translation values in JsonB format.
+     */
+    public static Map<String, String> getTranslatableAnnotatedFields( Class<?> klass )
+    {
+        final Map<String, String> mapFields = new HashMap<>();
+
+        if ( klass == null )
+        {
+            return mapFields;
+        }
+
+        List<Method> methods = MethodUtils.getMethodsListWithAnnotation( klass, Translatable.class, true, false );
+
+        methods.forEach( method -> {
+            Translatable translatableAnnotation = method.getAnnotation( Translatable.class );
+
+            if ( translatableAnnotation != null )
+            {
+                mapFields.put( translatableAnnotation.translationProperty().getName(), translatableAnnotation.translationProperty().toString() );
             }
         } );
 

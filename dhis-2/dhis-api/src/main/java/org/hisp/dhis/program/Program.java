@@ -54,6 +54,7 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.UserAuthorityGroup;
 
@@ -447,6 +448,7 @@ public class Program
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( translationProperty = TranslationProperty.ENROLLMENT_DATE_LABEL )
     public String getDisplayEnrollmentDateLabel()
     {
         return getTranslation( TranslationProperty.ENROLLMENT_DATE_LABEL, getEnrollmentDateLabel() );
@@ -467,6 +469,7 @@ public class Program
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( translationProperty = TranslationProperty.INCIDENT_DATE_LABEL )
     public String getDisplayIncidentDateLabel()
     {
         return getTranslation( TranslationProperty.INCIDENT_DATE_LABEL, getIncidentDateLabel() );

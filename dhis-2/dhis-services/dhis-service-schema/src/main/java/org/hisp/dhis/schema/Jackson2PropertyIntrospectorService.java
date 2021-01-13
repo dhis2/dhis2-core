@@ -102,6 +102,8 @@ public class Jackson2PropertyIntrospectorService
             propertyMap.put( "__self__", property );
         }
 
+        Map<String,String> translatablefields = AnnotationUtils.getTranslatableAnnotatedFields( clazz );
+
         List<Property> properties = collectProperties( clazz );
 
         for ( Property property : properties )
@@ -145,7 +147,6 @@ public class Jackson2PropertyIntrospectorService
                 property.setManyToOne( hibernateProperty.isManyToOne() );
                 property.setOwningRole( hibernateProperty.getOwningRole() );
                 property.setInverseRole( hibernateProperty.getInverseRole() );
-
             }
 
             if ( AnnotationUtils.isAnnotationPresent( property.getGetterMethod(), Description.class ) )
@@ -210,6 +211,12 @@ public class Jackson2PropertyIntrospectorService
                 {
                     property.setSimple( true );
                 }
+            }
+
+            if ( translatablefields.containsKey( property.getFieldName() ) )
+            {
+                property.setTranslatable( true );
+                property.setTranslationKey( translatablefields.get( property.getFieldName() ) );
             }
 
             if ( property.isCollection() )

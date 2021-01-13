@@ -1,4 +1,4 @@
-/*
+package org.hisp.dhis.translation;/*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
@@ -25,18 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
-import org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+
+import javax.validation.constraints.NotNull;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @author Viet Nguyen <viet@dhis.org>
+ * This annotation is used for indicating that a property of an object is translatable.
+ * It must be applied to the getDisplay*() methods. See {@link BaseIdentifiableObject#getDisplayName()} for example.
  */
-public class TranslationPropertyUserType
-    extends JsonSetBinaryType
+@Target({ ElementType.METHOD })
+@Retention( RetentionPolicy.RUNTIME)
+public @interface Translatable
 {
-    public TranslationPropertyUserType()
-    {
-        super();
-    }
+    /**
+     * Each translatable property need to be defined with an enum {@link TranslationProperty}
+     */
+    @NotNull TranslationProperty translationProperty();
 }

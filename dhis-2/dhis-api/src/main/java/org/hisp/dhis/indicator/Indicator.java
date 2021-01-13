@@ -35,6 +35,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.translation.TranslationProperty;
+import org.hisp.dhis.translation.Translatable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -231,6 +232,7 @@ public class Indicator
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( translationProperty = TranslationProperty.NUMERATOR_DESCRIPTION )
     public String getDisplayNumeratorDescription()
     {
         return getTranslation( TranslationProperty.NUMERATOR_DESCRIPTION, getNumeratorDescription() );
@@ -273,6 +275,7 @@ public class Indicator
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( translationProperty = TranslationProperty.DENOMINATOR_DESCRIPTION )
     public String getDisplayDenominatorDescription()
     {
         return getTranslation( TranslationProperty.DENOMINATOR_DESCRIPTION, getDenominatorDescription() );
