@@ -132,27 +132,33 @@ public class ValidationResultQuery
         return PagerUtils.isSkipPaging( skipPaging, paging ) ? null : new Pager( page, total, pageSize );
     }
 
-    public List<String> getVr() {
+    public List<String> getVr()
+    {
         return vr;
     }
 
-    public void setVr(List<String> vr) {
+    public void setVr( List<String> vr )
+    {
         this.vr = vr;
     }
 
-    public List<String> getOu() {
+    public List<String> getOu()
+    {
         return ou;
     }
 
-    public void setOu(List<String> ou) {
+    public void setOu( List<String> ou )
+    {
         this.ou = ou;
     }
 
-    public List<String> getPe() {
+    public List<String> getPe()
+    {
         return pe;
     }
 
-    public void setPe(List<String> pe) {
+    public void setPe( List<String> pe )
+    {
         this.pe = pe;
     }
 

@@ -42,6 +42,7 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -88,15 +89,19 @@ public class HibernateValidationResultStore
     @Override
     public List<ValidationResult> getAllUnreportedValidationResults()
     {
+        SqlHelper sqlHelper = new SqlHelper();
+        sqlHelper.whereAnd(); // as we use where already below
         return getQuery( "from ValidationResult vr where vr.notificationSent = false"
-            + getUserRestrictions( "and") ).list();
+            + getUserRestrictions( sqlHelper ) ).list();
     }
 
     @Override
     public ValidationResult getById( long id )
     {
+        SqlHelper sqlHelper = new SqlHelper();
+        sqlHelper.whereAnd(); // as we use where already below
         return getSingleResult( getQuery( "from ValidationResult vr where vr.id = :id"
-            + getUserRestrictions( "and") ).setParameter( "id", id ) );
+            + getUserRestrictions( sqlHelper ) ).setParameter( "id", id ) );
     }
 
     @Override
@@ -162,7 +167,8 @@ public class HibernateValidationResultStore
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void addQueryParameters(ValidationResultQuery query, Query<?> hibernateQuery) {
+    private void addQueryParameters( ValidationResultQuery query, Query<?> hibernateQuery )
+    {
         if ( !isEmpty( query.getOu() ) )
         {
             hibernateQuery.setParameter( "orgUnitsUids", query.getOu() );
@@ -186,20 +192,18 @@ public class HibernateValidationResultStore
 
     private String getQueryRestrictions( ValidationResultQuery query ) {
         StringBuilder restrictions = new StringBuilder();
-        restrictions.append(getUserRestrictions("where" ));
-        String whereAnd = restrictions.length() == 0 ? "where" : "and";
+        SqlHelper sqlHelper = new SqlHelper();
+        restrictions.append(getUserRestrictions(sqlHelper ));
         if ( !isEmpty( query.getOu() ) )
         {
-            restrictions.append(" " + whereAnd + " vr.organisationUnit.uid in :orgUnitsUids ");
-            whereAnd = "and";
+            restrictions.append(" " + sqlHelper.whereAnd() + " vr.organisationUnit.uid in :orgUnitsUids ");
         }
         if ( !isEmpty( query.getVr() )) {
-            restrictions.append(" " + whereAnd + " vr.validationRule.uid in :validationRulesUids ");
-            whereAnd = "and";
+            restrictions.append(" " + sqlHelper.whereAnd() + " vr.validationRule.uid in :validationRulesUids ");
         }
         if ( !isEmpty( query.getPe() ) )
         {
-            restrictions.append( " " + whereAnd + "(" );
+            restrictions.append( " " + sqlHelper.whereAnd() + "(" );
             int i = 1;
             for ( String period : query.getPe() )
             {
@@ -227,10 +231,10 @@ public class HibernateValidationResultStore
      * If the current user is null (e.g. running a system process or
      * a JUnit test) or superuser, there is no restriction.
      *
-     * @param whereAnd "where" or "and", to add restrictions to where clause.
+     * @param sqlHelper to help with "where" and/or "and" in the where clause.
      * @return String to add restrictions to the HQL query.
      */
-    private String getUserRestrictions( String whereAnd )
+    private String getUserRestrictions( SqlHelper sqlHelper )
     {
         String restrictions = "";
 
@@ -251,11 +255,10 @@ public class HibernateValidationResultStore
         {
             for ( OrganisationUnit ou : userOrgUnits )
             {
-                restrictions += ( restrictions.length() == 0 ? " " + whereAnd + " (" : " or " )
+                restrictions += ( restrictions.length() == 0 ? " " + sqlHelper.whereAnd() + " (" : " or " )
                     + "locate('" + ou.getUid() + "',vr.organisationUnit.path) <> 0";
             }
             restrictions += ")";
-            whereAnd = "and";
         }
 
         // ---------------------------------------------------------------------
@@ -271,11 +274,9 @@ public class HibernateValidationResultStore
                 " and exists (select 'x' from Category c where co in elements(c.categoryOptions)" +
                 " and c.id in (" + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( categories ), "," ) + ") )";
 
-            restrictions += " " + whereAnd + " 1 = (select min(case when " +  validCategoryOptionByCategory + " then 1 else 0 end)" +
+            restrictions += " " + sqlHelper.whereAnd() + " 1 = (select min(case when " +  validCategoryOptionByCategory + " then 1 else 0 end)" +
                 " from CategoryOption co" +
                 " where co in elements(vr.attributeOptionCombo.categoryOptions) )";
-
-            whereAnd = "and";
         }
 
         // ---------------------------------------------------------------------
@@ -293,7 +294,7 @@ public class HibernateValidationResultStore
                     " and s.id in (" + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( cogsets ), "," ) + ")" +
                     " and " + isReadable( "g", user ) + " )";
 
-            restrictions += " " + whereAnd +
+            restrictions += " " + sqlHelper.whereAnd() +
                 " 1 = (select min(case when " +  validCategoryOptionByCategoryOptionGroup + " then 1 else 0 end)" +
                 " from CategoryOption co" +
                 " where co in elements(vr.attributeOptionCombo.categoryOptions) )";
