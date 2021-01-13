@@ -29,6 +29,7 @@ package org.hisp.dhis.document.impl;
  */
 
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentStore;
@@ -63,7 +64,7 @@ public class HibernateDocumentStore
         CriteriaQuery<Long> query = builder.createQuery( Long.class );
         Root<Document> root = query.from( Document.class );
         query.select( builder.count( root ) );
-        query.where( builder.equal( root.get( "createdBy" ), user ) );
+        query.where( builder.equal( root.get( BaseIdentifiableObject_.CREATED_BY ), user ) );
 
         return getSession().createQuery( query ).getSingleResult();
     }
