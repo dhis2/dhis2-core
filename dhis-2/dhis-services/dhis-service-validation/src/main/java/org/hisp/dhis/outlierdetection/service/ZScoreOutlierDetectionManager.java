@@ -28,8 +28,8 @@ package org.hisp.dhis.outlierdetection.service;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.getIsoPeriod;
 import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.getOrgUnitPathClause;
+import static org.hisp.dhis.period.PeriodType.getIsoPeriod;
 
 import java.util.List;
 
