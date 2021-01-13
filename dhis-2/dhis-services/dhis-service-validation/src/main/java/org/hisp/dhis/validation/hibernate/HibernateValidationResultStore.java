@@ -178,15 +178,8 @@ public class HibernateValidationResultStore
             {
                 String parameterName = "periodId" + (i++);
                 Period p = PeriodType.getPeriodFromIsoString( period );
-                if ( p == null )
-                { // assume ID
-                    hibernateQuery.setParameter( parameterName, Long.parseLong( period ) );
-                }
-                else
-                { // assume ISO period: match overlap with ISO period
-                    hibernateQuery.setParameter( parameterName + "Start", p.getStartDate() );
-                    hibernateQuery.setParameter( parameterName + "End", p.getEndDate() );
-                }
+                hibernateQuery.setParameter( parameterName + "Start", p.getStartDate() );
+                hibernateQuery.setParameter( parameterName + "End", p.getEndDate() );
             }
         }
     }
@@ -215,14 +208,11 @@ public class HibernateValidationResultStore
                 String parameterName = ":periodId" + (i++);
                 Period p = PeriodType.getPeriodFromIsoString( period );
                 if ( p == null )
-                { // assume ID
-                    restrictions.append( " vr.period.id = " + parameterName );
+                {
+                    throw new IllegalArgumentException( "ISO expression not recognised: " + period );
                 }
-                else
-                { // assume ISO period: match overlap with ISO period
-                    restrictions.append( " ((vr.period.startDate <= " + parameterName
-                        + "End ) and (vr.period.endDate >= " + parameterName + "Start ))" );
-                }
+                restrictions.append( " ((vr.period.startDate <= " + parameterName
+                    + "End ) and (vr.period.endDate >= " + parameterName + "Start ))" );
             }
             restrictions.append( ")" );
         }

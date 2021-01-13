@@ -558,41 +558,6 @@ public class ValidationResultStoreTest
     }
 
     @Test
-    public void testQueryWithPeriodIdFilter() {
-        save( asList(
-            validationResultAA, validationResultAB, validationResultAC,
-            validationResultBA, validationResultBB, validationResultBC ) );
-
-        // test with superuser so user adds no extra restrictions
-        setMockUserService( superUserService );
-
-        ValidationResultQuery query = new ValidationResultQuery();
-
-        // filter on A gives results for A
-        query.setPe( singletonList( "" + periodA.getId() ) );
-        assertEqualSets( asList( validationResultAA, validationResultAB, validationResultAC ),
-            validationResultStore.query( query ) );
-
-        // filter on B gives results for B
-        query.setPe( singletonList( "" + periodB.getId() ) );
-        assertEqualSets( asList( validationResultBA, validationResultBB, validationResultBC ),
-            validationResultStore.query( query ) );
-
-        // case with multiple units
-        query.setPe( asList( "" + periodA.getId(), "" + periodB.getId() ) );
-        assertEqualSets( asList(
-            validationResultAA, validationResultAB, validationResultAC,
-            validationResultBA, validationResultBB, validationResultBC ),
-            validationResultStore.query( query ) );
-
-        // now we restrict user to only be able to see Bs
-        setMockUserService( userBService );
-        // so filtering on As should not give any result
-        query.setPe( singletonList( "" + periodA.getId() ) );
-        assertEqualSets( emptyList(), validationResultStore.query( query ) );
-    }
-
-    @Test
     public void testQueryWithIsoPeriodFilter() {
         save( asList(
             validationResultAA, validationResultAB, validationResultAC,
@@ -646,7 +611,7 @@ public class ValidationResultStoreTest
 
         // filter on A gives results for A
         ValidationResultQuery query = new ValidationResultQuery();
-        query.setPe( singletonList( "" + periodA.getId() ) );
+        query.setPe( singletonList( "2017" ) );
         query.setVr( singletonList( validationRuleA.getUid() ) );
         query.setOu( singletonList( sourceA.getUid() ) );
         assertEqualSets( asList( validationResultAA, validationResultAB, validationResultAC ),
@@ -707,7 +672,7 @@ public class ValidationResultStoreTest
         assertEquals( 3, validationResultStore.count( query ) );
 
         // period filter
-        query.setPe( singletonList( "" + periodA.getId() ) );
+        query.setPe( singletonList( "2017-01" ) );
         assertEquals( 3, validationResultStore.count( query ) );
     }
 
