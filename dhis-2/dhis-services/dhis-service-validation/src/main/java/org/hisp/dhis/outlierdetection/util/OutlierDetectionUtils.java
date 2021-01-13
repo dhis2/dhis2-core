@@ -28,38 +28,17 @@ package org.hisp.dhis.outlierdetection.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.PeriodType;
 
 /**
  * @author Lars Helge Overland
  */
 public class OutlierDetectionUtils
 {
-    /**
-     * Returns the ISO period name for the given {@link ResultSet} row. Requires
-     * that a column <code>pe_start_date</code> of type date and a column
-     * <code>pt_name</code> are present.
-     *
-     * @param calendar the {@link Calendar}.
-     * @param rs the {@link ResultSet}.
-     * @return the ISO period name.
-     */
-    public static String getIsoPeriod( Calendar calendar, String periodType, Date startDate )
-        throws SQLException
-    {
-        final PeriodType pt = PeriodType.getPeriodTypeByName( periodType );
-        return pt.createPeriod( startDate, calendar ).getIsoDate();
-    }
-
     /**
      * Returns an organisation unit 'path' "like" clause for the given list
      * of {@link OrganisationUnit}.
