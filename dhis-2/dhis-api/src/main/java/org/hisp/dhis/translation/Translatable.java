@@ -1,6 +1,4 @@
-package org.hisp.dhis.common;
-
-/*
+package org.hisp.dhis.translation;/*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
@@ -28,20 +26,24 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.translation.TranslationProperty;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 
-public interface NameableObject
-    extends IdentifiableObject
+import javax.validation.constraints.NotNull;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * This annotation is used for indicating that a property of an object is translatable.
+ * It must be applied to the getDisplay*() methods. See {@link BaseIdentifiableObject#getDisplayName()} for example.
+ */
+@Target({ ElementType.METHOD })
+@Retention( RetentionPolicy.RUNTIME)
+public @interface Translatable
 {
-    String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName(), TranslationProperty.SHORT_NAME.getName() , TranslationProperty.DESCRIPTION.getName() };
-
-    String getShortName();
-
-    String getDisplayShortName();
-
-    String getDescription();
-
-    String getDisplayDescription();
-
-    String getDisplayProperty( DisplayProperty property );
+    /**
+     * Each translatable property need to be defined with an enum {@link TranslationProperty}
+     */
+    @NotNull TranslationProperty translationProperty();
 }

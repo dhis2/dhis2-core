@@ -36,6 +36,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.primitives.Primitives;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -46,7 +47,6 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.system.util.SchemaUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -99,6 +99,8 @@ public class Jackson2PropertyIntrospectorService
             propertyMap.put( "__self__", property );
         }
 
+        Map<String,String> translatablefields = AnnotationUtils.getTranslatableAnnotatedFields( clazz );
+
         List<Property> properties = collectProperties( clazz );
 
         for ( Property property : properties )
@@ -142,7 +144,6 @@ public class Jackson2PropertyIntrospectorService
                 property.setManyToOne( hibernateProperty.isManyToOne() );
                 property.setOwningRole( hibernateProperty.getOwningRole() );
                 property.setInverseRole( hibernateProperty.getInverseRole() );
-
             }
 
             if ( AnnotationUtils.isAnnotationPresent( property.getGetterMethod(), Description.class ) )
@@ -205,6 +206,12 @@ public class Jackson2PropertyIntrospectorService
                 {
                     property.setSimple( true );
                 }
+            }
+
+            if ( translatablefields.containsKey( property.getFieldName() ) )
+            {
+                property.setTranslatable( true );
+                property.setTranslationKey( translatablefields.get( property.getFieldName() ) );
             }
 
             if ( property.isCollection() )

@@ -38,7 +38,6 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.translation.TranslationProperty;
 import org.springframework.core.Ordered;
 
 import java.lang.reflect.Method;
@@ -270,6 +269,10 @@ public class Property implements Ordered, Klass
      * Default value of the Property
      */
     private Object defaultValue;
+
+    private boolean translatable;
+
+    private String translationKey;
 
     public Property()
     {
@@ -709,14 +712,14 @@ public class Property implements Ordered, Klass
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TranslationProperty getTranslationKey()
+    public String getTranslationKey()
     {
-        if ( !isPersisted() )
-        {
-            return null;
-        }
+        return this.translationKey;
+    }
 
-        return TranslationProperty.fromValue( name );
+    public void setTranslationKey( String translationKey )
+    {
+        this.translationKey = translationKey;
     }
 
     @JsonProperty
@@ -802,6 +805,18 @@ public class Property implements Ordered, Klass
         {
             this.defaultValue = null;
         }
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isTranslatable()
+    {
+        return this.translatable;
+    }
+
+    public void setTranslatable( boolean translatable )
+    {
+        this.translatable = translatable;
     }
 
     public String key()

@@ -28,35 +28,16 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hisp.dhis.hibernate.EnumUserType;
-import org.hisp.dhis.translation.TranslationProperty;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType;
 
 /**
  * @author Viet Nguyen <viet@dhis.org>
  */
 public class TranslationPropertyUserType
-    extends EnumUserType<TranslationProperty>
+    extends JsonSetBinaryType
 {
     public TranslationPropertyUserType()
     {
-        super( TranslationProperty.class );
-    }
-
-    @Override
-    public Object nullSafeGet( ResultSet resultSet, String[] names, SharedSessionContractImplementor impl, Object owner )
-        throws HibernateException, SQLException
-    {
-        String name = resultSet.getString( names[0] );
-        TranslationProperty result = null;
-        if ( !resultSet.wasNull() )
-        {
-            result = TranslationProperty.fromValue( name );
-        }
-        return result;
+        super();
     }
 }

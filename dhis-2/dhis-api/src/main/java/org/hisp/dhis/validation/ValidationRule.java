@@ -47,6 +47,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 
@@ -232,6 +233,7 @@ public class ValidationRule
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( translationProperty = TranslationProperty.INSTRUCTION )
     public String getDisplayInstruction()
     {
         return getTranslation( TranslationProperty.INSTRUCTION, getInstruction() );
