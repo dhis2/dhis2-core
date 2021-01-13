@@ -28,11 +28,23 @@ package org.hisp.dhis.webapi.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.NameableObjectUtils;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.comparator.SectionOrderComparator;
@@ -43,12 +55,12 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.webapi.webdomain.form.Category;
-import org.hisp.dhis.webapi.webdomain.form.*;
 import org.hisp.dhis.webapi.webdomain.form.CategoryCombo;
+import org.hisp.dhis.webapi.webdomain.form.Field;
+import org.hisp.dhis.webapi.webdomain.form.Form;
+import org.hisp.dhis.webapi.webdomain.form.Group;
+import org.hisp.dhis.webapi.webdomain.form.Option;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
-import java.util.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -191,55 +193,69 @@ public class EventTrackerConverterService
             programStageInstance.setLastUpdatedAtClient( now );
             programStageInstance.setProgramInstance(
                 getProgramInstance( preheat, TrackerIdScheme.UID, event.getEnrollment(), program ) );
-        }
 
-        programStageInstance.setProgramStage( programStage );
-        programStageInstance.setOrganisationUnit( organisationUnit );
-        programStageInstance.setExecutionDate( DateUtils.parseDate( event.getOccurredAt() ) );
-        programStageInstance.setDueDate( DateUtils.parseDate( event.getScheduledAt() ) );
+            programStageInstance.setProgramStage( programStage );
+            programStageInstance.setOrganisationUnit( organisationUnit );
+            programStageInstance.setExecutionDate( DateUtils.parseDate( event.getOccurredAt() ) );
+            programStageInstance.setDueDate( DateUtils.parseDate( event.getScheduledAt() ) );
 
-        String attributeOptionCombo = event.getAttributeOptionCombo();
+            String attributeOptionCombo = event.getAttributeOptionCombo();
 
-        if ( attributeOptionCombo != null )
-        {
-            programStageInstance.setAttributeOptionCombo(
-                preheat.get( CategoryOptionCombo.class, event.getAttributeOptionCombo() ) );
-        }
-        else
-        {
-            programStageInstance.setAttributeOptionCombo( (CategoryOptionCombo) preheat.getDefaults().get( CategoryOptionCombo.class ) );
-        }
-
-        programStageInstance.setGeometry( event.getGeometry() );
-        programStageInstance.setStatus( event.getStatus() );
-
-        if ( programStageInstance.isCompleted() )
-        {
-            Date completedDate = DateUtils.parseDate( event.getCompletedAt() );
-
-            if ( completedDate == null )
+            if ( attributeOptionCombo != null )
             {
-                completedDate = new Date();
+                programStageInstance.setAttributeOptionCombo(
+                    preheat.get( CategoryOptionCombo.class, event.getAttributeOptionCombo() ) );
+            }
+            else
+            {
+                programStageInstance.setAttributeOptionCombo(
+                    (CategoryOptionCombo) preheat.getDefaults().get( CategoryOptionCombo.class ) );
             }
 
-            programStageInstance.setCompletedDate( completedDate );
-            programStageInstance.setCompletedBy( event.getCompletedBy() );
+            programStageInstance.setGeometry( event.getGeometry() );
+            programStageInstance.setStatus( event.getStatus() );
+
+            if ( programStageInstance.isCompleted() )
+            {
+                Date completedDate = DateUtils.parseDate( event.getCompletedAt() );
+
+                if ( completedDate == null )
+                {
+                    completedDate = new Date();
+                }
+
+                programStageInstance.setCompletedDate( completedDate );
+                programStageInstance.setCompletedBy( event.getCompletedBy() );
+            }
+
+            if ( programStage.isEnableUserAssignment() )
+            {
+                User assignedUser = preheat.get( User.class, event.getAssignedUser() );
+                programStageInstance.setAssignedUser( assignedUser );
+            }
+
+            if ( programStage.getProgram().isRegistration() && programStageInstance.getDueDate() == null &&
+                programStageInstance.getExecutionDate() != null )
+            {
+                programStageInstance.setDueDate( programStageInstance.getExecutionDate() );
+            }
+
+            for ( DataValue dataValue : event.getDataValues() )
+            {
+                EventDataValue eventDataValue = new EventDataValue();
+                eventDataValue.setValue( dataValue.getValue() );
+                eventDataValue.setCreated( DateUtils.parseDate( dataValue.getCreatedAt() ) );
+                eventDataValue.setLastUpdated( new Date() );
+                eventDataValue.setProvidedElsewhere( dataValue.isProvidedElsewhere() );
+                eventDataValue.setDataElement( dataValue.getDataElement() );
+
+                programStageInstance.getEventDataValues().add( eventDataValue );
+            }
         }
 
         if ( isNotEmpty( event.getNotes() ) )
         {
             programStageInstance.getComments().addAll( notesConverterService.from( preheat, event.getNotes() ) );
-        }
-
-        if ( programStage.isEnableUserAssignment() )
-        {
-            User assignedUser = preheat.get( User.class, event.getAssignedUser() );
-            programStageInstance.setAssignedUser( assignedUser );
-        }
-
-        if ( programStage.getProgram().isRegistration() && programStageInstance.getDueDate() == null && programStageInstance.getExecutionDate() != null )
-        {
-            programStageInstance.setDueDate( programStageInstance.getExecutionDate() );
         }
 
         return programStageInstance;

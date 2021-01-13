@@ -97,7 +97,7 @@ public class DefaultTrackerProgramRuleService
             .collect( Collectors.toMap( Event::getEvent, event -> {
                 ProgramInstance enrollment = getEnrollment( bundle, event );
                 ProgramStageInstance programStageInstance = eventTrackerConverterService
-                    .from( bundle.getPreheat(), event );
+                    .fromForRuleEngine( bundle.getPreheat(), event );
                 if ( enrollment == null )
                 {
                     return programRuleEngine.evaluateProgramEvent( programStageInstance,
