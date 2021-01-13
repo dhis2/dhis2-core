@@ -1,13 +1,52 @@
 package org.hisp.dhis.validation;
 
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -160,7 +199,8 @@ public class ValidationResultStoreHqlTest
     }
 
     @Test
-    public void queryWithOrgUnitFilter() {
+    public void queryWithOrgUnitFilter()
+    {
         ValidationResultQuery query = new ValidationResultQuery();
         query.setOu(asList("uid1", "uid2"));
         store.query(query);
@@ -170,7 +210,8 @@ public class ValidationResultStoreHqlTest
     }
 
     @Test
-    public void queryWithValidationRuleFilter() {
+    public void queryWithValidationRuleFilter()
+    {
         ValidationResultQuery query = new ValidationResultQuery();
         query.setVr(asList("uid1", "uid2"));
         store.query(query);
@@ -180,7 +221,8 @@ public class ValidationResultStoreHqlTest
     }
 
     @Test
-    public void queryWithOrgUnitAndValidationRuleFilter() {
+    public void queryWithOrgUnitAndValidationRuleFilter()
+    {
         ValidationResultQuery query = new ValidationResultQuery();
         query.setOu(asList("uid1", "uid2"));
         query.setVr(asList("uid3", "uid4"));
@@ -230,7 +272,8 @@ public class ValidationResultStoreHqlTest
         }
     }
 
-    private void assertHQLParameterCount( int expected ) {
+    private void assertHQLParameterCount( int expected )
+    {
         String hql = hqlQueries.get( hqlQueries.size() - 1 );
         assertEquals( expected, parametersByQueryAndName.get( hql ).size() );
     }
