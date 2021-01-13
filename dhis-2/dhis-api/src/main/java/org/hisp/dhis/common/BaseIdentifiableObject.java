@@ -124,13 +124,16 @@ public class BaseIdentifiableObject
 
     /**
      * This object is available as external read-only.
+     * From 2.36 this property is replace by external property of {@link Sharing}
      */
+    @Deprecated
     protected transient boolean externalAccess;
 
     /**
      * Access string for public access.
      */
-    protected String publicAccess;
+    @Deprecated
+    protected transient String publicAccess;
 
     /**
      * Owner of this object.
@@ -138,23 +141,30 @@ public class BaseIdentifiableObject
     protected User createdBy;
 
     /**
-     * {@link Deprecated} This is replaced by createdBy property
+     * This is replaced by createdBy property
      */
+    @Deprecated
     protected transient User user;
 
     /**
      * Access for user groups.
+     * From 2.36 this is replace by {@link Sharing}
      */
+    @Deprecated
     protected transient Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses = new HashSet<>();
 
     /**
      * Access for users.
+     * From 2.36 this is replace by {@link Sharing}
      */
+    @Deprecated
     protected transient Set<org.hisp.dhis.user.UserAccess> userAccesses = new HashSet<>();
 
     /**
      * Access information for this object. Applies to current user.
+     * From 2.36 this is replace by {@link Sharing}
      */
+    @Deprecated
     protected transient Access access;
 
     /**
@@ -448,12 +458,14 @@ public class BaseIdentifiableObject
         return createdBy;
     }
 
+
     @Override
     @JsonProperty
     @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
     @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
     @PropertyTransformer( UserPropertyTransformer.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Deprecated
     public User getUser()
     {
         return createdBy;
@@ -468,6 +480,7 @@ public class BaseIdentifiableObject
         this.setOwner( createdBy != null ? createdBy.getUid() : null );
     }
 
+    @Deprecated
     public void setUser( User user )
     {
         this.user = user;
