@@ -101,7 +101,8 @@ public class HibernateReservedValueStore
      */
     private List<ReservedValue> getGeneratedValues( ReservedValue reservedValue, List<String> values )
     {
-        List<String> availableValues = getIfAvailable( reservedValue, values );
+        //List<String> availableValues = getIfAvailable( reservedValue, values );
+        List<String> availableValues = values;
 
         List<ReservedValue> generatedValues = new ArrayList<>();
 
