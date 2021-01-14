@@ -56,7 +56,7 @@ public enum ValueType
     DATE( LocalDate.class, false, null ),
     DATETIME( LocalDateTime.class, false, null ),
     TIME( String.class, false, null ),
-    NUMBER( Double.class, true, null ),
+    NUMBER( Double.class, true, DigitsValueTypeOptions.class ),
     UNIT_INTERVAL( Double.class, true, null ),
     PERCENTAGE( Double.class, true, null ),
     INTEGER( Integer.class, true, null ),
@@ -70,7 +70,8 @@ public enum ValueType
     AGE( Date.class, false, null ),
     URL( String.class, false, null ),
     FILE_RESOURCE( String.class, false, FileTypeValueOptions.class ),
-    IMAGE( String.class, false, FileTypeValueOptions.class );
+    IMAGE( String.class, false, FileTypeValueOptions.class ),
+    DIGITS( String.class, false, DigitsValueTypeOptions.class );
 
     public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.of(
         INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE );

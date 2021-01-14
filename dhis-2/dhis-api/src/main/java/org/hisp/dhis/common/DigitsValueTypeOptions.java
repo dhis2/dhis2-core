@@ -28,42 +28,54 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-import java.io.Serializable;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@JacksonXmlRootElement( localName = "valuetypeoptions", namespace = DxfNamespaces.DXF_2_0 )
-@JsonInclude()
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "type" )
-@JsonSubTypes( {
-    @JsonSubTypes.Type( value = FileTypeValueOptions.class, name = "File" ),
-    @JsonSubTypes.Type( value = DigitsValueTypeOptions.class, name = "Digits" )
-} )
-public abstract class ValueTypeOptions implements Serializable
+@JsonTypeName( "Digits" )
+public class DigitsValueTypeOptions extends ValueTypeOptions
 {
     private static final long serialVersionUID = 1L;
 
+    private long version = serialVersionUID;
+
+    int integer = 0;
+
+    int fraction = 0;
+
+    @Override
+    public long getVersion()
+    {
+        return this.version;
+    }
+
+    @Override
+    public void setVersion( long version )
+    {
+        this.version = version;
+    }
+
     @JsonProperty
-    private String uid = CodeGenerator.generateUid();
-
-    public String getUid()
+    public int getInteger()
     {
-        return uid;
+        return integer;
     }
 
-    public void setUid( String uid )
+    public void setInteger( int integer )
     {
-        this.uid = uid;
+        this.integer = integer;
     }
 
-    abstract public long getVersion();
+    @JsonProperty
+    public int getFraction()
+    {
+        return fraction;
+    }
 
-    abstract public void setVersion( long version );
+    public void setFraction( int fraction )
+    {
+        this.fraction = fraction;
+    }
 }

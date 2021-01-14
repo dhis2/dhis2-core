@@ -31,21 +31,22 @@ package org.hisp.dhis.common;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
+import java.util.Collections;
 import java.util.Set;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@JsonTypeName( "FileType" )
+@JsonTypeName( "File" )
 public class FileTypeValueOptions extends ValueTypeOptions
 {
     private static final long serialVersionUID = 1L;
 
-    private Long maxFileSize;
-
-    private Set<String> allowedContentTypes;
-
     private long version = serialVersionUID;
+
+    private long maxFileSize = 0;
+
+    private Set<String> allowedContentTypes = Collections.emptySet();
 
     @JsonProperty
     public Long getMaxFileSize()

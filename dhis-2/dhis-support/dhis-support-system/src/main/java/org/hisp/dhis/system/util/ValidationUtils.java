@@ -31,12 +31,14 @@ package org.hisp.dhis.system.util;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.validator.routines.DateValidator;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.hibernate.validator.internal.constraintvalidators.bv.DigitsValidatorForCharSequence;
+import org.hibernate.validator.internal.constraintvalidators.bv.DigitsValidatorForNumber;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DigitsValueTypeOptions;
 import org.hisp.dhis.common.FileTypeValueOptions;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypeOptions;
@@ -48,11 +50,14 @@ import org.hisp.dhis.render.StaticRenderingConfiguration;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.http.MediaType;
 
+import javax.validation.Payload;
+import javax.validation.constraints.Digits;
 import java.awt.geom.Point2D;
 import java.io.File;
+import java.lang.annotation.Annotation;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -424,26 +429,152 @@ public class ValidationUtils
 
     public static String dataValueIsValid( Object value, ValueType valueType, ValueTypeOptions options )
     {
+        Objects.requireNonNull( value );
+        Objects.requireNonNull( valueType );
+
         if ( valueType.isFile() && options != null )
         {
             File file = (File) value;
 
             Class<? extends ValueTypeOptions> valueTypeOptionsClass = valueType.getValueTypeOptionsClass();
 
+            if ( !options.getClass().equals( valueTypeOptionsClass ) )
+            {
+                return "not_valid_value_type_option_class";
+            }
+
             FileTypeValueOptions fileTypeValueOptions = (FileTypeValueOptions) options;
 
-            String fileExtension = Files.getFileExtension( file.getName() );
+            if ( file.length() > fileTypeValueOptions.getMaxFileSize() )
+            {
+                return "not_valid_file_size_too_big";
+            }
 
-            long totalSpace = file.length();
-            String s = FileUtils.byteCountToDisplaySize( totalSpace );
-            if ( !fileTypeValueOptions.getAllowedContentTypes().contains( fileExtension ) )
+            if ( !fileTypeValueOptions.getAllowedContentTypes().contains( Files.getFileExtension( file.getName() ) ) )
             {
                 return "not_valid_file_extension";
             }
+        }
 
-            if ( fileTypeValueOptions.getMaxFileSize() < totalSpace )
+        if ( ValueType.NUMBER == valueType && options != null )
+        {
+            Number number = (Number) value;
+
+            Class<? extends ValueTypeOptions> valueTypeOptionsClass = valueType.getValueTypeOptionsClass();
+
+            if ( !options.getClass().equals( valueTypeOptionsClass ) )
             {
-                return "not_valid_file_size";
+                return "not_valid_value_type_option_class";
+            }
+
+            DigitsValueTypeOptions digitsValueTypeOptions = (DigitsValueTypeOptions) options;
+
+            Digits digits = new Digits()
+            {
+                @Override
+                public String message()
+                {
+                    return null;
+                }
+
+                @Override
+                public Class<?>[] groups()
+                {
+                    return new Class[0];
+                }
+
+                @Override
+                public Class<? extends Payload>[] payload()
+                {
+                    return new Class[0];
+                }
+
+                @Override
+                public Class<? extends Annotation> annotationType()
+                {
+                    return null;
+                }
+
+                @Override
+                public int integer()
+                {
+                    return digitsValueTypeOptions.getInteger();
+                }
+
+                @Override
+                public int fraction()
+                {
+                    return digitsValueTypeOptions.getFraction();
+                }
+            };
+
+            DigitsValidatorForNumber digitsValidatorForNumber = new DigitsValidatorForNumber();
+            digitsValidatorForNumber.initialize( digits );
+
+            if( !digitsValidatorForNumber.isValid( number, null ))
+            {
+                return "not_valid_number";
+            }
+        }
+
+        if ( ValueType.DIGITS == valueType && options != null )
+        {
+            String number = (String) value;
+
+            Class<? extends ValueTypeOptions> valueTypeOptionsClass = valueType.getValueTypeOptionsClass();
+
+            if ( !options.getClass().equals( valueTypeOptionsClass ) )
+            {
+                return "not_valid_value_type_option_class";
+            }
+
+            DigitsValueTypeOptions digitsValueTypeOptions = (DigitsValueTypeOptions) options;
+
+            Digits digits = new Digits()
+            {
+                @Override
+                public String message()
+                {
+                    return null;
+                }
+
+                @Override
+                public Class<?>[] groups()
+                {
+                    return new Class[0];
+                }
+
+                @Override
+                public Class<? extends Payload>[] payload()
+                {
+                    return new Class[0];
+                }
+
+                @Override
+                public Class<? extends Annotation> annotationType()
+                {
+                    return null;
+                }
+
+                @Override
+                public int integer()
+                {
+                    return digitsValueTypeOptions.getInteger();
+                }
+
+                @Override
+                public int fraction()
+                {
+                    return digitsValueTypeOptions.getFraction();
+                }
+            };
+
+            DigitsValidatorForCharSequence digitsValidatorForCharSequence = new DigitsValidatorForCharSequence();
+            digitsValidatorForCharSequence.initialize( digits );
+
+            if( !digitsValidatorForCharSequence.isValid( number, null ))
+            {
+                return "not_valid_number";
             }
         }
 

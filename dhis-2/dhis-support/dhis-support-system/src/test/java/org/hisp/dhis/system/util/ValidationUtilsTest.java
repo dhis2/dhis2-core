@@ -31,6 +31,7 @@ package org.hisp.dhis.system.util;
 import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DigitsValueTypeOptions;
 import org.hisp.dhis.common.FileTypeValueOptions;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -286,23 +287,61 @@ public class ValidationUtilsTest
     }
 
     @Test
-    public void testValueTypeOptionValidation()
+    public void testFileValueTypeOptionValidation()
         throws IOException
     {
+        long oneHundredMegaBytes = 1024 * (1024 * 100L);
+
         ValueType valueType = ValueType.FILE_RESOURCE;
 
-        FileTypeValueOptions ftvo = new FileTypeValueOptions();
-        ftvo.setMaxFileSize( 1024 * (1024 * 100L) );
-        ftvo.setAllowedContentTypes( ImmutableSet.of( "jpg", "pdf" ) );
+        FileTypeValueOptions options = new FileTypeValueOptions();
+        options.setMaxFileSize( oneHundredMegaBytes );
+        options.setAllowedContentTypes( ImmutableSet.of( "jpg", "pdf" ) );
 
-        File file = makeTempFile( 1024 * (1024 * 101L), "jpg" );
-        assertEquals( "not_valid_file_size", dataValueIsValid( file, valueType, ftvo ) );
+        File file = makeTempFile( oneHundredMegaBytes, "jpg" );
+        assertNull( dataValueIsValid( file, valueType, options ) );
 
-        file = makeTempFile( 1024 * (1024 * 100L), "jpg" );
-        assertNull( dataValueIsValid( file, valueType, ftvo ) );
+        file = makeTempFile( 1024 * (1024 * 101L), "jpg" );
+        assertEquals( "not_valid_file_size_too_big", dataValueIsValid( file, valueType, options ) );
 
-        file = makeTempFile( 1024 * (1024 * 100L), "com" );
-        assertEquals( "not_valid_file_extension", dataValueIsValid( file, valueType, ftvo ) );
+        file = makeTempFile( oneHundredMegaBytes, "com" );
+        assertEquals( "not_valid_file_extension", dataValueIsValid( file, valueType, options ) );
+
+        assertEquals( "not_valid_value_type_option_class", dataValueIsValid( file, valueType, new DigitsValueTypeOptions() ) );
+    }
+
+    @Test
+    public void testDigitsValueTypeOptionsValidationWithNumber()
+    {
+        ValueType valueType = ValueType.NUMBER;
+
+        DigitsValueTypeOptions options = new DigitsValueTypeOptions();
+        options.setInteger( 1 );
+        options.setFraction( 1 );
+
+        assertNull( dataValueIsValid( 1, valueType, options ) );
+        assertNull( dataValueIsValid( 1.0D, valueType, options ) );
+        assertNull( dataValueIsValid( 1.000D, valueType, options ) );
+
+        assertEquals( "not_valid_number", dataValueIsValid( 11, valueType, options ) );
+        assertEquals( "not_valid_number", dataValueIsValid( 1.01D, valueType, options ) );
+    }
+
+    @Test
+    public void testDigitsValueTypeOptionsValidationWithString()
+    {
+        ValueType valueType = ValueType.DIGITS;
+
+        DigitsValueTypeOptions options = new DigitsValueTypeOptions();
+        options.setInteger( 1 );
+        options.setFraction( 1 );
+
+        assertNull( dataValueIsValid( "1", valueType, options ) );
+        assertNull( dataValueIsValid( "1.0", valueType, options ) );
+
+        assertEquals( "not_valid_number", dataValueIsValid( "11", valueType, options ) );
+        assertEquals( "not_valid_number", dataValueIsValid( "1.00", valueType, options ) );
+        assertEquals( "not_valid_number", dataValueIsValid( "1.01", valueType, options ) );
     }
 
     private static File makeTempFile( long length, String extension )
@@ -310,8 +349,10 @@ public class ValidationUtilsTest
     {
         File file = File.createTempFile( "test", "." + extension );
         file.deleteOnExit();
+
         RandomAccessFile f = new RandomAccessFile( file, "rw" );
         f.setLength( length );
+
         return file;
     }
 }
