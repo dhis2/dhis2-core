@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.event;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -485,6 +485,7 @@ public class JdbcEventStore implements EventStore
         return events;
     }
 
+    @Override
     public List<ProgramStageInstance> saveEvents(List<ProgramStageInstance> events )
     {
         try
@@ -1591,6 +1592,7 @@ public class JdbcEventStore implements EventStore
         }
     }
 
+    @Override
     public void updateTrackedEntityInstances( List<String> teiUids, User user )
     {
         if ( teiUids.isEmpty() )
@@ -1730,7 +1732,9 @@ public class JdbcEventStore implements EventStore
         }
 
         return AccessStringHelper.isEnabled( rowSet.getString( "deco_publicaccess" ),
-            AccessStringHelper.Permission.DATA_READ );
+            AccessStringHelper.Permission.DATA_READ ) || AccessStringHelper.isEnabled( rowSet.getString( "uga_access" ),
+                AccessStringHelper.Permission.DATA_READ ) || AccessStringHelper.isEnabled( rowSet.getString( "ua_access" ),
+                    AccessStringHelper.Permission.DATA_READ );
     }
 
     private Set<EventDataValue> convertEventDataValueJsonIntoSet( String jsonString )
@@ -1806,6 +1810,7 @@ public class JdbcEventStore implements EventStore
         }
     }
 
+    @Override
     public void delete( final List<Event> events )
     {
         if ( isNotEmpty( events ) )

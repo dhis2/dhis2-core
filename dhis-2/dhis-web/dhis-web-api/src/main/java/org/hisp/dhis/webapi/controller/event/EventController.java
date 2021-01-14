@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,7 @@ import java.util.zip.GZIPOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -94,7 +95,6 @@ import org.locationtech.jts.io.ParseException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import com.google.common.base.MoreObjects;
@@ -1199,7 +1199,7 @@ public class EventController
 
     private List<String> getGridOrderParams( String order, Map<String, String> dataElementOrders )
     {
-        List<String> dataElementOrderList = new ArrayList<String>();
+        List<String> dataElementOrderList = new ArrayList<>();
 
         if ( !StringUtils.isEmpty( order ) && dataElementOrders != null && dataElementOrders.size() > 0 )
         {

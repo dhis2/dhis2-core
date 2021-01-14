@@ -1,19 +1,20 @@
 package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- * * Neither the name of the HISP project nor the names of its contributors may
- *   be used to endorse or promote products derived from this software without
- *   specific prior written permission.
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -53,11 +54,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
 
 
 /**
@@ -179,7 +181,7 @@ public class SmsUtilsTest
         assertNotEquals( reference, d );
     }
 
-    @Test(expected = SMSParserException.class)
+    @Test( expected = SMSParserException.class )
     public void testGetUser()
     {
         User returnedUser = SmsUtils.getUser( "", new SMSCommand(), Lists.newArrayList( userA ) );
@@ -223,7 +225,7 @@ public class SmsUtilsTest
         assertTrue( SmsUtils.getRecipientsEmail( Lists.newArrayList( userA ) ).contains( email ) );
     }
 
-    @Test(expected = SMSParserException.class)
+    @Test( expected = SMSParserException.class )
     public void testSelectOrganisationUnit()
     {
         OrganisationUnit expected = organisationUnitA;
@@ -240,5 +242,16 @@ public class SmsUtilsTest
     {
         assertEquals( phoneNumber, SmsUtils.removePhoneNumberPrefix( "00" + phoneNumber ) );
         assertEquals( phoneNumber, SmsUtils.removePhoneNumberPrefix( "+" + phoneNumber ) );
+    }
+
+    @Test
+    public void testSMSTextEncoding()
+    {
+        assertEquals( "Hi+User", SmsUtils.encode( "Hi User" ) );
+        assertEquals( "Jeg+er+p%C3%A5+universitetet", SmsUtils.encode( "Jeg er på universitetet" ) );
+        assertEquals( "endelig+oppn%C3%A5+m%C3%A5let", SmsUtils.encode( "endelig oppnå målet" ) );
+        assertEquals( "%D8%B4%D9%83%D8%B1%D8%A7+%D9%84%D9%83%D9%85", SmsUtils.encode( "شكرا لكم" ) );
+        assertEquals( " ", SmsUtils.encode( " " ) );
+        assertNull( SmsUtils.encode( null ) );
     }
 }
