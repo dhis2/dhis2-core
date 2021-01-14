@@ -1,7 +1,7 @@
 package org.hisp.dhis.user.sharing;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,12 +70,14 @@ public class Sharing
     /**
      * Map of UserAccess. Key is User uid
      */
+    @Builder.Default
     @JsonProperty
     private Map<String, UserAccess> users = new HashMap<>();
 
     /**
      * Map of UserGroupAccess. Key is UserGroup uid
      */
+    @Builder.Default
     @JsonProperty
     private Map<String, UserGroupAccess> userGroups = new HashMap<>();
 

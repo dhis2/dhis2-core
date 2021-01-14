@@ -1,7 +1,7 @@
 package org.hisp.dhis.outlierdetection.service;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@ package org.hisp.dhis.outlierdetection.service;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.getIsoPeriod;
 import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.getOrgUnitPathClause;
+import static org.hisp.dhis.period.PeriodType.getIsoPeriod;
 
 import java.util.List;
 

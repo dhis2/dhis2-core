@@ -1,7 +1,7 @@
 package org.hisp.dhis.artemis.audit.configuration;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,5 +62,18 @@ public class AuditMatrix
     public boolean isEnabled( AuditScope auditScope, AuditType auditType )
     {
         return matrix.get( auditScope ).getOrDefault( auditType, false );
+    }
+
+    public boolean isReadEnabled()
+    {
+        final AuditScope[] auditScopes = AuditScope.values();
+        for ( AuditScope auditScope : auditScopes )
+        {
+            if ( isEnabled( auditScope, AuditType.READ ) )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

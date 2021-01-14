@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,6 +73,7 @@ public class EventQueryValidatorTest
     extends DhisSpringTest
 {
     private Program prA;
+    private Program prB;
 
     private DataElement deA;
     private DataElement deB;
@@ -113,9 +114,10 @@ public class EventQueryValidatorTest
         queryValidator = new DefaultEventQueryValidator( aggregateQueryValidator, systemSettingManager );
 
         prA = createProgram( 'A' );
-        prA.setUid( "programuida" );
+        prB = createProgram( 'B' );
 
         idObjectManager.save( prA );
+        idObjectManager.save( prB );
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
@@ -175,6 +177,38 @@ public class EventQueryValidatorTest
             .withTimeField( TimeField.INCIDENT_DATE.name() ).build();
 
         queryValidator.validate( params );
+    }
+
+    @Test
+    public void validateSingleDataElementMultipleProgramsQueryItemSuccess()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .addItem( new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null ) )
+            .addItem( new QueryItem( deA, prB, null, ValueType.TEXT, AggregationType.NONE, null ) )
+            .build();
+
+        queryValidator.validate( params );
+    }
+
+    @Test
+    public void validateDuplicateQueryItems()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .addItem( new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null ) )
+            .addItem( new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null ) )
+            .build();
+
+        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+
+        assertEquals( ErrorCode.E7202, error.getErrorCode() );
     }
 
     @Test

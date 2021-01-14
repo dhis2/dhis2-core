@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.validation;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,26 @@ package org.hisp.dhis.tracker.validation;
  */
 
 import lombok.SneakyThrows;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.core.Every.everyItem;
+import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
+import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1029;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -59,26 +79,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.core.Every.everyItem;
-import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
-import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -907,6 +908,18 @@ public class EventImportValidationTest
         } );
     }
 
+    @Test
+    public void testUpdateDeleteEventFails()
+    {
+        testDeletedEventFails( UPDATE );
+    }
+
+    @Test
+    public void testInserDeleteEventFails()
+    {
+        testDeletedEventFails( CREATE_AND_UPDATE );
+    }
+
     @SneakyThrows
     private void testDeletedEventFails( TrackerImportStrategy importStrategy )
     {
@@ -934,16 +947,17 @@ public class EventImportValidationTest
     }
 
     @Test
-    public void testUpdateDeleteEventFails()
+    @SneakyThrows
+    public void testImportFailsOnOuNotMatchingProgramOu()
     {
-        testDeletedEventFails( UPDATE );
-    }
-
-    @Test
-    public void testInserDeleteEventFails()
-        throws IOException
-    {
-        testDeletedEventFails( CREATE_AND_UPDATE );
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events-with-ou-not-in-program.json" );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams, CREATE_AND_UPDATE );
+        assertEquals( 0, createAndUpdate.getTrackerBundle().getEvents().size() );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+        assertEquals( 1, report.getErrorReports().size() );
+        assertThat( report.getErrorReports(), everyItem( hasProperty( "errorCode", equalTo( E1029 ) ) ) );
     }
 
     private ValidateAndCommitTestUnit createEvent( String jsonPayload )

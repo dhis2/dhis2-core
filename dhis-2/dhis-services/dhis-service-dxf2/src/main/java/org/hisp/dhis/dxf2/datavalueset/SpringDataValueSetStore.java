@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -375,8 +375,8 @@ public class SpringDataValueSetStore
 
         String groupAccessCheck =  groupsIds.size() > 0 ?
             "or ( " +
-                "check_user_group_ids( co.sharing, '{"+ String.join( ",", groupsIds ) +"}' ) " +
-                "and check_user_groups_access( co.sharing, '__r%', '{"+ String.join( ",", groupsIds ) +"}' ) ) )"
+                "check_user_group_ids( co.sharing, '{"+ String.join( ",", groupsIds ) +"}' ) = true " +
+                "and check_user_groups_access( co.sharing, '__r%', '{"+ String.join( ",", groupsIds ) +"}' ) = true ) )"
             : ") )";
 
         return

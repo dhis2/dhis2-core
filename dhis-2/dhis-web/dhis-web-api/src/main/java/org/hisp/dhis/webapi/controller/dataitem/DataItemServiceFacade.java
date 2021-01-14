@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.dataitem;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,7 +103,7 @@ public class DataItemServiceFacade
      * This method will iterate through the list of target entities, and query each
      * one of them using the filters and params provided. The result list will bring
      * together the results of all target entities queried.
-     * 
+     *
      * @param targetEntities the list of entities to be retrieved
      * @param orderParams request ordering params
      * @param filters request filters
@@ -186,6 +186,7 @@ public class DataItemServiceFacade
      * @param query the query to be executed
      * @return the list of entities found
      */
+    @SuppressWarnings("unchecked")
     private List<BaseDimensionalItemObject> executeQuery( final Query query )
     {
         final List<BaseDimensionalItemObject> dimensionalItems = (List<BaseDimensionalItemObject>) queryService
@@ -196,7 +197,7 @@ public class DataItemServiceFacade
 
     /**
      * This method will build a Query object based on the provided arguments.
-     * 
+     *
      * @param entity the BaseDimensionalItemObject class to be queried.
      * @param filters request filters
      * @param options request options

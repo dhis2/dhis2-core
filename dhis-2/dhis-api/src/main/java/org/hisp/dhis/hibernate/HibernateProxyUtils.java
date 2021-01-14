@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,17 +43,17 @@ public class HibernateProxyUtils
         throw new IllegalStateException( "Utility class" );
     }
 
-    @SuppressWarnings( { "rawtypes" } )
-    public static Class getRealClass( Object o )
+    @SuppressWarnings("rawtypes")
+    public static Class getRealClass( Object object )
     {
-        Objects.requireNonNull( o );
+        Objects.requireNonNull( object );
 
-        if ( o instanceof Class )
+        if ( object instanceof Class )
         {
             throw new IllegalArgumentException( "Input can't be a Class instance!" );
         }
 
-        return HibernateProxyHelper.getClassWithoutInitializingProxy( o );
+        return HibernateProxyHelper.getClassWithoutInitializingProxy( object );
     }
 
     @SuppressWarnings( { "unchecked" } )

@@ -1,7 +1,7 @@
 package org.hisp.dhis.preheat;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,8 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
+
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -38,7 +40,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -150,7 +151,7 @@ public class Preheat
         return objects;
     }
 
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings("unchecked")
     public <T extends IdentifiableObject> T get( PreheatIdentifier identifier, T object )
     {
         if ( object == null )
@@ -195,7 +196,7 @@ public class Preheat
         return isEmpty( identifier ) || !map.get( identifier ).containsKey( klass ) || map.get( identifier ).get( klass ).isEmpty();
     }
 
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings("unchecked")
     public <T extends IdentifiableObject> Preheat put( PreheatIdentifier identifier, T object )
     {
         if ( object == null )
@@ -280,7 +281,7 @@ public class Preheat
         return this;
     }
 
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings("unchecked")
     public <T extends IdentifiableObject> Preheat replace( PreheatIdentifier identifier, T object )
     {
         if ( object == null )
@@ -382,7 +383,7 @@ public class Preheat
         return this;
     }
 
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings("unchecked")
     public Preheat remove( PreheatIdentifier identifier, IdentifiableObject object )
     {
         Class<? extends IdentifiableObject> klass = HibernateProxyUtils.getRealClass( object );;
