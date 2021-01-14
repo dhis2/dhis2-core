@@ -50,6 +50,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Zubair Asghar.
  */
@@ -125,6 +127,17 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     @Transactional
     public void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
     {
+        checkNotNull( ruleEffect, "Rule Effect cannot be null" );
+        checkNotNull( programStageInstance, "ProgramStageInstance cannot be null" );
+
+        // For program without registration
+        if ( programStageInstance.getProgramStage().getProgram().isWithoutRegistration() )
+        {
+            handleSingleEvent( ruleEffect, programStageInstance );
+            return;
+        }
+
+
         if ( !validate( ruleEffect, programStageInstance.getProgramInstance() ) )
         {
             return;
@@ -177,6 +190,31 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     // -------------------------------------------------------------------------
     // Supportive Methods
     // -------------------------------------------------------------------------
+
+    private void handleSingleEvent( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
+    {
+        ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
+
+        if ( template == null )
+        {
+            return;
+        }
+
+        String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
+
+        if ( !isDateValid( date ) )
+        {
+            return;
+        }
+
+        ProgramNotificationInstance notificationInstance = notificationTemplateService.createNotificationInstance( template, date );
+        notificationInstance.setProgramStageInstance( programStageInstance );
+        notificationInstance.setProgramInstance( null );
+
+        programNotificationInstanceService.save( notificationInstance );
+
+        log.info( String.format( "Notification with id:%s has been scheduled", template.getUid() ) );
+    }
 
     private boolean isDateValid( String date )
     {
