@@ -1183,6 +1183,8 @@ public abstract class AbstractTrackedEntityInstanceService
                     continue;
                 }
 
+                /*
+                    Disabled checking pattern and reservedvalues for Rwanda. Temporary fix.
                 if ( daoEntityAttribute.isGenerated() && daoEntityAttribute.getTextPattern() != null && !importOptions.isSkipPatternValidation() )
                 {
 
@@ -1190,6 +1192,7 @@ public abstract class AbstractTrackedEntityInstanceService
                         trackedEntityAttributeValue != null ? trackedEntityAttributeValue.getValue() : null,
                         importConflicts );
                 }
+                 */
 
                 if ( daoEntityAttribute.isUnique() )
                 {

@@ -75,11 +75,14 @@ public class HibernateReservedValueStore
     {
         List<ReservedValue> toAdd = getGeneratedValues( reservedValue, values );
 
+        /*
+            Disabling addition of new ReservedValues. Temporary fix for Rwanda
         BatchHandler<ReservedValue> batchHandler = batchHandlerFactory
             .createBatchHandler( ReservedValueBatchHandler.class ).init();
 
         toAdd.forEach( rv -> batchHandler.addObject( rv ) );
         batchHandler.flush();
+         */
 
         return toAdd;
     }
