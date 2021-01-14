@@ -617,6 +617,37 @@ public class ValidationResultStoreTest
     }
 
     @Test
+    public void testQueryWithCreatedDateFilter() {
+        Date beforeA = new Date();
+        wait1();
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC ) );
+        wait1();
+        Date beforeB = new Date();
+        wait1();
+        save( asList(
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        // B and onwards gives Bs
+        ValidationResultQuery query = new ValidationResultQuery();
+        query.setCreatedDate( beforeB );
+        assertEqualSets( asList( validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( query ) );
+
+        // A and onwards gives As and Bs
+        query.setCreatedDate( beforeA );
+        assertEqualSets( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( query ) );
+
+        // after A and B onwards => none
+        wait1();
+        query.setCreatedDate( new Date() );
+        assertEqualSets( emptyList(), validationResultStore.query( query ) );
+    }
+
+    @Test
     public void testQueryWithMultipleFilters() {
         save( asList(
             validationResultAA, validationResultAB, validationResultAC,
@@ -740,5 +771,12 @@ public class ValidationResultStoreTest
         {
             assertEquals( new HashSet<>( expected ), new HashSet<>( actual ) );
         }
+    }
+
+    private void wait1()
+    {
+        long now = System.currentTimeMillis();
+        while ( now >= System.currentTimeMillis() )
+            ; // busy wait 1 ms
     }
 }

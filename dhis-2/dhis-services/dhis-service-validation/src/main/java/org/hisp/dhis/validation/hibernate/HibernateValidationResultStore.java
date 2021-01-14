@@ -192,6 +192,10 @@ public class HibernateValidationResultStore
                 hibernateQuery.setParameter( parameterName + "End", p.getEndDate() );
             }
         }
+        if ( query.getCreatedDate() != null )
+        {
+            hibernateQuery.setParameter( "createdDate", query.getCreatedDate() );
+        }
     }
 
     private String getQueryRestrictions( ValidationResultQuery query ) {
@@ -216,14 +220,14 @@ public class HibernateValidationResultStore
                     restrictions.append( " or " );
                 String parameterName = ":periodId" + (i++);
                 Period p = PeriodType.getPeriodFromIsoString( period );
-                if ( p == null )
-                {
-                    throw new IllegalArgumentException( "ISO expression not recognised: " + period );
-                }
                 restrictions.append( " ((vr.period.startDate <= " + parameterName
                     + "End ) and (vr.period.endDate >= " + parameterName + "Start ))" );
             }
             restrictions.append( ")" );
+        }
+        if ( query.getCreatedDate() != null )
+        {
+            restrictions.append( " " + sqlHelper.whereAnd() + " vr.created >= :createdDate " );
         }
         return restrictions.toString();
     }

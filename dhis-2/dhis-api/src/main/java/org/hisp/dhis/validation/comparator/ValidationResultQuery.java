@@ -27,6 +27,7 @@ package org.hisp.dhis.validation.comparator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.BooleanUtils;
@@ -70,6 +71,12 @@ public class ValidationResultQuery
      * If empty the list is not restricting the query.
      */
     private List<String> pe;
+
+
+    /**
+     * Optional filter to select only results that have been created on or after the given date.
+     */
+    private Date createdDate;
 
     public ValidationResultQuery()
     {
@@ -158,6 +165,16 @@ public class ValidationResultQuery
     public void setPe( List<String> pe )
     {
         this.pe = pe;
+    }
+
+    public Date getCreatedDate()
+    {
+        return createdDate;
+    }
+
+    public void setCreatedDate( Date createdDate )
+    {
+        this.createdDate = createdDate;
     }
 
     @Override
