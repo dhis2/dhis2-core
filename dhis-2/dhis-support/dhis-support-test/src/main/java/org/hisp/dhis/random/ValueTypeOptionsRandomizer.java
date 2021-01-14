@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.random;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -28,25 +28,18 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import lombok.Data;
-
-import java.io.Serializable;
+import io.github.benas.randombeans.api.Randomizer;
+import org.hisp.dhis.common.FileTypeValueOptions;
+import org.hisp.dhis.common.ValueTypeOptions;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@JacksonXmlRootElement( localName = "complexvaluetype", namespace = DxfNamespaces.DXF_2_0 )
-@JsonInclude( JsonInclude.Include.NON_NULL )
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "type" )
-@JsonSubTypes( {
-    @JsonSubTypes.Type( value = FileTypeValueType.class, name = "FileType" )
-} )
-@Data
-public abstract class ComplexValueType implements Serializable
+public class ValueTypeOptionsRandomizer implements Randomizer<ValueTypeOptions>
 {
-    private String uid;
+    @Override
+    public ValueTypeOptions getRandomValue()
+    {
+        return new FileTypeValueOptions();
+    }
 }

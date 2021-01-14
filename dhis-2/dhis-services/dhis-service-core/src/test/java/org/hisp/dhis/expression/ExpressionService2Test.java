@@ -221,7 +221,7 @@ public class ExpressionService2Test
         period = createPeriod( getDate( 2000, 1, 1 ), getDate( 2000, 1, 31 ) );
 
         pteaA = rnd.randomObject( ProgramTrackedEntityAttributeDimensionItem.class );
-        pdeA = rnd.randomObject( ProgramDataElementDimensionItem.class, "dataElement.complexValueType" );
+        pdeA = rnd.randomObject( ProgramDataElementDimensionItem.class );
         piA = rnd.randomObject( ProgramIndicator.class );
 
         unitA = createOrganisationUnit( 'A' );

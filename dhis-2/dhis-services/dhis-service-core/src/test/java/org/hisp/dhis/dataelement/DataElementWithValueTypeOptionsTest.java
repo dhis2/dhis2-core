@@ -28,12 +28,12 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.ComplexValueType;
-import org.hisp.dhis.common.FileTypeValueType;
+import org.hisp.dhis.common.FileTypeValueOptions;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypeOptions;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -41,8 +41,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-public class DataElementWithComplexValueTypeIntegrationTest
-    extends TransactionalIntegrationTest
+public class DataElementWithValueTypeOptionsTest extends DhisSpringTest
 {
     @Autowired
     private DataElementStore dataElementStore;
@@ -50,7 +49,7 @@ public class DataElementWithComplexValueTypeIntegrationTest
     @Test
     public void testDeleteAndGetDataElement()
     {
-        DataElement dataElementA = createDataElementWithComplexValueType( 'A', null );
+        DataElement dataElementA = createDataElementWithValueTypeOptions( 'A', null );
 
         dataElementStore.save( dataElementA );
         long idA = dataElementA.getId();
@@ -58,18 +57,18 @@ public class DataElementWithComplexValueTypeIntegrationTest
         assertNotNull( dataElementStore.get( idA ) );
 
         dataElementA = dataElementStore.get( idA );
-        ComplexValueType complexValueType = dataElementA.getComplexValueType();
+        ValueTypeOptions valueTypeOptions = dataElementA.getValueTypeOptions();
 
-        assertNotNull( complexValueType );
-        assertEquals( complexValueType.getClass(), FileTypeValueType.class );
-        FileTypeValueType fileTypeValueType = (FileTypeValueType) complexValueType;
+        assertNotNull( valueTypeOptions );
+        assertEquals( valueTypeOptions.getClass(), FileTypeValueOptions.class );
+        FileTypeValueOptions fileTypeValueType = (FileTypeValueOptions) valueTypeOptions;
         assertEquals( fileTypeValueType.getMaxFileSize().longValue(), 100L );
 
         dataElementStore.delete( dataElementA );
         assertNull( dataElementStore.get( idA ) );
     }
 
-    private DataElement createDataElementWithComplexValueType( char uniqueCharacter, CategoryCombo categoryCombo )
+    private DataElement createDataElementWithValueTypeOptions( char uniqueCharacter, CategoryCombo categoryCombo )
     {
         DataElement dataElement = new DataElement();
         dataElement.setAutoFields();
@@ -79,7 +78,7 @@ public class DataElementWithComplexValueTypeIntegrationTest
         dataElement.setShortName( "DataElementShort" + uniqueCharacter );
         dataElement.setCode( "DataElementCode" + uniqueCharacter );
         dataElement.setDescription( "DataElementDescription" + uniqueCharacter );
-        dataElement.setValueType( ValueType.INTEGER );
+        dataElement.setValueType( ValueType.FILE_RESOURCE );
         dataElement.setDomainType( DataElementDomain.AGGREGATE );
         dataElement.setAggregationType( AggregationType.SUM );
         dataElement.setZeroIsSignificant( false );
@@ -93,13 +92,11 @@ public class DataElementWithComplexValueTypeIntegrationTest
             dataElement.setCategoryCombo( categoryService.getDefaultCategoryCombo() );
         }
 
-        FileTypeValueType cvt = new FileTypeValueType();
+        FileTypeValueOptions cvt = new FileTypeValueOptions();
         cvt.setMaxFileSize( 100L );
 
-        dataElement.setComplexValueType( cvt );
-
+        dataElement.setValueTypeOptions( cvt );
 
         return dataElement;
     }
-
 }

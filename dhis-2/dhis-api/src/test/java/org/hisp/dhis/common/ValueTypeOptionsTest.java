@@ -28,22 +28,25 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import com.google.common.collect.ImmutableSet;
+import org.junit.Test;
 
-import java.util.Set;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@JsonTypeName( "FileType" )
-@Data
-@EqualsAndHashCode( callSuper = true )
-public class FileTypeValueType extends ComplexValueType
+public class ValueTypeOptionsTest
 {
-    private Long maxFileSize;
+    @Test
+    public void testFileValueTypeOptions()
+    {
+        FileTypeValueOptions ftvo = new FileTypeValueOptions();
+        ftvo.setMaxFileSize( 100L );
+        ftvo.setAllowedContentTypes( ImmutableSet.of( "jpg" ) );
 
-    private Set<String> allowedContentTypes;
-
+        assertEquals( 100L, ftvo.getMaxFileSize().longValue() );
+        assertTrue( ftvo.getAllowedContentTypes().contains( "jpg" ) );
+    }
 }

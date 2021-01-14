@@ -28,6 +28,18 @@
 
 package org.hisp.dhis.system.util;
 
+import com.google.common.collect.ImmutableSet;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.FileTypeValueOptions;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
 import static org.hisp.dhis.system.util.ValidationUtils.bboxIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.coordinateIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
@@ -39,19 +51,13 @@ import static org.hisp.dhis.system.util.ValidationUtils.getLongitude;
 import static org.hisp.dhis.system.util.ValidationUtils.isValidHexColor;
 import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
 import static org.hisp.dhis.system.util.ValidationUtils.passwordIsValid;
-import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.junit.Test;
 
 /**
  * @author Lars Helge Overland
@@ -277,5 +283,35 @@ public class ValidationUtilsTest
         assertEquals( "false", normalizeBoolean( "False", ValueType.BOOLEAN ) );
         assertEquals( "false", normalizeBoolean( "FALSE", ValueType.BOOLEAN ) );
         assertEquals( "false", normalizeBoolean( "F", ValueType.BOOLEAN ) );
+    }
+
+    @Test
+    public void testValueTypeOptionValidation()
+        throws IOException
+    {
+        ValueType valueType = ValueType.FILE_RESOURCE;
+
+        FileTypeValueOptions ftvo = new FileTypeValueOptions();
+        ftvo.setMaxFileSize( 1024 * (1024 * 100L) );
+        ftvo.setAllowedContentTypes( ImmutableSet.of( "jpg", "pdf" ) );
+
+        File file = makeTempFile( 1024 * (1024 * 101L), "jpg" );
+        assertEquals( "not_valid_file_size", dataValueIsValid( file, valueType, ftvo ) );
+
+        file = makeTempFile( 1024 * (1024 * 100L), "jpg" );
+        assertNull( dataValueIsValid( file, valueType, ftvo ) );
+
+        file = makeTempFile( 1024 * (1024 * 100L), "com" );
+        assertEquals( "not_valid_file_extension", dataValueIsValid( file, valueType, ftvo ) );
+    }
+
+    private static File makeTempFile( long length, String extension )
+        throws IOException
+    {
+        File file = File.createTempFile( "test", "." + extension );
+        file.deleteOnExit();
+        RandomAccessFile f = new RandomAccessFile( file, "rw" );
+        f.setLength( length );
+        return file;
     }
 }

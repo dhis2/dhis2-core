@@ -28,19 +28,18 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.awt.geom.Point2D;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import com.google.common.io.Files;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.validator.routines.DateValidator;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.FileTypeValueOptions;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypeOptions;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
@@ -49,9 +48,15 @@ import org.hisp.dhis.render.StaticRenderingConfiguration;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.http.MediaType;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import java.awt.geom.Point2D;
+import java.io.File;
+import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
@@ -415,6 +420,34 @@ public class ValidationUtils
         }
 
         return dataValueIsValid( value, dataElement.getValueType() );
+    }
+
+    public static String dataValueIsValid( Object value, ValueType valueType, ValueTypeOptions options )
+    {
+        if ( valueType.isFile() && options != null )
+        {
+            File file = (File) value;
+
+            Class<? extends ValueTypeOptions> valueTypeOptionsClass = valueType.getValueTypeOptionsClass();
+
+            FileTypeValueOptions fileTypeValueOptions = (FileTypeValueOptions) options;
+
+            String fileExtension = Files.getFileExtension( file.getName() );
+
+            long totalSpace = file.length();
+            String s = FileUtils.byteCountToDisplaySize( totalSpace );
+            if ( !fileTypeValueOptions.getAllowedContentTypes().contains( fileExtension ) )
+            {
+                return "not_valid_file_extension";
+            }
+
+            if ( fileTypeValueOptions.getMaxFileSize() < totalSpace )
+            {
+                return "not_valid_file_size";
+            }
+        }
+
+        return null;
     }
 
     /**

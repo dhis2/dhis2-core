@@ -28,6 +28,7 @@ package org.hisp.dhis.random;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.ValueTypeOptions;
 import org.locationtech.jts.geom.Geometry;
 import io.github.benas.randombeans.api.EnhancedRandom;
 import org.hisp.dhis.period.PeriodType;
@@ -48,6 +49,7 @@ public class BeanRandomizer
     public BeanRandomizer()
     {
         rand = aNewEnhancedRandomBuilder()
+            .randomize( ValueTypeOptions.class, new ValueTypeOptionsRandomizer() )
             .randomize( PeriodType.class, new PeriodTypeRandomizer() )
             .randomize( Geometry.class, new GeometryRandomizer() )
             .randomize( field().named( "uid" ).ofType( String.class ).get(), new UidRandomizer() )
