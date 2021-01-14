@@ -116,6 +116,8 @@ public interface TrackedEntityProgramOwnerService
      */
     List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Long> teiIds, Program program );
 
+    List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUidsUsingId( List<Long> teiIds, Program program );
+
     /**
      * Assign an orgUnit as the owner for a tracked entity instance for the
      * given program. If another owner already exist then it would be overwritten.

@@ -28,6 +28,7 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -71,6 +72,9 @@ public interface TrackerOwnershipManager
      */
     boolean hasAccess( User user, TrackedEntityInstance entityInstance, Program program );
 
+
+    boolean hasAccessUsingContext( User user, String trackedEntityInstanceUid, String programUid,
+        EventContext eventContext );
 
     /**
      * Check whether the user has access (as owner or has temporarily broken the

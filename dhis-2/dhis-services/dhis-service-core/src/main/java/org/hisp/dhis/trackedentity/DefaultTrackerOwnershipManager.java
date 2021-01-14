@@ -28,27 +28,37 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
+
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramOwnershipHistory;
+import org.hisp.dhis.program.ProgramOwnershipHistoryService;
+import org.hisp.dhis.program.ProgramTempOwnershipAudit;
+import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.core.env.Environment;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.PostConstruct;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 /**
  * @author Ameen Mohamed
@@ -253,7 +263,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
             return true;
         }
 
-        OrganisationUnit ou = getOwner( entityInstance, program );
+        OrganisationUnit ou = getOwner( entityInstance.getId(), program, entityInstance::getOrganisationUnit );
 
         if ( program.isOpen() || program.isAudited() )
         {
@@ -262,6 +272,42 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         else
         {
             return organisationUnitService.isInUserHierarchyCached( user, ou ) || hasTemporaryAccess( entityInstance, program, user );
+        }
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public boolean hasAccessUsingContext( User user, String trackedEntityInstanceUid, String programUid,
+        EventContext eventContext )
+    {
+        Program program = eventContext.getProgramsByUid().get( programUid );
+
+        if ( canSkipOwnershipCheck( user, program ) )
+        {
+            return true;
+        }
+
+        TrackedEntityInstance trackedEntityInstance = eventContext.getTrackedEntityInstanceByUid()
+            .get( trackedEntityInstanceUid );
+
+        if ( trackedEntityInstance == null )
+        {
+            return true;
+        }
+
+        OrganisationUnit ou = Optional.ofNullable( eventContext.getOrgUnitByTeiUidAndProgramUidPairs().get(
+            Pair.of( trackedEntityInstanceUid, programUid ) ) )
+            .map( organisationUnitUid -> eventContext.getOrgUnitsByUid().get( organisationUnitUid ) )
+            .orElseGet( trackedEntityInstance::getOrganisationUnit );
+
+        if ( program.isOpen() || program.isAudited() )
+        {
+            return organisationUnitService.isInUserSearchHierarchyCached( user, ou );
+        }
+        else
+        {
+            return organisationUnitService.isInUserHierarchyCached( user, ou )
+                || hasTemporaryAccess( trackedEntityInstance, program, user );
         }
     }
 
@@ -314,7 +360,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
      */
     private OrganisationUnit getOwner( TrackedEntityInstance entityInstance, Program program )
     {
-        return ownerCache.get( getOwnershipCacheKey( entityInstance, program ), s -> {
+        return ownerCache.get( getOwnershipCacheKey( entityInstance::getId, program ), s -> {
             OrganisationUnit ou;
             TrackedEntityProgramOwner trackedEntityProgramOwner = trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(
                 entityInstance.getId(), program.getId() );
@@ -328,6 +374,30 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
                 ou = trackedEntityProgramOwner.getOrganisationUnit();
             }
             return ou;
+        } ).get();
+    }
+
+    /**
+     * Get the current owner of this tei-program combination. Fallbacks to the
+     * registered OU if no owner explicitly exists for the program
+     *
+     * @param entityInstanceId The tei
+     * @param program The program
+     * @return The owning Organisation unit.
+     */
+    private OrganisationUnit getOwner( Long entityInstanceId, Program program,
+        Supplier<OrganisationUnit> orgUnitIfMissingSupplier )
+    {
+        return ownerCache.get( getOwnershipCacheKey( () -> entityInstanceId, program ), s -> {
+
+            TrackedEntityProgramOwner trackedEntityProgramOwner = trackedEntityProgramOwnerService
+                .getTrackedEntityProgramOwner(
+                    entityInstanceId, program.getId() );
+
+            return Optional.ofNullable( trackedEntityProgramOwner )
+                .map( TrackedEntityProgramOwner::getOrganisationUnit )
+                .orElseGet( orgUnitIfMissingSupplier );
+
         } ).get();
     }
 
@@ -356,19 +426,20 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
      *
      * @return true if ownership check can be skipped
      */
-    private boolean canSkipOwnershipCheck( User user, Program program )
+    public static boolean canSkipOwnershipCheck( User user, Program program )
     {
         return user == null || user.isSuper() || program == null || program.isWithoutRegistration();
     }
 
     /**
      * Returns key used to store and retrieve cached records for ownership
-     * @param trackedEntityInstance
+     * 
+     * @param trackedEntityInstanceIdSupplier
      * @param program
      * @return a String representing a record of ownership
      */
-    private String getOwnershipCacheKey( TrackedEntityInstance trackedEntityInstance, Program program )
+    private String getOwnershipCacheKey( Supplier<Long> trackedEntityInstanceIdSupplier, Program program )
     {
-        return trackedEntityInstance.getUid() + "_" + program.getUid();
+        return trackedEntityInstanceIdSupplier.get() + "_" + program.getUid();
     }
 }

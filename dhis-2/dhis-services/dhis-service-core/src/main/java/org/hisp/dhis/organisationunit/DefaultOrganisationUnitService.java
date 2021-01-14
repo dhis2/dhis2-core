@@ -237,7 +237,7 @@ public class DefaultOrganisationUnitService
     @Transactional(readOnly = true)
     public List<OrganisationUnit> getOrganisationUnitsByUid( Collection<String> uids )
     {
-        return organisationUnitStore.getByUid( uids );
+        return organisationUnitStore.getByUid( new HashSet<>( uids ) );
     }
 
     @Override

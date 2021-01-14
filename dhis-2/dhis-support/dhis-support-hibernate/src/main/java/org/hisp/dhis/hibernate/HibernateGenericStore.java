@@ -151,6 +151,12 @@ public class HibernateGenericStore<T>
             .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable );
     }
 
+    protected final <C> Query<C> getQuery( String hql, Class<C> customClass )
+    {
+        return getSession().createQuery( hql, customClass )
+            .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable );
+    }
+
     /**
      * Creates a Query for given HQL query string. Must specify the return
      * type of the Query variable.

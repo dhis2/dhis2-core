@@ -30,10 +30,12 @@ package org.hisp.dhis.trackedentity.hibernate;
 
 import java.util.List;
 
+import org.hibernate.ScrollableResults;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerIds;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -53,8 +55,14 @@ public class HibernateTrackedEntityProgramOwnerStore extends HibernateGenericSto
     @Override
     public TrackedEntityProgramOwner getTrackedEntityProgramOwner( long teiId, long programId )
     {
-        return getQuery( "from TrackedEntityProgramOwner tepo where tepo.entityInstance.id="
-            + teiId + " and tepo.program.id=" + programId ).uniqueResult();
+        Query<TrackedEntityProgramOwner> query = getQuery(
+            "from TrackedEntityProgramOwner tepo where " +
+                "tepo.entityInstance.id= :teiId and " +
+                "tepo.program.id= :programId" );
+
+        query.setParameter( "teiId", teiId );
+        query.setParameter( "programId", programId );
+        return query.uniqueResult();
     }
 
     @Override
@@ -73,6 +81,17 @@ public class HibernateTrackedEntityProgramOwnerStore extends HibernateGenericSto
     {
         String hql = "from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds) and tepo.program.id=(:programId) ";
         Query q = getQuery( hql );
+        q.setParameterList( "teiIds", teiIds );
+        q.setParameter( "programId", programId );
+        return q.list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUids( List<Long> teiIds, long programId )
+    {
+        String hql = "select new org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerIds(tepo.entityInstance.uid, tepo.program.uid, tepo.organisationUnit.uid) from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds) and tepo.program.id=(:programId) ";
+        Query<TrackedEntityProgramOwnerIds> q = getQuery( hql, TrackedEntityProgramOwnerIds.class );
         q.setParameterList( "teiIds", teiIds );
         q.setParameter( "programId", programId );
         return q.list();

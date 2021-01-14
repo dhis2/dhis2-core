@@ -28,6 +28,11 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Collections;
+import java.util.List;
+
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -36,9 +41,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Ameen Mohamed
@@ -338,6 +340,18 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Long> teiIds, Program program )
     {
         return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwners( teiIds, program.getId() );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUidsUsingId( List<Long> teiIds,
+        Program program )
+    {
+        if ( teiIds.isEmpty() )
+        {
+            return Collections.emptyList();
+        }
+        return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwnersUids( teiIds, program.getId() );
     }
 
 }
