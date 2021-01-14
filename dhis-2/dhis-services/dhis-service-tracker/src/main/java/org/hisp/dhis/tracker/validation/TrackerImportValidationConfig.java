@@ -57,7 +57,10 @@ public class TrackerImportValidationConfig
     protected static final List<Class<? extends TrackerValidationHook>> RULE_ENGINE_VALIDATION_HOOKS = ImmutableList.of(
 
         EnrollmentRuleValidationHook.class,
-        EventRuleValidationHook.class
+        EventRuleValidationHook.class,
+        TrackedEntityAttributeValidationHook.class,
+        EnrollmentAttributeValidationHook.class,
+        EventDataValuesValidationHook.class
     );
 
     protected static final List<Class<? extends TrackerValidationHook>> VALIDATION_ORDER = ImmutableList.of(

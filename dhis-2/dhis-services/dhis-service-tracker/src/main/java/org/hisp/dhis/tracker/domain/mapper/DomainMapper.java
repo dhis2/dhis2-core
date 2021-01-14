@@ -29,13 +29,14 @@ package org.hisp.dhis.tracker.domain.mapper;
  */
 
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public interface DomainMapper<FROM, TO>
 {
     TO from( FROM from );
 
-    default Collection<TO> fromCollection( Collection<FROM> froms )
+    default List<TO> fromCollection( Collection<FROM> froms )
     {
         return froms.stream()
             .map( this::from )

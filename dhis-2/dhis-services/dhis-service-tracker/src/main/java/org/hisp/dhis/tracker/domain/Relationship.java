@@ -48,6 +48,9 @@ public class Relationship implements TrackerDto
     private String relationship;
 
     @JsonProperty
+    private String relationshipName;
+
+    @JsonProperty
     private String relationshipType;
 
     @JsonProperty
