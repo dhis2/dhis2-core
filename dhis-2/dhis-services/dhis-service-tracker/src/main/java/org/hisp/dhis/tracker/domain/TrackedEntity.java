@@ -59,7 +59,13 @@ public class TrackedEntity implements TrackerDto
     private String createdAt;
 
     @JsonProperty
+    private String createdAtClient;
+
+    @JsonProperty
     private String updatedAt;
+
+    @JsonProperty
+    private String updatedAtClient;
 
     @JsonProperty
     private String orgUnit;
