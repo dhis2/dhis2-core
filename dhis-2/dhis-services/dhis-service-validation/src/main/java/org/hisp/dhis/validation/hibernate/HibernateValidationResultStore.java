@@ -219,7 +219,6 @@ public class HibernateValidationResultStore
                 if ( i > 1 )
                     restrictions.append( " or " );
                 String parameterName = ":periodId" + (i++);
-                Period p = PeriodType.getPeriodFromIsoString( period );
                 restrictions.append( " ((vr.period.startDate <= " + parameterName
                     + "End ) and (vr.period.endDate >= " + parameterName + "Start ))" );
             }
