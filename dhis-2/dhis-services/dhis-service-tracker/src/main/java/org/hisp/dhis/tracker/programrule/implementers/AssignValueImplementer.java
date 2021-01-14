@@ -36,6 +36,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
@@ -116,7 +117,9 @@ public class AssignValueImplementer
 
         for ( EnrollmentActionRule actionRule : enrollmentActionRules.getValue() )
         {
-            if ( !actionRule.getAttribute().isPresent() || Boolean.TRUE.equals( canOverwrite ) )
+            if ( !actionRule.getAttribute().isPresent() ||
+                Boolean.TRUE.equals( canOverwrite ) ||
+                isTheSameValue( actionRule, bundle.getPreheat() ) )
             {
                 addOrOverwriteAttribute( actionRule );
                 issues.add( new ProgramRuleIssue( TrackerReportUtils
@@ -144,6 +147,21 @@ public class AssignValueImplementer
         if ( optionalDataValue.isPresent() )
         {
             return areEquals( dataValue, optionalDataValue.get().getValue(), dataElement.getValueType() );
+        }
+
+        return false;
+    }
+
+    private boolean isTheSameValue( EnrollmentActionRule actionRule, TrackerPreheat preheat )
+    {
+        TrackedEntityAttribute attribute = preheat.get( TrackedEntityAttribute.class, actionRule.getField() );
+        String value = actionRule.getValue();
+        Optional<Attribute> optionalAttribute = actionRule.getEnrollment().getAttributes().stream()
+            .filter( at -> at.getAttribute().equals( actionRule.getField() ) )
+            .findAny();
+        if ( optionalAttribute.isPresent() )
+        {
+            return areEquals( value, optionalAttribute.get().getValue(), attribute.getValueType() );
         }
 
         return false;
