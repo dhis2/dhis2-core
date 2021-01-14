@@ -52,19 +52,21 @@ public class DataElementWithValueTypeOptionsTest extends DhisSpringTest
         DataElement dataElementA = createDataElementWithValueTypeOptions( 'A', null );
 
         dataElementStore.save( dataElementA );
+
         long idA = dataElementA.getId();
 
         assertNotNull( dataElementStore.get( idA ) );
 
         dataElementA = dataElementStore.get( idA );
+
         ValueTypeOptions valueTypeOptions = dataElementA.getValueTypeOptions();
 
         assertNotNull( valueTypeOptions );
-        assertEquals( valueTypeOptions.getClass(), FileTypeValueOptions.class );
-        FileTypeValueOptions fileTypeValueType = (FileTypeValueOptions) valueTypeOptions;
-        assertEquals( fileTypeValueType.getMaxFileSize().longValue(), 100L );
+        assertEquals( FileTypeValueOptions.class, valueTypeOptions.getClass() );
+        assertEquals( 100L, ((FileTypeValueOptions) valueTypeOptions).getMaxFileSize().longValue() );
 
         dataElementStore.delete( dataElementA );
+
         assertNull( dataElementStore.get( idA ) );
     }
 

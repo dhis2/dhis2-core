@@ -63,7 +63,7 @@ public abstract class ValueTypeOptions implements Serializable
         this.uid = uid;
     }
 
-    abstract public long getVersion();
+    public abstract long getVersion();
 
-    abstract public void setVersion( long version );
+    public abstract void setVersion( long version );
 }
