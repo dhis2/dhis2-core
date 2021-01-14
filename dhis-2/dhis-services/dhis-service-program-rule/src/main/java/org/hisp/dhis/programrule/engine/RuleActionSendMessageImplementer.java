@@ -45,8 +45,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  *<ol>
  * <li>Handle notifications related to enrollment/event</li>
@@ -110,8 +108,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     @Override
     public void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
     {
-        checkNotNull( ruleEffect, "Rule Effect cannot be null" );
-        checkNotNull( programStageInstance, "ProgramStageInstance cannot be null" );
+        checkNulls( ruleEffect, programStageInstance );
 
         // For program without registration
         if ( programStageInstance.getProgramStage().getProgram().isWithoutRegistration() )

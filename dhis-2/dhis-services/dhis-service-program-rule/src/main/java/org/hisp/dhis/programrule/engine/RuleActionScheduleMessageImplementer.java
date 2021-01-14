@@ -50,8 +50,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Zubair Asghar.
  */
@@ -59,6 +57,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Component( "org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" )
 public class RuleActionScheduleMessageImplementer extends NotificationRuleActionImplementer
 {
+    public static final String LOG_MESSAGE = "Notification with id:%s has been scheduled";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -116,7 +116,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         programNotificationInstanceService.save( notificationInstance );
 
-        log.info( String.format( "Notification with id:%s has been scheduled", template.getUid() ) );
+        log.info( String.format( LOG_MESSAGE , template.getUid() ) );
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
@@ -127,8 +127,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     @Transactional
     public void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
     {
-        checkNotNull( ruleEffect, "Rule Effect cannot be null" );
-        checkNotNull( programStageInstance, "ProgramStageInstance cannot be null" );
+        checkNulls( ruleEffect, programStageInstance );
 
         // For program without registration
         if ( programStageInstance.getProgramStage().getProgram().isWithoutRegistration() )
@@ -165,7 +164,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         programNotificationInstanceService.save( notificationInstance );
 
-        log.info( String.format( "Notification with id:%s has been scheduled", template.getUid() ) );
+        log.info( String.format( LOG_MESSAGE, template.getUid() ) );
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );
@@ -213,7 +212,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         programNotificationInstanceService.save( notificationInstance );
 
-        log.info( String.format( "Notification with id:%s has been scheduled", template.getUid() ) );
+        log.info( String.format( LOG_MESSAGE, template.getUid() ) );
     }
 
     private boolean isDateValid( String date )
