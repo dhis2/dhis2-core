@@ -33,7 +33,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.tracker.domain.Attribute;
-import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Enrollment;
 
 import java.util.Optional;
