@@ -70,6 +70,7 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
  */
 public class ValidationUtils
 {
+
     private static final String NUM_PAT = "((-?[0-9]+)(\\.[0-9]+)?)";
 
     private static final Pattern POINT_PATTERN = Pattern.compile( "\\[(.+),\\s?(.+)\\]" );
@@ -79,6 +80,10 @@ public class ValidationUtils
     private static final Pattern TIME_OF_DAY_PATTERN = Pattern.compile( "^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$" );
     private static final Pattern BBOX_PATTERN = Pattern.compile( "^" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + "$" );
     private static final Pattern INTERNATIONAL_PHONE_PATTERN = Pattern.compile( "^\\+(?:[0-9].?){4,14}[0-9]$" );
+
+    public static final String NOT_VALID_VALUE_TYPE_CLASS = "not_valid_value_type_class";
+
+    public static final String NOT_VALID_VALUE_TYPE_OPTION_CLASS = "not_valid_value_type_option_class";
 
     private static Set<String> BOOL_FALSE_VARIANTS = Sets.newHashSet( "false", "False", "FALSE", "f", "F", "0" );
 
@@ -431,16 +436,25 @@ public class ValidationUtils
     {
         Objects.requireNonNull( value );
         Objects.requireNonNull( valueType );
+        Objects.requireNonNull( options );
 
-        if ( valueType.isFile() && options != null )
+        if ( !isValidValueTypeClass( value, valueType ) )
         {
-            File file = (File) value;
+            return NOT_VALID_VALUE_TYPE_CLASS;
+        }
 
-            Class<? extends ValueTypeOptions> valueTypeOptionsClass = valueType.getValueTypeOptionsClass();
+        if ( !isValidValueTypeOptionClass( valueType, options ) )
+        {
+            return NOT_VALID_VALUE_TYPE_OPTION_CLASS;
+        }
 
-            if ( !options.getClass().equals( valueTypeOptionsClass ) )
+        if ( valueType.isFile() )
+        {
+            File file = new File( (String) value );
+
+            if ( !file.exists() )
             {
-                return "not_valid_value_type_option_class";
+                return "not_valid_file_do_not_exist";
             }
 
             FileTypeValueOptions fileTypeValueOptions = (FileTypeValueOptions) options;
@@ -455,130 +469,80 @@ public class ValidationUtils
                 return "not_valid_file_extension";
             }
         }
-
-        if ( ValueType.NUMBER == valueType && options != null )
+        else if ( ValueType.NUMBER == valueType )
         {
-            Number number = (Number) value;
-
-            Class<? extends ValueTypeOptions> valueTypeOptionsClass = valueType.getValueTypeOptionsClass();
-
-            if ( !options.getClass().equals( valueTypeOptionsClass ) )
-            {
-                return "not_valid_value_type_option_class";
-            }
-
-            DigitsValueTypeOptions digitsValueTypeOptions = (DigitsValueTypeOptions) options;
-
-            Digits digits = new Digits()
-            {
-                @Override
-                public String message()
-                {
-                    return null;
-                }
-
-                @Override
-                public Class<?>[] groups()
-                {
-                    return new Class[0];
-                }
-
-                @Override
-                public Class<? extends Payload>[] payload()
-                {
-                    return new Class[0];
-                }
-
-                @Override
-                public Class<? extends Annotation> annotationType()
-                {
-                    return null;
-                }
-
-                @Override
-                public int integer()
-                {
-                    return digitsValueTypeOptions.getInteger();
-                }
-
-                @Override
-                public int fraction()
-                {
-                    return digitsValueTypeOptions.getFraction();
-                }
-            };
-
             DigitsValidatorForNumber digitsValidatorForNumber = new DigitsValidatorForNumber();
-            digitsValidatorForNumber.initialize( digits );
+            digitsValidatorForNumber.initialize( getDigitsInstance( (DigitsValueTypeOptions) options ) );
 
-            if( !digitsValidatorForNumber.isValid( number, null ))
+            if ( !digitsValidatorForNumber.isValid( (Number) value, null ) )
             {
                 return "not_valid_number";
             }
         }
-
-        if ( ValueType.DIGITS == valueType && options != null )
+        else if ( ValueType.DIGITS == valueType )
         {
-            String number = (String) value;
-
-            Class<? extends ValueTypeOptions> valueTypeOptionsClass = valueType.getValueTypeOptionsClass();
-
-            if ( !options.getClass().equals( valueTypeOptionsClass ) )
-            {
-                return "not_valid_value_type_option_class";
-            }
-
-            DigitsValueTypeOptions digitsValueTypeOptions = (DigitsValueTypeOptions) options;
-
-            Digits digits = new Digits()
-            {
-                @Override
-                public String message()
-                {
-                    return null;
-                }
-
-                @Override
-                public Class<?>[] groups()
-                {
-                    return new Class[0];
-                }
-
-                @Override
-                public Class<? extends Payload>[] payload()
-                {
-                    return new Class[0];
-                }
-
-                @Override
-                public Class<? extends Annotation> annotationType()
-                {
-                    return null;
-                }
-
-                @Override
-                public int integer()
-                {
-                    return digitsValueTypeOptions.getInteger();
-                }
-
-                @Override
-                public int fraction()
-                {
-                    return digitsValueTypeOptions.getFraction();
-                }
-            };
-
             DigitsValidatorForCharSequence digitsValidatorForCharSequence = new DigitsValidatorForCharSequence();
-            digitsValidatorForCharSequence.initialize( digits );
+            digitsValidatorForCharSequence.initialize( getDigitsInstance( (DigitsValueTypeOptions) options ) );
 
-            if( !digitsValidatorForCharSequence.isValid( number, null ))
+            if ( !digitsValidatorForCharSequence.isValid( (String) value, null ) )
             {
-                return "not_valid_number";
+                return "not_valid_digits";
             }
         }
 
         return null;
+    }
+
+    private static Digits getDigitsInstance( DigitsValueTypeOptions digitsValueTypeOptions )
+    {
+        return new Digits()
+        {
+            @Override
+            public String message()
+            {
+                return null;
+            }
+
+            @Override
+            public Class<?>[] groups()
+            {
+                return new Class[0];
+            }
+
+            @Override
+            public Class<? extends Payload>[] payload()
+            {
+                return new Class[0];
+            }
+
+            @Override
+            public Class<? extends Annotation> annotationType()
+            {
+                return null;
+            }
+
+            @Override
+            public int integer()
+            {
+                return digitsValueTypeOptions.getInteger();
+            }
+
+            @Override
+            public int fraction()
+            {
+                return digitsValueTypeOptions.getFraction();
+            }
+        };
+    }
+
+    private static boolean isValidValueTypeOptionClass( ValueType valueType, ValueTypeOptions options )
+    {
+        return options.getClass().equals( valueType.getValueTypeOptionsClass() );
+    }
+
+    private static boolean isValidValueTypeClass( Object value, ValueType valueType )
+    {
+        return value.getClass().equals( valueType.getJavaClass() );
     }
 
     /**

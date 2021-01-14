@@ -299,15 +299,21 @@ public class ValidationUtilsTest
         options.setAllowedContentTypes( ImmutableSet.of( "jpg", "pdf" ) );
 
         File file = makeTempFile( oneHundredMegaBytes, "jpg" );
-        assertNull( dataValueIsValid( file, valueType, options ) );
+        assertNull( dataValueIsValid( file.getAbsolutePath(), valueType, options ) );
+
+        assertEquals( "not_valid_file_do_not_exist",
+            dataValueIsValid( new File( "/this_is_not_a_valid_path" ).getAbsolutePath(), valueType, options ) );
 
         file = makeTempFile( 1024 * (1024 * 101L), "jpg" );
-        assertEquals( "not_valid_file_size_too_big", dataValueIsValid( file, valueType, options ) );
+        assertEquals( "not_valid_file_size_too_big",
+            dataValueIsValid( file.getAbsolutePath(), valueType, options ) );
 
         file = makeTempFile( oneHundredMegaBytes, "com" );
-        assertEquals( "not_valid_file_extension", dataValueIsValid( file, valueType, options ) );
+        assertEquals( "not_valid_file_extension",
+            dataValueIsValid( file.getAbsolutePath(), valueType, options ) );
 
-        assertEquals( "not_valid_value_type_option_class", dataValueIsValid( file, valueType, new DigitsValueTypeOptions() ) );
+        assertEquals( "not_valid_value_type_option_class",
+            dataValueIsValid( file.getAbsolutePath(), valueType, new DigitsValueTypeOptions() ) );
     }
 
     @Test
@@ -319,11 +325,11 @@ public class ValidationUtilsTest
         options.setInteger( 1 );
         options.setFraction( 1 );
 
-        assertNull( dataValueIsValid( 1, valueType, options ) );
+        assertNull( dataValueIsValid( 1D, valueType, options ) );
         assertNull( dataValueIsValid( 1.0D, valueType, options ) );
         assertNull( dataValueIsValid( 1.000D, valueType, options ) );
 
-        assertEquals( "not_valid_number", dataValueIsValid( 11, valueType, options ) );
+        assertEquals( "not_valid_number", dataValueIsValid( 11D, valueType, options ) );
         assertEquals( "not_valid_number", dataValueIsValid( 1.01D, valueType, options ) );
     }
 
@@ -339,9 +345,9 @@ public class ValidationUtilsTest
         assertNull( dataValueIsValid( "1", valueType, options ) );
         assertNull( dataValueIsValid( "1.0", valueType, options ) );
 
-        assertEquals( "not_valid_number", dataValueIsValid( "11", valueType, options ) );
-        assertEquals( "not_valid_number", dataValueIsValid( "1.00", valueType, options ) );
-        assertEquals( "not_valid_number", dataValueIsValid( "1.01", valueType, options ) );
+        assertEquals( "not_valid_digits", dataValueIsValid( "11", valueType, options ) );
+        assertEquals( "not_valid_digits", dataValueIsValid( "1.00", valueType, options ) );
+        assertEquals( "not_valid_digits", dataValueIsValid( "1.01", valueType, options ) );
     }
 
     private static File makeTempFile( long length, String extension )
