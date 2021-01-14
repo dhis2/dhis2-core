@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@ import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
@@ -96,11 +95,14 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.sharing.SharingService;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -116,6 +118,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -146,9 +149,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     protected static final String DEFAULTS = "INCLUDE";
 
-    private Cache<String, Integer> paginationCountCache = new Cache2kBuilder<String, Integer>()
-    {
-    }
+    private Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>() {}
         .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
 
@@ -220,6 +221,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     @Qualifier( "xmlMapper" )
     protected ObjectMapper xmlMapper;
 
+    @Autowired
+    protected UserService userService;
+
+    @Autowired
+    protected SharingService sharingService;
+
     //--------------------------------------------------------------------------
     // GET
     //--------------------------------------------------------------------------
@@ -273,6 +280,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         handleLinksAndAccess( entities, fields, false );
 
         handleAttributeValues( entities, fields );
+
+//        handleSharingAttributes( entities, fields );
 
         linkService.generatePagerLinks( pager, getEntityClass() );
 
@@ -546,6 +555,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         handleLinksAndAccess( entities, fields, true );
 
         handleAttributeValues( entities, fields );
+
+//        handleSharingAttributes( entities, fields );
 
         for ( T entity : entities )
         {
@@ -1086,6 +1097,40 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         collectionService.delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
     }
 
+    @PutMapping( value = "/{uid}/sharing", consumes = "application/json" )
+    public void setSharing( @PathVariable( "uid" ) String uid, HttpServletRequest request, HttpServletResponse response )
+        throws WebMessageException, IOException
+    {
+        T entity = manager.get( getEntityClass(), uid );
+
+        if ( entity == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), uid ) );
+        }
+
+        User user = currentUserService.getCurrentUser();
+
+        if ( !aclService.canUpdate( user, entity ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+        }
+
+        Sharing sharingObject = renderService.fromJson( request.getInputStream(), Sharing.class );
+
+        TypeReport typeReport = new TypeReport( Sharing.class );
+
+        typeReport.addObjectReport( sharingService.saveSharing( getEntityClass(), entity, sharingObject ) );
+
+        if ( !typeReport.getErrorReports().isEmpty() )
+        {
+            WebMessage webMessage = WebMessageUtils.typeReport( typeReport );
+            webMessageService.send( webMessage, response, request );
+            return;
+        }
+
+        response.setStatus( HttpServletResponse.SC_NO_CONTENT );
+    }
+
     //--------------------------------------------------------------------------
     // Hooks
     //--------------------------------------------------------------------------
@@ -1230,7 +1275,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return entityList;
     }
 
-    private int count( WebOptions options, List<String> filters, List<Order> orders )
+    private long count( WebOptions options, List<String> filters, List<Order> orders )
     {
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
             options.getRootJunction(), options.isTrue( "restrictToCaptureScope" ) );
@@ -1313,6 +1358,23 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             attributeService.generateAttributes( entityList );
         }
     }
+
+//    protected void handleSharingAttributes(  List<T> entityList, List<String> fields )
+//    {
+//        List<String> hasUser = fields.stream().filter( field -> field.contains( "user" ) || fields.contains( ":all" ) )
+//            .collect( Collectors.toList() );
+//
+//        if ( !hasUser.isEmpty() )
+//        {
+//            entityList.forEach( entity -> {
+//                System.out.println( "entity.getSharing().getOwner() = " + entity.getSharing().getOwner() );
+//                User user = userService.getUser( entity.getSharing().getOwner() );
+//                System.out.println( "userService.getUser( entity.getSharing().getOwner() ) = " + user );
+//                entity.setUser( user );
+//            } );
+//        }
+//
+//    }
 
     private InclusionStrategy.Include getInclusionStrategy( String inclusionStrategy )
     {

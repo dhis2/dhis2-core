@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataanalysis;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -157,13 +157,6 @@ public class MinMaxOutlierAnalysisServiceTest
         organisationUnitService.addOrganisationUnit( organisationUnitA );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-
     // ----------------------------------------------------------------------
     // Business logic tests
     // ----------------------------------------------------------------------
@@ -186,7 +179,7 @@ public class MinMaxOutlierAnalysisServiceTest
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
 
-        minMaxDataElement = new MinMaxDataElement( organisationUnitA, dataElementA, categoryOptionCombo, -40, 40, false );
+        minMaxDataElement = new MinMaxDataElement( dataElementA, organisationUnitA, categoryOptionCombo, -40, 40, false );
         minMaxDataElementService.addMinMaxDataElement( minMaxDataElement );
 
         List<Period> periods = new ArrayList<>();

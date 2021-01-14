@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.service;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,20 +28,23 @@ package org.hisp.dhis.webapi.service;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -119,31 +122,46 @@ public class DefaultContextService implements ContextService
     }
 
     @Override
-    public Set<String> getParameterValues( String name )
+    public List<String> getParameterValues( String name )
     {
-        if ( getRequest().getParameterValues( name ) == null )
-        {
-            return Sets.newHashSet();
+        return Optional.ofNullable( name )
+            .map( this::getRequestParameterValues )
+            .orElse( Collections.emptyList() );
+    }
+
+    private List<String> getRequestParameterValues( String paramName )
+    {
+        String[] parameterValues = getRequest().getParameterValues(paramName);
+
+        if ( parameterValues != null ) {
+            return Arrays.stream(parameterValues)
+                    .distinct()
+                    .collect(Collectors.toList());
         }
 
-        Set<String> parameter = Sets.newHashSet();
-        String[] parameterValues = getRequest().getParameterValues( name );
-        Collections.addAll( parameter, parameterValues );
-
-        return parameter;
+        return Collections.emptyList();
     }
 
     @Override
     public Map<String, List<String>> getParameterValuesMap()
     {
-        Map<String, String[]> parameterMap = getRequest().getParameterMap();
-        Map<String, List<String>> map = new HashMap<>();
+        return getRequest().getParameterMap().entrySet().stream()
+            .collect( Collectors.toMap(
+                Map.Entry::getKey,
+                stringEntry -> Lists.newArrayList( stringEntry.getValue() ) ) );
+    }
 
-        for ( String key : parameterMap.keySet() )
-        {
-            map.put( key, Lists.newArrayList( parameterMap.get( key ) ) );
-        }
+    @Override
+    public List<String> getFieldsFromRequestOrAll()
+    {
+        return getFieldsFromRequestOrElse( ":all" );
+    }
 
-        return map;
+    @Override
+    public List<String> getFieldsFromRequestOrElse( String fields )
+    {
+        return Optional.ofNullable( getParameterValues( "fields" ) )
+            .filter( CollectionUtils::isNotEmpty )
+            .orElse( Collections.singletonList( fields ) );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.query.operators;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,9 @@ import org.hisp.dhis.query.planner.QueryPath;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class NotLikeOperator extends LikeOperator
+public class NotLikeOperator<T extends Comparable<? super T>> extends LikeOperator<T>
 {
-    public NotLikeOperator( Object arg, boolean caseSensitive, MatchMode matchMode )
+    public NotLikeOperator( T arg, boolean caseSensitive, MatchMode matchMode )
     {
         super( "!like", arg, caseSensitive, matchMode );
     }

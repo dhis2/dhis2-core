@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,6 +70,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -81,8 +83,7 @@ import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Geometry;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -382,7 +383,7 @@ public abstract class CompressionSMSListener
         }
 
         GeometryFactory gf = new GeometryFactory();
-        com.vividsolutions.jts.geom.Coordinate co = new com.vividsolutions.jts.geom.Coordinate(
+        Coordinate co = new Coordinate(
             coordinates.getLongitude(), coordinates.getLatitude() );
 
         return gf.createPoint( co );

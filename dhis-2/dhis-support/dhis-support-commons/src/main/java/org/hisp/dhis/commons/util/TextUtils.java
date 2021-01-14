@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.util;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,8 @@ package org.hisp.dhis.commons.util;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
+
+import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -737,5 +739,17 @@ public class TextUtils
 
         out.append( '$' );
         return out.toString();
+    }
+
+    /**
+     * Returns the given string as a list of lines. Splits the
+     * string on newline characters (UNIX and Windows).
+     *
+     * @param string the string.
+     * @return a list of lines.
+     */
+    public static List<String> toLines( String string )
+    {
+        return Lists.newArrayList( string.split( "\\r?\\n" ) );
     }
 }

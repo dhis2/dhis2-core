@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -155,7 +155,7 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         if ( params.getClasses().isEmpty() )
         {
-            schemaService.getMetadataSchemas().stream().filter( Schema::isIdentifiableObject ).filter( s -> !s.isSecondaryMetadata() )
+            schemaService.getMetadataSchemas().stream().filter( schema -> schema.isIdentifiableObject() && schema.isPersisted() ).filter( s -> !s.isSecondaryMetadata() )
                 .forEach( schema -> params.getClasses().add( (Class<? extends IdentifiableObject>) schema.getKlass() ) );
         }
 

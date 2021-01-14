@@ -1,21 +1,35 @@
 package org.hisp.dhis.dxf2.events.importer.context;
 
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hisp.dhis.dxf2.common.ImportOptions.getDefaultImportOptions;
-import static org.junit.Assert.assertFalse;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertTrue;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.program.Program;
@@ -31,10 +45,25 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hisp.dhis.dxf2.common.ImportOptions.getDefaultImportOptions;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramSupplierAclIntegrationTest extends DhisSpringTest
+public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
 {
     @Autowired
     private ProgramSupplier programSupplier;
@@ -51,10 +80,17 @@ public class ProgramSupplierAclIntegrationTest extends DhisSpringTest
     private Event event = new Event();
 
     @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
+    @Override
     protected void setUpTest()
         throws Exception
     {
         userService = _userService;
+        createAndInjectAdminUser();
     }
 
     //
@@ -67,8 +103,9 @@ public class ProgramSupplierAclIntegrationTest extends DhisSpringTest
         // Given
         final User demo = createUser( "demo" );
         final Program program = createProgram( 'A' );
-        program.setPublicAccess( AccessStringHelper.DEFAULT );
+        program.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( program, false );
+        dbmsManager.flushSession();
 
         // When
         final Map<String, Program> programs = programSupplier.get( getDefaultImportOptions(), singletonList( event ) );
@@ -113,6 +150,7 @@ public class ProgramSupplierAclIntegrationTest extends DhisSpringTest
 
         UserGroup userGroup = new UserGroup( "test-group", singleton( user ) );
         manager.save( userGroup, true );
+        user.getGroups().add( userGroup );
 
         UserGroupAccess userGroupAccess = new UserGroupAccess();
         userGroupAccess.setUserGroup( userGroup );
@@ -216,11 +254,9 @@ public class ProgramSupplierAclIntegrationTest extends DhisSpringTest
         UserGroup userGroup = new UserGroup( "test-group-programstage", singleton( user ) );
         manager.save( userGroup, true );
 
-        UserGroupAccess userGroupAccess = new UserGroupAccess();
-        userGroupAccess.setUserGroup( userGroup );
-        userGroupAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
+        user.getGroups().add( userGroup );
 
-        programStage.setUserGroupAccesses( singleton( userGroupAccess ) );
+        programStage.getSharing().addUserGroupAccess( new org.hisp.dhis.user.sharing.UserGroupAccess( userGroup, AccessStringHelper.DATA_READ_WRITE ) );
         manager.save( programStage, false );
 
         final Program program = createProgram( 'A' );
@@ -335,6 +371,7 @@ public class ProgramSupplierAclIntegrationTest extends DhisSpringTest
 
         UserGroup userGroup = new UserGroup( "test-group-tet", singleton( user ) );
         manager.save( userGroup, true );
+        user.getGroups().add( userGroup );
 
         UserGroupAccess userGroupAccess = new UserGroupAccess();
         userGroupAccess.setUserGroup( userGroup );

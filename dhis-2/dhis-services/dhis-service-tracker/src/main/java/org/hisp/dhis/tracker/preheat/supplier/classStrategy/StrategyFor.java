@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,13 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.tracker.preheat.mappers.PreheatMapper;
-
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+
+import org.hisp.dhis.tracker.preheat.mappers.PreheatMapper;
 
 /**
  * Annotation for {@link ClassBasedSupplierStrategy} classes that specifies the
@@ -47,5 +47,22 @@ import java.lang.annotation.Target;
 public @interface StrategyFor
 {
     Class<?> value();
+
     Class<? extends PreheatMapper> mapper();
+
+    /**
+     * Whether the object used in this Strategy can be cached
+     */
+    boolean cache() default false;
+
+    /**
+     * The time-to-live for the type of object being cached The value is in
+     * **minutes**. Defaults to 5 minutes
+     */
+    int ttl() default 5;
+
+    /**
+     * The maximum number of entries hold by the cache. Defaults to Long.MAX_VALUE
+     */
+    long capacity() default Long.MAX_VALUE;
 }

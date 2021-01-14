@@ -1,6 +1,6 @@
 package org.hisp.dhis.validation;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -108,7 +108,7 @@ public class DefaultValidationResultService
     }
 
     @Override
-    public int countValidationResults( ValidationResultQuery query )
+    public long countValidationResults( ValidationResultQuery query )
     {
         return validationResultStore.count( query );
     }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,19 +35,19 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Luciano Fiandesio
  */
-public class OrganisationUnitStoreIntegrationTest extends IntegrationTestBase
+public class OrganisationUnitStoreIntegrationTest extends TransactionalIntegrationTest
 {
     private final static long _150KM = 150_000;
 
@@ -60,12 +60,6 @@ public class OrganisationUnitStoreIntegrationTest extends IntegrationTestBase
 
     @Autowired
     private IdentifiableObjectManager manager;
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 
     @Test
     public void verifyGetOrgUnitsWithinAGeoBox() throws IOException {

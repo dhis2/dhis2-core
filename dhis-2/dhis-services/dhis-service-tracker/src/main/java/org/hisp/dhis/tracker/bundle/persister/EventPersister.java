@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.bundle.persister;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,6 @@ import java.util.stream.Collectors;
 import org.hibernate.Session;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -73,7 +72,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     private final TrackedEntityCommentService trackedEntityCommentService;
 
     private final TrackerSideEffectConverterService sideEffectConverterService;
-    
+
     public EventPersister( List<TrackerBundleHook> bundleHooks, ReservedValueService reservedValueService,
         TrackerConverterService<Event, ProgramStageInstance> eventConverter,
         TrackedEntityCommentService trackedEntityCommentService, TrackerSideEffectConverterService sideEffectConverterService )

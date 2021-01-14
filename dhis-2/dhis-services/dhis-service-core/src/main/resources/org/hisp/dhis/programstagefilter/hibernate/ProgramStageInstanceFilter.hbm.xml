@@ -27,24 +27,11 @@
     <property name="programStage" column="programstage" length="11" />
       
     <property name="eventQueryCriteria" column="eventquerycriteria" type="jbEventQueryCriteria" />
-    
-    <!-- Access properties -->
 
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_programstageinstancefilter_userid" />
 
-    <property name="publicAccess" length="8" />
-
-    <set name="userGroupAccesses" table="programstageinstancefilterusergroupaccesses" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="programstageinstancefilterid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
-    </set>
-
-    <set name="userAccesses" table="programstageinstancefilteruseraccesses" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="programstageinstancefilterid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
-    </set>
+    <!-- Sharing -->
+    <property name="sharing" type="jsbObjectSharing"/>
     
   </class>
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.preheat.supplier;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,8 @@ public class ProgramStageInstanceProgramStageMapSupplier
         " from programstage AS ps " +
         " JOIN programinstance AS pi ON pi.programid = ps.programid " +
         " where exists( select programstageinstanceid from programstageinstance psi where  psi.deleted = false " +
-        " and psi.status != 'SKIPPED' and ps.programstageid = psi.programstageid) " +
+        " and psi.status != 'SKIPPED' and ps.programstageid = psi.programstageid " +
+        " and pi.programinstanceid = psi.programinstanceid ) " +
         " and ps.uid in (:ids)";
 
     protected ProgramStageInstanceProgramStageMapSupplier( JdbcTemplate jdbcTemplate )

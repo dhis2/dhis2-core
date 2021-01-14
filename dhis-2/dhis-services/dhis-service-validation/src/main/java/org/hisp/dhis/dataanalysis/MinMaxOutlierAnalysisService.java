@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataanalysis;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -110,8 +110,6 @@ public class MinMaxOutlierAnalysisService
     {
         log.info( "Starting min-max value generation, no of data elements: " + dataElements.size() + ", parent: " + parent.getUid() );
 
-        //Set<Integer> orgUnitIds = new HashSet<>( IdentifiableObjectUtils.getIdentifiers( organisationUnits ) );
-
         Date from = new DateTime( 1, 1, 1, 1, 1 ).toDate();
 
         minMaxDataElementService.removeMinMaxDataElements( dataElements, parent );
@@ -152,7 +150,7 @@ public class MinMaxOutlierAnalysisService
                     CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
                     categoryOptionCombo.setId( measures.getCategoryOptionComboId() );
 
-                    batchHandler.addObject( new MinMaxDataElement( orgUnit, dataElement, categoryOptionCombo, min, max, true ) );
+                    batchHandler.addObject( new MinMaxDataElement( dataElement, orgUnit, categoryOptionCombo, min, max, true ) );
                 }
             }
         }

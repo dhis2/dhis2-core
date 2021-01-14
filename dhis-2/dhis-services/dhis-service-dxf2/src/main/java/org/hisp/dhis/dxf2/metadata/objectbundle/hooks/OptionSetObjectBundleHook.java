@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,8 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.option.OptionSet;
 import org.springframework.stereotype.Component;
+
+import java.util.Objects;
 
 @Component
 public class OptionSetObjectBundleHook
@@ -66,8 +68,8 @@ public class OptionSetObjectBundleHook
             return;
         }
 
-        optionSet.getOptions().forEach( option -> {
-
+        optionSet.getOptions().stream().filter( Objects::nonNull ).forEach( option ->
+        {
             if ( option.getOptionSet() == null )
             {
                 option.setOptionSet( optionSet );

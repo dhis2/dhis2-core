@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.report;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.report;
  */
 
 import java.util.Map;
+import java.util.Optional;
 
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerType;
@@ -228,14 +229,18 @@ public class TrackerImportReport
 
         TrackerValidationReport validationReport = new TrackerValidationReport();
 
-        validationReport.setErrorReports( this.validationReport.getErrorReports() );
-        validationReport.setWarningReports( this.validationReport.getWarningReports() );
-        validationReport.setPerformanceReport( this.validationReport.getPerformanceReport() );
+        Optional.ofNullable( this.validationReport )
+            .ifPresent( trackerValidationReport -> {
+                validationReport.setErrorReports( trackerValidationReport.getErrorReports() );
+                validationReport.setWarningReports( trackerValidationReport.getWarningReports() );
+                validationReport.setPerformanceReport( trackerValidationReport.getPerformanceReport() );
+            } );
 
         trackerImportReport.validationReport = validationReport;
         trackerImportReport.stats = this.stats;
         trackerImportReport.timingsStats = this.timingsStats;
         trackerImportReport.bundleReport = this.bundleReport;
+        trackerImportReport.message = this.message;
 
         switch ( reportMode )
         {

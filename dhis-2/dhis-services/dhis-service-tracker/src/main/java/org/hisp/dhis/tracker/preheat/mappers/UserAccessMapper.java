@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.preheat.mappers;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ public interface UserAccessMapper extends PreheatMapper<UserAccess>
     UserAccessMapper INSTANCE = Mappers.getMapper( UserAccessMapper.class );
 
     @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
+    @Mapping( target = "uid" )
     @Mapping( target = "access" )
     @Mapping( target = "user" )
     UserAccess map( UserAccess userAccess );

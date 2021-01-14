@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.event.persistence;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,13 +45,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
  */
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class  DefaultEventPersistenceService
     implements

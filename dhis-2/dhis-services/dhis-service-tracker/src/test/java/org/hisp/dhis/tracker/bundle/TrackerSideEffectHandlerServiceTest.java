@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.bundle;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -63,7 +63,7 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Zubair Asghar
  */
-public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
+public class TrackerSideEffectHandlerServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -134,11 +134,5 @@ public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
         assertFalse( instances.isEmpty() );
         ProgramNotificationInstance instance = instances.get( 0 );
         assertEquals( "FdIeUL4gyoB", instance.getProgramNotificationTemplateSnapshot().getUid() );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }

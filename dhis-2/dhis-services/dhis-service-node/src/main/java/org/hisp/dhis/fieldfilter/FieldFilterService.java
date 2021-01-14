@@ -1,7 +1,7 @@
 package org.hisp.dhis.fieldfilter;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ import java.util.List;
 public interface FieldFilterService
 {
     List<String> SHARING_FIELDS = Arrays.asList(
-        "!user", "!publicAccess", "!userGroupAccesses", "!userAccesses", "!externalAccess" );
+        "!user", "!publicAccess", "!userGroupAccesses", "!userAccesses", "!externalAccess", "!sharing" );
 
     /**
      * Perform inclusion/exclusion on a list of objects.

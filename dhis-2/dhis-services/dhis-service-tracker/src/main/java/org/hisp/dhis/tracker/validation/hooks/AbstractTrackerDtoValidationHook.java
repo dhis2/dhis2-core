@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -223,7 +223,7 @@ public abstract class AbstractTrackerDtoValidationHook
             }
         }
     }
-    
+
     private void validateEnrollments( TrackerBundle bundle,
         TrackerImportValidationContext context )
     {
@@ -315,7 +315,7 @@ public abstract class AbstractTrackerDtoValidationHook
     /**
      * Signal the implementing Validator hook that, upon validation error, the
      * Tracker entity under validation must be removed from the payload.
-     * 
+     *
      */
     public boolean removeOnError()
     {

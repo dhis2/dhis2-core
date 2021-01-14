@@ -1,7 +1,7 @@
 package org.hisp.dhis.query.operators;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,7 @@ public class TokenUtils
         return regex;
     }
 
-    public static boolean test( List<Object> args, Object testValue, String targetValue, boolean caseSensitive,
+    public static <T> boolean test( List<T> args, T testValue, String targetValue, boolean caseSensitive,
         MatchMode matchMode )
     {
         if ( args.isEmpty() || testValue == null )

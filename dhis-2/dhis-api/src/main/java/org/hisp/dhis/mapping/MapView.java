@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapping;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -220,11 +220,11 @@ public class MapView
     public void init( User user, Date date, OrganisationUnit organisationUnit,
         List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups, I18nFormat format )
     {
-        this.user = user;
         this.relativePeriodDate = date;
         this.relativeOrganisationUnit = organisationUnit;
         this.organisationUnitsAtLevel = organisationUnitsAtLevel;
         this.organisationUnitsInGroups = organisationUnitsInGroups;
+        this.setUser( user );
     }
 
     /**
@@ -259,7 +259,7 @@ public class MapView
 
     public List<OrganisationUnit> getAllOrganisationUnits()
     {
-        DimensionalObject object = getDimensionalObject( ORGUNIT_DIM_ID, relativePeriodDate, user, true, organisationUnitsAtLevel, organisationUnitsInGroups, format );
+        DimensionalObject object = getDimensionalObject( ORGUNIT_DIM_ID, relativePeriodDate, getUser(), true, organisationUnitsAtLevel, organisationUnitsInGroups, format );
 
         return object != null ? DimensionalObjectUtils.asTypedList( object.getItems() ) : null;
     }

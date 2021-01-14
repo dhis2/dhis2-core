@@ -1,7 +1,7 @@
 package org.hisp.dhis.predictor;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,6 @@ package org.hisp.dhis.predictor;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.Category;
@@ -76,7 +75,6 @@ import static org.junit.Assert.assertEquals;
  * @author Lars Helge Overland
  * @author Jim Grace
  */
-@org.junit.experimental.categories.Category( IntegrationTest.class )
 public class PredictionServiceTest
     extends IntegrationTestBase
 {
@@ -265,12 +263,6 @@ public class PredictionServiceTest
         Set<OrganisationUnit> units = newHashSet( sourceA, sourceB, sourceG );
         CurrentUserService mockCurrentUserService = new MockCurrentUserService( true, units, units );
         setDependency( predictionService, "currentUserService", mockCurrentUserService, CurrentUserService.class );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 
     @Override

@@ -1,7 +1,7 @@
 package org.hisp.dhis.interpretation;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,8 +67,8 @@ public class InterpretationComment
     public InterpretationComment( String text, User user )
     {
         this.text = text;
-        this.user = user;
         this.created = new Date();
+        this.sharing.setOwner( user );
     }
 
     @JsonProperty

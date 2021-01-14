@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -127,7 +127,7 @@ public class DefaultTrackerObjectsDeletionService
             TrackerBundle trackerBundle = TrackerBundle.builder().events( events ).user( bundle.getUser() ).build();
 
             // Associated events should be deleted provided user has authority for that.
-            TrackerTypeReport eventReport = deleteEvents( trackerBundle, TrackerType.EVENT );
+            deleteEvents( trackerBundle, TrackerType.EVENT );
 
             programInstanceService.deleteProgramInstance( programInstance );
             teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
@@ -222,7 +222,7 @@ public class DefaultTrackerObjectsDeletionService
             TrackerBundle trackerBundle = TrackerBundle.builder().enrollments( enrollments ).user( bundle.getUser() ).build();
 
             // Associated enrollments should be deleted provided user has authority for that.
-            TrackerTypeReport enrollmentReport = deleteEnrollments( trackerBundle, TrackerType.ENROLLMENT );
+            deleteEnrollments( trackerBundle, TrackerType.ENROLLMENT );
 
             teiService.deleteTrackedEntityInstance( daoEntityInstance );
 

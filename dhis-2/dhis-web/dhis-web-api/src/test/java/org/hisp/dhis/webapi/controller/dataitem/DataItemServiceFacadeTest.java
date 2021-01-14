@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.dataitem;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -186,14 +186,6 @@ public class DataItemServiceFacadeTest
         options.put( PAGE_SIZE, valueOf( pageSize ) );
         options.put( PAGE, valueOf( pageNumber ) );
         options.put( PAGING, "true" );
-
-        return new WebOptions( options );
-    }
-
-    private WebOptions mockWebOptionsNoPagingNoFilter()
-    {
-        final Map<String, String> options = new HashMap<>( 0 );
-        options.put( PAGING, "false" );
 
         return new WebOptions( options );
     }

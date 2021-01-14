@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,9 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -65,6 +67,8 @@ public class JpaQueryParameters<T> implements Serializable
     private List<Function<Root<T>, Order>> orders = new ArrayList<>();
 
     private List<Function<Root<T>, Expression<Long>>> countExpressions = new ArrayList<>();
+
+    private Map<String,Object> queryParameters = new HashMap<>();
 
     protected Class<?> clazz;
 
@@ -233,5 +237,16 @@ public class JpaQueryParameters<T> implements Serializable
     {
         this.countExpressions = countExpressions;
         return this;
+    }
+
+    public JpaQueryParameters<T> addQueryParameters( String key, Object value )
+    {
+        this.queryParameters.put( key, value );
+        return this;
+    }
+
+    public Map<String, Object> getQueryParameters()
+    {
+        return this.queryParameters;
     }
 }

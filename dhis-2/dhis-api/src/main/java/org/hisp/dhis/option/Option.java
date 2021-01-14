@@ -1,7 +1,7 @@
 package org.hisp.dhis.option;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,8 @@ import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
+import java.util.Objects;
+
 /**
  * @author Chau Thu Tran
  */
@@ -70,6 +72,10 @@ public class Option
     public Option( String name, String code )
     {
         this();
+
+        Objects.requireNonNull( name );
+        Objects.requireNonNull( code );
+
         this.name = name;
         this.code = code;
     }
@@ -77,6 +83,11 @@ public class Option
     public Option( String name, String code, Integer sortOrder )
     {
         this();
+
+        Objects.requireNonNull( name );
+        Objects.requireNonNull( code );
+        Objects.requireNonNull( sortOrder );
+
         this.name = name;
         this.code = code;
         this.sortOrder = sortOrder;

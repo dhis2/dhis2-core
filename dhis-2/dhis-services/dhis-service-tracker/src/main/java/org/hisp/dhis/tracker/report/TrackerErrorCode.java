@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.report;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ public enum TrackerErrorCode
     E1019( "Only Program attributes is allowed for enrollment; Non valid attribute: `{0}`." ),
     E1008( "Value: `{0}`, does not match the attribute pattern: `{1}`." ),
     E1007( "Error validating attribute value type: `{0}`; Error: `{1}`." ),
-    E1018( "Missing mandatory attribute: `{0}`." ),
+    E1018( "Attribute: `{0}`, is mandatory in program `{1}` but not declared in enrollment `{2}`." ),
     E1075( "Attribute: `{0}`, is missing uid." ),
     E1076( "Attribute: `{0}`, value is null." ),
     E1077( "Attribute: `{0}`, text value exceed the maximum allowed length: `{0}`." ),
@@ -77,12 +77,13 @@ public enum TrackerErrorCode
     E1021( "Incident date: `{0}`, can`t be future date." ),
     E1023( "DisplayIncidentDate is true but property occurredAt is null or has an invalid format: `{0}`." ),
     E1025( "Property enrolledAt is null or has an invalid format: `{0}`." ),
-    E1041( "Enrollment OrganisationUnit: `{0}`, and Program: `{1}`, OrganisationUnit: `{2}`, don't match." ),
+    E1041( "Enrollment OrganisationUnit: `{0}`, and Program: `{1}`, don't match." ),
     E1068( "Could not find TrackedEntityInstance: `{0}`, linked to Enrollment." ),
     E1069( "Could not find Program: `{0}`, linked to Enrollment." ),
     E1070( "Could not find OrganisationUnit: `{0}`, linked to Enrollment." ),
     E1080( "Enrollment: `{0}`, already exists." ),
     E1081( "Enrollment: `{0}`, do not exist." ),
+    E1029( "Event OrganisationUnit: `{0}`, and Program: `{1}`, don't match."),
     E1030( "Event: `{0}`, already exists." ),
     E1032( "Event: `{0}`, do not exist." ),
     E1035( "Event: `{0}`, ProgramStage value is NULL." ),
@@ -111,8 +112,8 @@ public enum TrackerErrorCode
     E1049( "Could not find OrganisationUnit: `{0}`, linked to Tracked Entity." ),
     // TODO: Delete not working yet
     E1082( "Event: `{0}`, is already deleted and can't be modified." ),
-    E1113( "Enrollment: `{0}`, is already deleted." ),
-    E1114( "TrackedEntity: `{0}`, is already deleted." ),
+    E1113( "Enrollment: `{0}`, is already deleted and can't be modified." ),
+    E1114( "TrackedEntity: `{0}`, is already deleted and can't be modified." ),
     E1118( "Assigned user `{0}` is not a valid uid."),
     E1119( "A Tracker Note with uid `{0}` already exists."),
     E1120( "ProgramStage `{0}` does not allow user assignment"),
@@ -146,6 +147,11 @@ public enum TrackerErrorCode
     E1303( "Mandatory DataElement `{0}` is not present" ),
     E1304( "DataElement `{0}` is not a valid data element" ),
     E1305( "DataElement `{0}` is not part of `{1}` program stage" ),
+    E1306( "Mandatory Attribute `{0}` is not present" ),
+    E1307( "DataElement `{0}` is already present in event `{1}`" ),
+    E1308( "DataElement `{0}` is being replaced in event `{1}`" ),
+    E1309( "Attribute `{0}` is already present in tei `{1}`" ),
+    E1310( "Attribute `{0}` is being replaced in tei `{1}`" ),
 
     E4000( "Relationship: `{0}` cannot link to itself" ),
     E4001( "Relationship Item `{0}` for Relationship `{1}` is invalid: an Item can link only one Tracker entity." ),

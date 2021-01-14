@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -696,12 +696,6 @@ public class AnalyticsServiceTest
         results.put( "ou_2017_validationruleA", ou_2017_validationruleA_keyValue );
         results.put( "ou_2017_validationruleB", ou_2017_validationruleB_keyValue );
         results.put( "ou_2017_validationruleAB", ou_2017_validationruleAB_keyValue );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 
     @Override

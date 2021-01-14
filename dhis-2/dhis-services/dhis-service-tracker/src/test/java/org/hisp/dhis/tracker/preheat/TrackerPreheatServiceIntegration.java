@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.preheat;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.preheat;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -55,14 +55,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import static org.junit.Assert.assertNotNull;
 
 public class TrackerPreheatServiceIntegration
-    extends IntegrationTestBase
+    extends TransactionalIntegrationTest
 {
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Autowired
     private TrackerPreheatService trackerPreheatService;
 
@@ -151,8 +145,5 @@ public class TrackerPreheatServiceIntegration
 
         assertNotNull( preheat );
         assertNotNull( preheat.getMap() );
-        assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ) );
-        assertNotNull( preheat.getMap().get( TrackerIdScheme.CODE ).get( OrganisationUnit.class ) );
-        assertNotNull( preheat.getMap().get( TrackerIdScheme.ATTRIBUTE ).get( Program.class ) );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.monitoring.metrics.jdbc;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,21 +28,16 @@ package org.hisp.dhis.monitoring.metrics.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.sql.SQLException;
-
-
-
-
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import lombok.extern.slf4j.Slf4j;
+
+import java.sql.SQLException;
 
 /**
  * @author Luciano Fiandesio
  */
 @Slf4j
-public class C3p0MetadataProvider
-    extends
-    AbstractDataSourcePoolMetadata<ComboPooledDataSource>
+public class C3p0MetadataProvider extends AbstractDataSourcePoolMetadata<ComboPooledDataSource>
 {
     /**
      * Create an instance with the data source to use.

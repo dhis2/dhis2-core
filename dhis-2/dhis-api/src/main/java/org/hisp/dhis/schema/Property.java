@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.springframework.core.Ordered;
 
@@ -793,7 +794,7 @@ public class Property implements Ordered, Klass
 
     public void setDefaultValue( Object defaultValue )
     {
-        if ( defaultValue != null && klass.isAssignableFrom( defaultValue.getClass() ) )
+        if ( defaultValue != null && klass.isAssignableFrom( HibernateProxyUtils.getRealClass( defaultValue ) ) )
         {
             this.defaultValue = defaultValue;
         }

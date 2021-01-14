@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.preheat;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,12 +40,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramInstance;
@@ -68,7 +65,6 @@ import com.google.api.client.util.Lists;
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
 
-import javassist.util.proxy.ProxyFactory;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -218,6 +214,15 @@ public class TrackerPreheat
     @Setter
     private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
 
+    /**
+     * Map of Program ID (primary key) and List of Org Unit ID associated to each
+     * program. Note that the List only contains the Org Unit ID of the Org Units
+     * that are specified in the import payload.
+     */
+    @Getter
+    @Setter
+    private  Map<Long, List<Long>> programWithOrgUnitsMap;
+    
     public TrackerPreheat()
     {
     }
@@ -228,11 +233,23 @@ public class TrackerPreheat
     }
 
     /**
+     * Get a default value from the Preheat
+     *
+     * @param defaultClass The type of object to retrieve
+     * @return The default object of the class provided
+     */
+    public <T extends IdentifiableObject> T getDefault( Class<T> defaultClass )
+    {
+        String uid = this.defaults.get( defaultClass ).getUid();
+        return this.get( defaultClass, uid );
+    }
+
+    /**
      * Fetch a metadata object from the pre-heat, based on the type of the object
      * and the cached identifier.
      *
      * @param klass The metadata class to fetch
-     * @param key The key used during the pre-heat creation
+     * @param key   The key used during the pre-heat creation
      * @return A metadata object or null
      */
     @SuppressWarnings( "unchecked" )
@@ -268,8 +285,8 @@ public class TrackerPreheat
             return this;
         }
 
-        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) getRealClass(
-            object.getClass() );
+        Class<? extends IdentifiableObject> klass =
+            (Class<? extends IdentifiableObject>) HibernateProxyUtils.getRealClass( object );
 
         if ( !map.containsKey( klass ) )
         {
@@ -294,7 +311,7 @@ public class TrackerPreheat
             }
         }
 
-        resolveKey( identifier, object ).ifPresent( k -> map.get( klass ).put( k, object ) );
+        PreheatUtils.resolveKey( identifier, object ).ifPresent( k -> map.get( klass ).put( k, object ) );
 
         return this;
     }
@@ -467,42 +484,6 @@ public class TrackerPreheat
         relationships.get( identifier ).put( relationshipUid, relationship );
     }
 
-    public static Class<?> getRealClass( Class<?> klass )
-    {
-        if ( ProxyFactory.isProxyClass( klass ) )
-        {
-            klass = klass.getSuperclass();
-        }
-
-        return klass;
-    }
-
-    public static boolean isDefaultClass( IdentifiableObject object )
-    {
-        return object != null && isDefaultClass( getRealClass( object.getClass() ) );
-    }
-
-    public static boolean isDefaultClass( Class<?> klass )
-    {
-        klass = getRealClass( klass );
-
-        return Category.class.isAssignableFrom( klass ) || CategoryOption.class.isAssignableFrom( klass )
-            || CategoryCombo.class.isAssignableFrom( klass ) || CategoryOptionCombo.class.isAssignableFrom( klass );
-    }
-
-    public boolean isDefault( IdentifiableObject object )
-    {
-        if ( !isDefaultClass( object ) )
-        {
-            return false;
-        }
-
-        Class<?> klass = getRealClass( object.getClass() );
-        IdentifiableObject defaultObject = getDefaults().get( klass );
-
-        return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
-    }
-    
     public ProgramInstance getProgramInstancesWithoutRegistration( String programUid )
     {
         return programInstancesWithoutRegistration.get( programUid );
@@ -552,29 +533,4 @@ public class TrackerPreheat
             .add( "map=" + map )
             .toString();
     }
-
-    private <T extends IdentifiableObject> Optional<String> resolveKey( TrackerIdentifier identifier, T object )
-    {
-        if ( identifier.getIdScheme().equals( TrackerIdScheme.UID ) )
-        {
-            return Optional.ofNullable( object.getUid() );
-        }
-        else if ( identifier.getIdScheme().equals( TrackerIdScheme.CODE ) )
-        {
-            return Optional.ofNullable( object.getCode() );
-        }
-        else if ( identifier.getIdScheme().equals( TrackerIdScheme.NAME ) )
-        {
-            return Optional.ofNullable( object.getName() );
-        }
-        else if ( identifier.getIdScheme().equals( TrackerIdScheme.ATTRIBUTE ) )
-        {
-            return Optional.ofNullable( identifier.getIdentifier( object ) );
-        }
-        // TODO TrackerIdScheme.AUTO ??
-
-        return Optional.empty();
-
-    }
-
 }

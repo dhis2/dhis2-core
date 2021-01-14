@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,8 @@ package org.hisp.dhis.dxf2.events;
  */
 
 import org.hamcrest.CoreMatchers;
-import org.hisp.dhis.DhisSpringTest;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
@@ -68,7 +69,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class RegistrationSingleEventServiceTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private EventService eventService;
@@ -103,6 +104,12 @@ public class RegistrationSingleEventServiceTest
     private DataElement dataElementA;
     private Program programA;
     private ProgramStage programStageA;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest() throws Exception

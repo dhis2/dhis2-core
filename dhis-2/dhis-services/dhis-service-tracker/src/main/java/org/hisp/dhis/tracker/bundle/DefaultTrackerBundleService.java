@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.bundle;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,10 +36,9 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.ParamsConverter;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -50,7 +49,6 @@ import org.hisp.dhis.tracker.bundle.persister.CommitService;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
-import org.hisp.dhis.tracker.programrule.RuleActionApplier;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.sideeffect.SideEffectHandlerService;
@@ -60,23 +58,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableMap;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
-@Slf4j
+@RequiredArgsConstructor
 public class DefaultTrackerBundleService
     implements TrackerBundleService
 {
     private final TrackerPreheatService trackerPreheatService;
 
     private final SessionFactory sessionFactory;
-
-    private final HibernateCacheManager cacheManager;
-
-    private final DbmsManager dbmsManager;
 
     private final CommitService commitService;
 
@@ -87,14 +79,6 @@ public class DefaultTrackerBundleService
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
 
     private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
-
-    private List<RuleActionApplier> appliers = new ArrayList<>();
-
-    @Autowired( required = false )
-    public void setAppliers( List<RuleActionApplier> appliers )
-    {
-        this.appliers = appliers;
-    }
 
     @Autowired( required = false )
     public void setBundleHooks( List<TrackerBundleHook> bundleHooks )
@@ -134,22 +118,6 @@ public class DefaultTrackerBundleService
             .build();
     }
 
-    public DefaultTrackerBundleService( TrackerPreheatService trackerPreheatService,
-        SessionFactory sessionFactory,
-        HibernateCacheManager cacheManager,
-        DbmsManager dbmsManager,
-        TrackerProgramRuleService trackerProgramRuleService,
-        TrackerObjectDeletionService deletionService, CommitService commitService )
-    {
-        this.trackerPreheatService = trackerPreheatService;
-        this.sessionFactory = sessionFactory;
-        this.cacheManager = cacheManager;
-        this.dbmsManager = dbmsManager;
-        this.trackerProgramRuleService = trackerProgramRuleService;
-        this.deletionService = deletionService;
-        this.commitService = commitService;
-    }
-
     @Override
     public TrackerBundle create( TrackerImportParams params )
     {
@@ -163,22 +131,13 @@ public class DefaultTrackerBundleService
     @Override
     public TrackerBundle runRuleEngine( TrackerBundle trackerBundle )
     {
-        if ( trackerBundle.isSkipRuleEngine() )
-        {
-            return trackerBundle;
-        }
-
         Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
             .calculateEnrollmentRuleEffects( trackerBundle.getEnrollments(), trackerBundle );
         Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
             .calculateEventRuleEffects( trackerBundle.getEvents(), trackerBundle );
         trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
         trackerBundle.setEventRuleEffects( eventRuleEffects );
-        
-        for ( RuleActionApplier applier : appliers )
-        {
-            trackerBundle = applier.executeActions( trackerBundle );
-        }
+
         return trackerBundle;
     }
 
@@ -199,12 +158,9 @@ public class DefaultTrackerBundleService
 
         Stream.of( TrackerType.values() )
             .forEach( t -> bundleReport.getTypeReportMap().put( t, COMMIT_MAPPER.get( t )
-            .apply( session, bundle ) ) );
+                .apply( session, bundle ) ) );
 
         bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
-
-        dbmsManager.clearSession();
-        cacheManager.clearCache();
 
         return bundleReport;
     }
@@ -215,6 +171,7 @@ public class DefaultTrackerBundleService
         sideEffectHandlers.forEach( handler -> handler.handleSideEffects( bundles ) );
     }
 
+    @Override
     @Transactional
     public TrackerBundleReport delete( TrackerBundle bundle )
     {
@@ -227,10 +184,7 @@ public class DefaultTrackerBundleService
 
         Stream.of( TrackerType.values() )
             .forEach( t -> bundleReport.getTypeReportMap().put( t, DELETION_MAPPER.get( t )
-            .apply( bundle, t ) ) );
-
-        dbmsManager.clearSession();
-        cacheManager.clearCache();
+                .apply( bundle, t ) ) );
 
         return bundleReport;
     }

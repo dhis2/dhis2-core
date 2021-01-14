@@ -1,7 +1,7 @@
 package org.hisp.dhis.container;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,13 @@ package org.hisp.dhis.container;
 
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgisContainerProvider;
+import org.testcontainers.utility.DockerImageName;
 
 /**
  * Custom PostgisContainerProvider to create
  * {@link DhisPostgreSQLContainer}
  *
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
 @SuppressWarnings( "rawtypes" )
 public class DhisPostgisContainerProvider
@@ -54,7 +54,8 @@ public class DhisPostgisContainerProvider
     @Override
     public JdbcDatabaseContainer newInstance( String tag )
     {
-        return new DhisPostgreSQLContainer( DEFAULT_IMAGE + ":" + tag );
+        DockerImageName postgres = DockerImageName.parse( DEFAULT_IMAGE + ":" + tag )
+            .asCompatibleSubstituteFor( "postgres" );
+        return new DhisPostgreSQLContainer( postgres );
     }
-
 }

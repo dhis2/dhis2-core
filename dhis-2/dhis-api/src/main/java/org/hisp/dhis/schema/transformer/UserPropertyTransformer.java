@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema.transformer;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.AbstractPropertyTransformer;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
@@ -85,7 +86,7 @@ public class UserPropertyTransformer
                     return o;
                 }
 
-                Collection<UserDto> userDtoCollection = newCollectionInstance( collection.getClass() );
+                Collection<UserDto> userDtoCollection = newCollectionInstance( HibernateProxyUtils.getRealClass( collection ) );
                 collection.forEach( user -> userDtoCollection.add( buildUserDto( (User) user ) ) );
 
                 return userDtoCollection;

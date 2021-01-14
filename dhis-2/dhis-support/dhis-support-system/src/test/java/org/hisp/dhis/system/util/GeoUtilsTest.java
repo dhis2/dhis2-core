@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,12 +36,12 @@ import static org.junit.Assert.assertFalse;
 import java.io.IOException;
 
 import org.geotools.geojson.geom.GeometryJSON;
-import org.hisp.dhis.TestResourceUtils;
+import org.hisp.dhis.utils.TestResourceUtils;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * Lars Helge Overland

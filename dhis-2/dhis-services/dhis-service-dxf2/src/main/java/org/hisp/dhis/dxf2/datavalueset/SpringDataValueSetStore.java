@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,8 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.io.OutputStream;
-import java.io.Writer;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
-
+import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
@@ -57,9 +47,19 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.base.Preconditions;
+import java.io.OutputStream;
+import java.io.Writer;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 /**
  * @author Lars Helge Overland
@@ -370,6 +370,15 @@ public class SpringDataValueSetStore
      */
     private String getAttributeOptionComboClause( User user )
     {
+        List<String> groupsIds = user.getGroups().stream().map( g -> g.getUid() )
+            .collect( Collectors.toList() );
+
+        String groupAccessCheck =  groupsIds.size() > 0 ?
+            "or ( " +
+                "check_user_group_ids( co.sharing, '{"+ String.join( ",", groupsIds ) +"}' ) = true " +
+                "and check_user_groups_access( co.sharing, '__r%', '{"+ String.join( ",", groupsIds ) +"}' ) = true ) )"
+            : ") )";
+
         return
             "and dv.attributeoptioncomboid not in (" +
                 "select distinct(cocco.categoryoptioncomboid) " +
@@ -379,27 +388,12 @@ public class SpringDataValueSetStore
                     "select co.categoryoptionid " +
                     "from dataelementcategoryoption co " +
                     // Public access check
-                    "where co.publicaccess like '__r_____' " +
-                    "or co.publicaccess is null " +
+                    "where co.sharing->>'public' like '__r%' " +
+                    "or co.sharing->>'public' is null " +
                     // User access check
-                    "or exists ( " +
-                        "select coua.categoryoptionid " +
-                        "from dataelementcategoryoptionuseraccesses coua " +
-                        "inner join useraccess ua on coua.useraccessid = ua.useraccessid " +
-                        "where coua.categoryoptionid = co.categoryoptionid " +
-                        "and ua.access like '__r_____' " +
-                        "and ua.userid = " + user.getId() + ") " +
+                " or co.sharing->'users'->'" + user.getUid() + "'->>'access' like '__r%'" +
                     // User group access check
-                    "or exists ( " +
-                        "select couga.categoryoptionid " +
-                        "from dataelementcategoryoptionusergroupaccesses couga " +
-                        "inner join usergroupaccess uga on couga.usergroupaccessid = uga.usergroupaccessid " +
-                        "where couga.categoryoptionid = co.categoryoptionid " +
-                        "and uga.access like '__r_____' " +
-                        "and uga.usergroupid in ( " +
-                            "select ugm.usergroupid " +
-                            "from usergroupmembers ugm " +
-                            "where ugm.userid = " + user.getId() + ")))) ";
-
+                    groupAccessCheck
+                ;
     }
 }

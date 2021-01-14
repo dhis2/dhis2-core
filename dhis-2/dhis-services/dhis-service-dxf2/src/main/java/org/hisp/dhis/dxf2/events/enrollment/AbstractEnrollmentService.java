@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.enrollment;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -610,6 +610,15 @@ public abstract class AbstractEnrollmentService
         Enrollment enrollment, ImportOptions importOptions )
     {
         ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
+
+        if ( program == null )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "Program can not be null" );
+            importSummary.incrementIgnored();
+
+            return importSummary;
+        }
 
         if ( !program.isRegistration() )
         {

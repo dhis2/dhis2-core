@@ -1,7 +1,7 @@
 package org.hisp.dhis.feedback;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.feedback;
  */
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
@@ -57,9 +58,10 @@ public class TypedIndexedObjectContainer implements ObjectIndexProvider
 
     @Nonnull
     @Override
+    @SuppressWarnings("unchecked")
     public Integer mergeObjectIndex( @Nonnull IdentifiableObject object )
     {
-        return getTypedContainer( object.getClass() ).mergeObjectIndex( object );
+        return getTypedContainer( HibernateProxyUtils.getRealClass( object ) ).mergeObjectIndex( object );
     }
 
     /**
@@ -68,7 +70,7 @@ public class TypedIndexedObjectContainer implements ObjectIndexProvider
      */
     public boolean containsObject( @Nonnull IdentifiableObject object )
     {
-        final IndexedObjectContainer indexedObjectContainer = typedIndexedObjectContainers.get( object.getClass() );
+        final IndexedObjectContainer indexedObjectContainer = typedIndexedObjectContainers.get( HibernateProxyUtils.getRealClass( object ) );
         return indexedObjectContainer != null && indexedObjectContainer.containsObject( object );
     }
 
@@ -77,8 +79,9 @@ public class TypedIndexedObjectContainer implements ObjectIndexProvider
      *
      * @param identifiableObject the object that should be added to the container.
      */
+    @SuppressWarnings("unchecked")
     public void add( @Nonnull IdentifiableObject identifiableObject )
     {
-        getTypedContainer( identifiableObject.getClass() ).add( identifiableObject );
+        getTypedContainer( HibernateProxyUtils.getRealClass( identifiableObject ) ).add( identifiableObject );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,7 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -49,11 +43,17 @@ import org.hisp.dhis.user.User;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class QueryParserTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     private QueryParser queryParser;
     
@@ -62,18 +62,23 @@ public class QueryParserTest
     
     @Autowired
     private SchemaService schemaService;
-    
-  
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
     @Override
     protected void setUpTest()
         throws Exception
     {
-        
+
         OrganisationUnit orgUnitA =  createOrganisationUnit( 'A' ) ;
         organisationUnitService.addOrganisationUnit( orgUnitA ); 
         User user = createUser( 'A' );
         user.addOrganisationUnit( orgUnitA );
-        queryParser = new DefaultQueryParser( schemaService, new MockCurrentUserService( user ), organisationUnitService );
+        queryParser = new DefaultJpaQueryParser( schemaService, new MockCurrentUserService( user ), organisationUnitService );
     }
 
     @Test( expected = QueryParserException.class )
@@ -143,7 +148,7 @@ public class QueryParserTest
 
         restriction = (Restriction) disjunction.getCriterions().get( 0 );
         assertEquals( "organisationUnits.id", restriction.getPath() );
-        assertEquals( "ouabcdefghA", ((List)restriction.getOperator().getArgs().get( 0 )).get( 0 ) );
+        assertEquals( "ouabcdefghA", ((List)restriction.getOperator().getCollectionArgs().get( 0 )).get( 0 ) );
         assertTrue( restriction.getOperator() instanceof InOperator );
 
         restriction = (Restriction) disjunction.getCriterions().get( 1 );

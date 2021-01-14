@@ -1,7 +1,7 @@
 package org.hisp.dhis.minmax;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,12 +95,6 @@ public class DefaultMinMaxDataElementService
     public MinMaxDataElement getMinMaxDataElement( OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo )
     {
         return minMaxDataElementStore.get( source, dataElement, optionCombo );
-    }
-
-    @Override
-    public List<MinMaxDataElement> getMinMaxDataElements( OrganisationUnit source, DataElement dataElement )
-    {
-        return minMaxDataElementStore.get( source, dataElement );
     }
 
     @Override

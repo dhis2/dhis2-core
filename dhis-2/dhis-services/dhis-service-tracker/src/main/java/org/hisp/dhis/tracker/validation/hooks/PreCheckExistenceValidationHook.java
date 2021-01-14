@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,6 @@ package org.hisp.dhis.tracker.validation.hooks;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1002;
@@ -69,6 +68,13 @@ public class PreCheckExistenceValidationHook
         TrackedEntityInstance existingTe = context
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
 
+        // If the tracked entity is soft-deleted no operation is allowed
+        if ( existingTe != null && existingTe.isDeleted() )
+        {
+            addError( reporter, E1114, trackedEntity.getTrackedEntity() );
+            return;
+        }
+
         if ( importStrategy.isCreateAndUpdate() )
         {
             if ( existingTe == null )
@@ -83,10 +89,6 @@ public class PreCheckExistenceValidationHook
         else if ( existingTe != null && importStrategy.isCreate() )
         {
             addError( reporter, E1002, trackedEntity.getTrackedEntity() );
-        }
-        else if ( existingTe != null && existingTe.isDeleted() && importStrategy.isDelete() )
-        {
-            addError( reporter, E1114, trackedEntity.getTrackedEntity() );
         }
         else if ( existingTe == null && importStrategy.isUpdateOrDelete() )
         {
@@ -107,6 +109,13 @@ public class PreCheckExistenceValidationHook
 
         ProgramInstance existingPi = context.getProgramInstance( enrollment.getEnrollment() );
 
+        // If the tracked entity is soft-deleted no operation is allowed
+        if ( existingPi != null && existingPi.isDeleted() )
+        {
+            addError( reporter, E1113, enrollment.getEnrollment() );
+            return;
+        }
+
         if ( importStrategy.isCreateAndUpdate() )
         {
             if ( existingPi == null )
@@ -121,10 +130,6 @@ public class PreCheckExistenceValidationHook
         else if ( existingPi != null && importStrategy.isCreate() )
         {
             addError( reporter, E1080, enrollment.getEnrollment() );
-        }
-        else if ( existingPi != null && existingPi.isDeleted() && importStrategy.isDelete() )
-        {
-            addError( reporter, E1113, enrollment.getEnrollment() );
         }
         else if ( existingPi == null && importStrategy.isUpdateOrDelete() )
         {

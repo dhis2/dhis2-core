@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,16 +35,16 @@ import org.springframework.context.ApplicationEvent;
  */
 public class DataValueUpdatedEvent extends ApplicationEvent
 {
-    private long programStageInstance;
+    private String programStageInstanceUid;
 
-    public DataValueUpdatedEvent( Object source, long programStageInstance )
+    public DataValueUpdatedEvent( Object source, String programStageInstanceUid )
     {
         super( source );
-        this.programStageInstance = programStageInstance;
+        this.programStageInstanceUid = programStageInstanceUid;
     }
 
-    public long getProgramStageInstance()
+    public String getProgramStageInstanceUid()
     {
-        return programStageInstance;
+        return programStageInstanceUid;
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.event;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.*;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -585,6 +586,7 @@ public abstract class AbstractEventService implements EventService
         event.getNotes().addAll( NoteHelper.convertNotes( programStageInstance.getComments() ) );
 
         event.setRelationships( programStageInstance.getRelationshipItems().stream()
+                .filter( Objects::nonNull )
                 .map( ( r ) -> relationshipService.getRelationship( r.getRelationship(), RelationshipParams.FALSE, user ) )
                 .collect( Collectors.toSet() ) );
 

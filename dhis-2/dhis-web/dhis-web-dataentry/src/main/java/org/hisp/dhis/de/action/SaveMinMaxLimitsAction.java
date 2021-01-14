@@ -1,7 +1,7 @@
 package org.hisp.dhis.de.action;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -149,8 +149,8 @@ public class SaveMinMaxLimitsAction
 
         if ( minMaxDataElement == null )
         {
-            minMaxDataElement = new MinMaxDataElement( organisationUnit, dataElement, optionCombo, minLimit, maxLimit,
-                false );
+            minMaxDataElement = new MinMaxDataElement( dataElement, organisationUnit, optionCombo,
+                minLimit, maxLimit, false );
 
             minMaxDataElementService.addMinMaxDataElement( minMaxDataElement );
         }

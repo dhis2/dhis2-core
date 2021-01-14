@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.trackedentity;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -106,7 +106,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -202,58 +202,6 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     @Override
     @Transactional( readOnly = true )
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams,
-        TrackedEntityInstanceParams params, boolean skipAccessValidation )
-    {
-        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> daoTEIs = teiService
-            .getTrackedEntityInstances( queryParams, skipAccessValidation );
-
-        List<TrackedEntityInstance> dtoTeis = new ArrayList<>();
-        User user = queryParams.getUser();
-
-        Set<TrackedEntityAttribute> trackedEntityTypeAttributes = this.trackedEntityAttributeService
-            .getTrackedEntityAttributesByTrackedEntityTypes();
-
-        Map<Program, Set<TrackedEntityAttribute>> teaByProgram = this.trackedEntityAttributeService
-            .getTrackedEntityAttributesByProgram();
-
-        if ( queryParams != null && queryParams.isIncludeAllAttributes() )
-        {
-            daoTEIs.forEach( t -> {
-                Set<TrackedEntityAttribute> attributes = new HashSet<>();
-                for ( Program program : teaByProgram.keySet() )
-                {
-                    attributes = mergeIf( trackedEntityTypeAttributes, teaByProgram.get( program ),
-                        trackerOwnershipAccessManager.hasAccess( user, t, program ) );
-                }
-                dtoTeis.add( getTei( t, attributes, params, user ) );
-
-            } );
-        }
-        else
-        {
-            Set<TrackedEntityAttribute> attributes;
-            attributes = new HashSet<>( trackedEntityTypeAttributes );
-
-            if ( queryParams.hasProgram() )
-            {
-                attributes.addAll( new HashSet<>( queryParams.getProgram().getTrackedEntityAttributes() ) );
-            }
-
-            for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
-            {
-                if ( trackerOwnershipAccessManager.hasAccess( user, daoTrackedEntityInstance,
-                    queryParams.getProgram() ) )
-                {
-                    dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
-                }
-            }
-        }
-
-        return dtoTeis;
-    }
-
-    @Override
-    public List<TrackedEntityInstance> getTrackedEntityInstances2( TrackedEntityInstanceQueryParams queryParams,
         TrackedEntityInstanceParams params, boolean skipAccessValidation )
     {
         if ( queryParams == null )

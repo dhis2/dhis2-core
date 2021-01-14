@@ -10,7 +10,7 @@ import org.springframework.util.Assert;
 import com.google.common.collect.Sets;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,13 +96,14 @@ public class SqlUtils
     }
 
     /**
-     * Cast the given value to numeric (CAST(X) AS NUMERIC)
-     * @param value a value
-     * @return a string with the numeric cast statement
+     * Cast the given value to numeric (cast(X as numeric).
+     *
+     * @param value the value.
+     * @return a string with the numeric cast statement.
      */
     public static String castToNumber( String value )
     {
-        return "CAST (" + value + " AS NUMERIC )";
+        return "cast (" + value + " as numeric)";
     }
 
     public static String lower( String value )

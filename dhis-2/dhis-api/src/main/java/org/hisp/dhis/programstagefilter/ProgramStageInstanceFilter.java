@@ -1,7 +1,7 @@
 package org.hisp.dhis.programstagefilter;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -142,22 +142,12 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject implement
             this.program = psiFilter.getProgram();
             this.programStage = psiFilter.getProgramStage();
 
-            this.userAccesses.clear();
-            if ( psiFilter.getUserAccesses() != null )
-            {
-                this.userAccesses.addAll( psiFilter.getUserAccesses() );
-            }
-
-            this.userGroupAccesses.clear();
-            if ( psiFilter.getUserGroupAccesses() != null )
-            {
-                this.userGroupAccesses.addAll( psiFilter.getUserGroupAccesses() );
-            }
+            this.sharing = psiFilter.getSharing().copy();
 
             this.code = psiFilter.getCode();
             this.name = psiFilter.getName();
             this.description = psiFilter.getDescription();
-            this.publicAccess = psiFilter.getPublicAccess();
+            this.setPublicAccess( psiFilter.getSharing().getPublicAccess() );
         }
     }
 

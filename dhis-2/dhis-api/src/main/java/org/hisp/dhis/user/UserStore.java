@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -92,4 +92,11 @@ public interface UserStore
      * @return User with given userId
      */
     User getUser( long userId );
+
+    /**
+     * Return CurrentUserGroupInfo used for ACL check in {@link IdentifiableObjectStore}
+     * @param userId
+     * @return
+     */
+    CurrentUserGroupInfo getCurrentUserGroupInfo( long userId );
 }

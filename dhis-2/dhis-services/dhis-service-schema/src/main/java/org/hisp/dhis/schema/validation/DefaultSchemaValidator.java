@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema.validation;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ package org.hisp.dhis.schema.validation;
 import org.apache.commons.validator.GenericValidator;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
@@ -92,7 +93,7 @@ public class DefaultSchemaValidator implements SchemaValidator
             return errorReports;
         }
 
-        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
         if ( schema == null )
         {
@@ -213,7 +214,7 @@ public class DefaultSchemaValidator implements SchemaValidator
 
         Collection<?> value = (Collection<?>) propertyObject;
 
-        if ( value.size() < property.getMin() || value.size() > property.getMax() )
+        if ( ( property.getMin() != null && value.size() < property.getMin() ) || ( property.getMax() != null && value.size() > property.getMax() ) )
         {
             errorReports.add( new ErrorReport( klass, ErrorCode.E4007, property.getName(), property.getMin(), property.getMax(), value.size() )
                 .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );

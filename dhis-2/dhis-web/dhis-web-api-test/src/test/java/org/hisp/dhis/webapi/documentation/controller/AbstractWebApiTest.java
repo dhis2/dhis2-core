@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.documentation.controller;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,8 +90,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public abstract class AbstractWebApiTest<T extends IdentifiableObject>
-    extends DhisWebSpringTest
+public abstract class AbstractWebApiTest<T extends IdentifiableObject> extends DhisWebSpringTest
 {
     protected Class<T> testClass;
 

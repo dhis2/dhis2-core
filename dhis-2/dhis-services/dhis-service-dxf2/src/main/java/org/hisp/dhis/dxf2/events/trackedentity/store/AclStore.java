@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,11 @@ import java.util.List;
  */
 public interface AclStore
 {
-    List<Long> getAccessibleTrackedEntityInstanceTypes( Long userId );
+    List<Long> getAccessibleTrackedEntityInstanceTypes( String userUID, List<String> userGroupUIDs );
 
-    List<Long> getAccessiblePrograms( Long userId );
+    List<Long> getAccessiblePrograms( String userUID, List<String> userGroupUIDs );
 
-    List<Long> getAccessibleProgramStages( Long userId );
+    List<Long> getAccessibleProgramStages( String userUID, List<String> userGroupUIDs );
 
-    List<Long> getAccessibleRelationshipTypes( Long userId );
+    List<Long> getAccessibleRelationshipTypes( String userUID, List<String> userGroupUIDs );
 }

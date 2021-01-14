@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.converter;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -155,12 +154,12 @@ public class EnrollmentTrackerConverterService
             }
 
             programInstance.setStatus( enrollment.getStatus().getProgramStatus() );
+        }
 
-            if ( isNotEmpty( enrollment.getNotes() ) )
-            {
-                programInstance.getComments()
-                    .addAll( notesConverterService.from( preheat, enrollment.getNotes() ) );
-            }
+        if ( isNotEmpty( enrollment.getNotes() ) )
+        {
+            programInstance.getComments()
+                .addAll( notesConverterService.from( preheat, enrollment.getNotes() ) );
         }
         return programInstance;
     }

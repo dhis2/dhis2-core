@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataintegrity;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,7 +81,6 @@ import org.mockito.junit.MockitoRule;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public class DataIntegrityServiceTest
 {

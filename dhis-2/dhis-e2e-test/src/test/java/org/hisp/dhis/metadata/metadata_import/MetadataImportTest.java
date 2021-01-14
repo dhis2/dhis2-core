@@ -1,7 +1,7 @@
 package org.hisp.dhis.metadata.metadata_import;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -148,7 +148,7 @@ public class MetadataImportTest
     {
         // arrange
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-        queryParamsBuilder.addAll( "async=false", "importReportMode=DEBUG", "importStrategy=CREATE", "atomicMode=OBJECT" );
+        queryParamsBuilder.addAll( "async=false", "importReportMode=DEBUG", "importStrategy=CREATE", "atomicMode=NONE" );
 
         JsonObject object = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
@@ -193,7 +193,7 @@ public class MetadataImportTest
         // arrange
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder
-            .addAll( "async=true", "importReportMode=DEBUG", "importStrategy=CREATE_AND_UPDATE", "atomicMode=OBJECT" );
+            .addAll( "async=true", "importReportMode=DEBUG", "importStrategy=CREATE_AND_UPDATE", "atomicMode=NONE");
 
         JsonObject metadata = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
@@ -244,7 +244,7 @@ public class MetadataImportTest
         // arrange
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder
-            .addAll( "async=false", "importReportMode=DEBUG" + "importStrategy=CREATE_AND_UPDATE" + "atomicMode=OBJECT" );
+            .addAll( "async=false", "importReportMode=DEBUG" , "importStrategy=CREATE_AND_UPDATE", "atomicMode=NONE");
 
         // import metadata so that we have references and can clean up
 
@@ -319,7 +319,7 @@ public class MetadataImportTest
         JsonArray userGroupAccesses = new JsonArray(  );
         JsonObject userGroupAccess = new JsonObject();
         userGroupAccess.addProperty( "access", "rwrw----" );
-        userGroupAccess.addProperty( "userGroupUid", "non-existing-id " );
+        userGroupAccess.addProperty( "userGroupUid", "non-existing-id" );
         userGroupAccess.addProperty( "id", "non-existing-id" );
 
         userGroupAccesses.add( userGroupAccess );

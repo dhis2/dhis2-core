@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapping;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,10 +83,10 @@ public class Map
     public Map( String name, User user, Double longitude, Double latitude, Integer zoom )
     {
         this.name = name;
-        this.user = user;
         this.longitude = longitude;
         this.latitude = latitude;
         this.zoom = zoom;
+        this.setUser( user );
     }
 
     // -------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 package org.hisp.dhis.actions.metadata;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ public class MetadataActions
     {
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder.addAll( queryParams );
-        queryParamsBuilder.addAll( "atomicMode=OBJECT", "importReportMode=FULL" );
+        queryParamsBuilder.addAll( "importReportMode=FULL" );
 
         ApiResponse response = postFile( file, queryParamsBuilder );
         response.validate().statusCode( 200 );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.preheat.mappers;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,13 +29,27 @@ package org.hisp.dhis.tracker.preheat.mappers;
  */
 
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = DebugMapper.class )
-public interface TrackedEntityTypeMapper extends PreheatMapper<TrackedEntityType>
+import java.util.List;
+
+@Mapper( uses = { DebugMapper.class, TrackedEntityTypeAttributeMapper.class } )
+public interface TrackedEntityTypeMapper
+    extends PreheatMapper<TrackedEntityType>
 {
     TrackedEntityTypeMapper INSTANCE = Mappers.getMapper( TrackedEntityTypeMapper.class );
 
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "id" )
+    @Mapping( target = "uid" )
+    @Mapping( target = "featureType" )
+    @Mapping( target = "sharing" )
+    @Mapping( target = "trackedEntityTypeAttributes" )
     TrackedEntityType map( TrackedEntityType trackedEntityType );
+
+    List<TrackedEntityTypeAttribute> map( List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes );
 }

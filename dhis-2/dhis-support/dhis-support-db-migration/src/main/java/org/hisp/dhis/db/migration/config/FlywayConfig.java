@@ -1,7 +1,7 @@
 package org.hisp.dhis.db.migration.config;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,13 @@ import org.hisp.dhis.db.migration.helper.NoOpFlyway;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Profile;
 
 import javax.sql.DataSource;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.FLYWAY_OUT_OF_ORDER_MIGRATION;
+import static org.hisp.dhis.external.conf.ConfigurationKey.FLYWAY_REPAIR_BEFORE_MIGRATION;
 
 /**
  * @author Luciano Fiandesio
@@ -52,6 +54,7 @@ public class FlywayConfig
 
     @Bean( value = "flyway", initMethod = "migrate" )
     @Profile( "!test-h2" )
+    @DependsOn( "dataSource" )
     public Flyway flyway( DhisConfigurationProvider configurationProvider, DataSource dataSource )
     {
         ClassicConfiguration classicConfiguration = new ClassicConfiguration();
@@ -66,7 +69,8 @@ public class FlywayConfig
         classicConfiguration.setLocations( new Location( FLYWAY_MIGRATION_FOLDER ) );
         classicConfiguration.setMixed( true );
 
-        return new Flyway( classicConfiguration );
+        return new DhisFlyway( classicConfiguration,
+            Boolean.parseBoolean( configurationProvider.getProperty( FLYWAY_REPAIR_BEFORE_MIGRATION ) ) );
 
     }
 

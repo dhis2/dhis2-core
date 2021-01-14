@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.sms;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -186,23 +186,33 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
 
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( currentUser != null && !phoneNumber.equals( currentUser.getPhoneNumber() ) )
+        if ( SmsUtils.isBase64( text ) )
         {
-            if ( users == null || users.isEmpty() )
-            {
-                if ( unregisteredParser != null )
-                {
-                    return null;
-                }
+            return handleCompressedCommands( currentUser, phoneNumber );
+        }
 
-                // No user belong to this phone number
-                throw new WebMessageException( WebMessageUtils.conflict( "User's phone number is not registered in the system" ) );
+        if ( users == null || users.isEmpty() )
+        {
+            if ( unregisteredParser != null )
+            {
+                return null;
             }
 
+            // No user belong to this phone number
+            throw new WebMessageException( WebMessageUtils.conflict( "User's phone number is not registered in the system" ) );
+        }
+
+        return users.iterator().next();
+    }
+
+    private User handleCompressedCommands( User currentUser, String phoneNumber ) throws WebMessageException
+    {
+        if ( currentUser != null && !phoneNumber.equals( currentUser.getPhoneNumber() ) )
+        {
             // current user does not belong to this number
             throw new WebMessageException( WebMessageUtils.conflict( "Originator's number does not match user's Phone number" ) );
         }
 
-        return users.iterator().next();
+        return currentUser;
     }
 }

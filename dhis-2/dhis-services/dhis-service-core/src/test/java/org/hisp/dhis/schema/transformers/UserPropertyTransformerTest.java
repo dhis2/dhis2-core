@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema.transformers;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -143,7 +143,7 @@ public class UserPropertyTransformerTest
         FieldFilterParams params = new FieldFilterParams(
             Collections.singletonList( simple ), Collections.singletonList( "id,name,user[id,code],users[id,code]" ) );
 
-        ComplexNode node = fieldFilterService.toComplexNode( params );
+        fieldFilterService.toComplexNode( params );
     }
 
     @Test
@@ -183,7 +183,7 @@ public class UserPropertyTransformerTest
         FieldFilterParams params = new FieldFilterParams(
             Collections.singletonList( simple ), Collections.singletonList( "id,name,user[*],users[*]" ) );
 
-        ComplexNode node = fieldFilterService.toComplexNode( params );
+        fieldFilterService.toComplexNode( params );
     }
 
     @Test

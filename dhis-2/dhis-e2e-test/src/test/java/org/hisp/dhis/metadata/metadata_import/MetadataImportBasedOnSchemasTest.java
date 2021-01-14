@@ -1,7 +1,7 @@
 package org.hisp.dhis.metadata.metadata_import;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,7 +102,8 @@ public class MetadataImportBasedOnSchemasTest
         List blacklistedEndpoints = Arrays.asList( "jobConfigurations",
             "relationshipTypes",
             "messageConversations",
-            "users" ); //blacklisted because contains conditionally required properties, which are not marked as required
+            "users",
+            "organisationUnitLevels"); //blacklisted because contains conditionally required properties, which are not marked as required
 
         List<SchemaProperty> schemaProperties = schemasActions.getRequiredProperties( schema );
 

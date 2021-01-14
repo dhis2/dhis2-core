@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -363,8 +363,7 @@ public class Schema implements Ordered, Klass
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isShareable()
     {
-        return shareable != null ? shareable :
-            (havePersistedProperty( "user" ) && havePersistedProperty( "userGroupAccesses" ) && havePersistedProperty( "publicAccess" ));
+        return shareable != null ? shareable : havePersistedProperty( "sharing" );
     }
 
     public void setShareable( boolean shareable )

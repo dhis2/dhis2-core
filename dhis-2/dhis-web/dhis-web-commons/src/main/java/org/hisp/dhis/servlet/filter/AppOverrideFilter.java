@@ -1,5 +1,7 @@
+package org.hisp.dhis.servlet.filter;
+
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.servlet.filter;
 
 import java.io.IOException;
 import java.util.Date;
@@ -146,7 +146,6 @@ public class AppOverrideFilter
 
         if ( m.find() )
         {
-            String namespace = m.group( 0 );
             String appName = m.group( 1 );
             String resourcePath = m.group( 2 );
 

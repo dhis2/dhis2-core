@@ -1,12 +1,41 @@
 package org.hisp.dhis.webapi.controller.tracker;
 
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.ATOMIC_MODE_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.FLUSH_MODE_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.IMPORT_MODE_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.IMPORT_STRATEGY_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.VALIDATION_MODE_KEY;
+
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.ATOMIC_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.FLUSH_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.IMPORT_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.IMPORT_STRATEGY_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.VALIDATION_MODE_KEY;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,7 +72,7 @@ public class TrackerImportParamsBuilderTest
     public void testValidationMode()
     {
         Arrays.stream( ValidationMode.values() ).forEach( e -> {
-            paramMap.put( VALIDATION_MODE_KEY, Collections.singletonList( e.name() ) );
+            paramMap.put( VALIDATION_MODE_KEY.getKey(), Collections.singletonList( e.name() ) );
             TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
             assertThat( params.getValidationMode(), is( e ) );
         } );
@@ -53,7 +82,7 @@ public class TrackerImportParamsBuilderTest
     public void testImportMode()
     {
         Arrays.stream( TrackerBundleMode.values() ).forEach( e -> {
-            paramMap.put( IMPORT_MODE_KEY, Collections.singletonList( e.name() ) );
+            paramMap.put( IMPORT_MODE_KEY.getKey(), Collections.singletonList( e.name() ) );
             TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
             assertThat( params.getImportMode(), is( e ) );
         } );
@@ -63,7 +92,7 @@ public class TrackerImportParamsBuilderTest
     public void testAtomicMode()
     {
         Arrays.stream( AtomicMode.values() ).forEach( e -> {
-            paramMap.put( ATOMIC_MODE_KEY, Collections.singletonList( e.name() ) );
+            paramMap.put( ATOMIC_MODE_KEY.getKey(), Collections.singletonList( e.name() ) );
             TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
             assertThat( params.getAtomicMode(), is( e ) );
         } );
@@ -73,7 +102,7 @@ public class TrackerImportParamsBuilderTest
     public void testFlushMode()
     {
         Arrays.stream( FlushMode.values() ).forEach( e -> {
-            paramMap.put( FLUSH_MODE_KEY, Collections.singletonList( e.name() ) );
+            paramMap.put( FLUSH_MODE_KEY.getKey(), Collections.singletonList( e.name() ) );
             TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
             assertThat( params.getFlushMode(), is( e ) );
         } );
@@ -83,7 +112,7 @@ public class TrackerImportParamsBuilderTest
     public void testImportStrategy()
     {
         Arrays.stream( TrackerImportStrategy.values() ).forEach( e -> {
-            paramMap.put( IMPORT_STRATEGY_KEY, Collections.singletonList( e.name() ) );
+            paramMap.put( IMPORT_STRATEGY_KEY.getKey(), Collections.singletonList( e.name() ) );
             TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
             assertThat( params.getImportStrategy(), is( e ) );
         } );

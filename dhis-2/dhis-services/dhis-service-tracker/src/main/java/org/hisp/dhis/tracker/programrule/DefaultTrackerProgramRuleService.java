@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.programrule;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.programrule;
  */
 
 import com.google.api.client.util.Sets;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -41,7 +40,6 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,7 +55,6 @@ import java.util.stream.Stream;
  * @author Enrico Colasante
  */
 @Service
-@Slf4j
 public class DefaultTrackerProgramRuleService
     implements TrackerProgramRuleService
 {
@@ -97,28 +94,22 @@ public class DefaultTrackerProgramRuleService
     {
         return events
             .stream()
-            .filter( e -> isEventInRegistrationProgram( e, bundle.getPreheat() ) )
             .collect( Collectors.toMap( Event::getEvent, event -> {
                 ProgramInstance enrollment = getEnrollment( bundle, event );
-                return programRuleEngine.evaluate( enrollment,
-                    eventTrackerConverterService.from( bundle.getPreheat(), event ),
-                    getEventsFromEnrollment( enrollment.getUid(), bundle, events ) );
+                ProgramStageInstance programStageInstance = eventTrackerConverterService
+                    .fromForRuleEngine( bundle.getPreheat(), event );
+                if ( enrollment == null )
+                {
+                    return programRuleEngine.evaluateProgramEvent( programStageInstance,
+                        bundle.getPreheat().get( Program.class, event.getProgram() ) );
+                }
+                else
+                {
+                    return programRuleEngine.evaluate( enrollment,
+                        programStageInstance,
+                        getEventsFromEnrollment( enrollment.getUid(), bundle, events ) );
+                }
             } ) );
-    }
-
-    private boolean isEventInRegistrationProgram( Event e, TrackerPreheat preheat )
-    {
-        if ( e.getProgram() == null )
-        {
-            return false;
-        }
-        Program program = preheat.get( Program.class, e.getProgram() );
-        if ( program == null )
-        {
-            return false;
-        }
-
-        return program.isRegistration();
     }
 
     private ProgramInstance getEnrollment( TrackerBundle bundle, Event event )

@@ -1,7 +1,7 @@
 package org.hisp.dhis.artemis.audit.listener;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -91,9 +92,9 @@ public abstract class AbstractHibernateListener
 
     Optional<Auditable> getAuditable( Object object, String type )
     {
-        if ( AnnotationUtils.isAnnotationPresent( object.getClass(), Auditable.class ) )
+        if ( AnnotationUtils.isAnnotationPresent( HibernateProxyUtils.getRealClass( object ), Auditable.class ) )
         {
-            Auditable auditable = AnnotationUtils.getAnnotation( object.getClass(), Auditable.class );
+            Auditable auditable = AnnotationUtils.getAnnotation( HibernateProxyUtils.getRealClass( object ), Auditable.class );
 
             boolean shouldAudit = Arrays.stream( auditable.eventType() )
                 .anyMatch( s -> s.contains( "all" ) || s.contains( type ) );
@@ -124,7 +125,7 @@ public abstract class AbstractHibernateListener
     protected Object createAuditEntry( PostDeleteEvent event )
     {
         Map<String,Object> objectMap = new HashMap<>();
-        Schema schema = schemaService.getDynamicSchema( event.getEntity().getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( event.getEntity() ) );
         Map<String, Property> properties = schema.getFieldNameMapProperties();
 
         for ( int i = 0; i< event.getDeletedState().length; i++ )
@@ -172,7 +173,7 @@ public abstract class AbstractHibernateListener
     protected Object createAuditEntry( Object entity, Object[] state, EventSource session, Serializable id, EntityPersister persister )
     {
         Map<String, Object> objectMap = new HashMap<>();
-        Schema schema = schemaService.getDynamicSchema( entity.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( entity ) );
         Map<String, Property> properties = schema.getFieldNameMapProperties();
 
         HibernateProxy entityProxy = null;
@@ -240,11 +241,11 @@ public abstract class AbstractHibernateListener
 
         List<Map<String,Object>> listProperties = new ArrayList<>();
 
-        Map<String, Property> properties = schema.getPersistedProperties();
+        List<Property> properties = schema.getProperties();
         Collection collection = (Collection) value;
         collection.forEach( item -> {
             Map<String, Object> propertyMap = new HashMap<>();
-            properties.forEach( (pName, prop ) -> putValueToMap( prop, propertyMap, ReflectionUtils.invokeGetterMethod( pName, item ) ) );
+            properties.forEach(  prop  -> putValueToMap( prop, propertyMap, ReflectionUtils.invokeGetterMethod( prop.getFieldName(), item ) ) );
             listProperties.add( propertyMap );
         }  );
 
@@ -265,7 +266,7 @@ public abstract class AbstractHibernateListener
             {
                 List<String> uids = IdentifiableObjectUtils.getUids( collection );
 
-                if ( uids != null || !uids.isEmpty() )
+                if ( uids != null && !uids.isEmpty() )
                 {
                     objectMap.put( property.getFieldName(), uids );
                 }
@@ -290,7 +291,7 @@ public abstract class AbstractHibernateListener
         catch ( Exception ex )
         {
             // Ignore if couldn't find property reference object, maybe it was deleted.
-            log.debug( "Couldn't get property: " + pName + " from " + entityProxy, DebugUtils.getStackTrace( ex ) );
+            log.debug( "Couldn't value of property: " + pName , DebugUtils.getStackTrace( ex ) );
         }
 
         return null;

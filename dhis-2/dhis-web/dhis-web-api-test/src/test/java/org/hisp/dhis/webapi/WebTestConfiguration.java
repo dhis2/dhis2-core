@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,9 @@ package org.hisp.dhis.webapi;
  */
 
 import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.H2DhisConfigurationProvider;
-import org.hisp.dhis.config.EncryptionConfig;
+import org.hisp.dhis.config.H2DhisConfigurationProvider;
+import org.hisp.dhis.config.DataSourceConfig;
+import org.hisp.dhis.config.HibernateEncryptionConfig;
 import org.hisp.dhis.config.HibernateConfig;
 import org.hisp.dhis.config.ServiceConfig;
 import org.hisp.dhis.config.StartupConfig;
@@ -73,10 +74,11 @@ import javax.transaction.Transactional;
 
 }, excludeFilters = @Filter( Configuration.class ) )
 @Import( {
-    JdbcConfig.class,
     HibernateConfig.class,
+    DataSourceConfig.class,
+    JdbcConfig.class,
     FlywayConfig.class,
-    EncryptionConfig.class,
+    HibernateEncryptionConfig.class,
     ServiceConfig.class,
     StoreConfig.class,
     LeaderElectionConfiguration.class,
