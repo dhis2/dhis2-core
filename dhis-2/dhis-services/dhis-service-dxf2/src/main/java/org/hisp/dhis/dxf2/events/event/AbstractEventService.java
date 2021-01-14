@@ -225,6 +225,9 @@ public abstract class AbstractEventService
 
     private final ProgramRuleVariableService ruleVariableService;
 
+    private final EventServiceContextBuilder eventServiceContextBuilder;
+
+
     private static final int FLUSH_FREQUENCY = 100;
 
     public AbstractEventService( ProgramService programService, ProgramStageService programStageService,
@@ -237,7 +240,8 @@ public abstract class AbstractEventService
         FileResourceService fileResourceService, SchemaService schemaService, QueryService queryService,
         TrackerAccessManager trackerAccessManager, TrackerOwnershipManager trackerOwnershipAccessManager,
         AclService aclService, ApplicationEventPublisher eventPublisher, RelationshipService relationshipService,
-        UserService userService, EventSyncService eventSyncService, ProgramRuleVariableService ruleVariableService )
+        UserService userService, EventSyncService eventSyncService, ProgramRuleVariableService ruleVariableService,
+        EventServiceContextBuilder eventServiceContextBuilder )
     {
 
         checkNotNull( programService );
@@ -267,6 +271,7 @@ public abstract class AbstractEventService
         checkNotNull( userService );
         checkNotNull( eventSyncService );
         checkNotNull( ruleVariableService );
+        checkNotNull( eventServiceContextBuilder );
 
         this.programService = programService;
         this.programStageService = programStageService;
@@ -296,6 +301,7 @@ public abstract class AbstractEventService
         this.userService = userService;
         this.eventSyncService = eventSyncService;
         this.ruleVariableService = ruleVariableService;
+        this.eventServiceContextBuilder = eventServiceContextBuilder;
     }
 
     // -------------------------------------------------------------------------
@@ -939,11 +945,14 @@ public abstract class AbstractEventService
 
         List<EventRow> eventRowList = eventStore.getEventRows( params, organisationUnits );
 
+        EventContext eventContext = eventServiceContextBuilder.build( eventRowList, user );
+
         for ( EventRow eventRow : eventRowList )
         {
-            if ( trackerOwnershipAccessManager.hasAccess( user,
-                entityInstanceService.getTrackedEntityInstance( eventRow.getTrackedEntityInstance() ),
-                programService.getProgram( eventRow.getProgram() ) ) )
+            if ( trackerOwnershipAccessManager.hasAccessUsingContext( user,
+                 eventRow.getTrackedEntityInstance(),
+                 eventRow.getProgram(),
+                eventContext ) )
             {
                 eventRows.getEventRows().add( eventRow );
             }

@@ -107,14 +107,15 @@ public class JacksonEventService extends AbstractEventService
         FileResourceService fileResourceService, SchemaService schemaService, QueryService queryService,
         TrackerAccessManager trackerAccessManager, TrackerOwnershipManager trackerOwnershipAccessManager,
         AclService aclService, ApplicationEventPublisher eventPublisher, RelationshipService relationshipService,
-        UserService userService, EventSyncService eventSyncService, ProgramRuleVariableService ruleVariableService )
+        UserService userService, EventSyncService eventSyncService, ProgramRuleVariableService ruleVariableService,
+        EventServiceContextBuilder eventServiceContextBuilder )
     {
         super( programService, programStageService, programInstanceService, programStageInstanceService,
             organisationUnitService, dataElementService, currentUserService, eventDataValueService,
             entityInstanceService, commentService, eventStore, i18nManager, notifier, sessionFactory, dbmsManager,
             manager, categoryService, fileResourceService, schemaService, queryService, trackerAccessManager,
             trackerOwnershipAccessManager, aclService, eventPublisher, relationshipService, userService,
-            eventSyncService, ruleVariableService );
+            eventSyncService, ruleVariableService, eventServiceContextBuilder );
     }
 
     @SuppressWarnings( "unchecked" )
