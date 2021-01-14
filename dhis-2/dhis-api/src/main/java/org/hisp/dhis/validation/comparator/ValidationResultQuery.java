@@ -66,9 +66,7 @@ public class ValidationResultQuery
 
 
     /**
-     * Optional list of period ID or ISO-Date expressions to filter.
-     * IDs and ISO-expressions can be mixed.
-     * Anything not recognised as an ISO expression is assumed to be an ID.
+     * Optional list of ISO-Date expressions to filter.
      * If empty the list is not restricting the query.
      */
     private List<String> pe;

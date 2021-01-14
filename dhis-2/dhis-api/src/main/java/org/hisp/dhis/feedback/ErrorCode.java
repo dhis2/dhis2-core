@@ -247,7 +247,12 @@ public enum ErrorCode
     E7301( "At least one organisation unit group set must be specified" ),
 
     /* Debug analytics */
-    E7400( "Debug query must contain at least one data element, one period and one organisation unit" );
+    E7400( "Debug query must contain at least one data element, one period and one organisation unit" ),
+
+    /* Validation Results API */
+    E7500( "Query filter for organisation unit is not a valid ID: `{0}`" ),
+    E7501( "Query filter for validation rule is not a valid ID: `{0}`" ),
+    E7502( "Query filter for period is not a valid ISO expression: `{0}`" );
 
     private String message;
 

@@ -27,24 +27,35 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.validation.comparator.ValidationResultQuery;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.validation.comparator.ValidationResultQuery;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Stian Sandvold
  */
 @Transactional
+@Slf4j
 @Service( "org.hisp.dhis.validation.ValidationResultService" )
 public class DefaultValidationResultService
     implements ValidationResultService
@@ -104,12 +115,14 @@ public class DefaultValidationResultService
     @Override
     public List<ValidationResult> getValidationResults( ValidationResultQuery query )
     {
+        validate( query );
         return validationResultStore.query( query );
     }
 
     @Override
     public long countValidationResults( ValidationResultQuery query )
     {
+        validate( query );
         return validationResultStore.count( query );
     }
 
@@ -119,5 +132,35 @@ public class DefaultValidationResultService
     {
         List<Period> persistedPeriods = periodService.reloadPeriods( new ArrayList<>( periods ) );
         return validationResultStore.getValidationResults( orgUnit, includeOrgUnitDescendants, validationRules, persistedPeriods );
+    }
+
+    private void validate( ValidationResultQuery query )
+    {
+        // check ou and vr filters to be valid UIDs
+        validateElements( query.getOu(), ErrorCode.E7500, ErrorMessage::new, CodeGenerator::isValidUid );
+        validateElements( query.getVr(), ErrorCode.E7501, ErrorMessage::new, CodeGenerator::isValidUid );
+        // check pe filters to be valid ISO expression
+        validateElements( query.getPe(), ErrorCode.E7502, ErrorMessage::new, isoPeriod -> PeriodType.getPeriodFromIsoString( isoPeriod ) != null );
+    }
+
+    private <T> void validateElements( Collection<T> values, ErrorCode code,
+        BiFunction<ErrorCode, Object, ErrorMessage> msgFactory, Predicate<T> validator )
+    {
+        if ( !isEmpty( values ) )
+        {
+            for ( T val : values )
+            {
+                if ( !validator.test( val ) )
+                    throwValidationError( msgFactory.apply( code, val ) );
+            }
+        }
+    }
+
+    private void throwValidationError( ErrorMessage error )
+    {
+        log.warn( String.format(
+            "Validation result query failed, code: '%s', message: '%s'",
+            error.getErrorCode(), error.getMessage() ) );
+        throw new IllegalQueryException( error );
     }
 }
