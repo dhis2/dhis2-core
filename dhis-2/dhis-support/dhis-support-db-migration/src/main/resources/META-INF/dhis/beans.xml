@@ -13,6 +13,7 @@
       <property name="ignoreMissingMigrations" value="true" />
       <property name="ignoreFutureMigrations" value="false" />
       <property name="group" value="true" />
+      <property name="mixed" value="true" />
       <property name="placeholders">
         <map>
           <entry value-ref="encryptionPassword" key="encryption.password"/>
