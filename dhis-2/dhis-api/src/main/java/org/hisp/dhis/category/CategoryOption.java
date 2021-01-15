@@ -79,11 +79,6 @@ public class CategoryOption
      */
     private String formName;
 
-    /**
-     * The i18n variant of the display name. Should not be persisted.
-     */
-    protected transient String displayFormName;
-
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -232,6 +227,14 @@ public class CategoryOption
             : getAdjustedEndDate( dataElement );
     }
 
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayFormName()
+    {
+        return getTranslation( TranslationProperty.FORM_NAME, getFormNameFallback() );
+    }
+
     // -------------------------------------------------------------------------
     // DimensionalItemObject
     // -------------------------------------------------------------------------
@@ -270,6 +273,7 @@ public class CategoryOption
         this.endDate = endDate;
     }
 
+    @Override
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0 )
@@ -279,6 +283,7 @@ public class CategoryOption
         return organisationUnits;
     }
 
+    @Override
     public void setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
     {
         this.organisationUnits = organisationUnits;
@@ -338,6 +343,7 @@ public class CategoryOption
         this.style = style;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @PropertyRange( min = 2 )
@@ -346,6 +352,7 @@ public class CategoryOption
         return formName;
     }
 
+    @Override
     public void setFormName( String formName )
     {
         this.formName = formName;
@@ -354,21 +361,9 @@ public class CategoryOption
     /**
      * Returns the form name, or the name if it does not exist.
      */
+    @Override
     public String getFormNameFallback()
     {
         return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDisplayFormName()
-    {
-        displayFormName = getTranslation( TranslationProperty.FORM_NAME, displayFormName );
-        return displayFormName != null ? displayFormName : getFormNameFallback();
-    }
-
-    public void setDisplayFormName( String displayFormName )
-    {
-        this.displayFormName = displayFormName;
     }
 }

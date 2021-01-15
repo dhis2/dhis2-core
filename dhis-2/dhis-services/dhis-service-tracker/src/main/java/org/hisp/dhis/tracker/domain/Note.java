@@ -53,6 +53,9 @@ public class Note
     private String storedAt;
 
     @JsonProperty
+    private String updatedAt;
+
+    @JsonProperty
     private String storedBy;
 
     @JsonProperty

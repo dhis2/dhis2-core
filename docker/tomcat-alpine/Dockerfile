@@ -19,7 +19,9 @@ RUN rm -rf /usr/local/tomcat/webapps/* && \
 
 RUN apk add --update --no-cache \
         bash  \
-        su-exec
+        su-exec \
+        fontconfig \
+        ttf-dejavu
 
 COPY ./shared/wait-for-it.sh /usr/local/bin/
 COPY ./tomcat-alpine/docker-entrypoint.sh /usr/local/bin/
