@@ -222,8 +222,7 @@ public class HibernateUserStore
         if ( params.getQuery() != null )
         {
             hql += hlp.whereAnd() + " (" +
-                "lower(u.firstName) like :key " +
-                "or lower(u.surname) like :key " +
+                "concat(lower(u.firstName),' ',lower(u.surname)) like :key " +
                 "or lower(u.email) like :key " +
                 "or lower(uc.username) like :key) ";
         }
