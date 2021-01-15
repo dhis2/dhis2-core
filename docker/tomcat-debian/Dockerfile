@@ -19,7 +19,8 @@ RUN apt-get update && \
     apt-get install --no-install-recommends -y \
         util-linux \
         bash \
-        unzip
+        unzip \
+        fontconfig
 
 COPY ./shared/wait-for-it.sh /usr/local/bin/
 COPY ./tomcat-debian/docker-entrypoint.sh /usr/local/bin/
