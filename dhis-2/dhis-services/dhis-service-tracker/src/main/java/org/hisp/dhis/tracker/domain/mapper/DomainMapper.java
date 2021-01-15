@@ -29,7 +29,9 @@ package org.hisp.dhis.tracker.domain.mapper;
  */
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public interface DomainMapper<FROM, TO>
@@ -38,7 +40,9 @@ public interface DomainMapper<FROM, TO>
 
     default List<TO> fromCollection( Collection<FROM> froms )
     {
-        return froms.stream()
+        return Optional.ofNullable( froms )
+            .orElse( Collections.emptySet() )
+            .stream()
             .map( this::from )
             .collect( Collectors.toList() );
     }
