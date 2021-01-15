@@ -398,40 +398,6 @@ public class ValidationUtils
         return "[" + longitude + "," + latitude + "]";
     }
 
-    /**
-     * Checks if the given data value is valid according to the value type of the
-     * given data element. Considers the value to be valid if null or empty.
-     * Returns a string if the valid is invalid, possible
-     * values are:
-     * <p/>
-     * <ul>
-     * <li>data_element_or_type_null_or_empty</li>
-     * <li>value_length_greater_than_max_length</li>
-     * <li>value_not_numeric</li>
-     * <li>value_not_unit_interval</li>
-     * <li>value_not_percentage</li>
-     * <li>value_not_integer</li>
-     * <li>value_not_positive_integer</li>
-     * <li>value_not_negative_integer</li>
-     * <li>value_not_bool</li>
-     * <li>value_not_true_only</li>
-     * <li>value_not_valid_date</li>
-     * </ul>
-     *
-     * @param value       the data value.
-     * @param dataElement the data element.
-     * @return null if the value is valid, a string if not.
-     */
-    public static String dataValueIsValid( String value, DataElement dataElement )
-    {
-        if ( dataElement == null || dataElement.getValueType() == null )
-        {
-            return "data_element_or_type_null_or_empty";
-        }
-
-        return dataValueIsValid( value, dataElement.getValueType() );
-    }
-
     public static String dataValueIsValid( Object value, ValueType valueType, ValueTypeOptions options )
     {
         Objects.requireNonNull( value );
@@ -543,6 +509,40 @@ public class ValidationUtils
     private static boolean isValidValueTypeClass( Object value, ValueType valueType )
     {
         return value.getClass().equals( valueType.getJavaClass() );
+    }
+
+    /**
+     * Checks if the given data value is valid according to the value type of the
+     * given data element. Considers the value to be valid if null or empty.
+     * Returns a string if the valid is invalid, possible
+     * values are:
+     * <p/>
+     * <ul>
+     * <li>data_element_or_type_null_or_empty</li>
+     * <li>value_length_greater_than_max_length</li>
+     * <li>value_not_numeric</li>
+     * <li>value_not_unit_interval</li>
+     * <li>value_not_percentage</li>
+     * <li>value_not_integer</li>
+     * <li>value_not_positive_integer</li>
+     * <li>value_not_negative_integer</li>
+     * <li>value_not_bool</li>
+     * <li>value_not_true_only</li>
+     * <li>value_not_valid_date</li>
+     * </ul>
+     *
+     * @param value       the data value.
+     * @param dataElement the data element.
+     * @return null if the value is valid, a string if not.
+     */
+    public static String dataValueIsValid( String value, DataElement dataElement )
+    {
+        if ( dataElement == null || dataElement.getValueType() == null )
+        {
+            return "data_element_or_type_null_or_empty";
+        }
+
+        return dataValueIsValid( value, dataElement.getValueType() );
     }
 
     /**
