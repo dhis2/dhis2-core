@@ -28,23 +28,13 @@ package org.hisp.dhis.webapi.controller.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
-import static org.hisp.dhis.fileresource.FileResourceDomain.DATA_VALUE;
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
-import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
-
-import java.util.Date;
-import java.util.List;
-
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypeOptions;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -63,6 +53,18 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
+
+import java.util.Date;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.fileresource.FileResourceDomain.DATA_VALUE;
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
 
 /**
  * This a simple component responsible for extracting and encapsulating
@@ -396,35 +398,49 @@ class DataValidator
      * with.
      * 
      * @param fileResourceUid the uid of the FileResource.
+     * @param valueType
+     * @param valueTypeOptions
      * @return a valid FileResource.
      * @throws WebMessageException if any validation fails.
      */
-    FileResource validateAndSetAssigned( final String fileResourceUid )
+    FileResource validateAndSetAssigned( final String fileResourceUid, ValueType valueType,
+        ValueTypeOptions valueTypeOptions )
         throws WebMessageException
     {
-        final FileResource fileResource;
-
-        if ( fileResourceUid != null )
+        if ( fileResourceUid == null )
         {
-            fileResource = fileResourceService.getFileResource( fileResourceUid );
-
-            if ( fileResource == null || fileResource.getDomain() != DATA_VALUE )
-            {
-                throw new WebMessageException( notFound( FileResource.class, fileResourceUid ) );
-            }
-
-            if ( fileResource.isAssigned() )
-            {
-                throw new WebMessageException(
-                    conflict( "File resource already assigned or linked to another data value" ) );
-            }
-
-            fileResource.setAssigned( true );
+            throw new WebMessageException( conflict( "Missing parameter" ) );
         }
-        else
+
+        FileResource fileResource = fileResourceService.getFileResource( fileResourceUid );
+
+        if ( fileResource == null || fileResource.getDomain() != DATA_VALUE )
         {
-            throw new WebMessageException( conflict( "Missing parameter 'value'" ) );
+            throw new WebMessageException( notFound( FileResource.class, fileResourceUid ) );
         }
+
+        if ( fileResource.isAssigned() )
+        {
+            throw new WebMessageException(
+                conflict( "File resource already assigned or linked to another data value" ) );
+        }
+
+        if ( valueType != null && valueTypeOptions != null )
+        {
+            String validationResult = dataValueIsValid( fileResource, valueType, valueTypeOptions );
+
+            if ( validationResult != null )
+            {
+                fileResourceService.deleteFileResource( fileResource );
+
+                throw new WebMessageException( conflict(
+                    String.format( "File resource failed value type option validation, " +
+                        "result was: '%s'", validationResult ) ) );
+            }
+        }
+
+
+        fileResource.setAssigned( true );
 
         return fileResource;
     }

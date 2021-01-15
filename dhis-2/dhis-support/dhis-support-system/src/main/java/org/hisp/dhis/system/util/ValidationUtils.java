@@ -30,7 +30,6 @@ package org.hisp.dhis.system.util;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.common.io.Files;
 import org.apache.commons.validator.routines.DateValidator;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -45,6 +44,7 @@ import org.hisp.dhis.common.ValueTypeOptions;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.render.ObjectValueTypeRenderingOption;
 import org.hisp.dhis.render.StaticRenderingConfiguration;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
@@ -54,7 +54,6 @@ import org.hisp.dhis.util.DateUtils;
 import javax.validation.Payload;
 import javax.validation.constraints.Digits;
 import java.awt.geom.Point2D;
-import java.io.File;
 import java.lang.annotation.Annotation;
 import java.util.Locale;
 import java.util.Objects;
@@ -404,11 +403,6 @@ public class ValidationUtils
         Objects.requireNonNull( valueType );
         Objects.requireNonNull( options );
 
-        if ( !isValidValueTypeClass( value, valueType ) )
-        {
-            return NOT_VALID_VALUE_TYPE_CLASS;
-        }
-
         if ( !isValidValueTypeOptionClass( valueType, options ) )
         {
             return NOT_VALID_VALUE_TYPE_OPTION_CLASS;
@@ -416,27 +410,27 @@ public class ValidationUtils
 
         if ( valueType.isFile() )
         {
-            File file = new File( (String) value );
-
-            if ( !file.exists() )
-            {
-                return "not_valid_file_do_not_exist";
-            }
+            FileResource fileResource = (FileResource) value;
 
             FileTypeValueOptions fileTypeValueOptions = (FileTypeValueOptions) options;
 
-            if ( file.length() > fileTypeValueOptions.getMaxFileSize() )
+            if ( fileResource.getContentLength() > fileTypeValueOptions.getMaxFileSize() )
             {
                 return "not_valid_file_size_too_big";
             }
 
-            if ( !fileTypeValueOptions.getAllowedContentTypes().contains( Files.getFileExtension( file.getName() ) ) )
+            if ( !fileTypeValueOptions.getAllowedContentTypes().contains( fileResource.getContentType().toLowerCase() ) )
             {
-                return "not_valid_file_extension";
+                return "not_valid_file_content_type";
             }
         }
         else if ( ValueType.NUMBER == valueType )
         {
+            if ( !isValidValueTypeClass( value, valueType ) )
+            {
+                return NOT_VALID_VALUE_TYPE_CLASS;
+            }
+
             DigitsValidatorForNumber digitsValidatorForNumber = new DigitsValidatorForNumber();
             digitsValidatorForNumber.initialize( getDigitsInstance( (DigitsValueTypeOptions) options ) );
 
@@ -447,6 +441,11 @@ public class ValidationUtils
         }
         else if ( ValueType.DIGITS == valueType )
         {
+            if ( !isValidValueTypeClass( value, valueType ) )
+            {
+                return NOT_VALID_VALUE_TYPE_CLASS;
+            }
+
             DigitsValidatorForCharSequence digitsValidatorForCharSequence = new DigitsValidatorForCharSequence();
             digitsValidatorForCharSequence.initialize( getDigitsInstance( (DigitsValueTypeOptions) options ) );
 

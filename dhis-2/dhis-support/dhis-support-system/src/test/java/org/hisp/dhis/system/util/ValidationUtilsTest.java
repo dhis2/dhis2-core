@@ -35,11 +35,11 @@ import org.hisp.dhis.common.DigitsValueTypeOptions;
 import org.hisp.dhis.common.FileTypeValueOptions;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 
 import static org.hisp.dhis.system.util.ValidationUtils.bboxIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.coordinateIsValid;
@@ -298,22 +298,22 @@ public class ValidationUtilsTest
         options.setMaxFileSize( oneHundredMegaBytes );
         options.setAllowedContentTypes( ImmutableSet.of( "jpg", "pdf" ) );
 
-        File file = makeTempFile( oneHundredMegaBytes, "jpg" );
-        assertNull( dataValueIsValid( file.getAbsolutePath(), valueType, options ) );
+        FileResource fileResource = new FileResource( "name", "jpg", oneHundredMegaBytes,
+            "md5sum", FileResourceDomain.DOCUMENT );
+        assertNull( dataValueIsValid( fileResource, valueType, options ) );
 
-        assertEquals( "not_valid_file_do_not_exist",
-            dataValueIsValid( new File( "/this_is_not_a_valid_path" ).getAbsolutePath(), valueType, options ) );
-
-        file = makeTempFile( 1024 * (1024 * 101L), "jpg" );
+        fileResource = new FileResource( "name", "jpg", 1024 * (1024 * 101L),
+            "md5sum", FileResourceDomain.DOCUMENT );
         assertEquals( "not_valid_file_size_too_big",
-            dataValueIsValid( file.getAbsolutePath(), valueType, options ) );
+            dataValueIsValid( fileResource, valueType, options ) );
 
-        file = makeTempFile( oneHundredMegaBytes, "com" );
-        assertEquals( "not_valid_file_extension",
-            dataValueIsValid( file.getAbsolutePath(), valueType, options ) );
+        fileResource = new FileResource( "name", "exe", oneHundredMegaBytes,
+            "md5sum", FileResourceDomain.DOCUMENT );
+        assertEquals( "not_valid_file_content_type",
+            dataValueIsValid( fileResource, valueType, options ) );
 
         assertEquals( "not_valid_value_type_option_class",
-            dataValueIsValid( file.getAbsolutePath(), valueType, new DigitsValueTypeOptions() ) );
+            dataValueIsValid( fileResource, valueType, new DigitsValueTypeOptions() ) );
     }
 
     @Test
@@ -348,17 +348,5 @@ public class ValidationUtilsTest
         assertEquals( "not_valid_digits", dataValueIsValid( "11", valueType, options ) );
         assertEquals( "not_valid_digits", dataValueIsValid( "1.00", valueType, options ) );
         assertEquals( "not_valid_digits", dataValueIsValid( "1.01", valueType, options ) );
-    }
-
-    private static File makeTempFile( long length, String extension )
-        throws IOException
-    {
-        File file = File.createTempFile( "test", "." + extension );
-        file.deleteOnExit();
-
-        RandomAccessFile f = new RandomAccessFile( file, "rw" );
-        f.setLength( length );
-
-        return file;
     }
 }
