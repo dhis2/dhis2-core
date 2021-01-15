@@ -51,6 +51,9 @@ public class Attribute
     private String code;
 
     @JsonProperty
+    private String displayName;
+
+    @JsonProperty
     private String createdAt;
 
     @JsonProperty
