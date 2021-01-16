@@ -108,6 +108,15 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     @Override
     public void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
     {
+        checkNulls( ruleEffect, programStageInstance );
+
+        // For program without registration
+        if ( programStageInstance.getProgramStage().getProgram().isWithoutRegistration() )
+        {
+            handleSingleEvent( ruleEffect, programStageInstance );
+            return;
+        }
+
         if ( !validate( ruleEffect, programStageInstance.getProgramInstance() ) )
         {
             return;
@@ -140,5 +149,17 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     public void implementEventAction( RuleEffect ruleEffect, String programStageInstance )
     {
         implement( ruleEffect, programStageInstanceService.getProgramStageInstance( programStageInstance ) );
+    }
+
+    private void handleSingleEvent( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
+    {
+        ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
+
+        if ( template == null )
+        {
+            return;
+        }
+
+        publisher.publishEvent( new ProgramRuleStageEvent( this, template.getId(), programStageInstance.getId() ) );
     }
 }
