@@ -285,7 +285,6 @@ public class HibernateDataApprovalStore
         final String co_sharing_check_query = strArrayUserGroups != null ?  " " + JsonbFunctions.HAS_USER_GROUP_IDS +" co.sharing, "+ strArrayUserGroups +") = false" +
             JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( co.sharing, {"+ strArrayUserGroups +"}, '"+ AclService.LIKE_READ_METADATA+"')" : "";
 
-
         List<DataApprovalLevel> approvalLevels = workflow.getSortedLevels();
 
         Set<OrganisationUnit> userOrgUnits = user.getDataViewOrganisationUnitsWithFallback();

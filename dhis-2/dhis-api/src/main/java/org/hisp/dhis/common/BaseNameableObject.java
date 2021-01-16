@@ -101,7 +101,7 @@ public class BaseNameableObject
     @JsonIgnore
     public String getDisplayProperty( DisplayProperty displayProperty )
     {
-        if ( DisplayProperty.SHORTNAME.equals( displayProperty ) && getDisplayShortName() != null )
+        if ( DisplayProperty.SHORTNAME == displayProperty && getDisplayShortName() != null )
         {
             return getDisplayShortName();
         }
