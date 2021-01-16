@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.domain.web;
  */
 
 import java.util.Collection;
-import java.util.List;
 
 import org.hisp.dhis.common.Pager;
 
