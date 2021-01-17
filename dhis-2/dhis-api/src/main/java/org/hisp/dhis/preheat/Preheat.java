@@ -189,7 +189,7 @@ public class Preheat
         return map.isEmpty();
     }
 
-    public boolean isEmpty( PreheatIdentifier identifier)
+    public boolean isEmpty( PreheatIdentifier identifier )
     {
         return !map.containsKey( identifier ) || map.get( identifier ).isEmpty();
     }

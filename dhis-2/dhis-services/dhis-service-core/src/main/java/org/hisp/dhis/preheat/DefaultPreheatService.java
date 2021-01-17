@@ -237,6 +237,20 @@ public class DefaultPreheatService implements PreheatService
                         }
                     }
                 }
+
+                if ( uidMap.containsKey( User.class ) && !uidMap.get( User.class ).isEmpty() )
+                {
+                    List<List<String>> identifiers = Lists.partition( Lists.newArrayList( uidMap.get( User.class ) ), 20000 );
+
+                    for ( List<String> ids : identifiers )
+                    {
+                        Query query = Query.from( schemaService.getDynamicSchema( User.class ) );
+                        query.setUser( preheat.getUser() );
+                        query.add( Restrictions.in( "id", ids ) );
+                        List<? extends IdentifiableObject> objects = queryService.query( query );
+                        preheat.put( PreheatIdentifier.UID, objects );
+                    }
+                }
             }
 
             for ( Class<? extends IdentifiableObject> klass : klasses )
@@ -268,7 +282,11 @@ public class DefaultPreheatService implements PreheatService
         }
 
         // assign an uid to objects without an UID, if they don't have UID but an existing object exists then reuse the UID
-        for ( Class<? extends IdentifiableObject> klass : params.getObjects().keySet() )
+        for (
+            Class<? extends IdentifiableObject> klass : params.getObjects().
+
+            keySet() )
+
         {
             params.getObjects().get( klass ).forEach( o -> {
                 IdentifiableObject object = preheat.get( params.getPreheatIdentifier(), o );
@@ -285,20 +303,37 @@ public class DefaultPreheatService implements PreheatService
             } );
         }
 
-        preheat.setUniquenessMap( collectUniqueness( params.getPreheatIdentifier(), uniqueCollectionMap ) );
+        preheat.setUniquenessMap(
+
+            collectUniqueness( params.getPreheatIdentifier(), uniqueCollectionMap ) );
 
         // add preheat placeholders for objects that will be created and set mandatory/unique attributes
-        for ( Class<? extends IdentifiableObject> klass : params.getObjects().keySet() )
+        for (
+            Class<? extends IdentifiableObject> klass : params.getObjects().
+
+            keySet() )
+
         {
             List<IdentifiableObject> objects = params.getObjects().get( klass );
             preheat.put( params.getPreheatIdentifier(), objects );
         }
 
         handleAttributes( params.getObjects(), preheat );
-        handleSecurity( params.getObjects(), params.getPreheatIdentifier(), preheat );
 
-        periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
-        periodStore.getAllPeriodTypes().forEach( periodType -> preheat.getPeriodTypeMap().put( periodType.getName(), periodType ) );
+        handleSecurity( params.getObjects(), params.
+
+            getPreheatIdentifier(), preheat );
+
+        periodStore.getAll().
+
+            forEach( period -> preheat.getPeriodMap().
+
+                put( period.getName(), period ) );
+        periodStore.getAllPeriodTypes().
+
+            forEach( periodType -> preheat.getPeriodTypeMap().
+
+                put( periodType.getName(), periodType ) );
 
         log.info( "(" + preheat.getUsername() + ") Import:Preheat[" + params.getPreheatMode() + "] took " + timer.toString() );
 

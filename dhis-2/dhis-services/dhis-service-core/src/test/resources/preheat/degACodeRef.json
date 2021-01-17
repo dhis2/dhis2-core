@@ -1,7 +1,7 @@
 {
   "name": "DataElementGroupA",
   "user": {
-    "code": "UserCodeA"
+    "id": "userabcdefA"
   },
   "dataElements": [
     {
