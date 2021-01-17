@@ -38,6 +38,7 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 
 import java.util.ArrayList;
@@ -528,6 +529,6 @@ public class Preheat
 
     private PreheatIdentifier getIdentifier( Class<? extends IdentifiableObject> klass, PreheatIdentifier identifier )
     {
-        return (klass == User.class || klass == UserCredentials.class) ? PreheatIdentifier.UID : identifier;
+        return (klass == User.class || klass == UserCredentials.class || klass == UserAuthorityGroup.class) ? PreheatIdentifier.UID : identifier;
     }
 }
