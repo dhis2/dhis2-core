@@ -29,7 +29,6 @@ package org.hisp.dhis.preheat;
  */
 
 import org.apache.commons.lang3.StringUtils;
-
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -125,6 +124,8 @@ public class Preheat
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T get( PreheatIdentifier identifier, Class<? extends IdentifiableObject> klass, String key )
     {
+        identifier = getIdentifier( klass, identifier );
+
         if ( !containsKey( identifier, klass, key ) )
         {
             return null;
@@ -151,7 +152,7 @@ public class Preheat
         return objects;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T get( PreheatIdentifier identifier, T object )
     {
         if ( object == null )
@@ -162,6 +163,7 @@ public class Preheat
         T reference = null;
 
         Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( object );
+        identifier = getIdentifier( realClass, identifier );
 
         if ( PreheatIdentifier.UID == identifier || PreheatIdentifier.AUTO == identifier )
         {
@@ -178,6 +180,7 @@ public class Preheat
 
     public boolean containsKey( PreheatIdentifier identifier, Class<? extends IdentifiableObject> klass, String key )
     {
+        identifier = getIdentifier( klass, identifier );
         return !(isEmpty() || isEmpty( identifier ) || isEmpty( identifier, klass )) && map.get( identifier ).get( klass ).containsKey( key );
     }
 
@@ -186,7 +189,7 @@ public class Preheat
         return map.isEmpty();
     }
 
-    public boolean isEmpty( PreheatIdentifier identifier )
+    public boolean isEmpty( PreheatIdentifier identifier)
     {
         return !map.containsKey( identifier ) || map.get( identifier ).isEmpty();
     }
@@ -196,7 +199,7 @@ public class Preheat
         return isEmpty( identifier ) || !map.get( identifier ).containsKey( klass ) || map.get( identifier ).get( klass ).isEmpty();
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> Preheat put( PreheatIdentifier identifier, T object )
     {
         if ( object == null )
@@ -205,6 +208,7 @@ public class Preheat
         }
 
         Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( object );
+        identifier = getIdentifier( realClass, identifier );
 
         if ( PreheatIdentifier.UID == identifier || PreheatIdentifier.AUTO == identifier )
         {
@@ -281,7 +285,7 @@ public class Preheat
         return this;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> Preheat replace( PreheatIdentifier identifier, T object )
     {
         if ( object == null )
@@ -290,6 +294,7 @@ public class Preheat
         }
 
         Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( object );
+        identifier = getIdentifier( realClass, identifier );
 
         if ( PreheatIdentifier.UID == identifier || PreheatIdentifier.AUTO == identifier )
         {
@@ -383,10 +388,11 @@ public class Preheat
         return this;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public Preheat remove( PreheatIdentifier identifier, IdentifiableObject object )
     {
-        Class<? extends IdentifiableObject> klass = HibernateProxyUtils.getRealClass( object );;
+        Class<? extends IdentifiableObject> klass = HibernateProxyUtils.getRealClass( object );
+        ;
 
         if ( PreheatIdentifier.UID == identifier || PreheatIdentifier.AUTO == identifier )
         {
@@ -518,5 +524,10 @@ public class Preheat
         IdentifiableObject defaultObject = getDefaults().get( HibernateProxyUtils.getRealClass( object ) );
 
         return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
+    }
+
+    private PreheatIdentifier getIdentifier( Class<? extends IdentifiableObject> klass, PreheatIdentifier identifier )
+    {
+        return (klass == User.class || klass == UserCredentials.class) ? PreheatIdentifier.UID : identifier;
     }
 }

@@ -660,6 +660,81 @@ public class PreheatServiceTest
         assertEquals( 3, preheat.getMap().get( PreheatIdentifier.UID ).size() );
     }
 
+    @Test
+    public void testDataElementUserByUidPreheat()
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = new HashMap<>();
+
+        User user1 = createUser( "aaa" );
+        DataElement dataElement1 = createDataElement( 'A' );
+        dataElement1.setUser( user1 );
+
+        DataElement dataElement2 = createDataElement( 'B' );
+        dataElement2.setUser( user1 );
+
+        DataElement dataElement3 = createDataElement( 'C' );
+        dataElement3.setUser( user1 );
+
+        metadata.put( DataElement.class, new ArrayList<>() );
+        metadata.get( DataElement.class ).add( dataElement1 );
+        metadata.get( DataElement.class ).add( dataElement2 );
+        metadata.get( DataElement.class ).add( dataElement3 );
+
+        PreheatParams params = new PreheatParams();
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setPreheatMode( PreheatMode.REFERENCE );
+        params.setObjects( metadata );
+
+        Preheat preheat = preheatService.preheat( params );
+        assertNotNull( preheat.getMap().get( PreheatIdentifier.CODE ) );
+        assertNotNull( preheat.getMap().get( PreheatIdentifier.UID ) );
+
+        assertFalse( preheat.getMap().get( PreheatIdentifier.CODE ).isEmpty() );
+        assertFalse( preheat.getMap().get( PreheatIdentifier.UID ).isEmpty() );
+
+        assertEquals( 1, preheat.getMap().get( PreheatIdentifier.CODE ).size() );
+        assertEquals( 2, preheat.getMap().get( PreheatIdentifier.UID ).size() );
+    }
+
+    @Test
+    public void testDataElementByCodeUserByUidGetUserByUidPreheat()
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = new HashMap<>();
+
+        User user1 = createUser( "aaa" );
+        DataElement dataElement1 = createDataElement( 'A' );
+        dataElement1.setUser( user1 );
+
+        DataElement dataElement2 = createDataElement( 'B' );
+        dataElement2.setUser( user1 );
+
+        DataElement dataElement3 = createDataElement( 'C' );
+        dataElement3.setUser( user1 );
+
+        metadata.put( DataElement.class, new ArrayList<>() );
+        metadata.get( DataElement.class ).add( dataElement1 );
+        metadata.get( DataElement.class ).add( dataElement2 );
+        metadata.get( DataElement.class ).add( dataElement3 );
+
+        PreheatParams params = new PreheatParams();
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setPreheatMode( PreheatMode.REFERENCE );
+        params.setObjects( metadata );
+
+        Preheat preheat = preheatService.preheat( params );
+        assertNotNull( preheat.getMap().get( PreheatIdentifier.CODE ) );
+        assertNotNull( preheat.getMap().get( PreheatIdentifier.UID ) );
+
+        assertFalse( preheat.getMap().get( PreheatIdentifier.CODE ).isEmpty() );
+        assertFalse( preheat.getMap().get( PreheatIdentifier.UID ).isEmpty() );
+
+        assertEquals( 1, preheat.getMap().get( PreheatIdentifier.CODE ).size() );
+        assertEquals( 2, preheat.getMap().get( PreheatIdentifier.UID ).size() );
+
+        assertNull( preheat.get( PreheatIdentifier.CODE, User.class, "some-user-uid" ) );
+        assertNotNull( preheat.get( PreheatIdentifier.CODE, User.class, user1.getUid() ) );
+    }
+
     private void defaultSetup()
     {
         DataElement de1 = createDataElement( 'A' );
