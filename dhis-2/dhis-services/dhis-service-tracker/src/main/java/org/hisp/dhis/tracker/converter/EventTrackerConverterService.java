@@ -31,15 +31,10 @@ package org.hisp.dhis.tracker.converter;
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
+import com.google.api.client.util.Lists;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -172,7 +167,31 @@ public class EventTrackerConverterService
     @Override
     public ProgramStageInstance fromForRuleEngine( TrackerPreheat preheat, Event event )
     {
-        return from( preheat, event, null );
+        ProgramStageInstance psi = from( preheat, event, null );
+        // merge data values from DB
+        psi.getEventDataValues().addAll( getProgramStageInstanceDataValues( preheat, event ) );
+        return psi;
+    }
+
+    private List<EventDataValue> getProgramStageInstanceDataValues( TrackerPreheat preheat, Event event )
+    {
+        List<EventDataValue> eventDataValues = Lists.newArrayList();
+        ProgramStageInstance programStageInstance = preheat.getEvent( TrackerIdScheme.UID, event.getEvent() );
+        if ( programStageInstance != null )
+        {
+            Set<String> dataElements = event.getDataValues()
+                .stream()
+                .map( DataValue::getDataElement )
+                .collect( Collectors.toSet() );
+            for ( EventDataValue eventDataValue : programStageInstance.getEventDataValues() )
+            {
+                if ( !dataElements.contains( eventDataValue.getDataElement() ) )
+                {
+                    eventDataValues.add( eventDataValue );
+                }
+            }
+        }
+        return eventDataValues;
     }
 
     private ProgramStageInstance from( TrackerPreheat preheat, Event event, ProgramStageInstance programStageInstance )
