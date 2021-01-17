@@ -66,6 +66,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -245,6 +246,20 @@ public class DefaultPreheatService implements PreheatService
                     for ( List<String> ids : identifiers )
                     {
                         Query query = Query.from( schemaService.getDynamicSchema( User.class ) );
+                        query.setUser( preheat.getUser() );
+                        query.add( Restrictions.in( "id", ids ) );
+                        List<? extends IdentifiableObject> objects = queryService.query( query );
+                        preheat.put( PreheatIdentifier.UID, objects );
+                    }
+                }
+
+                if ( uidMap.containsKey( UserAuthorityGroup.class ) && !uidMap.get( UserAuthorityGroup.class ).isEmpty() )
+                {
+                    List<List<String>> identifiers = Lists.partition( Lists.newArrayList( uidMap.get( UserAuthorityGroup.class ) ), 20000 );
+
+                    for ( List<String> ids : identifiers )
+                    {
+                        Query query = Query.from( schemaService.getDynamicSchema( UserAuthorityGroup.class ) );
                         query.setUser( preheat.getUser() );
                         query.add( Restrictions.in( "id", ids ) );
                         List<? extends IdentifiableObject> objects = queryService.query( query );
