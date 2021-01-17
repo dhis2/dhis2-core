@@ -653,8 +653,11 @@ public class PreheatServiceTest
         assertNotNull( preheat.getMap().get( PreheatIdentifier.CODE ) );
         assertNotNull( preheat.getMap().get( PreheatIdentifier.UID ) );
 
-        assertTrue( preheat.getMap().get( PreheatIdentifier.CODE ).isEmpty() );
+        assertFalse( preheat.getMap().get( PreheatIdentifier.CODE ).isEmpty() );
         assertFalse( preheat.getMap().get( PreheatIdentifier.UID ).isEmpty() );
+
+        assertEquals( 3, preheat.getMap().get( PreheatIdentifier.CODE ).size() );
+        assertEquals( 3, preheat.getMap().get( PreheatIdentifier.UID ).size() );
     }
 
     private void defaultSetup()
