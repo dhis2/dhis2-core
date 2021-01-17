@@ -74,6 +74,7 @@ public abstract class Operator<T extends Comparable<? super T>>
         this.collectionArgs.add( collectionArg );
     }
 
+    @SafeVarargs
     public Operator( String name, Typed typed, Collection<T>... collectionArgs )
     {
         this( name, typed );
@@ -89,6 +90,7 @@ public abstract class Operator<T extends Comparable<? super T>>
         validate();
     }
 
+    @SafeVarargs
     public Operator( String name, Typed typed, T... args )
     {
         this( name, typed );
@@ -117,7 +119,7 @@ public abstract class Operator<T extends Comparable<? super T>>
         return collectionArgs;
     }
 
-    protected <T> T getValue( Class<T> klass, Class<?> secondaryClass, int idx )
+    protected T getValue( Class<T> klass, Class<?> secondaryClass, int idx )
     {
         if ( Collection.class.isAssignableFrom( klass ) )
         {
@@ -127,7 +129,7 @@ public abstract class Operator<T extends Comparable<? super T>>
         return QueryUtils.parseValue( klass, secondaryClass, args.get( idx ) );
     }
 
-    protected <T> T getValue( Class<T> klass, int idx )
+    protected T getValue( Class<T> klass, int idx )
     {
         if ( Collection.class.isAssignableFrom( klass ) )
         {
@@ -137,7 +139,7 @@ public abstract class Operator<T extends Comparable<? super T>>
         return QueryUtils.parseValue( klass, null, args.get( idx ) );
     }
 
-    protected <T> T getValue( Class<T> klass )
+    protected T getValue( Class<T> klass )
     {
         if ( Collection.class.isAssignableFrom( klass ) )
         {
@@ -147,12 +149,12 @@ public abstract class Operator<T extends Comparable<? super T>>
         return getValue( klass, 0 );
     }
 
-    protected <T> T getValue( Class<T> klass, Class<?> secondaryClass, Object value )
+    protected T getValue( Class<T> klass, Class<?> secondaryClass, Object value )
     {
         return QueryUtils.parseValue( klass, secondaryClass, value );
     }
 
-    protected <T> T getValue( Class<T> klass, Object value )
+    protected T getValue( Class<T> klass, Object value )
     {
         return QueryUtils.parseValue( klass, value );
     }
@@ -172,16 +174,16 @@ public abstract class Operator<T extends Comparable<? super T>>
     {
         switch ( matchMode )
         {
-        case EXACT:
-            return org.hibernate.criterion.MatchMode.EXACT;
-        case START:
-            return org.hibernate.criterion.MatchMode.START;
-        case END:
-            return org.hibernate.criterion.MatchMode.END;
-        case ANYWHERE:
-            return org.hibernate.criterion.MatchMode.ANYWHERE;
-        default:
-            return null;
+            case EXACT:
+                return org.hibernate.criterion.MatchMode.EXACT;
+            case START:
+                return org.hibernate.criterion.MatchMode.START;
+            case END:
+                return org.hibernate.criterion.MatchMode.END;
+            case ANYWHERE:
+                return org.hibernate.criterion.MatchMode.ANYWHERE;
+            default:
+                return null;
         }
     }
 
@@ -189,16 +191,16 @@ public abstract class Operator<T extends Comparable<? super T>>
     {
         switch ( matchMode )
         {
-        case EXACT:
-            return JpaQueryUtils.StringSearchMode.EQUALS;
-        case START:
-            return JpaQueryUtils.StringSearchMode.STARTING_LIKE;
-        case END:
-            return JpaQueryUtils.StringSearchMode.ENDING_LIKE;
-        case ANYWHERE:
-            return JpaQueryUtils.StringSearchMode.ANYWHERE;
-        default:
-            return null;
+            case EXACT:
+                return JpaQueryUtils.StringSearchMode.EQUALS;
+            case START:
+                return JpaQueryUtils.StringSearchMode.STARTING_LIKE;
+            case END:
+                return JpaQueryUtils.StringSearchMode.ENDING_LIKE;
+            case ANYWHERE:
+                return JpaQueryUtils.StringSearchMode.ANYWHERE;
+            default:
+                return null;
         }
     }
 
