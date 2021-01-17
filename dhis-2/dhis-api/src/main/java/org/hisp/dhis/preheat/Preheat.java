@@ -529,6 +529,6 @@ public class Preheat
 
     private PreheatIdentifier getIdentifier( Class<? extends IdentifiableObject> klass, PreheatIdentifier identifier )
     {
-        return (klass == User.class || klass == UserCredentials.class || klass == UserAuthorityGroup.class) ? PreheatIdentifier.UID : identifier;
+        return (klass == User.class || klass == UserCredentials.class ) ? PreheatIdentifier.UID : identifier;
     }
 }
