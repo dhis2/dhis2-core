@@ -425,13 +425,11 @@ public class PreheatServiceTest
         assertFalse( preheat.isEmpty( PreheatIdentifier.CODE ) );
         assertFalse( preheat.isEmpty( PreheatIdentifier.CODE, DataElement.class ) );
         assertTrue( preheat.isEmpty( PreheatIdentifier.CODE, DataElementGroup.class ) );
-        assertFalse( preheat.isEmpty( PreheatIdentifier.CODE, User.class ) );
 
         assertTrue( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, de1.getCode() ) );
         assertTrue( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, de2.getCode() ) );
         assertFalse( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, de3.getCode() ) );
         assertFalse( preheat.containsKey( PreheatIdentifier.CODE, DataElementGroup.class, dataElementGroup.getCode() ) );
-        assertTrue( preheat.containsKey( PreheatIdentifier.CODE, User.class, user.getCode() ) );
     }
 
     @Test
@@ -477,12 +475,10 @@ public class PreheatServiceTest
         assertFalse( preheat.isEmpty( PreheatIdentifier.CODE ) );
         assertFalse( preheat.isEmpty( PreheatIdentifier.CODE, DataElement.class ) );
         assertTrue( preheat.isEmpty( PreheatIdentifier.CODE, DataElementGroup.class ) );
-        assertFalse( preheat.isEmpty( PreheatIdentifier.CODE, User.class ) );
 
         assertTrue( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, "DataElementCodeA" ) );
         assertTrue( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, "DataElementCodeB" ) );
         assertTrue( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, "DataElementCodeC" ) );
-        assertTrue( preheat.containsKey( PreheatIdentifier.CODE, User.class, "UserCodeA" ) );
     }
 
     @Test
@@ -656,7 +652,7 @@ public class PreheatServiceTest
         assertFalse( preheat.getMap().get( PreheatIdentifier.CODE ).isEmpty() );
         assertFalse( preheat.getMap().get( PreheatIdentifier.UID ).isEmpty() );
 
-        assertEquals( 3, preheat.getMap().get( PreheatIdentifier.CODE ).size() );
+        assertEquals( 1, preheat.getMap().get( PreheatIdentifier.CODE ).size() );
         assertEquals( 3, preheat.getMap().get( PreheatIdentifier.UID ).size() );
     }
 
