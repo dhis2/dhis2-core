@@ -199,7 +199,6 @@ public class TrackerImporter_programRulesTests
 
         response = trackerActions.postAndGetJobReport( payload );
 
-        response.prettyPrint();
         new RestApiActions( "/messageConversations?fields=*" ).get( "", new QueryParamsBuilder().add( "fields=*" ) )
             .validate()
             .statusCode( 200 )
@@ -208,12 +207,13 @@ public class TrackerImporter_programRulesTests
     }
 
     @ParameterizedTest
-    @CsvSource( { "ON_COMPLETE, COMPLETED, true", "ON_COMPLETE, ACTIVE, false", "ON_UPDATE_AND_INSERT, ACTIVE, true" } )
-    public void shouldShowErrorsWhenValidationStrategyOnComplete( String validationStrategy, String eventStatus, boolean shouldFail )
+    @CsvSource( { "ON_COMPLETE,COMPLETED,true", "ON_COMPLETE,ACTIVE,false", "ON_UPDATE_AND_INSERT,ACTIVE,true" } )
+    public void shouldShowErrorsBasedOnValidationStrategy( String validationStrategy, String eventStatus, boolean shouldFail )
     {
         String programStage = new ProgramStageActions().get("", new QueryParamsBuilder()
             .addAll( "filter=program.id:eq:" + trackerProgramId, "filter=validationStrategy:eq:" + validationStrategy )
         ).extractString( "programStages.id[0]" );
+
         JsonObject payload = trackerActions.buildTeiWithEnrollmentAndEvent( Constants.ORG_UNIT_IDS[0], trackerProgramId
             , programStage );
 

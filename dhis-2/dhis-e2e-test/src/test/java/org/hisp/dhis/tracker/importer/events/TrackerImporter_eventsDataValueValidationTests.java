@@ -124,7 +124,7 @@ public class TrackerImporter_eventsDataValueValidationTests
             .body( "bundleReport.typeReportMap.EVENT", nullValue() );
 
         response.validateErrorReport()
-            .body( "message[0]", stringContainsInOrder( "Mandatory DataElement", "is not present" ) );
+            .body( "errorCode", hasItem( "E1303" ) ) ;
     }
 
     @Test

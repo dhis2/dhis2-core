@@ -153,7 +153,8 @@ public class TrackerImporter_eventsTests
         String enrollmentId = response.extractImportedEnrollments().get( 0 );
 
         JsonObject event = trackerActions.buildEvent( Constants.ORG_UNIT_IDS[0], program, programStage )
-            .getAsJsonArray( "events" ).get( 0 ).getAsJsonObject();
+           .getAsJsonArray( "events" ).get( 0 ).getAsJsonObject();
+
         event.addProperty( "trackedEntity", teiId );
         event.addProperty( "enrollment", enrollmentId );
 
@@ -173,7 +174,7 @@ public class TrackerImporter_eventsTests
         else
         {
             response.validateErrorReport()
-                .body( "message[0]", containsString( "is not repeatable and an event already exists." ));
+                .body( "errorCode", hasItem( "E1039" ) );
         }
     }
 

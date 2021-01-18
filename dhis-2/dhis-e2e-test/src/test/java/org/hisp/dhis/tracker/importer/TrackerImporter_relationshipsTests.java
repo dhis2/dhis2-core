@@ -35,7 +35,6 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.tracker.EventActions;
-import org.hisp.dhis.actions.tracker.RelationshipActions;
 import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -58,10 +57,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -158,8 +155,8 @@ public class TrackerImporter_relationshipsTests
 
         relationshipResponse
             .validate().statusCode( 200 )
-            .body( "from.trackedEntityInstance", notNullValue() )
-            .body( "to.trackedEntityInstance", notNullValue() );
+            .body( "from.trackedEntity", notNullValue() )
+            .body( "to.trackedEntity", notNullValue() );
 
         response.extractImportedTeis().forEach( tei -> {
             teiActions.get( tei, new QueryParamsBuilder().add( "fields=relationships" ) )
@@ -210,8 +207,7 @@ public class TrackerImporter_relationshipsTests
 
         trackerActions.postAndGetJobReport( object )
             .validateErrorReport()
-            .body( "message[0]",
-                containsString( "constraint requires a trackedEntity but a event was found" ) );
+            .body( "errorCode", contains( "E4010" ) );
     }
 
     @Test
@@ -225,9 +221,8 @@ public class TrackerImporter_relationshipsTests
 
         trackerActions.postAndGetJobReport( object )
             .validateErrorReport()
-            .body( "message", hasSize( 2 ) )
-            .body( "message[0]", Matchers.both( containsString( "Could not find `trackedEntity`" ) )
-                .and( containsString( "linked to Relationship" ) ) );
+            .body( "", hasSize( 2 ) )
+            .body( "errorCode", everyItem( equalTo(  "E4012" ) ));
 
     }
 
@@ -274,7 +269,7 @@ public class TrackerImporter_relationshipsTests
                 "filter=name:like:TA" ) )
             .extractString( "relationshipTypes.id[0]" );
 
-        new RestApiActions( "/relationshipTypes" ).get(relationshipTypeId).prettyPrint();
+        new RestApiActions( "/relationshipTypes" ).get( relationshipTypeId ).prettyPrint();
         JsonObject relationship1 = JsonObjectBuilder.jsonObject()
             .addProperty( "relationshipType", relationshipTypeId )
             .addObject( "from", JsonObjectBuilder.jsonObject()
@@ -313,12 +308,12 @@ public class TrackerImporter_relationshipsTests
         {
         case "trackedEntity":
         {
-            return teiActions.get( id, new QueryParamsBuilder().add( "fields=relationships" ) );
+            return trackerActions.get( "/trackedEntities/" + id, new QueryParamsBuilder().add( "fields=relationships" ) );
         }
 
         case "event":
         {
-            return eventActions.get( id, new QueryParamsBuilder().add( "fields=relationships" ) );
+            return trackerActions.get( "/events/" + id, new QueryParamsBuilder().add( "fields=relationships" ) );
         }
 
         default:
@@ -337,24 +332,15 @@ public class TrackerImporter_relationshipsTests
             bodyPrefix = "relationships[0]";
         }
 
-        if ( fromInstance.equalsIgnoreCase( "trackedEntity" ) )
-        {
-            fromInstance = "trackedEntityInstance";
-        }
-        if ( toInstance.equalsIgnoreCase( "trackedEntity" ) )
-        {
-            toInstance = "trackedEntityInstance";
-        }
-
         response.validate()
             .statusCode( 200 )
             .body( bodyPrefix, notNullValue() )
             .rootPath( bodyPrefix )
             .body( "relationshipType", equalTo( relationshipTypeId ) )
             .body( "relationship", equalTo( relationshipId ) )
-            .body( String.format( "from.%s.%s", fromInstance, fromInstance ),
+            .body( String.format( "from.%s", fromInstance ),
                 equalTo( fromInstanceId ) )
-            .body( String.format( "to.%s.%s", toInstance, toInstance ), equalTo( toInstanceId ) );
+            .body( String.format( "to.%s", toInstance ), equalTo( toInstanceId ) );
     }
 
     @AfterEach

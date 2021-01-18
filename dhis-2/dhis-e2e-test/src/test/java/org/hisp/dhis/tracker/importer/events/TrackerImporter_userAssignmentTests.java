@@ -131,14 +131,15 @@ public class TrackerImporter_userAssignmentTests
         // act
         body.add( "assignedUser", null );
         //body.remove( "notes" );
-        ApiResponse eventResponse = trackerActions.postAndGetJobReport( new JsonObjectBuilder(body).wrapIntoArray( "events" ), new QueryParamsBuilder().addAll( "importStrategy=UPDATE" ) );
+
+        ApiResponse response = trackerActions.postAndGetJobReport( new JsonObjectBuilder(body).wrapIntoArray( "events" ), new QueryParamsBuilder().addAll( "importStrategy=UPDATE" ) );
 
         // assert
-        eventResponse.validate().statusCode( 200 );
+        response.validate().statusCode( 200 );
 
-        eventResponse = trackerActions.get( "/events/" + eventId );
+        response = trackerActions.get( "/events/" + eventId );
 
-        assertEquals( null, eventResponse.getBody().get( "assignedUser" ) );
+        assertEquals( null, response.getBody().get( "assignedUser" ) );
     }
 
     private TrackerApiResponse createEvents( String programId, String programStageId, String assignedUserId )

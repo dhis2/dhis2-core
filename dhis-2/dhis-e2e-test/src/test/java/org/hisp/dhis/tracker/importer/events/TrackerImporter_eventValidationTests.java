@@ -87,7 +87,7 @@ public class TrackerImporter_eventValidationTests
             Arguments.arguments( null, eventProgramId, eventProgramStageId,
                 "E1011" ),
             Arguments.arguments( ouIdWithoutAccess, eventProgramId, eventProgramStageId,
-                "Program is not assigned to this organisation unit" ),
+                "E1029" ),
             Arguments.arguments( OU_ID, trackerProgramId, null, "E1086" ),
             Arguments.arguments( OU_ID, trackerProgramId, eventProgramStageId, "E1089" ) );
     }
@@ -119,12 +119,12 @@ public class TrackerImporter_eventValidationTests
         TrackerApiResponse response = trackerActions.postAndGetJobReport( eventBody );
 
         response.validateErrorReport()
-            .body( "message[0]", containsStringIgnoringCase( "is already deleted and cant be modified" ) );
+            .body( "errorCode", hasItem( "E1082" ) );
     }
 
     @CsvSource( { "ACTIVE,,OccurredAt date is missing.", "SCHEDULE,,ScheduledAt date is missing." } )
     @ParameterizedTest
-    public void shouldValidateEventDate( String status, String occurredAt, String error )
+    public void shouldValidateEventProperties( String status, String occurredAt, String error )
     {
         JsonObject object = trackerActions.buildEvent( OU_ID, trackerProgramId, trackerProgramStageId );
 

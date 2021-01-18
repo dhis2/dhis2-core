@@ -90,8 +90,7 @@ public class TrackerImporter_teiValidationTests
 
         // assert
         response.validateErrorReport()
-            .body( "message[0]",
-                containsStringIgnoringCase( "Could not find TrackedEntityType" ) );
+            .body( "errorCode", hasItem( "E1005" ) );
     }
 
     @Test
@@ -124,9 +123,7 @@ public class TrackerImporter_teiValidationTests
 
         response
             .validateErrorReport()
-            .body( "message[0]",
-                stringContainsInOrder( "Attribute", "is mandatory in tracked entity type", "but not declared in tracked entity" ) )
-            .body( "errorCode[0]", equalTo( "E1090" ) );
+            .body( "errorCode", hasItem( "E1090" ) );
     }
 
     @Test
@@ -181,7 +178,7 @@ public class TrackerImporter_teiValidationTests
 
         trackedEntityType = trackedEntityTypeActions.create( trackedEntityTypePayload );
 
-        // create a progr
+        // create a program
         program = programActions.createTrackerProgram( Constants.ORG_UNIT_IDS ).extractUid();
         ApiResponse programResponse = programActions.get(program);
 

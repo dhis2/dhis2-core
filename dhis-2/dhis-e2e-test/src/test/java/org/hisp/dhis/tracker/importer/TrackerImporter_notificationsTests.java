@@ -47,6 +47,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -107,6 +108,7 @@ public class TrackerImporter_notificationsTests extends ApiTest
     }
 
     @Test
+    @Disabled
     public void shouldTriggerNotificationOnDueDates()
         throws Exception
     {
