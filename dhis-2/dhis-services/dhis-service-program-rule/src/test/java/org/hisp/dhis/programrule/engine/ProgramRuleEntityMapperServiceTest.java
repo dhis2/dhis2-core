@@ -324,8 +324,9 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     public void testExceptionWhenMandatoryValueMissingMappedEnrollment()
     {
-        assertThrows( IllegalStateException.class, () -> subject.toMappedRuleEnrollment( programInstanceB,
-            Lists.newArrayList() ) );
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues = Lists.newArrayList();
+        assertThrows( IllegalStateException.class,
+            () -> subject.toMappedRuleEnrollment( programInstanceB, trackedEntityAttributeValues ) );
     }
 
     @Test

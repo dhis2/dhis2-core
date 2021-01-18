@@ -28,7 +28,6 @@ package org.hisp.dhis.tracker.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Lists;
 import com.google.api.client.util.Sets;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
