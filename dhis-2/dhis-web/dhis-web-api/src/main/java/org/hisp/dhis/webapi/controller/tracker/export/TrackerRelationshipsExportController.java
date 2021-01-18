@@ -56,6 +56,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.domain.mapper.RelationshipMapper;
 import org.mapstruct.factory.Mappers;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -66,7 +67,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
 @RestController
-@RequestMapping( value = RESOURCE_PATH + "/" + TrackerRelationshipsExportController.RELATIONSHIPS )
+@RequestMapping( produces = APPLICATION_JSON_VALUE, value = RESOURCE_PATH + "/"
+    + TrackerRelationshipsExportController.RELATIONSHIPS )
 @RequiredArgsConstructor
 public class TrackerRelationshipsExportController
 {
@@ -105,7 +107,7 @@ public class TrackerRelationshipsExportController
             .build();
     }
 
-    @GetMapping( produces = APPLICATION_JSON_VALUE )
+    @GetMapping
     List<org.hisp.dhis.tracker.domain.Relationship> getInstances(
         @RequestParam( required = false ) String tei,
         @RequestParam( required = false ) String enrollment,
@@ -140,6 +142,17 @@ public class TrackerRelationshipsExportController
         }
 
         return relationships;
+    }
+
+    @GetMapping( "{id}" )
+    public org.hisp.dhis.tracker.domain.Relationship getRelationship(
+        @PathVariable String id )
+        throws WebMessageException
+    {
+        return Optional.ofNullable( relationshipService.getRelationshipByUid( id ) )
+            .map( RELATIONSHIP_MAPPER::from )
+            .orElseThrow(
+                () -> new WebMessageException( notFound( "No relationship with id '" + id + "' was found." ) ) );
     }
 
     @SneakyThrows
