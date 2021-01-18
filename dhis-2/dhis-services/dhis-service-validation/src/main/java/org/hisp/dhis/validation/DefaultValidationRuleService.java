@@ -28,7 +28,14 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -41,13 +48,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
+import com.google.common.collect.Sets;
 
 /**
  * @author Margrethe Store
@@ -158,6 +159,12 @@ public class DefaultValidationRuleService
     public List<ValidationRule> getValidationRulesBetweenByName( String name, int first, int max )
     {
         return validationRuleStore.getAllLikeName( name, first, max ) ;
+    }
+
+    @Override
+    public List<ValidationRule> getValidationRulesByUid( Collection<String> uids )
+    {
+        return validationRuleStore.getByUid( uids );
     }
 
     @Override

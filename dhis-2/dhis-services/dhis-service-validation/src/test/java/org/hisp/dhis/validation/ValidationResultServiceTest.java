@@ -36,11 +36,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.junit.Before;
@@ -58,13 +63,50 @@ public class ValidationResultServiceTest
 
     private final PeriodService periodService = mock( PeriodService.class );
 
-    private final ValidationResultService service = new DefaultValidationResultService( store, periodService );
+    private final OrganisationUnitService organisationUnitService = mock( OrganisationUnitService.class );
+
+    private final ValidationRuleService validationRuleService = mock( ValidationRuleService.class );
+
+    private final ValidationResultService service = new DefaultValidationResultService( store, periodService,
+        organisationUnitService, validationRuleService );
 
     @Before
     public void setUp()
     {
         when( store.count( any() ) ).thenReturn( 0 );
         when( store.query( any() ) ).thenReturn( emptyList() );
+
+        // return an OrganisationUnit for any given valid UID
+        when( organisationUnitService.getOrganisationUnitsByUid( any() ) ).then( orgUnitsByUidInvocation -> {
+            Collection<String> uids = orgUnitsByUidInvocation.getArgument( 0 );
+            List<OrganisationUnit> units = new ArrayList<>();
+            for ( String uid : uids )
+            {
+                if ( CodeGenerator.isValidUid( uid ) )
+                {
+                    OrganisationUnit unit = new OrganisationUnit();
+                    unit.setUid( uid );
+                    units.add( unit );
+                }
+            }
+            return units;
+        } );
+
+        // return a ValidationRule for any given valid UID
+        when( validationRuleService.getValidationRulesByUid( any() ) ).then( validationRuleByUidInvocation -> {
+            Collection<String> uids = validationRuleByUidInvocation.getArgument( 0 );
+            List<ValidationRule> rules = new ArrayList<>();
+            for ( String uid : uids )
+            {
+                if ( CodeGenerator.isValidUid( uid ) )
+                {
+                    ValidationRule rule = new ValidationRule();
+                    rule.setUid( uid );
+                    rules.add( rule );
+                }
+            }
+            return rules;
+        } );
     }
 
     @Test

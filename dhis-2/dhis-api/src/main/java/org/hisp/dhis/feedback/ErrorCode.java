@@ -250,8 +250,8 @@ public enum ErrorCode
     E7400( "Debug query must contain at least one data element, one period and one organisation unit" ),
 
     /* Validation Results API */
-    E7500( "Query filter for organisation unit is not a valid ID: `{0}`" ),
-    E7501( "Query filter for validation rule is not a valid ID: `{0}`" ),
+    E7500( "Query filter for organisation unit does not exist: `{0}`" ),
+    E7501( "Query filter for validation rule does not exist: `{0}`" ),
     E7502( "Query filter for period is not a valid ISO expression: `{0}`" );
 
     private String message;
