@@ -92,6 +92,7 @@ public class DateUtils
         DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm:ssZ" ).getParser(),
         DateTimeFormat.forPattern( "yyyy-MM-dd" ).getParser(),
         DateTimeFormat.forPattern( "yyyy-MM" ).getParser(),
+        DateTimeFormat.forPattern( "yyyyMMdd" ).getParser(),
         DateTimeFormat.forPattern( "yyyy" ).getParser()
     };
 

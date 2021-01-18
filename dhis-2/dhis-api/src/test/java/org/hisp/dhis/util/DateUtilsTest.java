@@ -36,19 +36,21 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hisp.dhis.util.DateUtils.dateIsValid;
 import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
-import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.util.DateUtils.getMediumDate;
+import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.TimeZone;
 
 import org.hisp.dhis.calendar.impl.NepaliCalendar;
@@ -337,6 +339,25 @@ public class DateUtilsTest
         assertEquals( month, cal.get( Calendar.MONTH ) + 1 );
         assertEquals( day, cal.get( Calendar.DAY_OF_MONTH ) );
         assertEquals( 0, cal.get( Calendar.HOUR_OF_DAY ) );
+    }
+
+    @Test
+    public void testParseDate()
+    {
+        assertIsParseTo( 2020, 4, 22, "2020-04-22" );
+        assertIsParseTo( 2020, 4, 22, "20200422" );
+        assertIsParseTo( 2019, 4, 1, "2019-04" );
+        assertIsParseTo( 2021, 1, 1, "2021" );
+    }
+
+    private void assertIsParseTo( int year, int month, int day, String actual )
+    {
+        LocalDate date = Instant.ofEpochMilli( parseDate( actual ).getTime() )
+            .atZone( ZoneOffset.systemDefault() )
+            .toLocalDate();
+        assertEquals( year, date.getYear() );
+        assertEquals( month, date.getMonthValue() );
+        assertEquals( day, date.getDayOfMonth() );
     }
 
     @Test
