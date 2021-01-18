@@ -45,6 +45,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -163,17 +164,17 @@ public class TrackedEntityInstanceQueryParams
      * Selection mode for the specified organisation units, default is ACCESSIBLE.
      */
     private OrganisationUnitSelectionMode organisationUnitMode = OrganisationUnitSelectionMode.DESCENDANTS;
-    
+
     /**
      * Selection mode for user assignment of events.
      */
     private AssignedUserSelectionMode assignedUserSelectionMode;
-    
+
     /**
      * Set of user ids to filter based on events assigned to the users.
      */
     private Set<String> assignedUsers = new HashSet<>();
-    
+
     /**
      * Set of tei uids to explicitly select.
      */
@@ -183,8 +184,8 @@ public class TrackedEntityInstanceQueryParams
     /**
      * ProgramStage to be used in conjunction with eventstatus.
      */
-    private ProgramStage programStage; 
-   
+    private ProgramStage programStage;
+
     /**
      * Status of any events in the specified program.
      */
@@ -372,7 +373,7 @@ public class TrackedEntityInstanceQueryParams
             setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED );
         }
     }
-    
+
     /**
      * Prepares the assignedUsers list to the current user id, if the selection mode is CURRENT.
      */
@@ -384,38 +385,38 @@ public class TrackedEntityInstanceQueryParams
             this.assignedUserSelectionMode = AssignedUserSelectionMode.PROVIDED;
         }
     }
-    
+
     public boolean hasTrackedEntityInstances()
     {
         return CollectionUtils.isNotEmpty( this.trackedEntityInstanceUids );
     }
-    
+
     public boolean hasAssignedUsers()
     {
         return this.assignedUsers != null && !this.assignedUsers.isEmpty();
     }
-    
+
     public boolean isIncludeOnlyUnassignedEvents()
     {
         return AssignedUserSelectionMode.NONE.equals( this.assignedUserSelectionMode );
     }
-    
+
     public boolean isIncludeOnlyAssignedEvents()
     {
         return AssignedUserSelectionMode.ANY.equals( this.assignedUserSelectionMode );
     }
-    
+
     public TrackedEntityInstanceQueryParams addAttributes( List<QueryItem> attrs )
     {
         attributes.addAll( attrs );
         return this;
     }
-    
+
     public boolean hasFilterForEvents()
     {
         return hasAssignedUsers() || isIncludeOnlyAssignedEvents() || isIncludeOnlyUnassignedEvents() || hasEventStatus();
     }
-    
+
     /**
      * Add the given attributes to this params if they are not already present.
      */
@@ -652,7 +653,7 @@ public class TrackedEntityInstanceQueryParams
     {
         return organisationUnitMode != null && organisationUnitMode.equals( mode );
     }
-    
+
     /**
      * Indicates whether this parameters specifies a programStage.
      */
@@ -721,6 +722,53 @@ public class TrackedEntityInstanceQueryParams
         }
 
         return true;
+    }
+
+    /**
+     * Indicated whether this params specifies ordering
+     */
+    public boolean hasOrders()
+    {
+        return orders != null && !orders.isEmpty();
+    }
+
+    public boolean hasAttributeAsOrder()
+    {
+        if ( hasOrders() )
+        {
+            //TODO: validate order parameter is either attribute or
+            //one of the static columns. For now we are assuming
+            //anything not in static columns is an attribute
+            for ( String order : getOrders() )
+            {
+                String[] prop = order.split( ":" );
+
+                if ( prop.length == 2 && !getStaticColumns().contains( prop[0] ) )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public String getFirstAttributeOrder()
+    {
+        if ( hasOrders() )
+        {
+            for ( String order : getOrders() )
+            {
+                String[] prop = order.split( ":" );
+
+                if ( prop.length == 2 && !getStaticColumns().contains( prop[0] ) )
+                {
+                    return prop[0];
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -1173,7 +1221,7 @@ public class TrackedEntityInstanceQueryParams
         this.assignedUserSelectionMode = assignedUserMode;
         return this;
     }
-    
+
     public Set<String> getTrackedEntityInstanceUids()
     {
         return trackedEntityInstanceUids;
@@ -1204,5 +1252,10 @@ public class TrackedEntityInstanceQueryParams
     public void setTrackedEntityTypes( List<TrackedEntityType> trackedEntityTypes )
     {
         this.trackedEntityTypes = trackedEntityTypes;
+    }
+
+    public List<String> getStaticColumns()
+    {
+        return Arrays.asList( TRACKED_ENTITY_INSTANCE_ID, CREATED_ID, LAST_UPDATED_ID, ORG_UNIT_ID, ORG_UNIT_NAME, TRACKED_ENTITY_ID, INACTIVE_ID );
     }
 }
