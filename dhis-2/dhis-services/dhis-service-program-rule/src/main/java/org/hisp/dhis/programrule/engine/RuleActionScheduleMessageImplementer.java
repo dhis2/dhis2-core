@@ -57,6 +57,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Component( "org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" )
 public class RuleActionScheduleMessageImplementer extends NotificationRuleActionImplementer
 {
+    public static final String LOG_MESSAGE = "Notification with id:%s has been scheduled";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -114,7 +116,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         programNotificationInstanceService.save( notificationInstance );
 
-        log.info( String.format( "Notification with id:%s has been scheduled", template.getUid() ) );
+        log.info( String.format( LOG_MESSAGE , template.getUid() ) );
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
@@ -125,6 +127,16 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     @Transactional
     public void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
     {
+        checkNulls( ruleEffect, programStageInstance );
+
+        // For program without registration
+        if ( programStageInstance.getProgramStage().getProgram().isWithoutRegistration() )
+        {
+            handleSingleEvent( ruleEffect, programStageInstance );
+            return;
+        }
+
+
         if ( !validate( ruleEffect, programStageInstance.getProgramInstance() ) )
         {
             return;
@@ -152,7 +164,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         programNotificationInstanceService.save( notificationInstance );
 
-        log.info( String.format( "Notification with id:%s has been scheduled", template.getUid() ) );
+        log.info( String.format( LOG_MESSAGE, template.getUid() ) );
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );
@@ -177,6 +189,31 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     // -------------------------------------------------------------------------
     // Supportive Methods
     // -------------------------------------------------------------------------
+
+    private void handleSingleEvent( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
+    {
+        ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
+
+        if ( template == null )
+        {
+            return;
+        }
+
+        String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
+
+        if ( !isDateValid( date ) )
+        {
+            return;
+        }
+
+        ProgramNotificationInstance notificationInstance = notificationTemplateService.createNotificationInstance( template, date );
+        notificationInstance.setProgramStageInstance( programStageInstance );
+        notificationInstance.setProgramInstance( null );
+
+        programNotificationInstanceService.save( notificationInstance );
+
+        log.info( String.format( LOG_MESSAGE, template.getUid() ) );
+    }
 
     private boolean isDateValid( String date )
     {

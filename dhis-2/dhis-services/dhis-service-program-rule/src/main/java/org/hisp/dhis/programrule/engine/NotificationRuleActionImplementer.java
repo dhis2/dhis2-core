@@ -34,6 +34,7 @@ import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
@@ -127,5 +128,11 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
         }
 
         return true;
+    }
+
+    protected void checkNulls( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
+    {
+        checkNotNull( ruleEffect, "Rule Effect cannot be null" );
+        checkNotNull( programStageInstance, "ProgramStageInstance cannot be null" );
     }
 }
