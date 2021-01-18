@@ -58,8 +58,10 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -76,8 +78,6 @@ public class TrackerImporter_relationshipsTests
     private List<String> createdRelationships = new ArrayList<>();
 
     private TrackerActions trackerActions;
-
-    private RelationshipActions relationshipActions;
 
     private RestApiActions relationshipTypeActions;
 
@@ -116,7 +116,6 @@ public class TrackerImporter_relationshipsTests
         throws Exception
     {
         trackerActions = new TrackerActions();
-        relationshipActions = new RelationshipActions();
         teiActions = new TEIActions();
         metadataActions = new MetadataActions();
         eventActions = new EventActions();
@@ -134,10 +133,6 @@ public class TrackerImporter_relationshipsTests
 
         events = trackerActions.postAndGetJobReport( eventObject )
             .validateSuccessfulImport().extractImportedEvents();
-        //ApiResponse response = eventActions.post( eventObject );
-        //response.validate().statusCode( 200 );
-        //events = response.extractUids();
-
     }
 
     @ParameterizedTest
@@ -150,19 +145,18 @@ public class TrackerImporter_relationshipsTests
     {
         JsonObject jsonObject = new FileReaderUtils().read( new File( file ) ).get( JsonObject.class );
 
-        TrackerApiResponse
-            response = trackerActions
-            .postAndGetJobReport( jsonObject );
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject )
+            .validateSuccessfulImport();
 
-        response.prettyPrint();
-        // TODO more validation when the bug is fixed
-        createdRelationships = response.extractImportedRelationships();
-
-        response.validateSuccessfulImport()
+        response
             .validate()
             .body( "stats.total", equalTo( 3 ) );
 
-        relationshipActions.get( createdRelationships.get( 0 ) )
+        createdRelationships = response.extractImportedRelationships();
+
+        ApiResponse relationshipResponse = trackerActions.get( "/relationships/" + createdRelationships.get( 0 ) );
+
+        relationshipResponse
             .validate().statusCode( 200 )
             .body( "from.trackedEntityInstance", notNullValue() )
             .body( "to.trackedEntityInstance", notNullValue() );
@@ -191,15 +185,16 @@ public class TrackerImporter_relationshipsTests
             .wrapIntoArray( "relationships" );
 
         response = trackerActions.postAndGetJobReport( obj, new QueryParamsBuilder().add( "importStrategy=DELETE" ) );
+
         response.validate()
             .body( "status", equalTo( "OK" ) )
             .body( "stats.deleted", equalTo( 1 ) );
 
-        relationshipActions.get( relationship )
+        trackerActions.get( "/relationships/" + relationship )
             .validate()
             .statusCode( 404 );
 
-        teiActions.get( teis.get( 0 ), new QueryParamsBuilder().add( "fields=relationships" ) )
+        trackerActions.get( "/trackedEntities/" + teis.get( 0 ) + "?fields=relationships" )
             .validate()
             .body( "relationships", Matchers.empty() );
     }
@@ -241,29 +236,24 @@ public class TrackerImporter_relationshipsTests
     public void shouldImportRelationshipsToExistingEntities( String relType, String fromInstance,
         String fromInstanceId, String toInstance, String toInstanceId )
     {
-        // add relationship
+        // arrange
         JsonObject relationship = JsonObjectBuilder.jsonObject()
             .addProperty( "relationshipType", relType )
             .addObject( "from", JsonObjectBuilder.jsonObject().addProperty( fromInstance, fromInstanceId ) )
             .addObject( "to", JsonObjectBuilder.jsonObject().addProperty( toInstance, toInstanceId ) )
             .wrapIntoArray( "relationships" );
 
-        System.out.print( relationship );
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( relationship );
+        createdRelationships = trackerActions.postAndGetJobReport( relationship )
+            .validateSuccessfulImport()
+            .extractImportedRelationships();
 
-        //response.prettyPrint();
-        response.validateSuccessfulImport();
-        createdRelationships = response.extractImportedRelationships();
+        ApiResponse response = trackerActions.get( "/relationships/" + createdRelationships.get( 0 ) );
 
-        ApiResponse response1 = relationshipActions.get( createdRelationships.get( 0 ) );
-
-        validateRelationship( response1, relType, fromInstance, fromInstanceId, toInstance, toInstanceId,
+        validateRelationship( response, relType, fromInstance, fromInstanceId, toInstance, toInstanceId,
             createdRelationships.get( 0 ) );
 
-        //response1.prettyPrint();
         ApiResponse entityResponse = getEntityInRelationship( toInstance, toInstanceId );
 
-        //entityResponse.prettyPrint();
         validateRelationship( entityResponse, relType, fromInstance, fromInstanceId, toInstance, toInstanceId,
             createdRelationships.get( 0 ) );
 
@@ -305,18 +295,16 @@ public class TrackerImporter_relationshipsTests
             .addArray( "relationships", relationship1, relationship2 )
             .build();
 
-        System.out.println( payload );
-
         // act
         TrackerApiResponse response = trackerActions.postAndGetJobReport( payload );
 
         // assert
-        createdRelationships = response.extractImportedRelationships();
-        response.prettyPrint();
         response
             .validateSuccessfulImport()
             .validate()
             .body( "stats.created", equalTo( expectedCount ) );
+
+        createdRelationships = response.extractImportedRelationships();
     }
 
     private ApiResponse getEntityInRelationship( String toOrFromInstance, String id )

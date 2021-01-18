@@ -147,7 +147,7 @@ public class TrackerImporter_eventValidationTests
         TrackerApiResponse response = trackerActions.postAndGetJobReport( object );
 
         String eventId = response.validateSuccessfulImport().extractImportedEvents().get( 0 );
-        JsonObject obj = eventActions.get( eventId ).getBody();
+        JsonObject obj = trackerActions.get( "/events/" + eventId ).getBody();
 
         assertEquals( obj.get( "eventDate" ), obj.get( "dueDate" ) );
     }

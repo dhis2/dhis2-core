@@ -3,7 +3,7 @@
     {
       "trackedEntityType": "Q9GufDoplCL",
       "orgUnit": "g8upMTyEZGZ",
-      "trackedEntity": "%id%"
+      "trackedEntity": "JjZ2Nwds92D"
     }
   ],
   "enrollments": [
@@ -13,7 +13,7 @@
       "orgUnit": "g8upMTyEZGZ",
       "enrolledAt": "2018-11-01T00:00:00.000",
       "occurredAt": "2018-10-01T00:00:00.000",
-      "trackedEntity": "%id%"
+      "trackedEntity": "JjZ2Nwds92D"
     }
   ]
 }

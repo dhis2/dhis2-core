@@ -78,8 +78,6 @@ public class TrackerImporter_eventIdSchemeTests
 
     private ProgramActions programActions;
 
-    private EventActions eventActions;
-
     private AttributeActions attributeActions;
 
     private TrackerActions trackerActions;
@@ -100,7 +98,6 @@ public class TrackerImporter_eventIdSchemeTests
     public void beforeAll()
     {
         orgUnitActions = new OrgUnitActions();
-        eventActions = new EventActions();
         programActions = new ProgramActions();
         attributeActions = new AttributeActions();
         trackerActions = new TrackerActions();
@@ -133,7 +130,7 @@ public class TrackerImporter_eventIdSchemeTests
 
         String eventId = response.extractImportedEvents().get( 0 );
 
-        eventActions.get( eventId ).validate()
+        trackerActions.get( "/events/" + eventId ).validate()
             .statusCode( 200 )
             .body( "orgUnit", equalTo( orgUnitId ) );
     }
@@ -164,7 +161,7 @@ public class TrackerImporter_eventIdSchemeTests
             .extractImportedEvents().get( 0 );
         assertNotNull( "Event was not created", eventId );
 
-        eventActions.get( eventId ).validate()
+        trackerActions.get("/events/" +  eventId ).validate()
             .statusCode( 200 )
             .body( "program", equalTo( PROGRAM_ID ) );
     }

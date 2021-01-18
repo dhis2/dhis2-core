@@ -4,7 +4,6 @@
       "orgUnit": "O6uvpzGd5pu",
       "trackedEntity": "Kj6vYde4LHh",
       "trackedEntityType": "Q9GufDoplCL",
-      "featureType": "POLYGON",
       "enrollments": [
         {
           "orgUnit": "O6uvpzGd5pu",
@@ -30,7 +29,6 @@
               "enrollment": "MNWZ6hnuhSw",
               "enrollmentStatus": "ACTIVE",
               "status": "ACTIVE",
-              "orgUnitName": "TA org_unit lvl2",
               "occurredAt": "2019-08-01T00:00:00.000",
               "attributeCategoryOptions": "xYerKDKCefk",
               "deleted": false,
@@ -95,7 +93,6 @@
       "trackedEntityType": "Q9GufDoplCL",
       "inactive": false,
       "deleted": false,
-      "featureType": "NONE",
       "enrollments": [
         {
           "orgUnit": "O6uvpzGd5pu",

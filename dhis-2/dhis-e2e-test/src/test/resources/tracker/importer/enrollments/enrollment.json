@@ -7,6 +7,8 @@
       "trackedEntity": "%id%",
       "enrolledAt": "2018-11-01T00:00:00.000",
       "occurredAt": "2018-10-01T00:00:00.000",
+      "createdAtClient": "2018-10-01T00:00:00.000",
+      "updatedAtClient": "2018-10-01T00:00:00.000",
       "notes": [
         {
           "value": "enrollment note"

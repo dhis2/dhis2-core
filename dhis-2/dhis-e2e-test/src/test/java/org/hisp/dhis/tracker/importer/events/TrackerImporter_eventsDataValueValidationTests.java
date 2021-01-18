@@ -69,8 +69,6 @@ public class TrackerImporter_eventsDataValueValidationTests
 
     private RestApiActions dataElementActions;
 
-    private EventActions eventActions;
-
     private String programId;
 
     private String programStageId;
@@ -84,7 +82,6 @@ public class TrackerImporter_eventsDataValueValidationTests
         programActions = new ProgramActions();
         sharingActions = new SharingActions();
         dataElementActions = new RestApiActions( "/dataElements" );
-        eventActions = new EventActions();
 
         new LoginActions().loginAsSuperUser();
 
@@ -148,7 +145,7 @@ public class TrackerImporter_eventsDataValueValidationTests
         String eventId = response.extractImportedEvents().get( 0 );
         assertNotNull( eventId, "Failed to extract eventId" );
 
-        eventActions.get( eventId )
+        trackerActions.get( "/events/" + eventId )
             .validate()
             .statusCode( 200 )
             .body( "dataValues", not( Matchers.emptyArray() ) );

@@ -68,8 +68,6 @@ public class TrackerImporter_eventsTests
 {
     private TrackerActions trackerActions;
 
-    private EventActions eventActions;
-
     private static Stream<Arguments> provideEventFilesTestArguments()
     {
         return Stream.of(
@@ -82,7 +80,6 @@ public class TrackerImporter_eventsTests
     public void beforeAll()
     {
         trackerActions = new TrackerActions();
-        eventActions = new EventActions();
 
         new LoginActions().loginAsSuperUser();
     }
@@ -105,15 +102,11 @@ public class TrackerImporter_eventsTests
         // assert that the TEI was imported
         String eventId = importResponse.extractImportedEvents().get( 0 );
 
-        ApiResponse response = eventActions.get( eventId );
+        ApiResponse response = trackerActions.get( "/events/" + eventId );
 
         response.validate().statusCode( 200 );
 
-        JsonObject objToMatch = eventBody.get( "events" ).getAsJsonArray().get( 0 ).getAsJsonObject();
-        objToMatch.addProperty( "eventDate", objToMatch.get( "occurredAt" ).getAsString() );
-        objToMatch.remove( "occurredAt" );
-
-        assertThat( response.getBody(), matchesJSON( objToMatch ) );
+        assertThat( response.getBody(), matchesJSON( eventBody.getAsJsonArray("events").get( 0 ) ) );
     }
 
     @Disabled( "disabled until csv is supported" )
@@ -209,11 +202,11 @@ public class TrackerImporter_eventsTests
 
         String eventId = response.extractImportedEvents().get( 0 );
 
-        eventActions
-            .get( eventId + "?fields=*" )
+        trackerActions
+            .get( "/events/" + eventId + "?fields=*" )
             .validate().statusCode( 200 )
             .body( "enrollment", equalTo( enrollmentId ) )
-            .body( "trackedEntityInstance", equalTo( teiId ) );
+            .body( "trackedEntity", equalTo( teiId ) );
     }
 
     private TrackerApiResponse importTeiWithEnrollment( String programId, String programStageId )

@@ -36,6 +36,31 @@
       }
     },
     {
+      "lastUpdated": "2021-01-18T13:54:49.882",
+      "id": "nmzZhFLJPGz",
+      "created": "2021-01-18T13:54:49.882",
+      "displayInReports": false,
+      "skipSynchronization": false,
+      "externalAccess": false,
+      "renderOptionsAsRadio": false,
+      "allowFutureDate": false,
+      "compulsory": false,
+      "allowProvidedElsewhere": false,
+      "sortOrder": 1,
+      "favorite": false,
+      "programStage": {
+        "id": "yKg8CY252Yk"
+      },
+      "dataElement": {
+        "id": "inc5BJvr4W5"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": []
+    },
+    {
       "created": "2020-12-08T08:54:10.298",
       "lastUpdated": "2020-12-08T08:54:10.298",
       "id": "edOg8nCfE4b",
@@ -684,20 +709,32 @@
       "program": {
         "id": "U5HE4IRrZ7S"
       },
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
-      "user": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "notificationTemplates": [],
-      "programStageDataElements": [],
+      "programStageDataElements": [ {
+        "lastUpdated": "2021-01-18T13:54:49.882",
+        "id": "nmzZhFLJPGz",
+        "created": "2021-01-18T13:54:49.882",
+        "displayInReports": false,
+        "skipSynchronization": false,
+        "externalAccess": false,
+        "renderOptionsAsRadio": false,
+        "allowFutureDate": false,
+        "compulsory": false,
+        "allowProvidedElsewhere": false,
+        "sortOrder": 1,
+        "favorite": false,
+        "programStage": {
+          "id": "yKg8CY252Yk"
+        },
+        "dataElement": {
+          "id": "inc5BJvr4W5"
+        },
+        "favorites": [],
+        "translations": [],
+        "userGroupAccesses": [],
+        "attributeValues": [],
+        "userAccesses": []
+      }],
       "translations": [],
       "userGroupAccesses": [
         {
@@ -987,6 +1024,34 @@
       "userAccesses": []
     },
     {
+      "lastUpdated": "2021-01-18T13:36:20.994",
+      "href": "http://localhost:8080/api/programRules/lqESh9rF4LC",
+      "id": "lqESh9rF4LC",
+      "created": "2021-01-18T13:36:20.994",
+      "name": "TA tracker program rule - show error ",
+      "displayName": "TA tracker program rule - show error",
+      "externalAccess": false,
+      "sharing": {
+        "external": false,
+        "users": {},
+        "userGroups": {}
+      },
+      "condition": "V{event_date} < V{current_date}",
+      "program": {
+        "id": "U5HE4IRrZ7S"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "programRuleActions": [
+        {
+          "id": "E4p8zQsczbS"
+        }
+      ],
+      "userAccesses": []
+    },
+    {
       "id": "Xh9idCUkyaE",
       "created": "2020-12-08T09:10:20.341",
       "name": "TA event program rule - showerror",
@@ -1108,6 +1173,9 @@
       "programRule": {
         "id": "Xh9idCUkyaS"
       },
+      "dataElement": {
+        "id": "z3Z4TD3oBCP"
+      },
       "trackedEntityAttribute": {
         "id": "dIVt4l5vIOa"
       },
@@ -1120,6 +1188,25 @@
       "userGroupAccesses": [],
       "attributeValues": [],
       "userAccesses": []
+    },
+    {
+      "id": "E4p8zQsczbS",
+      "content": "event date is earlier than today ",
+      "externalAccess": false,
+      "displayContent": "event date is earlier than today",
+      "programRuleActionType": "SHOWERROR",
+      "evaluationTime": "ALWAYS",
+      "programRule": {
+        "id": "lqESh9rF4LC"
+      },
+      "dataElement": {
+        "id": "inc5BJvr4W5"
+      },
+      "favorites": [],
+      "evaluationEnvironments": [
+        "WEB",
+        "ANDROID"
+      ]
     },
     {
       "content": "ERROR ON COMPLETE",

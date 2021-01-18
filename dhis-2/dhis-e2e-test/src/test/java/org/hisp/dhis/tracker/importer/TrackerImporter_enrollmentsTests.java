@@ -40,6 +40,8 @@ import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
 
@@ -66,11 +68,16 @@ public class TrackerImporter_enrollmentsTests
         new LoginActions().loginAsSuperUser();
     }
 
-    @Test
-    public void shouldImportTeisWithEnrollments()
+
+    @ParameterizedTest
+    @ValueSource( strings = {
+        "src/test/resources/tracker/importer/teis/teiWithEnrollments.json",
+        "src/test/resources/tracker/importer/teis/teiAndEnrollment.json"
+    } )
+    public void shouldImportTeisWithEnrollments(String file)
     {
         TrackerApiResponse response = trackerActions
-            .postAndGetJobReport( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollments.json" ) );
+            .postAndGetJobReport( new File( file) );
 
         response.validateSuccessfulImport()
             .validate()
@@ -78,36 +85,6 @@ public class TrackerImporter_enrollmentsTests
             .body( "stats.created", equalTo( 2 ) );
 
         response
-            .validateTeis()
-            .body( "stats.created", Matchers.equalTo( 1 ) );
-
-        response.validateEnrollments()
-            .body( "stats.created", Matchers.equalTo( 1 ) );
-
-        // assert that the tei was imported
-        String teiId = response.extractImportedTeis().get( 0 );
-        String enrollmentId = response.extractImportedEnrollments().get( 0 );
-
-        trackerActions.get( "/enrollments/" + enrollmentId )
-            .validate()
-            .statusCode( 200 )
-            .body( "trackedEntity", equalTo( teiId ) );
-
-    }
-
-    @Test
-    public void shouldImportTeiAndConnectedEnrollment()
-        throws Exception
-    {
-        String id = new IdGenerator().generateUniqueId();
-        JsonObject jsonObject = new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/importer/teis/teiAndEnrollment.json" ) )
-            .replacePropertyValuesWith( "trackedEntity", id )
-            .get( JsonObject.class );
-
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
-
-        response.validateSuccessfulImport()
             .validateTeis()
             .body( "stats.created", Matchers.equalTo( 1 ) );
 

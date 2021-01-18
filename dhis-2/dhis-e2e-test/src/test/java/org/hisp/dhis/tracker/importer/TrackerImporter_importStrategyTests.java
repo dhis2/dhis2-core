@@ -122,7 +122,7 @@ public class TrackerImporter_importStrategyTests
         JsonObject teiBody = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/tei.json" ) );
 
-        return trackerActions.postAndGetJobReport( teiBody ).extractImportedTeis().get( 0 );
+        return trackerActions.postAndGetJobReport( teiBody ).validateSuccessfulImport().extractImportedTeis().get( 0 );
 
     }
 
