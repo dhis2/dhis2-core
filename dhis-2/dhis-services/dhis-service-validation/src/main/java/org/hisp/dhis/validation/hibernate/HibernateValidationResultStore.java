@@ -31,7 +31,11 @@ package org.hisp.dhis.validation.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -49,6 +53,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultStore;
+import org.hisp.dhis.validation.ValidationResultsDeletionRequest;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.springframework.context.ApplicationEventPublisher;
@@ -74,6 +79,12 @@ public class HibernateValidationResultStore
         super( sessionFactory, jdbcTemplate, publisher, ValidationResult.class, true );
         checkNotNull( currentUserService );
         this.currentUserService = currentUserService;
+    }
+
+    @Override
+    public void delete( ValidationResultsDeletionRequest request )
+    {
+
     }
 
     /**
