@@ -346,7 +346,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
         final String sql = subject.getEventsOrEnrollmentsSql( eventQueryParamsBuilder.build(), 100 );
 
         assertThat( sql, containsString(
-            "order by \"" + piA.getUid() + "\" asc,ax.\"" + deA.getUid() + "\" asc,\"" + piB.getUid() + "\"" ) );
+            "order by \"" + piA.getUid() + "\" asc,\"" + deA.getUid() + "\" asc,\"" + piB.getUid() + "\"" ) );
     }
 
     private void verifyFirstOrLastAggregationTypeSubquery( AnalyticsAggregationType analyticsAggregationType )
