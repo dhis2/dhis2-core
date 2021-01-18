@@ -47,8 +47,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
-import static org.hisp.dhis.rules.models.AttributeType.UNKNOWN;
+import static org.hisp.dhis.rules.models.AttributeType.*;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
 
 abstract public class AbstractRuleActionImplementer<T extends RuleAction>
@@ -144,10 +143,10 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                         .map( effect -> new EventActionRule( event, effect.data(),
                             getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ) ) )
-                        .filter( effect -> effect.getAttributeType() == UNKNOWN ||
+                        .filter( effect -> effect.getAttributeType() != DATA_ELEMENT ||
                             isDataElementPartOfProgramStage( effect.getField(), programStage ) )
                         .filter(
-                            effect -> effect.getAttributeType() == UNKNOWN ||
+                            effect -> effect.getAttributeType() != DATA_ELEMENT ||
                                 needsToValidateDataValues( event, programStage ) )
                         .collect( Collectors.toList() );
                     return eventActionRules;

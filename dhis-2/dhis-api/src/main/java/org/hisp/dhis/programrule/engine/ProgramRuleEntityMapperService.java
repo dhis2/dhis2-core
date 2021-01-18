@@ -38,6 +38,7 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.rules.DataItem;
 import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 /**
  * RuleEngine has its own domain model. This service is responsible for
@@ -87,7 +88,8 @@ public interface ProgramRuleEntityMapperService
     /**
      * @return A mapped RuleEnrollment for DHIS enrollment i.e ProgramInstance.
      */
-    RuleEnrollment toMappedRuleEnrollment( ProgramInstance programInstance );
+    RuleEnrollment toMappedRuleEnrollment( ProgramInstance programInstance,
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues );
 
     /**
      * Fetch display name for {@link ProgramRuleVariable}, {@link org.hisp.dhis.constant.Constant}

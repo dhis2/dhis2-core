@@ -142,6 +142,7 @@ public enum TrackerErrorCode
     E1047( "Event: `{0}`, date belongs to an expired period. It is not possible to create such event." ),
 
     E1200( "Rule engine error: `{0}`" ),
+    E1201( "Rule engine warning: `{0}`" ),
 
     E1302( "DataElement `{0}` is not valid: `{1}`" ),
     E1303( "Mandatory DataElement `{0}` is not present" ),

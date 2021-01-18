@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.api.client.util.Lists;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -323,13 +324,14 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     public void testExceptionWhenMandatoryValueMissingMappedEnrollment()
     {
-        assertThrows( IllegalStateException.class, () -> subject.toMappedRuleEnrollment( programInstanceB ) );
+        assertThrows( IllegalStateException.class, () -> subject.toMappedRuleEnrollment( programInstanceB,
+            Lists.newArrayList() ) );
     }
 
     @Test
     public void testMappedEnrollment()
     {
-        RuleEnrollment ruleEnrollment = subject.toMappedRuleEnrollment( programInstance );
+        RuleEnrollment ruleEnrollment = subject.toMappedRuleEnrollment( programInstance, Lists.newArrayList() );
 
         assertEquals( ruleEnrollment.enrollment(), programInstance.getUid() );
         assertEquals( ruleEnrollment.organisationUnit(), programInstance.getOrganisationUnit().getUid() );

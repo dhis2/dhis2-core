@@ -263,7 +263,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     }
 
     @Override
-    public RuleEnrollment toMappedRuleEnrollment( ProgramInstance enrollment )
+    public RuleEnrollment toMappedRuleEnrollment( ProgramInstance enrollment,
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
         if ( enrollment == null )
         {
@@ -279,10 +280,20 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             orgUnitCode = enrollment.getOrganisationUnit().getCode();
         }
 
-        List<RuleAttributeValue> ruleAttributeValues = Lists.newArrayList();
+        List<RuleAttributeValue> ruleAttributeValues;
+
         if ( enrollment.getEntityInstance() != null )
         {
             ruleAttributeValues = enrollment.getEntityInstance().getTrackedEntityAttributeValues()
+                .stream()
+                .filter( Objects::nonNull )
+                .map( attr -> RuleAttributeValue.create( attr.getAttribute().getUid(),
+                    getTrackedEntityAttributeValue( attr ) ) )
+                .collect( Collectors.toList() );
+        }
+        else
+        {
+            ruleAttributeValues = trackedEntityAttributeValues
                 .stream()
                 .filter( Objects::nonNull )
                 .map( attr -> RuleAttributeValue.create( attr.getAttribute().getUid(),
