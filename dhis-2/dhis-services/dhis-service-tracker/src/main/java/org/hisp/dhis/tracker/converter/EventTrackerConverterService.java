@@ -38,8 +38,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -103,7 +101,7 @@ public class EventTrackerConverterService
                 event.setTrackedEntity( psi.getProgramInstance().getEntityInstance().getUid() );
             }
 
-            event.setFollowUp( psi.getProgramInstance().getFollowup() );
+            event.setFollowup( psi.getProgramInstance().getFollowup() );
             event.setEnrollmentStatus( EnrollmentStatus.fromProgramStatus( psi.getProgramInstance().getStatus() ) );
             event.setStatus( psi.getStatus() );
             event.setOccurredAt( DateUtils.getIso8601NoTz( psi.getExecutionDate() ) );
@@ -112,7 +110,9 @@ public class EventTrackerConverterService
             event.setCompletedBy( psi.getCompletedBy() );
             event.setCompletedAt( DateUtils.getIso8601NoTz( psi.getCompletedDate() ) );
             event.setCreatedAt( DateUtils.getIso8601NoTz( psi.getCreated() ) );
+            event.setCreatedAtClient( DateUtils.getIso8601NoTz( psi.getCreatedAtClient() ) );
             event.setUpdatedAt( DateUtils.getIso8601NoTz( psi.getLastUpdated() ) );
+            event.setUpdatedAtClient( DateUtils.getIso8601NoTz( psi.getLastUpdatedAtClient() ) );
             event.setGeometry( psi.getGeometry() );
             event.setDeleted( psi.isDeleted() );
 
@@ -121,6 +121,7 @@ public class EventTrackerConverterService
             if ( ou != null )
             {
                 event.setOrgUnit( ou.getUid() );
+                event.setOrgUnitName( ou.getName() );
             }
 
             Program program = psi.getProgramInstance().getProgram();
