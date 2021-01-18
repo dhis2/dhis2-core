@@ -38,12 +38,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.client.util.Lists;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
@@ -54,11 +57,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import com.google.api.client.util.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
