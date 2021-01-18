@@ -157,7 +157,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         for ( DimensionalItemObject item : order.equals( SortOrder.ASC ) ? params.getAsc() : params.getDesc() )
         {
-            if ( DimensionItemType.PROGRAM_INDICATOR.equals( item.getDimensionItemType() ) )
+            if ( DimensionItemType.PROGRAM_INDICATOR.equals( item.getDimensionItemType() )
+                || DimensionItemType.DATA_ELEMENT.equals( item.getDimensionItemType() ) )
             {
                 sql += quote( item.getUid() );
             }
