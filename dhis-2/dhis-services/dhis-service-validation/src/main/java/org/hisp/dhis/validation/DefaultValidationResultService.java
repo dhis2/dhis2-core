@@ -151,7 +151,9 @@ public class DefaultValidationResultService
             for ( T val : values )
             {
                 if ( !validator.test( val ) )
-                    throwValidationError( msgFactory.apply( code, val ) );
+                {
+                    throwValidationError(msgFactory.apply(code, val));
+                }
             }
         }
     }

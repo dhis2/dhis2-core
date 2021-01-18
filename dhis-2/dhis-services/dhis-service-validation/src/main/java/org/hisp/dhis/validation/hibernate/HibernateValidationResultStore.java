@@ -213,12 +213,13 @@ public class HibernateValidationResultStore
         if ( !isEmpty( query.getPe() ) )
         {
             restrictions.append( " " + sqlHelper.whereAnd() + "(" );
-            int i = 1;
-            for ( String period : query.getPe() )
+            for ( int i = 1; i <= query.getPe().size(); i++ )
             {
                 if ( i > 1 )
+                {
                     restrictions.append( " or " );
-                String parameterName = ":periodId" + (i++);
+                }
+                String parameterName = ":periodId" + i;
                 restrictions.append( " ((vr.period.startDate <= " + parameterName
                     + "End ) and (vr.period.endDate >= " + parameterName + "Start ))" );
             }
