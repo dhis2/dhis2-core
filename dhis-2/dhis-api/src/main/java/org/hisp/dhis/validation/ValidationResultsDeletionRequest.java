@@ -28,6 +28,8 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
 import java.util.List;
 
 /**
@@ -40,64 +42,54 @@ public class ValidationResultsDeletionRequest
 
     private List<String> vr;
 
-    private List<String> pe;
+    private String pe;
 
-    private List<String> created;
+    private String created;
 
     private Boolean notificationSent;
 
-    public List<String> getOu()
-    {
+    public List<String> getOu() {
         return ou;
     }
 
-    public void setOu( List<String> ou )
-    {
+    public void setOu(List<String> ou) {
         this.ou = ou;
     }
 
-    public List<String> getVr()
-    {
+    public List<String> getVr() {
         return vr;
     }
 
-    public void setVr( List<String> vr )
-    {
+    public void setVr(List<String> vr) {
         this.vr = vr;
     }
 
-    public List<String> getPe()
-    {
+    public String getPe() {
         return pe;
     }
 
-    public void setPe( List<String> pe )
-    {
+    public void setPe(String pe) {
         this.pe = pe;
     }
 
-    public List<String> getCreated()
-    {
+    public String getCreated() {
         return created;
     }
 
-    public void setCreated( List<String> created )
-    {
+    public void setCreated(String created) {
         this.created = created;
     }
 
-    public Boolean getNotificationSent()
-    {
+    public Boolean getNotificationSent() {
         return notificationSent;
     }
 
-    public void setNotificationSent( Boolean notificationSent )
-    {
+    public void setNotificationSent(Boolean notificationSent) {
         this.notificationSent = notificationSent;
     }
 
     public boolean isUnconstrained()
     {
-        return ou == null && vr == null && pe == null && created == null && notificationSent == null;
+        return isEmpty( ou ) && isEmpty( vr ) && pe == null && created == null && notificationSent == null;
     }
 }

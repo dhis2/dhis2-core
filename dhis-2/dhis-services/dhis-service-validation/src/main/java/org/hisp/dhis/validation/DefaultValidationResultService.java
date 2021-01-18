@@ -44,7 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Stian Sandvold
  */
-@Transactional
+@Transactional( readOnly = true )
 @Service( "org.hisp.dhis.validation.ValidationResultService" )
 public class DefaultValidationResultService
     implements ValidationResultService
@@ -62,6 +62,7 @@ public class DefaultValidationResultService
         this.periodService = periodService;
     }
 
+    @Transactional( readOnly = false )
     @Override
     public void saveValidationResults( Collection<ValidationResult> validationResults )
     {
@@ -83,18 +84,24 @@ public class DefaultValidationResultService
         return validationResultStore.getAllUnreportedValidationResults();
     }
 
+    @Transactional( readOnly = false )
     @Override
     public void deleteValidationResult( ValidationResult validationResult )
     {
         validationResultStore.delete( validationResult );
     }
 
+    @Transactional( readOnly = false )
     @Override
     public void deleteValidationResults( ValidationResultsDeletionRequest request )
     {
-        validationResultStore.delete( request );
+        if ( !request.isUnconstrained() )
+        {
+            validationResultStore.delete( request );
+        }
     }
 
+    @Transactional( readOnly = false )
     @Override
     public void updateValidationResults( Set<ValidationResult> validationResults )
     {

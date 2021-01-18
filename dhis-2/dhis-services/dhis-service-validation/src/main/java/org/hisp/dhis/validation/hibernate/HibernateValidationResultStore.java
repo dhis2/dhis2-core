@@ -46,9 +46,11 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.ValidationResult;
@@ -84,7 +86,59 @@ public class HibernateValidationResultStore
     @Override
     public void delete( ValidationResultsDeletionRequest request )
     {
+        SqlHelper helper = new SqlHelper();
+        StringBuilder hql = new StringBuilder();
+        hql.append( "delete from ValidationResult vr " );
+        if ( !isEmpty( request.getOu() ) )
+        {
+            hql.append( helper.whereAnd() ).append( " vr.organisationUnit.uid in :unitsUids ");
+        }
+        if ( !isEmpty( request.getVr() ) )
+        {
+            hql.append( helper.whereAnd() ).append( " vr.validationRule.uid in :rulesUids ");
+        }
+        if ( request.getPe() != null )
+        {
+            hql.append( helper.whereAnd() )
+                .append( " ((vr.period.startDate <= :endDate and vr.period.endDate >= :startDate)) " );
+        }
+        if ( request.getCreated() != null )
+        {
+            hql.append( helper.whereAnd() )
+                .append( " ((vr.created >= :createdStartDate and vr.created <= :createdEndDate)) " );
+        }
+        if ( request.getNotificationSent() != null )
+        {
+            hql.append( helper.whereAnd() ).append(" vr.notificationSent = :notificationSent ");
+        }
 
+        Query<ValidationResult> query = getQuery( hql.toString() );
+
+        if ( !isEmpty( request.getOu() ) )
+        {
+            query.setParameter( "unitsUids", request.getOu() );
+        }
+        if ( !isEmpty( request.getVr() ) )
+        {
+            query.setParameter( "rulesUids", request.getVr() );
+        }
+        if ( request.getPe() != null )
+        {
+            Period p = PeriodType.getPeriodFromIsoString( request.getPe() );
+            query.setParameter( "startDate", p.getStartDate() );
+            query.setParameter( "endDate", p.getEndDate() );
+        }
+        if ( request.getCreated() != null )
+        {
+            Period p = PeriodType.getPeriodFromIsoString( request.getCreated() );
+            query.setParameter( "createdStartDate", p.getStartDate() );
+            query.setParameter( "createdEndDate", p.getEndDate() );
+        }
+        if ( request.getNotificationSent() != null )
+        {
+            query.setParameter( "notificationSent", request.getNotificationSent() );
+        }
+        query.executeUpdate();
     }
 
     /**
