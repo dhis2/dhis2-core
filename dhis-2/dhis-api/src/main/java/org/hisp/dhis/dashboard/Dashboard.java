@@ -40,6 +40,7 @@ import org.hisp.dhis.common.MetadataObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -51,6 +52,16 @@ public class Dashboard
     public static final int MAX_ITEMS = 40;
     
     private List<DashboardItem> items = new ArrayList<>();
+
+    /**
+     * Whether we restrict the filter dimensions the user may select.
+     */
+    private Boolean filterDimensionsAreRestricted;
+
+    /**
+     * Allowed filter dimensions (if any) the user may select.
+     */
+    private Set<String> allowedFilterDimensions;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -169,5 +180,30 @@ public class Dashboard
     public void setItems( List<DashboardItem> items )
     {
         this.items = items;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty
+    public Boolean getFilterDimensionsAreRestricted()
+    {
+        return filterDimensionsAreRestricted;
+    }
+
+    public void setFilterDimensionsAreRestricted( Boolean filterDimensionsAreRestricted )
+    {
+        this.filterDimensionsAreRestricted = filterDimensionsAreRestricted;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "allowedFilterDimensions", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "allowedFilterDimension", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<String> getAllowedFilterDimensions()
+    {
+        return allowedFilterDimensions;
+    }
+
+    public void setAllowedFilterDimensions( Set<String> allowedFilterDimensions )
+    {
+        this.allowedFilterDimensions = allowedFilterDimensions;
     }
 }
