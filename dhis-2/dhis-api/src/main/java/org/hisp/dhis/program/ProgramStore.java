@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,4 +75,10 @@ public interface ProgramStore
      * @return a list of {@link Program}
      */
     List<Program> getByDataEntryForm( DataEntryForm dataEntryForm );
+
+    /**
+     * Checks whether the given {@link OrganisationUnit} belongs to the specified
+     * {@link Program}
+     */
+    boolean hasOrgUnit( Program program, OrganisationUnit organisationUnit );
 }

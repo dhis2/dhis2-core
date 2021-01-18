@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.converter;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import com.google.api.client.util.Lists;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -101,7 +103,7 @@ public class EventTrackerConverterService
                 event.setTrackedEntity( psi.getProgramInstance().getEntityInstance().getUid() );
             }
 
-            event.setFollowUp( psi.getProgramInstance().getFollowup() );
+            event.setFollowup( psi.getProgramInstance().getFollowup() );
             event.setEnrollmentStatus( EnrollmentStatus.fromProgramStatus( psi.getProgramInstance().getStatus() ) );
             event.setStatus( psi.getStatus() );
             event.setOccurredAt( DateUtils.getIso8601NoTz( psi.getExecutionDate() ) );
@@ -110,7 +112,9 @@ public class EventTrackerConverterService
             event.setCompletedBy( psi.getCompletedBy() );
             event.setCompletedAt( DateUtils.getIso8601NoTz( psi.getCompletedDate() ) );
             event.setCreatedAt( DateUtils.getIso8601NoTz( psi.getCreated() ) );
+            event.setCreatedAtClient( DateUtils.getIso8601NoTz( psi.getCreatedAtClient() ) );
             event.setUpdatedAt( DateUtils.getIso8601NoTz( psi.getLastUpdated() ) );
+            event.setUpdatedAtClient( DateUtils.getIso8601NoTz( psi.getLastUpdatedAtClient() ) );
             event.setGeometry( psi.getGeometry() );
             event.setDeleted( psi.isDeleted() );
 
@@ -119,6 +123,7 @@ public class EventTrackerConverterService
             if ( ou != null )
             {
                 event.setOrgUnit( ou.getUid() );
+                event.setOrgUnitName( ou.getName() );
             }
 
             Program program = psi.getProgramInstance().getProgram();
@@ -170,7 +175,31 @@ public class EventTrackerConverterService
     @Override
     public ProgramStageInstance fromForRuleEngine( TrackerPreheat preheat, Event event )
     {
-        return from( preheat, event, null );
+        ProgramStageInstance psi = from( preheat, event, null );
+        // merge data values from DB
+        psi.getEventDataValues().addAll( getProgramStageInstanceDataValues( preheat, event ) );
+        return psi;
+    }
+
+    private List<EventDataValue> getProgramStageInstanceDataValues( TrackerPreheat preheat, Event event )
+    {
+        List<EventDataValue> eventDataValues = Lists.newArrayList();
+        ProgramStageInstance programStageInstance = preheat.getEvent( TrackerIdScheme.UID, event.getEvent() );
+        if ( programStageInstance != null )
+        {
+            Set<String> dataElements = event.getDataValues()
+                .stream()
+                .map( DataValue::getDataElement )
+                .collect( Collectors.toSet() );
+            for ( EventDataValue eventDataValue : programStageInstance.getEventDataValues() )
+            {
+                if ( !dataElements.contains( eventDataValue.getDataElement() ) )
+                {
+                    eventDataValues.add( eventDataValue );
+                }
+            }
+        }
+        return eventDataValues;
     }
 
     private ProgramStageInstance from( TrackerPreheat preheat, Event event, ProgramStageInstance programStageInstance )
@@ -191,55 +220,69 @@ public class EventTrackerConverterService
             programStageInstance.setLastUpdatedAtClient( now );
             programStageInstance.setProgramInstance(
                 getProgramInstance( preheat, TrackerIdScheme.UID, event.getEnrollment(), program ) );
-        }
 
-        programStageInstance.setProgramStage( programStage );
-        programStageInstance.setOrganisationUnit( organisationUnit );
-        programStageInstance.setExecutionDate( DateUtils.parseDate( event.getOccurredAt() ) );
-        programStageInstance.setDueDate( DateUtils.parseDate( event.getScheduledAt() ) );
+            programStageInstance.setProgramStage( programStage );
+            programStageInstance.setOrganisationUnit( organisationUnit );
+            programStageInstance.setExecutionDate( DateUtils.parseDate( event.getOccurredAt() ) );
+            programStageInstance.setDueDate( DateUtils.parseDate( event.getScheduledAt() ) );
 
-        String attributeOptionCombo = event.getAttributeOptionCombo();
+            String attributeOptionCombo = event.getAttributeOptionCombo();
 
-        if ( attributeOptionCombo != null )
-        {
-            programStageInstance.setAttributeOptionCombo(
-                preheat.get( CategoryOptionCombo.class, event.getAttributeOptionCombo() ) );
-        }
-        else
-        {
-            programStageInstance.setAttributeOptionCombo( (CategoryOptionCombo) preheat.getDefaults().get( CategoryOptionCombo.class ) );
-        }
-
-        programStageInstance.setGeometry( event.getGeometry() );
-        programStageInstance.setStatus( event.getStatus() );
-
-        if ( programStageInstance.isCompleted() )
-        {
-            Date completedDate = DateUtils.parseDate( event.getCompletedAt() );
-
-            if ( completedDate == null )
+            if ( attributeOptionCombo != null )
             {
-                completedDate = new Date();
+                programStageInstance.setAttributeOptionCombo(
+                    preheat.get( CategoryOptionCombo.class, event.getAttributeOptionCombo() ) );
+            }
+            else
+            {
+                programStageInstance.setAttributeOptionCombo(
+                    (CategoryOptionCombo) preheat.getDefaults().get( CategoryOptionCombo.class ) );
             }
 
-            programStageInstance.setCompletedDate( completedDate );
-            programStageInstance.setCompletedBy( event.getCompletedBy() );
+            programStageInstance.setGeometry( event.getGeometry() );
+            programStageInstance.setStatus( event.getStatus() );
+
+            if ( programStageInstance.isCompleted() )
+            {
+                Date completedDate = DateUtils.parseDate( event.getCompletedAt() );
+
+                if ( completedDate == null )
+                {
+                    completedDate = new Date();
+                }
+
+                programStageInstance.setCompletedDate( completedDate );
+                programStageInstance.setCompletedBy( event.getCompletedBy() );
+            }
+
+            if ( programStage.isEnableUserAssignment() )
+            {
+                User assignedUser = preheat.get( User.class, event.getAssignedUser() );
+                programStageInstance.setAssignedUser( assignedUser );
+            }
+
+            if ( programStage.getProgram().isRegistration() && programStageInstance.getDueDate() == null &&
+                programStageInstance.getExecutionDate() != null )
+            {
+                programStageInstance.setDueDate( programStageInstance.getExecutionDate() );
+            }
+
+            for ( DataValue dataValue : event.getDataValues() )
+            {
+                EventDataValue eventDataValue = new EventDataValue();
+                eventDataValue.setValue( dataValue.getValue() );
+                eventDataValue.setCreated( DateUtils.parseDate( dataValue.getCreatedAt() ) );
+                eventDataValue.setLastUpdated( new Date() );
+                eventDataValue.setProvidedElsewhere( dataValue.isProvidedElsewhere() );
+                eventDataValue.setDataElement( dataValue.getDataElement() );
+
+                programStageInstance.getEventDataValues().add( eventDataValue );
+            }
         }
 
         if ( isNotEmpty( event.getNotes() ) )
         {
             programStageInstance.getComments().addAll( notesConverterService.from( preheat, event.getNotes() ) );
-        }
-
-        if ( programStage.isEnableUserAssignment() )
-        {
-            User assignedUser = preheat.get( User.class, event.getAssignedUser() );
-            programStageInstance.setAssignedUser( assignedUser );
-        }
-
-        if ( programStage.getProgram().isRegistration() && programStageInstance.getDueDate() == null && programStageInstance.getExecutionDate() != null )
-        {
-            programStageInstance.setDueDate( programStageInstance.getExecutionDate() );
         }
 
         return programStageInstance;

@@ -1,7 +1,7 @@
 package org.hisp.dhis.util;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.period.Period;
@@ -58,7 +59,6 @@ import org.joda.time.format.DateTimeFormatterBuilder;
 import org.joda.time.format.DateTimeParser;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
-import org.springframework.util.StringUtils;
 import org.joda.time.IllegalInstantException;
 
 import com.google.common.collect.ImmutableMap;
@@ -69,8 +69,13 @@ import com.google.common.collect.Lists;
  */
 public class DateUtils
 {
-    private static DateTimeFormatter ISO8601 = DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSZ" );
-    private static DateTimeFormatter ISO8601_NO_TZ = DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSS" );
+    public static final String ISO8601_NO_TZ_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+
+    private static DateTimeFormatter ISO8601_NO_TZ = DateTimeFormat.forPattern( ISO8601_NO_TZ_PATTERN );
+
+    public static final String ISO8601_PATTERN = ISO8601_NO_TZ_PATTERN + "Z";
+
+    private static DateTimeFormatter ISO8601 = DateTimeFormat.forPattern( ISO8601_PATTERN );
 
     private static final String DEFAULT_DATE_REGEX = "\\b(?<year>\\d{4})-(?<month>0[1-9]|1[0-2])-(?<day>0[1-9]|[1-2][0-9]|3[0-2])(?<time>.*)\\b";
     private static final Pattern DEFAULT_DATE_REGEX_PATTERN = Pattern.compile( DEFAULT_DATE_REGEX );

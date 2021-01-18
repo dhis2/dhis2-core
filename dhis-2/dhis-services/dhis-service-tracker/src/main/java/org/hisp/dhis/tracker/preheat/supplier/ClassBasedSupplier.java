@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.preheat.supplier;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -52,15 +53,20 @@ import com.google.common.collect.Lists;
  * This supplier collects all the references from the Tracker Import payload and
  * executes class-based strategies, based on the type of the object in the
  * payload.
- * 
+ *
  * @author Luciano Fiandesio
  */
 @Component
-public class ClassBasedSupplier extends AbstractPreheatSupplier implements ApplicationContextAware
+@RequiredArgsConstructor
+public class ClassBasedSupplier
+    extends AbstractPreheatSupplier
+    implements ApplicationContextAware
 {
     public static final int SPLIT_LIST_PARTITION_SIZE = 20_000;
 
     private ApplicationContext context;
+
+    private final TrackerIdentifierCollector identifierCollector;
 
     /**
      * A Map correlating a Tracker class name to the Preheat strategy class name to
@@ -85,7 +91,7 @@ public class ClassBasedSupplier extends AbstractPreheatSupplier implements Appli
          * reference type (e.g. Enrollment) and the value is a Set of identifiers (e.g.
          * a list of all Enrollment UIDs found in the payload)
          */
-        Map<Class<?>, Set<String>> identifierMap = TrackerIdentifierCollector.collect( params, preheat.getDefaults() );
+        Map<Class<?>, Set<String>> identifierMap = identifierCollector.collect( params, preheat.getDefaults() );
 
         for ( Class<?> klass : identifierMap.keySet() )
         {

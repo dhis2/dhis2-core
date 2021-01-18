@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -93,6 +93,8 @@ public interface ProgramRuleService
      * there are no ProgramRules.
      */
     List<ProgramRule> getAllProgramRule();
+
+    List<ProgramRule> getProgramRuleByProgram( Set<String> programs );
 
     List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types );
 

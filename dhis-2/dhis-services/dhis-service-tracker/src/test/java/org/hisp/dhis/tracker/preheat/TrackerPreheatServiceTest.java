@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.preheat;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,10 +61,14 @@ import com.google.common.collect.Lists;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackerPreheatServiceTest extends TrackerTest
+public class TrackerPreheatServiceTest
+    extends TrackerTest
 {
     @Autowired
     private TrackerPreheatService trackerPreheatService;
+
+    @Autowired
+    private TrackerIdentifierCollector identifierCollector;
 
     @Override
     protected void initTest()
@@ -75,7 +79,7 @@ public class TrackerPreheatServiceTest extends TrackerTest
     public void testCollectIdentifiersSimple()
     {
         TrackerImportParams params = new TrackerImportParams();
-        Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params, Maps.newHashMap() );
+        Map<Class<?>, Set<String>> collectedMap = identifierCollector.collect( params, Maps.newHashMap() );
         assertEquals( collectedMap.keySet().size(), 2 );
         assertTrue( collectedMap.containsKey( TrackedEntityType.class ) );
         assertTrue( collectedMap.containsKey( RelationshipType.class ) );
@@ -91,7 +95,7 @@ public class TrackerPreheatServiceTest extends TrackerTest
         assertTrue( params.getEnrollments().isEmpty() );
         assertFalse( params.getEvents().isEmpty() );
 
-        Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params, Maps.newHashMap() );
+        Map<Class<?>, Set<String>> collectedMap = identifierCollector.collect( params, Maps.newHashMap() );
 
         assertTrue( collectedMap.containsKey( DataElement.class ) );
         assertTrue( collectedMap.containsKey( Program.class ) );
@@ -148,7 +152,7 @@ public class TrackerPreheatServiceTest extends TrackerTest
         assertTrue( params.getEnrollments().isEmpty() );
         assertTrue( params.getEvents().isEmpty() );
 
-        Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params, Maps.newHashMap() );
+        Map<Class<?>, Set<String>> collectedMap = identifierCollector.collect( params, Maps.newHashMap() );
 
         assertTrue( collectedMap.containsKey( TrackedEntity.class ) );
         Set<String> trackedEntities = collectedMap.get( TrackedEntity.class );

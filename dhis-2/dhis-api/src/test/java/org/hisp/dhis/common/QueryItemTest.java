@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,12 +30,14 @@ package org.hisp.dhis.common;
 
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.program.Program;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -53,15 +55,18 @@ public class QueryItemTest
     private Option opB;
     private Option opC;
     private OptionSet osA;
-    
+
     private Legend leA;
     private Legend leB;
     private Legend leC;
     private LegendSet lsA;
-    
+
+    private Program prA;
+    private Program prB;
+
     private DataElement deA;
     private DataElement deB;
-    
+
     @Before
     public void before()
     {
@@ -72,7 +77,7 @@ public class QueryItemTest
         opC = new Option( "OptionC", "CODEC" );
         opC.setUid( "UIDC" );
         osA = new OptionSet( "OptionSetA", ValueType.TEXT, Lists.newArrayList( opA, opB, opC ) );
-        
+
         leA = new Legend( "LegendA", 0d, 1d, "", "" );
         leA.setUid( "UIDA" );
         leB = new Legend( "LegendB", 1d, 2d, "", "" );
@@ -80,32 +85,37 @@ public class QueryItemTest
         leC = new Legend( "LegendC", 3d, 4d, "", "" );
         leC.setUid( "UIDC" );
         lsA = new LegendSet( "LegendSetA", "", Sets.newHashSet( leA, leB, leC ) );
-        
+
+        prA = new Program( "ProgramA" );
+        prA.setUid( "PRUIDA" );
+
+        prB = new Program( "ProgramB" );
+        prB.setUid( "PRUIDB" );
+
         deA = new DataElement( "DataElementA" );
         deA.setOptionSet( osA );
-        
+
         deB = new DataElement( "DataElementB" );
         deB.setLegendSets( Lists.newArrayList( lsA ) );
     }
-    
+
     @Test
     public void testGetOptionSetQueryFilterItems()
     {
         QueryItem qiA = new QueryItem( deA, null, ValueType.TEXT, AggregationType.SUM, osA );
         qiA.addFilter( new QueryFilter( QueryOperator.IN, "CODEA;CODEB" ) );
-        
+
         List<String> expected = Lists.newArrayList( "UIDA", "UIDB" );
-            
+
         assertEquals( expected, qiA.getOptionSetFilterItemsOrAll() );
-        
+
         QueryItem qiB = new QueryItem( deA, null, ValueType.TEXT, AggregationType.SUM, osA );
 
         expected = Lists.newArrayList( "UIDA", "UIDB", "UIDC" );
-            
+
         assertEquals( expected, qiB.getOptionSetFilterItemsOrAll() );
-        
     }
-    
+
     @Test
     public void testGet()
     {
@@ -113,13 +123,28 @@ public class QueryItemTest
         qiA.addFilter( new QueryFilter( QueryOperator.IN, "UIDA;UIDB" ) );
 
         List<String> expected = Lists.newArrayList( "UIDA", "UIDB" );
-        
+
         assertEquals( expected, qiA.getLegendSetFilterItemsOrAll() );
 
         QueryItem qiB = new QueryItem( deB, lsA, ValueType.TEXT, AggregationType.SUM, null );
 
         expected = Lists.newArrayList( "UIDA", "UIDB", "UIDC" );
-        
+
         assertEquals( expected, qiB.getLegendSetFilterItemsOrAll() );
+    }
+
+    @Test
+    public void testEquality()
+    {
+        QueryItem qiA = new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null ); // Unique
+        QueryItem qiB = new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null ); // Duplicate of 'qiA'
+        QueryItem qiC = new QueryItem( deA, prB, null, ValueType.TEXT, AggregationType.NONE, null ); // Unique
+        QueryItem qiD = new QueryItem( deA ); // Unique
+        QueryItem qiE = new QueryItem( deA ); // Duplicate of 'qiD'
+        QueryItem qiF = new QueryItem( deB ); // Unique
+
+        Set<QueryItem> items = Sets.newHashSet( qiA, qiB, qiC, qiD, qiE, qiF );
+
+        assertEquals( 4, items.size() );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.programrule;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.programrule;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
@@ -52,6 +53,24 @@ public class EventActionRule
     private final AttributeType attributeType;
 
     private String content;
+
+    public String getValue()
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        if ( !StringUtils.isEmpty( content ) )
+        {
+            stringBuilder.append( data );
+        }
+        if ( !StringUtils.isEmpty( stringBuilder.toString() ) )
+        {
+            stringBuilder.append( " " );
+        }
+        if ( !StringUtils.isEmpty( data ) )
+        {
+            stringBuilder.append( data );
+        }
+        return stringBuilder.toString();
+    }
 
     public Optional<DataValue> getDataValue()
     {

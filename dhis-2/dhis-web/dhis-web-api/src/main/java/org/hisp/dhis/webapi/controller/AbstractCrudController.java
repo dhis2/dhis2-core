@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.attribute.AttributeService;
@@ -116,7 +117,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -162,7 +162,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @Autowired
     protected CurrentUserService currentUserService;
-    
+
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
@@ -274,7 +274,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         restrictToCaptureScope( entities, options, rpParameters );
-        
+
         postProcessResponseEntities( entities, options, rpParameters );
 
         handleLinksAndAccess( entities, fields, false );
@@ -1219,7 +1219,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     {
         return PaginationUtils.getPaginationData( options );
     }
-    
+
     private void restrictToCaptureScope( List<T> entityList, WebOptions options, Map<String, String> parameters )
     {
         if ( !options.isTrue( "restrictToCaptureScope" ) || CollectionUtils.isEmpty( entityList )
@@ -1234,7 +1234,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         {
             return;
         }
-        
+
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
         params.setParents( user.getOrganisationUnits() );
         params.setFetchChildren( true );

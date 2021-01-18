@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.programrule;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -97,7 +97,7 @@ public class DefaultTrackerProgramRuleService
             .collect( Collectors.toMap( Event::getEvent, event -> {
                 ProgramInstance enrollment = getEnrollment( bundle, event );
                 ProgramStageInstance programStageInstance = eventTrackerConverterService
-                    .from( bundle.getPreheat(), event );
+                    .fromForRuleEngine( bundle.getPreheat(), event );
                 if ( enrollment == null )
                 {
                     return programRuleEngine.evaluateProgramEvent( programStageInstance,

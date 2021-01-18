@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.domain.mapper;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,8 @@ public interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance,
     @Mapping( target = "uid", source = "trackedEntityInstance" )
     @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
     @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
     TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
 }

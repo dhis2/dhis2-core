@@ -1,7 +1,7 @@
 package org.hisp.dhis.tracker.domain;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,6 +81,9 @@ public class Event
     private String orgUnit;
 
     @JsonProperty
+    private String orgUnitName;
+
+    @JsonProperty
     private String trackedEntity;
 
     @JsonProperty
@@ -97,7 +100,7 @@ public class Event
     private String storedBy;
 
     @JsonProperty
-    private boolean followUp;
+    private boolean followup;
 
     @JsonProperty
     private boolean deleted;
@@ -106,7 +109,13 @@ public class Event
     private String createdAt;
 
     @JsonProperty
+    private String createdAtClient;
+
+    @JsonProperty
     private String updatedAt;
+
+    @JsonProperty
+    private String updatedAtClient;
 
     @JsonProperty
     private String attributeOptionCombo;

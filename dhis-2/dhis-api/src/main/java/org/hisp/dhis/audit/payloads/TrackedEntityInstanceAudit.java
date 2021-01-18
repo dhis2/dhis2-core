@@ -1,7 +1,7 @@
 package org.hisp.dhis.audit.payloads;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,8 +39,9 @@ import java.util.Date;
 import java.util.Objects;
 
 /**
+ * This class is deprecated.
+ *
  * @author Abyot Asalefew Gizaw abyota@gmail.com
- * @deprecated Will be removed soon.
  */
 @JacksonXmlRootElement( localName = "trackedEntityInstanceAudit", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityInstanceAudit
