@@ -39,7 +39,9 @@ public interface EventMapper extends DomainMapper<org.hisp.dhis.dxf2.events.even
     @Mapping( target = "occurredAt", source = "eventDate" )
     @Mapping( target = "scheduledAt", source = "dueDate" )
     @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
     @Mapping( target = "completedAt", source = "completedDate" )
     Event from( org.hisp.dhis.dxf2.events.event.Event event );
 }

@@ -81,6 +81,9 @@ public class Event
     private String orgUnit;
 
     @JsonProperty
+    private String orgUnitName;
+
+    @JsonProperty
     private String trackedEntity;
 
     @JsonProperty
@@ -97,7 +100,7 @@ public class Event
     private String storedBy;
 
     @JsonProperty
-    private boolean followUp;
+    private boolean followup;
 
     @JsonProperty
     private boolean deleted;
@@ -106,7 +109,13 @@ public class Event
     private String createdAt;
 
     @JsonProperty
+    private String createdAtClient;
+
+    @JsonProperty
     private String updatedAt;
+
+    @JsonProperty
+    private String updatedAtClient;
 
     @JsonProperty
     private String attributeOptionCombo;
