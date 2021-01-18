@@ -35,6 +35,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -54,10 +56,10 @@ public class Relationship implements TrackerDto
     private String relationshipType;
 
     @JsonProperty
-    private String createdAt;
+    private Instant createdAt;
 
     @JsonProperty
-    private String updatedAt;
+    private Instant updatedAt;
 
     @JsonProperty
     private boolean bidirectional;

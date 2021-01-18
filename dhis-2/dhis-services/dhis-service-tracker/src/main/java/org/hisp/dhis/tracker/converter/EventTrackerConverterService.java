@@ -106,15 +106,15 @@ public class EventTrackerConverterService
             event.setFollowup( psi.getProgramInstance().getFollowup() );
             event.setEnrollmentStatus( EnrollmentStatus.fromProgramStatus( psi.getProgramInstance().getStatus() ) );
             event.setStatus( psi.getStatus() );
-            event.setOccurredAt( DateUtils.getIso8601NoTz( psi.getExecutionDate() ) );
-            event.setScheduledAt( DateUtils.getIso8601NoTz( psi.getDueDate() ) );
+            event.setOccurredAt( DateUtils.instantFromDate( psi.getExecutionDate() ) );
+            event.setScheduledAt( DateUtils.instantFromDate( psi.getDueDate() ) );
             event.setStoredBy( psi.getStoredBy() );
             event.setCompletedBy( psi.getCompletedBy() );
-            event.setCompletedAt( DateUtils.getIso8601NoTz( psi.getCompletedDate() ) );
-            event.setCreatedAt( DateUtils.getIso8601NoTz( psi.getCreated() ) );
-            event.setCreatedAtClient( DateUtils.getIso8601NoTz( psi.getCreatedAtClient() ) );
-            event.setUpdatedAt( DateUtils.getIso8601NoTz( psi.getLastUpdated() ) );
-            event.setUpdatedAtClient( DateUtils.getIso8601NoTz( psi.getLastUpdatedAtClient() ) );
+            event.setCompletedAt( DateUtils.instantFromDate( psi.getCompletedDate() ) );
+            event.setCreatedAt( DateUtils.instantFromDate( psi.getCreated() ) );
+            event.setCreatedAtClient( DateUtils.instantFromDate( psi.getCreatedAtClient() ) );
+            event.setUpdatedAt( DateUtils.instantFromDate( psi.getLastUpdated() ) );
+            event.setUpdatedAtClient( DateUtils.instantFromDate( psi.getLastUpdatedAtClient() ) );
             event.setGeometry( psi.getGeometry() );
             event.setDeleted( psi.isDeleted() );
 
@@ -140,8 +140,8 @@ public class EventTrackerConverterService
             for ( EventDataValue dataValue : dataValues )
             {
                 DataValue value = new DataValue();
-                value.setCreatedAt( DateUtils.getIso8601NoTz( dataValue.getCreated() ) );
-                value.setUpdatedAt( DateUtils.getIso8601NoTz( dataValue.getLastUpdated() ) );
+                value.setCreatedAt( DateUtils.instantFromDate( dataValue.getCreated() ) );
+                value.setUpdatedAt( DateUtils.instantFromDate( dataValue.getLastUpdated() ) );
                 value.setDataElement( dataValue.getDataElement() );
                 value.setValue( dataValue.getValue() );
                 value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
@@ -223,8 +223,8 @@ public class EventTrackerConverterService
 
             programStageInstance.setProgramStage( programStage );
             programStageInstance.setOrganisationUnit( organisationUnit );
-            programStageInstance.setExecutionDate( DateUtils.parseDate( event.getOccurredAt() ) );
-            programStageInstance.setDueDate( DateUtils.parseDate( event.getScheduledAt() ) );
+            programStageInstance.setExecutionDate( DateUtils.fromInstant( event.getOccurredAt() ) );
+            programStageInstance.setDueDate( DateUtils.fromInstant( event.getScheduledAt() ) );
 
             String attributeOptionCombo = event.getAttributeOptionCombo();
 
@@ -244,7 +244,7 @@ public class EventTrackerConverterService
 
             if ( programStageInstance.isCompleted() )
             {
-                Date completedDate = DateUtils.parseDate( event.getCompletedAt() );
+                Date completedDate = DateUtils.fromInstant( event.getCompletedAt() );
 
                 if ( completedDate == null )
                 {
@@ -271,7 +271,7 @@ public class EventTrackerConverterService
             {
                 EventDataValue eventDataValue = new EventDataValue();
                 eventDataValue.setValue( dataValue.getValue() );
-                eventDataValue.setCreated( DateUtils.parseDate( dataValue.getCreatedAt() ) );
+                eventDataValue.setCreated( DateUtils.fromInstant( dataValue.getCreatedAt() ) );
                 eventDataValue.setLastUpdated( new Date() );
                 eventDataValue.setProvidedElsewhere( dataValue.isProvidedElsewhere() );
                 eventDataValue.setDataElement( dataValue.getDataElement() );

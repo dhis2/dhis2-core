@@ -164,18 +164,25 @@ public class EnrollmentImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1021 ) ) ) );
     }
 
+    @Test( expected = IOException.class )
+    public void testDisplayIncidentDateTrueButDateValueIsInvalid()
+        throws IOException
+    {
+        createBundleFromJson( "tracker/validations/enrollments_error-displayIncident.json" );
+    }
+
     @Test
-    public void testDisplayIncidentDateTrueButDateValueNotPresentOrInvalid()
+    public void testDisplayIncidentDateTrueButDateValueNotPresent()
         throws IOException
     {
         TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_error-displayIncident.json" );
+            "tracker/validations/enrollments_error-displayIncident-missing-occurredAt.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
-        assertEquals( 2, report.getErrorReports().size() );
+        assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1023 ) ) ) );

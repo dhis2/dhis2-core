@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.domain.mapper;
  */
 
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.util.DateUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -37,7 +36,8 @@ import org.mapstruct.Mapping;
     RelationshipMapper.class,
     AttributeMapper.class,
     NoteMapper.class,
-    EventMapper.class } )
+    EventMapper.class,
+    InstantMapper.class } )
 public interface EnrollmentMapper extends DomainMapper<org.hisp.dhis.dxf2.events.enrollment.Enrollment, Enrollment>
 {
     @Mapping( target = "uid", source = "enrollment" )
@@ -46,8 +46,8 @@ public interface EnrollmentMapper extends DomainMapper<org.hisp.dhis.dxf2.events
     @Mapping( target = "updatedAt", source = "lastUpdated" )
     @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
     @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    @Mapping( target = "enrolledAt", source = "enrollmentDate", dateFormat = DateUtils.ISO8601_NO_TZ_PATTERN )
-    @Mapping( target = "occurredAt", source = "incidentDate", dateFormat = DateUtils.ISO8601_NO_TZ_PATTERN )
-    @Mapping( target = "completedAt", source = "completedDate", dateFormat = DateUtils.ISO8601_NO_TZ_PATTERN )
+    @Mapping( target = "enrolledAt", source = "enrollmentDate" )
+    @Mapping( target = "occurredAt", source = "incidentDate" )
+    @Mapping( target = "completedAt", source = "completedDate" )
     Enrollment from( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment );
 }

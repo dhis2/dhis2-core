@@ -41,6 +41,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,6 +53,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
+import org.joda.time.IllegalInstantException;
 import org.joda.time.LocalDate;
 import org.joda.time.Months;
 import org.joda.time.format.DateTimeFormat;
@@ -59,7 +62,6 @@ import org.joda.time.format.DateTimeFormatterBuilder;
 import org.joda.time.format.DateTimeParser;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
-import org.joda.time.IllegalInstantException;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -688,6 +690,40 @@ public class DateUtils
     public static Date parseDate( final String dateString )
     {
         return safeParseDateTime( dateString, DATE_FORMATTER );
+    }
+
+    /**
+     * Null safe instant to date conversion
+     *
+     * @param instant the instant
+     * @return a date.
+     */
+    public static Date fromInstant( final Instant instant )
+    {
+        return convertOrNull( instant, Date::from );
+    }
+
+    /**
+     * Null safe date to instant conversion
+     *
+     * @param date the date
+     * @return an instant.
+     */
+    public static Instant instantFromDate( final Date date )
+    {
+        return convertOrNull( date, Date::toInstant );
+    }
+
+    public static Instant instantFromDateAsString( String dateAsString )
+    {
+        return convertOrNull( DateUtils.parseDate( dateAsString ), Date::toInstant );
+    }
+
+    private static <T, R> R convertOrNull( T from, Function<T, R> converter )
+    {
+        return Optional.ofNullable( from )
+            .map( converter )
+            .orElse( null );
     }
 
     /**

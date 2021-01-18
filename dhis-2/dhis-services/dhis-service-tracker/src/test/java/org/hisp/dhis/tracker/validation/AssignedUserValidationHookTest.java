@@ -49,6 +49,7 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -138,9 +139,9 @@ public class AssignedUserValidationHookTest
         event.setProgramStage( programStageA.getUid() );
         event.setOrgUnit( organisationUnitA.getUid() );
         event.setEnrollment( pi.getUid() );
-        event.setOccurredAt( "1990-10-22" );
-        event.setCreatedAt( "2010-10-22" );
-        event.setScheduledAt( "2010-10-22" );
+        event.setOccurredAt( DateUtils.instantFromDateAsString( "1990-10-22" ) );
+        event.setCreatedAt( DateUtils.instantFromDateAsString( "2010-10-22" ) );
+        event.setScheduledAt( DateUtils.instantFromDateAsString( "2010-10-22" ) );
 
         TrackerImportParams params = TrackerImportParams.builder()
             .atomicMode( AtomicMode.ALL )
@@ -170,9 +171,9 @@ public class AssignedUserValidationHookTest
         event.setProgramStage( programStageA.getUid() );
         event.setOrgUnit( organisationUnitA.getUid() );
         event.setEnrollment( pi.getUid() );
-        event.setOccurredAt( "1990-10-22" );
-        event.setScheduledAt( "2010-10-22" );
-        event.setCreatedAt( "2010-10-22" );
+        event.setOccurredAt( DateUtils.instantFromDateAsString( "1990-10-22" ) );
+        event.setScheduledAt( DateUtils.instantFromDateAsString( "2010-10-22" ) );
+        event.setCreatedAt( DateUtils.instantFromDateAsString( "2010-10-22" ) );
 
         TrackerImportParams params = TrackerImportParams.builder()
             .atomicMode( AtomicMode.ALL )
@@ -200,7 +201,7 @@ public class AssignedUserValidationHookTest
         event.setProgramStage( programStageA.getUid() );
         event.setOrgUnit( organisationUnitA.getUid() );
         event.setEnrollment( pi.getUid() );
-        event.setOccurredAt( "1990-10-22" );
+        event.setOccurredAt( DateUtils.instantFromDateAsString( "1990-10-22" ) );
 
         TrackerImportParams params = TrackerImportParams.builder()
             .atomicMode( AtomicMode.ALL )
@@ -225,7 +226,7 @@ public class AssignedUserValidationHookTest
         event.setProgramStage( programStageA.getUid() );
         event.setOrgUnit( organisationUnitA.getUid() );
         event.setEnrollment( pi.getUid() );
-        event.setOccurredAt( "1990-10-22" );
+        event.setOccurredAt( DateUtils.instantFromDateAsString( "1990-10-22" ) );
 
         TrackerImportParams params = TrackerImportParams.builder()
             .atomicMode( AtomicMode.ALL )

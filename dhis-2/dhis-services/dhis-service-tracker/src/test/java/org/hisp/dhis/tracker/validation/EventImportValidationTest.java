@@ -523,30 +523,11 @@ public class EventImportValidationTest
         assertEquals( psi.getExecutionDate(), psi.getDueDate() );
     }
 
-    @Test
+    @Test( expected = IOException.class )
     public void testWrongScheduledDateString()
         throws IOException
     {
-        TrackerImportParams trackerBundleParams = createBundleFromJson(
-            "tracker/validations/events_error-no-wrong-date.json" );
-
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
-
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-
-        assertEquals( 2, report.getErrorReports().size() );
-
-        assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1051 ) ) ) );
-
-        assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1052 ) ) ) );
-
-        // TODO: Need help setting this up.
-//        assertThat( report.getErrorReports(),
-//            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1043 ) ) ) );
+        createBundleFromJson( "tracker/validations/events_error-no-wrong-date.json" );
     }
 
     @Test
