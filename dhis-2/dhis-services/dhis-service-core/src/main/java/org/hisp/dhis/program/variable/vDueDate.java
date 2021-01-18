@@ -29,6 +29,7 @@ package org.hisp.dhis.program.variable;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.program.AnalyticsType;
 
 /**
  * Program indicator variable: due date
@@ -41,6 +42,13 @@ public class vDueDate
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
-        return "duedate";
+        if ( AnalyticsType.EVENT == visitor.getProgramIndicator().getAnalyticsType() )
+        {
+            return "duedate";
+        }
+
+        return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
+            null, "duedate", visitor.getReportingStartDate(),
+            visitor.getReportingEndDate(), visitor.getProgramIndicator() );
     }
 }
