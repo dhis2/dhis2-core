@@ -27,24 +27,38 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.validation.comparator.ValidationResultQuery;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.validation.comparator.ValidationResultQuery;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Stian Sandvold
  */
 @Transactional
+@Slf4j
 @Service( "org.hisp.dhis.validation.ValidationResultService" )
 public class DefaultValidationResultService
     implements ValidationResultService
@@ -53,13 +67,22 @@ public class DefaultValidationResultService
 
     private final PeriodService periodService;
 
-    public DefaultValidationResultService( ValidationResultStore validationResultStore, PeriodService periodService )
+    private final OrganisationUnitService organisationUnitService;
+
+    private final ValidationRuleService validationRuleService;
+
+    public DefaultValidationResultService( ValidationResultStore validationResultStore, PeriodService periodService,
+        OrganisationUnitService organisationUnitService, ValidationRuleService validationRuleService )
     {
         checkNotNull( validationResultStore );
         checkNotNull( periodService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( validationRuleService );
 
         this.validationResultStore = validationResultStore;
         this.periodService = periodService;
+        this.organisationUnitService = organisationUnitService;
+        this.validationRuleService = validationRuleService;
     }
 
     @Override
@@ -92,7 +115,7 @@ public class DefaultValidationResultService
     @Override
     public void updateValidationResults( Set<ValidationResult> validationResults )
     {
-        validationResults.forEach( vr -> validationResultStore.update( vr ) );
+        validationResults.forEach(validationResultStore::update);
     }
 
     @Override
@@ -104,12 +127,14 @@ public class DefaultValidationResultService
     @Override
     public List<ValidationResult> getValidationResults( ValidationResultQuery query )
     {
+        validate( query );
         return validationResultStore.query( query );
     }
 
     @Override
     public long countValidationResults( ValidationResultQuery query )
     {
+        validate( query );
         return validationResultStore.count( query );
     }
 
@@ -119,5 +144,59 @@ public class DefaultValidationResultService
     {
         List<Period> persistedPeriods = periodService.reloadPeriods( new ArrayList<>( periods ) );
         return validationResultStore.getValidationResults( orgUnit, includeOrgUnitDescendants, validationRules, persistedPeriods );
+    }
+
+    private void validate( ValidationResultQuery query )
+    {
+        // check ou and vr filters to be valid UIDs
+        validateExists( query.getOu(), ErrorCode.E7500, ErrorMessage::new, IdentifiableObject::getUid,
+            organisationUnitService::getOrganisationUnitsByUid );
+        validateExists( query.getVr(), ErrorCode.E7501, ErrorMessage::new, IdentifiableObject::getUid,
+            validationRuleService::getValidationRulesByUid );
+        // check pe filters to be valid ISO expression
+        validateElements( query.getPe(), ErrorCode.E7502, ErrorMessage::new,
+            isoPeriod -> PeriodType.getPeriodFromIsoString( isoPeriod ) != null );
+    }
+
+    private <T, E> void validateExists( Collection<T> identifiers, ErrorCode code,
+        BiFunction<ErrorCode, Object, ErrorMessage> msgFactory, Function<E, T> getIdentifier,
+        Function<Collection<T>, List<E>> toObjects )
+    {
+        if ( !isEmpty( identifiers ) )
+        {
+            Set<T> existing = toObjects.apply( identifiers ).stream()
+                .map( getIdentifier )
+                .collect( toSet() );
+            for ( T identifier : identifiers )
+            {
+                if ( !existing.contains( identifier ) )
+                {
+                    throwValidationError( msgFactory.apply( code, identifier ) );
+                }
+            }
+        }
+    }
+
+    private <T> void validateElements( Collection<T> values, ErrorCode code,
+        BiFunction<ErrorCode, Object, ErrorMessage> msgFactory, Predicate<T> validator )
+    {
+        if ( !isEmpty( values ) )
+        {
+            for ( T val : values )
+            {
+                if ( !validator.test( val ) )
+                {
+                    throwValidationError( msgFactory.apply( code, val ) );
+                }
+            }
+        }
+    }
+
+    private void throwValidationError( ErrorMessage error )
+    {
+        log.warn( String.format(
+            "Validation result query failed, code: '%s', message: '%s'",
+            error.getErrorCode(), error.getMessage() ) );
+        throw new IllegalQueryException( error );
     }
 }
