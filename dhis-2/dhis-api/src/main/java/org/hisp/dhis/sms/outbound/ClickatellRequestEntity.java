@@ -72,7 +72,6 @@ public class ClickatellRequestEntity
 
     public String toString()
     {
-        return MoreObjects.toStringHelper( this ).
-            add( "content", content ).add( "to", to ).toString();
+        return MoreObjects.toStringHelper( this ).add( "content", content ).add( "to", to ).toString();
     }
 }

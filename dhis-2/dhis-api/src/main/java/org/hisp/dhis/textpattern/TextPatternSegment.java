@@ -28,12 +28,13 @@ package org.hisp.dhis.textpattern;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Objects;
+
+import org.hisp.dhis.common.DxfNamespaces;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.Objects;
 
 /**
  * @author Stian Sandvold
@@ -79,11 +80,11 @@ public class TextPatternSegment
         this.parameter = parameter;
     }
 
-
     /* Helper methods */
 
     /**
-     * Recreates the original segment text from the method name and segment parameter.
+     * Recreates the original segment text from the method name and segment
+     * parameter.
      *
      * @return The original segment based on method and parameter
      */

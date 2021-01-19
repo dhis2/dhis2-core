@@ -28,13 +28,14 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import static org.hisp.dhis.analytics.AnalyticsFavoriteType.*;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.analytics.AnalyticsFavoriteType;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -52,13 +53,13 @@ import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.hisp.dhis.analytics.AnalyticsFavoriteType.*;
-import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
@@ -83,7 +84,8 @@ public class Interpretation
 
     private Period period; // Applicable to report table and data set report
 
-    private OrganisationUnit organisationUnit; // Applicable to chart, report table and data set report
+    private OrganisationUnit organisationUnit; // Applicable to chart, report
+                                               // table and data set report
 
     private String text;
 
@@ -289,8 +291,8 @@ public class Interpretation
 
     /**
      * Attempts to add the given user to the set of users liking this
-     * interpretation. If user not already present, increments the like count with
-     * one.
+     * interpretation. If user not already present, increments the like count
+     * with one.
      *
      * @param user the user liking this interpretation.
      * @return true if the given user had not already liked this interpretation.

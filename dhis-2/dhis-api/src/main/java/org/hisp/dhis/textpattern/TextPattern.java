@@ -28,20 +28,21 @@ package org.hisp.dhis.textpattern;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.google.common.collect.ImmutableList;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.Objects;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.Objects;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.google.common.collect.ImmutableList;
+
 /**
- * This class represents a TextPattern - A String that is used to generate and validate a user-defined patterns.
- * Example pattern:
- * "Current date: " + CURRENT_DATE("DD-MM-yyyy")
+ * This class represents a TextPattern - A String that is used to generate and
+ * validate a user-defined patterns. Example pattern: "Current date: " +
+ * CURRENT_DATE("DD-MM-yyyy")
  * <p>
  * Read more about patterns in TextPatternMethod.
  *

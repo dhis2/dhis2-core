@@ -28,11 +28,13 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -46,12 +48,11 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Nguyen Hong Duc
@@ -220,7 +221,8 @@ public class User
 
     public OrganisationUnit getDataViewOrganisationUnit()
     {
-        return CollectionUtils.isEmpty( dataViewOrganisationUnits ) ? null : dataViewOrganisationUnits.iterator().next();
+        return CollectionUtils.isEmpty( dataViewOrganisationUnits ) ? null
+            : dataViewOrganisationUnits.iterator().next();
     }
 
     public boolean hasDataViewOrganisationUnitWithFallback()
@@ -239,7 +241,8 @@ public class User
     }
 
     /**
-     * Returns the data view organisation units or organisation units if not exist.
+     * Returns the data view organisation units or organisation units if not
+     * exist.
      */
     public Set<OrganisationUnit> getDataViewOrganisationUnitsWithFallback()
     {
@@ -257,7 +260,8 @@ public class User
 
     public OrganisationUnit getTeiSearchOrganisationUnit()
     {
-        return CollectionUtils.isEmpty( teiSearchOrganisationUnits ) ? null : teiSearchOrganisationUnits.iterator().next();
+        return CollectionUtils.isEmpty( teiSearchOrganisationUnits ) ? null
+            : teiSearchOrganisationUnits.iterator().next();
     }
 
     public boolean hasTeiSearchOrganisationUnitWithFallback()
@@ -266,9 +270,9 @@ public class User
     }
 
     /**
-     * Returns the first of the tei search organisation units associated with the
-     * user. If none, returns the first of the data capture organisation units.
-     * If none, return nulls.
+     * Returns the first of the tei search organisation units associated with
+     * the user. If none, returns the first of the data capture organisation
+     * units. If none, return nulls.
      */
     public OrganisationUnit getTeiSearchOrganisationUnitWithFallback()
     {
@@ -276,13 +280,13 @@ public class User
     }
 
     /**
-     * Returns the tei search organisation units or organisation units if not exist.
+     * Returns the tei search organisation units or organisation units if not
+     * exist.
      */
     public Set<OrganisationUnit> getTeiSearchOrganisationUnitsWithFallback()
     {
         return hasTeiSearchOrganisationUnit() ? teiSearchOrganisationUnits : organisationUnits;
     }
-
 
     public String getOrganisationUnitsName()
     {
@@ -355,7 +359,8 @@ public class User
      * Indicates whether this user can manage the given user group.
      *
      * @param userGroup the user group to test.
-     * @return true if the given user group can be managed by this user, false if not.
+     * @return true if the given user group can be managed by this user, false
+     *         if not.
      */
     public boolean canManage( UserGroup userGroup )
     {
@@ -390,7 +395,8 @@ public class User
      * Indicates whether this user is managed by the given user group.
      *
      * @param userGroup the user group to test.
-     * @return true if the given user group is managed by this user, false if not.
+     * @return true if the given user group is managed by this user, false if
+     *         not.
      */
     public boolean isManagedBy( UserGroup userGroup )
     {
@@ -400,7 +406,7 @@ public class User
     /**
      * Indicates whether this user is managed by the given user.
      *
-     * @param user the user  to test.
+     * @param user the user to test.
      * @return true if the given user is managed by this user, false if not.
      */
     public boolean isManagedBy( User user )

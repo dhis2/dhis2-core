@@ -28,13 +28,13 @@ package org.hisp.dhis.feedback;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObject;
-
 import javax.annotation.Nonnull;
 
+import org.hisp.dhis.common.IdentifiableObject;
+
 /**
- * Provides a zero based index for an object. The zero based unique index
- * may be unique based on a type.
+ * Provides a zero based index for an object. The zero based unique index may be
+ * unique based on a type.
  *
  * @author Volker Schmidt
  */
@@ -42,8 +42,8 @@ import javax.annotation.Nonnull;
 public interface ObjectIndexProvider
 {
     /**
-     * Returns the object index for the specified object. If the
-     * object has not yet an index, an index will be created.
+     * Returns the object index for the specified object. If the object has not
+     * yet an index, an index will be created.
      *
      * @param object the object for which an index should be returned.
      * @return the index of the specified object.

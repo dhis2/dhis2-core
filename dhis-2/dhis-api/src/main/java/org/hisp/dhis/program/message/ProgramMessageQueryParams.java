@@ -136,7 +136,7 @@ public class ProgramMessageQueryParams
     {
         this.organisationUnit = organisationUnit;
     }
-    
+
     public Integer getPage()
     {
         return page;

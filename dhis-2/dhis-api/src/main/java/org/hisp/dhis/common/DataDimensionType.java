@@ -33,8 +33,9 @@ package org.hisp.dhis.common;
  */
 public enum DataDimensionType
 {
-    DISAGGREGATION("disaggregation"), ATTRIBUTE("attribute");
-    
+    DISAGGREGATION( "disaggregation" ),
+    ATTRIBUTE( "attribute" );
+
     private final String value;
 
     DataDimensionType( String value )
@@ -54,7 +55,7 @@ public enum DataDimensionType
 
         return null;
     }
-    
+
     public String getValue()
     {
         return value;

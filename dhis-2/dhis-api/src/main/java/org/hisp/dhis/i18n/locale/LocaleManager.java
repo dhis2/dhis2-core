@@ -47,6 +47,6 @@ public interface LocaleManager
     List<Locale> getLocalesOrderedByPriority();
 
     Locale getFallbackLocale();
-    
+
     List<Locale> getAvailableLocales();
 }

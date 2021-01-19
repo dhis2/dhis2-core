@@ -38,14 +38,14 @@ public class BaseDataDimensionalItemObject
     extends BaseDimensionalItemObject implements DataDimensionalItemObject
 {
     /**
-     * The category option combo identifier used for aggregated data exports through
-     * analytics, can be null.
+     * The category option combo identifier used for aggregated data exports
+     * through analytics, can be null.
      */
     protected String aggregateExportCategoryOptionCombo;
 
     /**
-     * The attribute option combo identifier used for aggregated data exports through
-     * analytics, can be null.
+     * The attribute option combo identifier used for aggregated data exports
+     * through analytics, can be null.
      */
     protected String aggregateExportAttributeOptionCombo;
 

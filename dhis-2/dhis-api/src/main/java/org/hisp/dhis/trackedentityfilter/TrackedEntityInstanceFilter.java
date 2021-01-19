@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;

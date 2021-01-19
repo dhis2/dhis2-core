@@ -28,15 +28,15 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
@@ -65,14 +65,16 @@ public class TrackedEntityTypeAttribute
         setAutoFields();
     }
 
-    public TrackedEntityTypeAttribute( TrackedEntityType trackedEntityType, TrackedEntityAttribute trackedEntityAttribute )
+    public TrackedEntityTypeAttribute( TrackedEntityType trackedEntityType,
+        TrackedEntityAttribute trackedEntityAttribute )
     {
         this();
         this.trackedEntityType = trackedEntityType;
         this.trackedEntityAttribute = trackedEntityAttribute;
     }
 
-    public TrackedEntityTypeAttribute( TrackedEntityType trackedEntityType, TrackedEntityAttribute attribute, boolean displayInList,
+    public TrackedEntityTypeAttribute( TrackedEntityType trackedEntityType, TrackedEntityAttribute attribute,
+        boolean displayInList,
         Boolean mandatory )
     {
         this( trackedEntityType, attribute );
@@ -83,13 +85,15 @@ public class TrackedEntityTypeAttribute
     @Override
     public String getName()
     {
-        return (trackedEntityType != null ? trackedEntityType.getDisplayName() + " " : "") + (trackedEntityAttribute != null ? trackedEntityAttribute.getDisplayName() : "");
+        return (trackedEntityType != null ? trackedEntityType.getDisplayName() + " " : "")
+            + (trackedEntityAttribute != null ? trackedEntityAttribute.getDisplayName() : "");
     }
 
     @JsonProperty
     public String getDisplayShortName()
     {
-        return (trackedEntityType != null ? trackedEntityType.getDisplayShortName() + " " : "") + (trackedEntityAttribute != null ? trackedEntityAttribute.getDisplayShortName() : "");
+        return (trackedEntityType != null ? trackedEntityType.getDisplayShortName() + " " : "")
+            + (trackedEntityAttribute != null ? trackedEntityAttribute.getDisplayShortName() : "");
     }
 
     @JsonProperty

@@ -28,16 +28,15 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang3.StringUtils;
-
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSetting;
-import org.hisp.dhis.user.UserSettingKey;
-
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSetting;
+import org.hisp.dhis.user.UserSettingKey;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -110,6 +109,7 @@ public final class UserContext
     {
         userSettings.stream()
             .filter( userSetting -> !StringUtils.isEmpty( userSetting.getName() ) )
-            .forEach( userSetting -> UserContext.setUserSettingInternal( userSetting.getName(), userSetting.getValue() ) );
+            .forEach(
+                userSetting -> UserContext.setUserSettingInternal( userSetting.getName(), userSetting.getValue() ) );
     }
 }

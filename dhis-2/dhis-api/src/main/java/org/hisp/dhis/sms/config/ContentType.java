@@ -54,7 +54,7 @@ public enum ContentType
 
     public static Optional<ContentType> from( String value )
     {
-        for ( ContentType type: ContentType.values() )
+        for ( ContentType type : ContentType.values() )
         {
             if ( type.getValue().equals( value ) )
             {

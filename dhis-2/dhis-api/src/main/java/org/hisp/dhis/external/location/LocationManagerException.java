@@ -39,7 +39,7 @@ public class LocationManagerException
     {
         super( message );
     }
-    
+
     public LocationManagerException( String message, Throwable cause )
     {
         super( message, cause );

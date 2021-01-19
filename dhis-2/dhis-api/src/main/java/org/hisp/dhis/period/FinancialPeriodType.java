@@ -28,13 +28,13 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -98,9 +98,9 @@ public abstract class FinancialPeriodType
     // -------------------------------------------------------------------------
     // CalendarPeriodType functionality
     // -------------------------------------------------------------------------
-    
+
     @Override
-    public DateTimeUnit getDateWithOffset(  DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
+    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
     {
         return calendar.plusYears( dateTimeUnit, offset );
     }

@@ -28,7 +28,6 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
@@ -40,7 +39,7 @@ public interface ProgramOwnershipHistoryStore
 
     /**
      * Adds program ownership history record
-     * 
+     *
      * @param programOwnershipHistory the ownership history to add
      */
     void addProgramOwnershipHistory( ProgramOwnershipHistory programOwnershipHistory );

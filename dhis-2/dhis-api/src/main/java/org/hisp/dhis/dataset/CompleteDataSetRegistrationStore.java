@@ -28,12 +28,12 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -85,23 +85,27 @@ public interface CompleteDataSetRegistrationStore
     List<CompleteDataSetRegistration> getAllCompleteDataSetRegistrations();
 
     /**
-     * Deletes the CompleteDataSetRegistrations associated with the given DataSet.
+     * Deletes the CompleteDataSetRegistrations associated with the given
+     * DataSet.
      *
      * @param dataSet the DataSet.
      */
     void deleteCompleteDataSetRegistrations( DataSet dataSet );
 
     /**
-     * Deletes the CompleteDataSetRegistrations associated with the given OrganisationUnit.
+     * Deletes the CompleteDataSetRegistrations associated with the given
+     * OrganisationUnit.
      *
      * @param unit the OrganisationUnit.
      */
     void deleteCompleteDataSetRegistrations( OrganisationUnit unit );
 
     /**
-     * Returns the number of Complete DataSets which have been updated at or after the given date time.
+     * Returns the number of Complete DataSets which have been updated at or
+     * after the given date time.
      *
-     * @param lastUpdated specifies the date to filter complete data sets last updated after
+     * @param lastUpdated specifies the date to filter complete data sets last
+     *        updated after
      * @return the number of completed DataSets.
      */
     int getCompleteDataSetCountLastUpdatedAfter( Date lastUpdated );

@@ -28,14 +28,18 @@ package org.hisp.dhis.render;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-
 import java.util.LinkedHashMap;
 
+import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 /**
- * This class represents the relationship between a RenderingType and a RenderDevice. A RenderDevice can have one RenderType.
- * @param <T> an object wrapping an enum representing options for rendering a specific object
+ * This class represents the relationship between a RenderingType and a
+ * RenderDevice. A RenderDevice can have one RenderType.
+ *
+ * @param <T> an object wrapping an enum representing options for rendering a
+ *        specific object
  */
 @JacksonXmlRootElement( localName = "renderType", namespace = DxfNamespaces.DXF_2_0 )
 public class DeviceRenderTypeMap<T>

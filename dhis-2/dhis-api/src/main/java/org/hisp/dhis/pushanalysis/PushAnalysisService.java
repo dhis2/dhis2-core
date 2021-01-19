@@ -28,11 +28,11 @@ package org.hisp.dhis.pushanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.user.User;
-
 import java.io.IOException;
 import java.util.List;
+
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Stian Sandvold
@@ -41,6 +41,7 @@ public interface PushAnalysisService
 {
     /**
      * Returns a PushAnalysis with the given UID
+     *
      * @param uid uid of the PushAnalysis
      * @return PushAnalysis
      */
@@ -48,13 +49,16 @@ public interface PushAnalysisService
 
     /**
      * Returns all PushAnalysis
+     *
      * @return List of PushAnalysis
      */
     List<PushAnalysis> getAll();
 
     /**
-     * Returns a String, consisting of HTML representing the PushAnalysis report.
-     * This report is generated based on the associated Dashboard, as well as the user supplied
+     * Returns a String, consisting of HTML representing the PushAnalysis
+     * report. This report is generated based on the associated Dashboard, as
+     * well as the user supplied
+     *
      * @param pushAnalysis PushAnalysis to generate report from
      * @param user User to base data on
      * @param jobId JobId to track process
@@ -65,8 +69,10 @@ public interface PushAnalysisService
         throws IOException;
 
     /**
-     * Used to Generate and send reports to all UserGroups assigned to the PushAnalysis,
-     * using generateHtmlReport to generate the reports for each individual user in the UserGroups.
+     * Used to Generate and send reports to all UserGroups assigned to the
+     * PushAnalysis, using generateHtmlReport to generate the reports for each
+     * individual user in the UserGroups.
+     *
      * @param uid of the PushAnalysis
      * @param jobId to track process
      */

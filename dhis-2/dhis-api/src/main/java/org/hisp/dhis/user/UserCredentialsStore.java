@@ -28,10 +28,11 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericStore;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+
+import org.hisp.dhis.common.GenericStore;
 
 /**
  * @author Lars Helge Overland
@@ -77,8 +78,8 @@ public interface UserCredentialsStore
     UserCredentials getUserCredentialsByLdapId( String ldapId );
 
     /**
-     * Retrieves the UserCredentials associated with the User with the given
-     * id token.
+     * Retrieves the UserCredentials associated with the User with the given id
+     * token.
      *
      * @param token the restore token of the User.
      * @return the UserCredentials.

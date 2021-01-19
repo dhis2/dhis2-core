@@ -31,12 +31,12 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.program.UserInfoSnapshot;
 
 /**
  * @author David Katuscak
@@ -133,7 +133,7 @@ public class EventDataValue implements Serializable
             return false;
         }
 
-        return dataElement.equals( ( (EventDataValue) object ).dataElement );
+        return dataElement.equals( ((EventDataValue) object).dataElement );
     }
 
     // -------------------------------------------------------------------------

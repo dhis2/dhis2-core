@@ -28,6 +28,10 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+
+import java.util.List;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -47,10 +51,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
-import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
-
-import java.util.List;
-
 /**
  * @author Lars Helge Overland
  */
@@ -61,11 +61,11 @@ public class ProgramTrackedEntityAttributeDimensionItem
     private Program program;
 
     private TrackedEntityAttribute attribute;
-    
+
     public ProgramTrackedEntityAttributeDimensionItem()
     {
     }
-    
+
     public ProgramTrackedEntityAttributeDimensionItem( Program program, TrackedEntityAttribute attribute )
     {
         this.program = program;
@@ -85,7 +85,8 @@ public class ProgramTrackedEntityAttributeDimensionItem
     @Override
     public String getDimensionItem( IdScheme idScheme )
     {
-        return program.getPropertyValue( idScheme ) + COMPOSITE_DIM_OBJECT_PLAIN_SEP + attribute.getPropertyValue( idScheme );
+        return program.getPropertyValue( idScheme ) + COMPOSITE_DIM_OBJECT_PLAIN_SEP
+            + attribute.getPropertyValue( idScheme );
     }
 
     @Override
@@ -116,7 +117,7 @@ public class ProgramTrackedEntityAttributeDimensionItem
             .add( "program", program )
             .add( "attribute", attribute ).toString();
     }
-    
+
     @Override
     public int hashCode()
     {
@@ -142,7 +143,7 @@ public class ProgramTrackedEntityAttributeDimensionItem
         }
 
         ProgramTrackedEntityAttributeDimensionItem other = (ProgramTrackedEntityAttributeDimensionItem) object;
-        
+
         return Objects.equal( attribute, other.attribute ) && Objects.equal( program, other.program );
     }
 
@@ -177,13 +178,13 @@ public class ProgramTrackedEntityAttributeDimensionItem
     {
         this.attribute = attribute;
     }
-    
+
     @Override
     public String getName()
     {
         return program.getName() + " " + attribute.getName();
     }
-    
+
     @Override
     public String getDisplayName()
     {

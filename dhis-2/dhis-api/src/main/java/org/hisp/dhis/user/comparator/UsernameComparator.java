@@ -46,12 +46,12 @@ public class UsernameComparator
         {
             return 1;
         }
-        
+
         if ( uc1 == null )
         {
             return -1;
         }
-        
+
         return uc0.getUsername().compareTo( uc1.getUsername() );
     }
 }

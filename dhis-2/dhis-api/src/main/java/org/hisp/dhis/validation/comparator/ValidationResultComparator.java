@@ -34,7 +34,7 @@ import org.hisp.dhis.validation.ValidationResult;
 
 /**
  * Comparator sorting on the result period.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class ValidationResultComparator
@@ -55,7 +55,7 @@ public class ValidationResultComparator
         {
             return -1;
         }
-        
+
         return result1.getPeriod().getStartDate().compareTo( result2.getPeriod().getStartDate() );
     }
 }

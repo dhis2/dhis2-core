@@ -45,11 +45,11 @@ public class AnalyticsTableHook
     extends BaseIdentifiableObject implements MetadataObject
 {
     private AnalyticsTablePhase phase;
-    
+
     private ResourceTableType resourceTableType;
-    
+
     private AnalyticsTableType analyticsTableType;
-    
+
     private String sql;
 
     // -------------------------------------------------------------------------
@@ -67,8 +67,9 @@ public class AnalyticsTableHook
         this.resourceTableType = resourceTableType;
         this.sql = sql;
     }
-    
-    public AnalyticsTableHook( String name, AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType, String sql )
+
+    public AnalyticsTableHook( String name, AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType,
+        String sql )
     {
         this.name = name;
         this.phase = phase;

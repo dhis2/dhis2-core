@@ -31,7 +31,6 @@ import org.hisp.dhis.user.User;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
@@ -43,11 +42,10 @@ public interface ProgramTempOwnerStore
 
     /**
      * Adds program temo owner record
-     * 
+     *
      * @param programTempOwner the temp owner details to add
      */
     void addProgramTempOwner( ProgramTempOwner programTempOwner );
-    
 
     int getValidTempOwnerCount( Program program, TrackedEntityInstance entityInstance, User user );
 }

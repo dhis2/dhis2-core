@@ -28,10 +28,10 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.schema.Property;
-
 import java.util.List;
 import java.util.Map;
+
+import org.hisp.dhis.schema.Property;
 
 /**
  * Simple service for {@link JobConfiguration} objects.
@@ -96,9 +96,9 @@ public interface JobConfigurationService
     List<JobConfiguration> getAllJobConfigurations();
 
     /**
-     * Get a map of parameter classes with appropriate properties
-     * This can be used for a frontend app or for other appropriate applications which needs information about the jobs
-     * in the system.
+     * Get a map of parameter classes with appropriate properties This can be
+     * used for a frontend app or for other appropriate applications which needs
+     * information about the jobs in the system.
      * <p>
      * It uses {@link JobType}.
      *
@@ -115,6 +115,7 @@ public interface JobConfigurationService
 
     /**
      * Update the state of the jobConfiguration.
+     *
      * @param jobConfiguration
      */
     void refreshScheduling( JobConfiguration jobConfiguration );

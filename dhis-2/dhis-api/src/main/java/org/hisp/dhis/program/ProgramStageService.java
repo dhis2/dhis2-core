@@ -28,10 +28,9 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
 
 import org.hisp.dhis.dataentryform.DataEntryForm;
-
-import java.util.List;
 
 /**
  * @author Abyot Asalefew
@@ -85,6 +84,7 @@ public interface ProgramStageService
 
     /**
      * Retrieve all ProgramStages associated with the given DataEntryForm.
+     *
      * @param dataEntryForm the DataEntryForm.
      * @return a list og ProgramStages.
      */

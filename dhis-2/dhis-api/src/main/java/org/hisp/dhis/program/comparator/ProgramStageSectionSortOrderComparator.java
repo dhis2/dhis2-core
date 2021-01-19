@@ -28,9 +28,9 @@ package org.hisp.dhis.program.comparator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramStageSection;
-
 import java.util.Comparator;
+
+import org.hisp.dhis.program.ProgramStageSection;
 
 /**
  * @author Chau Thu Tran

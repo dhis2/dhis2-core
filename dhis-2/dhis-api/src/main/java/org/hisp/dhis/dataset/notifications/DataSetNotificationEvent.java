@@ -40,7 +40,7 @@ public class DataSetNotificationEvent extends ApplicationEvent
 
     public DataSetNotificationEvent( Object source, CompleteDataSetRegistration registration )
     {
-        super(source);
+        super( source );
         this.registration = registration;
     }
 

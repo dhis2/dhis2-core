@@ -39,12 +39,12 @@ public class NoConfigurationFoundException
     {
         super( message );
     }
-    
+
     public NoConfigurationFoundException( Throwable throable )
     {
         super( throable );
     }
-    
+
     public NoConfigurationFoundException( String message, Throwable trowable )
     {
         super( message, trowable );

@@ -39,9 +39,10 @@ import java.util.List;
 public interface MetadataVersionService
 {
     // ------------------------------------------------------------------------
-    //   Constants
-    //-------------------------------------------------------------------------
+    // Constants
+    // -------------------------------------------------------------------------
     String METADATASTORE = "METADATASTORE";
+
     String METADATAVERSION_NAME_PREFIX = "Version_";
 
     /**
@@ -60,9 +61,10 @@ public interface MetadataVersionService
     void updateVersion( MetadataVersion version );
 
     /**
-     * Updates the name of the metadata version with the given identifier and name.
+     * Updates the name of the metadata version with the given identifier and
+     * name.
      *
-     * @param id   the identifier.
+     * @param id the identifier.
      * @param name the name.
      */
     void updateVersionName( long id, String name );
@@ -101,7 +103,7 @@ public interface MetadataVersionService
      * Gets all versions between two data ranges on the created date.
      *
      * @param startDate the start date.
-     * @param endDate   the end date.
+     * @param endDate the end date.
      * @return a list of metadata versions matching the date range.
      */
     List<MetadataVersion> getAllVersionsInBetween( Date startDate, Date endDate );

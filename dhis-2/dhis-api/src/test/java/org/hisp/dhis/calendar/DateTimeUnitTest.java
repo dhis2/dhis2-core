@@ -28,15 +28,15 @@ package org.hisp.dhis.calendar;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.joda.time.DateTime;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-import static org.junit.Assert.assertEquals;
+import org.joda.time.DateTime;
+import org.junit.Test;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -118,7 +118,9 @@ public class DateTimeUnitTest
     @Test
     public void adjustedTimeZoneTest()
     {
-        TimeZone timeZone = TimeZone.getTimeZone( "Asia/Ho_Chi_Minh" ); // UTC/GMT +7.00 hours
+        TimeZone timeZone = TimeZone.getTimeZone( "Asia/Ho_Chi_Minh" ); // UTC/GMT
+                                                                        // +7.00
+                                                                        // hours
 
         DateTimeUnit dateTimeUnit = new DateTimeUnit( true );
         dateTimeUnit.setDate( 2014, 3, 20 );
@@ -129,7 +131,8 @@ public class DateTimeUnitTest
     }
 
     // Test for JT conversion exception:
-    // Illegal instant due to time zone offset transition (daylight savings time 'gap'): 1986-01-01T00:00:00.000 (Asia/Kathmandu)
+    // Illegal instant due to time zone offset transition (daylight savings time
+    // 'gap'): 1986-01-01T00:00:00.000 (Asia/Kathmandu)
     @Test
     public void illegalInstantGapTest()
     {

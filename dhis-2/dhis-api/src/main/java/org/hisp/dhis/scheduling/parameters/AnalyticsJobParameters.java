@@ -28,20 +28,21 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.parameters.jackson.AnalyticsJobParametersDeserializer;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Henning Håkonsen
@@ -63,7 +64,8 @@ public class AnalyticsJobParameters
     {
     }
 
-    public AnalyticsJobParameters( Integer lastYears, Set<AnalyticsTableType> skipTableTypes, boolean skipResourceTables )
+    public AnalyticsJobParameters( Integer lastYears, Set<AnalyticsTableType> skipTableTypes,
+        boolean skipResourceTables )
     {
         this.lastYears = lastYears;
         this.skipTableTypes = skipTableTypes;

@@ -28,11 +28,12 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static org.junit.Assert.*;
+
 import org.hisp.dhis.dataelement.DataElement;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -107,9 +108,12 @@ public class PreheatTest
         assertTrue( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, de2.getCode() ) );
         assertTrue( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, de3.getCode() ) );
 
-        assertEquals( de1.getCode(), preheat.get( PreheatIdentifier.CODE, DataElement.class, de1.getCode() ).getCode() );
-        assertEquals( de2.getCode(), preheat.get( PreheatIdentifier.CODE, DataElement.class, de2.getCode() ).getCode() );
-        assertEquals( de3.getCode(), preheat.get( PreheatIdentifier.CODE, DataElement.class, de3.getCode() ).getCode() );
+        assertEquals( de1.getCode(),
+            preheat.get( PreheatIdentifier.CODE, DataElement.class, de1.getCode() ).getCode() );
+        assertEquals( de2.getCode(),
+            preheat.get( PreheatIdentifier.CODE, DataElement.class, de2.getCode() ).getCode() );
+        assertEquals( de3.getCode(),
+            preheat.get( PreheatIdentifier.CODE, DataElement.class, de3.getCode() ).getCode() );
     }
 
     @Test
@@ -188,7 +192,8 @@ public class PreheatTest
         assertFalse( preheat.isEmpty( PreheatIdentifier.UID ) );
         assertTrue( preheat.isEmpty( PreheatIdentifier.CODE ) );
 
-        preheat.remove( PreheatIdentifier.UID, DataElement.class, Lists.newArrayList( de1.getUid(), de2.getUid(), de3.getUid() ) );
+        preheat.remove( PreheatIdentifier.UID, DataElement.class,
+            Lists.newArrayList( de1.getUid(), de2.getUid(), de3.getUid() ) );
 
         assertFalse( preheat.containsKey( PreheatIdentifier.UID, DataElement.class, de1.getUid() ) );
         assertFalse( preheat.containsKey( PreheatIdentifier.UID, DataElement.class, de2.getUid() ) );

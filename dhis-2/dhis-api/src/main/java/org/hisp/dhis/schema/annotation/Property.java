@@ -52,12 +52,16 @@ public @interface Property
 
     enum Value
     {
-        TRUE, FALSE, DEFAULT
+        TRUE,
+        FALSE,
+        DEFAULT
     }
 
     enum Access
     {
-        READ_ONLY, WRITE_ONLY, READ_WRITE;
+        READ_ONLY,
+        WRITE_ONLY,
+        READ_WRITE;
 
         public boolean isReadable()
         {

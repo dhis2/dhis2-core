@@ -39,8 +39,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
-* @author Zubair <rajazubair.asghar@gmail.com>
-*/
+ * @author Zubair <rajazubair.asghar@gmail.com>
+ */
 @JacksonXmlRootElement( localName = "programMessageBatch", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramMessageBatch
 {

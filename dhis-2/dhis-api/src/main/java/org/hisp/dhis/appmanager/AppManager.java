@@ -116,24 +116,24 @@ public interface AppManager
     List<App> getAppsByName( String name, Collection<App> apps, String operator );
 
     /**
-     * Returns a list of all installed apps with shortName equal the given name and
-     * operator. Currently supports eq and ilike.
+     * Returns a list of all installed apps with shortName equal the given name
+     * and operator. Currently supports eq and ilike.
      *
      * @return list of installed apps with given name
      */
     List<App> getAppsByShortName( String shortName, Collection<App> apps, String operator );
 
     /**
-     * Returns a list of all installed apps which are either bundled or not bundled
-     * operator. Currently supports eq.
+     * Returns a list of all installed apps which are either bundled or not
+     * bundled operator. Currently supports eq.
      *
      * @return list of installed apps with given isBundled property
      */
     List<App> getAppsByIsBundled( boolean isBundled, Collection<App> apps );
 
     /**
-     * Return a list of all installed apps with given filter list Currently support
-     * filtering by AppType and name
+     * Return a list of all installed apps with given filter list Currently
+     * support filtering by AppType and name
      *
      * @param filter
      * @return Return a list of all installed apps with given filter list
@@ -178,8 +178,8 @@ public interface AppManager
      * Deletes the given app.
      *
      * @param app the app to delete.
-     * @param deleteAppData decide if associated data in dataStore should be deleted
-     *        or not.
+     * @param deleteAppData decide if associated data in dataStore should be
+     *        deleted or not.
      */
     void deleteApp( App app, boolean deleteAppData );
 

@@ -28,6 +28,9 @@ package org.hisp.dhis.dashboard;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
@@ -37,9 +40,6 @@ import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -83,7 +83,7 @@ public interface DashboardService
     // -------------------------------------------------------------------------
 
     void updateDashboardItem( DashboardItem item );
-    
+
     DashboardItem getDashboardItem( String uid );
 
     Dashboard getDashboardFromDashboardItem( DashboardItem dashboardItem );

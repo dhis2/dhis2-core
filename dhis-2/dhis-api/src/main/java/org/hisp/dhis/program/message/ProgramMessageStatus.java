@@ -38,5 +38,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "programMessageStatus", namespace = DxfNamespaces.DXF_2_0 )
 public enum ProgramMessageStatus
 {
-    SENT, FAILED, SCHEDULED, OUTBOUND
+    SENT,
+    FAILED,
+    SCHEDULED,
+    OUTBOUND
 }

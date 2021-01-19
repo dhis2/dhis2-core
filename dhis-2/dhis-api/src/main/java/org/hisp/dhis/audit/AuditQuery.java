@@ -28,15 +28,15 @@ package org.hisp.dhis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.Value;
-
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -58,29 +58,32 @@ public class AuditQuery
     private Set<AuditScope> auditScope = new HashSet<>();
 
     /**
-     * This narrows the search scope for audits, the class name should be fully qualified.
+     * This narrows the search scope for audits, the class name should be fully
+     * qualified.
      * <p>
-     * TODO should it be fully qualified? what about refactors? what about duplicate class names if we don't do it?
+     * TODO should it be fully qualified? what about refactors? what about
+     * duplicate class names if we don't do it?
      */
     @Builder.Default
     private Set<String> klass = new HashSet<>();
 
     /**
-     * This narrows the search scope by search by a list of UIDs. This binds an AND relationship with klass,
-     * and a OR relationship with code.
+     * This narrows the search scope by search by a list of UIDs. This binds an
+     * AND relationship with klass, and a OR relationship with code.
      */
     @Builder.Default
     private Set<String> uid = new HashSet<>();
 
     /**
-     * This narrows the search scope by search by a list of codes. This binds an AND relationship with klass,
-     * and a OR relationship with uid.
+     * This narrows the search scope by search by a list of codes. This binds an
+     * AND relationship with klass, and a OR relationship with uid.
      */
     @Builder.Default
     private Set<String> code = new HashSet<>();
 
     /**
-     * This narrows the search by filtering records base on the values of {@link AuditAttributes}
+     * This narrows the search by filtering records base on the values of
+     * {@link AuditAttributes}
      */
     @Builder.Default
     private AuditAttributes auditAttributes = new AuditAttributes();

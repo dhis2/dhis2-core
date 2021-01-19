@@ -54,27 +54,26 @@ public class ValidationResultQuery
     private long total;
 
     /**
-     * Optional list of validation rule uids to filter.
-     * If empty the list is not restricting the query.
+     * Optional list of validation rule uids to filter. If empty the list is not
+     * restricting the query.
      */
     private List<String> vr;
 
     /**
-     * Optional list of organisation unit uids to filter.
-     * If empty the list is not restricting the query.
+     * Optional list of organisation unit uids to filter. If empty the list is
+     * not restricting the query.
      */
     private List<String> ou;
 
-
     /**
-     * Optional list of ISO-Date expressions to filter.
-     * If empty the list is not restricting the query.
+     * Optional list of ISO-Date expressions to filter. If empty the list is not
+     * restricting the query.
      */
     private List<String> pe;
 
-
     /**
-     * Optional filter to select only results that have been created on or after the given date.
+     * Optional filter to select only results that have been created on or after
+     * the given date.
      */
     private Date createdDate;
 

@@ -31,16 +31,16 @@ package org.hisp.dhis.outboundmessage;
 import java.util.Set;
 
 /**
-* @author Zubair <rajazubair.asghar@gmail.com>
-*/
+ * @author Zubair <rajazubair.asghar@gmail.com>
+ */
 public class OutboundMessage
 {
     private String subject;
 
     private String text;
-    
+
     private Set<String> recipients;
-   
+
     public OutboundMessage( String subject, String text, Set<String> recipients )
     {
         this.subject = subject;

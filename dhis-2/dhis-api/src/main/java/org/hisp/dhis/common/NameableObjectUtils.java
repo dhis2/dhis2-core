@@ -72,15 +72,16 @@ public class NameableObjectUtils
     }
 
     /**
-     * Returns a list of BaseNameableObjects based on the given list of NameableObjects.
-     * 
+     * Returns a list of BaseNameableObjects based on the given list of
+     * NameableObjects.
+     *
      * @param objects the list of NameableObjects.
      * @return a list of BaseNameableObejcts.
      */
     public static List<NameableObject> getAsNameableObjects( List<? extends NameableObject> objects )
     {
         List<NameableObject> list = new ArrayList<>();
-        
+
         for ( NameableObject object : objects )
         {
             if ( object != null )
@@ -88,10 +89,10 @@ public class NameableObjectUtils
                 list.add( new BaseNameableObject( object ) );
             }
         }
-        
+
         return list;
     }
-    
+
     /**
      * Returns a mapping between the UID and the nameable objects.
      *
@@ -121,7 +122,8 @@ public class NameableObjectUtils
      * @param displayProperty the property to use as value.
      * @return mapping between the uid and the property of the given objects.
      */
-    public static Map<String, String> getUidDisplayPropertyMap( Collection<? extends NameableObject> objects, DisplayProperty displayProperty )
+    public static Map<String, String> getUidDisplayPropertyMap( Collection<? extends NameableObject> objects,
+        DisplayProperty displayProperty )
     {
         Map<String, String> map = new HashMap<>();
 
@@ -135,10 +137,11 @@ public class NameableObjectUtils
 
         return map;
     }
-        
+
     /**
-     * Returns a copy of the given list. Returns an empty list if the argument is null.
-     * 
+     * Returns a copy of the given list. Returns an empty list if the argument
+     * is null.
+     *
      * @param objects a list.
      * @return a list of objects.
      */

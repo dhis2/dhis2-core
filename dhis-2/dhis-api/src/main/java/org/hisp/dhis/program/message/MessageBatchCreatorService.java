@@ -33,8 +33,8 @@ import java.util.List;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 
 /**
-* @author Zubair <rajazubair.asghar@gmail.com>
-*/
+ * @author Zubair <rajazubair.asghar@gmail.com>
+ */
 public interface MessageBatchCreatorService
 {
     /**

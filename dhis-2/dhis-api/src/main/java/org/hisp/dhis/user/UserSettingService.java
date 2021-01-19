@@ -57,7 +57,7 @@ public interface UserSettingService
     void saveUserSetting( UserSettingKey key, Serializable value );
 
     /**
-     * Saves the key/value pair as a user setting connected to user identified 
+     * Saves the key/value pair as a user setting connected to user identified
      * by username.
      *
      * @param key the user setting key.
@@ -132,12 +132,14 @@ public interface UserSettingService
     List<UserSetting> getAllUserSettings();
 
     /**
-     * Returns all specified user settings. If any user settings have not been set,
-     * system settings will be used as a fallback.
+     * Returns all specified user settings. If any user settings have not been
+     * set, system settings will be used as a fallback.
+     *
      * @param userSettingKeys the set of user settings to retrieve
      * @return a map of setting names and their values
      */
-    Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user, Set<UserSettingKey> userSettingKeys, boolean useFallback );
+    Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user, Set<UserSettingKey> userSettingKeys,
+        boolean useFallback );
 
     /**
      * Invalidates in-memory caches.
@@ -145,8 +147,9 @@ public interface UserSettingService
     void invalidateCache();
 
     /**
-     * Returns all user settings for currently logged in user. Setting will not be
-     * included in map if its value is null.
+     * Returns all user settings for currently logged in user. Setting will not
+     * be included in map if its value is null.
+     *
      * @return a map of setting names and their values
      */
     Map<String, Serializable> getUserSettingsAsMap();

@@ -47,14 +47,14 @@ public interface ProgramStageDataElementStore
      * element
      *
      * @param programStage ProgramStage
-     * @param dataElement  DataElement
+     * @param dataElement DataElement
      * @return ProgramStageDataElement
      */
     ProgramStageDataElement get( ProgramStage programStage, DataElement dataElement );
 
-
     /**
-     * Returns Map of ProgramStages containing Set of DataElements (together ProgramStageDataElements) that have skipSynchronization flag set to true
+     * Returns Map of ProgramStages containing Set of DataElements (together
+     * ProgramStageDataElements) that have skipSynchronization flag set to true
      *
      * @return Map<String, Set<String>>
      */

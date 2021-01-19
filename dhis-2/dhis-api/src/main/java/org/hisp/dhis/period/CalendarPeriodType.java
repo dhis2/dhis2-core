@@ -28,13 +28,14 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.calendar.DateTimeUnit;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
+
+import com.google.common.collect.Lists;
 
 /**
  * The superclass of all PeriodTypes which represent typical calendar periods
@@ -62,7 +63,7 @@ public abstract class CalendarPeriodType
      * in order.
      *
      * @param period the Period which touches the time span to generate Periods
-     *               for.
+     *        for.
      * @return a list of Periods for a defined time span.
      */
     public List<Period> generatePeriods( Period period )
@@ -131,7 +132,7 @@ public abstract class CalendarPeriodType
      * date.
      *
      * @param startDate the start date.
-     * @param endDate   the end date.
+     * @param endDate the end date.
      * @return a list of Periods for the defined time span.
      */
     public List<Period> generatePeriods( Calendar calendar, Date startDate, Date endDate )

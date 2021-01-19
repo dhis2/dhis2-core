@@ -28,9 +28,9 @@ package org.hisp.dhis.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DeliveryChannel;
-
 import java.util.Set;
+
+import org.hisp.dhis.common.DeliveryChannel;
 
 /**
  * @author Halvdan Hoem Grelland

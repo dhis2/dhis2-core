@@ -28,17 +28,18 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.calendar.DateInterval;
-import org.hisp.dhis.calendar.DateIntervalType;
-import org.hisp.dhis.calendar.DateTimeUnit;
-
 import java.time.LocalDate;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.calendar.DateInterval;
+import org.hisp.dhis.calendar.DateIntervalType;
+import org.hisp.dhis.calendar.DateTimeUnit;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -131,7 +132,8 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
     {
         Calendar calendar = getCalendar();
         List<Period> periods = new ArrayList<>();
-        start = new DateTimeUnit( start ); // create clone so we don't modify the original start DT
+        start = new DateTimeUnit( start ); // create clone so we don't modify
+                                           // the original start DT
 
         start.setMonth( 1 );
         start.setDay( 4 );

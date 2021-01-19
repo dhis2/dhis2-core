@@ -31,13 +31,13 @@ package org.hisp.dhis.fileresource;
 import java.util.Optional;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.springframework.util.MimeTypeUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -84,8 +84,9 @@ public class FileResource
     private FileResourceDomain domain;
 
     /**
-     *  To keep track of those files which are not pre-generated and need to be processed later.
-     *  Flag will be set to true for FileResource having more than one file associated with it (e.g images)
+     * To keep track of those files which are not pre-generated and need to be
+     * processed later. Flag will be set to true for FileResource having more
+     * than one file associated with it (e.g images)
      */
     private boolean hasMultipleStorageFiles;
 
@@ -102,7 +103,8 @@ public class FileResource
     {
     }
 
-    public FileResource( String name, String contentType, long contentLength, String contentMd5, FileResourceDomain domain )
+    public FileResource( String name, String contentType, long contentLength, String contentMd5,
+        FileResourceDomain domain )
     {
         this.name = name;
         this.contentType = contentType;
@@ -221,7 +223,7 @@ public class FileResource
 
     public String getFormat()
     {
-        return this.contentType.split("[/;]" )[1];
+        return this.contentType.split( "[/;]" )[1];
     }
 
     @JsonProperty

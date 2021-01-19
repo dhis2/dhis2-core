@@ -28,13 +28,14 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+
+import org.hisp.dhis.attribute.Attribute;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
-import org.hisp.dhis.attribute.Attribute;
-
-import java.io.IOException;
 
 public class CustomAttributeSerializer
     extends JsonSerializer<Attribute>

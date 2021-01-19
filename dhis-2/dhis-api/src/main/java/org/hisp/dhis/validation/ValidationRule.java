@@ -28,12 +28,9 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -50,8 +47,12 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Kristian Nordal
@@ -102,7 +103,8 @@ public class ValidationRule
     private boolean skipFormValidation;
 
     /**
-     * Validation Rule will only be run for organisation units at these levels (or all levels if set is empty)
+     * Validation Rule will only be run for organisation units at these levels
+     * (or all levels if set is empty)
      */
     private Set<Integer> organisationUnitLevels = new HashSet<>();
 

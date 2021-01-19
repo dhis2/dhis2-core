@@ -33,13 +33,15 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 /**
  * @author Stian Sandvold
  */
-public interface ExternalFileResourceStore 
+public interface ExternalFileResourceStore
     extends IdentifiableObjectStore<ExternalFileResource>
 {
     /**
-     * Returns a single ExternalFileResource with the given (unique) accessToken.
-     * 
-     * @param accessToken unique string belonging to a single ExternalFileResource.
+     * Returns a single ExternalFileResource with the given (unique)
+     * accessToken.
+     *
+     * @param accessToken unique string belonging to a single
+     *        ExternalFileResource.
      * @return ExternalFileResource
      */
     ExternalFileResource getExternalFileResourceByAccessToken( String accessToken );

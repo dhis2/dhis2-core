@@ -36,7 +36,7 @@ import com.google.common.collect.Lists;
 /**
  * @deprecated This is added for backward compatibility. Use
  *             {@link #GenericHttpGatewayConfig} instead.
- * 
+ *
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 @Deprecated
@@ -109,4 +109,4 @@ public class GenericHttpGetGatewayConfig
     {
         this.contentType = contentType;
     }
-} 
+}

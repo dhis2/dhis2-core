@@ -30,7 +30,7 @@ package org.hisp.dhis.programstagefilter;
 
 /**
  * Enum for representing absolute or relative date period.
- * 
+ *
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */

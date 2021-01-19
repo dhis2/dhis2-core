@@ -28,11 +28,9 @@ package org.hisp.dhis.trackedentityattributevalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
+import java.util.Date;
+
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
@@ -41,8 +39,11 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * TODO index on attribute and instance
@@ -200,7 +201,6 @@ public class TrackedEntityAttributeValue
         return true;
     }
 
-
     @Override
     public String toString()
     {
@@ -248,8 +248,8 @@ public class TrackedEntityAttributeValue
 
     /**
      * Retrieves the encrypted value if the attribute is confidential. If the
-     * value is not confidential, returns old value. Should be null unless it was
-     * confidential at an earlier stage.
+     * value is not confidential, returns old value. Should be null unless it
+     * was confidential at an earlier stage.
      *
      * @return String with decrypted value or null.
      */

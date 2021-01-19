@@ -28,12 +28,12 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.*;
 
 import java.util.Set;
 
-import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * @author Markus Bekken
@@ -44,7 +44,7 @@ public enum ProgramRuleActionType
     DISPLAYKEYVALUEPAIR( "displaykeyvaluepair" ),
     HIDEFIELD( "hidefield" ),
     HIDESECTION( "hidesection" ),
-    HIDEPROGRAMSTAGE( "hideprogramstage"),
+    HIDEPROGRAMSTAGE( "hideprogramstage" ),
     ASSIGN( "assign", ON_DATA_ENTRY, ON_COMPLETE ),
     SHOWWARNING( "showwarning" ),
     WARNINGONCOMPLETE( "warningoncomplete" ),
@@ -62,14 +62,20 @@ public enum ProgramRuleActionType
 
     final Set<ProgramRuleActionEvaluationTime> whenToRun;
 
-    private static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS =
-        new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE, ASSIGN ).build(); // Actions having back end implementation
+    private static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS = new ImmutableSet.Builder<ProgramRuleActionType>()
+        .add( SENDMESSAGE, SCHEDULEMESSAGE, ASSIGN ).build(); // Actions having
+                                                              // back end
+                                                              // implementation
 
-    private static final Set<ProgramRuleActionType> DATA_LINKED_TYPES = new ImmutableSet.Builder<ProgramRuleActionType>().add( HIDEFIELD, SETMANDATORYFIELD, HIDEOPTION,
-        HIDEOPTIONGROUP, SHOWOPTIONGROUP ).build(); // Actions associated with DataElement Or TrackedEntityAttribute
+    private static final Set<ProgramRuleActionType> DATA_LINKED_TYPES = new ImmutableSet.Builder<ProgramRuleActionType>()
+        .add( HIDEFIELD, SETMANDATORYFIELD, HIDEOPTION,
+            HIDEOPTIONGROUP, SHOWOPTIONGROUP )
+        .build(); // Actions associated with DataElement Or
+                  // TrackedEntityAttribute
 
-    private static final Set<ProgramRuleActionType> NOTIFICATION_LINKED_TYPES =
-        new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE ).build(); // Actions associated with NotificationTemplate
+    private static final Set<ProgramRuleActionType> NOTIFICATION_LINKED_TYPES = new ImmutableSet.Builder<ProgramRuleActionType>()
+        .add( SENDMESSAGE, SCHEDULEMESSAGE ).build(); // Actions associated with
+                                                      // NotificationTemplate
 
     ProgramRuleActionType( String value )
     {

@@ -40,7 +40,7 @@ public interface UserAuthorityGroupStore
     /**
      * Returns the number of UserAuthorityGroups which are associated with the
      * given DataSet.
-     *  
+     *
      * @param dataSet the DataSet.
      * @return number of UserAuthorityGroups.
      */

@@ -31,14 +31,14 @@ package org.hisp.dhis.common;
 import java.util.Date;
 import java.util.Set;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
-
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * This class contains all the criteria that can be used to execute a DHIS2
@@ -68,22 +68,22 @@ public class EventsAnalyticsQueryCriteria
     private Date endDate;
 
     /**
-     * Dimension identifier including data elements, attributes, program indicators,
-     * periods, organisation units and organisation unit group sets. Parameter can
-     * be repeated any number of times.
+     * Dimension identifier including data elements, attributes, program
+     * indicators, periods, organisation units and organisation unit group sets.
+     * Parameter can be repeated any number of times.
      */
     private Set<String> dimension;
 
     /**
      * Filters to apply to the analytics: a Set of identifiers including data
-     * elements, attributes, periods, organisation units and organisation unit group
-     * sets. Parameter can be repeated any number of times.
+     * elements, attributes, periods, organisation units and organisation unit
+     * group sets. Parameter can be repeated any number of times.
      */
     private Set<String> filter;
 
     /**
-     * Whether to include names of organisation unit ancestors and hierarchy paths
-     * of organisation units in the metadata.
+     * Whether to include names of organisation unit ancestors and hierarchy
+     * paths of organisation units in the metadata.
      */
     private boolean hierarchyMeta;
 
@@ -117,8 +117,8 @@ public class EventsAnalyticsQueryCriteria
     // -------------------------------------------------------------------------
 
     /**
-     * Value dimension identifier. Can be a data element or an attribute which must
-     * be of numeric value type.
+     * Value dimension identifier. Can be a data element or an attribute which
+     * must be of numeric value type.
      *
      * Valid for aggregate event analytics only.
      */
@@ -165,8 +165,8 @@ public class EventsAnalyticsQueryCriteria
     private Integer limit;
 
     /**
-     * Specify output type for analytical data which can be events, enrollments or
-     * tracked entity instances. The two last options apply to programs with
+     * Specify output type for analytical data which can be events, enrollments
+     * or tracked entity instances. The two last options apply to programs with
      * registration only.
      *
      * (options: EVENT | ENROLLMENT | TRACKED_ENTITY_INSTANCE )
@@ -174,8 +174,8 @@ public class EventsAnalyticsQueryCriteria
     private EventOutputType outputType = EventOutputType.EVENT;
 
     /**
-     * Whether to collapse all data dimensions (data elements and attributes) into a
-     * single dimension in the response.
+     * Whether to collapse all data dimensions (data elements and attributes)
+     * into a single dimension in the response.
      */
     private boolean collapseDataDimensions;
 
@@ -197,24 +197,24 @@ public class EventsAnalyticsQueryCriteria
 
     /**
      * The time field to base event aggregation on. Applies to event data items
-     * only. Can be a predefined option or the ID of an attribute or data element
-     * having a time-based value type.
+     * only. Can be a predefined option or the ID of an attribute or data
+     * element having a time-based value type.
      */
     private String timeField;
 
     /**
-     * The organisation unit field to base event aggregation on. Applies to event
-     * data items only. Can be the ID of an attribute or data element with the
-     * Organisation unit value type. The default option is specified as omitting the
-     * query parameter.
+     * The organisation unit field to base event aggregation on. Applies to
+     * event data items only. Can be the ID of an attribute or data element with
+     * the Organisation unit value type. The default option is specified as
+     * omitting the query parameter.
      */
     private String orgUnitField;
 
     private String userOrgUnit;
 
     /**
-     * Field to base geospatial event analytics on. Default is event. Can be set to
-     * identifiers of attributes and data elements of value type coordinate.
+     * Field to base geospatial event analytics on. Default is event. Can be set
+     * to identifiers of attributes and data elements of value type coordinate.
      */
     private String coordinateField;
 
@@ -223,21 +223,21 @@ public class EventsAnalyticsQueryCriteria
     // -------------------------------------------------------------------------
 
     /**
-     * The mode of selecting organisation units. Default is DESCENDANTS, meaning all
-     * sub units in the hierarchy. CHILDREN refers to immediate children in the
-     * hierarchy; SELECTED refers to the selected organisation units only.
+     * The mode of selecting organisation units. Default is DESCENDANTS, meaning
+     * all sub units in the hierarchy. CHILDREN refers to immediate children in
+     * the hierarchy; SELECTED refers to the selected organisation units only.
      */
     private OrganisationUnitSelectionMode ouMode = OrganisationUnitSelectionMode.DESCENDANTS;
 
     /**
-     * Dimensions identifier to be sorted ascending, can reference event date, org
-     * unit name and code and any item identifiers.
+     * Dimensions identifier to be sorted ascending, can reference event date,
+     * org unit name and code and any item identifiers.
      */
     private Set<String> asc;
 
     /**
-     * Dimensions identifier to be sorted descending, can reference event date, org
-     * unit name and code and any item identifiers.
+     * Dimensions identifier to be sorted descending, can reference event date,
+     * org unit name and code and any item identifiers.
      */
     private Set<String> desc;
 
@@ -247,10 +247,10 @@ public class EventsAnalyticsQueryCriteria
     private boolean coordinatesOnly;
 
     /**
-     * d scheme to be used for data, more specifically data elements and attributes
-     * which have an option set or legend set, e.g. return the name of the option
-     * instead of the code, or the name of the legend instead of the legend ID, in
-     * the data response.
+     * d scheme to be used for data, more specifically data elements and
+     * attributes which have an option set or legend set, e.g. return the name
+     * of the option instead of the code, or the name of the legend instead of
+     * the legend ID, in the data response.
      */
     private IdScheme dataIdScheme;
 

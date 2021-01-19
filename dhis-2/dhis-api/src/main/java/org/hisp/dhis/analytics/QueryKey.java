@@ -41,6 +41,7 @@ import org.apache.commons.lang.StringUtils;
 public class QueryKey
 {
     private static final char VALUE_SEP = ':';
+
     private static final char COMPONENT_SEP = '-';
 
     List<String> keyComponents = new ArrayList<>();
@@ -90,8 +91,8 @@ public class QueryKey
     }
 
     /**
-     * Adds a component value to this key if the given object is not null, supplied
-     * by the given value supplier.
+     * Adds a component value to this key if the given object is not null,
+     * supplied by the given value supplier.
      *
      * @param property the key property.
      * @param object the object to check for null.
@@ -117,8 +118,8 @@ public class QueryKey
     }
 
     /**
-     * Returns a 40-character unique key. The key is a SHA-1 hash of
-     * the components of this key.
+     * Returns a 40-character unique key. The key is a SHA-1 hash of the
+     * components of this key.
      */
     public String build()
     {

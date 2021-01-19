@@ -37,7 +37,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
  * Filter parameters to be used for filtering data element values.
- * 
+ *
  * @author Ameen Mohamed <ameen@dhis2.com>
  *
  */
@@ -54,42 +54,43 @@ public class EventDataFilter implements Serializable
      * Less than or equal to
      */
     private String le;
-    
+
     /**
      * Greater than or equal to
      */
     private String ge;
-    
+
     /**
      * Greater than
      */
     private String gt;
-    
+
     /**
      * Lesser than
      */
     private String lt;
-    
+
     /**
      * Equal to
      */
     private String eq;
-    
+
     /**
      * In a list
      */
     private Set<String> in;
-    
+
     /**
      * Like
      */
     private String like;
-    
+
     /**
-     * If the dataItem is of type date, then date filtering parameters are specified using this.
+     * If the dataItem is of type date, then date filtering parameters are
+     * specified using this.
      */
     private DateFilterPeriod dateFilter;
-    
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -210,7 +211,5 @@ public class EventDataFilter implements Serializable
     {
         this.dateFilter = dateFilter;
     }
-    
-    
 
 }

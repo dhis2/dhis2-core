@@ -33,7 +33,7 @@ import org.springframework.context.ApplicationEvent;
 /**
  * @author Zubair Asghar
  */
-public class  EnrollmentEvaluationEvent extends ApplicationEvent
+public class EnrollmentEvaluationEvent extends ApplicationEvent
 {
     private long programInstance;
 

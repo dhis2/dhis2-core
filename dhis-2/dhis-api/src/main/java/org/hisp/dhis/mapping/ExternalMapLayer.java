@@ -28,13 +28,14 @@ package org.hisp.dhis.mapping;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.legend.LegendSet;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -59,9 +60,9 @@ public class ExternalMapLayer
 
     private String legendSetUrl;
 
-    //-----------------------------------------------------
+    // -----------------------------------------------------
     // Constructor
-    //-----------------------------------------------------
+    // -----------------------------------------------------
 
     public ExternalMapLayer()
     {
@@ -72,9 +73,9 @@ public class ExternalMapLayer
         this.name = name;
     }
 
-    //-----------------------------------------------------
+    // -----------------------------------------------------
     // Getters & Setters
-    //-----------------------------------------------------
+    // -----------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

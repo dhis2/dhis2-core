@@ -28,17 +28,18 @@ package org.hisp.dhis.dataset.notifications;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.notification.TemplateVariable;
-
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.hisp.dhis.notification.TemplateVariable;
 
 /**
  * Created by zubair on 04.07.17.
  */
 public enum DataSetNotificationTemplateVariables
-    implements TemplateVariable
+    implements
+    TemplateVariable
 {
     DATASET_NAME( "data_set_name" ),
     DATASET_DESCRIPTION( "data_description" ),
@@ -49,9 +50,9 @@ public enum DataSetNotificationTemplateVariables
     COMPLETE_REG_ATT_OPT_COMBO( "att_opt_combo" ),
     CURRENT_DATE( "current_date" );
 
-    private static final Map<String, DataSetNotificationTemplateVariables> variableNameMap =
-        EnumSet.allOf( DataSetNotificationTemplateVariables.class ).stream()
-            .collect( Collectors.toMap( DataSetNotificationTemplateVariables::getVariableName, e -> e ) );
+    private static final Map<String, DataSetNotificationTemplateVariables> variableNameMap = EnumSet
+        .allOf( DataSetNotificationTemplateVariables.class ).stream()
+        .collect( Collectors.toMap( DataSetNotificationTemplateVariables::getVariableName, e -> e ) );
 
     private final String variableName;
 

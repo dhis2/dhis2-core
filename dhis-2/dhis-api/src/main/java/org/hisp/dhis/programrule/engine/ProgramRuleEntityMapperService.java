@@ -92,7 +92,9 @@ public interface ProgramRuleEntityMapperService
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues );
 
     /**
-     * Fetch display name for {@link ProgramRuleVariable}, {@link org.hisp.dhis.constant.Constant}
+     * Fetch display name for {@link ProgramRuleVariable},
+     * {@link org.hisp.dhis.constant.Constant}
+     *
      * @return map containing item description
      */
     Map<String, DataItem> getItemStore( List<ProgramRuleVariable> programRuleVariables );

@@ -38,10 +38,10 @@ import org.joda.time.Years;
  */
 public enum FileResourceRetentionStrategy
 {
-    NONE ( Seconds.ZERO.toPeriod() ),
-    THREE_MONTHS ( Months.THREE.toPeriod() ),
-    ONE_YEAR ( Years.ONE.toPeriod() ),
-    FOREVER ( null );
+    NONE( Seconds.ZERO.toPeriod() ),
+    THREE_MONTHS( Months.THREE.toPeriod() ),
+    ONE_YEAR( Years.ONE.toPeriod() ),
+    FOREVER( null );
 
     private Period retentionTime;
 

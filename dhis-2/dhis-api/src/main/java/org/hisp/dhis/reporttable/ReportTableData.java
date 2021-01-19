@@ -40,11 +40,11 @@ import java.util.TreeMap;
 public class ReportTableData
 {
     private String name;
-    
+
     private SortedMap<Integer, String> columns = new TreeMap<>();
-    
+
     private List<String> prettyPrintColumns = new ArrayList<>();
-    
+
     private List<SortedMap<Integer, String>> rows = new ArrayList<>();
 
     // -------------------------------------------------------------------------

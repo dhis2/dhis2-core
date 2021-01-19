@@ -60,7 +60,7 @@ public class ProgramOwnershipHistory implements Serializable
     private String createdBy;
 
     private TrackedEntityInstance entityInstance;
-    
+
     private OrganisationUnit organisationUnit;
 
     // -------------------------------------------------------------------------
@@ -71,7 +71,8 @@ public class ProgramOwnershipHistory implements Serializable
     {
     }
 
-    public ProgramOwnershipHistory( Program program, TrackedEntityInstance entityInstance, OrganisationUnit organisationUnit, Date startDate,
+    public ProgramOwnershipHistory( Program program, TrackedEntityInstance entityInstance,
+        OrganisationUnit organisationUnit, Date startDate,
         String createdBy )
     {
         this.program = program;
@@ -82,7 +83,8 @@ public class ProgramOwnershipHistory implements Serializable
         this.organisationUnit = organisationUnit;
     }
 
-    public ProgramOwnershipHistory( Program program, TrackedEntityInstance entityInstance, OrganisationUnit organisationUnit, Date startDate, Date endDate,
+    public ProgramOwnershipHistory( Program program, TrackedEntityInstance entityInstance,
+        OrganisationUnit organisationUnit, Date startDate, Date endDate,
         String createdBy )
     {
         this.program = program;
@@ -192,14 +194,14 @@ public class ProgramOwnershipHistory implements Serializable
     {
         this.createdBy = createdBy;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public OrganisationUnit getOrganisationUnit()
     {
         return organisationUnit;
     }
-    
+
     public void setOrganisationUnit( OrganisationUnit organisationUnit )
     {
         this.organisationUnit = organisationUnit;

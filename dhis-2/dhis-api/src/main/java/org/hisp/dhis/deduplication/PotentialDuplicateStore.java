@@ -28,9 +28,9 @@ package org.hisp.dhis.deduplication;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-
 import java.util.List;
+
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 public interface PotentialDuplicateStore
     extends IdentifiableObjectStore<PotentialDuplicate>

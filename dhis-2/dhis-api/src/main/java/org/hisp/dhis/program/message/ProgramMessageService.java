@@ -32,8 +32,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.user.User;
 
 /**
@@ -69,8 +69,8 @@ public interface ProgramMessageService
     // -------------------------------------------------------------------------
 
     /**
-     * Send message batch based on their {@link DeliveryChannel channel}.
-     * If the DeliveryChannel is not configured with suitable value, batch will be
+     * Send message batch based on their {@link DeliveryChannel channel}. If the
+     * DeliveryChannel is not configured with suitable value, batch will be
      * invalidated.
      *
      * @param programMessages the ProgramMessage.
@@ -96,7 +96,7 @@ public interface ProgramMessageService
     // -------------------------------------------------------------------------
 
     long saveProgramMessage( ProgramMessage programMessage );
-    
+
     void updateProgramMessage( ProgramMessage programMessage );
 
     // -------------------------------------------------------------------------

@@ -28,19 +28,19 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.google.common.base.MoreObjects;
+import java.util.Date;
+import java.util.Objects;
 
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
-import java.util.Date;
-import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Quang Nguyen
@@ -90,7 +90,7 @@ public class DataValueAudit
         this.auditType = auditType;
     }
 
-    public DataValueAudit( DataElement dataElement, Period period, OrganisationUnit organisationUnit, 
+    public DataValueAudit( DataElement dataElement, Period period, OrganisationUnit organisationUnit,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo,
         String value, String modifiedBy, AuditType auditType )
     {
@@ -104,11 +104,12 @@ public class DataValueAudit
         this.created = new Date();
         this.auditType = auditType;
     }
-    
+
     @Override
     public int hashCode()
     {
-        return Objects.hash( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo, value, modifiedBy, created, auditType );
+        return Objects.hash( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo, value,
+            modifiedBy, created, auditType );
     }
 
     @Override
@@ -136,7 +137,7 @@ public class DataValueAudit
             && Objects.equals( this.created, other.created )
             && Objects.equals( this.auditType, other.auditType );
     }
-    
+
     @Override
     public String toString()
     {
@@ -261,7 +262,7 @@ public class DataValueAudit
     {
         this.created = created;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public AuditType getAuditType()

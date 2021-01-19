@@ -28,10 +28,6 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -39,6 +35,11 @@ import org.hisp.dhis.common.adapter.DeviceRenderTypeMapSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.type.ValueTypeRenderingObject;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Viet Nguyen
@@ -69,7 +70,8 @@ public class ProgramStageDataElement
     private Boolean renderOptionsAsRadio = false;
 
     /**
-     * The renderType defines how the ProgramStageSection should be rendered on the client
+     * The renderType defines how the ProgramStageSection should be rendered on
+     * the client
      */
     private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
 
@@ -239,13 +241,17 @@ public class ProgramStageDataElement
     @Override
     public boolean equals( Object o )
     {
-        if ( this == o ) return true;
-        if ( o == null || getClass() != o.getClass() ) return false;
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
 
         ProgramStageDataElement that = (ProgramStageDataElement) o;
 
-        if ( dataElement != null ? !dataElement.equals( that.dataElement ) : that.dataElement != null ) return false;
-        if ( programStage != null ? !programStage.equals( that.programStage ) : that.programStage != null ) return false;
+        if ( dataElement != null ? !dataElement.equals( that.dataElement ) : that.dataElement != null )
+            return false;
+        if ( programStage != null ? !programStage.equals( that.programStage ) : that.programStage != null )
+            return false;
 
         return true;
     }

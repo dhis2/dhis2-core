@@ -32,7 +32,6 @@ package org.hisp.dhis.program;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 
-
 public enum UniqunessType
 {
     NONE,

@@ -38,7 +38,7 @@ public class LocaleNameComparator
     implements Comparator<Locale>
 {
     public static final LocaleNameComparator INSTANCE = new LocaleNameComparator();
-    
+
     @Override
     public int compare( Locale o1, Locale o2 )
     {

@@ -37,7 +37,7 @@ import java.util.Map;
 public class GridValue
 {
     private Object value;
-    
+
     private Map<Object, Object> attributes = new HashMap<>();
 
     // ---------------------------------------------------------------------
@@ -48,13 +48,13 @@ public class GridValue
     {
         this.value = value;
     }
-    
+
     public GridValue( Object value, Map<Object, Object> attributes )
     {
         this.value = value;
         this.attributes = attributes;
     }
-    
+
     // ---------------------------------------------------------------------
     // Logic
     // ---------------------------------------------------------------------
@@ -63,12 +63,12 @@ public class GridValue
     {
         this.attributes.put( attribute, value );
     }
-    
+
     public Object attr( Object attribute )
     {
         return this.attributes.get( attribute );
     }
-    
+
     public boolean hasAttr( Object attribute )
     {
         return this.attributes.containsKey( attribute );

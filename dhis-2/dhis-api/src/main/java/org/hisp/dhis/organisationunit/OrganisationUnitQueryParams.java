@@ -46,7 +46,8 @@ public class OrganisationUnitQueryParams
     private String query;
 
     /**
-     * The parent organisation units for which to include all children, inclusive.
+     * The parent organisation units for which to include all children,
+     * inclusive.
      */
     private Set<OrganisationUnit> parents = new HashSet<>();
 
@@ -61,8 +62,8 @@ public class OrganisationUnitQueryParams
     private Set<Integer> levels = new HashSet<>();
 
     /**
-     * The maximum number of organisation unit levels to include, relative to the
-     * real root of the hierarchy.
+     * The maximum number of organisation unit levels to include, relative to
+     * the real root of the hierarchy.
      */
     private Integer maxLevels;
 
@@ -129,14 +130,9 @@ public class OrganisationUnitQueryParams
     @Override
     public String toString()
     {
-        return MoreObjects.toStringHelper( this ).
-            add( "query", query ).
-            add( "parents", parents ).
-            add( "groups", groups ).
-            add( "levels", levels ).
-            add( "maxLevels", maxLevels ).
-            add( "first", first ).
-            add( "max", max ).toString();
+        return MoreObjects.toStringHelper( this ).add( "query", query ).add( "parents", parents )
+            .add( "groups", groups ).add( "levels", levels ).add( "maxLevels", maxLevels ).add( "first", first )
+            .add( "max", max ).toString();
     }
 
     // -------------------------------------------------------------------------

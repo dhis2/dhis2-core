@@ -36,9 +36,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class StyleObject
 {
     private String name;
-    
+
     private String key;
-    
+
     private String path;
 
     public StyleObject()
@@ -51,7 +51,7 @@ public class StyleObject
         this.key = key;
         this.path = path;
     }
-    
+
     @JsonProperty
     public String getName()
     {

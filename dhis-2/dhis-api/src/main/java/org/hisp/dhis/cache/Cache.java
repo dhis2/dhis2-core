@@ -47,8 +47,9 @@ public interface Cache<V>
 
     /**
      * Returns the value associated with the {@code key} in this cache instance.
-     * Note: This method will return the defaultValue in case of absence of associated
-     * cache value, but will not store the default value into the cache.
+     * Note: This method will return the defaultValue in case of absence of
+     * associated cache value, but will not store the default value into the
+     * cache.
      *
      * @param key the key whose associated value is to be retrieved
      * @return the value wrapped in Optional, or

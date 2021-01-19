@@ -28,19 +28,19 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.springframework.util.Assert.hasText;
+
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Function;
 
 import com.google.common.collect.Sets;
 
-import static org.springframework.util.Assert.hasText;
-
 /**
  * A No operation implementation of {@link Cache}. The implementation will not
  * cache anything and can be used during system testing when caching has to be
  * disabled.
- * 
+ *
  * @author Ameen Mohamed
  */
 public class NoOpCache<V> implements Cache<V>
@@ -91,7 +91,7 @@ public class NoOpCache<V> implements Cache<V>
     }
 
     @Override
-    public void put( String key, V value, long ttlInSeconds)
+    public void put( String key, V value, long ttlInSeconds )
     {
         hasText( key, "Value cannot be null" );
         // No operation

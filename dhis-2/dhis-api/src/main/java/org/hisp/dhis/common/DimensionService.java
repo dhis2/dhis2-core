@@ -65,8 +65,8 @@ public interface DimensionService
 
     /**
      * Gets a dimension item object which are among the data dimension item
-     * objects. The composite dimensional items themselves will be transient
-     * and the associated objects will be persistent.
+     * objects. The composite dimensional items themselves will be transient and
+     * the associated objects will be persistent.
      *
      * @param dimensionItem the dimension item identifier.
      * @return a dimensional item object.
@@ -93,11 +93,12 @@ public interface DimensionService
     DimensionalItemObject getDataDimensionalItemObject( DimensionalItemId dimensionalItemId );
 
     /**
-     * Gets a set of dimension item objects from their ids.
-     * In case of two {@see DimensionalItemId} having the same ids, this function always returns a
-     * {@see DimensionalItemObject} corresponding to the {@see DimensionalItemId}
-     * with the Period Offset property higher/lower than 0.
-     * 
+     * Gets a set of dimension item objects from their ids. In case of two
+     * {@see DimensionalItemId} having the same ids, this function always
+     * returns a {@see DimensionalItemObject} corresponding to the
+     * {@see DimensionalItemId} with the Period Offset property higher/lower
+     * than 0.
+     *
      * @param itemIds a set of ids of the dimension item objects to get.
      * @return the set of dimension item objects built from the ids.
      */
@@ -118,5 +119,6 @@ public interface DimensionService
      * @param itemIds a set of ids of the dimension item objects to get.
      * @return a map from the item ids to the dimension item objects.
      */
-    Map<DimensionalItemId, DimensionalItemObject> getNoAclDataDimensionalItemObjectMap( Set<DimensionalItemId> itemIds );
+    Map<DimensionalItemId, DimensionalItemObject> getNoAclDataDimensionalItemObjectMap(
+        Set<DimensionalItemId> itemIds );
 }

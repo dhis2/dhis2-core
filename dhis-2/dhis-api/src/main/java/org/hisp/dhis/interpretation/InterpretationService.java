@@ -28,13 +28,13 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.visualization.Visualization;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+
+import org.hisp.dhis.mapping.Map;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.Visualization;
 
 /**
  * @author Lars Helge Overland

@@ -43,25 +43,25 @@ public interface EventAnalyticalObject
     extends AnalyticalObject
 {
     Program getProgram();
-    
+
     ProgramStage getProgramStage();
-    
+
     Date getStartDate();
-    
+
     Date getEndDate();
-    
+
     EventOutputType getOutputType();
-    
+
     DimensionalItemObject getValue();
-    
+
     // -------------------------------------------------------------------------
     // Base class emulation methods with default implementations
     // -------------------------------------------------------------------------
-    
+
     default void setDataElementValueDimension( DataElement dataElementValueDimension )
     {
     }
-    
+
     default void setAttributeValueDimension( TrackedEntityAttribute attributeValueDimension )
     {
     }

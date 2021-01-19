@@ -33,5 +33,10 @@ package org.hisp.dhis.common;
  */
 public enum IdentifiableProperty
 {
-    ID, UID, UUID, NAME, CODE, ATTRIBUTE
+    ID,
+    UID,
+    UUID,
+    NAME,
+    CODE,
+    ATTRIBUTE
 }

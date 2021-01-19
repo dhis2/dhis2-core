@@ -48,7 +48,6 @@ public interface ProgramRuleVariableStore
      */
     List<ProgramRuleVariable> get( Program program );
 
-
     /**
      * @param program program
      * @param dataElement to find association with
@@ -64,7 +63,8 @@ public interface ProgramRuleVariableStore
 
     /**
      *
-     * @return all ProgramRuleVariables which are linked to {@link org.hisp.dhis.trackedentity.TrackedEntityAttribute}
+     * @return all ProgramRuleVariables which are linked to
+     *         {@link org.hisp.dhis.trackedentity.TrackedEntityAttribute}
      */
     List<ProgramRuleVariable> getVariablesWithNoAttribute();
 }
