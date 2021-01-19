@@ -39,6 +39,10 @@ import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -59,14 +63,10 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
-import org.springframework.util.StringUtils;
 
 import com.google.api.client.util.Lists;
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
-
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -82,7 +82,8 @@ public class TrackerPreheat
 
     /**
      * Internal map of all metadata objects mapped by class type => [id] The value
-     * of each id can be either the metadata object's uid, code, name or attribute value
+     * of each id can be either the metadata object's uid, code, name or attribute
+     * value
      */
     @Getter
     private Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>> map = new HashMap<>();
@@ -115,40 +116,40 @@ public class TrackerPreheat
     private Map<String, PeriodType> periodTypeMap = new HashMap<>();
 
     /**
-     * Internal map of all preheated tracked entities, mainly used for confirming existence for updates, and used
-     * for object merging.
+     * Internal map of all preheated tracked entities, mainly used for confirming
+     * existence for updates, and used for object merging.
      */
     @Getter
     @Setter
     private Map<TrackerIdScheme, Map<String, TrackedEntityInstance>> trackedEntities = new HashMap<>();
 
     /**
-     * Internal map of all preheated tracked entity attributes, mainly used for confirming existence for updates, and used
-     * for object merging.
+     * Internal map of all preheated tracked entity attributes, mainly used for
+     * confirming existence for updates, and used for object merging.
      */
     @Getter
     @Setter
     private Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes = new HashMap<>();
 
     /**
-     * Internal map of all preheated enrollments, mainly used for confirming existence for updates, and used
-     * for object merging.
+     * Internal map of all preheated enrollments, mainly used for confirming
+     * existence for updates, and used for object merging.
      */
     @Getter
     @Setter
     private Map<TrackerIdScheme, Map<String, ProgramInstance>> enrollments = new HashMap<>();
 
     /**
-     * Internal map of all preheated events, mainly used for confirming existence for updates, and used
-     * for object merging.
+     * Internal map of all preheated events, mainly used for confirming existence
+     * for updates, and used for object merging.
      */
     @Getter
     @Setter
     private Map<TrackerIdScheme, Map<String, ProgramStageInstance>> events = new HashMap<>();
 
     /**
-     * Internal map of all preheated relationships, mainly used for confirming existence for updates, and used
-     * for object merging.
+     * Internal map of all preheated relationships, mainly used for confirming
+     * existence for updates, and used for object merging.
      */
     @Getter
     @Setter
@@ -175,9 +176,9 @@ public class TrackerPreheat
 
     /**
      * A list of valid usernames that are present in the payload. A username not
-     * available in this cache means, payload's username is invalid.
-     * These users are primarily used to represent the ValueType.USERNAME of
-     * tracked entity attributes, used in validation and persisting TEIs.
+     * available in this cache means, payload's username is invalid. These users are
+     * primarily used to represent the ValueType.USERNAME of tracked entity
+     * attributes, used in validation and persisting TEIs.
      */
     @Getter
     @Setter
@@ -206,7 +207,7 @@ public class TrackerPreheat
     @Getter
     @Setter
     private List<Pair<String, String>> programStageWithEvents = Lists.newArrayList();
-    
+
     /**
      * Identifier map
      */
@@ -221,8 +222,8 @@ public class TrackerPreheat
      */
     @Getter
     @Setter
-    private  Map<Long, List<Long>> programWithOrgUnitsMap;
-    
+    private Map<Long, List<Long>> programWithOrgUnitsMap;
+
     public TrackerPreheat()
     {
     }
@@ -249,7 +250,7 @@ public class TrackerPreheat
      * and the cached identifier.
      *
      * @param klass The metadata class to fetch
-     * @param key   The key used during the pre-heat creation
+     * @param key The key used during the pre-heat creation
      * @return A metadata object or null
      */
     @SuppressWarnings( "unchecked" )
@@ -261,7 +262,7 @@ public class TrackerPreheat
 
     /**
      * Fetch all the metadata objects from the pre-heat, by object type
-     * 
+     *
      * @param klass The metadata class to fetch
      *
      * @return a List of pre-heated object or empty list
@@ -270,7 +271,7 @@ public class TrackerPreheat
     public <T extends IdentifiableObject> List<T> getAll( Class<T> klass )
     {
         return new ArrayList<>( (Collection<? extends T>) map.getOrDefault( klass, new HashMap<>() ).values() );
-    }    
+    }
 
     public boolean isEmpty()
     {
@@ -285,8 +286,7 @@ public class TrackerPreheat
             return this;
         }
 
-        Class<? extends IdentifiableObject> klass =
-            (Class<? extends IdentifiableObject>) HibernateProxyUtils.getRealClass( object );
+        Class<? extends IdentifiableObject> klass = HibernateProxyUtils.getRealClass( object );
 
         if ( !map.containsKey( klass ) )
         {
@@ -418,7 +418,8 @@ public class TrackerPreheat
         return events.get( identifier ).get( event );
     }
 
-    public void putEvents( TrackerIdScheme identifier, List<ProgramStageInstance> programStageInstances, List<Event> allEntities)
+    public void putEvents( TrackerIdScheme identifier, List<ProgramStageInstance> programStageInstances,
+        List<Event> allEntities )
     {
         putEvents( identifier, programStageInstances );
 
@@ -432,7 +433,7 @@ public class TrackerPreheat
             .forEach( psi -> this.addReference( TrackerType.EVENT, psi ) );
     }
 
-    public void putEvents( TrackerIdScheme identifier, List<ProgramStageInstance> programStageInstances)
+    public void putEvents( TrackerIdScheme identifier, List<ProgramStageInstance> programStageInstances )
     {
         programStageInstances.forEach( psi -> putEvent( identifier, psi.getUid(), psi ) );
     }
