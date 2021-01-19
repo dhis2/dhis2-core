@@ -381,14 +381,17 @@ public class HibernateUserStore
             query.setParameterList( "userGroupIds", userGroupIds );
         }
 
-        if ( params.getFirst() != null )
+        if ( !count )
         {
-            query.setFirstResult( params.getFirst() );
-        }
+            if ( params.getFirst() != null )
+            {
+                query.setFirstResult( params.getFirst() );
+            }
 
-        if ( params.getMax() != null )
-        {
-            query.setMaxResults( params.getMax() ).list();
+            if ( params.getMax() != null )
+            {
+                query.setMaxResults( params.getMax() );
+            }
         }
 
         return query;
