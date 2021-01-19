@@ -410,49 +410,68 @@ public class ValidationUtils
 
         if ( valueType.isFile() )
         {
-            FileResource fileResource = (FileResource) value;
-
-            FileTypeValueOptions fileTypeValueOptions = (FileTypeValueOptions) options;
-
-            if ( fileResource.getContentLength() > fileTypeValueOptions.getMaxFileSize() )
-            {
-                return "not_valid_file_size_too_big";
-            }
-
-            if ( !fileTypeValueOptions.getAllowedContentTypes().contains( fileResource.getContentType().toLowerCase() ) )
-            {
-                return "not_valid_file_content_type";
-            }
+            return validateFileResource( (FileResource) value, (FileTypeValueOptions) options );
         }
         else if ( ValueType.NUMBER == valueType )
         {
-            if ( !isValidValueTypeClass( value, valueType ) )
-            {
-                return NOT_VALID_VALUE_TYPE_CLASS;
-            }
-
-            DigitsValidatorForNumber digitsValidatorForNumber = new DigitsValidatorForNumber();
-            digitsValidatorForNumber.initialize( getDigitsInstance( (DigitsValueTypeOptions) options ) );
-
-            if ( !digitsValidatorForNumber.isValid( (Number) value, null ) )
-            {
-                return "not_valid_number";
-            }
+            return validateNumber( value, valueType, (DigitsValueTypeOptions) options );
         }
         else if ( ValueType.DIGITS == valueType )
         {
-            if ( !isValidValueTypeClass( value, valueType ) )
-            {
-                return NOT_VALID_VALUE_TYPE_CLASS;
-            }
+            return validateDigits( value, valueType, (DigitsValueTypeOptions) options );
+        }
 
-            DigitsValidatorForCharSequence digitsValidatorForCharSequence = new DigitsValidatorForCharSequence();
-            digitsValidatorForCharSequence.initialize( getDigitsInstance( (DigitsValueTypeOptions) options ) );
+        return null;
+    }
 
-            if ( !digitsValidatorForCharSequence.isValid( (String) value, null ) )
-            {
-                return "not_valid_digits";
-            }
+    private static String validateDigits( Object value, ValueType valueType, DigitsValueTypeOptions options )
+    {
+        if ( !isValidValueTypeClass( value, valueType ) )
+        {
+            return NOT_VALID_VALUE_TYPE_CLASS;
+        }
+
+        DigitsValidatorForCharSequence digitsValidatorForCharSequence = new DigitsValidatorForCharSequence();
+        digitsValidatorForCharSequence.initialize( getDigitsInstance( options ) );
+
+        if ( !digitsValidatorForCharSequence.isValid( (String) value, null ) )
+        {
+            return "not_valid_digits";
+        }
+        return null;
+    }
+
+    private static String validateNumber( Object value, ValueType valueType, DigitsValueTypeOptions options )
+    {
+        if ( !isValidValueTypeClass( value, valueType ) )
+        {
+            return NOT_VALID_VALUE_TYPE_CLASS;
+        }
+
+        DigitsValidatorForNumber digitsValidatorForNumber = new DigitsValidatorForNumber();
+        digitsValidatorForNumber.initialize( getDigitsInstance( options ) );
+
+        if ( !digitsValidatorForNumber.isValid( (Number) value, null ) )
+        {
+            return "not_valid_number";
+        }
+        return null;
+    }
+
+    private static String validateFileResource( FileResource value, FileTypeValueOptions options )
+    {
+        FileResource fileResource = value;
+
+        FileTypeValueOptions fileTypeValueOptions = options;
+
+        if ( fileResource.getContentLength() > fileTypeValueOptions.getMaxFileSize() )
+        {
+            return "not_valid_file_size_too_big";
+        }
+
+        if ( !fileTypeValueOptions.getAllowedContentTypes().contains( fileResource.getContentType().toLowerCase() ) )
+        {
+            return "not_valid_file_content_type";
         }
 
         return null;
