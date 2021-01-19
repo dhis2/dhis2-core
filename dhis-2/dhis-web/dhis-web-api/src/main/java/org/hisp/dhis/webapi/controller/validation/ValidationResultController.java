@@ -120,5 +120,4 @@ public class ValidationResultController
             return result;
         }
     }
-
 }
