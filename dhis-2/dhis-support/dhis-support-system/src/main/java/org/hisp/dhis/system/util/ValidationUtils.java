@@ -33,11 +33,8 @@ import com.google.common.collect.Sets;
 import org.apache.commons.validator.routines.DateValidator;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
-import org.hibernate.validator.internal.constraintvalidators.bv.DigitsValidatorForCharSequence;
-import org.hibernate.validator.internal.constraintvalidators.bv.DigitsValidatorForNumber;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DigitsValueTypeOptions;
 import org.hisp.dhis.common.FileTypeValueOptions;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypeOptions;
@@ -51,10 +48,7 @@ import org.hisp.dhis.render.type.ValueTypeRenderingType;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.util.DateUtils;
 
-import javax.validation.Payload;
-import javax.validation.constraints.Digits;
 import java.awt.geom.Point2D;
-import java.lang.annotation.Annotation;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
@@ -412,49 +406,7 @@ public class ValidationUtils
         {
             return validateFileResource( (FileResource) value, (FileTypeValueOptions) options );
         }
-        else if ( ValueType.NUMBER == valueType )
-        {
-            return validateNumber( value, valueType, (DigitsValueTypeOptions) options );
-        }
-        else if ( ValueType.DIGITS == valueType )
-        {
-            return validateDigits( value, valueType, (DigitsValueTypeOptions) options );
-        }
 
-        return null;
-    }
-
-    private static String validateDigits( Object value, ValueType valueType, DigitsValueTypeOptions options )
-    {
-        if ( !isValidValueTypeClass( value, valueType ) )
-        {
-            return NOT_VALID_VALUE_TYPE_CLASS;
-        }
-
-        DigitsValidatorForCharSequence digitsValidatorForCharSequence = new DigitsValidatorForCharSequence();
-        digitsValidatorForCharSequence.initialize( getDigitsInstance( options ) );
-
-        if ( !digitsValidatorForCharSequence.isValid( (String) value, null ) )
-        {
-            return "not_valid_digits";
-        }
-        return null;
-    }
-
-    private static String validateNumber( Object value, ValueType valueType, DigitsValueTypeOptions options )
-    {
-        if ( !isValidValueTypeClass( value, valueType ) )
-        {
-            return NOT_VALID_VALUE_TYPE_CLASS;
-        }
-
-        DigitsValidatorForNumber digitsValidatorForNumber = new DigitsValidatorForNumber();
-        digitsValidatorForNumber.initialize( getDigitsInstance( options ) );
-
-        if ( !digitsValidatorForNumber.isValid( (Number) value, null ) )
-        {
-            return "not_valid_number";
-        }
         return null;
     }
 
@@ -475,48 +427,6 @@ public class ValidationUtils
         }
 
         return null;
-    }
-
-    private static Digits getDigitsInstance( DigitsValueTypeOptions digitsValueTypeOptions )
-    {
-        return new Digits()
-        {
-            @Override
-            public String message()
-            {
-                return null;
-            }
-
-            @Override
-            public Class<?>[] groups()
-            {
-                return new Class[0];
-            }
-
-            @Override
-            public Class<? extends Payload>[] payload()
-            {
-                return new Class[0];
-            }
-
-            @Override
-            public Class<? extends Annotation> annotationType()
-            {
-                return null;
-            }
-
-            @Override
-            public int integer()
-            {
-                return digitsValueTypeOptions.getInteger();
-            }
-
-            @Override
-            public int fraction()
-            {
-                return digitsValueTypeOptions.getFraction();
-            }
-        };
     }
 
     private static boolean isValidValueTypeOptionClass( ValueType valueType, ValueTypeOptions options )

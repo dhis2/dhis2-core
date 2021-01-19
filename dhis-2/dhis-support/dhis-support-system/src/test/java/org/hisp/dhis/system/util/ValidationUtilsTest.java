@@ -31,7 +31,6 @@ package org.hisp.dhis.system.util;
 import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DigitsValueTypeOptions;
 import org.hisp.dhis.common.FileTypeValueOptions;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -311,42 +310,5 @@ public class ValidationUtilsTest
             "md5sum", FileResourceDomain.DOCUMENT );
         assertEquals( "not_valid_file_content_type",
             dataValueIsValid( fileResource, valueType, options ) );
-
-        assertEquals( "not_valid_value_type_option_class",
-            dataValueIsValid( fileResource, valueType, new DigitsValueTypeOptions() ) );
-    }
-
-    @Test
-    public void testDigitsValueTypeOptionsValidationWithNumber()
-    {
-        ValueType valueType = ValueType.NUMBER;
-
-        DigitsValueTypeOptions options = new DigitsValueTypeOptions();
-        options.setInteger( 1 );
-        options.setFraction( 1 );
-
-        assertNull( dataValueIsValid( 1D, valueType, options ) );
-        assertNull( dataValueIsValid( 1.0D, valueType, options ) );
-        assertNull( dataValueIsValid( 1.000D, valueType, options ) );
-
-        assertEquals( "not_valid_number", dataValueIsValid( 11D, valueType, options ) );
-        assertEquals( "not_valid_number", dataValueIsValid( 1.01D, valueType, options ) );
-    }
-
-    @Test
-    public void testDigitsValueTypeOptionsValidationWithString()
-    {
-        ValueType valueType = ValueType.DIGITS;
-
-        DigitsValueTypeOptions options = new DigitsValueTypeOptions();
-        options.setInteger( 1 );
-        options.setFraction( 1 );
-
-        assertNull( dataValueIsValid( "1", valueType, options ) );
-        assertNull( dataValueIsValid( "1.0", valueType, options ) );
-
-        assertEquals( "not_valid_digits", dataValueIsValid( "11", valueType, options ) );
-        assertEquals( "not_valid_digits", dataValueIsValid( "1.00", valueType, options ) );
-        assertEquals( "not_valid_digits", dataValueIsValid( "1.01", valueType, options ) );
     }
 }

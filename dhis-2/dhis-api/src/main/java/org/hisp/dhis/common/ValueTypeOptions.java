@@ -43,8 +43,7 @@ import java.io.Serializable;
 @JsonInclude()
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "type" )
 @JsonSubTypes( {
-    @JsonSubTypes.Type( value = FileTypeValueOptions.class, name = "File" ),
-    @JsonSubTypes.Type( value = DigitsValueTypeOptions.class, name = "Digits" )
+    @JsonSubTypes.Type( value = FileTypeValueOptions.class, name = "File" )
 } )
 public abstract class ValueTypeOptions implements Serializable
 {
