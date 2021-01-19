@@ -145,6 +145,6 @@ public class ValidationUtils
         programRuleIssues
             .stream()
             .filter( issue -> issue.getIssueType().equals( WARNING ) )
-            .forEach( e -> reporter.addWarning( newWarningReport( TrackerErrorCode.E1200 ).addArg( e.getMessage() ) ) );
+            .forEach( e -> reporter.addWarning( newWarningReport( TrackerErrorCode.E1201 ).addArg( e.getMessage() ) ) );
     }
 }

@@ -1,5 +1,7 @@
 package org.hisp.dhis.trackedentityattributevalue;
 
+import org.apache.commons.lang3.StringUtils;
+
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -40,7 +42,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.util.Collection;
 import java.util.List;

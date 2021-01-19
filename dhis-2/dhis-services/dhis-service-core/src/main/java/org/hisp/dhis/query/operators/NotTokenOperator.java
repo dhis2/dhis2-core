@@ -73,9 +73,10 @@ public class NotTokenOperator<T extends Comparable<? super T>>
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean test( Object value )
     {
         String targetValue = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
-        return !TokenUtils.test( args, (T)value, targetValue, caseSensitive, matchMode );
+        return !TokenUtils.test( args, (T) value, targetValue, caseSensitive, matchMode );
     }
 }
