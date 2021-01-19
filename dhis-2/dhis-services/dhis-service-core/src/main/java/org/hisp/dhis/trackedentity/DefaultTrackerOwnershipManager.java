@@ -253,6 +253,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
             }
             ProgramTempOwner programTempOwner = new ProgramTempOwner( program, entityInstance, reason, user, TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS );
             programTempOwnerService.addProgramTempOwner( programTempOwner );
+            tempOwnerCache.invalidate( getTempOwnershipCacheKey( entityInstance.getUid(), program.getUid(), user.getUid() ) );
+          
         }
     }
 
