@@ -62,7 +62,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;

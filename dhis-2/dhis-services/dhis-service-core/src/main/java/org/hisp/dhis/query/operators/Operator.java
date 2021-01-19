@@ -117,7 +117,7 @@ public abstract class Operator<T extends Comparable<? super T>>
         return collectionArgs;
     }
 
-    protected <T> T getValue( Class<T> klass, Class<?> secondaryClass, int idx )
+    protected <S> S getValue( Class<S> klass, Class<?> secondaryClass, int idx )
     {
         if ( Collection.class.isAssignableFrom( klass ) )
         {
@@ -127,7 +127,7 @@ public abstract class Operator<T extends Comparable<? super T>>
         return QueryUtils.parseValue( klass, secondaryClass, args.get( idx ) );
     }
 
-    protected <T> T getValue( Class<T> klass, int idx )
+    protected <S> S getValue( Class<S> klass, int idx )
     {
         if ( Collection.class.isAssignableFrom( klass ) )
         {
@@ -137,7 +137,7 @@ public abstract class Operator<T extends Comparable<? super T>>
         return QueryUtils.parseValue( klass, null, args.get( idx ) );
     }
 
-    protected <T> T getValue( Class<T> klass )
+    protected <S> S getValue( Class<S> klass )
     {
         if ( Collection.class.isAssignableFrom( klass ) )
         {
@@ -147,12 +147,12 @@ public abstract class Operator<T extends Comparable<? super T>>
         return getValue( klass, 0 );
     }
 
-    protected <T> T getValue( Class<T> klass, Class<?> secondaryClass, Object value )
+    protected <S> T getValue( Class<S> klass, Class<?> secondaryClass, Object value )
     {
         return QueryUtils.parseValue( klass, secondaryClass, value );
     }
 
-    protected <T> T getValue( Class<T> klass, Object value )
+    protected <S> S getValue( Class<S> klass, Object value )
     {
         return QueryUtils.parseValue( klass, value );
     }
