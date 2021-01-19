@@ -79,7 +79,8 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
         List<T> list = runQuery( query );
         list = runSorter( query, list );
 
-        return PagerUtils.pageCollection( list, query.getFirstResult(), query.getMaxResults() );
+        return query.isSkipPaging() ? list :
+            PagerUtils.pageCollection( list, query.getFirstResult(), query.getMaxResults() );
     }
 
     @Override

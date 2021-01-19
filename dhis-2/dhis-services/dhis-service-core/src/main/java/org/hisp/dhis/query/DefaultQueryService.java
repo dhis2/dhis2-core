@@ -124,6 +124,7 @@ public class DefaultQueryService
     {
         Query query = queryParser.parse( klass, filters, rootJunction, restrictToCaptureScope );
         query.addOrders( orders );
+
         if ( pagination.hasPagination() )
         {
             query.setFirstResult( pagination.getFirstResult() );
