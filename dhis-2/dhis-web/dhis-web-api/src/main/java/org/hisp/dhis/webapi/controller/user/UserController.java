@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.user;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
@@ -49,6 +50,7 @@ import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Order;
+import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.MergeParams;
@@ -171,9 +173,13 @@ public class UserController
 
         List<User> users = userService.getUsers( params, ordersAsString );
 
-        // Keep the memory query on the result
+        Pagination pagination = CollectionUtils.isEmpty( filters ) ? new Pagination() : getPaginationData( options );
+
+        /*
+         * Keep the memory query on the result
+         */
         Query query = queryService.getQueryFromUrl( getEntityClass(),
-            filters, orders, getPaginationData( options ), options.getRootJunction() );
+            filters, orders, pagination, options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( users );
