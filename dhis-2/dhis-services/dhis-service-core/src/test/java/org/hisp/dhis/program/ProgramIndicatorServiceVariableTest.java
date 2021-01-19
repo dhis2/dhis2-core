@@ -126,7 +126,7 @@ public class ProgramIndicatorServiceVariableTest
         assertEquals("created",
             getSql("V{creation_date}" ) );
 
-        assertEquals("(select created from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and created is not null and executiondate < cast( '2020-01-02' as date ) and executiondate >= cast( '2020-01-01' as date ) order by executiondate desc limit 1 )",
+        assertEquals("(select created from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and created is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date ) order by executiondate desc limit 1 )",
             getSqlEnrollment("V{creation_date}" ) );
     }
 
