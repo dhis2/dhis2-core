@@ -186,7 +186,7 @@ public class DefaultValidationResultService
             {
                 if ( !validator.test( val ) )
                 {
-                    throwValidationError(msgFactory.apply(code, val));
+                    throwValidationError( msgFactory.apply( code, val ) );
                 }
             }
         }

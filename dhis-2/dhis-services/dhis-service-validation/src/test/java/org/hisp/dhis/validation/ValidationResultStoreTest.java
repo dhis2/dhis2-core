@@ -500,7 +500,8 @@ public class ValidationResultStoreTest
     }
 
     @Test
-    public void testQueryWithOrgUnitFilter() {
+    public void testQueryWithOrgUnitFilter()
+    {
         save( asList(
             validationResultAA, validationResultAB, validationResultAC,
             validationResultBA, validationResultBB, validationResultBC ) );
@@ -539,7 +540,8 @@ public class ValidationResultStoreTest
     }
 
     @Test
-    public void testQueryWithValidationRuleFilter() {
+    public void testQueryWithValidationRuleFilter()
+    {
         save( asList(
             validationResultAA, validationResultAB, validationResultAC,
             validationResultBA, validationResultBB, validationResultBC ) );
@@ -574,7 +576,8 @@ public class ValidationResultStoreTest
     }
 
     @Test
-    public void testQueryWithIsoPeriodFilter() {
+    public void testQueryWithIsoPeriodFilter()
+    {
         save( asList(
             validationResultAA, validationResultAB, validationResultAC,
             validationResultBA, validationResultBB, validationResultBC ) );
@@ -617,14 +620,15 @@ public class ValidationResultStoreTest
     }
 
     @Test
-    public void testQueryWithCreatedDateFilter() {
+    public void testQueryWithCreatedDateFilter()
+    {
         Date beforeA = new Date();
-        wait1();
+        wait1ms();
         save( asList(
             validationResultAA, validationResultAB, validationResultAC ) );
-        wait1();
+        wait1ms();
         Date beforeB = new Date();
-        wait1();
+        wait1ms();
         save( asList(
             validationResultBA, validationResultBB, validationResultBC ) );
 
@@ -642,13 +646,14 @@ public class ValidationResultStoreTest
             validationResultStore.query( query ) );
 
         // after A and B onwards => none
-        wait1();
+        wait1ms();
         query.setCreatedDate( new Date() );
         assertEqualSets( emptyList(), validationResultStore.query( query ) );
     }
 
     @Test
-    public void testQueryWithMultipleFilters() {
+    public void testQueryWithMultipleFilters()
+    {
         save( asList(
             validationResultAA, validationResultAB, validationResultAC,
             validationResultBA, validationResultBB, validationResultBC ) );
@@ -773,7 +778,7 @@ public class ValidationResultStoreTest
         }
     }
 
-    private void wait1()
+    private void wait1ms()
     {
         long now = System.currentTimeMillis();
         while ( now >= System.currentTimeMillis() )
