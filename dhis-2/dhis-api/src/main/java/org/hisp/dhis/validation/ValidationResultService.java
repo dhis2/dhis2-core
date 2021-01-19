@@ -28,13 +28,14 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Stian Sandvold
@@ -90,9 +91,9 @@ public interface ValidationResultService
      */
     ValidationResult getById( long id );
 
-    List<ValidationResult> getValidationResults( ValidationResultQuery query );
+    List<ValidationResult> getValidationResults( ValidationResultQuery query ) throws IllegalQueryException;
 
-    long countValidationResults( ValidationResultQuery query );
+    long countValidationResults( ValidationResultQuery query ) throws IllegalQueryException;
 
     List<ValidationResult> getValidationResults( OrganisationUnit orgUnit,
         boolean includeOrgUnitDescendants, Collection<ValidationRule> validationRules, Collection<Period> periods );

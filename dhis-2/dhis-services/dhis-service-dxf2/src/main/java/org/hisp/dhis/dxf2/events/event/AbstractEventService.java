@@ -527,13 +527,17 @@ public abstract class AbstractEventService implements EventService
         event.setProgram( program.getUid() );
         event.setEnrollment( programStageInstance.getProgramInstance().getUid() );
         event.setProgramStage( programStageInstance.getProgramStage().getUid() );
-        event.setAttributeOptionCombo( programStageInstance.getAttributeOptionCombo().getUid() );
-        event.setAttributeCategoryOptions( String.join( ";", programStageInstance.getAttributeOptionCombo()
+        CategoryOptionCombo attributeOptionCombo = programStageInstance.getAttributeOptionCombo();
+        if ( attributeOptionCombo != null )
+        {
+            event.setAttributeOptionCombo( attributeOptionCombo.getUid() );
+            event.setAttributeCategoryOptions( String.join( ";", attributeOptionCombo
                 .getCategoryOptions().stream().map( CategoryOption::getUid ).collect( Collectors.toList() ) ) );
-
+        }
         if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
         {
-            event.setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
+            event
+                .setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
         }
 
         Collection<EventDataValue> dataValues;
@@ -544,11 +548,11 @@ public abstract class AbstractEventService implements EventService
         else
         {
             Set<String> dataElementsToSync = programStageInstance.getProgramStage().getProgramStageDataElements()
-                    .stream().filter( psde -> !psde.getSkipSynchronization() ).map( psde -> psde.getDataElement().getUid() )
-                    .collect( Collectors.toSet() );
+                .stream().filter( psde -> !psde.getSkipSynchronization() ).map( psde -> psde.getDataElement().getUid() )
+                .collect( Collectors.toSet() );
 
             dataValues = programStageInstance.getEventDataValues().stream()
-                    .filter( dv -> dataElementsToSync.contains( dv.getDataElement() ) ).collect( Collectors.toSet() );
+                .filter( dv -> dataElementsToSync.contains( dv.getDataElement() ) ).collect( Collectors.toSet() );
         }
 
         for ( EventDataValue dataValue : dataValues )
