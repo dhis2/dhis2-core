@@ -32,21 +32,21 @@ import java.util.List;
 
 public interface DeduplicationService
 {
-        long addPotentialDuplicate( PotentialDuplicate potentialDuplicate );
+    long addPotentialDuplicate( PotentialDuplicate potentialDuplicate );
 
-        PotentialDuplicate getPotentialDuplicateById( long id );
+    PotentialDuplicate getPotentialDuplicateById( long id );
 
-        PotentialDuplicate getPotentialDuplicateByUid( String uid );
+    PotentialDuplicate getPotentialDuplicateByUid( String uid );
 
-        List<PotentialDuplicate> getAllPotentialDuplicates();
+    List<PotentialDuplicate> getAllPotentialDuplicates();
 
-        void markPotentialDuplicateInvalid( PotentialDuplicate potentialDuplicate );
+    void markPotentialDuplicateInvalid( PotentialDuplicate potentialDuplicate );
 
-        int countPotentialDuplicates( PotentialDuplicateQuery query );
+    int countPotentialDuplicates( PotentialDuplicateQuery query );
 
-        boolean exists( PotentialDuplicate potentialDuplicate );
+    boolean exists( PotentialDuplicate potentialDuplicate );
 
-        List<PotentialDuplicate> getAllPotentialDuplicates( PotentialDuplicateQuery query );
+    List<PotentialDuplicate> getAllPotentialDuplicates( PotentialDuplicateQuery query );
 
-        void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate );
+    void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate );
 }

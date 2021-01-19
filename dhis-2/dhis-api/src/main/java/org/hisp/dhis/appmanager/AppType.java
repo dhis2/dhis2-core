@@ -31,17 +31,20 @@ package org.hisp.dhis.appmanager;
 public enum AppType
 {
     /**
-     * Normal app (to be displayed in menus, and rendered through /api/apps/{app-name})
+     * Normal app (to be displayed in menus, and rendered through
+     * /api/apps/{app-name})
      */
     APP,
 
     /**
-     * Resource, not displayed in any menus. Simple way to have multiple apps using the same JS/CSS bundles etc.
+     * Resource, not displayed in any menus. Simple way to have multiple apps using
+     * the same JS/CSS bundles etc.
      */
     RESOURCE,
 
     /**
-     * Dashboard widget, can be placed on the main system dashboard as 'widgets' (portlets).
+     * Dashboard widget, can be placed on the main system dashboard as 'widgets'
+     * (portlets).
      */
     DASHBOARD_WIDGET,
 

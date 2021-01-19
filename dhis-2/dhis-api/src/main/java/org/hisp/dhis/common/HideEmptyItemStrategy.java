@@ -35,7 +35,7 @@ public enum HideEmptyItemStrategy
     AFTER_LAST,
     BEFORE_FIRST_AFTER_LAST,
     ALL;
-    
+
     public boolean isHide()
     {
         return this == BEFORE_FIRST || this == AFTER_LAST || this == BEFORE_FIRST_AFTER_LAST || this == ALL;

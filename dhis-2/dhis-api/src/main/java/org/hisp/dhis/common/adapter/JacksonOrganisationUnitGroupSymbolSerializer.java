@@ -28,18 +28,20 @@ package org.hisp.dhis.common.adapter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -48,7 +50,8 @@ public class JacksonOrganisationUnitGroupSymbolSerializer extends JsonSerializer
 {
 
     @Override
-    public void serialize( OrganisationUnitGroup value, JsonGenerator jgen, SerializerProvider provider ) throws IOException
+    public void serialize( OrganisationUnitGroup value, JsonGenerator jgen, SerializerProvider provider )
+        throws IOException
     {
         DateFormat DATE_FORMAT = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ssZ" );
 
@@ -76,7 +79,7 @@ public class JacksonOrganisationUnitGroupSymbolSerializer extends JsonSerializer
             }
             catch ( XMLStreamException e )
             {
-                e.printStackTrace(); //TODO fix
+                e.printStackTrace(); // TODO fix
             }
         }
         else

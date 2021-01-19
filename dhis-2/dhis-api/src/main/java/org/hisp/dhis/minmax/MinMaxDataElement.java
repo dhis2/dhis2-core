@@ -28,16 +28,17 @@ package org.hisp.dhis.minmax;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.Serializable;
+import java.util.Objects;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * @author Kristian Nordal

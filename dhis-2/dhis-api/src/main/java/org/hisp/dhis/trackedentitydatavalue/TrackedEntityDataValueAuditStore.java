@@ -28,11 +28,11 @@ package org.hisp.dhis.trackedentitydatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
-
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -47,5 +47,6 @@ public interface TrackedEntityDataValueAuditStore
     List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
         List<ProgramStageInstance> programStageInstances, AuditType auditType, int first, int max );
 
-    int countTrackedEntityDataValueAudits( List<DataElement> dataElements, List<ProgramStageInstance> programStageInstances, AuditType auditType );
+    int countTrackedEntityDataValueAudits( List<DataElement> dataElements,
+        List<ProgramStageInstance> programStageInstances, AuditType auditType );
 }

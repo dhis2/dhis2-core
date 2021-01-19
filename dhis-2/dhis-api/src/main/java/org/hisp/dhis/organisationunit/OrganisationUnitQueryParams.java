@@ -129,14 +129,9 @@ public class OrganisationUnitQueryParams
     @Override
     public String toString()
     {
-        return MoreObjects.toStringHelper( this ).
-            add( "query", query ).
-            add( "parents", parents ).
-            add( "groups", groups ).
-            add( "levels", levels ).
-            add( "maxLevels", maxLevels ).
-            add( "first", first ).
-            add( "max", max ).toString();
+        return MoreObjects.toStringHelper( this ).add( "query", query ).add( "parents", parents )
+            .add( "groups", groups ).add( "levels", levels ).add( "maxLevels", maxLevels ).add( "first", first )
+            .add( "max", max ).toString();
     }
 
     // -------------------------------------------------------------------------

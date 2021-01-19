@@ -28,13 +28,13 @@ package org.hisp.dhis.minmax;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
 import java.util.Collection;
 import java.util.List;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Kristian Nordal

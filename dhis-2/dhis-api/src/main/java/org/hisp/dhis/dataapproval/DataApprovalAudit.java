@@ -28,16 +28,17 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
+import java.io.Serializable;
+import java.util.Date;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.user.User;
 
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
  * Records the approval of DataSet values for a given OrganisationUnit and
@@ -260,7 +261,8 @@ public class DataApprovalAudit
             ", workflow='" + (workflow == null ? "(null)" : workflow.getName()) + "'" +
             ", period=" + (period == null ? "(null)" : period.getName()) +
             ", organisationUnit='" + (organisationUnit == null ? "(null)" : organisationUnit.getName()) + "'" +
-            ", attributeOptionCombo='" + (attributeOptionCombo == null ? "(null)" : attributeOptionCombo.getName()) + "'" +
+            ", attributeOptionCombo='" + (attributeOptionCombo == null ? "(null)" : attributeOptionCombo.getName())
+            + "'" +
             ", action=" + action +
             ", created=" + created +
             ", creator=" + (creator == null ? "(null)" : creator.getName()) +
@@ -275,7 +277,7 @@ public class DataApprovalAudit
             return true;
         }
 
-        if ( object == null || !(object instanceof DataApprovalAudit ) )
+        if ( object == null || !(object instanceof DataApprovalAudit) )
         {
             return false;
         }

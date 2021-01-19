@@ -28,14 +28,15 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.common.DxfNamespaces;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

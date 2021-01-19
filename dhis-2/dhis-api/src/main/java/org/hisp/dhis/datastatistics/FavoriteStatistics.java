@@ -28,9 +28,9 @@ package org.hisp.dhis.datastatistics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Created by yrjanaff on 20.05.2016.
@@ -38,13 +38,13 @@ import java.util.Date;
 public class FavoriteStatistics
 {
     private Integer position;
-    
+
     private String name;
-    
+
     private Integer views;
-    
+
     private String id;
-    
+
     private Date created;
 
     public FavoriteStatistics()

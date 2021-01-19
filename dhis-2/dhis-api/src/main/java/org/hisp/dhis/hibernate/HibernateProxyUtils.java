@@ -28,10 +28,10 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Objects;
+
 import org.hibernate.Hibernate;
 import org.hibernate.proxy.HibernateProxyHelper;
-
-import java.util.Objects;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -43,7 +43,7 @@ public class HibernateProxyUtils
         throw new IllegalStateException( "Utility class" );
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings( "rawtypes" )
     public static Class getRealClass( Object object )
     {
         Objects.requireNonNull( object );

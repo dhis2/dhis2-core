@@ -30,14 +30,14 @@ package org.hisp.dhis.datastatistics;
 
 /**
  * Enum of EventInterval to be used as identifiers for aggregation of reportdata
- * 
+ *
  * @author Yrjan A. F. Fraschetti
- * @author Julie Hill Roa        
+ * @author Julie Hill Roa
  */
 public enum EventInterval
 {
-    DAY, 
-    WEEK, 
-    MONTH, 
+    DAY,
+    WEEK,
+    MONTH,
     YEAR
 }

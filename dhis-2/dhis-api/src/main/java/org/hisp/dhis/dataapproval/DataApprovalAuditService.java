@@ -28,9 +28,9 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
 import java.util.List;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Jim Grace

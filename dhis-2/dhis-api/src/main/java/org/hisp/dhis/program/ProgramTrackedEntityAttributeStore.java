@@ -28,11 +28,10 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-
 import java.util.List;
+
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
  * @author Lars Helge Overland
@@ -44,6 +43,7 @@ public interface ProgramTrackedEntityAttributeStore
 
     /**
      * Get all TrackedEntityAttribute filtered by given list of Program
+     *
      * @param programs
      * @return List of TrackedEntityAttribute
      */

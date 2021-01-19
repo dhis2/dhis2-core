@@ -38,35 +38,35 @@ public abstract class AggregatedValue
     // ----------------------------------------------------------------------
     // Properties
     // ----------------------------------------------------------------------
-    
+
     protected long periodId;
-    
+
     protected long periodTypeId;
-    
+
     protected long organisationUnitId;
-    
+
     protected long organisationUnitGroupId;
-    
+
     protected int level;
-    
+
     protected double value;
 
     protected transient String periodName;
-    
+
     protected transient String organisationUnitName;
-    
+
     protected transient double trendValue;
 
     // ----------------------------------------------------------------------
     // Abstract methods
     // ----------------------------------------------------------------------
-    
+
     public abstract long getElementId();
 
     // ----------------------------------------------------------------------
     // Getters and setters
     // ----------------------------------------------------------------------
-    
+
     public long getPeriodId()
     {
         return periodId;

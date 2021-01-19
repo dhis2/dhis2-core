@@ -28,9 +28,9 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElement;
-
 import java.util.Collection;
+
+import org.hisp.dhis.dataelement.DataElement;
 
 /**
  * An Expression is the expression of e.g. a validation rule of a program. It
@@ -52,7 +52,7 @@ public interface ProgramExpressionService
     String ID = ProgramExpressionService.class.getName();
 
     String INVALID_CONDITION = "Expression is not well-formed";
-    
+
     /**
      * Adds an {@link ProgramExpression}
      *
@@ -90,7 +90,7 @@ public interface ProgramExpressionService
      * @return the description of an expression
      */
     String getExpressionDescription( String programExpression );
-    
+
     /**
      * Get the Data Element collection of a program expression
      *

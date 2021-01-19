@@ -45,22 +45,22 @@ public class ProgramTest
     public void testUpdateOrganisationUnits()
     {
         Program prA = new Program();
-        
+
         OrganisationUnit ouA = new OrganisationUnit( "ouA" );
         OrganisationUnit ouB = new OrganisationUnit( "ouB" );
         OrganisationUnit ouC = new OrganisationUnit( "ouC" );
         OrganisationUnit ouD = new OrganisationUnit( "ouD" );
-        
+
         prA.addOrganisationUnit( ouA );
         prA.addOrganisationUnit( ouB );
-        
+
         assertEquals( 2, prA.getOrganisationUnits().size() );
         assertTrue( prA.getOrganisationUnits().containsAll( Sets.newHashSet( ouA, ouB ) ) );
         assertTrue( ouA.getPrograms().contains( prA ) );
         assertTrue( ouB.getPrograms().contains( prA ) );
         assertTrue( ouC.getPrograms().isEmpty() );
         assertTrue( ouD.getPrograms().isEmpty() );
-        
+
         prA.updateOrganisationUnits( Sets.newHashSet( ouB, ouC ) );
 
         assertEquals( 2, prA.getOrganisationUnits().size() );

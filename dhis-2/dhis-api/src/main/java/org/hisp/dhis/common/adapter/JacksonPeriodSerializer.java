@@ -43,7 +43,8 @@ public class JacksonPeriodSerializer
     extends JsonSerializer<Period>
 {
     @Override
-    public void serialize( Period value, JsonGenerator jgen, SerializerProvider provider ) throws IOException
+    public void serialize( Period value, JsonGenerator jgen, SerializerProvider provider )
+        throws IOException
     {
         if ( value != null && value.getIsoDate() != null )
         {

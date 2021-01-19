@@ -28,10 +28,10 @@ package org.hisp.dhis.dataset.notifications;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.notification.NotificationTrigger;
-
-import java.util.List;
 
 /**
  * Created by zubair@dhis2.org on 20.07.17.

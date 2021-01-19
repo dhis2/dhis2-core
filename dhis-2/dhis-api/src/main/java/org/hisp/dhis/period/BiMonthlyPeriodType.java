@@ -28,13 +28,13 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -96,14 +96,14 @@ public class BiMonthlyPeriodType
     // CalendarPeriodType functionality
     // -------------------------------------------------------------------------
     @Override
-    public DateTimeUnit getDateWithOffset(  DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
+    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
     {
         return calendar.plusMonths( dateTimeUnit, 2 * offset );
     }
 
     /**
-     * Generates bimonthly Periods for the whole year in which the start date of
-     * the given Period exists.
+     * Generates bimonthly Periods for the whole year in which the start date of the
+     * given Period exists.
      */
     @Override
     public List<Period> generatePeriods( DateTimeUnit dateTimeUnit )
@@ -127,8 +127,8 @@ public class BiMonthlyPeriodType
     }
 
     /**
-     * Generates the last 6 bi-months where the last one is the bi-month
-     * which the given date is inside.
+     * Generates the last 6 bi-months where the last one is the bi-month which the
+     * given date is inside.
      */
     @Override
     public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )

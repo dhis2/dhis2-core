@@ -32,40 +32,68 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Aggregated DataStatistics object
- * 
+ *
  * @author Julie Hill Roa
  * @author Yrjan Fraschetti
  */
 public class AggregatedStatistics
 {
     private Integer year;
+
     private Integer month;
+
     private Integer week;
+
     private Integer day;
+
     private Integer mapViews;
+
     private Integer chartViews;
+
     private Integer pivotTableViews;
+
     private Integer eventReportViews;
+
     private Integer eventChartViews;
+
     private Integer dashboardViews;
+
     private Integer dataSetReportViews;
+
     private Integer totalViews;
+
     private Integer averageViews;
+
     private Integer averageMapViews;
+
     private Integer averageChartViews;
+
     private Integer averagePivotTableViews;
+
     private Integer averageEventReportViews;
+
     private Integer averageEventChartViews;
+
     private Integer averageDashboardViews;
+
     private Integer savedMaps;
+
     private Integer savedCharts;
+
     private Integer savedPivotTables;
+
     private Integer savedEventReports;
+
     private Integer savedEventCharts;
+
     private Integer savedDashboards;
+
     private Integer savedIndicators;
+
     private Integer savedDataValues;
+
     private Integer activeUsers;
+
     private Integer users;
 
     public AggregatedStatistics()
@@ -391,7 +419,8 @@ public class AggregatedStatistics
         this.users = users;
     }
 
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return "AggregatedStatistics{" +
             "year=" + year +

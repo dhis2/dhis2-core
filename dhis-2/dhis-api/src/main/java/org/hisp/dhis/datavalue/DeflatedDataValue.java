@@ -28,18 +28,19 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
+import static org.hisp.dhis.category.CategoryOptionCombo.DEFAULT_TOSTRING;
 
 import java.util.Date;
 
-import static org.hisp.dhis.category.CategoryOptionCombo.DEFAULT_TOSTRING;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * The purpose of this class is to avoid the overhead of creating objects
- * for associated objects, in order to reduce heap space usage during export.
+ * The purpose of this class is to avoid the overhead of creating objects for
+ * associated objects, in order to reduce heap space usage during export.
  *
  * @author Lars Helge Overland
  * @version $Id$
@@ -353,9 +354,8 @@ public class DeflatedDataValue
 
     public String getCategoryOptionComboNameParsed()
     {
-        return categoryOptionComboName != null && categoryOptionComboName.equals( DEFAULT_TOSTRING ) ?
-            "" :
-            categoryOptionComboName;
+        return categoryOptionComboName != null && categoryOptionComboName.equals( DEFAULT_TOSTRING ) ? ""
+            : categoryOptionComboName;
     }
 
     // -------------------------------------------------------------------------

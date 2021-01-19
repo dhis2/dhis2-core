@@ -28,17 +28,19 @@ package org.hisp.dhis.render;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.util.Objects;
+import java.util.Set;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
 
-import java.util.Objects;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * This class represents how a class (DataElement or TrackedEntityAttribute), a ValueType or OptionSet can be rendered
+ * This class represents how a class (DataElement or TrackedEntityAttribute), a
+ * ValueType or OptionSet can be rendered
  */
 public class ObjectValueTypeRenderingOption
 {
@@ -58,7 +60,8 @@ public class ObjectValueTypeRenderingOption
     private boolean hasOptionSet;
 
     /**
-     * A set of renderingTypes available for the combination of clazz valueType and hasOptionSet
+     * A set of renderingTypes available for the combination of clazz valueType and
+     * hasOptionSet
      */
     private Set<ValueTypeRenderingType> renderingTypes;
 

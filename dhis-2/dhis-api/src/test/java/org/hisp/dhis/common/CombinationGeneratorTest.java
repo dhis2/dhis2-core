@@ -28,8 +28,9 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
+import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,8 +39,6 @@ import org.junit.Test;
 
 import com.google.common.collect.Lists;
 
-import static org.junit.Assert.*;
-
 /**
  * @author Lars Helge Overland
  * @version $Id$
@@ -47,8 +46,11 @@ import static org.junit.Assert.*;
 public class CombinationGeneratorTest
 {
     private IdentifiableObject a = new DataElementGroup( "A" );
+
     private IdentifiableObject b = new DataElementGroup( "B" );
+
     private IdentifiableObject c = new DataElementGroup( "C" );
+
     private IdentifiableObject d = new DataElementGroup( "D" );
 
     @Test

@@ -28,23 +28,22 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.common.IdentifiableProperty.NAME;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.LinkedList;
+import java.util.List;
+
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboMap;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DataDimensionType;
-
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.LinkedList;
-import java.util.List;
-
-import static org.hisp.dhis.common.IdentifiableProperty.NAME;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author bobj

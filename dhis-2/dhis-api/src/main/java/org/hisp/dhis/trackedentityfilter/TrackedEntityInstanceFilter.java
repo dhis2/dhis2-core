@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
@@ -51,7 +50,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "trackedEntityInstanceFilter", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityInstanceFilter
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
 
     /**
@@ -65,8 +65,7 @@ public class TrackedEntityInstanceFilter
     private String description;
 
     /**
-     * Property indicating the filter's order in tracked entity instance search
-     * UI
+     * Property indicating the filter's order in tracked entity instance search UI
      */
     private int sortOrder;
 
@@ -92,8 +91,7 @@ public class TrackedEntityInstanceFilter
     private FilterPeriod enrollmentCreatedPeriod;
 
     /**
-     * Property to filter tracked entity instances based on event dates and
-     * statues
+     * Property to filter tracked entity instances based on event dates and statues
      */
     private List<EventFilter> eventFilters = new ArrayList<>();
 

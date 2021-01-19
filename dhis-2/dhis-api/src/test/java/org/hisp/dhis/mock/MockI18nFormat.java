@@ -43,15 +43,15 @@ public class MockI18nFormat
     {
         super( null );
     }
-    
+
     @Override
     public String formatPeriod( Period period )
     {
         String name = period.getStartDate() + "-" + period.getEndDate();
-        
+
         return name.toLowerCase().trim();
     }
-    
+
     @Override
     public String formatDate( Date date )
     {

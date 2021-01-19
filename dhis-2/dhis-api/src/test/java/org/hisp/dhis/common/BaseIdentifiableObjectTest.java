@@ -28,10 +28,10 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.*;
+
 import org.hisp.dhis.dataelement.DataElement;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -44,18 +44,18 @@ public class BaseIdentifiableObjectTest
         DataElement deA = new DataElement();
         deA.setUid( "A1234567890" );
         deA.setCode( "CodeA" );
-        deA.setName( "NameA" );        
+        deA.setName( "NameA" );
 
         DataElement deB = new DataElement();
 
         IdScheme idSchemeUid = IdScheme.from( IdentifiableProperty.UID );
         IdScheme idSchemeCode = IdScheme.from( IdentifiableProperty.CODE );
         IdScheme idSchemeName = IdScheme.from( IdentifiableProperty.NAME );
-        
+
         assertEquals( "A1234567890", deA.getPropertyValue( idSchemeUid ) );
         assertEquals( "CodeA", deA.getPropertyValue( idSchemeCode ) );
         assertEquals( "NameA", deA.getPropertyValue( idSchemeName ) );
-        
+
         assertNull( deB.getPropertyValue( idSchemeCode ) );
     }
 }

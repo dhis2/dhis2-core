@@ -30,12 +30,12 @@ package org.hisp.dhis.program.notification.template.snapshot;
 
 import java.util.Date;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
-
-import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service( "org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService" )
@@ -56,7 +56,8 @@ public class NotificationTemplateService
         notificationInstance.setAutoFields();
         notificationInstance.setName( template.getName() );
         notificationInstance.setScheduledAt( date );
-        notificationInstance.setProgramNotificationTemplateSnapshot( mapper.toProgramNotificationTemplateSnapshot( template ) );
+        notificationInstance
+            .setProgramNotificationTemplateSnapshot( mapper.toProgramNotificationTemplateSnapshot( template ) );
 
         return notificationInstance;
     }

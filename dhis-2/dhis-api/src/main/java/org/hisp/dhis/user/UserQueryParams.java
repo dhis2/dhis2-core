@@ -28,17 +28,17 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
-
-import lombok.Getter;
-
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import lombok.Getter;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Lars Helge Overland

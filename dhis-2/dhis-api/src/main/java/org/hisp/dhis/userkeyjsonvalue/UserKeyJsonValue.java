@@ -28,9 +28,10 @@ package org.hisp.dhis.userkeyjsonvalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.user.User;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Stian Sandvold
@@ -49,7 +50,8 @@ public class UserKeyJsonValue
     private String key;
 
     /**
-     * A value referenced by a key, namespace and user, JSON-formatted data stored as a jsonb in db
+     * A value referenced by a key, namespace and user, JSON-formatted data stored
+     * as a jsonb in db
      */
     private String jbPlainValue;
 
@@ -64,8 +66,9 @@ public class UserKeyJsonValue
     private Boolean encrypted = false;
 
     /**
-     * Temporary variable to hold any new values set during session. Will be made into the correct type
-     * when being persisted by the persistence layer (encrypted or plain).
+     * Temporary variable to hold any new values set during session. Will be made
+     * into the correct type when being persisted by the persistence layer
+     * (encrypted or plain).
      */
     private String value;
 

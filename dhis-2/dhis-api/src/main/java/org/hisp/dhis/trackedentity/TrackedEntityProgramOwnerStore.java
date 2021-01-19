@@ -28,8 +28,9 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericStore;
 import java.util.List;
+
+import org.hisp.dhis.common.GenericStore;
 
 /**
  * @author Ameen Mohamed
@@ -40,7 +41,7 @@ public interface TrackedEntityProgramOwnerStore extends GenericStore<TrackedEnti
 
     /**
      * Get tracked entity program owner entity for the tei-program combination.
-     * 
+     *
      * @param teiId The tracked entity instance id.
      * @param programId the program id
      * @return matching tracked entity program owner entity
@@ -49,15 +50,16 @@ public interface TrackedEntityProgramOwnerStore extends GenericStore<TrackedEnti
 
     /**
      * Get all Tracked entity program owner entities for the list of teis.
-     * 
+     *
      * @param teiIds The list of tracked entity instance ids.
      * @return matching tracked entity program owner entities.
      */
     List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Long> teiIds );
 
     /**
-     *  Get all Tracked entity program owner entities for the list of teis and program.
-     *  
+     * Get all Tracked entity program owner entities for the list of teis and
+     * program.
+     *
      * @param teiIds The list of tracked entity instance ids.
      * @param programId The program id
      * @return matching tracked entity program owner entities.

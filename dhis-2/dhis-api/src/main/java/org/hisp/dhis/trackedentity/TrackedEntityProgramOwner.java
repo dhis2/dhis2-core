@@ -28,11 +28,6 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 import java.io.Serializable;
 import java.util.Date;
 
@@ -40,6 +35,11 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Ameen Mohamed
@@ -49,10 +49,10 @@ public class TrackedEntityProgramOwner implements Serializable
 {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
-    
+
     private int id;
 
     private TrackedEntityInstance entityInstance;
@@ -228,7 +228,7 @@ public class TrackedEntityProgramOwner implements Serializable
     {
         this.createdBy = createdBy;
     }
-    
+
     public int getId()
     {
         return id;

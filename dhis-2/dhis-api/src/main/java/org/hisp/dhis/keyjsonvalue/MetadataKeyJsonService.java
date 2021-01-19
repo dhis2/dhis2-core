@@ -38,7 +38,7 @@ public interface MetadataKeyJsonService
     /**
      * Retrieves a KeyJsonValue based on a namespace and key.
      *
-     * @param key       the key referencing the value.
+     * @param key the key referencing the value.
      * @return the KeyJsonValue matching the key and namespace.
      */
     KeyJsonValue getMetaDataVersion( String key );

@@ -28,23 +28,23 @@ package org.hisp.dhis.program.message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.Serializable;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-
-import java.io.Serializable;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -89,7 +89,8 @@ public class ProgramMessage
         this.recipients = recipients;
     }
 
-    public ProgramMessage( String subject, String text, ProgramMessageRecipients recipients, Set<DeliveryChannel> deliveryChannels,
+    public ProgramMessage( String subject, String text, ProgramMessageRecipients recipients,
+        Set<DeliveryChannel> deliveryChannels,
         ProgramInstance programInstance )
     {
         this( subject, text, recipients );
@@ -97,7 +98,8 @@ public class ProgramMessage
         this.programInstance = programInstance;
     }
 
-    public ProgramMessage( String subject, String text, ProgramMessageRecipients recipients, Set<DeliveryChannel> deliveryChannels,
+    public ProgramMessage( String subject, String text, ProgramMessageRecipients recipients,
+        Set<DeliveryChannel> deliveryChannels,
         ProgramStageInstance programStageInstance )
     {
         this( subject, text, recipients );

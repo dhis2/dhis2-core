@@ -28,18 +28,18 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hamcrest.Matchers;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.hamcrest.Matchers;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link UserCredentials}.
@@ -67,14 +67,16 @@ public class UserCredentialsTest
 
         userAuthorityGroup1Super = new UserAuthorityGroup();
         userAuthorityGroup1Super.setUid( "uid4" );
-        userAuthorityGroup1Super.setAuthorities( new HashSet<>( Arrays.asList( "z1", UserAuthorityGroup.AUTHORITY_ALL ) ) );
+        userAuthorityGroup1Super
+            .setAuthorities( new HashSet<>( Arrays.asList( "z1", UserAuthorityGroup.AUTHORITY_ALL ) ) );
     }
 
     @Test
     public void isSuper()
     {
         final UserCredentials userCredentials = new UserCredentials();
-        userCredentials.setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup1Super, userAuthorityGroup2 ) ) );
+        userCredentials.setUserAuthorityGroups(
+            new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup1Super, userAuthorityGroup2 ) ) );
 
         assertTrue( userCredentials.isSuper() );
         assertTrue( userCredentials.isSuper() );
@@ -84,7 +86,8 @@ public class UserCredentialsTest
     public void isNotSuper()
     {
         final UserCredentials userCredentials = new UserCredentials();
-        userCredentials.setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup2 ) ) );
+        userCredentials
+            .setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup2 ) ) );
 
         assertFalse( userCredentials.isSuper() );
         assertFalse( userCredentials.isSuper() );
@@ -94,11 +97,13 @@ public class UserCredentialsTest
     public void isSuperChanged()
     {
         final UserCredentials userCredentials = new UserCredentials();
-        userCredentials.setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup1Super, userAuthorityGroup2 ) ) );
+        userCredentials.setUserAuthorityGroups(
+            new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup1Super, userAuthorityGroup2 ) ) );
 
         assertTrue( userCredentials.isSuper() );
 
-        userCredentials.setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup2 ) ) );
+        userCredentials
+            .setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup2 ) ) );
         assertFalse( userCredentials.isSuper() );
     }
 
@@ -106,7 +111,8 @@ public class UserCredentialsTest
     public void getAllAuthorities()
     {
         final UserCredentials userCredentials = new UserCredentials();
-        userCredentials.setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup1Super ) ) );
+        userCredentials
+            .setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup1Super ) ) );
 
         Set<String> authorities1 = userCredentials.getAllAuthorities();
         assertThat( authorities1, Matchers.containsInAnyOrder( "x1", "x2", "z1", UserAuthorityGroup.AUTHORITY_ALL ) );
@@ -119,12 +125,14 @@ public class UserCredentialsTest
     public void getAllAuthoritiesChanged()
     {
         final UserCredentials userCredentials = new UserCredentials();
-        userCredentials.setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup1Super ) ) );
+        userCredentials
+            .setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup1Super ) ) );
 
         Set<String> authorities1 = userCredentials.getAllAuthorities();
         assertThat( authorities1, Matchers.containsInAnyOrder( "x1", "x2", "z1", UserAuthorityGroup.AUTHORITY_ALL ) );
 
-        userCredentials.setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup2 ) ) );
+        userCredentials
+            .setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup2 ) ) );
         Set<String> authorities2 = userCredentials.getAllAuthorities();
         assertThat( authorities2, Matchers.containsInAnyOrder( "x1", "x2", "y1", "y2" ) );
     }

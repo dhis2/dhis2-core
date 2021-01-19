@@ -34,63 +34,63 @@ import lombok.extern.slf4j.Slf4j;
 public class Timer
 {
     private long startTime;
-    
+
     private boolean printDisabled;
-        
+
     public Timer disablePrint()
     {
         this.printDisabled = true;
         return this;
     }
-    
+
     public Timer start()
     {
         startTime = System.nanoTime();
         return this;
     }
-    
+
     public long getSplitTime()
     {
         return getSplitTime( "Split" );
     }
-    
+
     public long getSplitTime( String msg )
     {
         long endTime = System.nanoTime();
-        
-        long time = ( endTime - startTime ) / 1000;
-        
+
+        long time = (endTime - startTime) / 1000;
+
         if ( !printDisabled )
         {
             log.info( "Time: " + time + " micros: " + msg );
         }
-        
+
         return time;
     }
 
     public long getTimeInMs()
     {
         long endTime = System.nanoTime();
-        long time = ( endTime - startTime ) / 1000000;
+        long time = (endTime - startTime) / 1000000;
         return time;
     }
 
     public long getTimeInS()
     {
         long endTime = System.nanoTime();
-        long time = ( endTime - startTime ) / 1000000000;
+        long time = (endTime - startTime) / 1000000000;
         return time;
     }
-    
+
     public long getTime( String msg )
     {
         long time = getSplitTime( msg );
-                
+
         start();
-        
+
         return time;
     }
-    
+
     public long getTime()
     {
         return getTime( "Time" );

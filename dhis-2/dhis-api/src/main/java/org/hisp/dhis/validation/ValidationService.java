@@ -28,15 +28,15 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Jim Grace
@@ -44,11 +44,12 @@ import java.util.List;
 public interface ValidationService
 {
     int MAX_INTERACTIVE_ALERTS = 500;
+
     int MAX_SCHEDULED_ALERTS = 100000;
 
     /**
-     * Start a validation analysis, based on the supplied parameters. See ValidationAnalysisParams for more
-     * information
+     * Start a validation analysis, based on the supplied parameters. See
+     * ValidationAnalysisParams for more information
      *
      * @param parameters the parameters to base the analysis on.
      * @return a collection of ValidationResults found.
@@ -56,12 +57,12 @@ public interface ValidationService
     List<ValidationResult> validationAnalysis( ValidationAnalysisParams parameters );
 
     /**
-     * Validate that missing data values have a corresponding comment, assuming
-     * that the given data set has the noValueRequiresComment property set to true.
+     * Validate that missing data values have a corresponding comment, assuming that
+     * the given data set has the noValueRequiresComment property set to true.
      *
-     * @param dataSet              the data set.
-     * @param period               the period.
-     * @param orgUnit              the organisation unit.
+     * @param dataSet the data set.
+     * @param period the period.
+     * @param orgUnit the organisation unit.
      * @param attributeOptionCombo the attribute option combo.
      * @return a list of operands representing missing comments.
      */

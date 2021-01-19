@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
+
 import org.springframework.util.concurrent.ListenableFuture;
 
 /**
@@ -42,10 +43,14 @@ import org.springframework.util.concurrent.ListenableFuture;
  * <p>
  * <ul>
  * <li>Create a job configuration {@link JobConfiguration}</li>
- * <li>This job configuration needs a job specific parameters object {@link JobParameters}, ie {@link org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters}.</li>
+ * <li>This job configuration needs a job specific parameters object
+ * {@link JobParameters}, ie
+ * {@link org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters}.</li>
  * <li>Call scheduleJob with the job configuration.</li>
- * <li>The schedulingManager calls the spring scheduler with a runnable object {@link JobInstance}.</li>
- * <li>When the cron expression occurs the job will try to execute from the runnable object, job instance.</li>
+ * <li>The schedulingManager calls the spring scheduler with a runnable object
+ * {@link JobInstance}.</li>
+ * <li>When the cron expression occurs the job will try to execute from the
+ * runnable object, job instance.</li>
  * </ul>
  *
  * @author Henning Håkonsen
@@ -70,8 +75,9 @@ public interface SchedulingManager
     /**
      * Set up default behavior for a finished job.
      * <p>
-     * A special case is if a job is disabled when running, but the job does not stop. The job will run normally one last
-     * time and try to set finished status. Since the job is disabled we manually set these parameters in this method so
+     * A special case is if a job is disabled when running, but the job does not
+     * stop. The job will run normally one last time and try to set finished status.
+     * Since the job is disabled we manually set these parameters in this method so
      * that the job is not automatically rescheduled.
      * <p>
      * Also we don't want to update a job configuration if the job is deleted.
@@ -133,7 +139,8 @@ public interface SchedulingManager
     <T> ListenableFuture<T> executeJob( Callable<T> callable );
 
     /**
-     * Returns a list of all scheduled jobs sorted based on cron expression and the current time.
+     * Returns a list of all scheduled jobs sorted based on cron expression and the
+     * current time.
      *
      * @return list of jobs
      */

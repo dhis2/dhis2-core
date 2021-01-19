@@ -28,13 +28,13 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import org.joda.time.DateTime;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Kristian Wærstad
@@ -42,8 +42,11 @@ import static org.junit.Assert.assertEquals;
 public class BiWeeklyPeriodTypeTest
 {
     private DateTime startDate;
+
     private DateTime endDate;
+
     private DateTime testDate;
+
     private BiWeeklyPeriodType periodType;
 
     @Before
@@ -58,7 +61,6 @@ public class BiWeeklyPeriodTypeTest
         startDate = new DateTime( 2018, 1, 1, 0, 0 );
         endDate = new DateTime( 2018, 1, 14, 0, 0 );
         testDate = new DateTime( 2018, 1, 8, 0, 0 );
-
 
         Period period = periodType.createPeriod( testDate.toDate() );
 

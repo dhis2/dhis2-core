@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * A Builder class that helps in building Cache instances. Sensible defaults are
  * in place which can be modified with a fluent builder api.
- * 
+ *
  * @author Ameen Mohamed
  *
  * @param <V> The Value type to be stored in cache
@@ -44,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SimpleCacheBuilder<V> implements CacheBuilder<V>
 {
     private long maximumSize;
-    
+
     private int initialCapacity;
 
     private String region;
@@ -71,7 +71,7 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
         this.disabled = false;
         this.initialCapacity = 16;
     }
-    
+
     public CacheBuilder<V> withMaximumSize( long maximumSize )
     {
         if ( maximumSize < 0 )
@@ -81,7 +81,7 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
         this.maximumSize = maximumSize;
         return this;
     }
-    
+
     public CacheBuilder<V> withInitialCapacity( int initialCapacity )
     {
         if ( initialCapacity < 0 )
@@ -139,12 +139,12 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
     }
 
     /**
-     * Creates and returns a {@link LocalCache}. If {@code maximumSize} is 0 or {@code disabled} is true then a
-     * NoOpCache instance will be returned which does not cache anything.
-     * 
-     * @return A cache instance based on the input
-     *         parameters. Returns one of {@link LocalCache}
-     *         or {@link NoOpCache}
+     * Creates and returns a {@link LocalCache}. If {@code maximumSize} is 0 or
+     * {@code disabled} is true then a NoOpCache instance will be returned which
+     * does not cache anything.
+     *
+     * @return A cache instance based on the input parameters. Returns one of
+     *         {@link LocalCache} or {@link NoOpCache}
      */
     public Cache<V> build()
     {
@@ -164,7 +164,7 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
     {
         return maximumSize;
     }
-    
+
     public int getInitialCapacity()
     {
         return initialCapacity;
@@ -184,7 +184,7 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
     {
         return expiryEnabled;
     }
-    
+
     public boolean isDisabled()
     {
         return disabled;

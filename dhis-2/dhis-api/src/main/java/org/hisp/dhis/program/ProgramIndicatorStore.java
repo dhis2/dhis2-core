@@ -1,6 +1,5 @@
 package org.hisp.dhis.program;
 
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -29,9 +28,9 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-
 import java.util.List;
+
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Chau Thu Tran

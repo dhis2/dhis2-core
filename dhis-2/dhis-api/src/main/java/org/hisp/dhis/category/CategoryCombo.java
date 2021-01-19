@@ -28,29 +28,31 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.CombinationGenerator;
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.SystemDefaultMetadataObject;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CombinationGenerator;
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.SystemDefaultMetadataObject;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 /**
  * @author Abyot Aselefew
  */
 @JacksonXmlRootElement( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
 public class CategoryCombo
-    extends BaseIdentifiableObject implements SystemDefaultMetadataObject
+    extends BaseIdentifiableObject
+    implements SystemDefaultMetadataObject
 {
     public static final String DEFAULT_CATEGORY_COMBO_NAME = "default";
 
@@ -66,9 +68,8 @@ public class CategoryCombo
     private Set<CategoryOptionCombo> optionCombos = new HashSet<>();
 
     /**
-     * Type of data dimension. Category combinations of type DISAGGREGATION can
-     * be linked to data elements, whereas type ATTRIBUTE can be linked to data
-     * sets.
+     * Type of data dimension. Category combinations of type DISAGGREGATION can be
+     * linked to data elements, whereas type ATTRIBUTE can be linked to data sets.
      */
     private DataDimensionType dataDimensionType;
 
@@ -109,9 +110,9 @@ public class CategoryCombo
     }
 
     /**
-     * Indicates whether this category combo has at least one category, has at
-     * least one category option combo and that all categories have at least one
-     * category option.
+     * Indicates whether this category combo has at least one category, has at least
+     * one category option combo and that all categories have at least one category
+     * option.
      */
     public boolean isValid()
     {
@@ -165,8 +166,8 @@ public class CategoryCombo
     {
         List<CategoryOptionCombo> list = new ArrayList<>();
 
-        CombinationGenerator<CategoryOption> generator =
-            CombinationGenerator.newInstance( getCategoryOptionsAsLists() );
+        CombinationGenerator<CategoryOption> generator = CombinationGenerator
+            .newInstance( getCategoryOptionsAsLists() );
 
         while ( generator.hasNext() )
         {
@@ -183,8 +184,8 @@ public class CategoryCombo
     {
         List<CategoryOptionCombo> list = new ArrayList<>();
 
-        CombinationGenerator<CategoryOption> generator =
-            CombinationGenerator.newInstance( getCategoryOptionsAsLists() );
+        CombinationGenerator<CategoryOption> generator = CombinationGenerator
+            .newInstance( getCategoryOptionsAsLists() );
 
         while ( generator.hasNext() )
         {

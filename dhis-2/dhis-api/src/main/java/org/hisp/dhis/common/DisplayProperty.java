@@ -36,10 +36,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public enum DisplayProperty
 {
     @JsonProperty( "name" )
-    NAME( "name" ),
+    NAME("name" ),
 
     @JsonProperty( "shortName" )
-    SHORTNAME( "shortName" );
+    SHORTNAME("shortName" );
 
     private String display;
 

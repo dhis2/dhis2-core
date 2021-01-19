@@ -100,11 +100,17 @@ public class Visualization
     implements MetadataObject
 {
     public static final String REPORTING_MONTH_COLUMN_NAME = "reporting_month_name";
+
     public static final String PARAM_ORGANISATIONUNIT_COLUMN_NAME = "param_organisationunit_name";
+
     public static final String ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME = "organisation_unit_is_parent";
+
     public static final String SPACE = " ";
+
     public static final String TOTAL_COLUMN_NAME = "total";
+
     public static final String TOTAL_COLUMN_PRETTY_NAME = "Total";
+
     public static final String EMPTY = "";
 
     private static final String ILLEGAL_FILENAME_CHARS_REGEX = "[/\\?%*:|\"'<>.]";
@@ -178,15 +184,15 @@ public class Visualization
     private RegressionType regressionType = RegressionType.NONE;
 
     /**
-     * List of {@link Series}. Refers to the dimension items in the
-     * first dimension of the "columns" list by dimension item identifier.
+     * List of {@link Series}. Refers to the dimension items in the first dimension
+     * of the "columns" list by dimension item identifier.
      */
     private List<Series> series = new ArrayList<>();
 
     /**
      * Outlier analysis settings.
      */
-     private OutlierAnalysis outlierAnalysis;
+    private OutlierAnalysis outlierAnalysis;
 
     // -------------------------------------------------------------------------
     // Display definitions
@@ -224,7 +230,8 @@ public class Visualization
     private VisualizationFontStyle fontStyle;
 
     /**
-     * The key of the color set to use for visualization items, like columns and bars.
+     * The key of the color set to use for visualization items, like columns and
+     * bars.
      */
     private String colorSet;
 
@@ -1133,8 +1140,8 @@ public class Visualization
     }
 
     /**
-     * Returns the list of DimensionDescriptor held internally to the current Visualization object.
-     * See {@link #addDimensionDescriptor}.
+     * Returns the list of DimensionDescriptor held internally to the current
+     * Visualization object. See {@link #addDimensionDescriptor}.
      *
      * @return the list of DimensionDescriptor's held.
      */
@@ -1282,8 +1289,8 @@ public class Visualization
     // -------------------------------------------------------------------------
 
     /**
-     * Based on the Chart dimension, this method will bring the collection of
-     * child items related to its series.
+     * Based on the Chart dimension, this method will bring the collection of child
+     * items related to its series.
      *
      * @return a list of DimensionalItemObject representing the Chart series
      */
@@ -1299,8 +1306,8 @@ public class Visualization
     }
 
     /**
-     * Based on the Chart dimension, this method will bring the collection of
-     * child items related to its category.
+     * Based on the Chart dimension, this method will bring the collection of child
+     * items related to its category.
      *
      * @return a list of DimensionalItemObject representing the Chart category
      */
@@ -1331,7 +1338,8 @@ public class Visualization
     }
 
     public void populateGridColumnsAndRows( Date date, User user,
-        List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups, I18nFormat format )
+        List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups,
+        I18nFormat format )
     {
         List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
         List<List<DimensionalItemObject>> tableRows = new ArrayList<>();
@@ -1481,9 +1489,9 @@ public class Visualization
      * Generates a grid for this visualization based on the given aggregate value
      * map.
      *
-     * @param grid               the grid, should be empty and not null.
-     * @param valueMap           the mapping of identifiers to aggregate values.
-     * @param displayProperty    the display property to use for meta data.
+     * @param grid the grid, should be empty and not null.
+     * @param valueMap the mapping of identifiers to aggregate values.
+     * @param displayProperty the display property to use for meta data.
      * @param reportParamColumns whether to include report parameter columns.
      * @return a grid.
      */

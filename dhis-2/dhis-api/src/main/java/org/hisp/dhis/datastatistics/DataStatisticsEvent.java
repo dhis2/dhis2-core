@@ -39,9 +39,13 @@ import java.util.Date;
 public class DataStatisticsEvent
 {
     private int id;
+
     private DataStatisticsEventType eventType;
+
     private Date timestamp;
+
     private String username;
+
     private String favoriteUid;
 
     public DataStatisticsEvent()

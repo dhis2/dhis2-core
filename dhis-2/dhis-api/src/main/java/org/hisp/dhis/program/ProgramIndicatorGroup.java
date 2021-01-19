@@ -1,6 +1,5 @@
 package org.hisp.dhis.program;
 
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -29,19 +28,19 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.HashSet;
+import java.util.Set;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.schema.annotation.PropertyRange;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -49,7 +48,8 @@ import java.util.Set;
 
 @JacksonXmlRootElement( localName = "programIndicatorGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramIndicatorGroup
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     private Set<ProgramIndicator> members = new HashSet<>();
 

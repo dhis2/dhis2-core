@@ -28,8 +28,8 @@ package org.hisp.dhis.sms.incoming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
 import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.user.User;
 
@@ -60,7 +60,8 @@ public interface IncomingSmsService
 
     List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String originator );
 
-    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max, boolean hasPagination );
+    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max,
+        boolean hasPagination );
 
     List<IncomingSms> getAllUnparsedMessages();
 }

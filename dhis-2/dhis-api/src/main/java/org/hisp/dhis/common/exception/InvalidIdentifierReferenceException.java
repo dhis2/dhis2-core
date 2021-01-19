@@ -38,7 +38,7 @@ public class InvalidIdentifierReferenceException
     {
         super( message );
     }
-    
+
     public InvalidIdentifierReferenceException( String message, Throwable cause )
     {
         super( message, cause );

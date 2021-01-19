@@ -30,6 +30,9 @@ package org.hisp.dhis.program;
 
 import java.util.Optional;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.notification.template.snapshot.IdentifiableObjectSnapshot;
 import org.hisp.dhis.user.User;
@@ -37,13 +40,10 @@ import org.hisp.dhis.user.User;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-
 /**
  * Data structure to hold user information during save/update of events,
  * enrollments and comments
- * 
+ *
  * @author Giuseppe Nespolino
  */
 @NoArgsConstructor

@@ -32,9 +32,9 @@ package org.hisp.dhis.category.comparator;
  * @author Abyot Asalefew Gizaw
  * @version $Id$
  */
-import org.hisp.dhis.category.CategoryCombo;
-
 import java.util.Comparator;
+
+import org.hisp.dhis.category.CategoryCombo;
 
 public class CategoryComboSizeComparator
     implements Comparator<CategoryCombo>

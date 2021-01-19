@@ -77,7 +77,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "dashboardItem", namespace = DXF_2_0 )
 public class DashboardItem
-    extends BaseIdentifiableObject implements EmbeddedObject
+    extends BaseIdentifiableObject
+    implements EmbeddedObject
 {
     public static final int MAX_CONTENT = 8;
 
@@ -190,8 +191,8 @@ public class DashboardItem
     }
 
     /**
-     * Returns the actual item object if this dashboard item represents an
-     * embedded item and not links to items.
+     * Returns the actual item object if this dashboard item represents an embedded
+     * item and not links to items.
      */
     public InterpretableObject getEmbeddedItem()
     {
@@ -238,13 +239,12 @@ public class DashboardItem
     {
         InterpretableObject object = getEmbeddedItem();
 
-        return object != null ? object.getInterpretations().
-            stream().mapToInt( Interpretation::getLikes ).sum() : 0;
+        return object != null ? object.getInterpretations().stream().mapToInt( Interpretation::getLikes ).sum() : 0;
     }
 
     /**
-     * Returns a list of the actual item objects if this dashboard item
-     * represents a list of objects and not an embedded item.
+     * Returns a list of the actual item objects if this dashboard item represents a
+     * list of objects and not an embedded item.
      */
     public List<? extends IdentifiableObject> getLinkItems()
     {
@@ -275,7 +275,7 @@ public class DashboardItem
         count += map != null ? 1 : 0;
         count += reportTable != null ? 1 : 0;
         count += eventReport != null ? 1 : 0;
-        count += text != null ? 1: 0;
+        count += text != null ? 1 : 0;
         count += users.size();
         count += reports.size();
         count += resources.size();
@@ -285,8 +285,8 @@ public class DashboardItem
     }
 
     /**
-     * Removes the content with the given uid. Returns true if a content with
-     * the given uid existed and was removed.
+     * Removes the content with the given uid. Returns true if a content with the
+     * given uid existed and was removed.
      *
      * @param uid the identifier of the content.
      * @return true if a content was removed.
@@ -351,7 +351,7 @@ public class DashboardItem
     public void setChart( Chart chart )
     {
         this.chart = chart;
-        this.visualization = convertToVisualization ( chart );
+        this.visualization = convertToVisualization( chart );
     }
 
     @JsonProperty
@@ -365,7 +365,7 @@ public class DashboardItem
     public void setReportTable( ReportTable reportTable )
     {
         this.reportTable = reportTable;
-        this.visualization = convertToVisualization ( reportTable );
+        this.visualization = convertToVisualization( reportTable );
     }
 
     @JsonProperty

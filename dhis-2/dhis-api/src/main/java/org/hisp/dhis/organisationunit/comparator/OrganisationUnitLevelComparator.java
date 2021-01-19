@@ -28,9 +28,9 @@ package org.hisp.dhis.organisationunit.comparator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
-
 import java.util.Comparator;
+
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 
 /**
  * @author Lars Helge Overland

@@ -34,8 +34,9 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
+
+import com.fasterxml.jackson.annotation.JsonView;
 
 /**
  * Serializable configuration object for Sms.

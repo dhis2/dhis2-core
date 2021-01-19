@@ -28,12 +28,12 @@ package org.hisp.dhis.minmax;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
+import java.util.List;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -48,7 +48,8 @@ public interface MinMaxDataElementService
 
     MinMaxDataElement getMinMaxDataElement( long id );
 
-    MinMaxDataElement getMinMaxDataElement( OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo );
+    MinMaxDataElement getMinMaxDataElement( OrganisationUnit source, DataElement dataElement,
+        CategoryOptionCombo optionCombo );
 
     List<MinMaxDataElement> getMinMaxDataElements( OrganisationUnit source, Collection<DataElement> dataElements );
 

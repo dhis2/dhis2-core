@@ -29,9 +29,10 @@ package org.hisp.dhis.common;
  */
 
 /**
-* @author Lars Helge Overland
-*/
+ * @author Lars Helge Overland
+ */
 public enum AnalyticsType
 {
-    AGGREGATE, EVENT
+    AGGREGATE,
+    EVENT
 }

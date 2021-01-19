@@ -28,8 +28,9 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Chau Thu Tran
@@ -37,7 +38,8 @@ import org.hisp.dhis.common.DxfNamespaces;
 @JacksonXmlRootElement( localName = "dataElementDomain", namespace = DxfNamespaces.DXF_2_0 )
 public enum DataElementDomain
 {
-    AGGREGATE( "aggregate" ), TRACKER( "tracker" );
+    AGGREGATE( "aggregate" ),
+    TRACKER( "tracker" );
 
     private final String value;
 
@@ -58,7 +60,7 @@ public enum DataElementDomain
 
         return null;
     }
-    
+
     public String getValue()
     {
         return value;

@@ -28,10 +28,10 @@ package org.hisp.dhis.fileresource.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.fileresource.ImageFileDimension;
-
 import java.io.File;
 import java.util.Map;
+
+import org.hisp.dhis.fileresource.ImageFileDimension;
 
 /**
  * @Author Zubair Asghar.

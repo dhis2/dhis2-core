@@ -39,11 +39,11 @@ import java.io.OutputStream;
 public interface LocationManager
 {
     /**
-     * Gets an inputstream from a file relative to the external configuration directory
-     * location, which is set through an environment variable. A LocationManagerException
-     * is thrown if the external directory location is not set, if the file
-     * does not exists, or cannot be read by the application. The inputstream should
-     * be closed by the client code after use.
+     * Gets an inputstream from a file relative to the external configuration
+     * directory location, which is set through an environment variable. A
+     * LocationManagerException is thrown if the external directory location is not
+     * set, if the file does not exists, or cannot be read by the application. The
+     * inputstream should be closed by the client code after use.
      *
      * @param fileName the name of the file to be read.
      */
@@ -51,11 +51,11 @@ public interface LocationManager
         throws LocationManagerException;
 
     /**
-     * Gets an inputstream from a file relative to the external configuration directory
-     * location, which is set through an environment variable. A LocationManagerException
-     * is thrown if the external directory location is not set, if the file
-     * does not exists, or cannot be read by the application. The inputstream should
-     * be closed by the client code after use.
+     * Gets an inputstream from a file relative to the external configuration
+     * directory location, which is set through an environment variable. A
+     * LocationManagerException is thrown if the external directory location is not
+     * set, if the file does not exists, or cannot be read by the application. The
+     * inputstream should be closed by the client code after use.
      *
      * @param fileName the name of the file to be read.
      */
@@ -63,10 +63,10 @@ public interface LocationManager
         throws LocationManagerException;
 
     /**
-     * Gets a file relative to the external configuration directory location,
-     * which is set through an environment variable. A LocationManagerException
-     * is thrown if the external directory location is not set, if the file
-     * does not exists, or cannot be read by the application.
+     * Gets a file relative to the external configuration directory location, which
+     * is set through an environment variable. A LocationManagerException is thrown
+     * if the external directory location is not set, if the file does not exists,
+     * or cannot be read by the application.
      *
      * @param fileName the name of the file to be read.
      */
@@ -74,10 +74,10 @@ public interface LocationManager
         throws LocationManagerException;
 
     /**
-     * Gets a file relative to the external configuration directory location,
-     * which is set through an environment variable. A LocationManagerException
-     * is thrown if the external directory location is not set, if the file
-     * does not exists, or cannot be read by the application.
+     * Gets a file relative to the external configuration directory location, which
+     * is set through an environment variable. A LocationManagerException is thrown
+     * if the external directory location is not set, if the file does not exists,
+     * or cannot be read by the application.
      *
      * @param fileName the name of the file to be read.
      * @param directories the directories in the path relative to the external
@@ -87,11 +87,11 @@ public interface LocationManager
         throws LocationManagerException;
 
     /**
-     * Gets a file relative to the external configuration directory location,
-     * which is set through an environment variable. A LocationManagerException
-     * is thrown if the external directory location is not set. The method tries
-     * to construct the directories passed as arguments if they do not already
-     * exist, and trows a LocationManagerException if the process was unsuccessful.
+     * Gets a file relative to the external configuration directory location, which
+     * is set through an environment variable. A LocationManagerException is thrown
+     * if the external directory location is not set. The method tries to construct
+     * the directories passed as arguments if they do not already exist, and trows a
+     * LocationManagerException if the process was unsuccessful.
      *
      * @param fileName the name of the file to be written.
      */
@@ -99,11 +99,11 @@ public interface LocationManager
         throws LocationManagerException;
 
     /**
-     * Gets a file relative to the external configuration directory location,
-     * which is set through an environment variable. A LocationManagerException
-     * is thrown if the external directory location is not set. The method tries
-     * to construct the directories passed as arguments if they do not already
-     * exist, and trows a LocationManagerException if the process was unsuccessful.
+     * Gets a file relative to the external configuration directory location, which
+     * is set through an environment variable. A LocationManagerException is thrown
+     * if the external directory location is not set. The method tries to construct
+     * the directories passed as arguments if they do not already exist, and trows a
+     * LocationManagerException if the process was unsuccessful.
      *
      * @param fileName the name of the file to be written.
      * @param directories the directories in the path relative to the external
@@ -125,10 +125,10 @@ public interface LocationManager
         throws LocationManagerException;
 
     /**
-     * Gets an outputstream from a file relative to the external configuration directory
-     * location, which is set through an environment variable. A LocationManagerException
-     * is thrown if the external directory location is not set. The outputstream
-     * should be closed by the client code after use.
+     * Gets an outputstream from a file relative to the external configuration
+     * directory location, which is set through an environment variable. A
+     * LocationManagerException is thrown if the external directory location is not
+     * set. The outputstream should be closed by the client code after use.
      *
      * @param fileName the name of the file to be written.
      */
@@ -136,12 +136,13 @@ public interface LocationManager
         throws LocationManagerException;
 
     /**
-     * Gets an outputstream from a file relative to the external configuration directory
-     * location, which is set through an environment variable. A LocationManagerException
-     * is thrown if the external directory location is not set. The method tries
-     * to construct the directories passed as arguments if they do not already
-     * exist, and trows a LocationManagerException if the process was unsuccessful. The
-     * outputstream should be closed by the client code after use.
+     * Gets an outputstream from a file relative to the external configuration
+     * directory location, which is set through an environment variable. A
+     * LocationManagerException is thrown if the external directory location is not
+     * set. The method tries to construct the directories passed as arguments if
+     * they do not already exist, and trows a LocationManagerException if the
+     * process was unsuccessful. The outputstream should be closed by the client
+     * code after use.
      *
      * @param fileName the name of the file to be written.
      * @param directories the directories in the path relative to the external
@@ -165,8 +166,8 @@ public interface LocationManager
         throws LocationManagerException;
 
     /**
-     * Indicates whether the external configuration directory is set, valid,
-     * and writable.
+     * Indicates whether the external configuration directory is set, valid, and
+     * writable.
      */
     boolean externalDirectorySet();
 

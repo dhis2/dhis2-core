@@ -28,10 +28,10 @@ package org.hisp.dhis.relationship;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.stream.Collectors.toMap;
+
 import java.util.Map;
 import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toMap;
 
 public enum RelationshipEntity
 {

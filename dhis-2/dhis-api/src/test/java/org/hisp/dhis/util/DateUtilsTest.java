@@ -36,19 +36,19 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hisp.dhis.util.DateUtils.dateIsValid;
 import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
-import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.util.DateUtils.getMediumDate;
+import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.TimeZone;
 
 import org.hisp.dhis.calendar.impl.NepaliCalendar;

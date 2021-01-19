@@ -34,8 +34,8 @@ import static org.junit.Assert.assertFalse;
 import org.junit.Test;
 
 /**
-* @author Lars Helge Overland
-*/
+ * @author Lars Helge Overland
+ */
 public class ProgramIndicatorTest
 {
     @Test
@@ -50,5 +50,5 @@ public class ProgramIndicatorTest
         assertTrue( pi.hasFilter() );
     }
 
-    //TODO: write more tests
+    // TODO: write more tests
 }

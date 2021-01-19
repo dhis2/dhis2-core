@@ -28,13 +28,13 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -54,19 +54,21 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.util.SharingUtils;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Bob Jolliffe
  */
 @JacksonXmlRootElement( localName = "identifiableObject", namespace = DxfNamespaces.DXF_2_0 )
 public class BaseIdentifiableObject
-    extends BaseLinkableObject implements IdentifiableObject
+    extends BaseLinkableObject
+    implements IdentifiableObject
 {
     /**
      * The database internal identifier for this Object.
@@ -117,8 +119,8 @@ public class BaseIdentifiableObject
     protected Set<Translation> translations = new HashSet<>();
 
     /**
-     * Cache for object translations, where the cache key is a combination of
-     * locale and translation property, and value is the translated value.
+     * Cache for object translations, where the cache key is a combination of locale
+     * and translation property, and value is the translated value.
      */
     protected Map<String, String> translationCache = new HashMap<>();
 
@@ -203,8 +205,8 @@ public class BaseIdentifiableObject
     // -------------------------------------------------------------------------
 
     /**
-     * Compares objects based on display name. A null display name is ordered
-     * after a non-null display name.
+     * Compares objects based on display name. A null display name is ordered after
+     * a non-null display name.
      */
     @Override
     public int compareTo( IdentifiableObject object )
@@ -214,8 +216,8 @@ public class BaseIdentifiableObject
             return object.getDisplayName() == null ? 0 : 1;
         }
 
-        return object.getDisplayName() == null ? -1 :
-            this.getDisplayName().compareToIgnoreCase( object.getDisplayName() );
+        return object.getDisplayName() == null ? -1
+            : this.getDisplayName().compareToIgnoreCase( object.getDisplayName() );
     }
 
     // -------------------------------------------------------------------------
@@ -384,7 +386,7 @@ public class BaseIdentifiableObject
      * Returns a translated value for this object for the given property. The
      * current locale is read from the user context.
      *
-     * @param property     the translation property.
+     * @param property the translation property.
      * @param defaultValue the value to use if there are no translations.
      * @return a translated value.
      */
@@ -415,7 +417,8 @@ public class BaseIdentifiableObject
         {
             for ( Translation translation : translations )
             {
-                if ( translation.getLocale() != null && translation.getProperty() != null && !StringUtils.isEmpty( translation.getValue() ) )
+                if ( translation.getLocale() != null && translation.getProperty() != null
+                    && !StringUtils.isEmpty( translation.getValue() ) )
                 {
                     String key = Translation.getCacheKey( translation.getLocale(), translation.getProperty() );
                     translationCache.put( key, translation.getValue() );
@@ -448,13 +451,13 @@ public class BaseIdentifiableObject
     {
         this.user = user;
 
-        //TODO remove this after implemented functions for using Owner property
+        // TODO remove this after implemented functions for using Owner property
         this.setOwner( user != null ? user.getUid() : null );
     }
 
     public void setOwner( String userId )
     {
-         getSharing().setOwner( userId );
+        getSharing().setOwner( userId );
     }
 
     @Override
@@ -485,7 +488,7 @@ public class BaseIdentifiableObject
 
     public void setExternalAccess( Boolean externalAccess )
     {
-         getSharing().setExternal( externalAccess );
+        getSharing().setExternal( externalAccess );
     }
 
     @Override
@@ -499,7 +502,7 @@ public class BaseIdentifiableObject
 
     public void setUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses )
     {
-         getSharing().setDtoUserGroupAccesses( userGroupAccesses );
+        getSharing().setDtoUserGroupAccesses( userGroupAccesses );
         this.userGroupAccesses = userGroupAccesses;
     }
 
@@ -509,12 +512,12 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
     public Set<org.hisp.dhis.user.UserAccess> getUserAccesses()
     {
-       return SharingUtils.getDtoUserAccess( sharing );
+        return SharingUtils.getDtoUserAccess( sharing );
     }
 
     public void setUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )
     {
-         getSharing().setDtoUserAccesses( userAccesses );
+        getSharing().setDtoUserAccesses( userAccesses );
         this.userAccesses = userAccesses;
     }
 
@@ -570,7 +573,7 @@ public class BaseIdentifiableObject
 
     public void setSharing( Sharing sharing )
     {
-         this.sharing = sharing;
+        this.sharing = sharing;
     }
 
     @Override
@@ -652,8 +655,8 @@ public class BaseIdentifiableObject
 
     /**
      * Equality check against typed identifiable object. This method is not
-     * vulnerable to proxy issues, where an uninitialized object class type
-     * fails comparison to a real class.
+     * vulnerable to proxy issues, where an uninitialized object class type fails
+     * comparison to a real class.
      *
      * @param other the identifiable object to compare this object against.
      * @return true if equal.

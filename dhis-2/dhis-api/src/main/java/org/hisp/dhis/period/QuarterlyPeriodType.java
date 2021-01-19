@@ -28,13 +28,13 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * PeriodType for quarterly Periods. A valid quarterly Period has startDate set
@@ -121,8 +121,8 @@ public class QuarterlyPeriodType
     }
 
     /**
-     * Generates quarterly Periods for the whole year in which the given
-     * Period's startDate exists.
+     * Generates quarterly Periods for the whole year in which the given Period's
+     * startDate exists.
      */
     @Override
     public List<Period> generatePeriods( DateTimeUnit dateTimeUnit )
@@ -178,7 +178,7 @@ public class QuarterlyPeriodType
     public String getIsoDate( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
         DateTimeUnit newUnit = dateTimeUnit;
-        
+
         if ( !calendar.name().equals( ISO_CALENDAR_NAME ) && newUnit.isIso8601() )
         {
             newUnit = calendar.fromIso( newUnit );
@@ -186,16 +186,16 @@ public class QuarterlyPeriodType
 
         switch ( newUnit.getMonth() )
         {
-            case 1:
-                return newUnit.getYear() + "Q1";
-            case 4:
-                return newUnit.getYear() + "Q2";
-            case 7:
-                return newUnit.getYear() + "Q3";
-            case 10:
-                return newUnit.getYear() + "Q4";
-            default:
-                throw new IllegalArgumentException( "Month not valid [1,4,7,10], was given " + dateTimeUnit.getMonth() );
+        case 1:
+            return newUnit.getYear() + "Q1";
+        case 4:
+            return newUnit.getYear() + "Q2";
+        case 7:
+            return newUnit.getYear() + "Q3";
+        case 10:
+            return newUnit.getYear() + "Q4";
+        default:
+            throw new IllegalArgumentException( "Month not valid [1,4,7,10], was given " + dateTimeUnit.getMonth() );
         }
     }
 

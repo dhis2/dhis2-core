@@ -34,7 +34,7 @@ package org.hisp.dhis.dataapproval;
 public enum DataApprovalAction
 {
     APPROVE( "approve" ),
-    UNAPPROVE( "unapprove"),
+    UNAPPROVE( "unapprove" ),
     ACCEPT( "accept" ),
     UNACCEPT( "unaccept" );
 

@@ -28,17 +28,18 @@ package org.hisp.dhis.trackedentityattributevalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Objects;
+
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -64,8 +65,8 @@ public class TrackedEntityAttributeValueAudit
     private AuditType auditType;
 
     /**
-     * This value is only used to store values from setValue when we don't know
-     * if attribute is set or not.
+     * This value is only used to store values from setValue when we don't know if
+     * attribute is set or not.
      */
     private String value;
 

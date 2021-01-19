@@ -38,15 +38,23 @@ import java.lang.annotation.Target;
  * <p/>
  * Behavior changes according to type:
  * <ul>
- * <ol>PropertyType.TEXT: min/max length of TEXT</ol>
- * <ol>PropertyType.COLLECTION: min/max size of collection</ol>
- * <ol>PropertyType.NUMBER: min/max values (only integer min/max currently allowed)</ol>
- * <ol>PropertyType.INTEGER: min/max values</ol>
+ * <ol>
+ * PropertyType.TEXT: min/max length of TEXT
+ * </ol>
+ * <ol>
+ * PropertyType.COLLECTION: min/max size of collection
+ * </ol>
+ * <ol>
+ * PropertyType.NUMBER: min/max values (only integer min/max currently allowed)
+ * </ol>
+ * <ol>
+ * PropertyType.INTEGER: min/max values
+ * </ol>
  * </ul>
  * <p>
- * Be aware that this annotation overrides anything set in the schema, so it's possible to
- * have values here that goes beyond what the schema allows, and would result in error when
- * trying to save the object.
+ * Be aware that this annotation overrides anything set in the schema, so it's
+ * possible to have values here that goes beyond what the schema allows, and
+ * would result in error when trying to save the object.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

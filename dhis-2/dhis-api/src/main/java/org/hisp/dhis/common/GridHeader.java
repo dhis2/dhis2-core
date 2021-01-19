@@ -34,7 +34,6 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableSet;
 
@@ -44,8 +43,8 @@ import com.google.common.collect.ImmutableSet;
 public class GridHeader
     implements Serializable
 {
-    private static final ImmutableSet<String> NUMERIC_TYPES =
-        ImmutableSet.of( Float.class.getName(), Double.class.getName(), Long.class.getName(), Integer.class.getName() );
+    private static final ImmutableSet<String> NUMERIC_TYPES = ImmutableSet.of( Float.class.getName(),
+        Double.class.getName(), Long.class.getName(), Integer.class.getName() );
 
     /**
      * Format header key name.
@@ -99,8 +98,7 @@ public class GridHeader
     }
 
     /**
-     * Sets the column property to the name value. Sets the type property to
-     * String.
+     * Sets the column property to the name value. Sets the type property to String.
      *
      * @param name formal header name.
      * @param hidden indicates whether header is hidden.
@@ -141,7 +139,8 @@ public class GridHeader
      * @param optionSet option set.
      * @param legendSet legend set.
      */
-    public GridHeader( String name, String column, ValueType valueType, String type, boolean hidden, boolean meta, OptionSet optionSet, LegendSet legendSet )
+    public GridHeader( String name, String column, ValueType valueType, String type, boolean hidden, boolean meta,
+        OptionSet optionSet, LegendSet legendSet )
     {
         this( name, column, valueType, type, hidden, meta );
         this.optionSet = optionSet;

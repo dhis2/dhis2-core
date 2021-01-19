@@ -28,9 +28,9 @@ package org.hisp.dhis.organisationunit.comparator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
 import java.util.Comparator;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -43,6 +43,6 @@ public class OrganisationUnitByLevelComparator
     @Override
     public int compare( OrganisationUnit o1, OrganisationUnit o2 )
     {
-        return ( (Integer) o1.getLevel() ).compareTo( o2.getLevel() );
+        return ((Integer) o1.getLevel()).compareTo( o2.getLevel() );
     }
 }
