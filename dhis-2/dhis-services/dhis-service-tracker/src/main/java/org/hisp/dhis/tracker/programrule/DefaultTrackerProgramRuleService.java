@@ -29,15 +29,20 @@ package org.hisp.dhis.tracker.programrule;
  */
 
 import com.google.api.client.util.Sets;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
+import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -55,24 +60,22 @@ import java.util.stream.Stream;
  * @author Enrico Colasante
  */
 @Service
+@RequiredArgsConstructor
 public class DefaultTrackerProgramRuleService
     implements TrackerProgramRuleService
 {
+    @NonNull
+    @Qualifier( "serviceTrackerRuleEngine" )
     private final ProgramRuleEngine programRuleEngine;
 
+    @NonNull
     private final TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService;
 
+    @NonNull
     private final TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
 
-    public DefaultTrackerProgramRuleService(
-        @Qualifier( "serviceTrackerRuleEngine" ) ProgramRuleEngine programRuleEngine,
-        TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService,
-        TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService )
-    {
-        this.programRuleEngine = programRuleEngine;
-        this.enrollmentTrackerConverterService = enrollmentTrackerConverterService;
-        this.eventTrackerConverterService = eventTrackerConverterService;
-    }
+    @NonNull
+    private final TrackerConverterService<Attribute, TrackedEntityAttributeValue> attributeValueTrackerConverterService;
 
     @Override
     @Transactional( readOnly = true )
@@ -84,8 +87,35 @@ public class DefaultTrackerProgramRuleService
             .collect( Collectors.toMap( Enrollment::getEnrollment, e -> {
                 ProgramInstance enrollment = enrollmentTrackerConverterService.fromForRuleEngine( bundle.getPreheat(),
                     e );
-                return programRuleEngine.evaluate( enrollment, Sets.newHashSet() );
+
+                return programRuleEngine.evaluate( enrollment, Sets.newHashSet(),
+                    getAttributes( e, bundle ) );
             } ) );
+    }
+
+    private List<TrackedEntityAttributeValue> getAttributes( Enrollment enrollment, TrackerBundle bundle )
+    {
+        List<TrackedEntityAttributeValue> attributeValues = attributeValueTrackerConverterService
+            .from( bundle.getPreheat(), enrollment.getAttributes() );
+
+        TrackedEntityInstance trackedEntity = bundle.getPreheat()
+            .getTrackedEntity( bundle.getIdentifier(), enrollment.getTrackedEntity() );
+
+        if ( trackedEntity != null )
+        {
+            attributeValues.addAll( trackedEntity.getTrackedEntityAttributeValues() );
+        }
+        else
+        {
+            bundle.getTrackedEntity( enrollment.getTrackedEntity() )
+                .ifPresent( tei -> {
+                    List<TrackedEntityAttributeValue> teiAttributes = attributeValueTrackerConverterService
+                        .from( bundle.getPreheat(), tei.getAttributes() );
+                    attributeValues.addAll( teiAttributes );
+                } );
+        }
+
+        return attributeValues;
     }
 
     @Override
