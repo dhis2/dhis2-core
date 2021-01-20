@@ -126,6 +126,11 @@ public class DefaultOutlierDetectionService
         {
             error = new ErrorMessage( ErrorCode.E2206, MAX_LIMIT );
         }
+        else if ( request.hasDataStartEndDate() &&
+            request.getDataStartDate().after( request.getDataEndDate() ) )
+        {
+            error = new ErrorMessage( ErrorCode.E2207 );
+        }
 
         return error;
     }

@@ -185,10 +185,10 @@ public class OutlierDetectionServiceZScoreTest
         OutlierDetectionResponse response = subject.getOutlierValues( request );
 
         assertEquals( 4, response.getOutlierValues().size() );
-        assertTrue( response.getOutlierValues().stream().anyMatch( ov -> MathUtils.isEqual( ov.getValue(), 12 ) ) );
-        assertTrue( response.getOutlierValues().stream().anyMatch( ov -> MathUtils.isEqual( ov.getValue(), 91 ) ) );
-        assertTrue( response.getOutlierValues().stream().anyMatch( ov -> MathUtils.isEqual( ov.getValue(), 11 ) ) );
-        assertTrue( response.getOutlierValues().stream().anyMatch( ov -> MathUtils.isEqual( ov.getValue(), 87 ) ) );
+        assertContainsOutlierValue( response, 12d );
+        assertContainsOutlierValue( response, 91d );
+        assertContainsOutlierValue( response, 11d );
+        assertContainsOutlierValue( response, 87d );
     }
 
     @Test
@@ -217,8 +217,8 @@ public class OutlierDetectionServiceZScoreTest
         OutlierDetectionResponse response = subject.getOutlierValues( request );
 
         assertEquals( 2, response.getOutlierValues().size() );
-        assertTrue( response.getOutlierValues().stream().anyMatch( ov -> MathUtils.isEqual( ov.getValue(), 12 ) ) );
-        assertTrue( response.getOutlierValues().stream().anyMatch( ov -> MathUtils.isEqual( ov.getValue(), 91 ) ) );
+        assertContainsOutlierValue( response, 12d );
+        assertContainsOutlierValue( response, 91d );
     }
 
     @Test
@@ -327,6 +327,12 @@ public class OutlierDetectionServiceZScoreTest
         assertEquals( upperBound, outlier.getUpperBound(), DELTA );
 
         assertFalse( outlier.getFollowUp() );
+    }
+
+    private void assertContainsOutlierValue( OutlierDetectionResponse response, Double value )
+    {
+        assertTrue( response.getOutlierValues().stream()
+            .anyMatch( ov -> MathUtils.isEqual( ov.getValue(), value ) ) );
     }
 
     private void addPeriods( Period... periods )

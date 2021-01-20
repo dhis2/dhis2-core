@@ -80,6 +80,11 @@ public class OutlierDetectionRequest
     {
     }
 
+    public boolean hasDataStartEndDate()
+    {
+        return dataStartDate != null && dataEndDate != null;
+    }
+
     public static class Builder
     {
         private OutlierDetectionRequest query;

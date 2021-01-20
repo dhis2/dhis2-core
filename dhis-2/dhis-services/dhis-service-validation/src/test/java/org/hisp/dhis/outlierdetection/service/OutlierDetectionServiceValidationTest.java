@@ -170,4 +170,18 @@ public class OutlierDetectionServiceValidationTest
 
         assertEquals( ErrorCode.E2205, subject.validateForErrorMessage( request ).getErrorCode() );
     }
+
+    @Test
+    public void testErrorDataStartDateBeforeDataEndDate()
+    {
+        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
+            .withDataElements( Lists.newArrayList( deA, deB, deC ) )
+            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2020, 6, 1 ) )
+            .withOrgUnits( Lists.newArrayList( ouA, ouB ) )
+            .withDataStartDate( getDate( 2020, 6, 1 ) )
+            .withDataEndDate( getDate( 2020, 5, 1 ) )
+            .build();
+
+        assertEquals( ErrorCode.E2207, subject.validateForErrorMessage( request ).getErrorCode() );
+    }
 }

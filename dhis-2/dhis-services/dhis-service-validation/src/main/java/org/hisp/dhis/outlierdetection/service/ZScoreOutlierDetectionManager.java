@@ -161,9 +161,9 @@ public class ZScoreOutlierDetectionManager
             // Casting non-numeric data to double, catching exception is faster
             // than filtering
 
-            log.error( ErrorCode.E2207.getMessage(), ex );
+            log.error( ErrorCode.E2208.getMessage(), ex );
 
-            throw new IllegalQueryException( ErrorCode.E2207 );
+            throw new IllegalQueryException( ErrorCode.E2208 );
         }
     }
 
