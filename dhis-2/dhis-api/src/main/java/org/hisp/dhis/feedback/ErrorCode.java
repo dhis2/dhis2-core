@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.feedback;
 
 /*
@@ -31,14 +58,10 @@ package org.hisp.dhis.feedback;
 /**
  * Error series:
  *
- * E2000 - E2999: Data
- * E3000 - E3999: Security
- * E4000 - E4999: Metadata validation
- * E5000 - E5999: Preheat
- * E6000 - E6999: Metadata import
- * E7000 - E7099: Scheduling
- * E7100 - E7199: Aggregate analytics
- * E7200 - E7299: Event analytics
+ * E2000 - E2999: Data E3000 - E3999: Security E4000 - E4999: Metadata
+ * validation E5000 - E5999: Preheat E6000 - E6999: Metadata import E7000 -
+ * E7099: Scheduling E7100 - E7199: Aggregate analytics E7200 - E7299: Event
+ * analytics
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -76,7 +99,8 @@ public enum ErrorCode
     E2204( "Threshold must be a positive number" ),
     E2205( "Max results must be a positive number" ),
     E2206( "Max results exceeds the allowed max limit: `{0}`" ),
-    E2207( "Non-numeric data values encountered during outlier value detection" ),
+    E2207( "Data start date must be before data end date" ),
+    E2208( "Non-numeric data values encountered during outlier value detection" ),
 
     /* Security */
     E3000( "User `{0}` is not allowed to create objects of type {1}." ),
@@ -89,15 +113,15 @@ public enum ErrorCode
     E3008( "User `{0}` is not allowed to make public objects of type `{1}`." ),
     E3009( "User `{0}` is not allowed to make private objects of type `{1}`." ),
     E3010( "Invalid access string `{0}`." ),
-    E3011( "Data sharing is not enabled for type `{0}`, but one or more access strings contains data sharing read or write." ),
+    E3011(
+        "Data sharing is not enabled for type `{0}`, but one or more access strings contains data sharing read or write." ),
     E3012( "User `{0}` does not have read access for object `{1}`." ),
-    E3013( "Sharing settings of system default metadata object of type `{0}` cannot be modified."),
+    E3013( "Sharing settings of system default metadata object of type `{0}` cannot be modified." ),
     E3014( "You do not have manage access to this object." ),
     E3015( "Invalid public access string: `{0}`" ),
     E3016( "Data sharing is not enabled for this object" ),
     E3017( "Invalid user group access string: `{0}`" ),
     E3018( "Invalid user access string: `{0}`" ),
-
 
     /* Metadata Validation */
     E4000( "Missing required property `{0}`." ),
@@ -149,15 +173,17 @@ public enum ErrorCode
     E4311( "SQL query contains illegal keywords" ),
 
     /* Preheat */
-    E5000( "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
+    E5000(
+        "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
     E5001( "No matching object for given reference. Identifier was {0}, and object was {1}." ),
     E5002( "Invalid reference {0} on object {1} for association `{2}`." ),
     E5003( "Property `{0}` with value `{1}` on object {2} already exists on object {3}." ),
     E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found." ),
 
     /* Metadata import */
-    E6000( "Program `{0}` has more than one Program Instances"),
-    E6001( "ProgramStage `{0}` has invalid next event scheduling property `{1}`. This property need to be data element of value type date and belong the program stage."),
+    E6000( "Program `{0}` has more than one Program Instances" ),
+    E6001(
+        "ProgramStage `{0}` has invalid next event scheduling property `{1}`. This property need to be data element of value type date and belong the program stage." ),
 
     /* File resource */
     E6100( "Filename not present" ),
@@ -167,13 +193,17 @@ public enum ErrorCode
     E6200( "Feedback message recipients user group not defined" ),
 
     /* Scheduling */
-    E7000( "Failed to add/update job configuration, another job of the same job type is already scheduled with this cron expression: `{0}`" ),
+    E7000(
+        "Failed to add/update job configuration, another job of the same job type is already scheduled with this cron expression: `{0}`" ),
     E7002( "Failed to add/update job configuration, UID does not exist" ),
-    E7003( "Failed to add/update job configuration, only interval can be configured for non configurable job type: `{0}`" ),
-    E7004( "Failed to add/update job configuration, cron expression must be not null for job with scheduling type CRON: `{0}`" ),
+    E7003(
+        "Failed to add/update job configuration, only interval can be configured for non configurable job type: `{0}`" ),
+    E7004(
+        "Failed to add/update job configuration, cron expression must be not null for job with scheduling type CRON: `{0}`" ),
     E7005( "Failed to add/update job configuration, cron expression is invalid: `{0}` " ),
     E7006( "Failed to execute job `{0}`." ),
-    E7007( "Failed to add/update job configuration - Delay must be not null for jobs with scheduling type FIXED_DELAY: `{0}`" ),
+    E7007(
+        "Failed to add/update job configuration - Delay must be not null for jobs with scheduling type FIXED_DELAY: `{0}`" ),
     E7010( "Failed to validate job runtime - `{0}`" ),
 
     /* Aggregate analytics */
@@ -198,7 +228,7 @@ public enum ErrorCode
     E7118( "A period dimension 'pe' must be specified when output format is DATA_VALUE_SET" ),
     E7119( "An organisation unit dimension 'ou' must be specified when output format is DATA_VALUE_SET" ),
     E7120( "User: `{0}` is not allowed to view org unit: `{1}`" ),
-    E7121( "User: `{0}` is not allowed to read data for `{1}`: `{2}`"),
+    E7121( "User: `{0}` is not allowed to read data for `{1}`: `{2}`" ),
     E7122( "Data approval level does not exist: `{0}`" ),
     E7123( "Current user is constrained by a dimension but has access to no dimension items: `{0}`" ),
     E7124( "Dimension is present in query without any valid dimension options: `{0}`" ),
@@ -252,7 +282,8 @@ public enum ErrorCode
     /* Validation Results API */
     E7500( "Organisation unit does not exist: `{0}`" ),
     E7501( "Validation rule does not exist: `{0}`" ),
-    E7502( "Query filter for period is not a valid ISO expression: `{0}`" );
+    E7502( "Filter for period is not valid: `{0}`" ),
+    E7503( "Filter for created date period is not valid: `{0}`" );
 
     private String message;
 
