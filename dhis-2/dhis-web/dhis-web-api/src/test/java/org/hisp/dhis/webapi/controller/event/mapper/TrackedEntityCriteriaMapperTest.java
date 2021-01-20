@@ -168,7 +168,7 @@ public class TrackedEntityCriteriaMapperTest
         criteria.setSkipPaging( false );
         criteria.setIncludeDeleted( true );
         criteria.setIncludeAllAttributes( true );
-        criteria.setOrder( "order-1" );
+        criteria.setOrder( "created:asc" );
 
         final TrackedEntityInstanceQueryParams queryParams = trackedEntityCriteriaMapper.map( criteria );
 
@@ -218,7 +218,7 @@ public class TrackedEntityCriteriaMapperTest
         assertThat( queryParams.isIncludeDeleted(), is( true ) );
         assertThat( queryParams.isIncludeAllAttributes(), is( true ) );
 
-        assertTrue( queryParams.getOrders().stream().anyMatch( o -> o.equals( "order-1" ) ) );
+        assertTrue( queryParams.getOrders().stream().anyMatch( o -> o.equals( "created:asc" ) ) );
     }
 
     @Test

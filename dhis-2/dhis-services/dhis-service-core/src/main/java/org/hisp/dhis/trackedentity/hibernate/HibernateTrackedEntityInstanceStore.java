@@ -50,7 +50,6 @@ import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -688,9 +687,9 @@ public class HibernateTrackedEntityInstanceStore
 
                 if ( prop != null )
                 {
-                    if ( params.getStaticColumns().contains( prop[0] ) )
+                    if ( params.getStaticOrderColumns().contains( prop[0] ) )
                     {
-                        orderFields.add( prop[0] + " " + prop[1] );
+                        orderFields.add( params.getStaticOrderColumnValue( prop[0] ) + " " + prop[1] );
                     }
                     else
                     {
@@ -721,7 +720,7 @@ public class HibernateTrackedEntityInstanceStore
 
                 if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
                 {
-                    if ( params.getStaticColumns().contains( prop[0] ) )
+                    if ( params.getStaticOrderColumns().contains( prop[0] ) )
                     {
                         orderFields.add( prop[0] + " " + prop[1] );
                     }
