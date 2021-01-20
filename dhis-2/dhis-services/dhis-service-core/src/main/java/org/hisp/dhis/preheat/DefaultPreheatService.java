@@ -341,6 +341,7 @@ public class DefaultPreheatService implements PreheatService
             object.getSharing().setExternal( object.getExternalAccess() );
             object.getSharing().setOwner( object.getUser() );
             object.getSharing().setPublicAccess( object.getPublicAccess() );
+
             object.getUserAccesses().forEach( ua ->
             {
                 User user = preheat.get( PreheatIdentifier.UID, User.class, ua.getUserUid() );
