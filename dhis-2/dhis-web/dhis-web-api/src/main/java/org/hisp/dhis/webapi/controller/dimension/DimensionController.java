@@ -149,11 +149,22 @@ public class DimensionController
             fields.addAll( Preset.defaultPreset().getFields() );
         }
 
-        List<DimensionalItemObject> totalItems = dimensionService.getCanReadDimensionItems( uid );
+        // This is the base list used in this flow. It contains only items
+        // allowed to the current user.
+        List<DimensionalItemObject> readableItems = dimensionService.getCanReadDimensionItems( uid );
+
+        // This is needed for two reasons:
+        // 1) We are doing in page memory;
+        // 2) We have to count all items respecting the filtering.
+        Query queryForCount = queryService.getQueryFromUrl( DimensionalItemObject.class, filters, orders );
+        queryForCount.setObjects( readableItems );
+
+        List<DimensionalItemObject> forCountItems = (List<DimensionalItemObject>) queryService
+            .query( queryForCount );
 
         Query query = queryService.getQueryFromUrl( DimensionalItemObject.class, filters, orders,
             getPaginationData( options ) );
-        query.setObjects( totalItems );
+        query.setObjects( readableItems );
         query.setDefaultOrder();
 
         List<DimensionalItemObject> paginatedItems = (List<DimensionalItemObject>) queryService.query( query );
@@ -170,7 +181,8 @@ public class DimensionController
             ((AbstractNode) node).setName( "item" );
         }
 
-        final int totalOfItems = isNotEmpty( totalItems ) ? totalItems.size() : 0;
+        // Adding pagination elements to the root node.
+        final int totalOfItems = isNotEmpty( forCountItems ) ? forCountItems.size() : 0;
         dimensionItemPageHandler.addPaginationToNodeIfEnabled( rootNode, options, uid, totalOfItems );
 
         return rootNode;
