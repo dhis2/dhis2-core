@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.outlierdetection.service;
 
+import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.getDataEndDateClause;
+import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.getDataStartDateClause;
 import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.getOrgUnitPathClause;
 import static org.hisp.dhis.period.PeriodType.getIsoPeriod;
 
@@ -74,6 +76,8 @@ public class ZScoreOutlierDetectionManager
     public List<OutlierValue> getOutlierValues( OutlierDetectionRequest request )
     {
         final String ouPathClause = getOrgUnitPathClause( request.getOrgUnits() );
+        final String dataStartDateClause = getDataStartDateClause( request.getDataStartDate() );
+        final String dataEndDateClause = getDataEndDateClause( request.getDataEndDate() );
 
         // @formatter:off
         final String sql =
@@ -115,8 +119,11 @@ public class ZScoreOutlierDetectionManager
                 "avg(dv.value::double precision) as mean, " +
                 "stddev_pop(dv.value::double precision) as std_dev " +
                 "from datavalue dv " +
+                "inner join period pe on dv.periodid = pe.periodid " +
                 "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
                 "where dv.dataelementid in (:data_element_ids) " +
+                dataStartDateClause +
+                dataEndDateClause +
                 "and " + ouPathClause + " " +
                 "and dv.deleted is false " +
                 "group by dv.dataelementid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid" +
@@ -139,6 +146,8 @@ public class ZScoreOutlierDetectionManager
             .addValue( "data_element_ids", request.getDataElementIds() )
             .addValue( "start_date", request.getStartDate() )
             .addValue( "end_date", request.getEndDate() )
+            .addValue( "data_start_date", request.getDataStartDate() )
+            .addValue( "data_end_date", request.getDataEndDate() )
             .addValue( "max_results", request.getMaxResults() );
 
         final Calendar calendar = PeriodType.getCalendar();
