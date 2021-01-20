@@ -154,7 +154,7 @@ public class DimensionController
         List<DimensionalItemObject> readableItems = dimensionService.getCanReadDimensionItems( uid );
 
         // This is needed for two reasons:
-        // 1) We are doing in page memory;
+        // 1) We are doing in-memory paging;
         // 2) We have to count all items respecting the filtering.
         Query queryForCount = queryService.getQueryFromUrl( DimensionalItemObject.class, filters, orders );
         queryForCount.setObjects( readableItems );
