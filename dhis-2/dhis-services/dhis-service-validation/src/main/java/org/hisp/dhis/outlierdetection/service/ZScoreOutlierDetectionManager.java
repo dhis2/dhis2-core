@@ -1,5 +1,3 @@
-package org.hisp.dhis.outlierdetection.service;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,14 @@ package org.hisp.dhis.outlierdetection.service;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.outlierdetection.service;
 
 import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.getOrgUnitPathClause;
 import static org.hisp.dhis.period.PeriodType.getIsoPeriod;
 
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -46,11 +47,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
- * Manager for database queries related to outlier data detection
- * based on z-score.
+ * Manager for database queries related to outlier data detection based on
+ * z-score.
  *
  * @author Lars Helge Overland
  */
@@ -66,7 +65,8 @@ public class ZScoreOutlierDetectionManager
     }
 
     /**
-     * Returns a list of outlier data values based on z-score for the given request.
+     * Returns a list of outlier data values based on z-score for the given
+     * request.
      *
      * @param request the {@link OutlierDetectionRequest}.
      * @return a list of {@link OutlierValue}.
@@ -75,10 +75,10 @@ public class ZScoreOutlierDetectionManager
     {
         final String ouPathClause = getOrgUnitPathClause( request.getOrgUnits() );
 
+        // @formatter:off
         final String sql =
-            // Outer select
             "select dvs.de_uid, dvs.ou_uid, dvs.coc_uid, dvs.aoc_uid, " +
-                "dvs.de_name, dvs.ou_name, dvs.coc_name, dvs.aoc_name, dvs.value, " +
+                "dvs.de_name, dvs.ou_name, dvs.coc_name, dvs.aoc_name, dvs.value, dvs.follow_up, " +
                 "dvs.pe_start_date, dvs.pt_name, " +
                 "stats.mean as mean, " +
                 "stats.std_dev as std_dev, " +
@@ -88,11 +88,12 @@ public class ZScoreOutlierDetectionManager
                 "stats.mean + (stats.std_dev * :threshold) as upper_bound " +
             // Data value query
             "from (" +
-                "select dv.dataelementid, dv.sourceid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, " +
+                "select dv.dataelementid, dv.sourceid, dv.periodid, " +
+                "dv.categoryoptioncomboid, dv.attributeoptioncomboid, " +
                 "de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, " +
                 "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, " +
                 "pe.startdate as pe_start_date, pt.name as pt_name, " +
-                "dv.value " +
+                "dv.value as value, dv.followup as follow_up " +
                 "from datavalue dv " +
                 "inner join dataelement de on dv.dataelementid = de.dataelementid " +
                 "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
@@ -131,6 +132,7 @@ public class ZScoreOutlierDetectionManager
             // Order and limit
             "order by " + request.getOrderBy().getKey() + " desc " +
             "limit :max_results;";
+        // @formatter:on
 
         final SqlParameterSource params = new MapSqlParameterSource()
             .addValue( "threshold", request.getThreshold() )
@@ -147,7 +149,8 @@ public class ZScoreOutlierDetectionManager
         }
         catch ( DataIntegrityViolationException ex )
         {
-            // Casting non-numeric data to double, catching exception is faster than filtering
+            // Casting non-numeric data to double, catching exception is faster
+            // than filtering
 
             log.error( ErrorCode.E2207.getMessage(), ex );
 
@@ -185,9 +188,9 @@ public class ZScoreOutlierDetectionManager
             outlier.setZScore( rs.getDouble( "z_score" ) );
             outlier.setLowerBound( rs.getDouble( "lower_bound" ) );
             outlier.setUpperBound( rs.getDouble( "upper_bound" ) );
+            outlier.setFollowUp( rs.getBoolean( "follow_up" ) );
 
             return outlier;
         };
     }
 }
-
