@@ -29,6 +29,7 @@ package org.hisp.dhis.outlierdetection.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -56,6 +57,7 @@ import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.system.util.MathUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -183,6 +185,10 @@ public class OutlierDetectionServiceZScoreTest
         OutlierDetectionResponse response = subject.getOutlierValues( request );
 
         assertEquals( 4, response.getOutlierValues().size() );
+        assertTrue( response.getOutlierValues().stream().anyMatch( ov -> MathUtils.isEqual( ov.getValue(), 12 ) ) );
+        assertTrue( response.getOutlierValues().stream().anyMatch( ov -> MathUtils.isEqual( ov.getValue(), 91 ) ) );
+        assertTrue( response.getOutlierValues().stream().anyMatch( ov -> MathUtils.isEqual( ov.getValue(), 11 ) ) );
+        assertTrue( response.getOutlierValues().stream().anyMatch( ov -> MathUtils.isEqual( ov.getValue(), 87 ) ) );
     }
 
     @Test
@@ -211,6 +217,8 @@ public class OutlierDetectionServiceZScoreTest
         OutlierDetectionResponse response = subject.getOutlierValues( request );
 
         assertEquals( 2, response.getOutlierValues().size() );
+        assertTrue( response.getOutlierValues().stream().anyMatch( ov -> MathUtils.isEqual( ov.getValue(), 12 ) ) );
+        assertTrue( response.getOutlierValues().stream().anyMatch( ov -> MathUtils.isEqual( ov.getValue(), 91 ) ) );
     }
 
     @Test
