@@ -393,7 +393,6 @@ public class Preheat
     public Preheat remove( PreheatIdentifier identifier, IdentifiableObject object )
     {
         Class<? extends IdentifiableObject> klass = HibernateProxyUtils.getRealClass( object );
-        ;
 
         if ( PreheatIdentifier.UID == identifier || PreheatIdentifier.AUTO == identifier )
         {
