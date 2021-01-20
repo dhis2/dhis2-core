@@ -103,14 +103,16 @@ public class MinMaxOutlierDetectionManager
     {
         final String ouPathClause = getOrgUnitPathClause( request.getOrgUnits() );
 
-        final String sql = "select de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, " +
-            "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, " +
-            "pe.startdate as pe_start_date, pt.name as pt_name, " +
-            "dv.value::double precision as value, dv.followup as follow_up, " +
-            "least(abs(dv.value::double precision - mm.minimumvalue), " +
-            "abs(dv.value::double precision - mm.maximumvalue)) as bound_abs_dev, " +
-            "mm.minimumvalue as lower_bound, " +
-            "mm.maximumvalue as upper_bound " +
+        // @formatter:off
+        final String sql =
+            "select de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, " +
+                "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, " +
+                "pe.startdate as pe_start_date, pt.name as pt_name, " +
+                "dv.value::double precision as value, dv.followup as follow_up, " +
+                "least(abs(dv.value::double precision - mm.minimumvalue), " +
+                "abs(dv.value::double precision - mm.maximumvalue)) as bound_abs_dev, " +
+                "mm.minimumvalue as lower_bound, " +
+                "mm.maximumvalue as upper_bound " +
             "from datavalue dv " +
             "inner join dataelement de on dv.dataelementid = de.dataelementid " +
             "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
@@ -118,7 +120,7 @@ public class MinMaxOutlierDetectionManager
             "inner join period pe on dv.periodid = pe.periodid " +
             "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
             "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
-            // Min-max data element join
+            // Min-max value join
             "inner join minmaxdataelement mm on (dv.dataelementid = mm.dataelementid " +
             "and dv.sourceid = mm.sourceid and dv.categoryoptioncomboid = mm.categoryoptioncomboid) " +
             "where dv.dataelementid in (:data_element_ids) " +
@@ -131,6 +133,7 @@ public class MinMaxOutlierDetectionManager
             // Order and limit
             "order by bound_abs_dev desc " +
             "limit :max_results;";
+        // @formatter:on
 
         final SqlParameterSource params = new MapSqlParameterSource()
             .addValue( "data_element_ids", request.getDataElementIds() )
