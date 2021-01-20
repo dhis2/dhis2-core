@@ -29,6 +29,7 @@ package org.hisp.dhis.outlierdetection.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -56,6 +57,7 @@ import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.system.util.MathUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -183,6 +185,40 @@ public class OutlierDetectionServiceZScoreTest
         OutlierDetectionResponse response = subject.getOutlierValues( request );
 
         assertEquals( 4, response.getOutlierValues().size() );
+        assertContainsOutlierValue( response, 12d );
+        assertContainsOutlierValue( response, 91d );
+        assertContainsOutlierValue( response, 11d );
+        assertContainsOutlierValue( response, 87d );
+    }
+
+    @Test
+    public void testGetOutlierValuesWithDataStartEndDate()
+    {
+        // 12, 91 are outlier values with a z-score above 2.0
+
+        addDataValues(
+            new DataValue( deA, m01, ouA, coc, coc, "50" ), new DataValue( deA, m07, ouA, coc, coc, "51" ),
+            new DataValue( deA, m02, ouA, coc, coc, "53" ), new DataValue( deA, m08, ouA, coc, coc, "59" ),
+            new DataValue( deA, m03, ouA, coc, coc, "58" ), new DataValue( deA, m09, ouA, coc, coc, "55" ),
+            new DataValue( deA, m04, ouA, coc, coc, "55" ), new DataValue( deA, m10, ouA, coc, coc, "52" ),
+            new DataValue( deA, m05, ouA, coc, coc, "51" ), new DataValue( deA, m11, ouA, coc, coc, "58" ),
+            new DataValue( deA, m06, ouA, coc, coc, "12" ), new DataValue( deA, m12, ouA, coc, coc, "91" ) );
+
+        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
+            .withDataElements( Lists.newArrayList( deA, deB ) )
+            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) )
+            .withOrgUnits( Lists.newArrayList( ouA ) )
+            .withAlgorithm( OutlierDetectionAlgorithm.Z_SCORE )
+            .withThreshold( 2.0 )
+            .withDataStartDate( getDate( 2019, 1, 1 ) )
+            .withDataEndDate( getDate( 2020, 6, 1 ) )
+            .build();
+
+        OutlierDetectionResponse response = subject.getOutlierValues( request );
+
+        assertEquals( 2, response.getOutlierValues().size() );
+        assertContainsOutlierValue( response, 12d );
+        assertContainsOutlierValue( response, 91d );
     }
 
     @Test
@@ -291,6 +327,12 @@ public class OutlierDetectionServiceZScoreTest
         assertEquals( upperBound, outlier.getUpperBound(), DELTA );
 
         assertFalse( outlier.getFollowUp() );
+    }
+
+    private void assertContainsOutlierValue( OutlierDetectionResponse response, Double value )
+    {
+        assertTrue( response.getOutlierValues().stream()
+            .anyMatch( ov -> MathUtils.isEqual( ov.getValue(), value ) ) );
     }
 
     private void addPeriods( Period... periods )
