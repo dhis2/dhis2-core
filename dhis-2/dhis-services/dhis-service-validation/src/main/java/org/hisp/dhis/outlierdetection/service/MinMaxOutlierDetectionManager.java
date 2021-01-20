@@ -107,8 +107,8 @@ public class MinMaxOutlierDetectionManager
             "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, " +
             "pe.startdate as pe_start_date, pt.name as pt_name, " +
             "dv.value::double precision as value, dv.followup as follow_up, " +
-            "least(abs(dv.value::double precision - mm.minimumvalue), abs(dv.value::double precision - mm.maximumvalue)) as bound_abs_dev, "
-            +
+            "least(abs(dv.value::double precision - mm.minimumvalue), " +
+            "abs(dv.value::double precision - mm.maximumvalue)) as bound_abs_dev, " +
             "mm.minimumvalue as lower_bound, " +
             "mm.maximumvalue as upper_bound " +
             "from datavalue dv " +

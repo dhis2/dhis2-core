@@ -103,63 +103,61 @@ public class ZScoreOutlierDetectionManager
     {
         final String ouPathClause = getOrgUnitPathClause( request.getOrgUnits() );
 
-        final String sql =
-            // Outer select
-            "select dvs.de_uid, dvs.ou_uid, dvs.coc_uid, dvs.aoc_uid, " +
-                "dvs.de_name, dvs.ou_name, dvs.coc_name, dvs.aoc_name, dvs.value, dvs.follow_up, " +
-                "dvs.pe_start_date, dvs.pt_name, " +
-                "stats.mean as mean, " +
-                "stats.std_dev as std_dev, " +
-                "abs(dvs.value::double precision - stats.mean) as mean_abs_dev, " +
-                "abs(dvs.value::double precision - stats.mean) / stats.std_dev as z_score, " +
-                "stats.mean - (stats.std_dev * :threshold) as lower_bound, " +
-                "stats.mean + (stats.std_dev * :threshold) as upper_bound " +
-                // Data value query
-                "from (" +
-                "select dv.dataelementid, dv.sourceid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, "
-                +
-                "de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, " +
-                "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, " +
-                "pe.startdate as pe_start_date, pt.name as pt_name, " +
-                "dv.value as value, dv.followup as follow_up " +
-                "from datavalue dv " +
-                "inner join dataelement de on dv.dataelementid = de.dataelementid " +
-                "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
-                "inner join categoryoptioncombo aoc on dv.attributeoptioncomboid = aoc.categoryoptioncomboid " +
-                "inner join period pe on dv.periodid = pe.periodid " +
-                "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
-                "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
-                "where dv.dataelementid in (:data_element_ids) " +
-                "and pe.startdate >= :start_date " +
-                "and pe.enddate <= :end_date " +
-                "and " + ouPathClause + " " +
-                "and dv.deleted is false" +
-                ") as dvs " +
-                // Mean and std dev mapping query
-                "inner join (" +
-                "select dv.dataelementid as dataelementid, dv.sourceid as sourceid, " +
-                "dv.categoryoptioncomboid as categoryoptioncomboid, " +
-                "dv.attributeoptioncomboid as attributeoptioncomboid, " +
-                "avg(dv.value::double precision) as mean, " +
-                "stddev_pop(dv.value::double precision) as std_dev " +
-                "from datavalue dv " +
-                "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
-                "where dv.dataelementid in (:data_element_ids) " +
-                "and " + ouPathClause + " " +
-                "and dv.deleted is false " +
-                "group by dv.dataelementid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid" +
-                ") as stats " +
-                // Query join
-                "on dvs.dataelementid = stats.dataelementid " +
-                "and dvs.sourceid = stats.sourceid " +
-                "and dvs.categoryoptioncomboid = stats.categoryoptioncomboid " +
-                "and dvs.attributeoptioncomboid = stats.attributeoptioncomboid " +
-                "where stats.std_dev != 0.0 " +
-                // Filter on z-score threshold
-                "and (abs(dvs.value::double precision - stats.mean) / stats.std_dev) >= :threshold " +
-                // Order and limit
-                "order by " + request.getOrderBy().getKey() + " desc " +
-                "limit :max_results;";
+        final String sql = "select dvs.de_uid, dvs.ou_uid, dvs.coc_uid, dvs.aoc_uid, " +
+            "dvs.de_name, dvs.ou_name, dvs.coc_name, dvs.aoc_name, dvs.value, dvs.follow_up, " +
+            "dvs.pe_start_date, dvs.pt_name, " +
+            "stats.mean as mean, " +
+            "stats.std_dev as std_dev, " +
+            "abs(dvs.value::double precision - stats.mean) as mean_abs_dev, " +
+            "abs(dvs.value::double precision - stats.mean) / stats.std_dev as z_score, " +
+            "stats.mean - (stats.std_dev * :threshold) as lower_bound, " +
+            "stats.mean + (stats.std_dev * :threshold) as upper_bound " +
+            // Data value query
+            "from (" +
+            "select dv.dataelementid, dv.sourceid, dv.periodid, " +
+            "dv.categoryoptioncomboid, dv.attributeoptioncomboid, " +
+            "de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, " +
+            "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, " +
+            "pe.startdate as pe_start_date, pt.name as pt_name, " +
+            "dv.value as value, dv.followup as follow_up " +
+            "from datavalue dv " +
+            "inner join dataelement de on dv.dataelementid = de.dataelementid " +
+            "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
+            "inner join categoryoptioncombo aoc on dv.attributeoptioncomboid = aoc.categoryoptioncomboid " +
+            "inner join period pe on dv.periodid = pe.periodid " +
+            "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
+            "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
+            "where dv.dataelementid in (:data_element_ids) " +
+            "and pe.startdate >= :start_date " +
+            "and pe.enddate <= :end_date " +
+            "and " + ouPathClause + " " +
+            "and dv.deleted is false" +
+            ") as dvs " +
+            // Mean and std dev mapping query
+            "inner join (" +
+            "select dv.dataelementid as dataelementid, dv.sourceid as sourceid, " +
+            "dv.categoryoptioncomboid as categoryoptioncomboid, " +
+            "dv.attributeoptioncomboid as attributeoptioncomboid, " +
+            "avg(dv.value::double precision) as mean, " +
+            "stddev_pop(dv.value::double precision) as std_dev " +
+            "from datavalue dv " +
+            "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
+            "where dv.dataelementid in (:data_element_ids) " +
+            "and " + ouPathClause + " " +
+            "and dv.deleted is false " +
+            "group by dv.dataelementid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid" +
+            ") as stats " +
+            // Query join
+            "on dvs.dataelementid = stats.dataelementid " +
+            "and dvs.sourceid = stats.sourceid " +
+            "and dvs.categoryoptioncomboid = stats.categoryoptioncomboid " +
+            "and dvs.attributeoptioncomboid = stats.attributeoptioncomboid " +
+            "where stats.std_dev != 0.0 " +
+            // Filter on z-score threshold
+            "and (abs(dvs.value::double precision - stats.mean) / stats.std_dev) >= :threshold " +
+            // Order and limit
+            "order by " + request.getOrderBy().getKey() + " desc " +
+            "limit :max_results;";
 
         final SqlParameterSource params = new MapSqlParameterSource()
             .addValue( "threshold", request.getThreshold() )
