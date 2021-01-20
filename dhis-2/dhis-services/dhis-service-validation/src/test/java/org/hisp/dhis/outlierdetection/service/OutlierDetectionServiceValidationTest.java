@@ -172,7 +172,7 @@ public class OutlierDetectionServiceValidationTest
     }
 
     @Test
-    public void testErrorDataStartDateBeforeDataEndDate()
+    public void testErrorDataStartDateAfterDataEndDate()
     {
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withDataElements( Lists.newArrayList( deA, deB, deC ) )
