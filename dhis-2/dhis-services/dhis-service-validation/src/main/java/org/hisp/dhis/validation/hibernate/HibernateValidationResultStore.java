@@ -91,16 +91,21 @@ public class HibernateValidationResultStore
         hql.append( "delete from ValidationResult vr " );
         if ( !isEmpty( request.getOu() ) )
         {
-            hql.append( helper.whereAnd() ).append( " vr.organisationUnit.uid in :unitsUids ");
+            // OBS! sub-select is needed to avoid issue with wrongly created cross join
+            hql.append( helper.whereAnd() ).append(
+                " vr.organisationUnit in (select ou.id from OrganisationUnit ou where ou.uid in :unitsUids) " );
         }
         if ( !isEmpty( request.getVr() ) )
         {
-            hql.append( helper.whereAnd() ).append( " vr.validationRule.uid in :rulesUids ");
+            // OBS! sub-select is needed to avoid issue with wrongly created cross join
+            hql.append( helper.whereAnd() )
+                .append( " vr.validationRule in (select r.id from ValidationRule r where r.uid in :rulesUids) " );
         }
         if ( request.getPe() != null )
         {
-            hql.append( helper.whereAnd() )
-                .append( " ((vr.period.startDate <= :endDate and vr.period.endDate >= :startDate)) " );
+            // OBS! sub-select is needed to avoid issue with wrongly created cross join
+            hql.append( helper.whereAnd() ).append(
+                " vr.period in (select p.id from Period p where p.startDate <= :endDate and p.endDate >= :startDate) " );
         }
         if ( request.getCreated() != null )
         {
@@ -112,7 +117,7 @@ public class HibernateValidationResultStore
             hql.append( helper.whereAnd() ).append(" vr.notificationSent = :notificationSent ");
         }
 
-        Query<ValidationResult> query = getQuery( hql.toString() );
+        Query<ValidationResult> query = getSession().createQuery( hql.toString() );
 
         if ( !isEmpty( request.getOu() ) )
         {

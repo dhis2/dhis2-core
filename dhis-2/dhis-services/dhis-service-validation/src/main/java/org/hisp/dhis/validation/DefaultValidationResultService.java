@@ -27,7 +27,18 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -41,17 +52,7 @@ import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Predicate;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.stream.Collectors.toSet;
-import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Stian Sandvold
@@ -119,6 +120,7 @@ public class DefaultValidationResultService
     {
         if ( !request.isUnconstrained() )
         {
+            validate( request );
             validationResultStore.delete( request );
         }
     }
@@ -158,6 +160,18 @@ public class DefaultValidationResultService
         return validationResultStore.getValidationResults( orgUnit, includeOrgUnitDescendants, validationRules, persistedPeriods );
     }
 
+    private void validate( ValidationResultsDeletionRequest request )
+    {
+        validateExists( request.getOu(), ErrorCode.E7500, ErrorMessage::new, IdentifiableObject::getUid,
+            organisationUnitService::getOrganisationUnitsByUid );
+        validateExists( request.getVr(), ErrorCode.E7501, ErrorMessage::new, IdentifiableObject::getUid,
+            validationRuleService::getValidationRulesByUid );
+        validateElement( request.getPe(), ErrorCode.E7502, ErrorMessage::new,
+            DefaultValidationResultService::isIsoPeriod );
+        validateElement( request.getCreated(), ErrorCode.E7503, ErrorMessage::new,
+            DefaultValidationResultService::isIsoPeriod );
+    }
+
     private void validate( ValidationResultQuery query )
     {
         // check ou and vr filters to be valid UIDs
@@ -167,7 +181,12 @@ public class DefaultValidationResultService
             validationRuleService::getValidationRulesByUid );
         // check pe filters to be valid ISO expression
         validateElements( query.getPe(), ErrorCode.E7502, ErrorMessage::new,
-            isoPeriod -> PeriodType.getPeriodFromIsoString( isoPeriod ) != null );
+            DefaultValidationResultService::isIsoPeriod );
+    }
+
+    private static boolean isIsoPeriod( String isoPeriod )
+    {
+        return PeriodType.getPeriodFromIsoString( isoPeriod ) != null;
     }
 
     private <T, E> void validateExists( Collection<T> identifiers, ErrorCode code,
@@ -196,11 +215,17 @@ public class DefaultValidationResultService
         {
             for ( T val : values )
             {
-                if ( !validator.test( val ) )
-                {
-                    throwValidationError( msgFactory.apply( code, val ) );
-                }
+                validateElement( val, code, msgFactory, validator );
             }
+        }
+    }
+
+    private <T> void validateElement( T val, ErrorCode code, BiFunction<ErrorCode, Object, ErrorMessage> msgFactory,
+        Predicate<T> validator )
+    {
+        if ( val != null && !validator.test( val ) )
+        {
+            throwValidationError( msgFactory.apply( code, val ) );
         }
     }
 

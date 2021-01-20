@@ -37,6 +37,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -757,6 +758,120 @@ public class ValidationResultStoreTest
 
         assertEqualSets( singletonList( validationResultBA ),
             validationResultStore.getValidationResults( sourceB, false, rulesAB, periodsAB ) );
+    }
+
+    @Test
+    public void testDeleteObject()
+    {
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        validationResultStore.delete( validationResultAA );
+
+        assertEqualSets( asList( validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( new ValidationResultQuery() ) );
+    }
+
+    @Test
+    public void testDeleteByRequestWithOrganisationUnit()
+    {
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        ValidationResultsDeletionRequest request = new ValidationResultsDeletionRequest();
+        request.setOu( singletonList( sourceA.getUid() ) );
+        validationResultStore.delete( request );
+
+        assertEqualSets( asList(
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( new ValidationResultQuery() ) );
+    }
+
+    @Test
+    public void testDeleteByRequestWithValidationRule()
+    {
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        ValidationResultsDeletionRequest request = new ValidationResultsDeletionRequest();
+        request.setVr( singletonList( validationRuleA.getUid() ) );
+        validationResultStore.delete( request );
+
+        assertEqualSets( asList(
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( new ValidationResultQuery() ) );
+    }
+
+    @Test
+    public void testDeleteByRequestWithPeriod()
+    {
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        ValidationResultsDeletionRequest request = new ValidationResultsDeletionRequest();
+        request.setPe( periodA.getUid() );
+        validationResultStore.delete( request );
+
+        assertEqualSets( asList(
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( new ValidationResultQuery() ) );
+    }
+
+    @Test
+    public void testDeleteByRequestWithCreatedPeriod()
+    {
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        ValidationResultsDeletionRequest request = new ValidationResultsDeletionRequest();
+        request.setCreated( "" + LocalDate.now().getYear() );
+        validationResultStore.delete( request );
+
+        assertEqualSets( emptyList(), validationResultStore.query( new ValidationResultQuery() ) );
+    }
+
+    @Test
+    public void testDeleteByRequestWithNotificationSent()
+    {
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        ValidationResultsDeletionRequest request = new ValidationResultsDeletionRequest();
+        request.setNotificationSent( true ); // AB is saved with true, others with false
+        validationResultStore.delete( request );
+
+        assertEqualSets( asList(
+            validationResultAA, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( new ValidationResultQuery() ) );
+    }
+
+    @Test
+    public void testDeleteByRequestWithMultipleCriteria()
+    {
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        ValidationResultsDeletionRequest request = new ValidationResultsDeletionRequest();
+        request.setOu( singletonList( sourceA.getUid() ) );
+        request.setVr( singletonList( validationRuleA.getUid() ) );
+        request.setPe( periodA.getUid() );
+        request.setNotificationSent( true );
+        validationResultStore.delete( request );
+
+        // Ou, Vr and Pe match all As but notificationSent matches only AB
+        assertEqualSets( asList(
+            validationResultAA, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( new ValidationResultQuery() ) );
     }
 
     private void save( Iterable<ValidationResult> results )

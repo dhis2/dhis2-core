@@ -30,6 +30,7 @@ package org.hisp.dhis.validation;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -110,46 +111,82 @@ public class ValidationResultServiceTest
     }
 
     @Test
-    public void validationOrganisationUnitMustBeUid()
+    public void validationQueryOrganisationUnitMustExist()
     {
         BiConsumer<ValidationResultQuery, List<String>> op = ValidationResultQuery::setOu;
-        assertIllegal( ErrorCode.E7500, op, "tooShrtUid" );
-        assertIllegal( ErrorCode.E7500, op, "tooLooongUid" );
-        assertIllegal( ErrorCode.E7500, op, "i//egalUid$" );
-        assertIllegal( ErrorCode.E7500, op, "valid678901", "i//egalUid$" );
-        assertIllegal( ErrorCode.E7500, op, "valid678901", "valid678902", "i//egalUid$" );
-        assertLegal( op, "a2345678901" );
-        assertLegal( op, "abcdefghijk" );
-        assertLegal( op, "abcdefghijk", "AbCdEfGhIjK", "Ab3d5f7h9j1" );
+        assertIllegalQuery( ErrorCode.E7500, op, "tooShrtUid" );
+        assertIllegalQuery( ErrorCode.E7500, op, "tooLooongUid" );
+        assertIllegalQuery( ErrorCode.E7500, op, "i//egalUid$" );
+        assertIllegalQuery( ErrorCode.E7500, op, "valid678901", "i//egalUid$" );
+        assertIllegalQuery( ErrorCode.E7500, op, "valid678901", "valid678902", "i//egalUid$" );
+        assertLegalQuery( op, "a2345678901" );
+        assertLegalQuery( op, "abcdefghijk" );
+        assertLegalQuery( op, "abcdefghijk", "AbCdEfGhIjK", "Ab3d5f7h9j1" );
     }
 
     @Test
-    public void validationValidationRuleMustBeUid()
+    public void validationQueryValidationRuleMustExist()
     {
         BiConsumer<ValidationResultQuery, List<String>> op = ValidationResultQuery::setVr;
-        assertIllegal( ErrorCode.E7501, op, "tooShrtUid" );
-        assertIllegal( ErrorCode.E7501, op, "tooLooongUid" );
-        assertIllegal( ErrorCode.E7501, op, "i//egalUid$" );
-        assertIllegal( ErrorCode.E7501, op, "valid678901", "i//egalUid$" );
-        assertIllegal( ErrorCode.E7501, op, "valid678901", "valid678902", "i//egalUid$" );
-        assertLegal( op, "a2345678901" );
-        assertLegal( op, "abcdefghijk" );
-        assertLegal( op, "abcdefghijk", "AbCdEfGhIjK", "Ab3d5f7h9j1" );
+        assertIllegalQuery( ErrorCode.E7501, op, "tooShrtUid" );
+        assertIllegalQuery( ErrorCode.E7501, op, "tooLooongUid" );
+        assertIllegalQuery( ErrorCode.E7501, op, "i//egalUid$" );
+        assertIllegalQuery( ErrorCode.E7501, op, "valid678901", "i//egalUid$" );
+        assertIllegalQuery( ErrorCode.E7501, op, "valid678901", "valid678902", "i//egalUid$" );
+        assertLegalQuery( op, "a2345678901" );
+        assertLegalQuery( op, "abcdefghijk" );
+        assertLegalQuery( op, "abcdefghijk", "AbCdEfGhIjK", "Ab3d5f7h9j1" );
     }
 
     @Test
-    public void validationPeriodMustBeIsoExpressions()
+    public void validationQueryPeriodMustBeIsoExpressions()
     {
         BiConsumer<ValidationResultQuery, List<String>> op = ValidationResultQuery::setPe;
-        assertIllegal( ErrorCode.E7502, op, "illegal" );
-        assertIllegal( ErrorCode.E7502, op, "2019Q1", "illegal" );
-        assertIllegal( ErrorCode.E7502, op, "2020W34", "202001", "illegal" );
-        assertLegal( op, "2019" );
-        assertLegal( op, "2019Q3" );
-        assertLegal( op, "201901", "2019-02", "2019BiW3" );
+        assertIllegalQuery( ErrorCode.E7502, op, "illegal" );
+        assertIllegalQuery( ErrorCode.E7502, op, "2019Q1", "illegal" );
+        assertIllegalQuery( ErrorCode.E7502, op, "2020W34", "202001", "illegal" );
+        assertLegalQuery( op, "2019" );
+        assertLegalQuery( op, "2019Q3" );
+        assertLegalQuery( op, "201901", "2019-02", "2019BiW3" );
     }
 
-    private void assertLegal( BiConsumer<ValidationResultQuery, List<String>> operation, String... values )
+    @Test
+    public void validationDeleteRequestOrganisationUnitMustExist()
+    {
+        BiConsumer<ValidationResultsDeletionRequest, List<String>> op = ValidationResultsDeletionRequest::setOu;
+        assertIllegalRequest( ErrorCode.E7500, op, singletonList( "illegalUid" ) );
+        assertIllegalRequest( ErrorCode.E7500, op, asList( "valid678901", "valid678902", "illegalUid" ) );
+        assertLegalRequest( op, singletonList( "valid678901" ) );
+        assertLegalRequest( op, asList( "valid678901", "valid678902" ) );
+    }
+
+    @Test
+    public void validationDeleteRequestValidationRuleMustExist()
+    {
+        BiConsumer<ValidationResultsDeletionRequest, List<String>> op = ValidationResultsDeletionRequest::setVr;
+        assertIllegalRequest( ErrorCode.E7501, op, singletonList( "illegalUid" ) );
+        assertIllegalRequest( ErrorCode.E7501, op, asList( "valid678901", "valid678902", "illegalUid" ) );
+        assertLegalRequest( op, singletonList( "valid678901" ) );
+        assertLegalRequest( op, asList( "valid678901", "valid678902" ) );
+    }
+
+    @Test
+    public void validationDeleteRequestPeriodMustBeIsoExpression()
+    {
+        BiConsumer<ValidationResultsDeletionRequest, String> op = ValidationResultsDeletionRequest::setPe;
+        assertIllegalRequest( ErrorCode.E7502, op, "illegal" );
+        assertLegalRequest( op, "2020Q1" );
+    }
+
+    @Test
+    public void validationDeleteRequestCreatedPeriodMustBeIsoExpression()
+    {
+        BiConsumer<ValidationResultsDeletionRequest, String> op = ValidationResultsDeletionRequest::setCreated;
+        assertIllegalRequest( ErrorCode.E7503, op, "illegal" );
+        assertLegalRequest( op, "2020Q1" );
+    }
+
+    private void assertLegalQuery( BiConsumer<ValidationResultQuery, List<String>> operation, String... values )
     {
         ValidationResultQuery query = new ValidationResultQuery();
         operation.accept( query, asList( values ) );
@@ -157,7 +194,14 @@ public class ValidationResultServiceTest
         assertEquals( 0, service.countValidationResults( query ) );
     }
 
-    private void assertIllegal( ErrorCode expected,
+    private <T> void assertLegalRequest( BiConsumer<ValidationResultsDeletionRequest, T> operation, T value )
+    {
+        ValidationResultsDeletionRequest request = new ValidationResultsDeletionRequest();
+        operation.accept( request, value );
+        service.deleteValidationResults( request );
+    }
+
+    private void assertIllegalQuery( ErrorCode expected,
         BiConsumer<ValidationResultQuery, List<String>> operation, String... values )
     {
         ValidationResultQuery query = new ValidationResultQuery();
@@ -169,6 +213,27 @@ public class ValidationResultServiceTest
         ex = assertThrows( IllegalQueryException.class,
             () -> service.countValidationResults( query ) );
         assertError( ex, expected, errorValue );
+    }
+
+    private <T> void assertIllegalRequest( ErrorCode expected,
+        BiConsumer<ValidationResultsDeletionRequest, T> operation, T value )
+    {
+        ValidationResultsDeletionRequest request = new ValidationResultsDeletionRequest();
+        operation.accept( request, value );
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> service.deleteValidationResults( request ) );
+        assertError( ex, expected, getFaultyValue( value ) );
+    }
+
+    /**
+     * this is simply a convention in the tests that if a collection of values is
+     * tested the last one is the faulty one
+     */
+    private <T> String getFaultyValue( T value )
+    {
+        return String.valueOf( value instanceof List
+            ? ((List<?>) value).get( ((List<?>) value).size() - 1 )
+            : value );
     }
 
     private void assertError( IllegalQueryException ex, ErrorCode expected, String value )
