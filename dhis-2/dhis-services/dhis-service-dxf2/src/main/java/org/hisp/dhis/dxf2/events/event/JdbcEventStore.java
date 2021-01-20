@@ -55,7 +55,6 @@ import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
-import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.jdbc.BatchPreparedStatementSetterWithKeyHolder;
 import org.hisp.dhis.jdbc.JdbcUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -66,6 +65,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUserService;
@@ -905,7 +905,7 @@ public class JdbcEventStore implements EventStore
             && !isSuper( user ) )
         {
             sqlBuilder.append(
-                "deco.publicaccess AS deco_publicaccess, decoa.uga_access AS uga_access, decoa.ua_access AS ua_access, cocount.option_size AS option_size, " );
+                "decoa.can_access AS decoa_can_access, cocount.option_size AS option_size, " );
         }
 
         for ( QueryItem item : params.getDataElementsAndFilters() )
@@ -1368,41 +1368,16 @@ public class JdbcEventStore implements EventStore
 
     private String getCategoryOptionSharingForUser( User user )
     {
-//        List<Long> userGroupIds = getIdentifiers( user.getGroups() );
-
-        List<String> groupsIds = user.getGroups().stream().map( g -> g.getUid() )
-            .collect( Collectors.toList() );
-
-
         StringBuilder sqlBuilder = new StringBuilder().append( " left join ( " );
 
-        sqlBuilder.append( "select categoryoptioncomboid, count(categoryoptioncomboid) as option_size from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) "
+        sqlBuilder.append( "select categoryoptioncomboid, count(categoryoptioncomboid) as option_size "
+            + "from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) "
             + "as cocount on coc.categoryoptioncomboid = cocount.categoryoptioncomboid "
             + "left join ("
-            + "select deco.categoryoptionid as deco_id, deco.uid as deco_uid, deco.sharing->>'public' AS deco_publicaccess, "
-            + "deco.sharing"
-            + "uga.access as uga_access, uga.usergroupid AS usrgrp_id, "
-            + "ua.access as ua_access, ua.userid as usr_id "
-            + "from dataelementcategoryoption deco "
-            + "left join dataelementcategoryoptionusergroupaccesses couga on deco.categoryoptionid = couga.categoryoptionid "
-            + "left join dataelementcategoryoptionuseraccesses coua on deco.categoryoptionid = coua.categoryoptionid "
-            + "left join usergroupaccess uga on couga.usergroupaccessid = uga.usergroupaccessid "
-            + "left join useraccess ua on coua.useraccessid = ua.useraccessid "
-            + "where deco.sharing-.userid = " + user.getId()
-            + "deco.sharing->>'owner' is not null and co.sharing->>'owner' = '" + user.getUid() + "' "
-            + "deco.sharing->>'public' like '__r%' or co.sharing->>'public' is null "
-            + " or ( function(" + JsonbFunctions.HAS_USER_ID +", deco.sharing, '"+ user.getUid()+"')"
-            + " and function(" + JsonbFunctions.CHECK_USER_ACCESS +", deco.sharing, '"+ user.getUid()+"') )"
-            + " or ( function(" + JsonbFunctions.HAS_USER_GROUP_IDS +", deco.sharing, '"+ String.join( ",", groupsIds )+"')"
-            + " and function(" + JsonbFunctions.CHECK_USER_GROUPS_ACCESS +", deco.sharing, '{"+ String.join( ",", groupsIds )+"}') )" );
-
-
-
-        if ( userGroupIds != null && !userGroupIds.isEmpty() )
-        {
-            sqlBuilder.append( " or uga.usergroupid in (" ).append( getCommaDelimitedString( userGroupIds ) )
-                .append( ") " );
-        }
+            + "select deco.categoryoptionid as deco_id, deco.uid as deco_uid , "
+            + "( select ( " + JpaQueryUtils.generateSQlQueryForSharingCheck( "deco.sharing",
+                user, AccessStringHelper.DATA_READ ) + " ) ) as can_access "
+            + "from dataelementcategoryoption deco " );
 
         sqlBuilder.append( " ) as decoa on cocco.categoryoptionid = decoa.deco_id " );
 
@@ -1738,16 +1713,8 @@ public class JdbcEventStore implements EventStore
             return true;
         }
 
-        if ( rowSet.getString( "uga_access" ) == null && rowSet.getString( "ua_access" ) == null
-            && rowSet.getString( "deco_publicaccess" ) == null )
-        {
-            return false;
-        }
+        return rowSet.getBoolean( "decoa_can_access" );
 
-        return AccessStringHelper.isEnabled( rowSet.getString( "deco_publicaccess" ),
-            AccessStringHelper.Permission.DATA_READ ) || AccessStringHelper.isEnabled( rowSet.getString( "uga_access" ),
-                AccessStringHelper.Permission.DATA_READ ) || AccessStringHelper.isEnabled( rowSet.getString( "ua_access" ),
-                    AccessStringHelper.Permission.DATA_READ );
     }
 
     private Set<EventDataValue> convertEventDataValueJsonIntoSet( String jsonString )

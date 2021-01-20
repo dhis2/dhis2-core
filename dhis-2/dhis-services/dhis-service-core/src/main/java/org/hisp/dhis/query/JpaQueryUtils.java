@@ -48,6 +48,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
@@ -343,20 +345,26 @@ public class JpaQueryUtils
     }
 
     /**
-     *  Return HQl query for checking sharing access for given user
+     *  Return SQL query for checking sharing access for given user
      * @param sharingColumn sharing column reference
      * @param user User for sharing checking
-     * @param userGroupIds Array of all user group that given user belongs to in SQL String format
-     * @return HQL query
+     * @return SQL query
      */
-    public static final String generateHqlQueryForSharing( String sharingColumn, User user, String userGroupIds )
+    public static final String generateSQlQueryForSharingCheck( String sharingColumn, User user, String access )
     {
-        return  sharingColumn + "->>'owner' is not null and " + sharingColumn + "->>'owner' = '" + user.getUid() + "' "
-            + sharingColumn + "->>'public' like '__r%' or " + sharingColumn + "->>'public' is null "
-            + " or ( function(" + JsonbFunctions.HAS_USER_ID +","+ sharingColumn +", '"+ user.getUid()+"') = true "
-            + " and function(" + JsonbFunctions.CHECK_USER_ACCESS +", " + sharingColumn + ", '"+ user.getUid()+"') ) = true "
-            + " or ( function(" + JsonbFunctions.HAS_USER_GROUP_IDS +", " + sharingColumn + ", '{"+userGroupIds+"}') = true "
-            + " and function(" + JsonbFunctions.CHECK_USER_GROUPS_ACCESS +", " + sharingColumn + ", '{"+ userGroupIds+"}') = true )";
+        List<Long> userGroupIds = getIdentifiers( user.getGroups() );
+
+        String groupsIds = CollectionUtils.isEmpty( userGroupIds ) ? null
+            : "{" + org.apache.commons.lang3.StringUtils.join( user.getGroups().stream().map( g -> g.getUid() )
+                .collect( Collectors.toList() ), "," ) + "}";
+
+        return  " ( " + sharingColumn + "->>'owner' is not null and " + sharingColumn + "->>'owner' = '" + user.getUid() + "') "
+            + " or " + sharingColumn + "->>'public' like '__r%' or " + sharingColumn + "->>'public' is null "
+            + " or (" + JsonbFunctions.HAS_USER_ID +"("+ sharingColumn +", '" + user.getUid() + "') = true "
+            + " and " + JsonbFunctions.CHECK_USER_ACCESS +"( " + sharingColumn + ", '" + user.getUid() + "', '" + access + "' ) = true )  "
+            + ( StringUtils.isEmpty( groupsIds ) ? "" :
+             " or ( " + JsonbFunctions.HAS_USER_GROUP_IDS +"( " + sharingColumn + ", '{" + userGroupIds + "}') = true "
+            + " and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS +"( " + sharingColumn + ", '{" + userGroupIds + "}', '"+access+"') = true )" );
     }
 
     private static boolean isIgnoreCase( org.hisp.dhis.query.Order o )

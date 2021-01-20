@@ -39,6 +39,8 @@ import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.query.JpaQueryUtils;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -375,13 +377,13 @@ public class SpringDataValueSetStore
             .collect( Collectors.toList() );
 
         String groupAccessCheck =  groupsIds.size() > 0 ?
-            "or ( " + JsonbFunctions.HAS_USER_GROUP_IDS + "( co.sharing, '{"+ String.join( ",", groupsIds ) +"}' ) = true " +
-                "and "+ JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( co.sharing, '__r%', '{"+ String.join( ",", groupsIds ) +"}' ) = true ) )"
-            : ") )";
+            " or ( " + JsonbFunctions.HAS_USER_GROUP_IDS + "( co.sharing, '{"+ String.join( ",", groupsIds ) + "}' ) = true " +
+                "and "+ JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( co.sharing, '__r%', '{"+ String.join( ",", groupsIds ) + "}' ) = true ) )"
+            : "";
 
         String userAccessCheck =
-            "or ( " + JsonbFunctions.HAS_USER_ID + "( co.sharing, '" + user.getUid() + "' ) = true " +
-            "and " + JsonbFunctions.CHECK_USER_ACCESS + "( co.sharing, '__r%', '"+ user.getUid() +"' ) = true ) )";
+            " or ( " + JsonbFunctions.HAS_USER_ID + "( co.sharing, '" + user.getUid() + "' ) = true " +
+            " and " + JsonbFunctions.CHECK_USER_ACCESS + "( co.sharing, '__r%', '"+ user.getUid() +"' ) = true ) )";
 
         return
             "and dv.attributeoptioncomboid not in (" +
@@ -390,14 +392,7 @@ public class SpringDataValueSetStore
                 // Get inaccessible category options
                 "where cocco.categoryoptionid not in ( " +
                     "select co.categoryoptionid " +
-                    "from dataelementcategoryoption co " +
-                    // Public access check
-                    "where co.sharing->>'public' like '__r%' " +
-                    "or co.sharing->>'public' is null " +
-                    // User access check
-                    userAccessCheck +
-                    // User group access check
-                    groupAccessCheck
-                ;
+                    "from dataelementcategoryoption co  " +
+                " where " + JpaQueryUtils.generateSQlQueryForSharingCheck( "co.sharing", user, AccessStringHelper.DATA_READ ) + ") )";
     }
 }
