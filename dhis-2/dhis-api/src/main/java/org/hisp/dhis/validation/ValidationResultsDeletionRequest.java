@@ -30,6 +30,7 @@ package org.hisp.dhis.validation;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,9 +39,9 @@ import java.util.List;
 public class ValidationResultsDeletionRequest
 {
 
-    private List<String> ou;
+    private List<String> ou = new ArrayList<>();
 
-    private List<String> vr;
+    private List<String> vr = new ArrayList<>();
 
     private String pe;
 
@@ -48,43 +49,53 @@ public class ValidationResultsDeletionRequest
 
     private Boolean notificationSent;
 
-    public List<String> getOu() {
+    public List<String> getOu()
+    {
         return ou;
     }
 
-    public void setOu(List<String> ou) {
+    public void setOu( List<String> ou )
+    {
         this.ou = ou;
     }
 
-    public List<String> getVr() {
+    public List<String> getVr()
+    {
         return vr;
     }
 
-    public void setVr(List<String> vr) {
+    public void setVr( List<String> vr )
+    {
         this.vr = vr;
     }
 
-    public String getPe() {
+    public String getPe()
+    {
         return pe;
     }
 
-    public void setPe(String pe) {
+    public void setPe( String pe )
+    {
         this.pe = pe;
     }
 
-    public String getCreated() {
+    public String getCreated()
+    {
         return created;
     }
 
-    public void setCreated(String created) {
+    public void setCreated( String created )
+    {
         this.created = created;
     }
 
-    public Boolean getNotificationSent() {
+    public Boolean getNotificationSent()
+    {
         return notificationSent;
     }
 
-    public void setNotificationSent(Boolean notificationSent) {
+    public void setNotificationSent( Boolean notificationSent )
+    {
         this.notificationSent = notificationSent;
     }
 

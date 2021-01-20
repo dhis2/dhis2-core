@@ -57,7 +57,6 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * @author Stian Sandvold
  */
-@Transactional( readOnly = true )
 @Slf4j
 @Service( "org.hisp.dhis.validation.ValidationResultService" )
 public class DefaultValidationResultService
@@ -85,7 +84,7 @@ public class DefaultValidationResultService
         this.validationRuleService = validationRuleService;
     }
 
-    @Transactional( readOnly = false )
+    @Transactional
     @Override
     public void saveValidationResults( Collection<ValidationResult> validationResults )
     {
@@ -95,26 +94,28 @@ public class DefaultValidationResultService
         } );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public List<ValidationResult> getAllValidationResults()
     {
         return validationResultStore.getAll();
     }
 
+    @Transactional( readOnly = true )
     @Override
     public List<ValidationResult> getAllUnReportedValidationResults()
     {
         return validationResultStore.getAllUnreportedValidationResults();
     }
 
-    @Transactional( readOnly = false )
+    @Transactional
     @Override
     public void deleteValidationResult( ValidationResult validationResult )
     {
         validationResultStore.delete( validationResult );
     }
 
-    @Transactional( readOnly = false )
+    @Transactional
     @Override
     public void deleteValidationResults( ValidationResultsDeletionRequest request )
     {
@@ -125,19 +126,21 @@ public class DefaultValidationResultService
         }
     }
 
-    @Transactional( readOnly = false )
+    @Transactional
     @Override
     public void updateValidationResults( Set<ValidationResult> validationResults )
     {
         validationResults.forEach( validationResultStore::update );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public ValidationResult getById( long id )
     {
         return validationResultStore.getById( id );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public List<ValidationResult> getValidationResults( ValidationResultQuery query )
     {
@@ -145,6 +148,7 @@ public class DefaultValidationResultService
         return validationResultStore.query( query );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public long countValidationResults( ValidationResultQuery query )
     {
@@ -152,6 +156,7 @@ public class DefaultValidationResultService
         return validationResultStore.count( query );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public List<ValidationResult> getValidationResults( OrganisationUnit orgUnit,
         boolean includeOrgUnitDescendants, Collection<ValidationRule> validationRules, Collection<Period> periods )
