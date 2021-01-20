@@ -157,8 +157,7 @@ public class OutlierDetectionServiceMinMaxTest
             new MinMaxDataElement( deA, ouA, coc, 40, 60 ),
             new MinMaxDataElement( deB, ouA, coc, 45, 65 ) );
 
-        // 34, 39, 68, 91, 42, 45, 68, 87 are outlier values outside the min-max
-        // range
+        // 34, 39, 68, 91, 42, 45, 68, 87 are outlier values out of range
 
         addDataValues(
             new DataValue( deA, m01, ouA, coc, coc, "50" ), new DataValue( deA, m07, ouA, coc, coc, "51" ),
