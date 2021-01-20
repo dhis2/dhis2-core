@@ -120,6 +120,7 @@ public class ValidationResultController
         return result;
     }
 
+    @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
     @DeleteMapping( value = "/{id}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void delete( @PathVariable int id )
@@ -130,7 +131,7 @@ public class ValidationResultController
         validationResultService.deleteValidationResult( result );
     }
 
-    @PreAuthorize( "hasRole('ALL')" ) //TODO use a more specific role/right
+    @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
     @DeleteMapping
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void deleteValidationResults( ValidationResultsDeletionRequest request )
