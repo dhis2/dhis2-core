@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.outlierdetection.service;
 
 /*
@@ -29,6 +56,8 @@ package org.hisp.dhis.outlierdetection.service;
  */
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -83,11 +112,13 @@ public class OutlierDetectionServiceZScoreTest
     private OutlierDetectionService subject;
 
     private DataElement deA;
+
     private DataElement deB;
 
     private Period m01, m02, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
 
     private CategoryOptionCombo coc;
@@ -220,11 +251,16 @@ public class OutlierDetectionServiceZScoreTest
 
         assertEquals( 5, csvLines.size() );
 
-        assertEquals( "de,deName,pe,ou,ouName,coc,cocName,aoc,lastUpdated,value,mean", csvLines.get( 0 ).substring( 0, endIndex ) );
-        assertEquals( "deabcdefghA,DataElementA,202006,ouabcdefghA,OrganisationUnitA", csvLines.get( 1 ).substring( 0, endIndex ) );
-        assertEquals( "deabcdefghB,DataElementB,202012,ouabcdefghA,OrganisationUnitA", csvLines.get( 2 ).substring( 0, endIndex ) );
-        assertEquals( "deabcdefghA,DataElementA,202012,ouabcdefghA,OrganisationUnitA", csvLines.get( 3 ).substring( 0, endIndex ) );
-        assertEquals( "deabcdefghB,DataElementB,202011,ouabcdefghA,OrganisationUnitA", csvLines.get( 4 ).substring( 0, endIndex ) );
+        assertEquals( "de,deName,pe,ou,ouName,coc,cocName,aoc,lastUpdated,value,mean",
+            csvLines.get( 0 ).substring( 0, endIndex ) );
+        assertEquals( "deabcdefghA,DataElementA,202006,ouabcdefghA,OrganisationUnitA",
+            csvLines.get( 1 ).substring( 0, endIndex ) );
+        assertEquals( "deabcdefghB,DataElementB,202012,ouabcdefghA,OrganisationUnitA",
+            csvLines.get( 2 ).substring( 0, endIndex ) );
+        assertEquals( "deabcdefghA,DataElementA,202012,ouabcdefghA,OrganisationUnitA",
+            csvLines.get( 3 ).substring( 0, endIndex ) );
+        assertEquals( "deabcdefghB,DataElementB,202011,ouabcdefghA,OrganisationUnitA",
+            csvLines.get( 4 ).substring( 0, endIndex ) );
     }
 
     @Test
@@ -239,8 +275,8 @@ public class OutlierDetectionServiceZScoreTest
         double stdDev = stats.populationStandardDeviation();
         double zScore = Math.abs( outlierValue - mean ) / stdDev;
         double meanAbsDev = Math.abs( outlierValue - mean );
-        double lowerBound = mean - ( stdDev * threshold );
-        double upperBound = mean + ( stdDev * threshold );
+        double lowerBound = mean - (stdDev * threshold);
+        double upperBound = mean + (stdDev * threshold);
 
         assertEquals( 42.666, mean, DELTA );
         assertEquals( 17.365, stdDev, DELTA );
@@ -281,6 +317,8 @@ public class OutlierDetectionServiceZScoreTest
         assertEquals( meanAbsDev, outlier.getAbsDev(), DELTA );
         assertEquals( lowerBound, outlier.getLowerBound(), DELTA );
         assertEquals( upperBound, outlier.getUpperBound(), DELTA );
+
+        assertFalse( outlier.getFollowUp() );
     }
 
     private void addPeriods( Period... periods )
@@ -293,4 +331,3 @@ public class OutlierDetectionServiceZScoreTest
         Stream.of( dataValues ).forEach( dataValueService::addDataValue );
     }
 }
-

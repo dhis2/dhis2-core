@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.outlierdetection.service;
 
 /*
@@ -29,6 +56,7 @@ package org.hisp.dhis.outlierdetection.service;
  */
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.util.stream.Stream;
 
@@ -83,11 +111,13 @@ public class OutlierDetectionServiceMinMaxTest
     private OutlierDetectionService subject;
 
     private DataElement deA;
+
     private DataElement deB;
 
     private Period m01, m02, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
 
     private CategoryOptionCombo coc;
@@ -155,7 +185,8 @@ public class OutlierDetectionServiceMinMaxTest
             new MinMaxDataElement( deA, ouA, coc, 40, 60 ),
             new MinMaxDataElement( deB, ouA, coc, 45, 65 ) );
 
-        // 34, 39, 68, 91, 42, 45, 68, 87 are outlier values outside the min-max range
+        // 34, 39, 68, 91, 42, 45, 68, 87 are outlier values outside the min-max
+        // range
 
         addDataValues(
             new DataValue( deA, m01, ouA, coc, coc, "50" ), new DataValue( deA, m07, ouA, coc, coc, "51" ),
@@ -214,6 +245,8 @@ public class OutlierDetectionServiceMinMaxTest
         assertEquals( 40, outlier.getLowerBound().intValue() );
         assertEquals( 60, outlier.getUpperBound().intValue() );
         assertEquals( 8, outlier.getAbsDev().intValue() );
+
+        assertFalse( outlier.getFollowUp() );
     }
 
     private void addPeriods( Period... periods )
