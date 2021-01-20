@@ -1,5 +1,3 @@
-package org.hisp.dhis.outlierdetection;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.outlierdetection;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.outlierdetection;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -77,13 +76,14 @@ public interface OutlierDetectionService
         throws IllegalQueryException;
 
     /**
-     * Writes outlier data values for the given request as CSV
-     * to the given output stream.
+     * Writes outlier data values for the given request as CSV to the given
+     * output stream.
      *
      * @param request the {@link OutlierDetectionRequest}.
      * @param out the {@link OutputStream} to write to.
      * @throws IllegalQueryException if request is invalid.
      */
     void getOutlierValuesAsCsv( OutlierDetectionRequest request, OutputStream out )
-        throws IllegalQueryException, IOException;
+        throws IllegalQueryException,
+        IOException;
 }
