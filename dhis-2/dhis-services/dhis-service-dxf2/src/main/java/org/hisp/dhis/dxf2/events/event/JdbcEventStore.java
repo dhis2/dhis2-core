@@ -55,6 +55,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
+import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.jdbc.BatchPreparedStatementSetterWithKeyHolder;
 import org.hisp.dhis.jdbc.JdbcUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -71,6 +72,9 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
@@ -131,10 +135,6 @@ import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
-
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKTReader;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -1368,22 +1368,35 @@ public class JdbcEventStore implements EventStore
 
     private String getCategoryOptionSharingForUser( User user )
     {
-        List<Long> userGroupIds = getIdentifiers( user.getGroups() );
+//        List<Long> userGroupIds = getIdentifiers( user.getGroups() );
+
+        List<String> groupsIds = user.getGroups().stream().map( g -> g.getUid() )
+            .collect( Collectors.toList() );
+
 
         StringBuilder sqlBuilder = new StringBuilder().append( " left join ( " );
 
         sqlBuilder.append( "select categoryoptioncomboid, count(categoryoptioncomboid) as option_size from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) "
             + "as cocount on coc.categoryoptioncomboid = cocount.categoryoptioncomboid "
             + "left join ("
-            + "select deco.categoryoptionid as deco_id, deco.uid as deco_uid, deco.publicaccess AS deco_publicaccess, "
-            + "couga.usergroupaccessid as uga_id, coua.useraccessid as ua_id, uga.access as uga_access, uga.usergroupid AS usrgrp_id, "
+            + "select deco.categoryoptionid as deco_id, deco.uid as deco_uid, deco.sharing->>'public' AS deco_publicaccess, "
+            + "deco.sharing"
+            + "uga.access as uga_access, uga.usergroupid AS usrgrp_id, "
             + "ua.access as ua_access, ua.userid as usr_id "
             + "from dataelementcategoryoption deco "
             + "left join dataelementcategoryoptionusergroupaccesses couga on deco.categoryoptionid = couga.categoryoptionid "
             + "left join dataelementcategoryoptionuseraccesses coua on deco.categoryoptionid = coua.categoryoptionid "
             + "left join usergroupaccess uga on couga.usergroupaccessid = uga.usergroupaccessid "
             + "left join useraccess ua on coua.useraccessid = ua.useraccessid "
-            + "where ua.userid = " + user.getId() );
+            + "where deco.sharing-.userid = " + user.getId()
+            + "deco.sharing->>'owner' is not null and co.sharing->>'owner' = '" + user.getUid() + "' "
+            + "deco.sharing->>'public' like '__r%' or co.sharing->>'public' is null "
+            + " or ( function(" + JsonbFunctions.HAS_USER_ID +", deco.sharing, '"+ user.getUid()+"')"
+            + " and function(" + JsonbFunctions.CHECK_USER_ACCESS +", deco.sharing, '"+ user.getUid()+"') )"
+            + " or ( function(" + JsonbFunctions.HAS_USER_GROUP_IDS +", deco.sharing, '"+ String.join( ",", groupsIds )+"')"
+            + " and function(" + JsonbFunctions.CHECK_USER_GROUPS_ACCESS +", deco.sharing, '{"+ String.join( ",", groupsIds )+"}') )" );
+
+
 
         if ( userGroupIds != null && !userGroupIds.isEmpty() )
         {

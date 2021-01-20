@@ -32,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.user.User;
 import org.springframework.context.i18n.LocaleContextHolder;
 
 import javax.annotation.Nullable;
@@ -341,8 +342,26 @@ public class JpaQueryUtils
         };
     }
 
+    /**
+     *  Return HQl query for checking sharing access for given user
+     * @param sharingColumn sharing column reference
+     * @param user User for sharing checking
+     * @param userGroupIds Array of all user group that given user belongs to in SQL String format
+     * @return HQL query
+     */
+    public static final String generateHqlQueryForSharing( String sharingColumn, User user, String userGroupIds )
+    {
+        return  sharingColumn + "->>'owner' is not null and " + sharingColumn + "->>'owner' = '" + user.getUid() + "' "
+            + sharingColumn + "->>'public' like '__r%' or " + sharingColumn + "->>'public' is null "
+            + " or ( function(" + JsonbFunctions.HAS_USER_ID +","+ sharingColumn +", '"+ user.getUid()+"') = true "
+            + " and function(" + JsonbFunctions.CHECK_USER_ACCESS +", " + sharingColumn + ", '"+ user.getUid()+"') ) = true "
+            + " or ( function(" + JsonbFunctions.HAS_USER_GROUP_IDS +", " + sharingColumn + ", '{"+userGroupIds+"}') = true "
+            + " and function(" + JsonbFunctions.CHECK_USER_GROUPS_ACCESS +", " + sharingColumn + ", '{"+ userGroupIds+"}') = true )";
+    }
+
     private static boolean isIgnoreCase( org.hisp.dhis.query.Order o )
     {
         return o.isIgnoreCase() && String.class == o.getProperty().getKlass();
     }
+
 }

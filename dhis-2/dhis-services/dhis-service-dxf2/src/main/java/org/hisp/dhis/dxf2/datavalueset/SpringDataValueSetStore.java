@@ -36,6 +36,7 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
+import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.CsvUtils;
@@ -374,10 +375,13 @@ public class SpringDataValueSetStore
             .collect( Collectors.toList() );
 
         String groupAccessCheck =  groupsIds.size() > 0 ?
-            "or ( " +
-                "check_user_group_ids( co.sharing, '{"+ String.join( ",", groupsIds ) +"}' ) = true " +
-                "and check_user_groups_access( co.sharing, '__r%', '{"+ String.join( ",", groupsIds ) +"}' ) = true ) )"
+            "or ( " + JsonbFunctions.HAS_USER_GROUP_IDS + "( co.sharing, '{"+ String.join( ",", groupsIds ) +"}' ) = true " +
+                "and "+ JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( co.sharing, '__r%', '{"+ String.join( ",", groupsIds ) +"}' ) = true ) )"
             : ") )";
+
+        String userAccessCheck =
+            "or ( " + JsonbFunctions.HAS_USER_ID + "( co.sharing, '" + user.getUid() + "' ) = true " +
+            "and " + JsonbFunctions.CHECK_USER_ACCESS + "( co.sharing, '__r%', '"+ user.getUid() +"' ) = true ) )";
 
         return
             "and dv.attributeoptioncomboid not in (" +
@@ -391,7 +395,7 @@ public class SpringDataValueSetStore
                     "where co.sharing->>'public' like '__r%' " +
                     "or co.sharing->>'public' is null " +
                     // User access check
-                " or co.sharing->'users'->'" + user.getUid() + "'->>'access' like '__r%'" +
+                    userAccessCheck +
                     // User group access check
                     groupAccessCheck
                 ;
