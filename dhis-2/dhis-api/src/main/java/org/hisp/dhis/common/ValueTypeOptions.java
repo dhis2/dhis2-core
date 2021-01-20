@@ -29,40 +29,19 @@ package org.hisp.dhis.common;
  */
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import java.io.Serializable;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@JacksonXmlRootElement( localName = "valuetypeoptions", namespace = DxfNamespaces.DXF_2_0 )
 @JsonInclude()
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "type" )
 @JsonSubTypes( {
-    @JsonSubTypes.Type( value = FileTypeValueOptions.class, name = "File" )
+    @JsonSubTypes.Type( value = FileTypeValueOptions.class, name = "file" )
 } )
 public abstract class ValueTypeOptions implements Serializable
 {
-    private static final long serialVersionUID = 1L;
-
-    @JsonProperty
-    private String uid = CodeGenerator.generateUid();
-
-    public String getUid()
-    {
-        return uid;
-    }
-
-    public void setUid( String uid )
-    {
-        this.uid = uid;
-    }
-
-    public abstract long getVersion();
-
-    public abstract void setVersion( long version );
 }

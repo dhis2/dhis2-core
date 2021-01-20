@@ -63,7 +63,7 @@ public class DataElementWithValueTypeOptionsTest extends DhisSpringTest
 
         assertNotNull( valueTypeOptions );
         assertEquals( FileTypeValueOptions.class, valueTypeOptions.getClass() );
-        assertEquals( 100L, ((FileTypeValueOptions) valueTypeOptions).getMaxFileSize().longValue() );
+        assertEquals( 100L, ((FileTypeValueOptions) valueTypeOptions).getMaxFileSize() );
 
         dataElementStore.delete( dataElementA );
 

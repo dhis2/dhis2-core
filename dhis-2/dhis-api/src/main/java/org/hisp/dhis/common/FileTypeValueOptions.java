@@ -30,6 +30,8 @@ package org.hisp.dhis.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 
 import java.util.Collections;
 import java.util.Set;
@@ -37,7 +39,7 @@ import java.util.Set;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@JsonTypeName( "File" )
+@JsonTypeName( "file" )
 public class FileTypeValueOptions extends ValueTypeOptions
 {
     private static final long serialVersionUID = 1L;
@@ -49,12 +51,13 @@ public class FileTypeValueOptions extends ValueTypeOptions
     private Set<String> allowedContentTypes = Collections.emptySet();
 
     @JsonProperty
-    public Long getMaxFileSize()
+    @Property( value = PropertyType.NUMBER, required = Property.Value.FALSE )
+    public long getMaxFileSize()
     {
         return maxFileSize;
     }
 
-    public void setMaxFileSize( Long maxFileSize )
+    public void setMaxFileSize( long maxFileSize )
     {
         this.maxFileSize = maxFileSize;
     }
@@ -70,16 +73,25 @@ public class FileTypeValueOptions extends ValueTypeOptions
         this.allowedContentTypes = allowedContentTypes;
     }
 
-    @Override
     @JsonProperty
+    @Property( value = PropertyType.NUMBER, required = Property.Value.FALSE )
     public long getVersion()
     {
         return version;
     }
 
-    @Override
     public void setVersion( long version )
     {
         this.version = version;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "FileTypeValueOptions{" +
+            "version=" + version +
+            ", maxFileSize=" + maxFileSize +
+            ", allowedContentTypes=" + allowedContentTypes +
+            '}';
     }
 }

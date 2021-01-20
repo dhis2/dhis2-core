@@ -46,7 +46,7 @@ public class ValueTypeOptionsTest
         ftvo.setMaxFileSize( 100L );
         ftvo.setAllowedContentTypes( ImmutableSet.of( "jpg" ) );
 
-        assertEquals( 100L, ftvo.getMaxFileSize().longValue() );
+        assertEquals( 100L, ftvo.getMaxFileSize() );
         assertTrue( ftvo.getAllowedContentTypes().contains( "jpg" ) );
     }
 }

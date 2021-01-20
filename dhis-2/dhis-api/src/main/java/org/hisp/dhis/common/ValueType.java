@@ -46,29 +46,29 @@ import java.util.Set;
 @JacksonXmlRootElement( localName = "valueType", namespace = DxfNamespaces.DXF_2_0 )
 public enum ValueType
 {
-    TEXT( String.class, true, null ),
-    LONG_TEXT( String.class, true, null ),
-    LETTER( String.class, true, null ),
-    PHONE_NUMBER( String.class, false, null ),
-    EMAIL( String.class, false, null ),
-    BOOLEAN( Boolean.class, true, null ),
-    TRUE_ONLY( Boolean.class, true, null ),
-    DATE( LocalDate.class, false, null ),
-    DATETIME( LocalDateTime.class, false, null ),
-    TIME( String.class, false, null ),
-    NUMBER( Double.class, true, null ),
-    UNIT_INTERVAL( Double.class, true, null ),
-    PERCENTAGE( Double.class, true, null ),
-    INTEGER( Integer.class, true, null ),
-    INTEGER_POSITIVE( Integer.class, true, null ),
-    INTEGER_NEGATIVE( Integer.class, true, null ),
-    INTEGER_ZERO_OR_POSITIVE( Integer.class, true, null ),
-    TRACKER_ASSOCIATE( TrackedEntityInstance.class, false, null ),
-    USERNAME( String.class, false, null ),
-    COORDINATE( Point.class, true, null ),
-    ORGANISATION_UNIT( OrganisationUnit.class, false, null ),
-    AGE( Date.class, false, null ),
-    URL( String.class, false, null ),
+    TEXT( String.class, true ),
+    LONG_TEXT( String.class, true ),
+    LETTER( String.class, true ),
+    PHONE_NUMBER( String.class, false ),
+    EMAIL( String.class, false ),
+    BOOLEAN( Boolean.class, true ),
+    TRUE_ONLY( Boolean.class, true ),
+    DATE( LocalDate.class, false ),
+    DATETIME( LocalDateTime.class, false ),
+    TIME( String.class, false ),
+    NUMBER( Double.class, true ),
+    UNIT_INTERVAL( Double.class, true ),
+    PERCENTAGE( Double.class, true ),
+    INTEGER( Integer.class, true ),
+    INTEGER_POSITIVE( Integer.class, true ),
+    INTEGER_NEGATIVE( Integer.class, true ),
+    INTEGER_ZERO_OR_POSITIVE( Integer.class, true ),
+    TRACKER_ASSOCIATE( TrackedEntityInstance.class, false ),
+    USERNAME( String.class, false ),
+    COORDINATE( Point.class, true ),
+    ORGANISATION_UNIT( OrganisationUnit.class, false ),
+    AGE( Date.class, false ),
+    URL( String.class, false ),
     FILE_RESOURCE( String.class, false, FileTypeValueOptions.class ),
     IMAGE( String.class, false, FileTypeValueOptions.class );
 
@@ -113,6 +113,13 @@ public enum ValueType
         this.javaClass = javaClass;
         this.aggregateable = aggregateable;
         this.valueTypeOptionsClass = valueTypeOptionsClass;
+    }
+
+    ValueType( Class<?> javaClass, boolean aggregateable )
+    {
+        this.javaClass = javaClass;
+        this.aggregateable = aggregateable;
+        this.valueTypeOptionsClass = null;
     }
 
     public Class<?> getJavaClass()
