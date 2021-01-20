@@ -154,7 +154,9 @@ public class DefaultOutlierDetectionService
         request
             .withDataElements( dataElements )
             .withStartEndDate( query.getStartDate(), query.getEndDate() )
-            .withOrgUnits( orgUnits );
+            .withOrgUnits( orgUnits )
+            .withDataStartDate( query.getDataStartDate() )
+            .withDataEndDate( query.getDataEndDate() );
 
         if ( query.getAlgorithm() != null )
         {
@@ -164,16 +166,6 @@ public class DefaultOutlierDetectionService
         if ( query.getThreshold() != null )
         {
             request.withThreshold( query.getThreshold() );
-        }
-
-        if ( query.getDataStartDate() != null )
-        {
-            request.withDataStartDate( query.getDataStartDate() );
-        }
-
-        if ( query.getDataEndDate() != null )
-        {
-            request.withDataEndDate( query.getDataEndDate() );
         }
 
         if ( query.getOrderBy() != null )
