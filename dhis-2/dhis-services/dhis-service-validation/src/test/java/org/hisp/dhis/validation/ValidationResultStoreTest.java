@@ -233,8 +233,7 @@ public class ValidationResultStoreTest
 
         for ( UserAuthorityGroup role : credentials.getUserAuthorityGroups() )
         {
-            role.setName( CodeGenerator.generateUid() ); // Give the role an
-                                                         // arbitrary name
+            role.setName( CodeGenerator.generateUid() );
 
             userService.addUserAuthorityGroup( role );
         }
