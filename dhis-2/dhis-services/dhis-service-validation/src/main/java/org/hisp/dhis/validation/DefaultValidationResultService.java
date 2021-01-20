@@ -57,7 +57,6 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * @author Stian Sandvold
  */
-@Transactional
 @Slf4j
 @Service( "org.hisp.dhis.validation.ValidationResultService" )
 public class DefaultValidationResultService
@@ -85,6 +84,7 @@ public class DefaultValidationResultService
         this.validationRuleService = validationRuleService;
     }
 
+    @Transactional
     @Override
     public void saveValidationResults( Collection<ValidationResult> validationResults )
     {
@@ -94,36 +94,53 @@ public class DefaultValidationResultService
         } );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public List<ValidationResult> getAllValidationResults()
     {
         return validationResultStore.getAll();
     }
 
+    @Transactional( readOnly = true )
     @Override
     public List<ValidationResult> getAllUnReportedValidationResults()
     {
         return validationResultStore.getAllUnreportedValidationResults();
     }
 
+    @Transactional
     @Override
     public void deleteValidationResult( ValidationResult validationResult )
     {
         validationResultStore.delete( validationResult );
     }
 
+    @Transactional
+    @Override
+    public void deleteValidationResults( ValidationResultsDeletionRequest request )
+    {
+        if ( !request.isUnconstrained() )
+        {
+            validate( request );
+            validationResultStore.delete( request );
+        }
+    }
+
+    @Transactional
     @Override
     public void updateValidationResults( Set<ValidationResult> validationResults )
     {
-        validationResults.forEach(validationResultStore::update);
+        validationResults.forEach( validationResultStore::update );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public ValidationResult getById( long id )
     {
         return validationResultStore.getById( id );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public List<ValidationResult> getValidationResults( ValidationResultQuery query )
     {
@@ -131,6 +148,7 @@ public class DefaultValidationResultService
         return validationResultStore.query( query );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public long countValidationResults( ValidationResultQuery query )
     {
@@ -138,12 +156,25 @@ public class DefaultValidationResultService
         return validationResultStore.count( query );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public List<ValidationResult> getValidationResults( OrganisationUnit orgUnit,
         boolean includeOrgUnitDescendants, Collection<ValidationRule> validationRules, Collection<Period> periods )
     {
         List<Period> persistedPeriods = periodService.reloadPeriods( new ArrayList<>( periods ) );
         return validationResultStore.getValidationResults( orgUnit, includeOrgUnitDescendants, validationRules, persistedPeriods );
+    }
+
+    private void validate( ValidationResultsDeletionRequest request )
+    {
+        validateExists( request.getOu(), ErrorCode.E7500, ErrorMessage::new, IdentifiableObject::getUid,
+            organisationUnitService::getOrganisationUnitsByUid );
+        validateExists( request.getVr(), ErrorCode.E7501, ErrorMessage::new, IdentifiableObject::getUid,
+            validationRuleService::getValidationRulesByUid );
+        validateElement( request.getPe(), ErrorCode.E7502, ErrorMessage::new,
+            DefaultValidationResultService::isIsoPeriod );
+        validateElement( request.getCreated(), ErrorCode.E7503, ErrorMessage::new,
+            DefaultValidationResultService::isIsoPeriod );
     }
 
     private void validate( ValidationResultQuery query )
@@ -155,7 +186,12 @@ public class DefaultValidationResultService
             validationRuleService::getValidationRulesByUid );
         // check pe filters to be valid ISO expression
         validateElements( query.getPe(), ErrorCode.E7502, ErrorMessage::new,
-            isoPeriod -> PeriodType.getPeriodFromIsoString( isoPeriod ) != null );
+            DefaultValidationResultService::isIsoPeriod );
+    }
+
+    private static boolean isIsoPeriod( String isoPeriod )
+    {
+        return PeriodType.getPeriodFromIsoString( isoPeriod ) != null;
     }
 
     private <T, E> void validateExists( Collection<T> identifiers, ErrorCode code,
@@ -184,11 +220,17 @@ public class DefaultValidationResultService
         {
             for ( T val : values )
             {
-                if ( !validator.test( val ) )
-                {
-                    throwValidationError( msgFactory.apply( code, val ) );
-                }
+                validateElement( val, code, msgFactory, validator );
             }
+        }
+    }
+
+    private <T> void validateElement( T val, ErrorCode code, BiFunction<ErrorCode, Object, ErrorMessage> msgFactory,
+        Predicate<T> validator )
+    {
+        if ( val != null && !validator.test( val ) )
+        {
+            throwValidationError( msgFactory.apply( code, val ) );
         }
     }
 

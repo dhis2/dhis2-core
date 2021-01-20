@@ -252,7 +252,8 @@ public enum ErrorCode
     /* Validation Results API */
     E7500( "Organisation unit does not exist: `{0}`" ),
     E7501( "Validation rule does not exist: `{0}`" ),
-    E7502( "Query filter for period is not a valid ISO expression: `{0}`" );
+    E7502( "Filter for period is not valid: `{0}`" ),
+    E7503( "Filter for created date period is not valid: `{0}`" );
 
     private String message;
 

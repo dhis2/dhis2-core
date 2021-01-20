@@ -70,6 +70,13 @@ public interface ValidationResultService
     void deleteValidationResult( ValidationResult validationResult );
 
     /**
+     * Deletes all {@link ValidationResult}s that match the request criteria.
+     *
+     * @param request Criteria a {@link ValidationResult} should match to be deleted
+     */
+    void deleteValidationResults( ValidationResultsDeletionRequest request );
+
+    /**
      * Updates a list of ValidationResults.
      *
      * @param validationResults validationResults to update.
@@ -90,4 +97,5 @@ public interface ValidationResultService
 
     List<ValidationResult> getValidationResults( OrganisationUnit orgUnit,
         boolean includeOrgUnitDescendants, Collection<ValidationRule> validationRules, Collection<Period> periods );
+
 }

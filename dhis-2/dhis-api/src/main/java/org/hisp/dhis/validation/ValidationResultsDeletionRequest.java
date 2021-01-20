@@ -28,30 +28,79 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
+import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.validation.comparator.ValidationResultQuery;
-
 /**
- * @author Stian Sandvold
+ * @author Jan Bernitt
  */
-public interface ValidationResultStore
-    extends GenericStore<ValidationResult>
+public class ValidationResultsDeletionRequest
 {
-    List<ValidationResult> getAllUnreportedValidationResults();
 
-    ValidationResult getById( long id );
+    private List<String> ou = new ArrayList<>();
 
-    List<ValidationResult> query( ValidationResultQuery query );
+    private List<String> vr = new ArrayList<>();
 
-    int count( ValidationResultQuery query );
+    private String pe;
 
-    List<ValidationResult> getValidationResults( OrganisationUnit orgUnit,
-        boolean includeOrgUnitDescendants, Collection<ValidationRule> validationRules, Collection<Period> periods );
+    private String created;
 
-    void delete( ValidationResultsDeletionRequest request );
+    private Boolean notificationSent;
+
+    public List<String> getOu()
+    {
+        return ou;
+    }
+
+    public void setOu( List<String> ou )
+    {
+        this.ou = ou;
+    }
+
+    public List<String> getVr()
+    {
+        return vr;
+    }
+
+    public void setVr( List<String> vr )
+    {
+        this.vr = vr;
+    }
+
+    public String getPe()
+    {
+        return pe;
+    }
+
+    public void setPe( String pe )
+    {
+        this.pe = pe;
+    }
+
+    public String getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( String created )
+    {
+        this.created = created;
+    }
+
+    public Boolean getNotificationSent()
+    {
+        return notificationSent;
+    }
+
+    public void setNotificationSent( Boolean notificationSent )
+    {
+        this.notificationSent = notificationSent;
+    }
+
+    public boolean isUnconstrained()
+    {
+        return isEmpty( ou ) && isEmpty( vr ) && pe == null && created == null && notificationSent == null;
+    }
 }
