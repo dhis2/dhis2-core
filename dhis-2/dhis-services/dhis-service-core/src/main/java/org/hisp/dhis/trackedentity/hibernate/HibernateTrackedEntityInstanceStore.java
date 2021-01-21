@@ -718,25 +718,14 @@ public class HibernateTrackedEntityInstanceStore
             {
                 String[] prop = order.split( ":" );
 
-                if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
+                if ( params.getStaticOrderColumns().contains( prop[0] ) )
                 {
-                    if ( params.getStaticOrderColumns().contains( prop[0] ) )
-                    {
-                        orderFields.add( prop[0] + " " + prop[1] );
-                    }
-                    else
-                    {
-                        for ( QueryItem item : params.getAttributes() )
-                        {
-                            if ( prop[0].equals( item.getItemId() ) )
-                            {
-                                orderFields.add( statementBuilder.columnQuote( prop[0] ) + " " + prop[1] );
-                                break;
-                            }
-                        }
-                    }
+                    orderFields.add( prop[0] + " " + prop[1] );
                 }
-
+                else if( isAttributeOrder( params, prop[0] ) )
+                {
+                    orderFields.add( statementBuilder.columnQuote( prop[0] ) + " " + prop[1] );
+                }
             }
 
             if ( !orderFields.isEmpty() )
@@ -751,6 +740,22 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         return "order by lastUpdated desc ";
+    }
+
+    private boolean isAttributeOrder( TrackedEntityInstanceQueryParams params, String attributeId )
+    {
+        if ( params.hasAttributes() )
+        {
+            for ( QueryItem item : params.getAttributes() )
+            {
+                if ( attributeId.equals( item.getItemId() ) )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private String getEventWhereClause( TrackedEntityInstanceQueryParams params )
