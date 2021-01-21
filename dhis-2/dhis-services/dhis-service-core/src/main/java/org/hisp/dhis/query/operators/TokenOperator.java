@@ -73,6 +73,7 @@ public class TokenOperator<T extends Comparable<? super T>>
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean test( Object value )
     {
         String targetValue = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();

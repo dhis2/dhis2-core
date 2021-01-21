@@ -1,15 +1,4 @@
-/**
- * @author bobj
- */
-
-@XmlSchema(
-		namespace = "http://dhis2.org/schema/dxf/2.0",
-		xmlns = {   
-			@XmlNs(namespaceURI = "http://dhis2.org/schema/dxf/2.0", prefix = "d")  
-		},
-		elementFormDefault = XmlNsForm.QUALIFIED) 
-
-package org.hisp.dhis.sms.config;
+package org.hisp.dhis.validation;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -39,6 +28,79 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.xml.bind.annotation.XmlSchema;
-import javax.xml.bind.annotation.XmlNs;
-import javax.xml.bind.annotation.XmlNsForm;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author Jan Bernitt
+ */
+public class ValidationResultsDeletionRequest
+{
+
+    private List<String> ou = new ArrayList<>();
+
+    private List<String> vr = new ArrayList<>();
+
+    private String pe;
+
+    private String created;
+
+    private Boolean notificationSent;
+
+    public List<String> getOu()
+    {
+        return ou;
+    }
+
+    public void setOu( List<String> ou )
+    {
+        this.ou = ou;
+    }
+
+    public List<String> getVr()
+    {
+        return vr;
+    }
+
+    public void setVr( List<String> vr )
+    {
+        this.vr = vr;
+    }
+
+    public String getPe()
+    {
+        return pe;
+    }
+
+    public void setPe( String pe )
+    {
+        this.pe = pe;
+    }
+
+    public String getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( String created )
+    {
+        this.created = created;
+    }
+
+    public Boolean getNotificationSent()
+    {
+        return notificationSent;
+    }
+
+    public void setNotificationSent( Boolean notificationSent )
+    {
+        this.notificationSent = notificationSent;
+    }
+
+    public boolean isUnconstrained()
+    {
+        return isEmpty( ou ) && isEmpty( vr ) && pe == null && created == null && notificationSent == null;
+    }
+}

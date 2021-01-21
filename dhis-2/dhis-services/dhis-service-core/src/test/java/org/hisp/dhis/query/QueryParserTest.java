@@ -56,10 +56,10 @@ public class QueryParserTest
     extends IntegrationTestBase
 {
     private QueryParser queryParser;
-    
+
     @Autowired
     private OrganisationUnitService organisationUnitService;
-    
+
     @Autowired
     private SchemaService schemaService;
 
@@ -75,7 +75,7 @@ public class QueryParserTest
     {
 
         OrganisationUnit orgUnitA =  createOrganisationUnit( 'A' ) ;
-        organisationUnitService.addOrganisationUnit( orgUnitA ); 
+        organisationUnitService.addOrganisationUnit( orgUnitA );
         User user = createUser( 'A' );
         user.addOrganisationUnit( orgUnitA );
         queryParser = new DefaultJpaQueryParser( schemaService, new MockCurrentUserService( user ), organisationUnitService );
@@ -126,7 +126,7 @@ public class QueryParserTest
     {
         queryParser.parse( DataElement.class, Arrays.asList( "dataElementGroups.id.name:eq:1", "dataElementGroups.id.abc:eq:2" ) );
     }
-    
+
     @Test
     public void restrictToCaptureScopeCriterions()
     {
@@ -142,13 +142,13 @@ public class QueryParserTest
         assertEquals( "name", restriction.getPath() );
         assertEquals( "2", restriction.getOperator().getArgs().get( 0 ) );
         assertTrue( restriction.getOperator() instanceof EqualOperator );
-        
+
         Disjunction disjunction = (Disjunction) query.getCriterions().get( 2 );
         assertEquals( 2, disjunction.getCriterions().size() );
 
         restriction = (Restriction) disjunction.getCriterions().get( 0 );
         assertEquals( "organisationUnits.id", restriction.getPath() );
-        assertEquals( "ouabcdefghA", ((List)restriction.getOperator().getCollectionArgs().get( 0 )).get( 0 ) );
+        assertEquals( "ouabcdefghA", ((List<?>) restriction.getOperator().getCollectionArgs().get( 0 )).get( 0 ) );
         assertTrue( restriction.getOperator() instanceof InOperator );
 
         restriction = (Restriction) disjunction.getCriterions().get( 1 );

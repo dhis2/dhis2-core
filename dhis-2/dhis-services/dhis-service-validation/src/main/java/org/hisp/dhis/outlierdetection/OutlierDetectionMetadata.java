@@ -1,5 +1,3 @@
-package org.hisp.dhis.outlierdetection;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,10 +25,13 @@ package org.hisp.dhis.outlierdetection;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.outlierdetection;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Date;
 
 import lombok.Data;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Metadata for an outlier detection response.
@@ -45,6 +46,12 @@ public class OutlierDetectionMetadata
 
     @JsonProperty
     private Double threshold;
+
+    @JsonProperty
+    private Date dataStartDate;
+
+    @JsonProperty
+    private Date dataEndDate;
 
     @JsonProperty
     private Order orderBy;

@@ -28,18 +28,19 @@ package org.hisp.dhis.attribute;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
+import java.util.Objects;
+
 import org.hisp.dhis.common.CustomAttributeSerializer;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
-import java.io.Serializable;
-import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -48,11 +49,6 @@ import java.util.Objects;
 public class AttributeValue
     implements Serializable, EmbeddedObject
 {
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = -6625127769248931066L;
-
     private Attribute attribute;
 
     private String value;
@@ -80,15 +76,29 @@ public class AttributeValue
     }
 
     @Override
-    public boolean equals( Object o )
+    public boolean equals( Object object )
     {
-        if ( this == o ) return true;
-        if ( o == null || getClass() != o.getClass() ) return false;
+        if ( this == object )
+        {
+            return true;
+        }
 
-        AttributeValue that = (AttributeValue) o;
+        if ( object == null || getClass() != object.getClass() )
+        {
+            return false;
+        }
 
-        if ( !Objects.equals( attribute, that.attribute ) ) return false;
-        if ( !Objects.equals( value, that.value ) ) return false;
+        AttributeValue that = (AttributeValue) object;
+
+        if ( !Objects.equals( attribute, that.attribute ) )
+        {
+            return false;
+        }
+
+        if ( !Objects.equals( value, that.value ) )
+        {
+            return false;
+        }
 
         return true;
     }

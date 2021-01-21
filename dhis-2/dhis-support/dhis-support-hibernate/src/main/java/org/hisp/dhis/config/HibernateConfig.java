@@ -28,7 +28,12 @@ package org.hisp.dhis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
+
+import javax.sql.DataSource;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -48,16 +53,10 @@ import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.sql.DataSource;
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
-
 /**
  * @author Luciano Fiandesio
  * @author Morten Svanæs
  */
-@Slf4j
 @Configuration
 @EnableTransactionManagement
 public class HibernateConfig
@@ -95,7 +94,8 @@ public class HibernateConfig
     }
 
     @Bean
-    public HibernateTransactionManager hibernateTransactionManager( DataSource dataSource, SessionFactory sessionFactory )
+    public HibernateTransactionManager hibernateTransactionManager( DataSource dataSource,
+        SessionFactory sessionFactory )
     {
         HibernateTransactionManager transactionManager = new HibernateTransactionManager();
         transactionManager.setSessionFactory( sessionFactory );
