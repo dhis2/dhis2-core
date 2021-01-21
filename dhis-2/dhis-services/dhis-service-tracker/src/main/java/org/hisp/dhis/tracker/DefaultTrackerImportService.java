@@ -239,12 +239,15 @@ public class DefaultTrackerImportService
     {
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
 
-        List<TrackerSideEffectDataBundle> sideEffectDataBundles = Stream.of( TrackerType.ENROLLMENT, TrackerType.EVENT )
-            .map( trackerType -> safelyGetSideEffectsDataBundles( bundleReport, trackerType ) )
-            .flatMap( Collection::stream )
-            .collect( Collectors.toList() );
+        if ( !trackerBundle.isSkipSideEffects() )
+        {
+            List<TrackerSideEffectDataBundle> sideEffectDataBundles = Stream.of( TrackerType.ENROLLMENT, TrackerType.EVENT )
+                .map( trackerType -> safelyGetSideEffectsDataBundles( bundleReport, trackerType ) )
+                .flatMap( Collection::stream )
+                .collect( Collectors.toList() );
 
-        trackerBundleService.handleTrackerSideEffects( sideEffectDataBundles );
+            trackerBundleService.handleTrackerSideEffects( sideEffectDataBundles );
+        }
 
         return bundleReport;
     }
