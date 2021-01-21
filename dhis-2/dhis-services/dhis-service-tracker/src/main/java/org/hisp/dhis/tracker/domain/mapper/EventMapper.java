@@ -32,7 +32,11 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = { RelationshipMapper.class, NoteMapper.class, DataValueMapper.class } )
+@Mapper( uses = {
+    RelationshipMapper.class,
+    NoteMapper.class,
+    DataValueMapper.class,
+    InstantMapper.class } )
 public interface EventMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
 {
     @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )

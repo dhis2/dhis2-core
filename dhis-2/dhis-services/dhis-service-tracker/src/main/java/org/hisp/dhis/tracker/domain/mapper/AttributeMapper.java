@@ -32,7 +32,7 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper
+@Mapper( uses = InstantMapper.class )
 public interface AttributeMapper extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.Attribute, Attribute>
 {
 
