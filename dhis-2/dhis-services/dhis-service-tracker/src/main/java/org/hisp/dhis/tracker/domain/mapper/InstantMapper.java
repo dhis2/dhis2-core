@@ -30,6 +30,10 @@ package org.hisp.dhis.tracker.domain.mapper;
  */
 
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.chrono.ChronoZonedDateTime;
+import java.util.Date;
+import java.util.Optional;
 
 import org.hisp.dhis.util.DateUtils;
 import org.mapstruct.Mapper;
@@ -41,6 +45,24 @@ abstract class InstantMapper
     Instant fromString( String dateAsString )
     {
         return DateUtils.instantFromDateAsString( dateAsString );
+    }
+
+    Instant fromDate( Date date )
+    {
+        if ( date instanceof java.sql.Date )
+        {
+            return fromSqlDate( (java.sql.Date) date );
+        }
+        return DateUtils.instantFromDate( date );
+    }
+
+    Instant fromSqlDate( java.sql.Date date )
+    {
+        return Optional.ofNullable( date )
+            .map( java.sql.Date::toLocalDate )
+            .map( localDate -> localDate.atStartOfDay( ZoneOffset.systemDefault() ) )
+            .map( ChronoZonedDateTime::toInstant )
+            .orElse( null );
     }
 
 }
