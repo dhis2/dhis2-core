@@ -37,6 +37,17 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
+ * A {@link ValueTypeOptions} sub class implementing options for a corresponding {@link ValueType}.FILE_RESOURCE
+ * or {@link ValueType}.IMAGE
+ *
+ * <p>This object is saved as a jsonb column and can be used to validate that a FileResource has the wanted properties.
+ *
+ * <p>This class is used in the
+ * {@link org.hisp.dhis.system.util.ValidationUtils#validateFileResource } method.
+ *
+ * @see ValueTypeOptions
+ * @see ValueType
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @JsonTypeName( "file" )
