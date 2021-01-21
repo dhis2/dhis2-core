@@ -141,6 +141,7 @@ public class ImportSideEffectsTests
     {
         JsonObject payload = trackerActions.buildEvent( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK" );
 
+        // program rule is triggered when the following DV is present
         JsonObjectBuilder.jsonObject( payload )
             .addArrayByJsonPath( "events[0]", "dataValues", new JsonObjectBuilder()
                 .addProperty( "dataElement", "ILRgzHhzFkg" )
@@ -149,7 +150,9 @@ public class ImportSideEffectsTests
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( payload );
 
-        response.validateErrorReport();
+        response.validateErrorReport()
+            .body( "errorCode", hasItem( "E1200" ) )
+            .body( "message", hasItem( stringContainsInOrder( "Mandatory DataElement", "is not present" ) ));
     }
 
     @Test
@@ -160,10 +163,12 @@ public class ImportSideEffectsTests
         TrackerApiResponse response = trackerActions
             .postAndGetJobReport( payload, new QueryParamsBuilder().addAll( "skipSideEffects=true" ) );
 
-        response.validateWarningReport()
+        response
+            .validateSuccessfulImport()
+            .validateWarningReport()
             .body( "warningCode", contains( "E1201" ) );
 
-        String eventId = response.validateSuccessfulImport()
+        String eventId = response
             .extractImportedEvents().get( 0 );
 
         trackerActions.get( "/events/" + eventId )
