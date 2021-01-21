@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.XmlFactory;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
 import com.google.common.collect.Lists;
+import org.hisp.dhis.common.ValueTypeOptionSerializer;
 import org.hisp.dhis.node.AbstractNodeSerializer;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.types.CollectionNode;
@@ -43,7 +44,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -52,6 +53,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -95,7 +98,7 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     {
         writer.writeStartDocument( "UTF-8", "1.0" );
 
-        if ( !StringUtils.isEmpty( rootNode.getComment() ) )
+        if ( !ObjectUtils.isEmpty( rootNode.getComment() ) )
         {
             writer.writeComment( rootNode.getComment() );
         }
@@ -131,7 +134,7 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
                 return;
             }
 
-            if ( !StringUtils.isEmpty( simpleNode.getNamespace() ) )
+            if ( !ObjectUtils.isEmpty( simpleNode.getNamespace() ) )
             {
                 writer.writeAttribute( simpleNode.getNamespace(), simpleNode.getName(), value );
             }
@@ -142,25 +145,43 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
         }
         else
         {
-            writeStartElement( simpleNode );
-            if ( handledCustomSerializer( simpleNode, writer ) )
+            JsonSerializer jsonSerializer = getSerializer( simpleNode );
+            if ( jsonSerializer != null )
             {
+                if ( jsonSerializer instanceof ValueTypeOptionSerializer )
+                {
+                    handledCustomSerializer( jsonSerializer, simpleNode, writer );
+                }else{
+                    writeStartElement( simpleNode );
+                    handledCustomSerializer( jsonSerializer, simpleNode, writer );
+                }
+
                 return;
             }
-            else if ( value != null )
+
+            writeStartElement( simpleNode );
+
+            if ( value != null )
             {
                 writer.writeCharacters( value );
-            }
-            else
-            {
-                return;
             }
         }
     }
 
     @Override
-    protected void endWriteSimpleNode( SimpleNode simpleNode ) throws Exception
+    protected void endWriteSimpleNode( SimpleNode simpleNode )
+        throws Exception
     {
+
+        JsonSerializer jsonSerializer = getSerializer( simpleNode );
+        if ( jsonSerializer != null )
+        {
+            if ( jsonSerializer instanceof ValueTypeOptionSerializer )
+            {
+                return;
+            }
+        }
+
         if ( !simpleNode.isAttribute() )
         {
             writer.writeEndElement();
@@ -197,14 +218,15 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
         }
     }
 
-    private void writeStartElement( Node node ) throws XMLStreamException
+    private void writeStartElement( Node node )
+        throws XMLStreamException
     {
-        if ( !StringUtils.isEmpty( node.getComment() ) )
+        if ( !ObjectUtils.isEmpty( node.getComment() ) )
         {
             writer.writeComment( node.getComment() );
         }
 
-        if ( !StringUtils.isEmpty( node.getNamespace() ) )
+        if ( !ObjectUtils.isEmpty( node.getNamespace() ) )
         {
             writer.writeStartElement( node.getNamespace(), node.getName() );
         }
@@ -216,33 +238,45 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
 
     /**
      * @param simpleNode the {@link SimpleNode}.
-     * @param writer the {@link XMLStreamWriter}.
-     *
+     * @param writer     the {@link XMLStreamWriter}.
      * @return true if given simpleNode has been serialized using custom JsonSerializer
      * @throws IllegalAccessException
      * @throws InstantiationException
      * @throws IOException
      */
-    private boolean handledCustomSerializer( SimpleNode simpleNode, XMLStreamWriter writer )
-        throws IllegalAccessException, InstantiationException, IOException
+    private void handledCustomSerializer( JsonSerializer jsonSerializer, SimpleNode simpleNode, XMLStreamWriter writer )
+        throws IOException
+    {
+        checkNotNull( jsonSerializer );
+
+        XmlFactory factory = new XmlFactory();
+        ToXmlGenerator generator = factory.createGenerator( writer );
+
+        jsonSerializer.serialize( simpleNode.getValue(), generator, null );
+    }
+
+    private JsonSerializer getSerializer( SimpleNode simpleNode )
     {
         if ( simpleNode.getProperty() != null )
         {
             JsonSerialize declaredAnnotation = simpleNode.getProperty().getGetterMethod().getAnnotation( JsonSerialize.class );
             if ( declaredAnnotation != null )
             {
-                Class<? extends JsonSerializer> serializer = declaredAnnotation.using();
-
-                if ( serializer != null )
+                try
                 {
-                    JsonSerializer serializerInstance = serializer.newInstance();
-                    XmlFactory factory = new XmlFactory();
-                    ToXmlGenerator generator = factory.createGenerator( writer );
-                    serializerInstance.serialize( simpleNode.getValue(), generator, null );
-                    return true;
+                    return declaredAnnotation.using().getDeclaredConstructor( null ).newInstance( null );
+                }
+                catch ( Exception e )
+                {
+                    return null;
                 }
             }
         }
-        return false;
+
+        return null;
     }
+
 }
+
+
+

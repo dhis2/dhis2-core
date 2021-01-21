@@ -40,6 +40,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.ValueTypeOptionSerializer;
 import org.hisp.dhis.common.ValueTypeOptions;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -593,7 +594,7 @@ public class DataElement extends BaseDimensionalItemObject
 
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonSerialize(using = ValueTypeOptionSerializer.class)
     public ValueTypeOptions getValueTypeOptions()
     {
         return valueTypeOptions;

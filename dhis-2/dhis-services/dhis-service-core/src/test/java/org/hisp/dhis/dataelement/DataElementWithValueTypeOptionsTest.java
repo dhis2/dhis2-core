@@ -28,6 +28,9 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.FileTypeValueOptions;
@@ -35,15 +38,21 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypeOptions;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+@Slf4j
 public class DataElementWithValueTypeOptionsTest extends DhisSpringTest
 {
     @Autowired
     private DataElementStore dataElementStore;
+
+    @Autowired
+    @Qualifier( value = "xmlMapper" )
+    public ObjectMapper xmlMapper;
 
     @Test
     public void testSaveGetAndDeleteDataElementWithFileValueTypeOption()
@@ -95,5 +104,22 @@ public class DataElementWithValueTypeOptionsTest extends DhisSpringTest
         }
 
         return dataElement;
+    }
+
+    @Test
+    public void testDeserialize()
+        throws JsonProcessingException
+    {
+        DataElement dataElementA = createDataElementWithFileValueTypeOptions( 'A', 100L );
+        String xml = xmlMapper.writeValueAsString( dataElementA );
+        assertNotNull(xml);
+
+        dataElementStore.save( dataElementA );
+        long idA = dataElementA.getId();
+        DataElement fetchedObject = dataElementStore.get( idA );
+
+        String xmlB = xmlMapper.writeValueAsString( fetchedObject );
+        assertNotNull(xmlB);
+        log.info( xmlB );
     }
 }

@@ -29,10 +29,11 @@ package org.hisp.dhis.common;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Set;
 
@@ -45,13 +46,11 @@ import java.util.Set;
  * <p>This class is used in the
  * {@link org.hisp.dhis.system.util.ValidationUtils#validateFileResource } method.
  *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  * @see ValueTypeOptions
  * @see ValueType
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@JsonTypeName( "file" )
-public class FileTypeValueOptions extends ValueTypeOptions
+public class FileTypeValueOptions extends ValueTypeOptions implements Serializable
 {
     private static final long serialVersionUID = 1L;
 
@@ -62,6 +61,7 @@ public class FileTypeValueOptions extends ValueTypeOptions
     private Set<String> allowedContentTypes = Collections.emptySet();
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Property( value = PropertyType.NUMBER, required = Property.Value.FALSE )
     public long getMaxFileSize()
     {
@@ -74,6 +74,7 @@ public class FileTypeValueOptions extends ValueTypeOptions
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Set<String> getAllowedContentTypes()
     {
         return allowedContentTypes;
@@ -85,6 +86,7 @@ public class FileTypeValueOptions extends ValueTypeOptions
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Property( value = PropertyType.NUMBER, required = Property.Value.FALSE )
     public long getVersion()
     {

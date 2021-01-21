@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import java.io.Serializable;
 
@@ -63,10 +64,12 @@ import java.io.Serializable;
  * @author Morten Svanæs <msvanaes@dhis2.org>
   */
 @JsonInclude()
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "type" )
-@JsonSubTypes( {
-    @JsonSubTypes.Type( value = FileTypeValueOptions.class, name = "file" )
-} )
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.WRAPPER_OBJECT)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value= FileTypeValueOptions.class),
+})
+@JacksonXmlRootElement( localName = "valueTypeOptions", namespace = DxfNamespaces.DXF_2_0 )
 public abstract class ValueTypeOptions implements Serializable
 {
+
 }
