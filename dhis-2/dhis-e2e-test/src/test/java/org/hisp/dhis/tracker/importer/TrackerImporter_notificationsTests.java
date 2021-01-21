@@ -35,40 +35,37 @@ import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.metadata.ProgramStageActions;
-import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
-import java.util.Date;
 
-import static org.apache.http.util.Asserts.notEmpty;
 import static org.hamcrest.Matchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImporter_notificationsTests extends ApiTest
+public class TrackerImporter_notificationsTests
+    extends ApiTest
 {
     private String trackerProgramStageId = "PaOOjwLVW23";
+
     private String trackerProgramId = Constants.TRACKER_PROGRAM_ID;
+
     private String enrollmentId;
+
     private TrackerActions trackerActions;
+
     @BeforeAll
     public void beforeAll()
         throws Exception
@@ -89,22 +86,22 @@ public class TrackerImporter_notificationsTests extends ApiTest
             .replacePropertyValuesWith( "program", trackerProgramId )
             .replacePropertyValuesWith( "status", "COMPLETED" )
             .replacePropertyValuesWith( "enrollment", enrollmentId )
-            .get(JsonObject.class);
+            .get( JsonObject.class );
 
-        ApiResponse response = new RestApiActions( "/messageConversations" ).get("", new QueryParamsBuilder().add( "fields=*" ) );
+        ApiResponse response = new RestApiActions( "/messageConversations" ).get( "", new QueryParamsBuilder().add( "fields=*" ) );
 
-        int size = response.getBody().getAsJsonArray("messageConversations").size();
+        int size = response.getBody().getAsJsonArray( "messageConversations" ).size();
 
         trackerActions.postAndGetJobReport( object )
             .validateSuccessfulImport();
 
-        response = new RestApiActions( "/messageConversations?fields=*" ).get("", new QueryParamsBuilder().add( "fields=*" ) );
+        response = new RestApiActions( "/messageConversations?fields=*" ).get( "", new QueryParamsBuilder().add( "fields=*" ) );
 
         response
             .validate()
             .statusCode( 200 )
-            .body( "messageConversations", hasSize( size + 1 ) )
-            .body( "messageConversations.subject", hasItem(   "TA program stage completion"  ));
+            .body( "messageConversations", hasSize( greaterThanOrEqualTo( size + 1 ) ) )
+            .body( "messageConversations.subject", hasItem( "TA program stage completion" ) );
     }
 
     @Test
@@ -114,25 +111,26 @@ public class TrackerImporter_notificationsTests extends ApiTest
     {
         JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/events/event.json" ) )
             .replacePropertyValuesWithIds( "event" )
-            .replacePropertyValuesWith( "scheduledAt", Instant.now().minus( 0, ChronoUnit.DAYS).toString())
+            .replacePropertyValuesWith( "scheduledAt", Instant.now().minus( 0, ChronoUnit.DAYS ).toString() )
             .replacePropertyValuesWith( "programStage", trackerProgramStageId )
             .replacePropertyValuesWith( "program", trackerProgramId )
             .replacePropertyValuesWith( "status", "COMPLETED" )
             .replacePropertyValuesWith( "enrollment", enrollmentId )
-            .get(JsonObject.class);
+            .get( JsonObject.class );
 
         TrackerApiResponse trackerApiResponse = trackerActions.postAndGetJobReport( object );
         trackerApiResponse.validateSuccessfulImport();
 
         trackerApiResponse.prettyPrint();
 
-        ApiResponse response = new RestApiActions( "/messageConversations" ).get("", new QueryParamsBuilder().add( "fields=subject" ) );
+        ApiResponse response = new RestApiActions( "/messageConversations" )
+            .get( "", new QueryParamsBuilder().add( "fields=subject" ) );
 
         response
             .validate()
             .statusCode( 200 )
-            .body( "messageConversations", not(Matchers.emptyArray()))
-            .body( "messageConversations.subject", hasItem(   "TA program notification - due dates"  ));
+            .body( "messageConversations", not( Matchers.emptyArray() ) )
+            .body( "messageConversations.subject", hasItem( "TA program notification - due dates" ) );
     }
 
     private void setupData()
@@ -140,13 +138,14 @@ public class TrackerImporter_notificationsTests extends ApiTest
     {
         ProgramStageActions programStageActions = new ProgramStageActions();
 
-        JsonArray array = new FileReaderUtils().read( new File( "src/test/resources/tracker/notificationTemplates.json" )).get(JsonObject.class).getAsJsonArray("programNotificationTemplates");
+        JsonArray array = new FileReaderUtils().read( new File( "src/test/resources/tracker/notificationTemplates.json" ) )
+            .get( JsonObject.class ).getAsJsonArray( "programNotificationTemplates" );
 
         array.forEach( nt -> {
-            String programNotificationTemplate = new RestApiActions("/programNotificationTemplates").post( nt.getAsJsonObject() )
+            String programNotificationTemplate = new RestApiActions( "/programNotificationTemplates" ).post( nt.getAsJsonObject() )
                 .extractUid();
 
-            JsonObject programStage = JsonObjectBuilder.jsonObject(programStageActions.get(trackerProgramStageId).getBody())
+            JsonObject programStage = JsonObjectBuilder.jsonObject( programStageActions.get( trackerProgramStageId ).getBody() )
                 .addOrAppendToArray( "notificationTemplates",
                     new JsonObjectBuilder().addProperty( "id", programNotificationTemplate ).build() )
                 .build();
@@ -154,14 +153,14 @@ public class TrackerImporter_notificationsTests extends ApiTest
             programStageActions.update( trackerProgramStageId, programStage )
                 .validate().statusCode( 200 );
 
-            programStageActions.get(trackerProgramStageId).validate()
-                .body( "notificationTemplates.id", hasItem(programNotificationTemplate));
+            programStageActions.get( trackerProgramStageId ).validate()
+                .body( "notificationTemplates.id", hasItem( programNotificationTemplate ) );
 
-            enrollmentId = trackerActions.postAndGetJobReport( new File("src/test/resources/tracker/importer/teis/teiWithEnrollments.json") )
+            enrollmentId = trackerActions
+                .postAndGetJobReport( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollments.json" ) )
                 .validateSuccessfulImport()
                 .extractImportedEnrollments().get( 0 );
         } );
-
 
     }
 }

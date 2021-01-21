@@ -44,17 +44,22 @@ import static org.hamcrest.Matchers.not;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class MetadataExportTests extends ApiTest
+public class MetadataExportTests
+    extends ApiTest
 {
     private String userWithoutAccessUsername = "MetadataExportTestsUser" + DataGenerator.randomString();
+
     private String userWithoutAccessPassword = "Test1212?";
 
     private MetadataActions metadataActions;
+
     private LoginActions loginActions;
+
     private UserActions userActions;
 
     @BeforeAll
-    public void beforeAll() {
+    public void beforeAll()
+    {
         metadataActions = new MetadataActions();
         loginActions = new LoginActions();
         userActions = new UserActions();
@@ -63,16 +68,19 @@ public class MetadataExportTests extends ApiTest
     }
 
     @Test
-    public void shouldNotExportAllMetadataWithoutAuthority() {
+    public void shouldNotExportAllMetadataWithoutAuthority()
+    {
         loginActions.loginAsUser( userWithoutAccessUsername, userWithoutAccessPassword );
 
-        metadataActions.get(  ).validate()
+        metadataActions.get().validate()
             .statusCode( 409 )
-            .body( "message", equalTo("Unfiltered access to metadata export requires super user or 'F_METADATA_EXPORT' authority.") );
+            .body( "message",
+                equalTo( "Unfiltered access to metadata export requires super user or 'F_METADATA_EXPORT' authority." ) );
     }
 
     @Test
-    public void shouldNotExportUserMetadataWithoutAuthority() {
+    public void shouldNotExportUserMetadataWithoutAuthority()
+    {
         loginActions.loginAsUser( userWithoutAccessUsername, userWithoutAccessPassword );
 
         metadataActions.get( "", new QueryParamsBuilder().add( "users=true" ) )
@@ -82,21 +90,23 @@ public class MetadataExportTests extends ApiTest
     }
 
     @Test
-    public void shouldExportFilteredMetadataWithoutAuthority() {
+    public void shouldExportFilteredMetadataWithoutAuthority()
+    {
         loginActions.loginAsUser( userWithoutAccessUsername, userWithoutAccessPassword );
 
         metadataActions.get( "", new QueryParamsBuilder().add( "dataElements=true&users=true" ) )
             .validate()
             .statusCode( 200 )
-            .body( "dataElements", not(emptyArray()))
+            .body( "dataElements", not( emptyArray() ) )
             .body( "users", not( emptyArray() ) );
     }
 
     @Test
-    public void shouldExportAllMetadataAsSuperuser() {
+    public void shouldExportAllMetadataAsSuperuser()
+    {
         loginActions.loginAsSuperUser();
 
-        metadataActions.get(  ).validate()
+        metadataActions.get().validate()
             .statusCode( 200 )
             .body( "relationshipTypes", not( emptyArray() ) )
             .body( "userRoles", not( emptyArray() ) );

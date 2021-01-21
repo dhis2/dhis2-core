@@ -37,7 +37,6 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.metadata.SharingActions;
-import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -124,7 +123,7 @@ public class TrackerImporter_eventsDataValueValidationTests
             .body( "bundleReport.typeReportMap.EVENT", nullValue() );
 
         response.validateErrorReport()
-            .body( "errorCode", hasItem( "E1303" ) ) ;
+            .body( "errorCode", hasItem( "E1303" ) );
     }
 
     @Test

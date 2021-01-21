@@ -33,7 +33,6 @@ import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -49,7 +48,6 @@ import java.io.File;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -130,7 +128,8 @@ public class TrackerImporter_userAssignmentTests
         // act
         eventBody.add( "assignedUser", null );
 
-        ApiResponse response = trackerActions.postAndGetJobReport( new JsonObjectBuilder(eventBody).wrapIntoArray( "events" ), new QueryParamsBuilder().addAll( "importStrategy=UPDATE" ) );
+        ApiResponse response = trackerActions.postAndGetJobReport( new JsonObjectBuilder( eventBody ).wrapIntoArray( "events" ),
+            new QueryParamsBuilder().addAll( "importStrategy=UPDATE" ) );
 
         // assert
         response.validate().statusCode( 200 );

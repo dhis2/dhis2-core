@@ -37,7 +37,6 @@ import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.AttributeActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -161,7 +160,7 @@ public class TrackerImporter_eventIdSchemeTests
             .extractImportedEvents().get( 0 );
         assertNotNull( "Event was not created", eventId );
 
-        trackerActions.get("/events/" +  eventId ).validate()
+        trackerActions.get( "/events/" + eventId ).validate()
             .statusCode( 200 )
             .body( "program", equalTo( PROGRAM_ID ) );
     }

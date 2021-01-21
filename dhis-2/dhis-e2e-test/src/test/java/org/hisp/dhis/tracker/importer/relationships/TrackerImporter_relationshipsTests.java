@@ -222,7 +222,7 @@ public class TrackerImporter_relationshipsTests
         trackerActions.postAndGetJobReport( object )
             .validateErrorReport()
             .body( "", hasSize( 2 ) )
-            .body( "errorCode", everyItem( equalTo(  "E4012" ) ));
+            .body( "errorCode", everyItem( equalTo( "E4012" ) ) );
 
     }
 

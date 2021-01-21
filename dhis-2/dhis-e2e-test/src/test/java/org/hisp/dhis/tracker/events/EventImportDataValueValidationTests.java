@@ -41,9 +41,9 @@ import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.metadata.SharingActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -59,6 +59,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class EventImportDataValueValidationTests
     extends ApiTest
 {
+    private static String OU_ID = Constants.ORG_UNIT_IDS[0];
+
     private ProgramActions programActions;
 
     private EventActions eventActions;
@@ -66,8 +68,6 @@ public class EventImportDataValueValidationTests
     private RestApiActions dataElementActions;
 
     private SharingActions sharingActions;
-
-    private static String OU_ID = Constants.ORG_UNIT_IDS[0];
 
     private String programId;
 
@@ -105,7 +105,8 @@ public class EventImportDataValueValidationTests
     }
 
     @Test
-    public void shouldValidateDataValuesOnCompleteWhenEventIsCompleted() {
+    public void shouldValidateDataValuesOnCompleteWhenEventIsCompleted()
+    {
         setValidationStrategy( programStageId, "ON_COMPLETE" );
 
         JsonObject event = eventActions.createEventBody( OU_ID, programId, programStageId );
@@ -122,7 +123,8 @@ public class EventImportDataValueValidationTests
     }
 
     @Test
-    public void shouldValidateCompletedOnInsert() {
+    public void shouldValidateCompletedOnInsert()
+    {
         setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
 
         JsonObject event = eventActions.createEventBody( OU_ID, programId, programStageId );
@@ -137,8 +139,10 @@ public class EventImportDataValueValidationTests
             .body( "imported", equalTo( 0 ) )
             .body( "importSummaries[0].conflicts[0].value", equalTo( "value_required_but_not_provided" ) );
     }
+
     @Test
-    public void shouldValidateDataValuesOnUpdate() {
+    public void shouldValidateDataValuesOnUpdate()
+    {
         setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
 
         JsonObject events = eventActions.createEventBody( OU_ID, programId, programStageId );
@@ -181,14 +185,15 @@ public class EventImportDataValueValidationTests
         programId = new IdGenerator().generateUniqueId();
         programStageId = new IdGenerator().generateUniqueId();
 
-        JsonObject jsonObject = new JsonObjectBuilder(new FileReaderUtils().readJsonAndGenerateData( new File( "src/test/resources/tracker/eventProgram.json" ) ))
+        JsonObject jsonObject = new JsonObjectBuilder(
+            new FileReaderUtils().readJsonAndGenerateData( new File( "src/test/resources/tracker/eventProgram.json" ) ) )
             .addPropertyByJsonPath( "programStages[0].program.id", programId )
             .addPropertyByJsonPath( "programs[0].id", programId )
             .addPropertyByJsonPath( "programs[0].programStages[0].id", programStageId )
             .addPropertyByJsonPath( "programStages[0].id", programStageId )
             .build();
 
-        new MetadataActions().importAndValidateMetadata( jsonObject);
+        new MetadataActions().importAndValidateMetadata( jsonObject );
 
         String dataElementId = dataElementActions
             .get( "?fields=id&filter=domainType:eq:TRACKER&filter=valueType:eq:TEXT&pageSize=1" )
@@ -213,9 +218,10 @@ public class EventImportDataValueValidationTests
         body.add( "dataValues", dataValues );
     }
 
-    private void setValidationStrategy(String programStageId, String strategy) {
+    private void setValidationStrategy( String programStageId, String strategy )
+    {
         JsonObject body = JsonObjectBuilder.jsonObject()
-            .addProperty( "validationStrategy", strategy)
+            .addProperty( "validationStrategy", strategy )
             .build();
 
         programActions.programStageActions.patch( programStageId, body )

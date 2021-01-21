@@ -146,7 +146,6 @@ public class TrackerImporter_programRulesTests
                 .addProperty( "value", "true" )
                 .build() );
 
-
         TrackerApiResponse response = trackerActions.postAndGetJobReport( payload );
 
         response.validateErrorReport();
@@ -204,7 +203,7 @@ public class TrackerImporter_programRulesTests
     @CsvSource( { "ON_COMPLETE,COMPLETED,true", "ON_COMPLETE,ACTIVE,false", "ON_UPDATE_AND_INSERT,ACTIVE,true" } )
     public void shouldShowErrorsBasedOnValidationStrategy( String validationStrategy, String eventStatus, boolean shouldFail )
     {
-        String programStage = new ProgramStageActions().get("", new QueryParamsBuilder()
+        String programStage = new ProgramStageActions().get( "", new QueryParamsBuilder()
             .addAll( "filter=program.id:eq:" + trackerProgramId, "filter=validationStrategy:eq:" + validationStrategy )
         ).extractString( "programStages.id[0]" );
 
@@ -216,7 +215,6 @@ public class TrackerImporter_programRulesTests
             .addPropertyByJsonPath( "trackedEntities[0].enrollments[0].events[0].occurredAt", Instant.now().minus(
                 1, ChronoUnit.DAYS ).toString() )
             .addPropertyByJsonPath( "trackedEntities[0].enrollments[0].events[0].status", eventStatus );
-
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( payload );
 

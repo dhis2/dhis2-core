@@ -29,25 +29,22 @@
 package org.hisp.dhis.tracker.importer.tei;
 
 import com.google.gson.JsonObject;
-import com.sun.xml.bind.v2.runtime.reflect.opt.Const;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.metadata.ProgramStageActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasItem;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -60,6 +57,7 @@ public class TrackerImporter_teiValidationTests
     private String trackedEntityType;
 
     private String program;
+
     private String programStageId;
 
     private String mandatoryTetAttribute;
@@ -94,14 +92,15 @@ public class TrackerImporter_teiValidationTests
     }
 
     @Test
-    public void shouldNotReturnErrorWhenMandatoryTetAttributeIsPresent() {
+    public void shouldNotReturnErrorWhenMandatoryTetAttributeIsPresent()
+    {
         JsonObject trackedEntities = new JsonObjectBuilder()
             .addProperty( "trackedEntityType", trackedEntityType )
             .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[0] )
             .addArray( "attributes", new JsonObjectBuilder()
                 .addProperty( "attribute", mandatoryTetAttribute )
                 .addProperty( "value", DataGenerator.randomString() )
-                .build())
+                .build() )
             .wrapIntoArray( "trackedEntities" );
 
         // assert
@@ -109,6 +108,7 @@ public class TrackerImporter_teiValidationTests
         response
             .validateSuccessfulImport();
     }
+
     @Test
     public void shouldReturnErrorWhenMandatoryAttributesMissing()
     {
@@ -127,7 +127,8 @@ public class TrackerImporter_teiValidationTests
     }
 
     @Test
-    public void shouldReturnErrorWhenMandatoryProgramAttributeMissing() {
+    public void shouldReturnErrorWhenMandatoryProgramAttributeMissing()
+    {
         // arrange
         JsonObject trackedEntities = new JsonObjectBuilder()
             .addProperty( "trackedEntityType", trackedEntityType )
@@ -139,7 +140,7 @@ public class TrackerImporter_teiValidationTests
                     .addProperty( "enrolledAt", Instant.now().toString() )
                     .addProperty( "occurredAt", Instant.now().toString() )
                     .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[0] )
-                    .build())
+                    .build() )
 
             .wrapIntoArray( "trackedEntities" );
 
@@ -180,12 +181,12 @@ public class TrackerImporter_teiValidationTests
 
         // create a program
         program = programActions.createTrackerProgram( Constants.ORG_UNIT_IDS ).extractUid();
-        ApiResponse programResponse = programActions.get(program);
+        ApiResponse programResponse = programActions.get( program );
 
         programStageId = programResponse.extractString( "programStages.id[0]" );
         JsonObject programPayload = programResponse.getBody();
 
-        new JsonObjectBuilder(programPayload)
+        new JsonObjectBuilder( programPayload )
             .addObject( "trackedEntityType", new JsonObjectBuilder().addProperty( "id", trackedEntityType ) )
             .addOrAppendToArray( "programTrackedEntityAttributes",
                 new JsonObjectBuilder()
@@ -198,7 +199,8 @@ public class TrackerImporter_teiValidationTests
         programActions.update( program, programPayload ).validate().statusCode( 200 );
     }
 
-    private JsonObject dummyTeiAttribute() {
+    private JsonObject dummyTeiAttribute()
+    {
         return JsonObjectBuilder.jsonObject()
             .addProperty( "name", "TA attribute " + DataGenerator.randomEntityName() )
             .addProperty( "valueType", "TEXT" )

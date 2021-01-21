@@ -32,7 +32,6 @@ import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -42,7 +41,6 @@ import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.io.File;
 
@@ -144,15 +142,15 @@ public class TrackerImporter_teiImportTests
             .body( "bundleReport.typeReportMap.EVENT.objectReports", hasSize( 2 ) )
             .body( "bundleReport.typeReportMap.RELATIONSHIP.objectReports", hasSize( 1 ) );
 
+        JsonObject teiBody = teiPayload.get( "trackedEntities" ).getAsJsonArray().get( 0 ).getAsJsonObject();
 
-        JsonObject teiBody = teiPayload.get( "trackedEntities" ).getAsJsonArray().get( 0 ).getAsJsonObject() ;
-
-        ApiResponse trackedEntityResponse = trackerActions.get( "/trackedEntities/" + teiBody.get( "trackedEntity" ).getAsString(), new QueryParamsBuilder().addAll( "fields=*" ) );
+        ApiResponse trackedEntityResponse = trackerActions.get( "/trackedEntities/" + teiBody.get( "trackedEntity" ).getAsString(),
+            new QueryParamsBuilder().addAll( "fields=*" ) );
 
         trackedEntityResponse.validate()
             .statusCode( 200 );
 
-        assertThat( trackedEntityResponse.getBody(), matchesJSON( teiBody) );
+        assertThat( trackedEntityResponse.getBody(), matchesJSON( teiBody ) );
     }
 
 }
