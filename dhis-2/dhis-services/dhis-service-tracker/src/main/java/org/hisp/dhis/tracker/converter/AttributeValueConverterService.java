@@ -28,15 +28,17 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.util.DateUtils.fromInstant;
+import static org.hisp.dhis.util.DateUtils.instantFromDate;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Luciano Fiandesio
@@ -53,8 +55,8 @@ public class AttributeValueConverterService
         attribute.setAttribute( teav.getAttribute().getUid() );
         attribute.setCode( teav.getAttribute().getCode() );
         attribute.setDisplayName( teav.getAttribute().getDisplayName() );
-        attribute.setCreatedAt( teav.getCreated().toString() );
-        attribute.setUpdatedAt( teav.getLastUpdated().toString() );
+        attribute.setCreatedAt( instantFromDate( teav.getCreated() ) );
+        attribute.setUpdatedAt( instantFromDate( teav.getLastUpdated() ) );
         attribute.setStoredBy( teav.getStoredBy() );
         attribute.setValueType( teav.getAttribute().getValueType() );
         attribute.setValue( teav.getValue() );
@@ -75,8 +77,8 @@ public class AttributeValueConverterService
 
         TrackedEntityAttributeValue teav = new TrackedEntityAttributeValue();
 
-        teav.setCreated( DateUtils.parseDate( at.getCreatedAt() ) );
-        teav.setLastUpdated( DateUtils.parseDate( at.getUpdatedAt()) );
+        teav.setCreated( fromInstant( at.getCreatedAt() ) );
+        teav.setLastUpdated( fromInstant( at.getUpdatedAt() ) );
         teav.setStoredBy( at.getStoredBy() );
         teav.setValue( at.getValue() );
         teav.setAttribute( attribute );
