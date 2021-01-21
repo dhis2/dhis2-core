@@ -39,6 +39,7 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.BaseLinkableObject;
 import org.hisp.dhis.event.EventStatus;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -81,6 +82,9 @@ public class Event
     private String orgUnit;
 
     @JsonProperty
+    private String orgUnitName;
+
+    @JsonProperty
     private String trackedEntity;
 
     @JsonProperty
@@ -88,25 +92,31 @@ public class Event
     private List<Relationship> relationships = new ArrayList<>();
 
     @JsonProperty
-    private String occurredAt;
+    private Instant occurredAt;
 
     @JsonProperty
-    private String scheduledAt;
+    private Instant scheduledAt;
 
     @JsonProperty
     private String storedBy;
 
     @JsonProperty
-    private boolean followUp;
+    private boolean followup;
 
     @JsonProperty
     private boolean deleted;
 
     @JsonProperty
-    private String createdAt;
+    private Instant createdAt;
 
     @JsonProperty
-    private String updatedAt;
+    private Instant createdAtClient;
+
+    @JsonProperty
+    private Instant updatedAt;
+
+    @JsonProperty
+    private Instant updatedAtClient;
 
     @JsonProperty
     private String attributeOptionCombo;
@@ -118,7 +128,7 @@ public class Event
     private String completedBy;
 
     @JsonProperty
-    private String completedAt;
+    private Instant completedAt;
 
     @JsonProperty
     private Geometry geometry;

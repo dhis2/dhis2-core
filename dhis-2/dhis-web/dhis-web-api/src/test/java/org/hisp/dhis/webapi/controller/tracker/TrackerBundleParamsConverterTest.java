@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -62,7 +63,7 @@ public class TrackerBundleParamsConverterTest
     @Before
     public void setUp()
     {
-        objectMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+        objectMapper = JacksonObjectMapperConfig.jsonMapper;
     }
 
     @Test

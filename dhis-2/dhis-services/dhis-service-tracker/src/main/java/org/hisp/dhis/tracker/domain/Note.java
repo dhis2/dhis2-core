@@ -35,6 +35,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 /**
  * Notes are text-only objects attached to Events and Enrollments. An Event or Enrollment may have multiple notes.
  *
@@ -50,10 +52,10 @@ public class Note
     private String note;
 
     @JsonProperty
-    private String storedAt;
+    private Instant storedAt;
 
     @JsonProperty
-    private String updatedAt;
+    private Instant updatedAt;
 
     @JsonProperty
     private String storedBy;

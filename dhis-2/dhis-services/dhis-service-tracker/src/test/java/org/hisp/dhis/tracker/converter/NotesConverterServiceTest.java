@@ -42,6 +42,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Luciano Fiandesio
@@ -126,6 +127,6 @@ public class NotesConverterServiceTest
         assertThat( note.getNote(), is( comment.getUid() ) );
         assertThat( note.getValue(), is( comment.getCommentText() ) );
         assertThat( note.getStoredBy(), is( comment.getCreator() ) );
-        assertThat( note.getStoredAt(), is( DateUtils.getIso8601NoTz( comment.getCreated() ) ) );
+        assertEquals( note.getStoredAt(), DateUtils.instantFromDate( comment.getCreated() ) );
     }
 }

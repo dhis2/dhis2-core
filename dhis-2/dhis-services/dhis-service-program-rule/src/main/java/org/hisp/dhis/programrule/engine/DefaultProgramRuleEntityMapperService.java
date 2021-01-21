@@ -28,17 +28,9 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
-import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableMap;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
@@ -50,13 +42,7 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
+import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.rules.DataItem;
 import org.hisp.dhis.rules.ItemValueType;
 import org.hisp.dhis.rules.models.*;
@@ -66,11 +52,12 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
+import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 
 /**
  * Created by zubair@dhis2.org on 19.10.17.
@@ -263,7 +250,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     }
 
     @Override
-    public RuleEnrollment toMappedRuleEnrollment( ProgramInstance enrollment )
+    public RuleEnrollment toMappedRuleEnrollment( ProgramInstance enrollment,
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
         if ( enrollment == null )
         {
@@ -279,10 +267,20 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             orgUnitCode = enrollment.getOrganisationUnit().getCode();
         }
 
-        List<RuleAttributeValue> ruleAttributeValues = Lists.newArrayList();
+        List<RuleAttributeValue> ruleAttributeValues;
+
         if ( enrollment.getEntityInstance() != null )
         {
             ruleAttributeValues = enrollment.getEntityInstance().getTrackedEntityAttributeValues()
+                .stream()
+                .filter( Objects::nonNull )
+                .map( attr -> RuleAttributeValue.create( attr.getAttribute().getUid(),
+                    getTrackedEntityAttributeValue( attr ) ) )
+                .collect( Collectors.toList() );
+        }
+        else
+        {
+            ruleAttributeValues = trackedEntityAttributeValues
                 .stream()
                 .filter( Objects::nonNull )
                 .map( attr -> RuleAttributeValue.create( attr.getAttribute().getUid(),

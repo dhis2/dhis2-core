@@ -50,7 +50,7 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
         Note note = new Note();
         note.setNote( trackedEntityComment.getUid() );
         note.setValue( trackedEntityComment.getCommentText() );
-        note.setStoredAt( DateUtils.getIso8601NoTz( trackedEntityComment.getCreated() ) );
+        note.setStoredAt( DateUtils.instantFromDate( trackedEntityComment.getCreated() ) );
         note.setStoredBy( trackedEntityComment.getCreator() );
         return note;
     }

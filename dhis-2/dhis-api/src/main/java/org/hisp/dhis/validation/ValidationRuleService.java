@@ -109,7 +109,7 @@ public interface ValidationRuleService
     /**
      * Get data elements part of the left side and right side expressions of the
      * given validation rule.
-     * 
+     *
      * @param validationRule the validation rule.
      * @return a set of data elements.
      */
@@ -189,6 +189,8 @@ public interface ValidationRuleService
     List<ValidationRule> getValidationRulesBetween( int first, int max );
 
     List<ValidationRule> getValidationRulesBetweenByName( String name, int first, int max );
+
+    List<ValidationRule> getValidationRulesByUid( Collection<String> uids );
 
     int getValidationRuleCount();
 

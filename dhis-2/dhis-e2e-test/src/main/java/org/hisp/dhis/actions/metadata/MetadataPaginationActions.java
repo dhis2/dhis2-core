@@ -28,20 +28,18 @@ package org.hisp.dhis.actions.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.config.TestConfiguration;
 
-import com.google.gson.JsonObject;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.startsWith;
 
 /**
  * @author Luciano Fiandesio
@@ -116,6 +114,13 @@ public class MetadataPaginationActions
             pageSize );
     }
 
+    public ApiResponse getPaginatedWithFiltersOnly( List<String> filters, int page, int pageSize )
+    {
+        return getPaginated( filters, toParamList( DEFAULT_METADATA_FIELDS ), toParamList( DEFAULT_METADATA_SORT ), page,
+            pageSize );
+    }
+
+
     /**
      * Executes a metadata request using pagination directives. Uses a default
      * filter, fields and sort expression
@@ -150,6 +155,22 @@ public class MetadataPaginationActions
             .body( "nextPage", startsWith( TestConfiguration.get().baseUrl() + endpoint ) )
             .body( "nextPage", containsString( "pageSize=" + expectedPageSize ) )
             .body( "nextPage", containsString( "page=" + (expectedPage + 1) ) );
+
+    }
+
+    public void assertPagination( ApiResponse response, int expectedTotal, int expectedPageCount, int expectedPageSize,
+        int expectedPage, String entityWrapper )
+    {
+        response.validate().statusCode( 200 ).rootPath( "pager" )
+            .body( "pageCount", greaterThanOrEqualTo( expectedPageCount ) )
+            .body( "total", greaterThanOrEqualTo( expectedTotal ) )
+            .body( "pageSize", is( expectedPageSize ) )
+            .body( "page", is( expectedPage ) )
+            .body( "nextPage", startsWith( TestConfiguration.get().baseUrl() + endpoint ) )
+            .body( "nextPage", containsString( "pageSize=" + expectedPageSize ) )
+            .body( "nextPage", containsString( "page=" + (expectedPage + 1) ) );
+
+        assert response.extractList( entityWrapper ).size() == expectedPageSize;
 
     }
 
