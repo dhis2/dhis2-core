@@ -247,7 +247,7 @@ public class ImportSideEffectsTests
         response
             .validateWarningReport()
             .body( "", hasSize( greaterThanOrEqualTo( 2 ) ) )
-            .body( "trackerType", contains( "EVENT", "ENROLLMENT" ) )
+            .body( "trackerType", hasItems( "EVENT", "ENROLLMENT" ) )
             .body( "warningCode", everyItem( equalTo( "E1201" ) ) );
     }
 
