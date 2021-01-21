@@ -31,9 +31,7 @@ package org.hisp.dhis.tracker.importer.enrollments;
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -49,7 +47,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -68,16 +65,15 @@ public class TrackerImporter_enrollmentsTests
         new LoginActions().loginAsSuperUser();
     }
 
-
     @ParameterizedTest
     @ValueSource( strings = {
         "src/test/resources/tracker/importer/teis/teiWithEnrollments.json",
         "src/test/resources/tracker/importer/teis/teiAndEnrollment.json"
     } )
-    public void shouldImportTeisWithEnrollments(String file)
+    public void shouldImportTeisWithEnrollments( String file )
     {
         TrackerApiResponse response = trackerActions
-            .postAndGetJobReport( new File( file) );
+            .postAndGetJobReport( new File( file ) );
 
         response.validateSuccessfulImport()
             .validate()
@@ -127,6 +123,7 @@ public class TrackerImporter_enrollmentsTests
 
         ApiResponse enrollmentResponse = trackerActions.get( "/enrollments/" + enrollmentId );
 
-        assertThat( enrollmentResponse.getBody(), matchesJSON(  enrollmentPayload.get( "enrollments" ).getAsJsonArray().get( 0 ).getAsJsonObject()) );
+        assertThat( enrollmentResponse.getBody(),
+            matchesJSON( enrollmentPayload.get( "enrollments" ).getAsJsonArray().get( 0 ).getAsJsonObject() ) );
     }
 }
