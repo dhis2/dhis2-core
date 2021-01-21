@@ -30,7 +30,6 @@ package org.hisp.dhis.dataelement;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.FileTypeValueOptions;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypeOptions;
@@ -47,34 +46,38 @@ public class DataElementWithValueTypeOptionsTest extends DhisSpringTest
     private DataElementStore dataElementStore;
 
     @Test
-    public void testDeleteAndGetDataElement()
+    public void testSaveGetAndDeleteDataElementWithFileValueTypeOption()
     {
-        DataElement dataElementA = createDataElementWithValueTypeOptions( 'A', null );
-
+        // Save
+        final long maxFileSize = 100L;
+        DataElement dataElementA = createDataElementWithFileValueTypeOptions( 'A', maxFileSize );
         dataElementStore.save( dataElementA );
 
+        // Get the auto-generated id we should have got after calling save
         long idA = dataElementA.getId();
-
         assertNotNull( dataElementStore.get( idA ) );
+        // Fetch with the auto-generated id
+        DataElement fetchedObject = dataElementStore.get( idA );
 
-        dataElementA = dataElementStore.get( idA );
-
-        ValueTypeOptions valueTypeOptions = dataElementA.getValueTypeOptions();
-
+        // Validate the re-fetched object have the same values as the original version
+        ValueTypeOptions valueTypeOptions = fetchedObject.getValueTypeOptions();
         assertNotNull( valueTypeOptions );
         assertEquals( FileTypeValueOptions.class, valueTypeOptions.getClass() );
-        assertEquals( 100L, ((FileTypeValueOptions) valueTypeOptions).getMaxFileSize() );
+        assertEquals( maxFileSize, ((FileTypeValueOptions) valueTypeOptions).getMaxFileSize() );
 
-        dataElementStore.delete( dataElementA );
-
+        // Delete the object
+        dataElementStore.delete( fetchedObject );
+        // Validate the deleted object is actually deleted by trying to re-fetch it
         assertNull( dataElementStore.get( idA ) );
     }
 
-    private DataElement createDataElementWithValueTypeOptions( char uniqueCharacter, CategoryCombo categoryCombo )
+    private DataElement createDataElementWithFileValueTypeOptions( char uniqueCharacter, long maxFileSize )
     {
+        FileTypeValueOptions fileTypeValueOptions = new FileTypeValueOptions();
+        fileTypeValueOptions.setMaxFileSize( maxFileSize );
+
         DataElement dataElement = new DataElement();
         dataElement.setAutoFields();
-
         dataElement.setUid( BASE_DE_UID + uniqueCharacter );
         dataElement.setName( "DataElement" + uniqueCharacter );
         dataElement.setShortName( "DataElementShort" + uniqueCharacter );
@@ -84,20 +87,12 @@ public class DataElementWithValueTypeOptionsTest extends DhisSpringTest
         dataElement.setDomainType( DataElementDomain.AGGREGATE );
         dataElement.setAggregationType( AggregationType.SUM );
         dataElement.setZeroIsSignificant( false );
+        dataElement.setValueTypeOptions( fileTypeValueOptions );
 
-        if ( categoryCombo != null )
-        {
-            dataElement.setCategoryCombo( categoryCombo );
-        }
-        else if ( categoryService != null )
+        if ( categoryService != null )
         {
             dataElement.setCategoryCombo( categoryService.getDefaultCategoryCombo() );
         }
-
-        FileTypeValueOptions cvt = new FileTypeValueOptions();
-        cvt.setMaxFileSize( 100L );
-
-        dataElement.setValueTypeOptions( cvt );
 
         return dataElement;
     }
