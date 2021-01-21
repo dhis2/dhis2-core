@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms;
+package org.hisp.dhis.validation;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -28,38 +28,79 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.system.util.SmsUtils;
-import org.junit.Test;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
-import static org.junit.Assert.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * @author Zubair Asghar
+ * @author Jan Bernitt
  */
-public class SmsUtilsTest
+public class ValidationResultsDeletionRequest
 {
-    @Test
-    public void testSMSTextEncoding()
+
+    private List<String> ou = new ArrayList<>();
+
+    private List<String> vr = new ArrayList<>();
+
+    private String pe;
+
+    private String created;
+
+    private Boolean notificationSent;
+
+    public List<String> getOu()
     {
-        assertEquals( "Hi+User", SmsUtils.encode( "Hi User" ) );
-        assertEquals( "Jeg+er+p%C3%A5+universitetet", SmsUtils.encode( "Jeg er på universitetet" ) );
-        assertEquals( "endelig+oppn%C3%A5+m%C3%A5let", SmsUtils.encode( "endelig oppnå målet" ) );
-        assertEquals( "%D8%B4%D9%83%D8%B1%D8%A7+%D9%84%D9%83%D9%85", SmsUtils.encode( "شكرا لكم" ) );
-        assertEquals( " ", SmsUtils.encode( " " ) );
-        assertNull( SmsUtils.encode( null ) );
+        return ou;
     }
 
-    @Test
-    public void testRemovePhoneNumberPrefix()
+    public void setOu( List<String> ou )
     {
-        assertEquals( "4740123456", SmsUtils.removePhoneNumberPrefix( "004740123456" ) );
-        assertEquals( "4740123456", SmsUtils.removePhoneNumberPrefix( "+4740123456" ) );
+        this.ou = ou;
     }
 
-    @Test
-    public void testBase64Compression()
+    public List<String> getVr()
     {
-        assertTrue( SmsUtils.isBase64( "c2FtcGxlIHNtcyB0ZXh0" ) );
-        assertFalse( SmsUtils.isBase64( "sample sms text" ) );
+        return vr;
+    }
+
+    public void setVr( List<String> vr )
+    {
+        this.vr = vr;
+    }
+
+    public String getPe()
+    {
+        return pe;
+    }
+
+    public void setPe( String pe )
+    {
+        this.pe = pe;
+    }
+
+    public String getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( String created )
+    {
+        this.created = created;
+    }
+
+    public Boolean getNotificationSent()
+    {
+        return notificationSent;
+    }
+
+    public void setNotificationSent( Boolean notificationSent )
+    {
+        this.notificationSent = notificationSent;
+    }
+
+    public boolean isUnconstrained()
+    {
+        return isEmpty( ou ) && isEmpty( vr ) && pe == null && created == null && notificationSent == null;
     }
 }

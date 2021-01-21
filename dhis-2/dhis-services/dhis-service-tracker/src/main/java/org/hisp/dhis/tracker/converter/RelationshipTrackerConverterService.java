@@ -28,7 +28,9 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.relationship.RelationshipEntity.*;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 
 import java.util.Collections;
 import java.util.Date;
@@ -40,6 +42,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -71,10 +74,10 @@ public class RelationshipTrackerConverterService
             Relationship toRelationship = new Relationship();
             toRelationship.setRelationship( fromRelationship.getUid() );
             toRelationship.setBidirectional( fromRelationship.getRelationshipType().isBidirectional() );
-            toRelationship.setCreatedAt( fromRelationship.getCreated().toString() );
+            toRelationship.setCreatedAt( DateUtils.instantFromDate( fromRelationship.getCreated() ) );
             toRelationship.setFrom( convertRelationshipType( fromRelationship.getFrom() ) );
             toRelationship.setTo( convertRelationshipType( fromRelationship.getTo() ) );
-            toRelationship.setUpdatedAt( fromRelationship.getLastUpdated().toString() );
+            toRelationship.setUpdatedAt( DateUtils.instantFromDate( fromRelationship.getLastUpdated() ) );
             toRelationship.setRelationshipType( fromRelationship.getRelationshipType().getUid() );
 
             return toRelationship;

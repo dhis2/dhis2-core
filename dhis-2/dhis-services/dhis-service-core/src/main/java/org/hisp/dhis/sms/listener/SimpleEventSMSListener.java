@@ -111,7 +111,7 @@ public class SimpleEventSMSListener
             throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );
         }
 
-        if ( !program.hasOrganisationUnit( orgUnit ) )
+        if ( !programService.hasOrgUnit( program, orgUnit ) )
         {
             throw new SMSProcessingException( SmsResponse.OU_NOTIN_PROGRAM.set( ouid, progid ) );
         }

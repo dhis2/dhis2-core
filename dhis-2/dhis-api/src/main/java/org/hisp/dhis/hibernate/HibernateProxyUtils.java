@@ -43,17 +43,17 @@ public class HibernateProxyUtils
         throw new IllegalStateException( "Utility class" );
     }
 
-    @SuppressWarnings( { "rawtypes" } )
-    public static Class getRealClass( Object o )
+    @SuppressWarnings("rawtypes")
+    public static Class getRealClass( Object object )
     {
-        Objects.requireNonNull( o );
+        Objects.requireNonNull( object );
 
-        if ( o instanceof Class )
+        if ( object instanceof Class )
         {
             throw new IllegalArgumentException( "Input can't be a Class instance!" );
         }
 
-        return HibernateProxyHelper.getClassWithoutInitializingProxy( o );
+        return HibernateProxyHelper.getClassWithoutInitializingProxy( object );
     }
 
     @SuppressWarnings( { "unchecked" } )

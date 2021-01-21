@@ -35,6 +35,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,10 +57,16 @@ public class TrackedEntity implements TrackerDto
     private String trackedEntityType;
 
     @JsonProperty
-    private String createdAt;
+    private Instant createdAt;
 
     @JsonProperty
-    private String updatedAt;
+    private Instant createdAtClient;
+
+    @JsonProperty
+    private Instant updatedAt;
+
+    @JsonProperty
+    private Instant updatedAtClient;
 
     @JsonProperty
     private String orgUnit;

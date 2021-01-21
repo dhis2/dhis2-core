@@ -28,13 +28,11 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -44,6 +42,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -57,6 +58,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
+import org.springframework.stereotype.Component;
 
 /**
  * This class "collects" identifiers from all input objects.
@@ -66,11 +68,15 @@ import com.google.common.collect.ImmutableSet;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @see org.hisp.dhis.tracker.preheat.DefaultTrackerPreheatService
  */
+@Component
+@RequiredArgsConstructor
 public class TrackerIdentifierCollector
 {
     public final static String ID_WILDCARD = "*";
 
-    public static Map<Class<?>, Set<String>> collect( TrackerImportParams params,
+    private final ProgramRuleService programRuleService;
+
+    public Map<Class<?>, Set<String>> collect( TrackerImportParams params,
         Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults )
     {
         Map<Class<?>, Set<String>> map = new HashMap<>();
@@ -84,10 +90,39 @@ public class TrackerIdentifierCollector
         map.put( RelationshipType.class, ImmutableSet.of( ID_WILDCARD ) );
         collectDefaults( map, params.getIdentifiers(), defaults );
 
+        collectProgramRulesFields( map, params.getIdentifiers() );
         return map;
     }
 
-    private static void collectDefaults( Map<Class<?>, Set<String>> map,
+    private void collectProgramRulesFields( Map<Class<?>, Set<String>> map,
+        TrackerIdentifierParams params )
+    {
+        Set<String> programs = map.get( Program.class );
+        if ( programs != null )
+        {
+            List<ProgramRule> programRules = programRuleService.getProgramRuleByProgram( programs );
+            Set<String> dataElements = programRules.stream()
+                .flatMap( pr -> pr.getProgramRuleActions().stream() )
+                .filter( a -> Objects.nonNull( a.getDataElement() ) )
+                .map( a -> a.getDataElement().getUid() )
+                .collect( Collectors.toSet() );
+
+            dataElements
+                .forEach(
+                    de -> addIdentifier( map, DataElement.class, params.getDataElementIdScheme().getIdScheme(), de ) );
+
+            Set<String> attributes = programRules.stream()
+                .flatMap( pr -> pr.getProgramRuleActions().stream() )
+                .filter( a -> Objects.nonNull( a.getAttribute() ) )
+                .map( a -> a.getAttribute().getUid() )
+                .collect( Collectors.toSet() );
+
+            attributes.forEach( attribute ->
+                addIdentifier( map, TrackedEntityAttribute.class, TrackerIdScheme.UID, attribute ) );
+        }
+    }
+
+    private void collectDefaults( Map<Class<?>, Set<String>> map,
         TrackerIdentifierParams params,
         Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults )
     {
@@ -95,7 +130,7 @@ public class TrackerIdentifierCollector
             addIdentifier( map, defaultClass, params.getIdScheme().getIdScheme(), defaultMetadata.getUid() ) );
     }
 
-    private static void collectTrackedEntities(
+    private void collectTrackedEntities(
         Map<Class<?>, Set<String>> map, TrackerIdentifierParams params, List<TrackedEntity> trackedEntities )
     {
         trackedEntities.forEach( trackedEntity -> {
@@ -106,11 +141,12 @@ public class TrackerIdentifierCollector
 
             collectEnrollments( map, params, trackedEntity.getEnrollments() );
 
-            collectTrackedEntityAttribute( map, trackedEntity.getAttributes() );
+            trackedEntity.getAttributes().forEach( attribute ->
+                addIdentifier( map, TrackedEntityAttribute.class, TrackerIdScheme.UID, attribute.getAttribute() ) );
         } );
     }
 
-    private static void collectEnrollments(
+    private void collectEnrollments(
         Map<Class<?>, Set<String>> map, TrackerIdentifierParams params, List<Enrollment> enrollments )
     {
         enrollments.forEach( enrollment -> {
@@ -119,28 +155,26 @@ public class TrackerIdentifierCollector
             addIdentifier( map, Program.class, params.getProgramIdScheme().getIdScheme(), enrollment.getProgram() );
             addIdentifier( map, OrganisationUnit.class, params.getOrgUnitIdScheme().getIdScheme(),
                 enrollment.getOrgUnit() );
-            
-            collectNotes( map, enrollment.getNotes());
+
+            collectNotes( map, enrollment.getNotes() );
             collectEvents( map, params, enrollment.getEvents() );
-            collectTrackedEntityAttribute( map, enrollment.getAttributes() );
+            enrollment.getAttributes().forEach( attribute ->
+                addIdentifier( map, TrackedEntityAttribute.class, TrackerIdScheme.UID, attribute.getAttribute() ) );
         } );
     }
 
-    private static void collectNotes( Map<Class<?>, Set<String>> map, List<Note> notes )
+    private void collectNotes( Map<Class<?>, Set<String>> map, List<Note> notes )
     {
-        if ( !notes.isEmpty() )
-        {
-            notes.forEach(
-                note -> {
-                    if ( !StringUtils.isEmpty( note.getNote() ) && !StringUtils.isEmpty( note.getValue() ) )
-                    {
-                        addIdentifier( map, TrackedEntityComment.class, TrackerIdScheme.UID, note.getNote() );
-                    }
-                } );
-        }
+        notes.forEach(
+            note -> {
+                if ( !StringUtils.isEmpty( note.getNote() ) && !StringUtils.isEmpty( note.getValue() ) )
+                {
+                    addIdentifier( map, TrackedEntityComment.class, TrackerIdScheme.UID, note.getNote() );
+                }
+            } );
     }
 
-    private static void collectEvents(
+    private void collectEvents(
         Map<Class<?>, Set<String>> map, TrackerIdentifierParams params, List<Event> events )
     {
         events.forEach( event -> {
@@ -169,7 +203,7 @@ public class TrackerIdentifierCollector
         } );
     }
 
-    private static void collectRelationships(
+    private void collectRelationships(
         Map<Class<?>, Set<String>> map, List<Relationship> relationships )
     {
         relationships.parallelStream().forEach( relationship -> {
@@ -190,19 +224,7 @@ public class TrackerIdentifierCollector
         } );
     }
 
-    private static void collectTrackedEntityAttribute(
-        Map<Class<?>, Set<String>> map, List<Attribute> attributes )
-    {
-        if ( attributes.isEmpty() )
-        {
-            return;
-        }
-
-        attributes.forEach( attribute ->
-            addIdentifier( map, TrackedEntityAttribute.class, TrackerIdScheme.UID, attribute.getAttribute() ) );
-    }
-
-    private static <T> void addIdentifier( Map<Class<?>, Set<String>> map,
+    private <T> void addIdentifier( Map<Class<?>, Set<String>> map,
         Class<T> klass, TrackerIdScheme identifier, String str )
     {
         if ( StringUtils.isEmpty( str ) || map == null || klass == null || identifier == null )

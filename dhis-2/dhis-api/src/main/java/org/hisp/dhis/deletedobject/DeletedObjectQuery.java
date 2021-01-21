@@ -30,7 +30,7 @@ package org.hisp.dhis.deletedobject;
 
 import com.google.common.base.MoreObjects;
 import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;

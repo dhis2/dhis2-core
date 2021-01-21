@@ -42,6 +42,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -350,7 +351,7 @@ public class QueryItem
     @Override
     public int hashCode()
     {
-        return item.hashCode();
+        return Objects.hash( item, program, programStage );
     }
 
     @Override
@@ -373,13 +374,17 @@ public class QueryItem
 
         final QueryItem other = (QueryItem) object;
 
-        return item.equals( other.getItem() );
+        return Objects.equals( item, other.getItem() ) &&
+            Objects.equals( program, other.getProgram() ) &&
+            Objects.equals( programStage, other.getProgramStage() );
     }
 
     @Override
     public String toString()
     {
-        return "[Item: " + item + ", legend set: " + legendSet + ", filters: " + filters + ", value type: " + valueType + ", optionSet: " + optionSet + "]";
+        return "[Item: " + item + ", legend set: " + legendSet + ", filters: " + filters +
+            ", value type: " + valueType + ", optionSet: " + optionSet +
+            ", program: " + program + ", program stage: " + programStage + "]";
     }
 
     // -------------------------------------------------------------------------

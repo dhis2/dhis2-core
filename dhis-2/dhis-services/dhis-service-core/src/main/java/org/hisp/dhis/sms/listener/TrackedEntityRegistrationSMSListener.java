@@ -42,6 +42,7 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -82,13 +83,15 @@ public class TrackedEntityRegistrationSMSListener
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     private final ProgramInstanceService programInstanceService;
+    
+    private final ProgramService programService;
 
-    public TrackedEntityRegistrationSMSListener( ProgramInstanceService programInstanceService,
+    public TrackedEntityRegistrationSMSListener( ProgramService programService,
+        ProgramInstanceService programInstanceService,
         CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, SMSCommandService smsCommandService,
-        TrackedEntityTypeService trackedEntityTypeService, TrackedEntityInstanceService trackedEntityInstanceService,
-        ProgramInstanceService programInstanceService1 )
+        TrackedEntityTypeService trackedEntityTypeService, TrackedEntityInstanceService trackedEntityInstanceService )
     {
         super( programInstanceService, dataElementCategoryService, programStageInstanceService, userService,
             currentUserService, incomingSmsService, smsSender );
@@ -101,7 +104,8 @@ public class TrackedEntityRegistrationSMSListener
         this.smsCommandService = smsCommandService;
         this.trackedEntityTypeService = trackedEntityTypeService;
         this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.programInstanceService = programInstanceService1;
+        this.programInstanceService = programInstanceService;
+        this.programService = programService;
     }
 
     // -------------------------------------------------------------------------
@@ -121,7 +125,7 @@ public class TrackedEntityRegistrationSMSListener
 
         OrganisationUnit orgUnit = SmsUtils.selectOrganisationUnit( orgUnits, parsedMessage, smsCommand );
 
-        if ( !program.hasOrganisationUnit( orgUnit ) )
+        if ( !programService.hasOrgUnit( program, orgUnit ) )
         {
             sendFeedback( SMSCommand.NO_OU_FOR_PROGRAM, senderPhoneNumber, WARNING );
 

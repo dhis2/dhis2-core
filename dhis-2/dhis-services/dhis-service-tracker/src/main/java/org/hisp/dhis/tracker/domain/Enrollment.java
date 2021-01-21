@@ -28,15 +28,18 @@ package org.hisp.dhis.tracker.domain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.locationtech.jts.geom.Geometry;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -53,10 +56,16 @@ public class Enrollment implements TrackerDto
     private String enrollment;
 
     @JsonProperty
-    private String createdAt;
+    private Instant createdAt;
 
     @JsonProperty
-    private String updatedAt;
+    private Instant createdAtClient;
+
+    @JsonProperty
+    private Instant updatedAt;
+
+    @JsonProperty
+    private Instant updatedAtClient;
 
     @JsonProperty
     private String trackedEntityType;
@@ -74,10 +83,13 @@ public class Enrollment implements TrackerDto
     private String orgUnit;
 
     @JsonProperty
-    private String enrolledAt;
+    private String orgUnitName;
 
     @JsonProperty
-    private String occurredAt;
+    private Instant enrolledAt;
+
+    @JsonProperty
+    private Instant occurredAt;
 
     @JsonProperty
     private boolean followUp;
@@ -86,7 +98,7 @@ public class Enrollment implements TrackerDto
     private String completedBy;
 
     @JsonProperty
-    private String completedAt;
+    private Instant completedAt;
 
     @JsonProperty
     private boolean deleted;

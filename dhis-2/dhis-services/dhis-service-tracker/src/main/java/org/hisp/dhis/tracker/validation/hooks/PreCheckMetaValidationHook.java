@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1005;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1011;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1029;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1033;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1035;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1041;
@@ -42,6 +43,9 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1089;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1094;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4006;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -102,9 +106,10 @@ public class PreCheckMetaValidationHook
         Program program = context.getProgram( enrollment.getProgram() );
         addErrorIfNull( program,  reporter, E1069, enrollment.getProgram() );
 
-        if ( (program != null && organisationUnit != null) && !program.hasOrganisationUnit( organisationUnit ) )
+        if ( (program != null && organisationUnit != null)
+            && !programHasOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
         {
-            addError( reporter, E1041, organisationUnit, program, program.getOrganisationUnits() );
+            addError( reporter, E1041, organisationUnit, program );
         }
 
         if ( strategy.isUpdate() )
@@ -135,6 +140,13 @@ public class PreCheckMetaValidationHook
             addErrorIf( () -> program.isRegistration() && StringUtils.isEmpty( event.getEnrollment() ), reporter, E1033,
                     event.getEvent() );
         }
+        
+        if ( (program != null && organisationUnit != null)
+            && !programHasOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
+        {
+            addError( reporter, E1029, organisationUnit, program );
+        }
+        
         validateEventProgramAndProgramStage( reporter, event, context, strategy, bundle, program, programStage );
         validateDataElementForDataValues( reporter, event, context );
     }
@@ -229,6 +241,13 @@ public class PreCheckMetaValidationHook
         return program;
     }
 
+    private boolean programHasOrgUnit( Program program, OrganisationUnit orgUnit,
+        Map<Long, List<Long>> programAndOrgUnitsMap )
+    {
+        return programAndOrgUnitsMap.containsKey( program.getId() )
+            && programAndOrgUnitsMap.get( program.getId() ).contains( orgUnit.getId() );
+    } 
+    
     @Override
     public boolean removeOnError()
     {

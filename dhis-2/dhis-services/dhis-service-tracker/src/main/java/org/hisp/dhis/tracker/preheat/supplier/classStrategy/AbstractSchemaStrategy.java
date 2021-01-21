@@ -234,7 +234,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     private List<IdentifiableObject> cacheAndReturnLookupData( Schema schema )
     {
         List<IdentifiableObject> objects;
-        if ( cache.hasKey( buildCacheKey( schema ) ) )
+        if ( cache.hasKey( buildCacheKey( schema ) ) && !cache.getAll( buildCacheKey( schema ) ).isEmpty() )
         {
             objects = new ArrayList<>( cache.getAll( buildCacheKey( schema ) ) );
 
@@ -244,7 +244,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
             objects = manager.getAll( (Class<IdentifiableObject>) schema.getKlass() );
 
             objects.forEach( rt -> cache.put( HibernateProxyUtils.getRealClass( rt ).getSimpleName(),
-                    rt.getUid(), rt, getCacheTTL(), getCapacity() ) );
+                rt.getUid(), rt, getCacheTTL(), getCapacity() ) );
         }
 
         return objects;

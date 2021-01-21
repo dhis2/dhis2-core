@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.validation;
 
 /*
@@ -28,20 +55,32 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.hisp.dhis.expression.Operator.equal_to;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -55,22 +94,16 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.List;
-
-import static org.hisp.dhis.expression.Operator.equal_to;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Jim Grace
@@ -79,6 +112,7 @@ public class ValidationResultStoreTest
     extends TransactionalIntegrationTest
 {
     private static final String ACCESS_NONE = "--------";
+
     private static final String ACCESS_READ = "r-------";
 
     @Autowired
@@ -86,9 +120,6 @@ public class ValidationResultStoreTest
 
     @Autowired
     private ValidationResultStore validationResultStore;
-
-    @Autowired
-    private ValidationResultService validationResultService;
 
     @Autowired
     private PeriodService periodService;
@@ -119,35 +150,51 @@ public class ValidationResultStoreTest
     // -------------------------------------------------------------------------
 
     private Expression expressionA;
+
     private Expression expressionB;
 
     private ValidationRule validationRuleA;
+
     private ValidationRule validationRuleB;
 
     private ValidationResult validationResultAA;
+
     private ValidationResult validationResultAB;
+
     private ValidationResult validationResultAC;
+
     private ValidationResult validationResultBA;
+
     private ValidationResult validationResultBB;
+
     private ValidationResult validationResultBC;
+
     private ValidationResult validationResultCA;
 
     private Period periodA;
+
     private Period periodB;
 
     private OrganisationUnit sourceA;
+
     private OrganisationUnit sourceB;
+
     private OrganisationUnit sourceC;
 
     private CurrentUserService superUserService;
+
     private CurrentUserService userAService;
+
     private CurrentUserService userBService;
+
     private CurrentUserService userCService;
+
     private CurrentUserService userDService;
 
     private User userZ;
 
     private CategoryOption optionA;
+
     private CategoryOption optionB;
 
     private Category categoryA;
@@ -155,10 +202,13 @@ public class ValidationResultStoreTest
     private CategoryCombo categoryComboA;
 
     private CategoryOptionCombo optionComboA;
+
     private CategoryOptionCombo optionComboB;
+
     private CategoryOptionCombo optionComboC;
 
     private CategoryOptionGroup optionGroupA;
+
     private CategoryOptionGroup optionGroupB;
 
     private CategoryOptionGroupSet optionGroupSetB;
@@ -167,9 +217,11 @@ public class ValidationResultStoreTest
     // Set up/tear down helper methods
     // -------------------------------------------------------------------------
 
-    private CurrentUserService getMockCurrentUserService( String userName, boolean superUserFlag, OrganisationUnit orgUnit, String... auths )
+    private CurrentUserService getMockCurrentUserService( String userName, boolean superUserFlag,
+        OrganisationUnit orgUnit, String... auths )
     {
-        CurrentUserService mockCurrentUserService = new MockCurrentUserService( superUserFlag, Sets.newHashSet( orgUnit ), Sets.newHashSet( orgUnit ), auths );
+        CurrentUserService mockCurrentUserService = new MockCurrentUserService( superUserFlag,
+            Sets.newHashSet( orgUnit ), Sets.newHashSet( orgUnit ), auths );
 
         User user = mockCurrentUserService.getCurrentUser();
 
@@ -182,7 +234,7 @@ public class ValidationResultStoreTest
 
         for ( UserAuthorityGroup role : credentials.getUserAuthorityGroups() )
         {
-            role.setName( CodeGenerator.generateUid() ); // Give the role an arbitrary name
+            role.setName( CodeGenerator.generateUid() );
 
             userService.addUserAuthorityGroup( role );
         }
@@ -195,8 +247,6 @@ public class ValidationResultStoreTest
 
     private void setPrivateAccess( BaseIdentifiableObject object, UserGroup... userGroups )
     {
-//        object.setPublicAccess( ACCESS_NONE );
-//        object.setUser( userZ ); // Needed for sharing to work
         object.getSharing().setOwner( userZ );
         object.getSharing().setPublicAccess( ACCESS_NONE );
 
@@ -225,7 +275,8 @@ public class ValidationResultStoreTest
     }
 
     @Override
-    public void setUpTest() throws Exception
+    public void setUpTest()
+        throws Exception
     {
         // ---------------------------------------------------------------------
         // Add supporting data
@@ -349,7 +400,8 @@ public class ValidationResultStoreTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testSaveValidationResult() throws Exception
+    public void testSaveValidationResult()
+        throws Exception
     {
         Date beforeSave = new Date();
         validationResultStore.save( validationResultAA );
@@ -365,86 +417,67 @@ public class ValidationResultStoreTest
         assertEquals( validationResult.getAttributeOptionCombo(), optionComboA );
         assertEquals( validationResult.getLeftsideValue(), (Double) 1.0 );
         assertEquals( validationResult.getRightsideValue(), (Double) 2.0 );
-        assertEquals( validationResult.getDayInPeriod(),3L );
+        assertEquals( validationResult.getDayInPeriod(), 3L );
         assertTrue( validationResult.getCreated().getTime() >= beforeSave.getTime() );
         assertTrue( validationResult.getCreated().getTime() <= afterSave.getTime() );
     }
 
     @Test
-    public void testDeleteValidationResult() throws Exception
+    public void testDeleteValidationResult()
+        throws Exception
     {
         validationResultStore.save( validationResultAA );
         long id = validationResultAA.getId();
 
         validationResultStore.delete( validationResultAA );
-
-        ValidationResult validationResult = validationResultStore.get( id );
-
-        assertNull( validationResult );
+        assertNull( validationResultStore.get( id ) );
     }
 
     @Test
-    public void testGetAllUnreportedValidationResults() throws Exception
+    public void testGetAllUnreportedValidationResults()
+        throws Exception
     {
-        validationResultStore.save( validationResultAA );
-        validationResultStore.save( validationResultAB );
-        validationResultStore.save( validationResultAC );
-        validationResultStore.save( validationResultBA );
-        validationResultStore.save( validationResultBB );
-        validationResultStore.save( validationResultBC );
-
-        List<ValidationResult> results;
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
 
         // Superuser can see all unreported results.
         setMockUserService( superUserService );
-        results = validationResultStore.getAllUnreportedValidationResults();
-        assertEquals( 5, results.size() );
-        assertTrue( results.contains( validationResultAA ) );
-        assertTrue( results.contains( validationResultAC ) );
-        assertTrue( results.contains( validationResultBA ) );
-        assertTrue( results.contains( validationResultBB ) );
-        assertTrue( results.contains( validationResultBC ) );
+        assertEqualSets( asList(
+            validationResultAA, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.getAllUnreportedValidationResults() );
 
         // User A can see all unreported results from sourceA or its children.
         setMockUserService( userAService );
-        results = validationResultStore.getAllUnreportedValidationResults();
-        assertEquals( 5, results.size() );
-        assertTrue( results.contains( validationResultAA ) );
-        assertTrue( results.contains( validationResultAC ) );
-        assertTrue( results.contains( validationResultBA ) );
-        assertTrue( results.contains( validationResultBB ) );
-        assertTrue( results.contains( validationResultBC ) );
+        assertEqualSets( asList(
+            validationResultAA, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.getAllUnreportedValidationResults() );
 
         // User B can see all unreported results from sourceB.
         setMockUserService( userBService );
-        results = validationResultStore.getAllUnreportedValidationResults();
-        assertEquals( 3, results.size() );
-        assertTrue( results.contains( validationResultBA ) );
-        assertTrue( results.contains( validationResultBB ) );
-        assertTrue( results.contains( validationResultBC ) );
+        assertEqualSets( asList( validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.getAllUnreportedValidationResults() );
 
         // User C can see only optionA from sourceB.
         setMockUserService( userCService );
-        results = validationResultStore.getAllUnreportedValidationResults();
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( validationResultBA ) );
+        assertEqualSets( singletonList( validationResultBA ),
+            validationResultStore.getAllUnreportedValidationResults() );
 
         // User D can see only optionB from sourceB.
         setMockUserService( userDService );
-        results = validationResultStore.getAllUnreportedValidationResults();
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( validationResultBB ) );
+        assertEqualSets( singletonList( validationResultBB ),
+            validationResultStore.getAllUnreportedValidationResults() );
     }
 
     @Test
-    public void testGetById() throws Exception
+    public void testGetById()
+        throws Exception
     {
-        validationResultStore.save( validationResultAA );
-        validationResultStore.save( validationResultAB );
-        validationResultStore.save( validationResultAC );
-        validationResultStore.save( validationResultBA );
-        validationResultStore.save( validationResultBB );
-        validationResultStore.save( validationResultBC );
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
 
         setMockUserService( superUserService );
         assertEquals( validationResultAA, validationResultStore.getById( validationResultAA.getId() ) );
@@ -488,93 +521,272 @@ public class ValidationResultStoreTest
     }
 
     @Test
-    public void testQuery() throws Exception
+    public void testQuery()
+        throws Exception
     {
-        validationResultStore.save( validationResultAA );
-        validationResultStore.save( validationResultAB );
-        validationResultStore.save( validationResultAC );
-        validationResultStore.save( validationResultBA );
-        validationResultStore.save( validationResultBB );
-        validationResultStore.save( validationResultBC );
+        List<ValidationResult> expected = asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC );
+        save( expected );
 
-        ValidationResultQuery validationResultQuery = new ValidationResultQuery();
-
-        List<ValidationResult> results;
+        ValidationResultQuery query = new ValidationResultQuery();
 
         setMockUserService( superUserService );
-        results = validationResultStore.query( validationResultQuery );
-        assertEquals( 6, results.size() );
-        assertTrue( results.contains( validationResultAA ) );
-        assertTrue( results.contains( validationResultAB ) );
-        assertTrue( results.contains( validationResultAC ) );
-        assertTrue( results.contains( validationResultBA ) );
-        assertTrue( results.contains( validationResultBB ) );
-        assertTrue( results.contains( validationResultBC ) );
+        assertEqualSets( expected,
+            validationResultStore.query( query ) );
 
         setMockUserService( userAService );
-        results = validationResultStore.query( validationResultQuery );
-        assertEquals( 6, results.size() );
-        assertTrue( results.contains( validationResultAA ) );
-        assertTrue( results.contains( validationResultAB ) );
-        assertTrue( results.contains( validationResultAC ) );
-        assertTrue( results.contains( validationResultBA ) );
-        assertTrue( results.contains( validationResultBB ) );
-        assertTrue( results.contains( validationResultBC ) );
+        assertEqualSets( expected,
+            validationResultStore.query( query ) );
 
         setMockUserService( userBService );
-        results = validationResultStore.query( validationResultQuery );
-        assertEquals( 3, results.size() );
-        assertTrue( results.contains( validationResultBA ) );
-        assertTrue( results.contains( validationResultBB ) );
-        assertTrue( results.contains( validationResultBC ) );
+        assertEqualSets( asList( validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( query ) );
 
         setMockUserService( userCService );
-        results = validationResultStore.query( validationResultQuery );
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( validationResultBA ) );
+        assertEqualSets( singletonList( validationResultBA ),
+            validationResultStore.query( query ) );
 
         setMockUserService( userDService );
-        results = validationResultStore.query( validationResultQuery );
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( validationResultBB ) );
+        assertEqualSets( singletonList( validationResultBB ),
+            validationResultStore.query( query ) );
     }
 
     @Test
-    public void testCount() throws Exception
+    public void testQueryWithOrgUnitFilter()
     {
-        validationResultService.saveValidationResults( Lists.newArrayList( validationResultAA , validationResultAB, validationResultAC, validationResultBA, validationResultBB, validationResultBC ));
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
 
-        ValidationResultQuery validationResultQuery = new ValidationResultQuery();
-
-        int count;
-
+        // test with superuser so user adds no extra restrictions
         setMockUserService( superUserService );
-        count = validationResultStore.count( validationResultQuery );
-        assertEquals( 6, count );
 
-        setMockUserService( userAService );
-        count = validationResultStore.count( validationResultQuery );
-        assertEquals( 6, count );
+        ValidationResultQuery query = new ValidationResultQuery();
 
+        // filter on A gives results for A
+        query.setOu( singletonList( sourceA.getUid() ) );
+        assertEqualSets( asList( validationResultAA, validationResultAB, validationResultAC ),
+            validationResultStore.query( query ) );
+
+        // filter on B gives results for B
+        query.setOu( singletonList( sourceB.getUid() ) );
+        assertEqualSets( asList( validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( query ) );
+
+        // no match case
+        query.setOu( singletonList( sourceC.getUid() ) );
+        assertEqualSets( emptyList(), validationResultStore.query( query ) );
+
+        // case with multiple units
+        query.setOu( asList( sourceB.getUid(), sourceA.getUid() ) );
+        assertEqualSets( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( query ) );
+
+        // now we restrict user to only be able to see Bs
         setMockUserService( userBService );
-        count = validationResultStore.count( validationResultQuery );
-        assertEquals( 3, count );
-
-        setMockUserService( userCService );
-        count = validationResultStore.count( validationResultQuery );
-        assertEquals( 1, count );
-
-        setMockUserService( userDService );
-        count = validationResultStore.count( validationResultQuery );
-        assertEquals( 1, count );
+        // so filtering on As should not give any result
+        query.setOu( singletonList( sourceA.getUid() ) );
+        assertEqualSets( emptyList(), validationResultStore.query( query ) );
     }
 
     @Test
-    public void testGetValidationResults() throws Exception
+    public void testQueryWithValidationRuleFilter()
     {
-        validationResultStore.save( validationResultAA );
-        validationResultStore.save( validationResultBA );
-        validationResultStore.save( validationResultCA );
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        // test with superuser so user adds no extra restrictions
+        setMockUserService( superUserService );
+
+        ValidationResultQuery query = new ValidationResultQuery();
+
+        // filter on A gives results for A
+        query.setVr( singletonList( validationRuleA.getUid() ) );
+        assertEqualSets( asList( validationResultAA, validationResultAB, validationResultAC ),
+            validationResultStore.query( query ) );
+
+        // filter on B gives results for B
+        query.setVr( singletonList( validationRuleB.getUid() ) );
+        assertEqualSets( asList( validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( query ) );
+
+        // case with multiple units
+        query.setVr( asList( validationRuleA.getUid(), validationRuleB.getUid() ) );
+        assertEqualSets( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( query ) );
+
+        // now we restrict user to only be able to see Bs
+        setMockUserService( userBService );
+        // so filtering on As should not give any result
+        query.setVr( singletonList( validationRuleA.getUid() ) );
+        assertEqualSets( emptyList(), validationResultStore.query( query ) );
+    }
+
+    @Test
+    public void testQueryWithIsoPeriodFilter()
+    {
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        // test with superuser so user adds no extra restrictions
+        setMockUserService( superUserService );
+
+        ValidationResultQuery query = new ValidationResultQuery();
+
+        // periodA is Jan 2017, periodB is Feb 2017
+        // monthly ISO pattern: YYYY-MM
+        query.setPe( singletonList( "2017-01" ) );
+        assertEqualSets( asList( validationResultAA, validationResultAB, validationResultAC ),
+            validationResultStore.query( query ) );
+
+        query.setPe( asList( "2017-01", "2017-02" ) );
+        assertEqualSets( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( query ) );
+
+        // QUARTERLY
+        query.setPe( singletonList( "2017Q1" ) );
+        assertEqualSets( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( query ) );
+
+        // YEARLY
+        query.setPe( singletonList( "2017" ) );
+        assertEqualSets( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( query ) );
+
+        // WEEKLY
+        query.setPe( singletonList( "2017W3" ) );
+        assertEqualSets( asList( validationResultAA, validationResultAB, validationResultAC ),
+            validationResultStore.query( query ) );
+    }
+
+    @Test
+    public void testQueryWithCreatedDateFilter()
+    {
+        Date beforeA = new Date();
+        wait1ms();
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC ) );
+        wait1ms();
+        Date beforeB = new Date();
+        wait1ms();
+        save( asList(
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        // B and onwards gives Bs
+        ValidationResultQuery query = new ValidationResultQuery();
+        query.setCreatedDate( beforeB );
+        assertEqualSets( asList( validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( query ) );
+
+        // A and onwards gives As and Bs
+        query.setCreatedDate( beforeA );
+        assertEqualSets( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( query ) );
+
+        // after A and B onwards => none
+        wait1ms();
+        query.setCreatedDate( new Date() );
+        assertEqualSets( emptyList(), validationResultStore.query( query ) );
+    }
+
+    @Test
+    public void testQueryWithMultipleFilters()
+    {
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        // test with superuser so user adds no extra restrictions
+        setMockUserService( superUserService );
+
+        // filter on A gives results for A
+        ValidationResultQuery query = new ValidationResultQuery();
+        query.setPe( singletonList( "2017" ) );
+        query.setVr( singletonList( validationRuleA.getUid() ) );
+        query.setOu( singletonList( sourceA.getUid() ) );
+        assertEqualSets( asList( validationResultAA, validationResultAB, validationResultAC ),
+            validationResultStore.query( query ) );
+
+        // filter mutual exclusive gives empty result
+        query.setVr( singletonList( validationRuleA.getUid() ) );
+        query.setOu( singletonList( sourceB.getUid() ) );
+        assertEqualSets( emptyList(), validationResultStore.query( query ) );
+    }
+
+    @Test
+    public void testCount()
+        throws Exception
+    {
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        ValidationResultQuery query = new ValidationResultQuery();
+
+        setMockUserService( superUserService );
+        assertEquals( 6, validationResultStore.count( query ) );
+
+        setMockUserService( userAService );
+        assertEquals( 6, validationResultStore.count( query ) );
+
+        setMockUserService( userBService );
+        assertEquals( 3, validationResultStore.count( query ) );
+
+        setMockUserService( userCService );
+        assertEquals( 1, validationResultStore.count( query ) );
+
+        setMockUserService( userDService );
+        assertEquals( 1, validationResultStore.count( query ) );
+    }
+
+    /**
+     * The exact logic of the filters is tested in depth for the query method
+     * which shares the filter logic with count. This test should just make sure
+     * that the count method used with filters has no general issues.
+     */
+    @Test
+    public void testCountWithFilters()
+    {
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        ValidationResultQuery query = new ValidationResultQuery();
+
+        // org unit filter
+        query.setOu( singletonList( sourceA.getUid() ) );
+        assertEquals( 3, validationResultStore.count( query ) );
+
+        // period filter
+        query.setVr( singletonList( validationRuleA.getUid() ) );
+        assertEquals( 3, validationResultStore.count( query ) );
+
+        // period filter
+        query.setPe( singletonList( "2017-01" ) );
+        assertEquals( 3, validationResultStore.count( query ) );
+    }
+
+    @Test
+    public void testGetValidationResults()
+        throws Exception
+    {
+        save( asList(
+            validationResultAA, validationResultBA, validationResultCA ) );
 
         List<ValidationRule> rulesA = Lists.newArrayList( validationRuleA );
         List<ValidationRule> rulesAB = Lists.newArrayList( validationRuleA, validationRuleB );
@@ -582,34 +794,162 @@ public class ValidationResultStoreTest
         List<Period> periodsB = Lists.newArrayList( periodB );
         List<Period> periodsAB = Lists.newArrayList( periodA, periodB );
 
-        List<ValidationResult> results;
+        assertEqualSets( singletonList( validationResultAA ),
+            validationResultStore.getValidationResults( null, false, rulesA, periodsAB ) );
 
-        results = validationResultStore.getValidationResults( null, false, rulesA, periodsAB );
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( validationResultAA ) );
+        assertEqualSets( asList( validationResultBA, validationResultCA ),
+            validationResultStore.getValidationResults( null, true, rulesAB, periodsB ) );
 
-        results = validationResultStore.getValidationResults( null, true, rulesAB, periodsB );
-        assertEquals( 2, results.size() );
-        assertTrue( results.contains( validationResultBA ) );
-        assertTrue( results.contains( validationResultCA ) );
+        assertEqualSets( asList( validationResultAA, validationResultBA, validationResultCA ),
+            validationResultStore.getValidationResults( null, true, rulesAB, periodsAB ) );
 
-        results = validationResultStore.getValidationResults( null, true, rulesAB, periodsAB );
-        assertEquals( 3, results.size() );
-        assertTrue( results.contains( validationResultAA ) );
-        assertTrue( results.contains( validationResultBA ) );
-        assertTrue( results.contains( validationResultCA ) );
+        assertEqualSets( asList( validationResultAA, validationResultBA ),
+            validationResultStore.getValidationResults( sourceA, true, rulesAB, periodsAB ) );
 
-        results = validationResultStore.getValidationResults( sourceA, true, rulesAB, periodsAB );
-        assertEquals( 2, results.size() );
-        assertTrue( results.contains( validationResultAA ) );
-        assertTrue( results.contains( validationResultBA ) );
+        assertEqualSets( singletonList( validationResultAA ),
+            validationResultStore.getValidationResults( sourceA, false, rulesAB, periodsAB ) );
 
-        results = validationResultStore.getValidationResults( sourceA, false, rulesAB, periodsAB );
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( validationResultAA ) );
+        assertEqualSets( singletonList( validationResultBA ),
+            validationResultStore.getValidationResults( sourceB, false, rulesAB, periodsAB ) );
+    }
 
-        results = validationResultStore.getValidationResults( sourceB, false, rulesAB, periodsAB );
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( validationResultBA ) );
+    @Test
+    public void testDeleteObject()
+    {
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        validationResultStore.delete( validationResultAA );
+
+        assertEqualSets( asList( validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( new ValidationResultQuery() ) );
+    }
+
+    @Test
+    public void testDeleteByRequestWithOrganisationUnit()
+    {
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        ValidationResultsDeletionRequest request = new ValidationResultsDeletionRequest();
+        request.setOu( singletonList( sourceA.getUid() ) );
+        validationResultStore.delete( request );
+
+        assertEqualSets( asList(
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( new ValidationResultQuery() ) );
+    }
+
+    @Test
+    public void testDeleteByRequestWithValidationRule()
+    {
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        ValidationResultsDeletionRequest request = new ValidationResultsDeletionRequest();
+        request.setVr( singletonList( validationRuleA.getUid() ) );
+        validationResultStore.delete( request );
+
+        assertEqualSets( asList(
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( new ValidationResultQuery() ) );
+    }
+
+    @Test
+    public void testDeleteByRequestWithPeriod()
+    {
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        ValidationResultsDeletionRequest request = new ValidationResultsDeletionRequest();
+        request.setPe( periodA.getUid() );
+        validationResultStore.delete( request );
+
+        assertEqualSets( asList(
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( new ValidationResultQuery() ) );
+    }
+
+    @Test
+    public void testDeleteByRequestWithCreatedPeriod()
+    {
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        ValidationResultsDeletionRequest request = new ValidationResultsDeletionRequest();
+        request.setCreated( "" + LocalDate.now().getYear() );
+        validationResultStore.delete( request );
+
+        assertEqualSets( emptyList(), validationResultStore.query( new ValidationResultQuery() ) );
+    }
+
+    @Test
+    public void testDeleteByRequestWithNotificationSent()
+    {
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        ValidationResultsDeletionRequest request = new ValidationResultsDeletionRequest();
+        request.setNotificationSent( true ); // AB is saved with true, others with false
+        validationResultStore.delete( request );
+
+        assertEqualSets( asList(
+            validationResultAA, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( new ValidationResultQuery() ) );
+    }
+
+    @Test
+    public void testDeleteByRequestWithMultipleCriteria()
+    {
+        save( asList(
+            validationResultAA, validationResultAB, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ) );
+
+        ValidationResultsDeletionRequest request = new ValidationResultsDeletionRequest();
+        request.setOu( singletonList( sourceA.getUid() ) );
+        request.setVr( singletonList( validationRuleA.getUid() ) );
+        request.setPe( periodA.getUid() );
+        request.setNotificationSent( true );
+        validationResultStore.delete( request );
+
+        // Ou, Vr and Pe match all As but notificationSent matches only AB
+        assertEqualSets( asList(
+            validationResultAA, validationResultAC,
+            validationResultBA, validationResultBB, validationResultBC ),
+            validationResultStore.query( new ValidationResultQuery() ) );
+    }
+
+    private void save( Iterable<ValidationResult> results )
+    {
+        for ( ValidationResult r : results )
+            validationResultStore.save( r );
+    }
+
+    private static <T> void assertEqualSets( Collection<T> expected, Collection<T> actual )
+    {
+        assertEquals( expected.size(), actual.size() );
+        if ( expected.size() == 1 )
+        {
+            assertEquals( expected, actual );
+        }
+        else
+        {
+            assertEquals( new HashSet<>( expected ), new HashSet<>( actual ) );
+        }
+    }
+
+    private void wait1ms()
+    {
+        long now = System.currentTimeMillis();
+        while ( now >= System.currentTimeMillis() )
+            ; // busy wait 1 ms
     }
 }

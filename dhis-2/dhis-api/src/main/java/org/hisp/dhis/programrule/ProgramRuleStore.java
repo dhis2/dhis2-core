@@ -47,21 +47,29 @@ public interface ProgramRuleStore
      * @return ProgramRuleVariable list
      */
     List<ProgramRule> get( Program program );
-    
+
     /**
      * Returns a {@link ProgramRule}.
      *
-     * @param name the name of the ProgramRule to return.
+     * @param name    the name of the ProgramRule to return.
      * @param program {@link Program}.
      * @return the ProgramRule with the given name
      */
     ProgramRule getByName( String name, Program program );
 
     /**
+     * Returns all {@link ProgramRule} by program.
+     *
+     * @param programIds
+     * @return ProgramRule list
+     */
+    List<ProgramRule> getByProgram( Set<String> programIds );
+
+    /**
      * Get validation by {@link Program}
      *
      * @param program Program
-     * @param key Search Program Rule by key
+     * @param key     Search Program Rule by key
      * @return ProgramRule list
      */
     List<ProgramRule> get( Program program, String key );

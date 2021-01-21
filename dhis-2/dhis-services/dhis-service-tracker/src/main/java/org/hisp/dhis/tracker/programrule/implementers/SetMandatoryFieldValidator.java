@@ -34,6 +34,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.programrule.*;
@@ -82,22 +83,24 @@ public class SetMandatoryFieldValidator
     List<ProgramRuleIssue> applyToEnrollments( Map.Entry<String, List<EnrollmentActionRule>> enrollmentActionRules,
         TrackerBundle bundle )
     {
-        return getTrackedEntityFromEnrollment( bundle, enrollmentActionRules.getKey() )
-            .map( tei -> checkMandatoryTeiAttribute( tei, enrollmentActionRules.getValue() ) )
-            .orElse( Lists.newArrayList() );
+        return enrollmentActionRules.getValue().stream()
+            .flatMap( actionRule -> checkMandatoryEnrollmentAttribute( actionRule.getEnrollment(),
+                enrollmentActionRules.getValue() ).stream() )
+            .collect( Collectors.toList() );
     }
 
-    private List<ProgramRuleIssue> checkMandatoryTeiAttribute( TrackedEntity tei, List<EnrollmentActionRule> effects )
+    private List<ProgramRuleIssue> checkMandatoryEnrollmentAttribute( Enrollment enrollment,
+        List<EnrollmentActionRule> effects )
     {
         return effects.stream()
             .map( action -> {
-                String teiAttributeUid = action.getField();
-                Optional<Attribute> any = tei.getAttributes().stream()
-                    .filter( teiAttribute -> teiAttribute.getAttribute().equals( teiAttributeUid ) )
+                String attributeUid = action.getField();
+                Optional<Attribute> any = enrollment.getAttributes().stream()
+                    .filter( attribute -> attribute.getAttribute().equals( attributeUid ) )
                     .findAny();
-                if ( any.isPresent() && StringUtils.isEmpty( any.get().getValue() ) )
+                if ( !any.isPresent() || StringUtils.isEmpty( any.get().getValue() ) )
                 {
-                    return TrackerReportUtils.formatMessage( TrackerErrorCode.E1306, teiAttributeUid );
+                    return TrackerReportUtils.formatMessage( TrackerErrorCode.E1306, attributeUid );
                 }
                 else
                 {

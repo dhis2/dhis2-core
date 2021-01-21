@@ -80,6 +80,7 @@ public class OrderingHelper
         }
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static Comparator<BaseDimensionalItemObject> getComparator( final String orderingParam )
     {
         final String[] orderingAttributes = split( orderingParam, ":" );

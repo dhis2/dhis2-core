@@ -35,6 +35,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.ValueType;
 
+import java.time.Instant;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -51,10 +53,13 @@ public class Attribute
     private String code;
 
     @JsonProperty
-    private String createdAt;
+    private String displayName;
 
     @JsonProperty
-    private String updatedAt;
+    private Instant createdAt;
+
+    @JsonProperty
+    private Instant updatedAt;
 
     @JsonProperty
     private String storedBy;

@@ -48,6 +48,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
@@ -89,6 +90,9 @@ public class EventSecurityImportValidationTest
 
     @Autowired
     private ProgramStageInstanceService programStageServiceInstance;
+
+    @Autowired
+    private ProgramService programService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -257,6 +261,11 @@ public class EventSecurityImportValidationTest
         OrganisationUnit qfUVllTs6cS = organisationUnitService.getOrganisationUnit( "QfUVllTs6cS" );
         user.addOrganisationUnit( qfUVllTs6cS );
         user.addOrganisationUnit( organisationUnitA );
+
+        Program p = programService.getProgram( "prabcdefghA" );
+        p.addOrganisationUnit( qfUVllTs6cS );
+
+        programService.updateProgram( p );
 
         manager.update( user );
     }

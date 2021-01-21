@@ -58,6 +58,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
+import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -67,12 +68,6 @@ import static org.mockito.Mockito.when;
 public class SetMandatoryFieldValidatorTest
     extends DhisConvenienceTest
 {
-
-    private final static String CONTENT = "SHOW ERROR DATA";
-
-    private final static String DATA = "2 + 2";
-
-    private final static String EVALUATED_DATA = "4.0";
 
     private final static String ACTIVE_ENROLLMENT_ID = "ActiveEnrollmentUid";
 
@@ -114,6 +109,7 @@ public class SetMandatoryFieldValidatorTest
         firstProgramStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
 
         dataElementA = createDataElement( 'A' );
+        dataElementA.setUid( DATA_ELEMENT_ID );
         ProgramStageDataElement programStageDataElementA = createProgramStageDataElement( firstProgramStage,
             dataElementA, 0 );
         firstProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementA ) );
@@ -189,7 +185,6 @@ public class SetMandatoryFieldValidatorTest
     }
 
     @Test
-    @Ignore // TODO: fix the logic in the implementer
     public void testValidateWithErrorMandatoryFieldsForEnrollments()
     {
         bundle.setEnrollments(
@@ -254,7 +249,7 @@ public class SetMandatoryFieldValidatorTest
     {
         DataValue dataValue = new DataValue();
         dataValue.setValue( DATA_ELEMENT_VALUE );
-        dataValue.setDataElement( dataElementA.getUid() );
+        dataValue.setDataElement( DATA_ELEMENT_ID );
         return Sets.newHashSet( dataValue );
     }
 
@@ -289,14 +284,6 @@ public class SetMandatoryFieldValidatorTest
         return Lists.newArrayList( attribute );
     }
 
-    private Map<String, List<RuleEffect>> getRuleEventEffectsLinkedToDataElement()
-    {
-        Map<String, List<RuleEffect>> ruleEffectsByEvent = Maps.newHashMap();
-        ruleEffectsByEvent.put( FIRST_EVENT_ID, getRuleEffectsLinkedToDataElement() );
-        ruleEffectsByEvent.put( SECOND_EVENT_ID, getRuleEffectsLinkedToDataElement() );
-        return ruleEffectsByEvent;
-    }
-
     private Map<String, List<RuleEffect>> getRuleEventEffects()
     {
         Map<String, List<RuleEffect>> ruleEffectsByEvent = Maps.newHashMap();
@@ -315,25 +302,12 @@ public class SetMandatoryFieldValidatorTest
 
     private List<RuleEffect> getRuleEffects()
     {
-        RuleAction actionAssign = RuleActionSetMandatoryField.create( dataElementA.getUid(), DATA_ELEMENT );
+        RuleAction ruleActionSetMandatoryDataValue = RuleActionSetMandatoryField
+            .create( DATA_ELEMENT_ID, DATA_ELEMENT );
+        RuleAction ruleActionSetMandatoryAttribute = RuleActionSetMandatoryField
+            .create( ATTRIBUTE_ID, TRACKED_ENTITY_ATTRIBUTE );
 
-        return Lists.newArrayList( RuleEffect.create( actionAssign ) );
-    }
-
-    private List<RuleEffect> getRuleEffectsLinkedToDataElement()
-    {
-        RuleAction actionShowWarning = RuleActionShowWarning
-            .create( IssueType.WARNING.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
-        RuleAction actionShowWarningOnComplete = RuleActionWarningOnCompletion
-            .create( IssueType.WARNING.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
-        RuleAction actionShowError = RuleActionShowError
-            .create( ERROR.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
-        RuleAction actionShowErrorOnCompletion = RuleActionErrorOnCompletion
-            .create( ERROR.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
-
-        return Lists.newArrayList( RuleEffect.create( actionShowWarning, EVALUATED_DATA ),
-            RuleEffect.create( actionShowWarningOnComplete, EVALUATED_DATA ),
-            RuleEffect.create( actionShowError, EVALUATED_DATA ),
-            RuleEffect.create( actionShowErrorOnCompletion, EVALUATED_DATA ) );
+        return Lists.newArrayList( RuleEffect.create( ruleActionSetMandatoryAttribute ),
+            RuleEffect.create( ruleActionSetMandatoryDataValue ) );
     }
 }

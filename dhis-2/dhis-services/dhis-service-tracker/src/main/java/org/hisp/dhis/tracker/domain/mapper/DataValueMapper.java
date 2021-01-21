@@ -32,7 +32,7 @@ import org.hisp.dhis.tracker.domain.DataValue;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper
+@Mapper( uses = InstantMapper.class )
 public interface DataValueMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.DataValue, DataValue>
 {
     @Mapping( target = "createdAt", source = "created" )

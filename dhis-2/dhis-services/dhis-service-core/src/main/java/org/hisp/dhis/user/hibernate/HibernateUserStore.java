@@ -222,8 +222,7 @@ public class HibernateUserStore
         if ( params.getQuery() != null )
         {
             hql += hlp.whereAnd() + " (" +
-                "lower(u.firstName) like :key " +
-                "or lower(u.surname) like :key " +
+                "concat(lower(u.firstName),' ',lower(u.surname)) like :key " +
                 "or lower(u.email) like :key " +
                 "or lower(uc.username) like :key) ";
         }
@@ -381,14 +380,17 @@ public class HibernateUserStore
             query.setParameterList( "userGroupIds", userGroupIds );
         }
 
-        if ( params.getFirst() != null )
+        if ( !count )
         {
-            query.setFirstResult( params.getFirst() );
-        }
+            if ( params.getFirst() != null )
+            {
+                query.setFirstResult( params.getFirst() );
+            }
 
-        if ( params.getMax() != null )
-        {
-            query.setMaxResults( params.getMax() ).list();
+            if ( params.getMax() != null )
+            {
+                query.setMaxResults( params.getMax() );
+            }
         }
 
         return query;

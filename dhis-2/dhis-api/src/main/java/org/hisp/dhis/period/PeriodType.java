@@ -46,6 +46,8 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 
 import java.io.Serializable;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -240,6 +242,22 @@ public abstract class PeriodType
         }
 
         return periods;
+    }
+
+    /**
+     * Returns the ISO period name for the given {@link ResultSet} row. Requires
+     * that a column <code>pe_start_date</code> of type date and a column
+     * <code>pt_name</code> are present.
+     *
+     * @param calendar the {@link Calendar}.
+     * @param rs the {@link ResultSet}.
+     * @return the ISO period name.
+     */
+    public static String getIsoPeriod( org.hisp.dhis.calendar.Calendar calendar, String periodType, Date startDate )
+        throws SQLException
+    {
+        final PeriodType pt = PeriodType.getPeriodTypeByName( periodType );
+        return pt.createPeriod( startDate, calendar ).getIsoDate();
     }
 
     // -------------------------------------------------------------------------

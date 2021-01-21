@@ -28,14 +28,29 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -43,7 +58,11 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
-import org.hisp.dhis.trackedentity.*;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -55,9 +74,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import com.google.common.collect.Sets;
 
 /**
  * @author Zubair Asghar.
@@ -103,6 +120,8 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     @Mock
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
+    @Mock
+    private ProgramService programService;
 
     private TrackedEntityRegistrationSMSListener subject;
 
@@ -128,9 +147,11 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     @Before
     public void initTest()
     {
-        subject = new TrackedEntityRegistrationSMSListener( programInstanceService, dataElementCategoryService,
-                programStageInstanceService, userService, currentUserService, incomingSmsService, smsSender, smsCommandService,
-                trackedEntityTypeService, trackedEntityInstanceService, programInstanceService);
+        subject = new TrackedEntityRegistrationSMSListener( programService, programInstanceService,
+            dataElementCategoryService,
+            programStageInstanceService, userService, currentUserService, incomingSmsService, smsSender,
+            smsCommandService,
+            trackedEntityTypeService, trackedEntityInstanceService );
 
         setUpInstances();
 
@@ -146,7 +167,9 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         when( smsSender.sendMessage( any(), any(), anyString() ) ).thenAnswer( invocation -> {
             message = (String) invocation.getArguments()[1];
             return response;
-        });
+        } );
+
+        when( programService.hasOrgUnit( program, organisationUnit ) ).thenReturn( false );
     }
 
     @Test
@@ -155,7 +178,8 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         // Mock for trackedEntityInstanceService
         when( trackedEntityInstanceService.createTrackedEntityInstance( any(), any() ) ).thenReturn( 1L );
         when( trackedEntityInstanceService.getTrackedEntityInstance( anyLong() ) ).thenReturn( trackedEntityInstance );
-
+        when( programService.hasOrgUnit( program, organisationUnit ) ).thenReturn( true );
+        
         // Mock for incomingSmsService
         doAnswer( invocation -> {
             updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];

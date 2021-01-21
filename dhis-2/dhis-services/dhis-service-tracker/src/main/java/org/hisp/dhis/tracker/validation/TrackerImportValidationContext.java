@@ -28,8 +28,13 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Preconditions;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import lombok.Data;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.category.CategoryOption;
@@ -56,10 +61,8 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import com.google.common.base.Preconditions;
+
 // TODO is this class really needed? what is the purpose of this class and why aren't the two caches moved to preheat?
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -182,7 +185,7 @@ public class TrackerImportValidationContext
         return bundle.getPreheat().get( TrackedEntityType.class, id );
     }
 
-    public RelationshipType getRelationShipType(String id )
+    public RelationshipType getRelationShipType( String id )
     {
         return bundle.getPreheat().get( RelationshipType.class, id );
     }
@@ -196,7 +199,7 @@ public class TrackerImportValidationContext
     {
         return bundle.getPreheat().getEnrollment( bundle.getIdentifier(), id );
     }
-    
+
     public boolean programInstanceHasEvents( String programInstanceUid )
     {
         return bundle.getPreheat().getProgramInstanceWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
@@ -251,9 +254,14 @@ public class TrackerImportValidationContext
     {
         return bundle.getPreheat().getReference( uid );
     }
-    
+
     public TrackerIdentifierParams getIdentifiers()
     {
         return bundle.getPreheat().getIdentifiers();
+    }
+
+    public Map<Long, List<Long>> getProgramWithOrgUnitsMap()
+    {
+        return bundle.getPreheat().getProgramWithOrgUnitsMap();
     }
 }

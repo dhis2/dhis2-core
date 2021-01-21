@@ -28,9 +28,25 @@ package org.hisp.dhis.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
+import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.period.Period;
@@ -47,29 +63,21 @@ import org.joda.time.format.DateTimeParser;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 
-import java.sql.Timestamp;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
  */
 public class DateUtils
 {
-    private static DateTimeFormatter ISO8601 = DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSZ" );
-    private static DateTimeFormatter ISO8601_NO_TZ = DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSS" );
+    public static final String ISO8601_NO_TZ_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+
+    private static DateTimeFormatter ISO8601_NO_TZ = DateTimeFormat.forPattern( ISO8601_NO_TZ_PATTERN );
+
+    public static final String ISO8601_PATTERN = ISO8601_NO_TZ_PATTERN + "Z";
+
+    private static DateTimeFormatter ISO8601 = DateTimeFormat.forPattern( ISO8601_PATTERN );
 
     private static final String DEFAULT_DATE_REGEX = "\\b(?<year>\\d{4})-(?<month>0[1-9]|1[0-2])-(?<day>0[1-9]|[1-2][0-9]|3[0-2])(?<time>.*)\\b";
     private static final Pattern DEFAULT_DATE_REGEX_PATTERN = Pattern.compile( DEFAULT_DATE_REGEX );
@@ -682,6 +690,40 @@ public class DateUtils
     public static Date parseDate( final String dateString )
     {
         return safeParseDateTime( dateString, DATE_FORMATTER );
+    }
+
+    /**
+     * Null safe instant to date conversion
+     *
+     * @param instant the instant
+     * @return a date.
+     */
+    public static Date fromInstant( final Instant instant )
+    {
+        return convertOrNull( instant, Date::from );
+    }
+
+    /**
+     * Null safe date to instant conversion
+     *
+     * @param date the date
+     * @return an instant.
+     */
+    public static Instant instantFromDate( final Date date )
+    {
+        return convertOrNull( date, Date::toInstant );
+    }
+
+    public static Instant instantFromDateAsString( String dateAsString )
+    {
+        return convertOrNull( DateUtils.parseDate( dateAsString ), Date::toInstant );
+    }
+
+    private static <T, R> R convertOrNull( T from, Function<T, R> converter )
+    {
+        return Optional.ofNullable( from )
+            .map( converter )
+            .orElse( null );
     }
 
     /**

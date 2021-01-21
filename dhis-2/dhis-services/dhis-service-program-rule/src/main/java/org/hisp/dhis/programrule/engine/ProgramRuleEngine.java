@@ -51,6 +51,7 @@ import org.hisp.dhis.rules.RuleEngine;
 import org.hisp.dhis.rules.RuleEngineContext;
 import org.hisp.dhis.rules.RuleEngineIntent;
 import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAuthorityGroup;
 
@@ -100,12 +101,18 @@ public class ProgramRuleEngine
 
     public List<RuleEffect> evaluate( ProgramInstance enrollment, Set<ProgramStageInstance> events )
     {
-        return evaluateProgramRules( enrollment, null, events, enrollment.getProgram() );
+        return evaluate( enrollment, events, Lists.newArrayList() );
+    }
+
+    public List<RuleEffect> evaluate( ProgramInstance enrollment, Set<ProgramStageInstance> events,
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
+    {
+        return evaluateProgramRules( enrollment, null, events, enrollment.getProgram(), trackedEntityAttributeValues );
     }
 
     public List<RuleEffect> evaluateProgramEvent( ProgramStageInstance event, Program program )
     {
-        return evaluateProgramRules( null, event, Sets.newHashSet(), program );
+        return evaluateProgramRules( null, event, Sets.newHashSet(), program, Lists.newArrayList() );
     }
 
     public List<RuleEffect> evaluate( ProgramInstance enrollment, ProgramStageInstance programStageInstance,
@@ -115,17 +122,19 @@ public class ProgramRuleEngine
         {
             return Lists.newArrayList();
         }
-        return evaluateProgramRules( enrollment, programStageInstance, events, enrollment.getProgram() );
+        return evaluateProgramRules( enrollment, programStageInstance, events, enrollment.getProgram(),
+            Lists.newArrayList() );
     }
 
     private List<RuleEffect> evaluateProgramRules( ProgramInstance enrollment,
-        ProgramStageInstance programStageInstance, Set<ProgramStageInstance> events, Program program )
+        ProgramStageInstance programStageInstance, Set<ProgramStageInstance> events, Program program,
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
         List<RuleEvent> ruleEvents = getRuleEvents( events, programStageInstance );
 
-        RuleEnrollment ruleEnrollment = getRuleEnrollment( enrollment );
+        RuleEnrollment ruleEnrollment = getRuleEnrollment( enrollment, trackedEntityAttributeValues );
 
         try
         {
@@ -271,9 +280,10 @@ public class ProgramRuleEngine
         return programRuleEntityMapperService.toMappedRuleEvents( events, programStageInstance );
     }
 
-    private RuleEnrollment getRuleEnrollment( ProgramInstance enrollment )
+    private RuleEnrollment getRuleEnrollment( ProgramInstance enrollment,
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
-        return programRuleEntityMapperService.toMappedRuleEnrollment( enrollment );
+        return programRuleEntityMapperService.toMappedRuleEnrollment( enrollment, trackedEntityAttributeValues );
     }
 
     private List<RuleEffect> getRuleEngineEvaluation( RuleEngine ruleEngine, RuleEnrollment enrollment,

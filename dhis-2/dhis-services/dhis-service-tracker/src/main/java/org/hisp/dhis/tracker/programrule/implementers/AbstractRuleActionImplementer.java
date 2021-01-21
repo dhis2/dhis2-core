@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.rules.models.AttributeType.*;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
 
 abstract public class AbstractRuleActionImplementer<T extends RuleAction>
@@ -142,10 +143,10 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                         .map( effect -> new EventActionRule( event, effect.data(),
                             getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ) ) )
-                        .filter( effect -> effect.getAttributeType() != AttributeType.DATA_ELEMENT ||
+                        .filter( effect -> effect.getAttributeType() != DATA_ELEMENT ||
                             isDataElementPartOfProgramStage( effect.getField(), programStage ) )
                         .filter(
-                            effect -> effect.getAttributeType() != AttributeType.DATA_ELEMENT ||
+                            effect -> effect.getAttributeType() != DATA_ELEMENT ||
                                 needsToValidateDataValues( event, programStage ) )
                         .collect( Collectors.toList() );
                     return eventActionRules;
@@ -173,7 +174,9 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                     .map( effect -> new EnrollmentActionRule(
                         getEnrollment( bundle, e.getKey() ).get(), effect.data(),
                         getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
-                        getContent( (T) effect.ruleAction() )) )
+                        getContent( (T) effect.ruleAction() ) ) )
+                    .filter( actionRule -> actionRule.getAttributeType() == UNKNOWN ||
+                        actionRule.getAttributeType() == TRACKED_ENTITY_ATTRIBUTE )
                     .collect( Collectors.toList() ) ) );
     }
 
@@ -202,7 +205,7 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
             return ((RuleActionAttribute) ruleAction).attributeType();
         }
 
-        return AttributeType.UNKNOWN;
+        return UNKNOWN;
     }
 
     protected Optional<Event> getEvent( TrackerBundle bundle, String eventUid )

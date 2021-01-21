@@ -29,12 +29,14 @@ package org.hisp.dhis.tracker.domain.mapper;
  */
 
 import org.hisp.dhis.tracker.domain.Note;
+import org.hisp.dhis.util.DateUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper
+@Mapper( uses = InstantMapper.class )
 public interface NoteMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Note, Note>
 {
     @Mapping( target = "storedAt", source = "storedDate" )
+    @Mapping( target = "updatedAt", source = "lastUpdated", dateFormat = DateUtils.ISO8601_NO_TZ_PATTERN )
     Note from( org.hisp.dhis.dxf2.events.event.Note note );
 }

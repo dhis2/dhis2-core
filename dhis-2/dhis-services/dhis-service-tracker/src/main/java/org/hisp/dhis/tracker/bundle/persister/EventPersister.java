@@ -28,7 +28,19 @@ package org.hisp.dhis.tracker.bundle.persister;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang3.StringUtils;
+import static com.google.api.client.util.Preconditions.checkNotNull;
+
+import java.time.Instant;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.hibernate.Session;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -46,20 +58,9 @@ import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Luciano Fiandesio
@@ -210,18 +211,15 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
     private void handleDataValueCreatedUpdatedDates( DataValue dv, EventDataValue eventDataValue )
     {
-        try
-        {
-            eventDataValue.setCreated( dv.getCreatedAt() == null ? new Date()
-                : new SimpleDateFormat( "yyyy-MM-dd" ).parse( dv.getCreatedAt() ) );
-            eventDataValue.setLastUpdated( dv.getUpdatedAt() == null ? new Date()
-                : new SimpleDateFormat( "yyyy-MM-dd" ).parse( dv.getUpdatedAt() ) );
-        }
-        catch ( ParseException e )
-        {
-            // Created and updated dates are already validated.
-            // This catch should never be reached
-            e.printStackTrace();
-        }
+        eventDataValue.setCreated( getFromOrNewDate( dv, DataValue::getCreatedAt ) );
+        eventDataValue.setLastUpdated( getFromOrNewDate( dv, DataValue::getUpdatedAt ) );
+    }
+
+    private Date getFromOrNewDate( DataValue dv, Function<DataValue, Instant> dateGetter )
+    {
+        return Optional.of( dv )
+            .map( dateGetter )
+            .map( DateUtils::fromInstant )
+            .orElseGet( Date::new );
     }
 }

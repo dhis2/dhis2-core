@@ -99,16 +99,12 @@ public class HibernateDbmsManager
         emptyTable( "dashboarditem_reports" );
         emptyTable( "dashboard_items" );
         emptyTable( "dashboarditem" );
-        emptyTable( "dashboardusergroupaccesses" );
-        emptyTable( "dashboarduseraccesses" );
         emptyTable( "dashboard" );
 
         emptyTable( "interpretation_comments" );
         emptyTable( "interpretationcomment" );
-        emptyTable( "interpretationusergroupaccesses" );
         emptyTable( "interpretation" );
 
-        emptyTable( "reportusergroupaccesses" );
         emptyTable( "report" );
 
         emptyTable( "reporttable_categorydimensions" );
@@ -123,7 +119,6 @@ public class HibernateDbmsManager
         emptyTable( "reporttable_orgunitlevels" );
         emptyTable( "reporttable_periods" );
         emptyTable( "reporttable_rows" );
-        emptyTable( "reporttableusergroupaccesses" );
         emptyTable( "reporttable" );
 
         emptyTable( "chart_categorydimensions" );
@@ -136,12 +131,9 @@ public class HibernateDbmsManager
         emptyTable( "chart_orgunitgroupsetdimensions" );
         emptyTable( "chart_orgunitlevels" );
         emptyTable( "chart_periods" );
-        emptyTable( "chartusergroupaccesses" );
         emptyTable( "chart" );
 
         emptyTable( "visualization_yearlyseries" );
-        emptyTable( "visualization_usergroupaccesses" );
-        emptyTable( "visualization_useraccesses" );
         emptyTable( "visualization_rows" );
         emptyTable( "visualization_periods" );
         emptyTable( "visualization_orgunitlevels" );
@@ -169,7 +161,6 @@ public class HibernateDbmsManager
         emptyTable( "eventreport_periods" );
         emptyTable( "eventreport_programindicatordimensions" );
         emptyTable( "eventreport_rows" );
-        emptyTable( "eventreportusergroupaccesses" );
         emptyTable( "eventreport" );
 
         emptyTable( "eventchart_attributedimensions" );
@@ -183,7 +174,6 @@ public class HibernateDbmsManager
         emptyTable( "eventchart_periods" );
         emptyTable( "eventchart_programindicatordimensions" );
         emptyTable( "eventchart_rows" );
-        emptyTable( "eventchartusergroupaccesses" );
         emptyTable( "eventchart" );
 
         emptyTable( "dataelementgroupsetdimension_items" );
@@ -205,20 +195,16 @@ public class HibernateDbmsManager
 
         emptyTable( "orgunitgroupsetmembers" );
         emptyTable( "orgunitgroupset" );
-        emptyTable( "orgunitgroupsetusergroupaccesses" );
 
         emptyTable( "orgunitgroupmembers" );
         emptyTable( "orgunitgroup" );
-        emptyTable( "orgunitgroupusergroupaccesses" );
 
         emptyTable( "validationrulegroupmembers" );
         emptyTable( "validationrulegroup" );
-        emptyTable( "validationrulegroupusergroupaccesses" );
 
         emptyTable( "validationresult" );
 
         emptyTable( "validationrule" );
-        emptyTable( "validationruleusergroupaccesses" );
 
         emptyTable( "dataapproval" );
 
@@ -232,8 +218,6 @@ public class HibernateDbmsManager
         emptyTable( "datasetelement" );
         emptyTable( "datasetindicators" );
         emptyTable( "datasetoperands" );
-        emptyTable( "datasetusergroupaccesses" );
-        emptyTable( "datasetuseraccesses" );
         emptyTable( "dataset" );
 
         emptyTable( "dataapprovalaudit" );
@@ -243,7 +227,6 @@ public class HibernateDbmsManager
 
         emptyTable( "predictorgroupmembers" );
         emptyTable( "predictorgroup" );
-        emptyTable( "predictorgroupusergroupaccesses" );
 
         emptyTable( "predictororgunitlevels" );
         emptyTable( "predictor" );
@@ -269,7 +252,6 @@ public class HibernateDbmsManager
         emptyTable( "programstagesection" );
         emptyTable( "programstage" );
         emptyTable( "program_organisationunits" );
-        emptyTable( "programusergroupaccesses" );
         emptyTable( "program_attributes" );
         emptyTable( "periodboundary" );
         emptyTable( "programindicator" );
@@ -288,16 +270,13 @@ public class HibernateDbmsManager
         emptyTable( "minmaxdataelement" );
 
         emptyTable( "dataelementgroupsetmembers" );
-        emptyTable( "dataelementgroupsetusergroupaccesses" );
         emptyTable( "dataelementgroupset" );
 
         emptyTable( "dataelementgroupmembers" );
-        emptyTable( "dataelementgroupusergroupaccesses" );
         emptyTable( "dataelementgroup" );
 
         emptyTable( "dataelementaggregationlevels" );
         emptyTable( "dataelementoperand" );
-        emptyTable( "dataelementusergroupaccesses" );
         emptyTable( "dataelement" );
 
         emptyTable( "categoryoptioncombos_categoryoptions" );
@@ -316,26 +295,19 @@ public class HibernateDbmsManager
         emptyTable( "period" );
 
         emptyTable( "indicatorgroupsetmembers" );
-        emptyTable( "indicatorgroupsetusergroupaccesses" );
         emptyTable( "indicatorgroupset" );
 
         emptyTable( "indicatorgroupmembers" );
-        emptyTable( "indicatorgroupusergroupaccesses" );
         emptyTable( "indicatorgroup" );
 
         emptyTable( "indicator" );
         emptyTable( "indicatortype" );
 
         emptyTable( "categoryoptiongroupsetmembers" );
-        emptyTable( "categoryoptiongroupsetusergroupaccesses" );
         emptyTable( "categoryoptiongroupset" );
 
         emptyTable( "categoryoptiongroupmembers" );
-        emptyTable( "categoryoptiongroupusergroupaccesses" );
         emptyTable( "categoryoptiongroup" );
-
-        emptyTable( "dataelementcategoryoptionuseraccesses" );
-        emptyTable( "dataelementcategoryoptionusergroupaccesses" );
 
         emptyTable( "expression" );
         emptyTable( "categoryoptioncombo" );
@@ -356,14 +328,11 @@ public class HibernateDbmsManager
         emptyTable( "messageconversation" );
         emptyTable( "message" );
 
-        emptyTable( "usergroupusergroupaccesses" );
-        emptyTable( "usergroupaccess" );
         emptyTable( "usergroupmembers" );
         emptyTable( "usergroup" );
 
         emptyTable( "previouspasswords" );
         emptyTable( "users" );
-        emptyTable( "useraccess" );
         emptyTable( "usersetting" );
         emptyTable( "fileresource" );
         emptyTable( "trackedentitycomment" );

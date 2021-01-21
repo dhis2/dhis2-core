@@ -72,7 +72,7 @@ public class OutlierDetectionController
         return outlierService.getOutlierValues( request );
     }
 
-    @GetMapping( value = "/outlierDetection.csv", produces = { ContextUtils.CONTENT_TYPE_CSV } )
+    @GetMapping( value = "/outlierDetection", produces = { ContextUtils.CONTENT_TYPE_CSV } )
     public void getOutliersCsv( OutlierDetectionQuery query,
         HttpServletResponse response ) throws IOException
     {
