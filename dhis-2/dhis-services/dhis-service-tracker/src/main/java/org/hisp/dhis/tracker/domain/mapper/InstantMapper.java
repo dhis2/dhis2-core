@@ -30,8 +30,6 @@ package org.hisp.dhis.tracker.domain.mapper;
  */
 
 import java.time.Instant;
-import java.util.Date;
-import java.util.Optional;
 
 import org.hisp.dhis.util.DateUtils;
 import org.mapstruct.Mapper;
@@ -42,9 +40,7 @@ abstract class InstantMapper
 
     Instant fromString( String dateAsString )
     {
-        return Optional.ofNullable( DateUtils.parseDate( dateAsString ) )
-            .map( Date::toInstant )
-            .orElse( null );
+        return DateUtils.instantFromDateAsString( dateAsString );
     }
 
 }
