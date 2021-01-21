@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.user;
 
 /*
@@ -28,12 +55,17 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.persistence.Transient;
+
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -50,15 +82,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.Transient;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Nguyen Hong Duc
@@ -127,7 +156,8 @@ public class UserCredentials
     private Set<UserAuthorityGroup> userAuthorityGroups = new HashSet<>();
 
     /**
-     * Category option group set dimensions to constrain data analytics aggregation.
+     * Category option group set dimensions to constrain data analytics
+     * aggregation.
      */
     private Set<CategoryOptionGroupSet> cogsDimensionConstraints = new HashSet<>();
 
@@ -176,6 +206,12 @@ public class UserCredentials
      * be authenticated.
      */
     private boolean disabled;
+
+    /**
+     * The timestamp representing when the user account expires. If not set the
+     * account does never expire.
+     */
+    private Date accountExpiry;
 
     /**
      * Cached all authorities {@link #getAllAuthorities()}.
@@ -234,7 +270,8 @@ public class UserCredentials
      */
     public Set<String> getAllAuthorities()
     {
-        // cached all authorities can be reset to null by different thread and must be assigned before evaluation
+        // cached all authorities can be reset to null by different thread and
+        // must be assigned before evaluation
         final Set<String> resultingAuthorities = cachedAllAuthorities;
 
         if ( resultingAuthorities != null )
@@ -256,8 +293,8 @@ public class UserCredentials
     }
 
     /**
-     * Indicates whether this user credentials has at least one authority through
-     * its user authority groups.
+     * Indicates whether this user credentials has at least one authority
+     * through its user authority groups.
      */
     public boolean hasAuthorities()
     {
@@ -302,9 +339,9 @@ public class UserCredentials
     }
 
     /**
-     * Indicates whether this user credentials is a super user, implying that the
-     * ALL authority is present in at least one of the user authority groups of
-     * this user credentials.
+     * Indicates whether this user credentials is a super user, implying that
+     * the ALL authority is present in at least one of the user authority groups
+     * of this user credentials.
      */
     public boolean isSuper()
     {
@@ -323,16 +360,16 @@ public class UserCredentials
     }
 
     /**
-     * Indicates whether this user credentials can issue the given user authority
-     * group. First the given authority group must not be null. Second this
-     * user credentials must not contain the given authority group. Third
+     * Indicates whether this user credentials can issue the given user
+     * authority group. First the given authority group must not be null. Second
+     * this user credentials must not contain the given authority group. Third
      * the authority group must be a subset of the aggregated user authorities
      * of this user credentials, or this user credentials must have the ALL
      * authority.
      *
-     * @param group                          the user authority group.
-     * @param canGrantOwnUserAuthorityGroups indicates whether this users can grant
-     *                                       its own authority groups to others.
+     * @param group the user authority group.
+     * @param canGrantOwnUserAuthorityGroups indicates whether this users can
+     *        grant its own authority groups to others.
      */
     public boolean canIssueUserRole( UserAuthorityGroup group, boolean canGrantOwnUserAuthorityGroups )
     {
@@ -357,12 +394,12 @@ public class UserCredentials
     }
 
     /**
-     * Indicates whether this user credentials can issue all of the user authority
-     * groups in the given collection.
+     * Indicates whether this user credentials can issue all of the user
+     * authority groups in the given collection.
      *
-     * @param groups                         the collection of user authority groups.
-     * @param canGrantOwnUserAuthorityGroups indicates whether this users can grant
-     *                                       its own authority groups to others.
+     * @param groups the collection of user authority groups.
+     * @param canGrantOwnUserAuthorityGroups indicates whether this users can
+     *        grant its own authority groups to others.
      */
     public boolean canIssueUserRoles( Collection<UserAuthorityGroup> groups, boolean canGrantOwnUserAuthorityGroups )
     {
@@ -423,9 +460,9 @@ public class UserCredentials
     }
 
     /**
-     * Tests whether the credentials contain all needed parameters to
-     * perform an account restore.
-     * If a parameter is missing a descriptive error string is returned.
+     * Tests whether the credentials contain all needed parameters to perform an
+     * account restore. If a parameter is missing a descriptive error string is
+     * returned.
      *
      * @return null on success, a descriptive error string on failure.
      */
@@ -814,6 +851,18 @@ public class UserCredentials
         this.disabled = disabled;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getAccountExpiry()
+    {
+        return accountExpiry;
+    }
+
+    public void setAccountExpiry( Date accountExpiry )
+    {
+        this.accountExpiry = accountExpiry;
+    }
+
     @Override
     public String toString()
     {
@@ -847,7 +896,7 @@ public class UserCredentials
     @Override
     public boolean isAccountNonExpired()
     {
-        return false;
+        return accountExpiry == null || accountExpiry.after( new Date() );
     }
 
     @Override
@@ -867,4 +916,5 @@ public class UserCredentials
     {
         return !isDisabled();
     }
+
 }

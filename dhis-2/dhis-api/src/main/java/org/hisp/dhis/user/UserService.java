@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.user;
 
 /*
@@ -28,14 +55,15 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.feedback.ErrorReport;
-
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+
+import javax.annotation.Nullable;
+
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.ErrorReport;
 
 /**
  * @author Chau Thu Tran
@@ -43,6 +71,7 @@ import java.util.UUID;
 public interface UserService
 {
     String ID = UserService.class.getName();
+
     String PW_NO_INTERNAL_LOGIN = "--[##no_internal_login##]--";
 
     // -------------------------------------------------------------------------
@@ -97,8 +126,8 @@ public interface UserService
     User getUserByUsername( String username );
 
     /**
-     * Retrieves the User by attempting to look up by various identifiers
-     * in the following order:
+     * Retrieves the User by attempting to look up by various identifiers in the
+     * following order:
      *
      * <ul>
      * <li>UID</li>
@@ -138,9 +167,9 @@ public interface UserService
      * Retrieves all Users with first name, surname or user name like the given
      * name.
      *
-     * @param name  the name.
+     * @param name the name.
      * @param first the first item to return.
-     * @param max   the max number of item to return.
+     * @param max the max number of item to return.
      * @return a list of Users.
      */
     List<User> getAllUsersBetweenByName( String name, int first, int max );
@@ -156,21 +185,24 @@ public interface UserService
      * Checks if the given user represents the last user with ALL authority.
      *
      * @param userCredentials the user.
-     * @return true if the given user represents the last user with ALL authority.
+     * @return true if the given user represents the last user with ALL
+     *         authority.
      */
     boolean isLastSuperUser( UserCredentials userCredentials );
 
     /**
-     * Checks if the given user role represents the last role with ALL authority.
+     * Checks if the given user role represents the last role with ALL
+     * authority.
      *
      * @param userAuthorityGroup the user role.
-     * @return true if the given user role represents the last role with ALL authority.
+     * @return true if the given user role represents the last role with ALL
+     *         authority.
      */
     boolean isLastSuperRole( UserAuthorityGroup userAuthorityGroup );
 
     /**
-     * Returns a list of users based on the given query parameters.
-     * The default order of last name and first name will be applied.
+     * Returns a list of users based on the given query parameters. The default
+     * order of last name and first name will be applied.
      *
      * @param params the user query parameters.
      * @return a List of users.
@@ -178,9 +210,9 @@ public interface UserService
     List<User> getUsers( UserQueryParams params );
 
     /**
-     * Returns a list of users based on the given query parameters.
-     * If the specified list of orders are empty, default order of
-     * last name and first name will be applied.
+     * Returns a list of users based on the given query parameters. If the
+     * specified list of orders are empty, default order of last name and first
+     * name will be applied.
      *
      * @param params the user query parameters.
      * @param orders the already validated order strings (e.g. email:asc).
@@ -239,8 +271,8 @@ public interface UserService
     void updateUserCredentials( UserCredentials userCredentials );
 
     /**
-     * Retrieves the UserCredentials associated with the User with the given
-     * id token.
+     * Retrieves the UserCredentials associated with the User with the given id
+     * token.
      *
      * @param token the id token of the User.
      * @return the UserCredentials.
@@ -284,28 +316,31 @@ public interface UserService
     List<UserCredentials> getAllUserCredentials();
 
     /**
-     * Encodes and sets the password of the User.
-     * Due to business logic required on password updates the password for a user
-     * should only be changed using this method or {@link #encodeAndSetPassword(UserCredentials, String) encodeAndSetPassword}
-     * and not directly on the User or UserCredentials object.
+     * Encodes and sets the password of the User. Due to business logic required
+     * on password updates the password for a user should only be changed using
+     * this method or {@link #encodeAndSetPassword(UserCredentials, String)
+     * encodeAndSetPassword} and not directly on the User or UserCredentials
+     * object.
      * <p>
      * Note that the changes made to the User object are not persisted.
      *
-     * @param user        the User.
+     * @param user the User.
      * @param rawPassword the raw password.
      */
     void encodeAndSetPassword( User user, String rawPassword );
 
     /**
-     * Encodes and sets the password of the UserCredentials.
-     * Due to business logic required on password updates the password for a user
-     * should only be changed using this method or {@link #encodeAndSetPassword(User, String) encodeAndSetPassword}
-     * and not directly on the User or UserCredentials object.
+     * Encodes and sets the password of the UserCredentials. Due to business
+     * logic required on password updates the password for a user should only be
+     * changed using this method or {@link #encodeAndSetPassword(User, String)
+     * encodeAndSetPassword} and not directly on the User or UserCredentials
+     * object.
      * <p>
-     * Note that the changes made to the UserCredentials object are not persisted.
+     * Note that the changes made to the UserCredentials object are not
+     * persisted.
      *
      * @param userCredentials the UserCredentials.
-     * @param rawPassword     the raw password.
+     * @param rawPassword the raw password.
      */
     void encodeAndSetPassword( UserCredentials userCredentials, String rawPassword );
 
@@ -412,8 +447,8 @@ public interface UserService
     int countDataSetUserAuthorityGroups( DataSet dataSet );
 
     /**
-     * Filters the given collection of user roles based on whether the current user
-     * is allowed to issue it.
+     * Filters the given collection of user roles based on whether the current
+     * user is allowed to issue it.
      *
      * @param userRoles the collection of user roles.
      */
@@ -422,9 +457,11 @@ public interface UserService
     List<ErrorReport> validateUser( User user, User currentUser );
 
     /**
-     * Returns list of active users whose credentials are expiring with in few days.
+     * Returns list of active users whose credentials are expiring with in few
+     * days.
      *
-     * @return list of active users whose credentials are expiring with in few days.
+     * @return list of active users whose credentials are expiring with in few
+     *         days.
      */
     List<User> getExpiringUsers();
 
@@ -437,4 +474,12 @@ public interface UserService
      * @param credentials the user credentials
      */
     void expireActiveSessions( UserCredentials credentials );
+
+    /**
+     * Whether or not the provided account is expired right now.
+     *
+     * @param credentials the user credentials
+     * @return true, if the provided account is already expired, otherwise false
+     */
+    boolean isAccountExpired( UserCredentials credentials );
 }

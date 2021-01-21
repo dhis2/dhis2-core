@@ -28,8 +28,18 @@ package org.hisp.dhis.webapi.controller.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
@@ -86,16 +96,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.common.collect.Lists;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -497,6 +500,22 @@ public class UserController
         setDisabled( uid, true );
     }
 
+    @RequestMapping( value = "/{uid}/expired", method = RequestMethod.POST )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    public void expireUser( @PathVariable( "uid" ) String uid, @RequestParam( "date" ) Date accountExpiry )
+        throws Exception
+    {
+        setExpires( uid, accountExpiry );
+    }
+
+    @RequestMapping( value = "/{uid}/unexpired", method = RequestMethod.POST )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    public void unexpireUser( @PathVariable( "uid" ) String uid )
+        throws Exception
+    {
+        setExpires( uid, null );
+    }
+
     // -------------------------------------------------------------------------
     // PUT
     // -------------------------------------------------------------------------
@@ -846,20 +865,8 @@ public class UserController
     private void setDisabled( String uid, boolean disable )
         throws WebMessageException
     {
-        User currentUser = currentUserService.getCurrentUser();
-
         User userToModify = userService.getUser( uid );
-
-        if ( !aclService.canUpdate( currentUser, userToModify ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
-        }
-
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( userToModify.getGroups() ), currentUser )
-            || !currentUser.getUserCredentials().canModifyUser( userToModify.getUserCredentials() ) )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
-        }
+        checkCurrentUserCanModify( userToModify );
 
         UserCredentials credentials = userToModify.getUserCredentials();
         if ( credentials.isDisabled() != disable )
@@ -869,6 +876,40 @@ public class UserController
         }
 
         if ( disable )
+        {
+            userService.expireActiveSessions( credentials );
+        }
+    }
+
+    private void checkCurrentUserCanModify( User userToModify )
+        throws WebMessageException
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !aclService.canUpdate( currentUser, userToModify ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+        }
+
+        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( userToModify.getGroups() ), currentUser )
+            || !currentUser.getUserCredentials().canModifyUser( userToModify.getUserCredentials() ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict(
+                "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
+        }
+    }
+
+    private void setExpires( String uid, Date accountExpiry )
+        throws WebMessageException
+    {
+        User userToModify = userService.getUser( uid );
+        checkCurrentUserCanModify( userToModify );
+
+        UserCredentials credentials = userToModify.getUserCredentials();
+        credentials.setAccountExpiry( accountExpiry );
+        userService.updateUserCredentials( credentials );
+
+        if ( userService.isAccountExpired( credentials ) )
         {
             userService.expireActiveSessions( credentials );
         }
