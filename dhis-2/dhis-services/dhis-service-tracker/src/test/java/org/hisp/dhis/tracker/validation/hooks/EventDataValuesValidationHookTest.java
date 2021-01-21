@@ -46,6 +46,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -118,43 +119,11 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void successValidationWhenCreatedAtIsInvalid()
-    {
-        // Given
-        DataValue validDataValue = validDataValue();
-        validDataValue.setCreatedAt( "INVALID_DATE" );
-        when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
-
-        // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
-        hookToTest.validateEvent( reporter, event );
-
-        // Then
-        assertThat( reporter.getReportList(), hasSize( 0 ) );
-    }
-
-    @Test
     public void failValidationWhenUpdatedAtIsNull()
     {
         // Given
         DataValue validDataValue = validDataValue();
         validDataValue.setUpdatedAt( null );
-        when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
-
-        // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
-        hookToTest.validateEvent( reporter, event );
-
-        // Then
-        assertThat( reporter.getReportList(), hasSize( 0 ) );
-    }
-
-    @Test
-    public void successValidationWhenUpdatedAtIsInvalid()
-    {
-        // Given
-        DataValue validDataValue = validDataValue();
-        validDataValue.setUpdatedAt( "INVALID_DATE" );
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
 
         // When
@@ -399,8 +368,8 @@ public class EventDataValuesValidationHookTest
     private DataValue validDataValue()
     {
         DataValue dataValue = new DataValue();
-        dataValue.setCreatedAt( "2020-10-10" );
-        dataValue.setUpdatedAt( "2020-10-10" );
+        dataValue.setCreatedAt( DateUtils.instantFromDateAsString( "2020-10-10" ) );
+        dataValue.setUpdatedAt( DateUtils.instantFromDateAsString( "2020-10-10" ) );
         dataValue.setValue( "text" );
         dataValue.setDataElement( "validDataElement" );
         return dataValue;

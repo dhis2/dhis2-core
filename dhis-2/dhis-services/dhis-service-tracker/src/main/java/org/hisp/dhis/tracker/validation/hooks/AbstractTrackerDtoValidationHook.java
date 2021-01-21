@@ -279,11 +279,6 @@ public abstract class AbstractTrackerDtoValidationHook
         return !DateUtils.dateIsValid( dateString );
     }
 
-    public boolean isValidDateStringAndNotNull( String dateString )
-    {
-        return dateString != null && DateUtils.dateIsValid( dateString );
-    }
-
     protected void addError( ValidationErrorReporter report, TrackerErrorCode errorCode, Object... args )
     {
         report.addError( newReport( errorCode ).addArgs( args ) );
