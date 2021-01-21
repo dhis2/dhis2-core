@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1056;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1057;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
+import java.time.Instant;
 import java.util.Date;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -93,8 +94,8 @@ public class EventCategoryOptValidationHook
         Date eventDate;
         try
         {
-            eventDate = DateUtils.parseDate( ObjectUtils
-                .firstNonNull( event.getOccurredAt(), event.getScheduledAt(), DateUtils.getIso8601( new Date() ) ) );
+            eventDate = DateUtils.fromInstant( ObjectUtils
+                .firstNonNull( event.getOccurredAt(), event.getScheduledAt(), Instant.now() ) );
         }
         catch ( IllegalArgumentException e )
         {

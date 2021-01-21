@@ -11,7 +11,6 @@
       "enrolledAt": "2000-08-19T00:00:00.000",
       "deleted": false,
       "displayIncidentDate": true,
-      "occurredAt": "2000:00.000",
       "status": "ACTIVE",
       "notes": [],
       "relationships": [],

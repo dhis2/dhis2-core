@@ -28,13 +28,18 @@ package org.hisp.dhis.commons.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.time.Instant;
 import java.util.Date;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
+import org.hisp.dhis.commons.config.jackson.ParseInstantStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
+import org.hisp.dhis.commons.config.jackson.WriteInstantStdSerializer;
 import org.hisp.dhis.commons.config.jackson.geometry.JtsXmlModule;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -52,8 +57,6 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.PrecisionModel;
 
 /**
  * Main Jackson Mapper configuration. Any component that requires JSON/XML
@@ -155,7 +158,12 @@ public class JacksonObjectMapperConfig
         module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
         module.addSerializer( Date.class, new WriteDateStdSerializer() );
 
-        objectMapper.registerModules( module, new JavaTimeModule(), new Jdk8Module() );
+        // Registering a custom Instant serializer/deserializer for DTOs using Instant
+        JavaTimeModule javaTimeModule = new JavaTimeModule();
+        javaTimeModule.addSerializer( Instant.class, new WriteInstantStdSerializer() );
+        javaTimeModule.addDeserializer( Instant.class, new ParseInstantStdDeserializer() );
+
+        objectMapper.registerModules( module, javaTimeModule, new Jdk8Module() );
 
         objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
         objectMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );

@@ -49,8 +49,6 @@ public enum TrackerErrorCode
     E1042( "Event: `{0}`, needs to have completed date." ),
     E1056( "Event date: `{0}`, is before start date: `{1}`, for AttributeOption: `{2}`." ),
     E1057( "Event date: `{0}`, is after end date: `{1}`, for AttributeOption; `{2}`." ),
-    E1051( "Invalid event due date: `{0}`." ),
-    E1052( "Invalid event date: `{0}`." ),
     E1019( "Only Program attributes is allowed for enrollment; Non valid attribute: `{0}`." ),
     E1008( "Value: `{0}`, does not match the attribute pattern: `{1}`." ),
     E1007( "Error validating attribute value type: `{0}`; Error: `{1}`." ),
