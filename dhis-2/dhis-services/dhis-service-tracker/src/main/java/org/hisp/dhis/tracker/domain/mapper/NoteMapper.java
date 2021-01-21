@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.domain.mapper;
  */
 
 import org.hisp.dhis.tracker.domain.Note;
-import org.hisp.dhis.util.DateUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
