@@ -274,7 +274,6 @@ public class TrackerImporter_relationshipsTests
                 "filter=name:like:TA" ) )
             .extractString( "relationshipTypes.id[0]" );
 
-        new RestApiActions( "/relationshipTypes" ).get( relationshipTypeId ).prettyPrint();
         JsonObject relationship1 = JsonObjectBuilder.jsonObject()
             .addProperty( "relationshipType", relationshipTypeId )
             .addObject( "from", JsonObjectBuilder.jsonObject()
