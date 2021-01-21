@@ -42,6 +42,7 @@ import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -171,6 +172,7 @@ public class TrackerImporter_programRulesTests
             .body( "dataValues.value", contains( "AUTO_ASSIGNED_COMMENT" ) );
     }
 
+    @Disabled("bug DHIS2-10127")
     @Test
     public void shouldSendNotification()
     {

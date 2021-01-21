@@ -168,8 +168,10 @@ public class TrackerImporter_relationshipsTests
     @Test
     public void shouldDeleteRelationshipWithDeleteStrategy()
     {
+        // arrage
         TrackerApiResponse response = trackerActions
-            .postAndGetJobReport( new File( "src/test/resources/tracker/importer/teis/teisAndRelationship.json" ) );
+            .postAndGetJobReport( new File( "src/test/resources/tracker/importer/teis/teisAndRelationship.json" ) )
+            .validateSuccessfulImport();
 
         List<String> teis = response.extractImportedTeis();
         String relationship = response.extractImportedRelationships().get( 0 );
@@ -181,7 +183,10 @@ public class TrackerImporter_relationshipsTests
             .addProperty( "relationship", relationship )
             .wrapIntoArray( "relationships" );
 
+        // act
         response = trackerActions.postAndGetJobReport( obj, new QueryParamsBuilder().add( "importStrategy=DELETE" ) );
+
+        // assert
 
         response.validate()
             .body( "status", equalTo( "OK" ) )

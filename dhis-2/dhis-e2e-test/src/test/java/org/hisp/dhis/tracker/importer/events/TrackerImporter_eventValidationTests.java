@@ -62,11 +62,11 @@ public class TrackerImporter_eventValidationTests
 {
     private static final String OU_ID = Constants.ORG_UNIT_IDS[0];
 
-    private static String eventProgramId;
+    private static String eventProgramId = Constants.EVENT_PROGRAM_ID;
 
     private static String eventProgramStageId;
 
-    private static String trackerProgramId;
+    private static String trackerProgramId = Constants.TRACKER_PROGRAM_ID;
 
     private static String trackerProgramStageId;
 
@@ -166,15 +166,11 @@ public class TrackerImporter_eventValidationTests
 
     private void setupData()
     {
-        eventProgramId = Constants.EVENT_PROGRAM_ID;
-
         eventProgramStageId = programActions.programStageActions.get( "", new QueryParamsBuilder().add( "filter=program.id:eq:" +
             eventProgramId ) )
             .extractString( "programStages.id[0]" );
 
         assertNotNull( eventProgramStageId, "Failed to find a program stage" );
-
-        trackerProgramId = Constants.TRACKER_PROGRAM_ID;
 
         trackerProgramStageId = programActions.programStageActions
             .get( "", new QueryParamsBuilder().addAll( "filter=program.id:eq:" +

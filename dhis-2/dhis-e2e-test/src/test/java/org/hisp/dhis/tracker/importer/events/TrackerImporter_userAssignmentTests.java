@@ -40,6 +40,7 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -108,7 +109,7 @@ public class TrackerImporter_userAssignmentTests
             .body( "assignedUser", equalTo( loggedInUser ) );
     }
 
-    // todo should be finalised when exporter is ready
+    @Disabled
     @Test
     public void shouldRemoveUserAssignment()
         throws Exception

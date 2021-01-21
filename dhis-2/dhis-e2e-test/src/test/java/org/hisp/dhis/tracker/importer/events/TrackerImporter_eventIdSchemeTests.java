@@ -122,12 +122,8 @@ public class TrackerImporter_eventIdSchemeTests
         TrackerApiResponse response = trackerActions
             .postAndGetJobReport( object, new QueryParamsBuilder().add( "orgUnitIdScheme=" + ouScheme ) );
 
-        response.validate().statusCode( 200 )
-            .body( "status", equalTo( "OK" ) )
-            .body( "stats.ignored", equalTo( 0 ) )
-            .body( "stats.created", equalTo( 1 ) );
-
-        String eventId = response.extractImportedEvents().get( 0 );
+        String eventId = response.validateSuccessfulImport()
+            .extractImportedEvents().get( 0 );
 
         trackerActions.get( "/events/" + eventId ).validate()
             .statusCode( 200 )
@@ -193,18 +189,13 @@ public class TrackerImporter_eventIdSchemeTests
 
     public JsonObject addAttributeValuePayload( JsonObject json, String attributeId, String attributeValue )
     {
-        JsonObject attributeObj = new JsonObject();
-        attributeObj.addProperty( "id", attributeId );
+        JsonObjectBuilder.jsonObject(json)
+            .addArray( "attributeValues", JsonObjectBuilder.jsonObject()
+                .addProperty( "value", attributeValue )
+                .addObject( "attribute", new JsonObjectBuilder().addProperty( "id", attributeId ) )
+                .build() );
 
-        JsonObject attributeValueObj = new JsonObject();
-        attributeValueObj.addProperty( "value", attributeValue );
-        attributeValueObj.add( "attribute", attributeObj );
+        return json ;
 
-        JsonArray attributeValues = new JsonArray();
-        attributeValues.add( attributeValueObj );
-
-        json.add( "attributeValues", attributeValues );
-
-        return json;
     }
 }
