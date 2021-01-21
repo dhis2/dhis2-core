@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker;
-
-/*
- * Copyright (c) 2004-2021, University of Oslo
+package org.hisp.dhis.config;/*
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,54 +26,48 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.tracker.preheat.mappers.FullUserMapper;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hibernate.event.spi.PreUpdateEvent;
+import org.hibernate.event.spi.PreUpdateEventListener;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.user.User;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 
 /**
- * Specialized User Service for Tracker that executes User look-up in a
- * read-only transaction
- *
- * @author Luciano Fiandesio
+ * This class will listen to all update event on IdentifiableObject
+ * It will then make sure "createdBy" field of current object is immutable.
  */
-@Service
-public class TrackerUserService
+@Component
+public class IdentifiableObjectPreUpdateListener implements PreUpdateEventListener
 {
-    private final CurrentUserService currentUserService;
-
-    private final IdentifiableObjectManager manager;
-
-    public TrackerUserService( CurrentUserService currentUserService, IdentifiableObjectManager manager )
+    @Override
+    public boolean onPreUpdate( PreUpdateEvent preUpdateEvent )
     {
-        this.currentUserService = currentUserService;
-        this.manager = manager;
-    }
-
-    /**
-     * Fetch a User by user uid
-     *
-     * @param userUid a User uid
-     * @return a User
-     */
-    @Transactional( readOnly = true )
-    public User getUser( String userUid )
-    {
-        User user = null;
-
-        if ( !StringUtils.isEmpty( userUid ) )
+        if ( !BaseIdentifiableObject.class.isAssignableFrom( preUpdateEvent.getEntity().getClass() ) )
         {
-            user = manager.get( User.class, userUid );
+            return true;
         }
-        if ( user == null )
+
+        String[] propertyNames = preUpdateEvent.getPersister().getPropertyNames();
+
+        for ( int i = 0; i < propertyNames.length; i++ )
         {
-            user = currentUserService.getCurrentUser();
+            if ( propertyNames[i].equalsIgnoreCase( BaseIdentifiableObject_.CREATED_BY ) )
+            {
+                Object oldValue = preUpdateEvent.getOldState()[i];
+
+                if ( oldValue == null )
+                {
+                    return true;
+                }
+
+                preUpdateEvent.getState()[i] = oldValue;
+                ((BaseIdentifiableObject) preUpdateEvent.getEntity()).setCreatedBy( (User) oldValue );
+
+                return true;
+            }
         }
-        // Make a copy of the user object, retaining only the properties required for
-        // the import operation
-        return FullUserMapper.INSTANCE.map( user );
+
+        return true;
     }
 }

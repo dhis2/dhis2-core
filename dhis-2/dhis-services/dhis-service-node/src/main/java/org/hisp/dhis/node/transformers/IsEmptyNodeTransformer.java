@@ -33,7 +33,7 @@ import org.hisp.dhis.node.NodeTransformer;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.schema.Property;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -65,7 +65,7 @@ public class IsEmptyNodeTransformer implements NodeTransformer
         }
         else if ( property.isSimple() )
         {
-            return new SimpleNode( property.getName(), StringUtils.isEmpty( ((SimpleNode) node).getValue() ), property.isAttribute() );
+            return new SimpleNode( property.getName(), StringUtils.isEmpty( ((SimpleNode) node).getValue().toString() ), property.isAttribute() );
         }
 
         return node;

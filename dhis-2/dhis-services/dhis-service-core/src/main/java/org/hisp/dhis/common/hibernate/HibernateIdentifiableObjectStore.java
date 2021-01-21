@@ -165,7 +165,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
                 identifiableObject.setCreatedBy( user );
             }
 
-            if ( identifiableObject.getSharing().getOwner() == null && identifiableObject.getCreatedBy() != null )
+            if ( identifiableObject.getSharing().getOwner() == null )
             {
                 identifiableObject.getSharing().setOwner( user );
             }
@@ -198,7 +198,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         }
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE );
-
         getSession().save( object );
     }
 
@@ -223,6 +222,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             if ( object.getSharing().getOwner() == null )
             {
                 object.getSharing().setOwner( user );
+            }
+
+            if ( object.getCreatedBy() == null )
+            {
+                object.setCreatedBy( user );
             }
         }
 

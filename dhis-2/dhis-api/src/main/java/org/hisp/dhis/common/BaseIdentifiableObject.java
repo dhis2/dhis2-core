@@ -463,20 +463,20 @@ public class BaseIdentifiableObject
     public void setCreatedBy( User createdBy )
     {
         this.createdBy = createdBy;
-
-        //TODO remove this after implemented functions for using Owner property
-        this.setOwner( createdBy != null ? createdBy.getUid() : null );
     }
 
+    @Override
     public void setUser( User user )
     {
+        //TODO remove this after implemented functions for using Owner property
         this.user = user;
         setCreatedBy( user );
+        setOwner( user != null ? user.getUid() : null );
     }
 
     public void setOwner( String userId )
     {
-         getSharing().setOwner( userId );
+        getSharing().setOwner( userId );
     }
 
     @Override

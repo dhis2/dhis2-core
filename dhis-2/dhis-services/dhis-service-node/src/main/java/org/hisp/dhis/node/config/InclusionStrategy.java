@@ -28,7 +28,7 @@ package org.hisp.dhis.node.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 
@@ -78,7 +78,7 @@ public interface InclusionStrategy
                     }
                     else if ( String.class.isAssignableFrom( object.getClass() ) )
                     {
-                        return !StringUtils.isEmpty( object );
+                        return !StringUtils.isEmpty( object.toString() );
                     }
 
                     return true;

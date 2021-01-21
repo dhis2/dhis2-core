@@ -30,7 +30,7 @@ package org.hisp.dhis.preheat;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;

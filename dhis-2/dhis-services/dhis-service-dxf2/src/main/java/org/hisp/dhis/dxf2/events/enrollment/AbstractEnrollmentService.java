@@ -95,7 +95,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;

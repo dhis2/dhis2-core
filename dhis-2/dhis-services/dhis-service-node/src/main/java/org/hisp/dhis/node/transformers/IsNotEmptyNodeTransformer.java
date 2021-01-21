@@ -28,12 +28,12 @@ package org.hisp.dhis.node.transformers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.schema.Property;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -65,7 +65,7 @@ public class IsNotEmptyNodeTransformer implements NodeTransformer
         }
         else if ( property.isSimple() )
         {
-            return new SimpleNode( property.getName(), !StringUtils.isEmpty( ((SimpleNode) node).getValue() ), property.isAttribute() );
+            return new SimpleNode( property.getName(), !ObjectUtils.isEmpty( ((SimpleNode) node).getValue() ), property.isAttribute() );
         }
 
         return node;

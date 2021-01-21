@@ -31,7 +31,7 @@ package org.hisp.dhis.system.notification;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Date;

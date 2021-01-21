@@ -28,15 +28,13 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Optional;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.geometry.jts.WKBReader;
-import org.locationtech.jts.io.ParseException;
-import org.springframework.util.StringUtils;
-
 import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.ParseException;
+
+import java.util.Optional;
 
 /**
  * @author Luciano Fiandesio
@@ -47,7 +45,7 @@ public class MapperGeoUtils
 
     public static Optional<Geometry> resolveGeometry( byte[] geometry )
     {
-        if ( StringUtils.isEmpty( geometry ) )
+        if ( geometry == null || geometry.length == 0 )
         {
             return Optional.empty();
         }

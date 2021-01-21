@@ -46,7 +46,7 @@ import org.hisp.dhis.webapi.webdomain.form.Category;
 import org.hisp.dhis.webapi.webdomain.form.*;
 import org.hisp.dhis.webapi.webdomain.form.CategoryCombo;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
