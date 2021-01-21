@@ -121,25 +121,24 @@ public class TrackerImporter_userAssignmentTests
         programActions.programStageActions.enableUserAssignment( programStageId, true );
         createEvents( programId, programStageId, loggedInUser );
 
-        JsonObject body = trackerActions.get( "/events?program=" + programId + "&assignedUserMode=CURRENT" )
+        JsonObject eventBody = trackerActions.get( "/events?program=" + programId + "&assignedUserMode=CURRENT" )
             .extractJsonObject( "instances[0]" );
 
-        assertNotNull( body, "no events matching the query." );
-
-        String eventId = body.get( "event" ).getAsString();
+        assertNotNull( eventBody, "no events matching the query." );
+        String eventId = eventBody.get( "event" ).getAsString();
 
         // act
-        body.add( "assignedUser", null );
-        //body.remove( "notes" );
+        eventBody.add( "assignedUser", null );
 
-        ApiResponse response = trackerActions.postAndGetJobReport( new JsonObjectBuilder(body).wrapIntoArray( "events" ), new QueryParamsBuilder().addAll( "importStrategy=UPDATE" ) );
+        ApiResponse response = trackerActions.postAndGetJobReport( new JsonObjectBuilder(eventBody).wrapIntoArray( "events" ), new QueryParamsBuilder().addAll( "importStrategy=UPDATE" ) );
 
         // assert
         response.validate().statusCode( 200 );
 
-        response = trackerActions.get( "/events/" + eventId );
+        trackerActions.get( "/events/" + eventId )
+            .validate()
+            .body( "assignedUser", nullValue() );
 
-        assertEquals( null, response.getBody().get( "assignedUser" ) );
     }
 
     private TrackerApiResponse createEvents( String programId, String programStageId, String assignedUserId )
@@ -152,7 +151,6 @@ public class TrackerImporter_userAssignmentTests
             .replacePropertyValuesWith( "assignedUser", assignedUserId )
             .get( JsonObject.class );
 
-        System.out.println( body );
         TrackerApiResponse eventResponse = trackerActions.postAndGetJobReport( body );
 
         eventResponse.validateSuccessfulImport();

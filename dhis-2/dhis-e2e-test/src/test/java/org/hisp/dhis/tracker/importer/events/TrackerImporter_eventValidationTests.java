@@ -158,7 +158,6 @@ public class TrackerImporter_eventValidationTests
     {
         JsonObject jsonObject = trackerActions.buildEvent( ouId, programId, programStageId );
 
-        System.out.println( jsonObject );
         TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
 
         response.validateErrorReport()

@@ -71,9 +71,7 @@ public class TrackerImporter_eventsTests
     private static Stream<Arguments> provideEventFilesTestArguments()
     {
         return Stream.of(
-            Arguments.arguments( "event.json", ContentType.JSON.toString() ) ); //,
-        //Arguments.arguments( "event.csv", "text/csv" ));
-        //Arguments.arguments( "event.xml", ContentType.XML.toString() ) );
+            Arguments.arguments( "event.json", ContentType.JSON.toString() ) );
     }
 
     @BeforeAll

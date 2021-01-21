@@ -104,8 +104,6 @@ public class TrackerImporter_atomicModeTests
             .addPropertyByJsonPath( "trackedEntities[0].trackedEntityType", "" )
             .build();
 
-        // one TEI will be invalid
-        System.out.println( object );
         return object;
     }
 }

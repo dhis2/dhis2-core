@@ -140,23 +140,16 @@ public class TrackerImporter_programRulesTests
     {
         JsonObject payload = trackerActions.buildEvent( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK" );
 
-        //JsonObject payload = trackerActions.createTeiWithEnrollmentAndEvent( Constants.ORG_UNIT_IDS[0], trackerProgramId, "nH8zfPSUSN1");
-
         JsonObjectBuilder.jsonObject( payload )
-            //.addProperty( "events[0].status", "COMPLETED" )
             .addArrayByJsonPath( "events[0]", "dataValues", new JsonObjectBuilder()
                 .addProperty( "dataElement", "ILRgzHhzFkg" )
                 .addProperty( "value", "true" )
                 .build() );
 
-        System.out.println( payload );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( payload );
 
-        response.prettyPrint();
-
         response.validateErrorReport();
-
     }
 
     @Test
@@ -168,7 +161,7 @@ public class TrackerImporter_programRulesTests
             .postAndGetJobReport( payload, new QueryParamsBuilder().addAll( "skipSideEffects=true" ) );
 
         response.validateWarningReport()
-            .body( "warningCode", contains( "E1200" ) );
+            .body( "warningCode", contains( "E1201" ) );
 
         String eventId = response.validateSuccessfulImport()
             .extractImportedEvents().get( 0 );
@@ -197,7 +190,8 @@ public class TrackerImporter_programRulesTests
 
         int size = response.getBody().getAsJsonArray( "messageConversations" ).size();
 
-        response = trackerActions.postAndGetJobReport( payload );
+        trackerActions.postAndGetJobReport( payload )
+            .validateSuccessfulImport();
 
         new RestApiActions( "/messageConversations?fields=*" ).get( "", new QueryParamsBuilder().add( "fields=*" ) )
             .validate()
@@ -254,7 +248,7 @@ public class TrackerImporter_programRulesTests
             .validateWarningReport()
             .body( "", hasSize( greaterThanOrEqualTo( 2 ) ) )
             .body( "trackerType", contains( "EVENT", "ENROLLMENT" ) )
-            .body( "warningCode", everyItem( equalTo( "E1200" ) ) );
+            .body( "warningCode", everyItem( equalTo( "E1201" ) ) );
     }
 
     @Test
@@ -276,7 +270,7 @@ public class TrackerImporter_programRulesTests
         response
             .validateWarningReport()
             .body( "message[0]", containsString( "TA warning" ) )
-            .body( "warningCode", everyItem( equalTo( "E1200" ) ) );
+            .body( "warningCode", everyItem( equalTo( "E1201" ) ) );
 
         response.validateSuccessfulImport();
     }
