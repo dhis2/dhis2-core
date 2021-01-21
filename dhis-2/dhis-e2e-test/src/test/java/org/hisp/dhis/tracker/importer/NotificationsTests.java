@@ -55,7 +55,7 @@ import static org.hamcrest.Matchers.*;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImporter_notificationsTests
+public class NotificationsTests
     extends ApiTest
 {
     private String trackerProgramStageId = "PaOOjwLVW23";

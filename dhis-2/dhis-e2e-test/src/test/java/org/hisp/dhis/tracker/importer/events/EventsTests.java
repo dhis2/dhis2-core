@@ -62,7 +62,7 @@ import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImporter_eventsTests
+public class EventsTests
     extends ApiTest
 {
     private TrackerActions trackerActions;

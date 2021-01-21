@@ -63,7 +63,7 @@ import static org.hamcrest.Matchers.hasSize;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImporter_relationshipsTests
+public class RelationshipsTests
     extends ApiTest
 {
     private static final String relationshipType = "xLmPUYJX8Ks";

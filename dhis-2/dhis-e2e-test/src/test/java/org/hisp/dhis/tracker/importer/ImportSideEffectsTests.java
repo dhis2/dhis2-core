@@ -56,7 +56,7 @@ import static org.hamcrest.Matchers.*;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImporter_programRulesTests
+public class ImportSideEffectsTests
     extends ApiTest
 {
     private String trackerProgramId = "U5HE4IRrZ7S";

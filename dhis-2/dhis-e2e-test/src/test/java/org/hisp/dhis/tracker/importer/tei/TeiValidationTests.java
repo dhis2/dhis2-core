@@ -49,7 +49,7 @@ import static org.hamcrest.Matchers.hasItem;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImporter_teiValidationTests
+public class TeiValidationTests
     extends ApiTest
 {
     private TrackerActions trackerActions;

@@ -57,7 +57,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImporter_eventIdSchemeTests
+public class EventIdSchemeTests
     extends ApiTest
 {
 

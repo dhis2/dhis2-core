@@ -54,7 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImporter_userAssignmentTests
+public class UserAssignmentTests
     extends ApiTest
 {
     private static final String programStageId = "l8oDIfJJhtg";

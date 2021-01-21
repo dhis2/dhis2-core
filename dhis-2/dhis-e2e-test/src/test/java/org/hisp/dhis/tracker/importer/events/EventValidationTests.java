@@ -57,7 +57,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImporter_eventValidationTests
+public class EventValidationTests
     extends ApiTest
 {
     private static final String OU_ID = Constants.ORG_UNIT_IDS[0];

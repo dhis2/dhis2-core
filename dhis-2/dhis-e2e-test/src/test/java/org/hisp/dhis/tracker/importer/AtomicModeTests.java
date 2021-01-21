@@ -46,7 +46,7 @@ import static org.hamcrest.Matchers.*;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImporter_atomicModeTests
+public class AtomicModeTests
     extends ApiTest
 {
     private TrackerActions trackerActions;

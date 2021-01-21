@@ -51,7 +51,7 @@ import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImporter_enrollmentsTests
+public class EnrollmentsTests
     extends
     ApiTest
 {

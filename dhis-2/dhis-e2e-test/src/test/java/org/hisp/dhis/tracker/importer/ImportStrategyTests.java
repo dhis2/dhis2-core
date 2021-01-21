@@ -47,7 +47,7 @@ import static org.hamcrest.CoreMatchers.*;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImporter_importStrategyTests
+public class ImportStrategyTests
     extends ApiTest
 {
     private TrackerActions trackerActions;
