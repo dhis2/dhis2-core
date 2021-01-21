@@ -1,5 +1,3 @@
-package org.hisp.dhis;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -28,28 +26,51 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.tracker.importer;
+
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.tracker.importer.TrackerActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import java.io.File;
+
+import static org.hamcrest.Matchers.*;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class Constants
+public class TrackerImporterTests
+    extends ApiTest
 {
-    public static String ORG_UNIT_GROUP_ID = "n9bh3KM5wmu";
+    private TrackerActions trackerActions;
 
-    public static String SUPER_USER_ID = "PQD6wXJ2r5j";
+    @BeforeAll
+    public void beforeAll()
+    {
+        trackerActions = new TrackerActions();
 
-    public static String USER_GROUP_ID = "OPVIvvXzNTw";
+        new LoginActions().loginAsSuperUser();
+    }
 
-    public static String USER_ROLE_ID = "yrB6vc5Ip7r";
+    @Test
+    public void shouldNotCommitWhenStrategyIsValidate()
+    {
+        ApiResponse response = trackerActions.postAndGetJobReport( new File( "src/test/resources/tracker/importer/teis/tei.json" ),
+            new QueryParamsBuilder().add( "importMode=VALIDATE" ) );
 
-    public static String EVENT_PROGRAM_ID = "Zd2rkv8FsWq";
+        response.validate()
+            .statusCode( 200 )
+            .body( "status", equalTo( "OK" ) )
+            .body( "stats.created", equalTo( 0 ) )
+            .body( "stats.total", equalTo( 0 ) )
+            .body( "validationReport", notNullValue() )
+            .body( "validationReport.errorReports", empty() )
+            .body( "validationReport.warningReports", empty() );
 
-    public static String TRACKER_PROGRAM_ID = "f1AyMswryyQ";
-
-    public static String[] ORG_UNIT_IDS = {
-        "DiszpKrYNg8",
-        "g8upMTyEZGZ",
-        "O6uvpzGd5pu",
-        "YuQRtpLP10I"
-    };
+    }
 
 }

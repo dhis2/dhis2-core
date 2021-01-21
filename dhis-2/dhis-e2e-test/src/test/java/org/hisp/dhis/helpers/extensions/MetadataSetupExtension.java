@@ -76,6 +76,7 @@ public class MetadataSetupExtension
 
             String[] files = {
                 "src/test/resources/setup/userGroups.json",
+                "src/test/resources/setup/users.json",
                 "src/test/resources/setup/metadata.json",
                 "src/test/resources/setup/userRoles.json",
                 "src/test/resources/setup/users.json"
@@ -114,6 +115,7 @@ public class MetadataSetupExtension
                 "?filter=userCredentials.username:eq:%s", user ))
                 .extractString( "users.id[0]" );
 
+            if (userId == null) return;
             userActions.addUserToUserGroup( userId, userGroupId );
             TestRunStorage.removeEntity( "users", userId );
         }

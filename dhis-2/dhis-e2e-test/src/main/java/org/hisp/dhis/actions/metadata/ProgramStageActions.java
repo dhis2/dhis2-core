@@ -1,7 +1,5 @@
-package org.hisp.dhis.utils;
-
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,56 +26,32 @@ package org.hisp.dhis.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.gson.JsonArray;
+package org.hisp.dhis.actions.metadata;
+
 import com.google.gson.JsonObject;
-import org.hisp.dhis.Constants;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class JsonObjectBuilder
+public class ProgramStageActions extends RestApiActions
 {
-    private JsonObject jsonObject;
-
-    public JsonObjectBuilder() {
-        jsonObject = new JsonObject();
+    public ProgramStageActions( )
+    {
+        super( "/programStages" );
     }
 
-    public JsonObjectBuilder( JsonObject jsonObject ) {
-        this.jsonObject = jsonObject;
-    }
+    public ApiResponse enableUserAssignment( String programStageId, boolean enabled )
+    {
+        JsonObject body = this.get( programStageId ).getBody();
 
-    public static JsonObjectBuilder jsonObject() {
-        return new JsonObjectBuilder();
-    }
+        body.addProperty( "enableUserAssignment", enabled );
 
-    public static JsonObjectBuilder jsonObject( JsonObject jsonObject) {
-        return new JsonObjectBuilder( jsonObject );
-    }
+        ApiResponse response = this.update( programStageId, body );
 
-    public JsonObjectBuilder addProperty(String property, String value) {
-        jsonObject.addProperty( property, value );
+        response.validate().statusCode( 200 );
 
-        return this;
-    }
-
-    public JsonObjectBuilder addUserGroupAccess( ) {
-        JsonArray userGroupAccesses = new JsonArray(  );
-
-        JsonObject userGroupAccess = JsonObjectBuilder.jsonObject()
-            .addProperty( "access", "rwrw----" )
-            .addProperty( "userGroupId", Constants.USER_GROUP_ID )
-            .addProperty( "id", Constants.USER_GROUP_ID )
-            .build();
-
-        userGroupAccesses.add( userGroupAccess );
-
-
-        jsonObject.add( "userGroupAccesses", userGroupAccesses );
-
-        return this;
-    }
-    public JsonObject build() {
-        return this.jsonObject;
+        return response;
     }
 }

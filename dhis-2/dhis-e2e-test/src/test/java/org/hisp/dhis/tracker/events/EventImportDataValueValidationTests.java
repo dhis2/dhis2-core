@@ -33,16 +33,21 @@ import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
+import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.metadata.SharingActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.utils.JsonObjectBuilder;
+import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.io.File;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
@@ -72,6 +77,7 @@ public class EventImportDataValueValidationTests
 
     @BeforeAll
     public void beforeAll()
+        throws Exception
     {
         programActions = new ProgramActions();
         eventActions = new EventActions();
@@ -116,6 +122,22 @@ public class EventImportDataValueValidationTests
     }
 
     @Test
+    public void shouldValidateCompletedOnInsert() {
+        setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
+
+        JsonObject event = eventActions.createEventBody( OU_ID, programId, programStageId );
+        event.addProperty( "status", "COMPLETED" );
+
+        ApiResponse response = eventActions.post( event, new QueryParamsBuilder().add( "skipCache=true" ) );
+
+        response.validate().statusCode( 409 )
+            .body( "status", equalTo( "ERROR" ) )
+            .rootPath( "response" )
+            .body( "ignored", equalTo( 1 ) )
+            .body( "imported", equalTo( 0 ) )
+            .body( "importSummaries[0].conflicts[0].value", equalTo( "value_required_but_not_provided" ) );
+    }
+    @Test
     public void shouldValidateDataValuesOnUpdate() {
         setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
 
@@ -154,22 +176,25 @@ public class EventImportDataValueValidationTests
     }
 
     private void setupData()
+        throws Exception
     {
-        ApiResponse response = programActions.createEventProgram( OU_ID );
-        programId = response.extractUid();
-        assertNotNull( programId, "Failed to create a program" );
+        programId = new IdGenerator().generateUniqueId();
+        programStageId = new IdGenerator().generateUniqueId();
 
-        sharingActions.setupSharingForConfiguredUserGroup( "program", programId );
+        JsonObject jsonObject = new JsonObjectBuilder(new FileReaderUtils().readJsonAndGenerateData( new File( "src/test/resources/tracker/eventProgram.json" ) ))
+            .addPropertyByJsonPath( "programStages[0].program.id", programId )
+            .addPropertyByJsonPath( "programs[0].id", programId )
+            .addPropertyByJsonPath( "programs[0].programStages[0].id", programStageId )
+            .addPropertyByJsonPath( "programStages[0].id", programStageId )
+            .build();
 
-        programStageId = programActions.get( programId, new QueryParamsBuilder().add( "fields=*" ) )
-            .extractString( "programStages.id[0]" );
-        assertNotNull( programStageId, "Failed to create a programStage" );
+        new MetadataActions().importAndValidateMetadata( jsonObject);
 
         String dataElementId = dataElementActions
             .get( "?fields=id&filter=domainType:eq:TRACKER&filter=valueType:eq:TEXT&pageSize=1" )
             .extractString( "dataElements.id[0]" );
 
-        assertNotNull( dataElementId, "Failed to find data elements" );
+        assertNotNull( dataElementId, "Failed to create data elements" );
         mandatoryDataElementId = dataElementId;
 
         programActions.addDataElement( programStageId, dataElementId, true ).validate().statusCode( 200 );
