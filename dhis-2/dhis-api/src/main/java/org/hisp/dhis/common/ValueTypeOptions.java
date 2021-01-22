@@ -1,3 +1,4 @@
+package org.hisp.dhis.common;
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -25,7 +26,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+
 
 import java.io.Serializable;
 
@@ -50,10 +51,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * the jsonb value type in Postgres.
  *
  * <p>
- * To make a new option class, extend this class and add a
- * {@link com.fasterxml.jackson.annotation.JsonSubTypes.Type} line in the
- * {@link JsonSubTypes#value()} list in this file. Point to the implementation
- * in the {@link JsonSubTypes.Type#value()} attribute and what discriminator
+ * To make a new option class, extend this class and add a {@link com.fasterxml.jackson.annotation.JsonSubTypes.Type} line in the
+ * {@link JsonSubTypes#value()} list in this file. Point to the implementation in the {@link JsonSubTypes.Type#value()} attribute and what discriminator
  * value it has in the {@link JsonSubTypes.Type#name()} attribute. The new
  * option class must be annotated with {@link JsonTypeName#value()} and have the
  * same value as the: {@link JsonSubTypes.Type#name()} attribute in this file.
