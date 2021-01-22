@@ -18,7 +18,7 @@
 
     <property name="lastUpdated" type="timestamp" not-null="true" />
 
-    <property name="plainValue" column="value" access="property" length="50000" />
+    <property name="plainValue" column="value" access="property" length="1200" />
 
     <property name="encryptedValue" column="encryptedvalue" access="property" type="Aes128EncryptedString" length="50000" />
 
