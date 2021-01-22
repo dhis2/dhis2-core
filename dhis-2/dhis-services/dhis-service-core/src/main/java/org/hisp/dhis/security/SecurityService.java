@@ -1,5 +1,3 @@
-package org.hisp.dhis.security;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,12 +25,13 @@ package org.hisp.dhis.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security;
+
+import java.io.IOException;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
-
-import java.io.IOException;
 
 /**
  * @author Lars Helge Overland
@@ -47,9 +46,9 @@ public interface SecurityService
     void registerRecoveryAttempt( String username );
 
     /**
-     * Indicates whether the recovery of the user account is locked due
-     * to too many recovery attempts within a specific time span.
-     * The max number of attempts is 5 and the time span is 15 minutes.
+     * Indicates whether the recovery of the user account is locked due to too
+     * many recovery attempts within a specific time span. The max number of
+     * attempts is 5 and the time span is 15 minutes.
      *
      * @param username the username of the user account.
      */
@@ -57,27 +56,27 @@ public interface SecurityService
 
     /**
      * Register a failed login attempt for the given user account.
-     * 
+     *
      * @param username the username of the user account.
      */
     void registerFailedLogin( String username );
 
     /**
      * Register a successful login attempt for the given user account.
-     * 
+     *
      * @param username the username of the user account.
      */
     void registerSuccessfulLogin( String username );
 
     /**
-     * Indicates whether the given user account is locked out due to too 
-     * many successive failed login attempts within a specific time span. 
-     * The max number of attempts is 5 and the time span is 15 minutes.
-     * 
+     * Indicates whether the given user account is locked out due to too many
+     * successive failed login attempts within a specific time span. The max
+     * number of attempts is 5 and the time span is 15 minutes.
+     *
      * @param username the username of the user account.
      */
     boolean isLocked( String username );
-    
+
     /**
      * Sets information for a user who will be invited by email to finish
      * setting up their user account.
@@ -117,34 +116,35 @@ public interface SecurityService
     String validateInvite( UserCredentials credentials );
 
     /**
-     * Invokes the initRestore method and dispatches email messages with
-     * restore information to the user, or sends an invite email.
+     * Invokes the initRestore method and dispatches email messages with restore
+     * information to the user, or sends an invite email.
      *
-     * @param credentials    the credentials for the user to send restore message.
-     * @param rootPath       the root path of the request.
+     * @param credentials the credentials for the user to send restore message.
+     * @param rootPath the root path of the request.
      * @param restoreOptions restore options, including type of restore.
      * @return false if any of the arguments are null or if the user credentials
-     * identified by the user name does not exist, true otherwise.
+     *         identified by the user name does not exist, true otherwise.
      */
     boolean sendRestoreOrInviteMessage( UserCredentials credentials, String rootPath, RestoreOptions restoreOptions );
 
     /**
-     * Populates the restoreToken property and idToken of the given
-     * credentials with a hashed version of auto-generated values. Sets the
-     * restoreExpiry property with a date time some interval from now depending
-     * on the restore type. Changes are persisted.
+     * Populates the restoreToken property and idToken of the given credentials
+     * with a hashed version of auto-generated values. Sets the restoreExpiry
+     * property with a date time some interval from now depending on the restore
+     * type. Changes are persisted.
      *
-     * @param credentials    the user credentials.
+     * @param credentials the user credentials.
      * @param restoreOptions restore options, including type of restore.
-     * @return an encoded string containing both id token and hashed/restoreToken, delimited with :
-     * clear-text code.
+     * @return an encoded string containing both id token and
+     *         hashed/restoreToken, delimited with : clear-text code.
      */
     String generateAndPersistTokens( UserCredentials credentials, RestoreOptions restoreOptions );
 
     /**
      * Decodes the id and hashed/restore token used for restore or invite.
      *
-     * @param encodedTokens a Base64 encoded string containing the id token and hashed/restoreToken, delimited with :
+     * @param encodedTokens a Base64 encoded string containing the id token and
+     *        hashed/restoreToken, delimited with :
      * @return an array containing the decoded tokens
      */
     String[] decodeEncodedTokens( String encodedTokens );
@@ -158,14 +158,14 @@ public interface SecurityService
     RestoreOptions getRestoreOptions( String token );
 
     /**
-     * Tests whether the given token is valid for the given user name.
-     * If true, it will update the user credentials identified by the given user
-     * name with the new password. In order to succeed, the given token 
-     * must match the ones on the credentials, and the current date must be before
-     * the expiry date time of the credentials.
+     * Tests whether the given token is valid for the given user name. If true,
+     * it will update the user credentials identified by the given user name
+     * with the new password. In order to succeed, the given token must match
+     * the ones on the credentials, and the current date must be before the
+     * expiry date time of the credentials.
      *
      * @param credentials the user credentials.
-     * @param token       the token.
+     * @param token the token.
      * @param newPassword the proposed new password.
      * @param restoreType type of restore operation (e.g. pw recovery, invite).
      * @return true or false.
@@ -179,7 +179,7 @@ public interface SecurityService
      * the credentials.
      *
      * @param credentials the user credentials.
-     * @param token       the token.
+     * @param token the token.
      * @param restoreType type of restore operation (e.g. pw recovery, invite).
      * @return true or false.
      */
@@ -187,14 +187,14 @@ public interface SecurityService
 
     /**
      * Tests whether the given token in combination with the given user name is
-     * valid, i.e. whether the hashed version of the token matches the one on the
-     * user credentials identified by the given user name.
+     * valid, i.e. whether the hashed version of the token matches the one on
+     * the user credentials identified by the given user name.
      *
      * @param credentials the user credentials.
-     * @param token       the token.
+     * @param token the token.
      * @return error message if any of the arguments are null or if the user
-     * credentials identified by the user name does not exist, null if
-     * the arguments are valid.
+     *         credentials identified by the user name does not exist, null if
+     *         the arguments are valid.
      */
     String verifyRestoreToken( UserCredentials credentials, String token, RestoreType restoreType );
 
@@ -290,9 +290,9 @@ public interface SecurityService
     boolean canManage( IdentifiableObject identifiableObject );
 
     /**
-     * Indicates whether the current user has been granted any of
-     * the given authorities.
-     * 
+     * Indicates whether the current user has been granted any of the given
+     * authorities.
+     *
      * @param authorities the authorities.
      * @return true if the current user has any of the given authorities.
      */

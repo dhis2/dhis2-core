@@ -1,5 +1,3 @@
-package org.hisp.dhis.visualization;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.visualization;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.visualization;
 
 import static com.google.common.base.Verify.verify;
 import static java.util.Arrays.asList;
@@ -100,11 +99,17 @@ public class Visualization
     implements MetadataObject
 {
     public static final String REPORTING_MONTH_COLUMN_NAME = "reporting_month_name";
+
     public static final String PARAM_ORGANISATIONUNIT_COLUMN_NAME = "param_organisationunit_name";
+
     public static final String ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME = "organisation_unit_is_parent";
+
     public static final String SPACE = " ";
+
     public static final String TOTAL_COLUMN_NAME = "total";
+
     public static final String TOTAL_COLUMN_PRETTY_NAME = "Total";
+
     public static final String EMPTY = "";
 
     private static final String ILLEGAL_FILENAME_CHARS_REGEX = "[/\\?%*:|\"'<>.]";
@@ -178,15 +183,15 @@ public class Visualization
     private RegressionType regressionType = RegressionType.NONE;
 
     /**
-     * List of {@link Series}. Refers to the dimension items in the
-     * first dimension of the "columns" list by dimension item identifier.
+     * List of {@link Series}. Refers to the dimension items in the first
+     * dimension of the "columns" list by dimension item identifier.
      */
     private List<Series> series = new ArrayList<>();
 
     /**
      * Outlier analysis settings.
      */
-     private OutlierAnalysis outlierAnalysis;
+    private OutlierAnalysis outlierAnalysis;
 
     // -------------------------------------------------------------------------
     // Display definitions
@@ -224,7 +229,8 @@ public class Visualization
     private VisualizationFontStyle fontStyle;
 
     /**
-     * The key of the color set to use for visualization items, like columns and bars.
+     * The key of the color set to use for visualization items, like columns and
+     * bars.
      */
     private String colorSet;
 
@@ -257,8 +263,8 @@ public class Visualization
     private List<AxisV2> axes = new ArrayList<>();
 
     /**
-     * The period of years of this visualization. See RelativePeriodEnum for a valid
-     * list of enum based strings.
+     * The period of years of this visualization. See RelativePeriodEnum for a
+     * valid list of enum based strings.
      */
     private List<String> yearlySeries = new ArrayList<>();
 
@@ -277,18 +283,20 @@ public class Visualization
     private boolean skipRounding;
 
     /**
-     * Indicates whether the visualization contains regression columns. More likely
-     * to be applicable to pivot and reports.
+     * Indicates whether the visualization contains regression columns. More
+     * likely to be applicable to pivot and reports.
      */
     private boolean regression;
 
     /**
-     * Indicates whether the visualization contains cumulative values or columns.
+     * Indicates whether the visualization contains cumulative values or
+     * columns.
      */
     private boolean cumulativeValues;
 
     /**
-     * User stacked values or not. Very likely to be applied for graphics/charts.
+     * User stacked values or not. Very likely to be applied for
+     * graphics/charts.
      */
     private boolean percentStackedValues;
 
@@ -364,7 +372,8 @@ public class Visualization
     private transient String gridTitle;
 
     /*
-     * Collections mostly used for analytics tabulated data, like pivots or reports.
+     * Collections mostly used for analytics tabulated data, like pivots or
+     * reports.
      */
     private transient List<List<DimensionalItemObject>> gridColumns = new ArrayList<>();
 
@@ -1133,8 +1142,8 @@ public class Visualization
     }
 
     /**
-     * Returns the list of DimensionDescriptor held internally to the current Visualization object.
-     * See {@link #addDimensionDescriptor}.
+     * Returns the list of DimensionDescriptor held internally to the current
+     * Visualization object. See {@link #addDimensionDescriptor}.
      *
      * @return the list of DimensionDescriptor's held.
      */
@@ -1144,8 +1153,8 @@ public class Visualization
     }
 
     /**
-     * This method will hold the mapping of a dimension and its respective formal
-     * type.
+     * This method will hold the mapping of a dimension and its respective
+     * formal type.
      *
      * @param dimension the dimension, which should also be found in
      *        "{@link #columnDimensions}" and "{@link #rowDimensions}".
@@ -1289,7 +1298,8 @@ public class Visualization
      */
     public List<DimensionalItemObject> chartSeries()
     {
-        // Chart must have one column dimension (series). This is a protective checking.
+        // Chart must have one column dimension (series). This is a protective
+        // checking.
         if ( isEmpty( columnDimensions ) || isBlank( columnDimensions.get( 0 ) ) )
         {
             return null;
@@ -1306,7 +1316,8 @@ public class Visualization
      */
     public List<DimensionalItemObject> chartCategory()
     {
-        // Chart must have one row dimension (category). This is a protective checking.
+        // Chart must have one row dimension (category). This is a protective
+        // checking.
         if ( isEmpty( rowDimensions ) || isBlank( rowDimensions.get( 0 ) ) )
         {
             return null;
@@ -1316,8 +1327,8 @@ public class Visualization
     }
 
     /**
-     * Returns a list of dimensional items based on the given dimension and internal
-     * attributes of the current Visualization object.
+     * Returns a list of dimensional items based on the given dimension and
+     * internal attributes of the current Visualization object.
      *
      * @param dimension a given dimension
      * @return the list of DimensionalItemObject's
@@ -1331,7 +1342,8 @@ public class Visualization
     }
 
     public void populateGridColumnsAndRows( Date date, User user,
-        List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups, I18nFormat format )
+        List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups,
+        I18nFormat format )
     {
         List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
         List<List<DimensionalItemObject>> tableRows = new ArrayList<>();
@@ -1478,12 +1490,12 @@ public class Visualization
     }
 
     /**
-     * Generates a grid for this visualization based on the given aggregate value
-     * map.
+     * Generates a grid for this visualization based on the given aggregate
+     * value map.
      *
-     * @param grid               the grid, should be empty and not null.
-     * @param valueMap           the mapping of identifiers to aggregate values.
-     * @param displayProperty    the display property to use for meta data.
+     * @param grid the grid, should be empty and not null.
+     * @param valueMap the mapping of identifiers to aggregate values.
+     * @param displayProperty the display property to use for meta data.
      * @param reportParamColumns whether to include report parameter columns.
      * @return a grid.
      */
@@ -1666,12 +1678,12 @@ public class Visualization
     }
 
     /**
-     * Generates a column name based on short-names of the argument objects. Null
-     * arguments are ignored in the name.
+     * Generates a column name based on short-names of the argument objects.
+     * Null arguments are ignored in the name.
      * <p/>
-     * The period column name must be static when on columns so it can be re-used in
-     * reports, hence the name property is used which will be formatted only when
-     * the period dimension is on rows.
+     * The period column name must be static when on columns so it can be
+     * re-used in reports, hence the name property is used which will be
+     * formatted only when the period dimension is on rows.
      */
     public static String getColumnName( final List<DimensionalItemObject> objects )
     {
@@ -1712,8 +1724,9 @@ public class Visualization
     }
 
     /**
-     * Checks whether the given List of IdentifiableObjects contains an object which
-     * is an OrganisationUnit and has the currentParent property set to true.
+     * Checks whether the given List of IdentifiableObjects contains an object
+     * which is an OrganisationUnit and has the currentParent property set to
+     * true.
      *
      * @param objects the List of IdentifiableObjects.
      */
@@ -1730,7 +1743,8 @@ public class Visualization
     }
 
     /**
-     * Returns the name of the parent organisation unit, or an empty string if null.
+     * Returns the name of the parent organisation unit, or an empty string if
+     * null.
      */
     public String getParentOrganisationUnitName()
     {

@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.bundle;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,7 +25,15 @@ package org.hisp.dhis.tracker.bundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.bundle;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.system.notification.Notifier;
@@ -47,14 +53,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Zubair Asghar
@@ -88,7 +86,8 @@ public class TrackerImporterServiceTest
     @Before
     public void setUp()
     {
-        subject = new DefaultTrackerImportService( trackerBundleService, trackerValidationService, trackerPreprocessService,
+        subject = new DefaultTrackerImportService( trackerBundleService, trackerValidationService,
+            trackerPreprocessService,
             trackerUserService, notifier );
 
         final List<Event> events = rnd.randomObjects( Event.class, 3 );
@@ -98,17 +97,20 @@ public class TrackerImporterServiceTest
             .enrollments( new ArrayList<>() )
             .relationships( new ArrayList<>() )
             .trackedEntities( new ArrayList<>() )
-            .userId("123")
+            .userId( "123" )
             .build();
 
         TrackerBundleReport trackerBundleReport = TrackerBundleReport.builder().build();
         when( trackerUserService.getUser( anyString() ) ).thenReturn( getUser() );
 
-        when( trackerBundleService.commit( any(TrackerBundle.class ) ) ).thenReturn( trackerBundleReport );
+        when( trackerBundleService.commit( any( TrackerBundle.class ) ) ).thenReturn( trackerBundleReport );
 
-        when( trackerValidationService.validate( any( TrackerBundle.class ) ) ).thenReturn( new TrackerValidationReport() );
-        when( trackerValidationService.validateRuleEngine( any( TrackerBundle.class ) ) ).thenReturn( new TrackerValidationReport() );
-        when( trackerPreprocessService.preprocess( any( TrackerBundle.class ) ) ).thenReturn( ParamsConverter.convert( params ) );
+        when( trackerValidationService.validate( any( TrackerBundle.class ) ) )
+            .thenReturn( new TrackerValidationReport() );
+        when( trackerValidationService.validateRuleEngine( any( TrackerBundle.class ) ) )
+            .thenReturn( new TrackerValidationReport() );
+        when( trackerPreprocessService.preprocess( any( TrackerBundle.class ) ) )
+            .thenReturn( ParamsConverter.convert( params ) );
     }
 
     @Test
@@ -120,10 +122,11 @@ public class TrackerImporterServiceTest
             .relationships( new ArrayList<>() )
             .trackedEntities( new ArrayList<>() )
             .skipSideEffects( true )
-            .userId("123")
+            .userId( "123" )
             .build();
 
-        when( trackerBundleService.create( any(TrackerImportParams.class ) ) ).thenReturn( ParamsConverter.convert( parameters ) );
+        when( trackerBundleService.create( any( TrackerImportParams.class ) ) )
+            .thenReturn( ParamsConverter.convert( parameters ) );
 
         subject.importTracker( parameters );
 
@@ -134,7 +137,8 @@ public class TrackerImporterServiceTest
     public void testWithSideEffects()
     {
         doAnswer( invocationOnMock -> null ).when( trackerBundleService ).handleTrackerSideEffects( anyList() );
-        when( trackerBundleService.create( any(TrackerImportParams.class ) ) ).thenReturn( ParamsConverter.convert( params ) );
+        when( trackerBundleService.create( any( TrackerImportParams.class ) ) )
+            .thenReturn( ParamsConverter.convert( params ) );
 
         subject.importTracker( params );
 

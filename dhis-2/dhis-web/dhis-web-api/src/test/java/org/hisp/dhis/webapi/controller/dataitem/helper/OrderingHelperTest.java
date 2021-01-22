@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller.dataitem.helper;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.dataitem.helper;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.dataitem.helper;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -99,7 +98,7 @@ public class OrderingHelperTest
     public void sortWhenOrderParamsIsDesc()
     {
         // Given
-        final Set<String> orderings = new HashSet<>( singletonList( "name:desc" ));
+        final Set<String> orderings = new HashSet<>( singletonList( "name:desc" ) );
         final OrderParams orderParams = new OrderParams( orderings );
         final List<BaseDimensionalItemObject> anyDimensionalItems = mockDimensionalItems( 2 );
         final List<BaseDimensionalItemObject> ascList = mockDimensionalItems( 2 );
@@ -119,7 +118,6 @@ public class OrderingHelperTest
         final Set<String> orderingWithNoValue = new HashSet<>( singletonList( "name:" ) );
         final OrderParams orderParams = new OrderParams( orderingWithNoValue );
         final List<BaseDimensionalItemObject> anyDimensionalItems = mockDimensionalItems( 2 );
-
 
         // When
         assertThrows( "Unable to parse order param: `" + "name:" + "`", IllegalQueryException.class,

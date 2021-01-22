@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1020;
@@ -36,13 +35,13 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1025;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
 
-import java.util.Date;
+import java.time.Instant;
+import java.util.Objects;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -64,7 +63,7 @@ public class EnrollmentDateValidationHook
         validateEnrollmentDatesNotInFuture( reporter, program, enrollment );
 
         if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() ) &&
-            !isValidDateStringAndNotNull( enrollment.getOccurredAt() ) )
+            Objects.isNull( enrollment.getOccurredAt() ) )
         {
             addError( reporter, E1023, enrollment.getOccurredAt() );
         }
@@ -74,7 +73,7 @@ public class EnrollmentDateValidationHook
     {
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
-        if ( !isValidDateStringAndNotNull( enrollment.getEnrolledAt() ) )
+        if ( Objects.isNull( enrollment.getEnrolledAt() ) )
         {
             addError( reporter, E1025, enrollment.getEnrolledAt() );
         }
@@ -86,16 +85,16 @@ public class EnrollmentDateValidationHook
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
-        if ( isValidDateStringAndNotNull( enrollment.getEnrolledAt() )
+        if ( Objects.nonNull( enrollment.getEnrolledAt() )
             && Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() )
-            && DateUtils.parseDate( enrollment.getEnrolledAt() ).after( new Date() ) )
+            && enrollment.getEnrolledAt().isAfter( Instant.now() ) )
         {
             addError( reporter, E1020, enrollment.getEnrolledAt() );
         }
 
-        if ( isValidDateStringAndNotNull( enrollment.getOccurredAt() )
+        if ( Objects.nonNull( enrollment.getOccurredAt() )
             && Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() )
-            && DateUtils.parseDate( enrollment.getOccurredAt() ).after( new Date() ) )
+            && enrollment.getOccurredAt().isAfter( Instant.now() ) )
         {
             addError( reporter, E1021, enrollment.getOccurredAt() );
         }

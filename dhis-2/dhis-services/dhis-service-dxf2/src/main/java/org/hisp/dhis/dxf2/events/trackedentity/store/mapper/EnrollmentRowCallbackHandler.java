@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,8 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.getColumnName;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.COMPLETED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.COMPLETEDBY;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.CREATED;
@@ -49,9 +47,11 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuer
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.UID;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.UPDATED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.UPDATEDCLIENT;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.getColumnName;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.util.DateUtils;
@@ -81,7 +81,7 @@ public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment>
         enrollment.setEnrollment( rs.getString( getColumnName( UID ) ) );
 
         MapperGeoUtils.resolveGeometry( rs.getBytes( getColumnName( GEOMETRY ) ) )
-                .ifPresent( enrollment::setGeometry );
+            .ifPresent( enrollment::setGeometry );
 
         enrollment.setTrackedEntityType( rs.getString( getColumnName( TEI_TYPE_UID ) ) );
         enrollment.setTrackedEntityInstance( rs.getString( getColumnName( TEI_UID ) ) );

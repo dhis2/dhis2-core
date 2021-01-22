@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.importer.context;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,9 +25,10 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.context;
 
-import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
@@ -45,9 +44,9 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.Mock;
+import org.springframework.core.env.Environment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.core.env.Environment;
 
 @RunWith( Parameterized.class )
 public class ProgramSupplierTest extends AbstractSupplierTest<Program>
@@ -87,7 +86,7 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
         when( mockResultSet.getString( "code" ) ).thenReturn( "ALFA" );
         when( mockResultSet.getString( "name" ) ).thenReturn( "My Program" );
         when( mockResultSet.getString( "type" ) ).thenReturn( ProgramType.WITHOUT_REGISTRATION.getValue() );
-        when( mockResultSet.getString( "program_sharing" ) ).thenReturn( generateSharing( null,  "rw------", false ) );
+        when( mockResultSet.getString( "program_sharing" ) ).thenReturn( generateSharing( null, "rw------", false ) );
 
         when( mockResultSet.getLong( "catcombo_id" ) ).thenReturn( 200L );
         when( mockResultSet.getString( "catcombo_uid" ) ).thenReturn( "389dh83" );
@@ -99,7 +98,7 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
         when( mockResultSet.getString( "ps_code" ) ).thenReturn( "cod5", "cod6" );
         when( mockResultSet.getString( "ps_name" ) ).thenReturn( "name5", "name6" );
         when( mockResultSet.getInt( "sort_order" ) ).thenReturn( 1, 2 );
-        when( mockResultSet.getString( "ps_sharing" ) ).thenReturn( generateSharing( null,  "rw------", false ) );
+        when( mockResultSet.getString( "ps_sharing" ) ).thenReturn( generateSharing( null, "rw------", false ) );
         when( mockResultSet.getString( "ps_feature_type" ) ).thenReturn( null, "POINT" );
         when( mockResultSet.getBoolean( "ps_repeatable" ) ).thenReturn( true, false );
         when( mockResultSet.getString( "validationstrategy" ) ).thenReturn( "ON_COMPLETE" );
@@ -156,6 +155,6 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
 
     private String generateSharing( String owner, String publicAccess, boolean external )
     {
-        return "{\"owner\": \"" + owner + "\", \"public\": \"" + publicAccess + "\", \"external\": "+ external +"}";
+        return "{\"owner\": \"" + owner + "\", \"public\": \"" + publicAccess + "\", \"external\": " + external + "}";
     }
 }

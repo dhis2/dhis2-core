@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.mvc.annotation;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,14 +25,15 @@ package org.hisp.dhis.webapi.mvc.annotation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.common.DhisApiVersion;
-import org.springframework.core.annotation.AliasFor;
+package org.hisp.dhis.webapi.mvc.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
+import org.hisp.dhis.common.DhisApiVersion;
+import org.springframework.core.annotation.AliasFor;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller.dataitem.helper;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.dataitem.helper;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.dataitem.helper;
 
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.contains;
@@ -58,13 +57,14 @@ public class FilteringHelper
     private static final String DIMENSION_TYPE_EQUAL_FILTER_PREFIX = "dimensionItemType:eq:";
 
     /**
-     * This method will return the respective BaseDimensionalItemObject class from
-     * the filter provided.
+     * This method will return the respective BaseDimensionalItemObject class
+     * from the filter provided.
      *
      * @param filter should have the format of
-     *        "dimensionItemType:in:[INDICATOR,DATA_SET,...]", where INDICATOR and
-     *        DATA_SET represents the BaseDimensionalItemObject. The valid types are
-     *        found at {@link org.hisp.dhis.common.DataDimensionItemType}
+     *        "dimensionItemType:in:[INDICATOR,DATA_SET,...]", where INDICATOR
+     *        and DATA_SET represents the BaseDimensionalItemObject. The valid
+     *        types are found at
+     *        {@link org.hisp.dhis.common.DataDimensionItemType}
      * @return the respective classes associated with the given IN filter
      * @throws IllegalQueryException if the filter points to a non supported
      *         class/entity.
@@ -95,12 +95,12 @@ public class FilteringHelper
     }
 
     /**
-     * This method will return the respective BaseDimensionalItemObject class from
-     * the filter provided.
+     * This method will return the respective BaseDimensionalItemObject class
+     * from the filter provided.
      *
      * @param filter should have the format of "dimensionItemType:eq:INDICATOR",
-     *        where INDICATOR represents the BaseDimensionalItemObject. It could be
-     *        any value represented by
+     *        where INDICATOR represents the BaseDimensionalItemObject. It could
+     *        be any value represented by
      *        {@link org.hisp.dhis.common.DataDimensionItemType}
      * @return the respective class associated with the given filter
      * @throws IllegalQueryException if the filter points to a non supported
@@ -130,7 +130,8 @@ public class FilteringHelper
     }
 
     /**
-     * Simply checks if the given list of filters contains a dimension type filter.
+     * Simply checks if the given list of filters contains a dimension type
+     * filter.
      *
      * @param filters
      * @return true if a dimension type filter is found, false otherwise.
@@ -168,7 +169,8 @@ public class FilteringHelper
         if ( entity == null )
         {
             throw new IllegalQueryException(
-                new ErrorMessage( E2016, entityType, "dimensionItemType", Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ) ) );
+                new ErrorMessage( E2016, entityType, "dimensionItemType",
+                    Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ) ) );
         }
 
         return entity;

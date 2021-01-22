@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.metadata.sync.exception;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,9 +25,10 @@ package org.hisp.dhis.dxf2.metadata.sync.exception;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.sync.exception;
 
 /**
- * @author  aamerm.
+ * @author aamerm.
  */
 public class RemoteServerUnavailableException
     extends RuntimeException

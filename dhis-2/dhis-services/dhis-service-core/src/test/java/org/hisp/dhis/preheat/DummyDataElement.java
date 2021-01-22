@@ -1,5 +1,3 @@
-package org.hisp.dhis.preheat;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.preheat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.preheat;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.MetadataObject;
@@ -37,14 +36,9 @@ import org.hisp.dhis.option.OptionSet;
 /**
  * @author Luciano Fiandesio
  */
-public class DummyDataElement
-    extends
-    BaseDimensionalItemObject
-    implements
-    MetadataObject,
-    ValueTypedDimensionalItemObject
+public class DummyDataElement extends BaseDimensionalItemObject
+    implements MetadataObject, ValueTypedDimensionalItemObject
 {
-
     private String url;
 
     @Override

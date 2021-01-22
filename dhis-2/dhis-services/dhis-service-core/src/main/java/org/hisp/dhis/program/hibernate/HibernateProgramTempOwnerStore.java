@@ -1,5 +1,3 @@
-package org.hisp.dhis.program.hibernate;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.program.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.hibernate;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -47,7 +46,8 @@ public class HibernateProgramTempOwnerStore
     extends HibernateGenericStore<ProgramTempOwner>
     implements ProgramTempOwnerStore
 {
-    public HibernateProgramTempOwnerStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
+    public HibernateProgramTempOwnerStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher )
     {
         super( sessionFactory, jdbcTemplate, publisher, ProgramTempOwner.class, false );
     }
@@ -65,10 +65,11 @@ public class HibernateProgramTempOwnerStore
     @Override
     public int getValidTempOwnerCount( Program program, TrackedEntityInstance entityInstance, User user )
     {
-        final String sql = "select count(1) from programtempowner " 
+        final String sql = "select count(1) from programtempowner "
             + "where programid = ? and trackedentityinstanceid=? and userid=? "
             + "and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0";
-        return jdbcTemplate.queryForObject( sql, new Object[] { program.getId(), entityInstance.getId(), user.getId() }, Integer.class );
+        return jdbcTemplate.queryForObject( sql, new Object[] { program.getId(), entityInstance.getId(), user.getId() },
+            Integer.class );
     }
 
 }

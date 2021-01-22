@@ -1,5 +1,3 @@
-package org.hisp.dhis.commons.action;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.commons.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.action;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,9 +74,10 @@ public class GetAttributesAction
     public String execute()
     {
         attributes = new ArrayList<>( attributeService.getAllAttributes() );
-        
-        ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(), attributes );
-        
+
+        ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(),
+            attributes );
+
         Collections.sort( attributes );
 
         return SUCCESS;

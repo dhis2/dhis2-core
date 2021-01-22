@@ -1,5 +1,3 @@
-package org.hisp.dhis.keyjsonvalue;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.keyjsonvalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.keyjsonvalue;
 
 import java.util.List;
 
@@ -38,7 +37,7 @@ public interface MetadataKeyJsonService
     /**
      * Retrieves a KeyJsonValue based on a namespace and key.
      *
-     * @param key       the key referencing the value.
+     * @param key the key referencing the value.
      * @return the KeyJsonValue matching the key and namespace.
      */
     KeyJsonValue getMetaDataVersion( String key );

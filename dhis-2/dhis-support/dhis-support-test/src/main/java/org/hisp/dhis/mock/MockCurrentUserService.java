@@ -1,5 +1,3 @@
-package org.hisp.dhis.mock;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,12 @@ package org.hisp.dhis.mock;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mock;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
@@ -35,11 +39,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserInfo;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -56,12 +55,14 @@ public class MockCurrentUserService
         this.currentUser = currentUser;
     }
 
-    public MockCurrentUserService( Set<OrganisationUnit> organisationUnits, Set<OrganisationUnit> dataViewOrganisationUnits, String... auths )
+    public MockCurrentUserService( Set<OrganisationUnit> organisationUnits,
+        Set<OrganisationUnit> dataViewOrganisationUnits, String... auths )
     {
         this( true, organisationUnits, dataViewOrganisationUnits, auths );
     }
 
-    public MockCurrentUserService( boolean superUserFlag, Set<OrganisationUnit> organisationUnits, Set<OrganisationUnit> dataViewOrganisationUnits, String... auths )
+    public MockCurrentUserService( boolean superUserFlag, Set<OrganisationUnit> organisationUnits,
+        Set<OrganisationUnit> dataViewOrganisationUnits, String... auths )
     {
         UserAuthorityGroup userRole = new UserAuthorityGroup();
         userRole.setAutoFields();
@@ -104,7 +105,6 @@ public class MockCurrentUserService
         return currentUser;
     }
 
-
     @Override
     public UserInfo getCurrentUserInfo()
     {
@@ -140,7 +140,7 @@ public class MockCurrentUserService
     public CurrentUserGroupInfo getCurrentUserGroupsInfo()
     {
         return new CurrentUserGroupInfo( currentUser.getUid(),
-            currentUser.getGroups().stream().map( g -> g.getUid() ).collect( Collectors.toSet()) );
+            currentUser.getGroups().stream().map( g -> g.getUid() ).collect( Collectors.toSet() ) );
     }
 
     @Override

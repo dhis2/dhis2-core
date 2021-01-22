@@ -1,5 +1,3 @@
-package org.hisp.dhis.attribute;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,15 @@ package org.hisp.dhis.attribute;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.attribute;
 
-import com.google.common.collect.Lists;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.category.CategoryService;
@@ -43,12 +48,7 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -74,11 +74,17 @@ public class AttributeValueServiceTest extends TransactionalIntegrationTest
     private CurrentUserService currentUserService;
 
     private DataElement dataElementA;
+
     private DataElement dataElementB;
+
     private DataElement dataElementC;
+
     private Attribute attribute1;
+
     private Attribute attribute2;
+
     private Attribute attribute3;
+
     private UserInfo currentUserInfo;
 
     @Override
@@ -125,7 +131,7 @@ public class AttributeValueServiceTest extends TransactionalIntegrationTest
         assertNotNull( dataElementB.getAttributeValue( attribute2 ) );
     }
 
-   @Test
+    @Test
     public void testDeleteAttributeValue()
     {
         AttributeValue avA = new AttributeValue( "valueA", attribute1 );
@@ -149,7 +155,8 @@ public class AttributeValueServiceTest extends TransactionalIntegrationTest
         avA = dataElementA.getAttributeValue( attribute1 );
         assertNotNull( avA );
 
-        List<AttributeValue> attributeValues = dataElementStore.getAllValuesByAttributes( Lists.newArrayList( attribute2 ) );
+        List<AttributeValue> attributeValues = dataElementStore
+            .getAllValuesByAttributes( Lists.newArrayList( attribute2 ) );
 
         assertNotNull( attributeValues );
         assertEquals( 1, attributeValues.size() );
@@ -181,7 +188,8 @@ public class AttributeValueServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testAddNonUniqueAttributeValue() throws NonUniqueAttributeValueException
+    public void testAddNonUniqueAttributeValue()
+        throws NonUniqueAttributeValueException
     {
         Attribute attribute = new Attribute( "ID", ValueType.TEXT );
         attribute.setUnique( true );
@@ -197,7 +205,8 @@ public class AttributeValueServiceTest extends TransactionalIntegrationTest
     }
 
     @Test( expected = NonUniqueAttributeValueException.class )
-    public void testAddUniqueAttributeValue() throws NonUniqueAttributeValueException
+    public void testAddUniqueAttributeValue()
+        throws NonUniqueAttributeValueException
     {
         Attribute attribute = new Attribute( "ID", ValueType.TEXT );
         attribute.setUnique( true );
@@ -213,7 +222,8 @@ public class AttributeValueServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testAttributeValueFromAttribute() throws NonUniqueAttributeValueException
+    public void testAttributeValueFromAttribute()
+        throws NonUniqueAttributeValueException
     {
         Attribute attribute = new Attribute( "test", ValueType.TEXT );
         attribute.setDataElementAttribute( true );
@@ -233,7 +243,8 @@ public class AttributeValueServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testAttributeValueFromAttributeAndValue() throws NonUniqueAttributeValueException
+    public void testAttributeValueFromAttributeAndValue()
+        throws NonUniqueAttributeValueException
     {
         Attribute attribute = new Attribute( "test", ValueType.TEXT );
         attribute.setDataElementAttribute( true );
@@ -268,7 +279,8 @@ public class AttributeValueServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testDataElementByUniqueAttributeValue() throws NonUniqueAttributeValueException
+    public void testDataElementByUniqueAttributeValue()
+        throws NonUniqueAttributeValueException
     {
         Attribute attribute = new Attribute( "cid", ValueType.TEXT );
         attribute.setDataElementAttribute( true );
@@ -283,15 +295,15 @@ public class AttributeValueServiceTest extends TransactionalIntegrationTest
         attributeService.addAttributeValue( dataElementB, attributeValueB );
         attributeService.addAttributeValue( dataElementC, attributeValueC );
 
-        DataElement deA = dataElementStore.getByUniqueAttributeValue(  attribute, "CID1", currentUserInfo );
-        DataElement deB = dataElementStore.getByUniqueAttributeValue(  attribute, "CID2", currentUserInfo );
-        DataElement deC = dataElementStore.getByUniqueAttributeValue(  attribute, "CID3", currentUserInfo );
+        DataElement deA = dataElementStore.getByUniqueAttributeValue( attribute, "CID1", currentUserInfo );
+        DataElement deB = dataElementStore.getByUniqueAttributeValue( attribute, "CID2", currentUserInfo );
+        DataElement deC = dataElementStore.getByUniqueAttributeValue( attribute, "CID3", currentUserInfo );
 
         assertNotNull( deA );
         assertNotNull( deB );
         assertNotNull( deC );
-        assertNull( dataElementStore.getByUniqueAttributeValue(  attribute, "CID4", currentUserInfo ) );
-        assertNull( dataElementStore.getByUniqueAttributeValue(  attribute, "CID5", currentUserInfo ) );
+        assertNull( dataElementStore.getByUniqueAttributeValue( attribute, "CID4", currentUserInfo ) );
+        assertNull( dataElementStore.getByUniqueAttributeValue( attribute, "CID5", currentUserInfo ) );
 
         assertEquals( "DataElementA", deA.getName() );
         assertEquals( "DataElementB", deB.getName() );
@@ -358,7 +370,8 @@ public class AttributeValueServiceTest extends TransactionalIntegrationTest
 
         assertEquals( 2, result.size() );
 
-        List<AttributeValue> values = manager.getAllValuesByAttributes( DataElement.class, Lists.newArrayList( attribute1, attribute2 ) );
+        List<AttributeValue> values = manager.getAllValuesByAttributes( DataElement.class,
+            Lists.newArrayList( attribute1, attribute2 ) );
 
         assertEquals( 2, values.size() );
         assertTrue( values.stream().anyMatch( av -> av.getValue().equals( "valueA" ) ) );

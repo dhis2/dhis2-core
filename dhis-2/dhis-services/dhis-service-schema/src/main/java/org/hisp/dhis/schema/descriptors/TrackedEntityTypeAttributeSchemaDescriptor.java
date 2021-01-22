@@ -1,5 +1,3 @@
-package org.hisp.dhis.schema.descriptors;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.schema.descriptors;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.schema.descriptors;
 
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
@@ -46,7 +45,7 @@ public class TrackedEntityTypeAttributeSchemaDescriptor implements SchemaDescrip
 
     @Override
     public Schema getSchema()
-    {        
+    {
         Schema schema = new Schema( TrackedEntityTypeAttribute.class, SINGULAR, PLURAL );
         schema.setOrder( 1500 );
         return schema;

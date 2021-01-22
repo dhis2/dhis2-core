@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.converter;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.converter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.converter;
 
 import java.util.Date;
 import java.util.List;
@@ -50,7 +49,7 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
         Note note = new Note();
         note.setNote( trackedEntityComment.getUid() );
         note.setValue( trackedEntityComment.getCommentText() );
-        note.setStoredAt( DateUtils.getIso8601NoTz( trackedEntityComment.getCreated() ) );
+        note.setStoredAt( DateUtils.instantFromDate( trackedEntityComment.getCreated() ) );
         note.setStoredBy( trackedEntityComment.getCreator() );
         return note;
     }

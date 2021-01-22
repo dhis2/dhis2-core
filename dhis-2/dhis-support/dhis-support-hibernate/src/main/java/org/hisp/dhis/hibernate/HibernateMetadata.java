@@ -1,5 +1,3 @@
-package org.hisp.dhis.hibernate;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.hibernate;
 
 import org.hibernate.boot.SessionFactoryBuilder;
 import org.hibernate.boot.spi.MetadataImplementor;
@@ -41,7 +40,8 @@ public class HibernateMetadata implements SessionFactoryBuilderFactory
     private static final ThreadLocal<MetadataImplementor> metadataImplementor = new ThreadLocal<>();
 
     @Override
-    public SessionFactoryBuilder getSessionFactoryBuilder( MetadataImplementor metadataImplementor, SessionFactoryBuilderImplementor defaultBuilder )
+    public SessionFactoryBuilder getSessionFactoryBuilder( MetadataImplementor metadataImplementor,
+        SessionFactoryBuilderImplementor defaultBuilder )
     {
         HibernateMetadata.metadataImplementor.set( metadataImplementor );
         return defaultBuilder;

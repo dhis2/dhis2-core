@@ -1,5 +1,3 @@
-package org.hisp.dhis.analytics.cache;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,9 +25,11 @@ package org.hisp.dhis.analytics.cache;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.cache;
 
 import static java.lang.Long.valueOf;
 import static java.util.Calendar.DATE;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.FIXED;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.PROGRESSIVE;
@@ -40,7 +40,6 @@ import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_PROGRESSIVE_TTL_F
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TTL_MODE;
 import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
 import static org.hisp.dhis.util.DateUtils.calculateDateFrom;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
 
@@ -142,7 +141,8 @@ public class AnalyticsCacheSettingsTest
         // Given
         final int aTtlFactor = 20;
         final int oneDayDiff = 1;
-        final long theExpectedTtl = aTtlFactor * oneDayDiff; // See TimeToLive.compute()
+        final long theExpectedTtl = aTtlFactor * oneDayDiff; // See
+                                                             // TimeToLive.compute()
         final Date aDateBeforeToday = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
 
         // When
@@ -160,7 +160,8 @@ public class AnalyticsCacheSettingsTest
         // Given
         final int theDefaultTtlFactor = (Integer) ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR.getDefaultValue();
         final int oneDayDiff = 1;
-        final long theExpectedTtl = theDefaultTtlFactor * oneDayDiff; // See TimeToLive.compute()
+        final long theExpectedTtl = theDefaultTtlFactor * oneDayDiff; // See
+                                                                      // TimeToLive.compute()
         final Date aDateBeforeToday = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
 
         // When

@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.service;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.service;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.service;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -68,7 +67,8 @@ public class DefaultContextService implements ContextService
         String xForwardedProto = request.getHeader( "X-Forwarded-Proto" );
         String xForwardedPort = request.getHeader( "X-Forwarded-Port" );
 
-        if ( xForwardedProto != null && (xForwardedProto.equalsIgnoreCase( "http" ) || xForwardedProto.equalsIgnoreCase( "https" )) )
+        if ( xForwardedProto != null
+            && (xForwardedProto.equalsIgnoreCase( "http" ) || xForwardedProto.equalsIgnoreCase( "https" )) )
         {
             builder.append( xForwardedProto );
         }
@@ -131,12 +131,13 @@ public class DefaultContextService implements ContextService
 
     private List<String> getRequestParameterValues( String paramName )
     {
-        String[] parameterValues = getRequest().getParameterValues(paramName);
+        String[] parameterValues = getRequest().getParameterValues( paramName );
 
-        if ( parameterValues != null ) {
-            return Arrays.stream(parameterValues)
-                    .distinct()
-                    .collect(Collectors.toList());
+        if ( parameterValues != null )
+        {
+            return Arrays.stream( parameterValues )
+                .distinct()
+                .collect( Collectors.toList() );
         }
 
         return Collections.emptyList();

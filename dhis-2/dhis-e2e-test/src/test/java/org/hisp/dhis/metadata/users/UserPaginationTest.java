@@ -46,13 +46,17 @@ import static org.hisp.dhis.actions.metadata.MetadataPaginationActions.DEFAULT_M
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public class UserPaginationTest extends ApiTest
+public class UserPaginationTest
+    extends ApiTest
 {
     private MetadataPaginationActions paginationActions;
+
     private UserActions userActions;
 
     private int startPage = 2;
+
     private int pageSize = 5;
+
     private int total = 50;
 
     @BeforeEach
@@ -67,7 +71,9 @@ public class UserPaginationTest extends ApiTest
         // Creates Users
         for ( int i = 0; i < total; i++ )
         {
-            userActions.addUser( DataGenerator.randomString() + i, DataGenerator.randomString() + i,  DataGenerator.randomString() + i, DataGenerator.randomString() + "Abcd1234!" + i );
+            userActions
+                .addUser( DataGenerator.randomString() + i, DataGenerator.randomString() + i, DataGenerator.randomString() + i,
+                    DataGenerator.randomString() + "Abcd1234!" + i );
         }
     }
 
@@ -107,7 +113,7 @@ public class UserPaginationTest extends ApiTest
         ApiResponse response = paginationActions.getPaginated(
             Arrays.asList( DEFAULT_METADATA_FILTER.split( "," ) ),
             Arrays.asList( DEFAULT_METADATA_FIELDS.split( "," ) ),
-            Collections.singletonList("id:ASC"),
+            Collections.singletonList( "id:ASC" ),
             startPage, pageSize );
 
         response.validate().statusCode( 200 );

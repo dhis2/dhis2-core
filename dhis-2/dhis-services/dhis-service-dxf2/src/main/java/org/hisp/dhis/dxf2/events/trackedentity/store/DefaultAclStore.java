@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.trackedentity.store;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,9 @@ package org.hisp.dhis.dxf2.events.trackedentity.store;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.trackedentity.store;
+
+import java.util.List;
 
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
@@ -35,8 +36,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 /**
  * @author Luciano Fiandesio
@@ -54,13 +53,17 @@ public class DefaultAclStore
 
     private final static String PUBLIC_ACCESS_CONDITION = "sharing->>'public' LIKE '__r%' OR sharing->>'public' IS NULL";
 
-    private final static String USERACCESS_CONDITION = "sharing->'users'->:" + USER_SQL_PARAM_NAME + "->>'access' LIKE '__r%'";
+    private final static String USERACCESS_CONDITION = "sharing->'users'->:" + USER_SQL_PARAM_NAME
+        + "->>'access' LIKE '__r%'";
 
-    private final static String USERGROUPACCESS_CONDITION =  JsonbFunctions.HAS_USER_GROUP_IDS + "( sharing, :" + USER_GROUP_SQL_PARAM_NAME + ") = true " +
-        "and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "(sharing, '__r%', :" + USER_GROUP_SQL_PARAM_NAME + ") = true";
+    private final static String USERGROUPACCESS_CONDITION = JsonbFunctions.HAS_USER_GROUP_IDS + "( sharing, :"
+        + USER_GROUP_SQL_PARAM_NAME + ") = true " +
+        "and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "(sharing, '__r%', :" + USER_GROUP_SQL_PARAM_NAME
+        + ") = true";
 
     private final static String GET_TEI_TYPE_ACL = "SELECT trackedentitytypeid FROM trackedentitytype "
         + " WHERE " + PUBLIC_ACCESS_CONDITION + " OR " + USERACCESS_CONDITION;
+
     final static String GET_PROGRAM_ACL = "SELECT p.programid FROM program p "
         + " WHERE " + PUBLIC_ACCESS_CONDITION + " OR " + USERACCESS_CONDITION;
 
@@ -100,7 +103,7 @@ public class DefaultAclStore
         return executeAclQuery( userUID, userGroupUIDs, GET_RELATIONSHIPTYPE_ACL, "relationshiptypeid" );
     }
 
-    private List<Long> executeAclQuery( String userUID,  List<String> userGroupUIDs, String sql, String primaryKey )
+    private List<Long> executeAclQuery( String userUID, List<String> userGroupUIDs, String sql, String primaryKey )
     {
         MapSqlParameterSource parameterMap = new MapSqlParameterSource();
         parameterMap.addValue( USER_SQL_PARAM_NAME, "'" + userUID + "'" );

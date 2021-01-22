@@ -1,5 +1,3 @@
-package org.hisp.dhis.analytics.event.data;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.event.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event.data;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -62,13 +61,13 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import com.google.common.collect.Lists;
 import org.opengis.geometry.primitive.Point;
 
+import com.google.common.collect.Lists;
+
 /**
- * This class only tests the "shared" code of AbstractAnalyticsService, which includes Grid header generation and
- * Grid Metadata
+ * This class only tests the "shared" code of AbstractAnalyticsService, which
+ * includes Grid header generation and Grid Metadata
  *
  * @author Luciano Fiandesio
  */

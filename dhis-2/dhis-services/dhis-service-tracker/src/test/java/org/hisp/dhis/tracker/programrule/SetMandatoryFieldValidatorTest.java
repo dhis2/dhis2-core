@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.programrule;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,10 +25,20 @@ package org.hisp.dhis.tracker.programrule;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.programrule;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
+import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -45,24 +53,14 @@ import org.hisp.dhis.tracker.programrule.implementers.SetMandatoryFieldValidator
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerReportUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
-import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
-import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 @RunWith( MockitoJUnitRunner.class )
 public class SetMandatoryFieldValidatorTest
@@ -155,12 +153,11 @@ public class SetMandatoryFieldValidatorTest
 
         assertFalse( errorMessages.isEmpty() );
 
-        boolean isErrorMessageCorrect =
-            errorMessages
-                .stream()
-                .allMatch(
-                    e -> e.getMessage()
-                        .equals( TrackerReportUtils.formatMessage( TrackerErrorCode.E1303, dataElementA.getUid() ) ) );
+        boolean isErrorMessageCorrect = errorMessages
+            .stream()
+            .allMatch(
+                e -> e.getMessage()
+                    .equals( TrackerReportUtils.formatMessage( TrackerErrorCode.E1303, dataElementA.getUid() ) ) );
 
         assertTrue( isErrorMessageCorrect );
     }
@@ -201,12 +198,11 @@ public class SetMandatoryFieldValidatorTest
 
         assertFalse( errorMessages.isEmpty() );
 
-        boolean isErrorMessageCorrect =
-            errorMessages
-                .stream()
-                .allMatch(
-                    e -> e.getMessage()
-                        .equals( TrackerReportUtils.formatMessage( TrackerErrorCode.E1306, ATTRIBUTE_ID ) ) );
+        boolean isErrorMessageCorrect = errorMessages
+            .stream()
+            .allMatch(
+                e -> e.getMessage()
+                    .equals( TrackerReportUtils.formatMessage( TrackerErrorCode.E1306, ATTRIBUTE_ID ) ) );
 
         assertTrue( isErrorMessageCorrect );
     }

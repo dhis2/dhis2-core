@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.report;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,22 +25,23 @@ package org.hisp.dhis.tracker.report;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.report;
+
+import static org.hisp.dhis.tracker.report.TrackerReportUtils.buildArgumentList;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import lombok.Builder;
+import lombok.Data;
+
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.Builder;
-import lombok.Data;
-
-import static org.hisp.dhis.tracker.report.TrackerReportUtils.buildArgumentList;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -61,7 +60,8 @@ public class TrackerErrorReport
     private final String uid;
 
     @JsonCreator
-    public TrackerErrorReport( @JsonProperty( "message" ) String errorMessage, @JsonProperty( "errorCode" ) TrackerErrorCode errorCode,
+    public TrackerErrorReport( @JsonProperty( "message" ) String errorMessage,
+        @JsonProperty( "errorCode" ) TrackerErrorCode errorCode,
         @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
     {
         this.errorMessage = errorMessage;
@@ -104,7 +104,7 @@ public class TrackerErrorReport
             return this;
         }
 
-        public TrackerErrorReportBuilder addArgs( Object ... args )
+        public TrackerErrorReportBuilder addArgs( Object... args )
         {
             this.arguments.addAll( Arrays.asList( args ) );
             return this;
@@ -113,7 +113,8 @@ public class TrackerErrorReport
         public TrackerErrorReport build( TrackerBundle bundle )
         {
             return new TrackerErrorReport(
-                MessageFormat.format( errorCode.getMessage(), buildArgumentList( bundle, arguments ).toArray( new Object[0] ) ),
+                MessageFormat.format( errorCode.getMessage(),
+                    buildArgumentList( bundle, arguments ).toArray( new Object[0] ) ),
                 this.errorCode, this.trackerType, this.uid );
         }
     }
