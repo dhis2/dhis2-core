@@ -318,7 +318,7 @@ public class IdentifiableObjectManagerTest
         DataElement dataElement = createDataElement( 'A' );
         identifiableObjectManager.save( dataElement );
 
-        dataElement.setCreatedBy( user );
+        dataElement.setOwner( user.getUid() );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
         sessionFactory.getCurrentSession().update( dataElement );
 
@@ -356,7 +356,7 @@ public class IdentifiableObjectManagerTest
 
         for ( DataElement dataElement : dataElements )
         {
-            dataElement.setCreatedBy( user );
+            dataElement.setOwner( user.getUid() );
             dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
 
             sessionFactory.getCurrentSession().update( dataElement );
