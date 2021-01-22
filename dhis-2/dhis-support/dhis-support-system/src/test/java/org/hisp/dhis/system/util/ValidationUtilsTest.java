@@ -27,18 +27,6 @@
  */
 package org.hisp.dhis.system.util;
 
-import com.google.common.collect.ImmutableSet;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.FileTypeValueOptions;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.junit.Test;
-
-import java.io.IOException;
-
 import static org.hisp.dhis.system.util.ValidationUtils.bboxIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.coordinateIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
@@ -57,6 +45,19 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.FileTypeValueOptions;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.junit.Test;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
