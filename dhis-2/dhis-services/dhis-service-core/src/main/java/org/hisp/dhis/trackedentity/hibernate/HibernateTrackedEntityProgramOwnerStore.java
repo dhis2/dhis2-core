@@ -1,5 +1,3 @@
-package org.hisp.dhis.trackedentity.hibernate;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.trackedentity.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentity.hibernate;
 
 import java.util.List;
 
@@ -45,9 +44,10 @@ import org.springframework.stereotype.Repository;
 @Repository( "org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore" )
 public class HibernateTrackedEntityProgramOwnerStore
     extends HibernateGenericStore<TrackedEntityProgramOwner>
-        implements TrackedEntityProgramOwnerStore
+    implements TrackedEntityProgramOwnerStore
 {
-    public HibernateTrackedEntityProgramOwnerStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
+    public HibernateTrackedEntityProgramOwnerStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher )
     {
         super( sessionFactory, jdbcTemplate, publisher, TrackedEntityProgramOwner.class, false );
     }

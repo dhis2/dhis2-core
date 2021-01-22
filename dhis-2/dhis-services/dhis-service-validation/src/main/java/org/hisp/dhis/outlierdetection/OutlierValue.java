@@ -1,5 +1,3 @@
-package org.hisp.dhis.outlierdetection;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,21 +25,22 @@ package org.hisp.dhis.outlierdetection;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.outlierdetection;
 
 import java.util.Date;
 
+import lombok.Data;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-
-import lombok.Data;
 
 /**
  * @author Lars Helge Overland
  */
 @Data
-@JsonPropertyOrder({"de", "deName", "pe", "ou", "ouName",
+@JsonPropertyOrder( { "de", "deName", "pe", "ou", "ouName",
     "coc", "cocName", "aoc", "lastUpdated", "value", "mean",
-    "stdDev", "absDev", "zScore", "lowerBound", "upperBound"})
+    "stdDev", "absDev", "zScore", "lowerBound", "upperBound" } )
 public class OutlierValue
 {
     @JsonProperty
@@ -94,4 +93,7 @@ public class OutlierValue
 
     @JsonProperty
     private Double upperBound;
+
+    @JsonProperty
+    private Boolean followUp;
 }

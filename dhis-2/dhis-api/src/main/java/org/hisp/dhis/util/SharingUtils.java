@@ -1,5 +1,3 @@
-package org.hisp.dhis.util;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,14 +25,15 @@ package org.hisp.dhis.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.user.UserGroupAccess;
-import org.hisp.dhis.user.sharing.Sharing;
+package org.hisp.dhis.util;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.sharing.Sharing;
 
 public class SharingUtils
 {
@@ -44,7 +43,7 @@ public class SharingUtils
             .stream().map( uag -> uag.toDtoObject() ).collect( Collectors.toSet() ) : new HashSet<>();
     }
 
-    public static final  Set<org.hisp.dhis.user.UserAccess> getDtoUserAccess( Sharing sharing )
+    public static final Set<org.hisp.dhis.user.UserAccess> getDtoUserAccess( Sharing sharing )
     {
         return sharing.hasUserAccesses() ? sharing.getUsers().values()
             .stream().map( ua -> ua.toDtoObject() ).collect( Collectors.toSet() ) : new HashSet<>();

@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -43,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 import lombok.SneakyThrows;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -107,7 +107,6 @@ public class TrackedEntityImportValidationTest
         User systemUser = createUser( "systemUser", "ALL" );
         userService.addUser( systemUser );
         injectSecurityContext( systemUser );
-
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "tracker/tracker_basic_metadata.json" ).getInputStream(), RenderFormat.JSON );
@@ -328,7 +327,8 @@ public class TrackedEntityImportValidationTest
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1002 ) ) ) );
 
-        // Tracker should now have 13 teis removed from the collection, since they all failed.
+        // Tracker should now have 13 teis removed from the collection, since
+        // they all failed.
         assertEquals( 0, trackerBundle.getTrackedEntities().size() );
 
         printReport( report );
@@ -443,8 +443,8 @@ public class TrackedEntityImportValidationTest
         // isInactive should now be true
         TrackedEntityInstance nCc1rCEOKaY = trackedEntityInstanceService.getTrackedEntityInstance( "NCc1rCEOKaY" );
         assertEquals( true, nCc1rCEOKaY.isInactive() );
-        //TODO: NOT WORKING... yet? should it not be deleted?
-//        assertEquals( true, nCc1rCEOKaY.isDeleted() );
+        // TODO: NOT WORKING... yet? should it not be deleted?
+        // assertEquals( true, nCc1rCEOKaY.isDeleted() );
     }
 
     @Test
@@ -477,16 +477,17 @@ public class TrackedEntityImportValidationTest
     }
 
     @SneakyThrows
-    private void testDeletedTrackedEntityFails(TrackerImportStrategy importStrategy) {
+    private void testDeletedTrackedEntityFails( TrackerImportStrategy importStrategy )
+    {
         // Given -> Creates a tracked entity
-        createTrackedEntityInstance("tracker/validations/te-data_ok_soft_deleted_test.json");
+        createTrackedEntityInstance( "tracker/validations/te-data_ok_soft_deleted_test.json" );
 
         // When -> Soft-delete the tracked entity
         trackedEntityInstanceService
-                .deleteTrackedEntityInstance(trackedEntityInstanceService.getTrackedEntityInstance("YNCc1rCEOKa") );
+            .deleteTrackedEntityInstance( trackedEntityInstanceService.getTrackedEntityInstance( "YNCc1rCEOKa" ) );
 
         TrackerImportParams trackerBundleParams = createBundleFromJson(
-                "tracker/validations/te-data_ok_soft_deleted_test.json" );
+            "tracker/validations/te-data_ok_soft_deleted_test.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams, importStrategy );
 
@@ -495,26 +496,25 @@ public class TrackedEntityImportValidationTest
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
         assertThat( report.getErrorReports(),
-                everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1114 ) ) ) );
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1114 ) ) ) );
     }
 
     @Test
     public void testUpdateDeletedTrackedEntityFails()
-            throws IOException
+        throws IOException
     {
-       testDeletedTrackedEntityFails( UPDATE );
+        testDeletedTrackedEntityFails( UPDATE );
     }
 
     @Test
     public void testInserDeletedTrackedEntityFails()
-            throws IOException
+        throws IOException
     {
         testDeletedTrackedEntityFails( CREATE_AND_UPDATE );
     }
 
-
     private ValidateAndCommitTestUnit createTrackedEntityInstance( String jsonPayload )
-            throws IOException
+        throws IOException
     {
         // Given
         TrackerImportParams trackerBundleParams = createBundleFromJson( jsonPayload );

@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReports;
 
@@ -99,7 +98,9 @@ public class UniqueAttributesCheck
         }
 
         Set<AttributeValue> attributeValues = object.getAttributeValues();
-        List<String> uniqueAttributes = new ArrayList<>( preheat.getUniqueAttributes().get( klass ) ); // make copy for
+        List<String> uniqueAttributes = new ArrayList<>( preheat.getUniqueAttributes().get( klass ) ); // make
+                                                                                                       // copy
+                                                                                                       // for
                                                                                                        // modification
 
         if ( !preheat.getUniqueAttributeValues().containsKey( klass ) )

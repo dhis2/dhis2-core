@@ -1,5 +1,3 @@
-package org.hisp.dhis.artemis;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.artemis;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.artemis;
 
 import lombok.Builder;
 import lombok.Value;
@@ -39,8 +38,8 @@ import lombok.Value;
 public class AuditProducerConfiguration
 {
     /**
-     * if true, every Audit message is placed into an in-memory queue
-     * before being dispatched to the Message Broker
+     * if true, every Audit message is placed into an in-memory queue before
+     * being dispatched to the Message Broker
      */
     private boolean useQueue;
 }

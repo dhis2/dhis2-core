@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.view;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,16 @@ package org.hisp.dhis.webapi.view;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.view;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -39,23 +47,18 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.springframework.web.servlet.view.AbstractView;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public abstract class AbstractGridView extends AbstractView
 {
-    protected abstract void renderGrids( List<Grid> grids, HttpServletResponse response ) throws Exception;
+    protected abstract void renderGrids( List<Grid> grids, HttpServletResponse response )
+        throws Exception;
 
     @Override
-    protected void renderMergedOutputModel( Map<String, Object> model, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    protected void renderMergedOutputModel( Map<String, Object> model, HttpServletRequest request,
+        HttpServletResponse response )
+        throws Exception
     {
         Object object = model.get( "model" );
 
@@ -64,11 +67,13 @@ public abstract class AbstractGridView extends AbstractView
         if ( WebMetadata.class.isAssignableFrom( object.getClass() ) )
         {
             WebMetadata metadata = (WebMetadata) object;
-            Collection<Field> fields = ReflectionUtils.collectFields( WebMetadata.class, PredicateUtils.idObjectCollections );
+            Collection<Field> fields = ReflectionUtils.collectFields( WebMetadata.class,
+                PredicateUtils.idObjectCollections );
 
             for ( Field field : fields )
             {
-                List<IdentifiableObject> identifiableObjects = ReflectionUtils.invokeGetterMethod( field.getName(), metadata );
+                List<IdentifiableObject> identifiableObjects = ReflectionUtils.invokeGetterMethod( field.getName(),
+                    metadata );
 
                 if ( identifiableObjects == null || identifiableObjects.isEmpty() )
                 {
@@ -83,7 +88,8 @@ public abstract class AbstractGridView extends AbstractView
                 grid.addHeader( new GridHeader( "UID", false, false ) );
                 grid.addHeader( new GridHeader( "Name", false, false ) );
 
-                if ( NameableObject.class.isAssignableFrom( HibernateProxyUtils.getRealClass( HibernateProxyUtils.getRealClass( object ) ) ) )
+                if ( NameableObject.class.isAssignableFrom(
+                    HibernateProxyUtils.getRealClass( HibernateProxyUtils.getRealClass( object ) ) ) )
                 {
                     grid.addHeader( new GridHeader( "ShortName", false, false ) );
                     nameable = true;
@@ -122,7 +128,8 @@ public abstract class AbstractGridView extends AbstractView
             if ( NameableObject.class.isAssignableFrom( HibernateProxyUtils.getRealClass( identifiableObject ) ) )
             {
                 grid.addRow().addValue( "ShortName" ).addValue( ((NameableObject) identifiableObject).getShortName() );
-                grid.addRow().addValue( "Description" ).addValue( ((NameableObject) identifiableObject).getDescription() );
+                grid.addRow().addValue( "Description" )
+                    .addValue( ((NameableObject) identifiableObject).getDescription() );
             }
 
             grid.addRow().addValue( "Code" ).addValue( identifiableObject.getCode() );

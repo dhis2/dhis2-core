@@ -1,5 +1,3 @@
-package org.hisp.dhis.outlierdetection.service;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,10 @@ package org.hisp.dhis.outlierdetection.service;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.outlierdetection.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.util.stream.Stream;
 
@@ -83,11 +83,13 @@ public class OutlierDetectionServiceMinMaxTest
     private OutlierDetectionService subject;
 
     private DataElement deA;
+
     private DataElement deB;
 
     private Period m01, m02, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
 
     private CategoryOptionCombo coc;
@@ -155,7 +157,7 @@ public class OutlierDetectionServiceMinMaxTest
             new MinMaxDataElement( deA, ouA, coc, 40, 60 ),
             new MinMaxDataElement( deB, ouA, coc, 45, 65 ) );
 
-        // 34, 39, 68, 91, 42, 45, 68, 87 are outlier values outside the min-max range
+        // 34, 39, 68, 91, 42, 45, 68, 87 are outlier values out of range
 
         addDataValues(
             new DataValue( deA, m01, ouA, coc, coc, "50" ), new DataValue( deA, m07, ouA, coc, coc, "51" ),
@@ -214,6 +216,8 @@ public class OutlierDetectionServiceMinMaxTest
         assertEquals( 40, outlier.getLowerBound().intValue() );
         assertEquals( 60, outlier.getUpperBound().intValue() );
         assertEquals( 8, outlier.getAbsDev().intValue() );
+
+        assertFalse( outlier.getFollowUp() );
     }
 
     private void addPeriods( Period... periods )

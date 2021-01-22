@@ -1,5 +1,3 @@
-package org.hisp.dhis;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,10 @@ package org.hisp.dhis;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.hibernate.FlushMode;
@@ -69,16 +69,16 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
     protected static JdbcTemplate jdbcTemplate;
 
     /*
-       Flag that determines if the IntegrationTestData annotation has
-       been running the database init script. We only want to run
-       the init script once per unit test
-    */
+     * Flag that determines if the IntegrationTestData annotation has been
+     * running the database init script. We only want to run the init script
+     * once per unit test
+     */
     public static boolean dataInit = false;
 
     protected abstract boolean emptyDatabaseAfterTest();
 
     /*
-    "Special" setter to allow setting JdbcTemplate as static field
+     * "Special" setter to allow setting JdbcTemplate as static field
      */
     @Autowired
     public static void setJdbcTemplate( JdbcTemplate jdbcTemplate )
@@ -99,7 +99,8 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
     @BeforeClass
     public static void beforeClass()
     {
-        // We usually don't want all the create db/tables statements in the query logger
+        // We usually don't want all the create db/tables statements in the
+        // query logger
         Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN );
     }
 
@@ -159,7 +160,8 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
 
         if ( emptyDatabaseAfterTest() )
         {
-            // We normally don't want all the delete/empty db statements in the query logger
+            // We normally don't want all the delete/empty db statements in the
+            // query logger
             Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN );
 
             transactionTemplate.execute( status -> {
@@ -181,7 +183,8 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
 
         boolean enableQueryLogging = dhisConfigurationProvider.getBoolean( ConfigurationKey.ENABLE_QUERY_LOGGING );
 
-        // Enable to query logger to log only what's happening inside the test method
+        // Enable to query logger to log only what's happening inside the test
+        // method
         if ( enableQueryLogging )
         {
             Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.INFO );
@@ -212,7 +215,8 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
     protected void unbindSession()
     {
         SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean( "sessionFactory" );
-        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.unbindResource( sessionFactory );
+        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager
+            .unbindResource( sessionFactory );
 
         SessionFactoryUtils.closeSession( sessionHolder.getSession() );
     }

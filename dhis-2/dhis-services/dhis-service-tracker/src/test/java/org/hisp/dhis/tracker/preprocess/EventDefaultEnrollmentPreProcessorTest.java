@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preprocess;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preprocess;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preprocess;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -131,7 +130,8 @@ public class EventDefaultEnrollmentPreProcessorTest
         Event event = new Event();
         event.setEnrollment( enrollment.getEnrollment() );
 
-        // Add to preheat and make sure the enrollment and event uid are added to the
+        // Add to preheat and make sure the enrollment and event uid are added
+        // to the
         // reference tree
         TrackerPreheat preheat = new TrackerPreheat();
         preheat.putEnrollments( TrackerIdScheme.UID, new ArrayList<>(), Collections.singletonList( enrollment ) );

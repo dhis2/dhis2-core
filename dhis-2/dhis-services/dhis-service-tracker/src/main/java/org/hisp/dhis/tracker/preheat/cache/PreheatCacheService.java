@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat.cache;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preheat.cache;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat.cache;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,14 +34,14 @@ import org.hisp.dhis.common.IdentifiableObject;
 
 /**
  * A DHIS2 metadata cache implementation to reduce db lookups during pre-heat
- * 
+ *
  * @author Luciano Fiandesio
  */
 public interface PreheatCacheService
 {
     /**
      * Fetches an object from the pre-heat cache.
-     * 
+     *
      * @param cacheKey the full class name of the object being cached
      * @param id the identifier of the object to retrieve
      *
@@ -51,7 +50,7 @@ public interface PreheatCacheService
 
     /**
      * Check whether a class type is part of the cache
-     * 
+     *
      * @param cacheKey the full class name of a metadata object
      *
      */
@@ -59,7 +58,7 @@ public interface PreheatCacheService
 
     /**
      * Fetch all the cached entries for the given class type key
-     * 
+     *
      * @param cacheKey the full class name of a metadata object
      *
      */

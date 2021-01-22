@@ -1,5 +1,3 @@
-package org.hisp.dhis.outlierdetection.service;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,12 @@ package org.hisp.dhis.outlierdetection.service;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.outlierdetection.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -55,6 +57,7 @@ import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.system.util.MathUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -83,11 +86,13 @@ public class OutlierDetectionServiceZScoreTest
     private OutlierDetectionService subject;
 
     private DataElement deA;
+
     private DataElement deB;
 
     private Period m01, m02, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
 
     private CategoryOptionCombo coc;
@@ -180,6 +185,40 @@ public class OutlierDetectionServiceZScoreTest
         OutlierDetectionResponse response = subject.getOutlierValues( request );
 
         assertEquals( 4, response.getOutlierValues().size() );
+        assertContainsOutlierValue( response, 12d );
+        assertContainsOutlierValue( response, 91d );
+        assertContainsOutlierValue( response, 11d );
+        assertContainsOutlierValue( response, 87d );
+    }
+
+    @Test
+    public void testGetOutlierValuesWithDataStartEndDate()
+    {
+        // 12, 91 are outlier values with a z-score above 2.0
+
+        addDataValues(
+            new DataValue( deA, m01, ouA, coc, coc, "50" ), new DataValue( deA, m07, ouA, coc, coc, "51" ),
+            new DataValue( deA, m02, ouA, coc, coc, "53" ), new DataValue( deA, m08, ouA, coc, coc, "59" ),
+            new DataValue( deA, m03, ouA, coc, coc, "58" ), new DataValue( deA, m09, ouA, coc, coc, "55" ),
+            new DataValue( deA, m04, ouA, coc, coc, "55" ), new DataValue( deA, m10, ouA, coc, coc, "52" ),
+            new DataValue( deA, m05, ouA, coc, coc, "51" ), new DataValue( deA, m11, ouA, coc, coc, "58" ),
+            new DataValue( deA, m06, ouA, coc, coc, "12" ), new DataValue( deA, m12, ouA, coc, coc, "91" ) );
+
+        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
+            .withDataElements( Lists.newArrayList( deA, deB ) )
+            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2021, 1, 1 ) )
+            .withOrgUnits( Lists.newArrayList( ouA ) )
+            .withAlgorithm( OutlierDetectionAlgorithm.Z_SCORE )
+            .withThreshold( 2.0 )
+            .withDataStartDate( getDate( 2019, 1, 1 ) )
+            .withDataEndDate( getDate( 2020, 6, 1 ) )
+            .build();
+
+        OutlierDetectionResponse response = subject.getOutlierValues( request );
+
+        assertEquals( 2, response.getOutlierValues().size() );
+        assertContainsOutlierValue( response, 12d );
+        assertContainsOutlierValue( response, 91d );
     }
 
     @Test
@@ -220,11 +259,16 @@ public class OutlierDetectionServiceZScoreTest
 
         assertEquals( 5, csvLines.size() );
 
-        assertEquals( "de,deName,pe,ou,ouName,coc,cocName,aoc,lastUpdated,value,mean", csvLines.get( 0 ).substring( 0, endIndex ) );
-        assertEquals( "deabcdefghA,DataElementA,202006,ouabcdefghA,OrganisationUnitA", csvLines.get( 1 ).substring( 0, endIndex ) );
-        assertEquals( "deabcdefghB,DataElementB,202012,ouabcdefghA,OrganisationUnitA", csvLines.get( 2 ).substring( 0, endIndex ) );
-        assertEquals( "deabcdefghA,DataElementA,202012,ouabcdefghA,OrganisationUnitA", csvLines.get( 3 ).substring( 0, endIndex ) );
-        assertEquals( "deabcdefghB,DataElementB,202011,ouabcdefghA,OrganisationUnitA", csvLines.get( 4 ).substring( 0, endIndex ) );
+        assertEquals( "de,deName,pe,ou,ouName,coc,cocName,aoc,lastUpdated,value,mean",
+            csvLines.get( 0 ).substring( 0, endIndex ) );
+        assertEquals( "deabcdefghA,DataElementA,202006,ouabcdefghA,OrganisationUnitA",
+            csvLines.get( 1 ).substring( 0, endIndex ) );
+        assertEquals( "deabcdefghB,DataElementB,202012,ouabcdefghA,OrganisationUnitA",
+            csvLines.get( 2 ).substring( 0, endIndex ) );
+        assertEquals( "deabcdefghA,DataElementA,202012,ouabcdefghA,OrganisationUnitA",
+            csvLines.get( 3 ).substring( 0, endIndex ) );
+        assertEquals( "deabcdefghB,DataElementB,202011,ouabcdefghA,OrganisationUnitA",
+            csvLines.get( 4 ).substring( 0, endIndex ) );
     }
 
     @Test
@@ -239,8 +283,8 @@ public class OutlierDetectionServiceZScoreTest
         double stdDev = stats.populationStandardDeviation();
         double zScore = Math.abs( outlierValue - mean ) / stdDev;
         double meanAbsDev = Math.abs( outlierValue - mean );
-        double lowerBound = mean - ( stdDev * threshold );
-        double upperBound = mean + ( stdDev * threshold );
+        double lowerBound = mean - (stdDev * threshold);
+        double upperBound = mean + (stdDev * threshold);
 
         assertEquals( 42.666, mean, DELTA );
         assertEquals( 17.365, stdDev, DELTA );
@@ -281,6 +325,14 @@ public class OutlierDetectionServiceZScoreTest
         assertEquals( meanAbsDev, outlier.getAbsDev(), DELTA );
         assertEquals( lowerBound, outlier.getLowerBound(), DELTA );
         assertEquals( upperBound, outlier.getUpperBound(), DELTA );
+
+        assertFalse( outlier.getFollowUp() );
+    }
+
+    private void assertContainsOutlierValue( OutlierDetectionResponse response, Double value )
+    {
+        assertTrue( response.getOutlierValues().stream()
+            .anyMatch( ov -> MathUtils.isEqual( ov.getValue(), value ) ) );
     }
 
     private void addPeriods( Period... periods )
@@ -293,4 +345,3 @@ public class OutlierDetectionServiceZScoreTest
         Stream.of( dataValues ).forEach( dataValueService::addDataValue );
     }
 }
-

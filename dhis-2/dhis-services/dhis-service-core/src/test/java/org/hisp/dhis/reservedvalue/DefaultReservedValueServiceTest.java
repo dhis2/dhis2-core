@@ -1,5 +1,3 @@
-package org.hisp.dhis.reservedvalue;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,21 @@ package org.hisp.dhis.reservedvalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.reservedvalue;
 
-import com.google.common.collect.Lists;
+import static java.util.Calendar.DATE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.collections4.ListUtils;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -41,18 +52,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Commit;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static java.util.Calendar.DATE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Lists;
 
 @Commit
 public class DefaultReservedValueServiceTest extends TransactionalIntegrationTest
@@ -164,9 +164,11 @@ public class DefaultReservedValueServiceTest extends TransactionalIntegrationTes
     public void testReserveReserveASequentialValueWhenNotUsed()
         throws Exception
     {
-        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 1, new HashMap<>(), future );
+        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 1, new HashMap<>(),
+            future );
 
-        assertEquals( 1, res.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
+        assertEquals( 1, res.stream()
+            .filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
         assertEquals( 1, reservedValueStore.getCount() );
 
     }
@@ -175,9 +177,11 @@ public class DefaultReservedValueServiceTest extends TransactionalIntegrationTes
     public void testReserveReserveMultipleSequentialValueWhenNotUsed()
         throws Exception
     {
-        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 50, new HashMap<>(), future );
+        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 50, new HashMap<>(),
+            future );
 
-        assertEquals( 50, res.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
+        assertEquals( 50, res.stream()
+            .filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
         assertEquals( 50, reservedValueStore.getCount() );
 
     }
@@ -191,13 +195,16 @@ public class DefaultReservedValueServiceTest extends TransactionalIntegrationTes
 
         // Make sure they where added successfully
         assertEquals( 50,
-            reserved.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
+            reserved.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 )
+                .count() );
         assertEquals( 50, reservedValueStore.getCount() );
 
-        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 25, new HashMap<>(), future );
+        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 25, new HashMap<>(),
+            future );
 
         assertTrue( ListUtils.intersection( reserved, res ).isEmpty() );
-        assertEquals( 25, res.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
+        assertEquals( 25, res.stream()
+            .filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
         assertEquals( 75, reservedValueStore.getCount() );
 
     }

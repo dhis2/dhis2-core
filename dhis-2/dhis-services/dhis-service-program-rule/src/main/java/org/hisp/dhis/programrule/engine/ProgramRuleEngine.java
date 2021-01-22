@@ -1,5 +1,3 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,13 +25,13 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.google.api.client.util.Sets;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -51,10 +49,12 @@ import org.hisp.dhis.rules.RuleEngine;
 import org.hisp.dhis.rules.RuleEngineContext;
 import org.hisp.dhis.rules.RuleEngineIntent;
 import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAuthorityGroup;
 
 import com.google.api.client.util.Lists;
+import com.google.api.client.util.Sets;
 
 /**
  * Created by zubair@dhis2.org on 11.10.17.
@@ -100,12 +100,18 @@ public class ProgramRuleEngine
 
     public List<RuleEffect> evaluate( ProgramInstance enrollment, Set<ProgramStageInstance> events )
     {
-        return evaluateProgramRules( enrollment, null, events, enrollment.getProgram() );
+        return evaluate( enrollment, events, Lists.newArrayList() );
+    }
+
+    public List<RuleEffect> evaluate( ProgramInstance enrollment, Set<ProgramStageInstance> events,
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
+    {
+        return evaluateProgramRules( enrollment, null, events, enrollment.getProgram(), trackedEntityAttributeValues );
     }
 
     public List<RuleEffect> evaluateProgramEvent( ProgramStageInstance event, Program program )
     {
-        return evaluateProgramRules( null, event, Sets.newHashSet(), program );
+        return evaluateProgramRules( null, event, Sets.newHashSet(), program, Lists.newArrayList() );
     }
 
     public List<RuleEffect> evaluate( ProgramInstance enrollment, ProgramStageInstance programStageInstance,
@@ -115,25 +121,27 @@ public class ProgramRuleEngine
         {
             return Lists.newArrayList();
         }
-        return evaluateProgramRules( enrollment, programStageInstance, events, enrollment.getProgram() );
+        return evaluateProgramRules( enrollment, programStageInstance, events, enrollment.getProgram(),
+            Lists.newArrayList() );
     }
 
     private List<RuleEffect> evaluateProgramRules( ProgramInstance enrollment,
-        ProgramStageInstance programStageInstance, Set<ProgramStageInstance> events, Program program )
+        ProgramStageInstance programStageInstance, Set<ProgramStageInstance> events, Program program,
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
         List<RuleEvent> ruleEvents = getRuleEvents( events, programStageInstance );
 
-        RuleEnrollment ruleEnrollment = getRuleEnrollment( enrollment );
+        RuleEnrollment ruleEnrollment = getRuleEnrollment( enrollment, trackedEntityAttributeValues );
 
         try
         {
             RuleEngine.Builder builder = getRuleEngineContext( program,
                 programStageInstance != null ? programStageInstance.getProgramStage().getUid() : null )
-                .toEngineBuilder()
-                .triggerEnvironment( TriggerEnvironment.SERVER )
-                .events( ruleEvents );
+                    .toEngineBuilder()
+                    .triggerEnvironment( TriggerEnvironment.SERVER )
+                    .events( ruleEvents );
 
             if ( ruleEnrollment != null )
             {
@@ -161,11 +169,11 @@ public class ProgramRuleEngine
 
     /**
      * To getDescription rule condition in order to fetch its description
-     * 
+     *
      * @param condition of program rule
      * @param program {@link Program} which the programRule is associated with.
-     * @return RuleValidationResult contains description of program rule condition
-     *         or errorMessage
+     * @return RuleValidationResult contains description of program rule
+     *         condition or errorMessage
      */
     public RuleValidationResult getDescription( String condition, Program program )
     {
@@ -271,9 +279,10 @@ public class ProgramRuleEngine
         return programRuleEntityMapperService.toMappedRuleEvents( events, programStageInstance );
     }
 
-    private RuleEnrollment getRuleEnrollment( ProgramInstance enrollment )
+    private RuleEnrollment getRuleEnrollment( ProgramInstance enrollment,
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
-        return programRuleEntityMapperService.toMappedRuleEnrollment( enrollment );
+        return programRuleEntityMapperService.toMappedRuleEnrollment( enrollment, trackedEntityAttributeValues );
     }
 
     private List<RuleEffect> getRuleEngineEvaluation( RuleEngine ruleEngine, RuleEnrollment enrollment,

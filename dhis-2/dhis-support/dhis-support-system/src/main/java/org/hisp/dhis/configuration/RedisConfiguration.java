@@ -1,5 +1,3 @@
-package org.hisp.dhis.configuration;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.configuration;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.configuration;
 
 import org.hisp.dhis.condition.RedisEnabledCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -59,7 +58,7 @@ public class RedisConfiguration
     public LettuceConnectionFactory lettuceConnectionFactory()
     {
         LettuceClientConfigurationBuilder builder = LettuceClientConfiguration.builder();
-        if(Boolean.parseBoolean( (String) redisSslEnabled().getObject()))
+        if ( Boolean.parseBoolean( (String) redisSslEnabled().getObject() ) )
         {
             builder.useSsl();
         }

@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preheat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -166,7 +165,6 @@ public class TrackerPreheatTest
 
         assertFalse( preheat.isEmpty() );
 
-
         assertEquals( de1.getUid(), preheat.get( DataElement.class, de1.getUid() ).getUid() );
         assertEquals( de2.getUid(), preheat.get( DataElement.class, de2.getUid() ).getUid() );
         assertEquals( de3.getUid(), preheat.get( DataElement.class, de3.getUid() ).getUid() );
@@ -220,7 +218,7 @@ public class TrackerPreheatTest
         assertEquals( de2.getUid(), preheat.get( DataElement.class, de2.getUid() ).getUid() );
         assertEquals( de3.getUid(), preheat.get( DataElement.class, de3.getUid() ).getUid() );
     }
-    
+
     @Test
     public void testReferenceInvalidation()
     {

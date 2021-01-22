@@ -1,5 +1,3 @@
-package org.hisp.dhis.analytics.event.data.queryItem;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.event.data.queryItem;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event.data.queryItem;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -171,7 +170,7 @@ public class QueryItemLocatorTest
         ProgramStage programStageA = createProgramStage( 'A', programA );
 
         programStageA.setProgramStageDataElements(
-                Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
+            Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
 
         programA.setProgramStages( Sets.newHashSet( programStageA ) );
 
@@ -190,14 +189,15 @@ public class QueryItemLocatorTest
         ProgramStage programStageA = createProgramStage( 'A', programA );
 
         programStageA.setProgramStageDataElements(
-                Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
+            Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
 
         programA.setProgramStages( Sets.newHashSet( programStageA ) );
 
         when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
         when( programStageService.getProgramStage( programStageUid ) ).thenReturn( programStageA );
 
-        QueryItem queryItem = subject.getQueryItemFromDimension( programStageUid + PROGRAMSTAGE_SEP + dimension, programA, EventOutputType.ENROLLMENT );
+        QueryItem queryItem = subject.getQueryItemFromDimension( programStageUid + PROGRAMSTAGE_SEP + dimension,
+            programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
         assertThat( queryItem.getItem(), is( dataElementA ) );
@@ -215,16 +215,17 @@ public class QueryItemLocatorTest
         ProgramStage programStageA = createProgramStage( 'A', programA );
 
         programStageA.setProgramStageDataElements(
-                Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
+            Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
 
         programA.setProgramStages( Sets.newHashSet( programStageA ) );
 
-        LegendSet legendSetA = createLegendSet('A');
+        LegendSet legendSetA = createLegendSet( 'A' );
 
         when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
         when( legendSetService.getLegendSet( legendSetUid ) ).thenReturn( legendSetA );
 
-        QueryItem queryItem = subject.getQueryItemFromDimension( dimension + ITEM_SEP + legendSetUid, programA, EventOutputType.EVENT );
+        QueryItem queryItem = subject.getQueryItemFromDimension( dimension + ITEM_SEP + legendSetUid, programA,
+            EventOutputType.EVENT );
 
         assertThat( queryItem, is( notNullValue() ) );
         assertThat( queryItem.getItem(), is( dataElementA ) );
@@ -243,11 +244,11 @@ public class QueryItemLocatorTest
         ProgramStage programStageA = createProgramStage( 'A', programA );
 
         programStageA.setProgramStageDataElements(
-                Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
+            Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
 
         programA.setProgramStages( Sets.newHashSet( programStageA ) );
 
-        LegendSet legendSetA = createLegendSet('A');
+        LegendSet legendSetA = createLegendSet( 'A' );
 
         when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
         when( legendSetService.getLegendSet( legendSetUid ) ).thenReturn( legendSetA );
@@ -255,7 +256,8 @@ public class QueryItemLocatorTest
 
         // programStageUid.dimensionUid-legendSetUid
         QueryItem queryItem = subject.getQueryItemFromDimension(
-            programStageUid + PROGRAMSTAGE_SEP + dimension + ITEM_SEP + legendSetUid, programA, EventOutputType.ENROLLMENT );
+            programStageUid + PROGRAMSTAGE_SEP + dimension + ITEM_SEP + legendSetUid, programA,
+            EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
         assertThat( queryItem.getItem(), is( dataElementA ) );
@@ -270,15 +272,16 @@ public class QueryItemLocatorTest
     @Test
     public void verifyDimensionReturnsTrackedEntityAttribute()
     {
-        OptionSet optionSetA = createOptionSet('A');
+        OptionSet optionSetA = createOptionSet( 'A' );
 
         TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'A' );
         trackedEntityAttribute.setUid( dimension );
         trackedEntityAttribute.setOptionSet( optionSetA );
 
-        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute(programA, trackedEntityAttribute);
+        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA,
+            trackedEntityAttribute );
 
-        programA.setProgramAttributes(Lists.newArrayList( programTrackedEntityAttribute ));
+        programA.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
 
         when( attributeService.getTrackedEntityAttribute( dimension ) ).thenReturn( trackedEntityAttribute );
 
@@ -300,7 +303,8 @@ public class QueryItemLocatorTest
         programIndicatorA.setUid( dimension );
 
         programA.setProgramIndicators( Sets.newHashSet( programIndicatorA ) );
-        when (programIndicatorService.getProgramIndicatorByUid( programIndicatorA.getUid() )).thenReturn( programIndicatorA);
+        when( programIndicatorService.getProgramIndicatorByUid( programIndicatorA.getUid() ) )
+            .thenReturn( programIndicatorA );
 
         QueryItem queryItem = subject.getQueryItemFromDimension( dimension, programA, EventOutputType.ENROLLMENT );
 
@@ -325,7 +329,7 @@ public class QueryItemLocatorTest
         when( relationshipTypeService.getRelationshipType( relationshipType.getUid() ) ).thenReturn( relationshipType );
 
         QueryItem queryItem = subject.getQueryItemFromDimension(
-                relationshipType.getUid() + PROGRAMSTAGE_SEP + dimension, programA, EventOutputType.ENROLLMENT );
+            relationshipType.getUid() + PROGRAMSTAGE_SEP + dimension, programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
         assertThat( queryItem.getItem(), is( programIndicatorA ) );
@@ -336,7 +340,8 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyForeignProgramIndicatorWithoutRelationshipIsNotAccepted() {
+    public void verifyForeignProgramIndicatorWithoutRelationshipIsNotAccepted()
+    {
 
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
         programIndicatorA.setUid( dimension );
@@ -350,7 +355,8 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyForeignProgramIndicatorWithRelationshipIsAccepted() {
+    public void verifyForeignProgramIndicatorWithRelationshipIsAccepted()
+    {
 
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
         programIndicatorA.setUid( dimension );

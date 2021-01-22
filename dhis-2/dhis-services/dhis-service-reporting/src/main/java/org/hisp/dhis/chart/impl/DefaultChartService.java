@@ -1,5 +1,3 @@
-package org.hisp.dhis.chart.impl;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,22 @@ package org.hisp.dhis.chart.impl;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.chart.impl;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.commons.collection.ListUtils.getArray;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
@@ -102,21 +116,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Collections.emptyList;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.commons.collection.ListUtils.getArray;
-
 /**
  * @author Lars Helge Overland
  */
@@ -126,7 +125,9 @@ public class DefaultChartService
     implements ChartService
 {
     private static final Font TITLE_FONT = new Font( Font.SANS_SERIF, Font.BOLD, 12 );
+
     private static final Font SUB_TITLE_FONT = new Font( Font.SANS_SERIF, Font.PLAIN, 11 );
+
     private static final Font LABEL_FONT = new Font( Font.SANS_SERIF, Font.PLAIN, 10 );
 
     private static final String TREND_PREFIX = "Trend - ";
@@ -137,7 +138,9 @@ public class DefaultChartService
         Color.decode( "#6a33cf" ), Color.decode( "#4a7833" ) };
 
     private static final Color COLOR_LIGHT_GRAY = Color.decode( "#dddddd" );
+
     private static final Color COLOR_LIGHTER_GRAY = Color.decode( "#eeeeee" );
+
     private static final Color DEFAULT_BACKGROUND_COLOR = Color.WHITE;
 
     // -------------------------------------------------------------------------
@@ -220,7 +223,8 @@ public class DefaultChartService
 
     @Override
     @Transactional( readOnly = true )
-    public JFreeChart getJFreeChart( BaseChart chart, Date date, OrganisationUnit organisationUnit, I18nFormat format, User currentUser )
+    public JFreeChart getJFreeChart( BaseChart chart, Date date, OrganisationUnit organisationUnit, I18nFormat format,
+        User currentUser )
     {
         User user = (currentUser != null ? currentUser : currentUserService.getCurrentUser());
 
@@ -234,12 +238,14 @@ public class DefaultChartService
 
         if ( chart.hasOrganisationUnitLevels() )
         {
-            atLevels.addAll( organisationUnitService.getOrganisationUnitsAtLevels( chart.getOrganisationUnitLevels(), chart.getOrganisationUnits() ) );
+            atLevels.addAll( organisationUnitService.getOrganisationUnitsAtLevels( chart.getOrganisationUnitLevels(),
+                chart.getOrganisationUnits() ) );
         }
 
         if ( chart.hasItemOrganisationUnitGroups() )
         {
-            inGroups.addAll( organisationUnitService.getOrganisationUnits( chart.getItemOrganisationUnitGroups(), chart.getOrganisationUnits() ) );
+            inGroups.addAll( organisationUnitService.getOrganisationUnits( chart.getItemOrganisationUnitGroups(),
+                chart.getOrganisationUnits() ) );
         }
 
         chart.init( user, date, organisationUnit, atLevels, inGroups, format );
@@ -257,7 +263,8 @@ public class DefaultChartService
 
     @Override
     @Transactional( readOnly = true )
-    public JFreeChart getJFreePeriodChart( Indicator indicator, OrganisationUnit unit, boolean title, I18nFormat format )
+    public JFreeChart getJFreePeriodChart( Indicator indicator, OrganisationUnit unit, boolean title,
+        I18nFormat format )
     {
         List<Period> periods = periodService.reloadPeriods(
             new RelativePeriods().setLast12Months( true ).getRelativePeriods( format, true ) );
@@ -270,7 +277,8 @@ public class DefaultChartService
         }
 
         chart.setType( ChartType.LINE );
-        chart.setDimensions( DimensionalObject.DATA_X_DIM_ID, DimensionalObject.PERIOD_DIM_ID, DimensionalObject.ORGUNIT_DIM_ID );
+        chart.setDimensions( DimensionalObject.DATA_X_DIM_ID, DimensionalObject.PERIOD_DIM_ID,
+            DimensionalObject.ORGUNIT_DIM_ID );
         chart.setHideLegend( true );
         chart.addDataDimensionItem( indicator );
         chart.setPeriods( periods );
@@ -297,7 +305,8 @@ public class DefaultChartService
         }
 
         chart.setType( ChartType.COLUMN );
-        chart.setDimensions( DimensionalObject.DATA_X_DIM_ID, DimensionalObject.ORGUNIT_DIM_ID, DimensionalObject.PERIOD_DIM_ID );
+        chart.setDimensions( DimensionalObject.DATA_X_DIM_ID, DimensionalObject.ORGUNIT_DIM_ID,
+            DimensionalObject.PERIOD_DIM_ID );
         chart.setHideLegend( true );
         chart.addDataDimensionItem( indicator );
         chart.setPeriods( periods );
@@ -693,7 +702,8 @@ public class DefaultChartService
 
     private JFreeChart getMultiplePieChart( BaseChart chart, CategoryDataset[] dataSets )
     {
-        JFreeChart multiplePieChart = ChartFactory.createMultiplePieChart( chart.getName(), dataSets[0], TableOrder.BY_ROW,
+        JFreeChart multiplePieChart = ChartFactory.createMultiplePieChart( chart.getName(), dataSets[0],
+            TableOrder.BY_ROW,
             !chart.isHideLegend(), false, false );
 
         setBasicConfig( multiplePieChart, chart );
@@ -740,7 +750,8 @@ public class DefaultChartService
             double end = start + 10d;
             String label = String.valueOf( start );
 
-            meterPlot.addInterval( new MeterInterval( label, new Range( start, end ), COLOR_LIGHT_GRAY, null, COLOR_LIGHT_GRAY ) );
+            meterPlot.addInterval(
+                new MeterInterval( label, new Range( start, end ), COLOR_LIGHT_GRAY, null, COLOR_LIGHT_GRAY ) );
         }
 
         meterPlot.setMeterAngle( 180 );
@@ -762,8 +773,8 @@ public class DefaultChartService
     }
 
     /**
-     * Sets basic configuration including title font, subtitle, background paint and
-     * anti-alias on the given JFreeChart.
+     * Sets basic configuration including title font, subtitle, background paint
+     * and anti-alias on the given JFreeChart.
      */
     private void setBasicConfig( JFreeChart jFreeChart, BaseChart chart )
     {
@@ -842,7 +853,8 @@ public class DefaultChartService
 
                 regularDataSet.addValue( value, series.getShortName(), category.getShortName() );
 
-                if ( chart.isRegression() && value != null && value instanceof Double && !MathUtils.isEqual( (Double) value, MathUtils.ZERO ) )
+                if ( chart.isRegression() && value != null && value instanceof Double
+                    && !MathUtils.isEqual( (Double) value, MathUtils.ZERO ) )
                 {
                     regression.addData( categoryIndex, (Double) value );
                 }
@@ -860,13 +872,14 @@ public class DefaultChartService
 
                     if ( !Double.isNaN( value ) )
                     {
-                        regressionDataSet.addValue( value, TREND_PREFIX + series.getShortName(), category.getShortName() );
+                        regressionDataSet.addValue( value, TREND_PREFIX + series.getShortName(),
+                            category.getShortName() );
                     }
                 }
             }
         }
 
-        return new CategoryDataset[]{ regularDataSet, regressionDataSet };
+        return new CategoryDataset[] { regularDataSet, regressionDataSet };
     }
 
     /**
@@ -879,7 +892,9 @@ public class DefaultChartService
 
         // Replace potential operand separator with dimension separator
 
-        key = AnalyticsType.AGGREGATE.equals( analyticsType ) ? key.replace( DataElementOperand.SEPARATOR, DIMENSION_SEP ) : key;
+        key = AnalyticsType.AGGREGATE.equals( analyticsType )
+            ? key.replace( DataElementOperand.SEPARATOR, DIMENSION_SEP )
+            : key;
 
         // TODO fix issue with keys including -.
 
@@ -890,7 +905,8 @@ public class DefaultChartService
      * Returns a list of sorted nameable objects. Sorting is defined per the
      * corresponding value in the given value map.
      */
-    private List<NameableObject> getSortedCategories( List<NameableObject> categories, BaseChart chart, Map<String, Object> valueMap )
+    private List<NameableObject> getSortedCategories( List<NameableObject> categories, BaseChart chart,
+        Map<String, Object> valueMap )
     {
         NameableObject series = chart.series().get( 0 );
 

@@ -1,5 +1,3 @@
-package org.hisp.dhis.query.operators;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,16 @@ package org.hisp.dhis.query.operators;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query.operators;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.hibernate.criterion.Criterion;
 import org.hisp.dhis.query.JpaQueryUtils;
@@ -35,14 +43,6 @@ import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -74,6 +74,7 @@ public abstract class Operator<T extends Comparable<? super T>>
         this.collectionArgs.add( collectionArg );
     }
 
+    @SafeVarargs
     public Operator( String name, Typed typed, Collection<T>... collectionArgs )
     {
         this( name, typed );
@@ -89,6 +90,7 @@ public abstract class Operator<T extends Comparable<? super T>>
         validate();
     }
 
+    @SafeVarargs
     public Operator( String name, Typed typed, T... args )
     {
         this( name, typed );
@@ -102,7 +104,8 @@ public abstract class Operator<T extends Comparable<? super T>>
         {
             if ( !isValid( arg.getClass() ) )
             {
-                throw new QueryParserException( "Value `" + args.get( 0 ) + "` of type `" + arg.getClass().getSimpleName() + "` is not supported by this operator." );
+                throw new QueryParserException( "Value `" + args.get( 0 ) + "` of type `"
+                    + arg.getClass().getSimpleName() + "` is not supported by this operator." );
             }
         }
     }
@@ -117,7 +120,7 @@ public abstract class Operator<T extends Comparable<? super T>>
         return collectionArgs;
     }
 
-    protected <T> T getValue( Class<T> klass, Class<?> secondaryClass, int idx )
+    protected <S> S getValue( Class<S> klass, Class<?> secondaryClass, int idx )
     {
         if ( Collection.class.isAssignableFrom( klass ) )
         {
@@ -127,7 +130,7 @@ public abstract class Operator<T extends Comparable<? super T>>
         return QueryUtils.parseValue( klass, secondaryClass, args.get( idx ) );
     }
 
-    protected <T> T getValue( Class<T> klass, int idx )
+    protected <S> S getValue( Class<S> klass, int idx )
     {
         if ( Collection.class.isAssignableFrom( klass ) )
         {
@@ -137,7 +140,7 @@ public abstract class Operator<T extends Comparable<? super T>>
         return QueryUtils.parseValue( klass, null, args.get( idx ) );
     }
 
-    protected <T> T getValue( Class<T> klass )
+    protected <S> S getValue( Class<S> klass )
     {
         if ( Collection.class.isAssignableFrom( klass ) )
         {
@@ -147,12 +150,12 @@ public abstract class Operator<T extends Comparable<? super T>>
         return getValue( klass, 0 );
     }
 
-    protected <T> T getValue( Class<T> klass, Class<?> secondaryClass, Object value )
+    protected <S> T getValue( Class<S> klass, Class<?> secondaryClass, Object value )
     {
         return QueryUtils.parseValue( klass, secondaryClass, value );
     }
 
-    protected <T> T getValue( Class<T> klass, Object value )
+    protected <S> S getValue( Class<S> klass, Object value )
     {
         return QueryUtils.parseValue( klass, value );
     }

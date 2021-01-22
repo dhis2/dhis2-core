@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.trackedentity.store.query;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.query;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.trackedentity.store.query;
 
 import java.util.Map;
 
@@ -68,7 +67,7 @@ public class EnrollmentQuery
 
     public static Map<COLUMNS, ? extends QueryElement> columnMap = ImmutableMap.<COLUMNS, QueryElement> builder()
         .put( COLUMNS.TEI_UID, new TableColumn( "tei", "uid", "tei_uid" ) )
-        .put( COLUMNS.GEOMETRY, new Function( "ST_AsBinary", "pi", "geometry", "geometry")  )
+        .put( COLUMNS.GEOMETRY, new Function( "ST_AsBinary", "pi", "geometry", "geometry" ) )
         .put( COLUMNS.ID, new TableColumn( "pi", "programinstanceid" ) )
         .put( COLUMNS.UID, new TableColumn( "pi", "uid" ) )
         .put( COLUMNS.CREATED, new TableColumn( "pi", "created" ) )

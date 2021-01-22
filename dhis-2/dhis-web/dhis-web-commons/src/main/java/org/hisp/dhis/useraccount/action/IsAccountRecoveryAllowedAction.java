@@ -1,5 +1,3 @@
-package org.hisp.dhis.useraccount.action;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.useraccount.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.useraccount.action;
 
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,12 +40,12 @@ public class IsAccountRecoveryAllowedAction
 {
     @Autowired
     private SystemSettingManager systemSettingManager;
-    
+
     @Override
     public String execute()
     {
         boolean enabled = systemSettingManager.accountRecoveryEnabled();
-        
+
         return enabled ? SUCCESS : ERROR;
     }
 }

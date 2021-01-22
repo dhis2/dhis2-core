@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.service;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,10 @@ package org.hisp.dhis.webapi.service;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.service;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.core.Is.is;
@@ -46,7 +46,6 @@ import static org.hisp.dhis.common.cache.Cacheability.PRIVATE;
 import static org.hisp.dhis.common.cache.Cacheability.PUBLIC;
 import static org.hisp.dhis.setting.SettingKey.CACHEABILITY;
 import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
@@ -155,7 +154,7 @@ public class WebCacheTest
         // Given
         final long positiveTimeToLive = 60;
         final Date aDate = new Date();
-        final CacheControl expectedCacheControl = stubPublicCacheControl ( positiveTimeToLive );
+        final CacheControl expectedCacheControl = stubPublicCacheControl( positiveTimeToLive );
         final Cacheability setCacheability = PUBLIC;
 
         // When

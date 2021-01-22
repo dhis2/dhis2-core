@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller.tracker;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.tracker;
 
 import static org.hisp.dhis.webapi.controller.tracker.TrackerImportController.TRACKER_JOB_ADDED;
 import static org.junit.Assert.fail;
@@ -149,9 +148,12 @@ public class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
-        try  {
+        try
+        {
             renderService.fromJson( contentAsString, TrackerImportReport.class );
-        } catch (Exception e) {
+        }
+        catch ( Exception e )
+        {
             fail( "response content : " + contentAsString + "\n" + " is not of TrackerImportReport type" );
         }
     }

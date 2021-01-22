@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
 import static org.hisp.dhis.tracker.TrackerIdentifierCollector.ID_WILDCARD;
 
@@ -61,7 +60,7 @@ import org.mapstruct.factory.Mappers;
 /**
  * Abstract Tracker Preheat strategy that applies to strategies that employ the
  * generic {@link QueryService} to fetch data (mostly for Metadata classes)
- * 
+ *
  * @author Luciano Fiandesio
  */
 public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrategy
@@ -127,21 +126,22 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     {
         return schema.getKlass().getSimpleName();
     }
-    
-    @SuppressWarnings( {"unchecked", "rawtypes"} )
-    private List<IdentifiableObject> cacheAwareFetch( User user, Schema schema, TrackerIdentifier identifier, List<String> ids, Class<? extends PreheatMapper> mapper )
+
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
+    private List<IdentifiableObject> cacheAwareFetch( User user, Schema schema, TrackerIdentifier identifier,
+        List<String> ids, Class<? extends PreheatMapper> mapper )
     {
         TrackerIdScheme idScheme = identifier.getIdScheme();
-        
+
         List<IdentifiableObject> objects;
         final String cacheKey = buildCacheKey( schema );
-        
+
         if ( isCacheable() ) // check if this strategy requires caching
         {
             if ( isLoadAllEntities( ids ) )
             {
                 return map( cacheAndReturnLookupData( schema ), mapper );
-            }   
+            }
             else
             {
                 Map<String, IdentifiableObject> foundInCache = new HashMap<>();
@@ -158,12 +158,14 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
                     // remove from the list of ids the ids found in cache
                     ids.removeAll( foundInCache.keySet() );
 
-                    // execute the query, fetching only the ids which are not in cache
+                    // execute the query, fetching only the ids which are not in
+                    // cache
                     objects = map(
                         (List<IdentifiableObject>) queryService.query( buildQuery( schema, user, idScheme, ids ) ),
                         mapper );
 
-                    // put objects in query based on given scheme. If the key can't get resolved, send null to the
+                    // put objects in query based on given scheme. If the key
+                    // can't get resolved, send null to the
                     // cacheService, which will ignore the entry
                     objects.forEach( o -> cache.put( cacheKey,
                         PreheatUtils.resolveKey( identifier, o ).orElseGet( null ), o, getCacheTTL(), getCapacity() ) );
@@ -184,10 +186,10 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
                     (List<IdentifiableObject>) queryService.query( buildQuery( schema, user, idScheme, ids ) ),
                     mapper );
         }
-            
+
         return objects;
     }
-    
+
     @SuppressWarnings( { "rawtypes", "unchecked" } )
     private List<IdentifiableObject> map( List<IdentifiableObject> objects, Class<? extends PreheatMapper> mapper )
     {
@@ -202,7 +204,6 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
                 .map( IdentifiableObject.class::cast ).collect( Collectors.toList() );
         }
     }
-    
 
     private Query buildQuery( Schema schema, User user, TrackerIdScheme idScheme, List<String> ids )
     {
@@ -220,7 +221,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         {
             return Restrictions.in( "code", ids );
         }
-        else if( TrackerIdScheme.NAME.equals( idScheme) )
+        else if ( TrackerIdScheme.NAME.equals( idScheme ) )
         {
             return Restrictions.in( "name", ids );
         }
@@ -230,7 +231,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         }
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     private List<IdentifiableObject> cacheAndReturnLookupData( Schema schema )
     {
         List<IdentifiableObject> objects;

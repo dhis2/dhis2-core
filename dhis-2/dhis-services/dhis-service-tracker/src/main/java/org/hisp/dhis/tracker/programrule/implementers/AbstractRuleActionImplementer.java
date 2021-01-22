@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.programrule.implementers;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,16 @@ package org.hisp.dhis.tracker.programrule.implementers;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.programrule.implementers;
 
-import com.google.common.collect.Maps;
+import static org.hisp.dhis.rules.models.AttributeType.*;
+import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.RuleAction;
@@ -42,14 +48,7 @@ import org.hisp.dhis.tracker.programrule.EnrollmentActionRule;
 import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
-import static org.hisp.dhis.rules.models.AttributeType.UNKNOWN;
-import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
+import com.google.common.collect.Maps;
 
 abstract public class AbstractRuleActionImplementer<T extends RuleAction>
 {
@@ -68,19 +67,25 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
 
     /**
      * Apply rule actions to events in the bundle
+     *
      * @param eventActionRules Actions to be applied to the bundle
      * @param bundle where to get the events from
-     * @return A list of program rule issues that can be either warnings or errors
+     * @return A list of program rule issues that can be either warnings or
+     *         errors
      */
-    abstract List<ProgramRuleIssue> applyToEvents( Map.Entry<String, List<EventActionRule>> eventActionRules, TrackerBundle bundle );
+    abstract List<ProgramRuleIssue> applyToEvents( Map.Entry<String, List<EventActionRule>> eventActionRules,
+        TrackerBundle bundle );
 
     /**
      * Apply rule actions to enrollments in the bundle
+     *
      * @param enrollmentActionRules Actions to be applied to the bundle
      * @param bundle where to get the enrollments from
-     * @return A list of program rule issues that can be either warnings or errors
+     * @return A list of program rule issues that can be either warnings or
+     *         errors
      */
-    abstract List<ProgramRuleIssue> applyToEnrollments( Map.Entry<String, List<EnrollmentActionRule>> enrollmentActionRules, TrackerBundle bundle );
+    abstract List<ProgramRuleIssue> applyToEnrollments(
+        Map.Entry<String, List<EnrollmentActionRule>> enrollmentActionRules, TrackerBundle bundle );
 
     /**
      * Get the content from the action.
@@ -88,7 +93,8 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
      * @param ruleAction to get the content from
      * @return the content of the action
      */
-    protected String getContent( T ruleAction ){
+    protected String getContent( T ruleAction )
+    {
         return null;
     }
 
@@ -99,28 +105,28 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
         return eventEffects
             .entrySet()
             .stream()
-            .map( entry -> Maps.immutableEntry(entry.getKey(), applyToEvents( entry, bundle ) ) )
+            .map( entry -> Maps.immutableEntry( entry.getKey(), applyToEvents( entry, bundle ) ) )
             .filter( entry -> !entry.getValue().isEmpty() )
             .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) );
     }
 
     public Map<String, List<ProgramRuleIssue>> validateEnrollments( TrackerBundle bundle )
     {
-        Map<String, List<EnrollmentActionRule>> enrollmentEffects = getEnrollmentEffects( bundle.getEnrollmentRuleEffects(), bundle );
+        Map<String, List<EnrollmentActionRule>> enrollmentEffects = getEnrollmentEffects(
+            bundle.getEnrollmentRuleEffects(), bundle );
 
         return enrollmentEffects
             .entrySet()
             .stream()
-            .map( entry -> Maps.immutableEntry(entry.getKey(), applyToEnrollments( entry, bundle ) ) )
+            .map( entry -> Maps.immutableEntry( entry.getKey(), applyToEnrollments( entry, bundle ) ) )
             .filter( entry -> !entry.getValue().isEmpty() )
             .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) );
     }
 
     /**
-     * Filter the actions by
-     * - the action class of the implementer
-     * - events linked to data values that are part of a different Program Stage
-     * - events linked to data values that do not need to be validated
+     * Filter the actions by - the action class of the implementer - events
+     * linked to data values that are part of a different Program Stage - events
+     * linked to data values that do not need to be validated
      *
      * @param effects a map of event and effects
      * @param bundle
@@ -144,10 +150,10 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                         .map( effect -> new EventActionRule( event, effect.data(),
                             getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ) ) )
-                        .filter( effect -> effect.getAttributeType() == UNKNOWN ||
+                        .filter( effect -> effect.getAttributeType() != DATA_ELEMENT ||
                             isDataElementPartOfProgramStage( effect.getField(), programStage ) )
                         .filter(
-                            effect -> effect.getAttributeType() == UNKNOWN ||
+                            effect -> effect.getAttributeType() != DATA_ELEMENT ||
                                 needsToValidateDataValues( event, programStage ) )
                         .collect( Collectors.toList() );
                     return eventActionRules;

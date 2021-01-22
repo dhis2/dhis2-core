@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.params;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.params;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.params;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -110,13 +109,16 @@ public class AtomicModeIntegrationTest
     }
 
     @Test
-    public void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTEI() throws IOException {
+    public void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTEI()
+        throws IOException
+    {
 
-        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" ).getInputStream();
+        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" )
+            .getInputStream();
 
         TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
-        params.setAtomicMode(AtomicMode.OBJECT);
+        params.setAtomicMode( AtomicMode.OBJECT );
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportTeiReport );
@@ -127,13 +129,16 @@ public class AtomicModeIntegrationTest
     }
 
     @Test
-    public void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTEI() throws IOException {
+    public void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTEI()
+        throws IOException
+    {
 
-        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" ).getInputStream();
+        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" )
+            .getInputStream();
 
         TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
-        params.setAtomicMode(AtomicMode.ALL);
+        params.setAtomicMode( AtomicMode.ALL );
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportTeiReport );

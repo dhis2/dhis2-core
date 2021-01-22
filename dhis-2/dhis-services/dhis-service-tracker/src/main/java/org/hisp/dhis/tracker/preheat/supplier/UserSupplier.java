@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat.supplier;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,9 +25,15 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat.supplier;
+
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.tracker.TrackerIdentifier;
@@ -40,10 +44,6 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.mappers.UserMapper;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Luciano Fiandesio
@@ -56,7 +56,7 @@ public class UserSupplier extends AbstractPreheatSupplier
     private final IdentifiableObjectManager manager;
 
     @Override
-    public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat )
+    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
         Set<String> userUids = params.getEvents().stream()
             .filter( Objects::nonNull )
