@@ -69,8 +69,8 @@ public enum ValueType
     ORGANISATION_UNIT( OrganisationUnit.class, false ),
     AGE( Date.class, false ),
     URL( String.class, false ),
-    FILE_RESOURCE( String.class, false ),
-    IMAGE( String.class, false );
+    FILE_RESOURCE( String.class, false, FileTypeValueOptions.class ),
+    IMAGE( String.class, false, FileTypeValueOptions.class );
 
     public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.of(
         INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE );
@@ -101,6 +101,8 @@ public enum ValueType
 
     private boolean aggregateable;
 
+    private Class<? extends ValueTypeOptions> valueTypeOptionsClass;
+
     ValueType()
     {
         this.javaClass = null;
@@ -110,6 +112,13 @@ public enum ValueType
     {
         this.javaClass = javaClass;
         this.aggregateable = aggregateable;
+        this.valueTypeOptionsClass = null;
+    }
+
+    ValueType( Class<?> javaClass, boolean aggregateable, Class<? extends ValueTypeOptions> valueTypeOptionsClass )
+    {
+        this( javaClass, aggregateable );
+        this.valueTypeOptionsClass = valueTypeOptionsClass;
     }
 
     public Class<?> getJavaClass()
@@ -168,6 +177,11 @@ public enum ValueType
     public boolean isAggregateable()
     {
         return aggregateable;
+    }
+
+    public Class<? extends ValueTypeOptions> getValueTypeOptionsClass()
+    {
+        return this.valueTypeOptionsClass;
     }
 
     /**

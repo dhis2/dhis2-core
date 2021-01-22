@@ -46,11 +46,18 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.FileTypeValueOptions;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.junit.Test;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
@@ -276,5 +283,32 @@ public class ValidationUtilsTest
         assertEquals( "false", normalizeBoolean( "False", ValueType.BOOLEAN ) );
         assertEquals( "false", normalizeBoolean( "FALSE", ValueType.BOOLEAN ) );
         assertEquals( "false", normalizeBoolean( "F", ValueType.BOOLEAN ) );
+    }
+
+    @Test
+    public void testFileValueTypeOptionValidation()
+        throws IOException
+    {
+        long oneHundredMegaBytes = 1024 * (1024 * 100L);
+
+        ValueType valueType = ValueType.FILE_RESOURCE;
+
+        FileTypeValueOptions options = new FileTypeValueOptions();
+        options.setMaxFileSize( oneHundredMegaBytes );
+        options.setAllowedContentTypes( ImmutableSet.of( "jpg", "pdf" ) );
+
+        FileResource fileResource = new FileResource( "name", "jpg", oneHundredMegaBytes,
+            "md5sum", FileResourceDomain.DOCUMENT );
+        assertNull( dataValueIsValid( fileResource, valueType, options ) );
+
+        fileResource = new FileResource( "name", "jpg", 1024 * (1024 * 101L),
+            "md5sum", FileResourceDomain.DOCUMENT );
+        assertEquals( "not_valid_file_size_too_big",
+            dataValueIsValid( fileResource, valueType, options ) );
+
+        fileResource = new FileResource( "name", "exe", oneHundredMegaBytes,
+            "md5sum", FileResourceDomain.DOCUMENT );
+        assertEquals( "not_valid_file_content_type",
+            dataValueIsValid( fileResource, valueType, options ) );
     }
 }

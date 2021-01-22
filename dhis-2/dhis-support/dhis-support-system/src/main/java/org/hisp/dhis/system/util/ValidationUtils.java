@@ -31,6 +31,7 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.awt.geom.Point2D;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -41,10 +42,13 @@ import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.FileTypeValueOptions;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypeOptions;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.render.ObjectValueTypeRenderingOption;
 import org.hisp.dhis.render.StaticRenderingConfiguration;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
@@ -59,6 +63,7 @@ import com.google.common.collect.Sets;
  */
 public class ValidationUtils
 {
+
     private static final String NUM_PAT = "((-?[0-9]+)(\\.[0-9]+)?)";
 
     private static final Pattern POINT_PATTERN = Pattern.compile( "\\[(.+),\\s?(.+)\\]" );
@@ -75,6 +80,10 @@ public class ValidationUtils
         .compile( "^" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + "$" );
 
     private static final Pattern INTERNATIONAL_PHONE_PATTERN = Pattern.compile( "^\\+(?:[0-9].?){4,14}[0-9]$" );
+
+    public static final String NOT_VALID_VALUE_TYPE_CLASS = "not_valid_value_type_class";
+
+    public static final String NOT_VALID_VALUE_TYPE_OPTION_CLASS = "not_valid_value_type_option_class";
 
     private static Set<String> BOOL_FALSE_VARIANTS = Sets.newHashSet( "false", "False", "FALSE", "f", "F", "0" );
 
@@ -387,6 +396,54 @@ public class ValidationUtils
     public static String getCoordinate( String longitude, String latitude )
     {
         return "[" + longitude + "," + latitude + "]";
+    }
+
+    public static String dataValueIsValid( Object value, ValueType valueType, ValueTypeOptions options )
+    {
+        Objects.requireNonNull( value );
+        Objects.requireNonNull( valueType );
+        Objects.requireNonNull( options );
+
+        if ( !isValidValueTypeOptionClass( valueType, options ) )
+        {
+            return NOT_VALID_VALUE_TYPE_OPTION_CLASS;
+        }
+
+        if ( valueType.isFile() )
+        {
+            return validateFileResource( (FileResource) value, (FileTypeValueOptions) options );
+        }
+
+        return null;
+    }
+
+    private static String validateFileResource( FileResource value, FileTypeValueOptions options )
+    {
+        FileResource fileResource = value;
+
+        FileTypeValueOptions fileTypeValueOptions = options;
+
+        if ( fileResource.getContentLength() > fileTypeValueOptions.getMaxFileSize() )
+        {
+            return "not_valid_file_size_too_big";
+        }
+
+        if ( !fileTypeValueOptions.getAllowedContentTypes().contains( fileResource.getContentType().toLowerCase() ) )
+        {
+            return "not_valid_file_content_type";
+        }
+
+        return null;
+    }
+
+    private static boolean isValidValueTypeOptionClass( ValueType valueType, ValueTypeOptions options )
+    {
+        return options.getClass().equals( valueType.getValueTypeOptionsClass() );
+    }
+
+    private static boolean isValidValueTypeClass( Object value, ValueType valueType )
+    {
+        return value.getClass().equals( valueType.getJavaClass() );
     }
 
     /**

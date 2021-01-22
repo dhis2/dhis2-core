@@ -25,24 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate.jsonb.type;
+package org.hisp.dhis.common;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class SafeJsonBinaryType extends JsonBinaryType
+public class ValueTypeOptionsTest
 {
-    @Override
-    protected ObjectMapper getResultingMapper()
+    @Test
+    public void testFileValueTypeOptions()
     {
-        ObjectMapper objectMapper = MAPPER.copy();
-        objectMapper.configure( SerializationFeature.FAIL_ON_EMPTY_BEANS, false );
-        objectMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        objectMapper.configure( DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false );
-        return objectMapper;
+        FileTypeValueOptions ftvo = new FileTypeValueOptions();
+        ftvo.setMaxFileSize( 100L );
+        ftvo.setAllowedContentTypes( ImmutableSet.of( "jpg" ) );
+
+        assertEquals( 100L, ftvo.getMaxFileSize() );
+        assertTrue( ftvo.getAllowedContentTypes().contains( "jpg" ) );
     }
 }
