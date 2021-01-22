@@ -146,7 +146,7 @@ public class ProgramIndicatorServiceVariableTest
         assertEquals("duedate",
             getSql("V{due_date}" ) );
 
-        assertEquals("duedate",
+        assertEquals("(select duedate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and duedate is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date ) order by executiondate desc limit 1 )",
             getSqlEnrollment("V{due_date}" ) );
     }
 
