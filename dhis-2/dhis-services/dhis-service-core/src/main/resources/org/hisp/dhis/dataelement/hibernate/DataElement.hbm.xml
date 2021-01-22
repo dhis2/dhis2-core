@@ -36,6 +36,8 @@
       </type>
     </property>
 
+    <property name="valueTypeOptions" type="jbValueTypeOptions"/>
+
     <property name="domainType" column="domainType" type="org.hisp.dhis.dataelement.DataElementDomainUserType" not-null="true" />
 
     <property name="aggregationType" length="50" column="aggregationtype" not-null="true">

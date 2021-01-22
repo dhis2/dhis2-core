@@ -1,5 +1,3 @@
-package org.hisp.dhis.dashboard;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.dashboard;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dashboard;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
@@ -238,8 +237,7 @@ public class DashboardItem
     {
         InterpretableObject object = getEmbeddedItem();
 
-        return object != null ? object.getInterpretations().
-            stream().mapToInt( Interpretation::getLikes ).sum() : 0;
+        return object != null ? object.getInterpretations().stream().mapToInt( Interpretation::getLikes ).sum() : 0;
     }
 
     /**
@@ -275,7 +273,7 @@ public class DashboardItem
         count += map != null ? 1 : 0;
         count += reportTable != null ? 1 : 0;
         count += eventReport != null ? 1 : 0;
-        count += text != null ? 1: 0;
+        count += text != null ? 1 : 0;
         count += users.size();
         count += reports.size();
         count += resources.size();
@@ -351,7 +349,7 @@ public class DashboardItem
     public void setChart( Chart chart )
     {
         this.chart = chart;
-        this.visualization = convertToVisualization ( chart );
+        this.visualization = convertToVisualization( chart );
     }
 
     @JsonProperty
@@ -365,7 +363,7 @@ public class DashboardItem
     public void setReportTable( ReportTable reportTable )
     {
         this.reportTable = reportTable;
-        this.visualization = convertToVisualization ( reportTable );
+        this.visualization = convertToVisualization( reportTable );
     }
 
     @JsonProperty
@@ -548,7 +546,8 @@ public class DashboardItem
     }
 
     /******************************
-     * Deprecated methods required to keep ReportTable and Chart backward compatible
+     * Deprecated methods required to keep ReportTable and Chart backward
+     * compatible
      ******************************/
 
     private Visualization convertToVisualization( final Chart chart )

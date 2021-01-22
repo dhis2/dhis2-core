@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,9 +25,23 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.hisp.dhis.security.DefaultSecurityService.RECOVERY_LOCKOUT_MINS;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -65,17 +77,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static org.hisp.dhis.security.DefaultSecurityService.RECOVERY_LOCKOUT_MINS;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Lars Helge Overland
@@ -223,7 +225,8 @@ public class AccountController
         CredentialsInfo credentialsInfo;
         User user = credentials.getUserInfo();
 
-        // if user is null then something is internally wrong and request should be terminated.
+        // if user is null then something is internally wrong and request should
+        // be terminated.
         if ( user == null )
         {
             throw new WebMessageException(
@@ -243,7 +246,8 @@ public class AccountController
             throw new WebMessageException( WebMessageUtils.badRequest( result.getErrorMessage() ) );
         }
 
-        boolean restoreSuccess = securityService.restore( credentials, restoreToken, password, RestoreType.RECOVER_PASSWORD );
+        boolean restoreSuccess = securityService.restore( credentials, restoreToken, password,
+            RestoreType.RECOVER_PASSWORD );
 
         if ( !restoreSuccess )
         {
@@ -269,7 +273,8 @@ public class AccountController
         @RequestParam( value = "g-recaptcha-response", required = false ) String recapResponse,
         HttpServletRequest request,
         HttpServletResponse response )
-        throws WebMessageException, IOException
+        throws WebMessageException,
+        IOException
     {
         UserCredentials credentials = null;
         String restoreToken = null;
@@ -629,8 +634,8 @@ public class AccountController
     private void authenticate( String username, String rawPassword, Collection<GrantedAuthority> authorities,
         HttpServletRequest request )
     {
-        UsernamePasswordAuthenticationToken token =
-            new UsernamePasswordAuthenticationToken( username, rawPassword, authorities );
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken( username, rawPassword,
+            authorities );
         token.setDetails( new TwoFactorWebAuthenticationDetails( request ) );
 
         Authentication auth = twoFactorAuthenticationProvider.authenticate( token );

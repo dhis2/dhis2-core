@@ -1,5 +1,3 @@
-package org.hisp.dhis.common;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,14 +25,15 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -54,12 +53,13 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.util.SharingUtils;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Bob Jolliffe
@@ -107,7 +107,8 @@ public class BaseIdentifiableObject
     protected Set<AttributeValue> attributeValues = new HashSet<>();
 
     /**
-     * Cache of attribute values which allows for lookup by attribute identifier.
+     * Cache of attribute values which allows for lookup by attribute
+     * identifier.
      */
     protected Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
 
@@ -219,8 +220,8 @@ public class BaseIdentifiableObject
             return object.getDisplayName() == null ? 0 : 1;
         }
 
-        return object.getDisplayName() == null ? -1 :
-            this.getDisplayName().compareToIgnoreCase( object.getDisplayName() );
+        return object.getDisplayName() == null ? -1
+            : this.getDisplayName().compareToIgnoreCase( object.getDisplayName() );
     }
 
     // -------------------------------------------------------------------------
@@ -389,7 +390,7 @@ public class BaseIdentifiableObject
      * Returns a translated value for this object for the given property. The
      * current locale is read from the user context.
      *
-     * @param property     the translation property.
+     * @param property the translation property.
      * @param defaultValue the value to use if there are no translations.
      * @return a translated value.
      */
@@ -420,7 +421,8 @@ public class BaseIdentifiableObject
         {
             for ( Translation translation : translations )
             {
-                if ( translation.getLocale() != null && translation.getProperty() != null && !StringUtils.isEmpty( translation.getValue() ) )
+                if ( translation.getLocale() != null && translation.getProperty() != null
+                    && !StringUtils.isEmpty( translation.getValue() ) )
                 {
                     String key = Translation.getCacheKey( translation.getLocale(), translation.getProperty() );
                     translationCache.put( key, translation.getValue() );
@@ -507,7 +509,7 @@ public class BaseIdentifiableObject
 
     public void setExternalAccess( Boolean externalAccess )
     {
-         getSharing().setExternal( externalAccess );
+        getSharing().setExternal( externalAccess );
     }
 
     @Override
@@ -531,7 +533,7 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
     public Set<org.hisp.dhis.user.UserAccess> getUserAccesses()
     {
-       return SharingUtils.getDtoUserAccess( sharing );
+        return SharingUtils.getDtoUserAccess( sharing );
     }
 
     public void setUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )
@@ -592,7 +594,7 @@ public class BaseIdentifiableObject
 
     public void setSharing( Sharing sharing )
     {
-         this.sharing = sharing;
+        this.sharing = sharing;
     }
 
     @Override
@@ -632,7 +634,8 @@ public class BaseIdentifiableObject
     }
 
     /**
-     * Class check uses isAssignableFrom and get-methods to handle proxied objects.
+     * Class check uses isAssignableFrom and get-methods to handle proxied
+     * objects.
      */
     @Override
     public boolean equals( Object o )

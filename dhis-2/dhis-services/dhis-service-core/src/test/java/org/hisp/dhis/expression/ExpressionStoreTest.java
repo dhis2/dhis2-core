@@ -1,5 +1,3 @@
-package org.hisp.dhis.expression;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,10 +25,13 @@ package org.hisp.dhis.expression;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.expression;
+
+import static org.junit.Assert.*;
+
+import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
@@ -38,12 +39,6 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -77,7 +72,6 @@ public class ExpressionStoreTest
     private String descriptionA;
 
     private String descriptionB;
-
 
     // -------------------------------------------------------------------------
     // Fixture

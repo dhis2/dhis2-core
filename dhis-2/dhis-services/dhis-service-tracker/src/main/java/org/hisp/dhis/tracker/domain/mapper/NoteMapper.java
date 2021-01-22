@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.domain.mapper;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,9 +25,9 @@ package org.hisp.dhis.tracker.domain.mapper;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.domain.mapper;
 
 import org.hisp.dhis.tracker.domain.Note;
-import org.hisp.dhis.util.DateUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -37,6 +35,6 @@ import org.mapstruct.Mapping;
 public interface NoteMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Note, Note>
 {
     @Mapping( target = "storedAt", source = "storedDate" )
-    @Mapping( target = "updatedAt", source = "lastUpdated", dateFormat = DateUtils.ISO8601_NO_TZ_PATTERN )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
     Note from( org.hisp.dhis.dxf2.events.event.Note note );
 }

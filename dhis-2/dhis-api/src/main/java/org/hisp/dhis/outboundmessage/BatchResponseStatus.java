@@ -1,5 +1,3 @@
-package org.hisp.dhis.outboundmessage;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,14 +25,16 @@ package org.hisp.dhis.outboundmessage;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.outboundmessage;
+
+import java.util.List;
+
+import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.List;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -44,7 +44,7 @@ import java.util.List;
 public class BatchResponseStatus
 {
     private List<OutboundMessageResponseSummary> summaries;
-    
+
     public BatchResponseStatus( List<OutboundMessageResponseSummary> summaries )
     {
         this.summaries = summaries;

@@ -1,5 +1,3 @@
-package org.hisp.dhis.system.util;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,19 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.util;
+
+import com.google.common.collect.ImmutableSet;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.FileTypeValueOptions;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.junit.Test;
+
+import java.io.IOException;
 
 import static org.hisp.dhis.system.util.ValidationUtils.bboxIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.coordinateIsValid;
@@ -39,19 +50,13 @@ import static org.hisp.dhis.system.util.ValidationUtils.getLongitude;
 import static org.hisp.dhis.system.util.ValidationUtils.isValidHexColor;
 import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
 import static org.hisp.dhis.system.util.ValidationUtils.passwordIsValid;
-import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.junit.Test;
 
 /**
  * @author Lars Helge Overland
@@ -277,5 +282,32 @@ public class ValidationUtilsTest
         assertEquals( "false", normalizeBoolean( "False", ValueType.BOOLEAN ) );
         assertEquals( "false", normalizeBoolean( "FALSE", ValueType.BOOLEAN ) );
         assertEquals( "false", normalizeBoolean( "F", ValueType.BOOLEAN ) );
+    }
+
+    @Test
+    public void testFileValueTypeOptionValidation()
+        throws IOException
+    {
+        long oneHundredMegaBytes = 1024 * (1024 * 100L);
+
+        ValueType valueType = ValueType.FILE_RESOURCE;
+
+        FileTypeValueOptions options = new FileTypeValueOptions();
+        options.setMaxFileSize( oneHundredMegaBytes );
+        options.setAllowedContentTypes( ImmutableSet.of( "jpg", "pdf" ) );
+
+        FileResource fileResource = new FileResource( "name", "jpg", oneHundredMegaBytes,
+            "md5sum", FileResourceDomain.DOCUMENT );
+        assertNull( dataValueIsValid( fileResource, valueType, options ) );
+
+        fileResource = new FileResource( "name", "jpg", 1024 * (1024 * 101L),
+            "md5sum", FileResourceDomain.DOCUMENT );
+        assertEquals( "not_valid_file_size_too_big",
+            dataValueIsValid( fileResource, valueType, options ) );
+
+        fileResource = new FileResource( "name", "exe", oneHundredMegaBytes,
+            "md5sum", FileResourceDomain.DOCUMENT );
+        assertEquals( "not_valid_file_content_type",
+            dataValueIsValid( fileResource, valueType, options ) );
     }
 }

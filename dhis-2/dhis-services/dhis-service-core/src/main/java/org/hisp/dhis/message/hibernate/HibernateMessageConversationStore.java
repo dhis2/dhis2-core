@@ -1,5 +1,3 @@
-package org.hisp.dhis.message.hibernate;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.message.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.message.hibernate;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -68,7 +67,8 @@ public class HibernateMessageConversationStore
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
         StatementBuilder statementBuilder )
     {
-        super( sessionFactory, jdbcTemplate, publisher, MessageConversation.class, currentUserService, aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, MessageConversation.class, currentUserService, aclService,
+            false );
 
         checkNotNull( statementBuilder );
 

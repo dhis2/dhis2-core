@@ -1,7 +1,3 @@
-package org.hisp.dhis.period;
-
-import java.util.Date;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -29,6 +25,9 @@ import java.util.Date;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
+
+import java.util.Date;
 
 /**
  * @author Lars Helge Overland
@@ -46,7 +45,7 @@ public class ConfigurablePeriod
         this.setStartDate( new Date() );
         this.setEndDate( new Date() );
     }
-    
+
     @Override
     public String getIsoDate()
     {

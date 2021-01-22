@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1005;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1011;
@@ -74,7 +73,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class PreCheckMetaValidationHook
-        extends AbstractTrackerDtoValidationHook
+    extends AbstractTrackerDtoValidationHook
 {
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity tei )
@@ -104,7 +103,7 @@ public class PreCheckMetaValidationHook
         addErrorIfNull( organisationUnit, reporter, E1070, enrollment.getOrgUnit() );
 
         Program program = context.getProgram( enrollment.getProgram() );
-        addErrorIfNull( program,  reporter, E1069, enrollment.getProgram() );
+        addErrorIfNull( program, reporter, E1069, enrollment.getProgram() );
 
         if ( (program != null && organisationUnit != null)
             && !programHasOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
@@ -138,15 +137,15 @@ public class PreCheckMetaValidationHook
         if ( program != null )
         {
             addErrorIf( () -> program.isRegistration() && StringUtils.isEmpty( event.getEnrollment() ), reporter, E1033,
-                    event.getEvent() );
+                event.getEvent() );
         }
-        
+
         if ( (program != null && organisationUnit != null)
             && !programHasOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
         {
             addError( reporter, E1029, organisationUnit, program );
         }
-        
+
         validateEventProgramAndProgramStage( reporter, event, context, strategy, bundle, program, programStage );
         validateDataElementForDataValues( reporter, event, context );
     }
@@ -171,13 +170,13 @@ public class PreCheckMetaValidationHook
             .map( DataValue::getDataElement )
             .forEach( de -> {
                 DataElement dataElement = context.getBundle().getPreheat().get( DataElement.class, de );
-                addErrorIfNull( dataElement,  reporter, E1087, event.getEvent(), de );
+                addErrorIfNull( dataElement, reporter, E1087, event.getEvent(), de );
             } );
     }
 
     private void validateEventProgramAndProgramStage( ValidationErrorReporter reporter, Event event,
-                                                      TrackerImportValidationContext context, TrackerImportStrategy strategy, TrackerBundle bundle, Program program,
-                                                      ProgramStage programStage )
+        TrackerImportValidationContext context, TrackerImportStrategy strategy, TrackerBundle bundle, Program program,
+        ProgramStage programStage )
     {
         if ( program == null && programStage == null )
         {
@@ -211,7 +210,7 @@ public class PreCheckMetaValidationHook
     }
 
     private void validateNotChangingProgram( ValidationErrorReporter reporter, Event event,
-                                             TrackerImportValidationContext context, Program program )
+        TrackerImportValidationContext context, Program program )
     {
         ProgramStageInstance psi = context.getProgramStageInstance( event.getEvent() );
         Program existingProgram = psi.getProgramStage().getProgram();
@@ -219,14 +218,15 @@ public class PreCheckMetaValidationHook
         if ( !existingProgram.getUid().equals( program.getUid() ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1110 )
-                    .addArg( psi )
-                    .addArg( existingProgram ) );
+                .addArg( psi )
+                .addArg( existingProgram ) );
         }
     }
 
     private Program fetchProgramFromProgramStage( Event event, TrackerBundle bundle, ProgramStage programStage )
     {
-        Program program;// We use a little trick here to put a program into the event and bundle
+        Program program;// We use a little trick here to put a program into the
+                        // event and bundle
         // if program is missing from event but exists on the program stage.
         // TODO: This trick mutates the data, try to avoid this...
         program = programStage.getProgram();
@@ -246,8 +246,8 @@ public class PreCheckMetaValidationHook
     {
         return programAndOrgUnitsMap.containsKey( program.getId() )
             && programAndOrgUnitsMap.get( program.getId() ).contains( orgUnit.getId() );
-    } 
-    
+    }
+
     @Override
     public boolean removeOnError()
     {

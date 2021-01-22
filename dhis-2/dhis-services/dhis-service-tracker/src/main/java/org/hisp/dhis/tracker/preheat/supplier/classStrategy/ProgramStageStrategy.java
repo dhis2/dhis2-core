@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.ProgramStage;
@@ -40,7 +39,7 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor( value = ProgramStage.class, mapper = ProgramStageMapper.class, cache = true, ttl = 20  )
+@StrategyFor( value = ProgramStage.class, mapper = ProgramStageMapper.class, cache = true, ttl = 20 )
 public class ProgramStageStrategy extends AbstractSchemaStrategy
 {
     public ProgramStageStrategy( SchemaService schemaService, QueryService queryService,

@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
@@ -77,7 +76,7 @@ public class EventDataValuesValidationHookTest
     @Before
     public void setUp()
     {
-        hookToTest = new EventDataValuesValidationHook( );
+        hookToTest = new EventDataValuesValidationHook();
 
         DataElement validDataElement = new DataElement();
         validDataElement.setValueType( ValueType.TEXT );
@@ -238,7 +237,8 @@ public class EventDataValuesValidationHookTest
         when( event.getProgramStage() ).thenReturn( "PROGRAM_STAGE" );
         when( event.getStatus() ).thenReturn( EventStatus.ACTIVE );
         when( validationContext.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
-        when( validationContext.getDataElement( "de_not_present_in_progam_stage" ) ).thenReturn( notPresentDataElement );
+        when( validationContext.getDataElement( "de_not_present_in_progam_stage" ) )
+            .thenReturn( notPresentDataElement );
 
         // When
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );

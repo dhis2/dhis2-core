@@ -123,4 +123,8 @@
     <param name="clazz">org.hisp.dhis.user.sharing.Sharing</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbValueTypeOptions">
+    <param name="clazz">org.hisp.dhis.common.ValueTypeOptions</param>
+  </typedef>
+
 </hibernate-mapping>

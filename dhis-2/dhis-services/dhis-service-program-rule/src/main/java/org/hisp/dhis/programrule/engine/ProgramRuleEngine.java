@@ -1,5 +1,3 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,13 +25,13 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.google.api.client.util.Sets;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -56,6 +54,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAuthorityGroup;
 
 import com.google.api.client.util.Lists;
+import com.google.api.client.util.Sets;
 
 /**
  * Created by zubair@dhis2.org on 11.10.17.
@@ -140,9 +139,9 @@ public class ProgramRuleEngine
         {
             RuleEngine.Builder builder = getRuleEngineContext( program,
                 programStageInstance != null ? programStageInstance.getProgramStage().getUid() : null )
-                .toEngineBuilder()
-                .triggerEnvironment( TriggerEnvironment.SERVER )
-                .events( ruleEvents );
+                    .toEngineBuilder()
+                    .triggerEnvironment( TriggerEnvironment.SERVER )
+                    .events( ruleEvents );
 
             if ( ruleEnrollment != null )
             {
@@ -170,11 +169,11 @@ public class ProgramRuleEngine
 
     /**
      * To getDescription rule condition in order to fetch its description
-     * 
+     *
      * @param condition of program rule
      * @param program {@link Program} which the programRule is associated with.
-     * @return RuleValidationResult contains description of program rule condition
-     *         or errorMessage
+     * @return RuleValidationResult contains description of program rule
+     *         condition or errorMessage
      */
     public RuleValidationResult getDescription( String condition, Program program )
     {

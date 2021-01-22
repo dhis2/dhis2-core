@@ -1,5 +1,3 @@
-package org.hisp.dhis.program.notification;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,11 @@ package org.hisp.dhis.program.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.notification;
+
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -38,9 +41,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.List;
-
 /**
  * @author Zubair Asghar
  */
@@ -48,7 +48,7 @@ import java.util.List;
 @Repository( "org.hisp.dhis.program.ProgramNotificationInstanceStore" )
 public class HibernateProgramNotificationInstanceStore
     extends HibernateIdentifiableObjectStore<ProgramNotificationInstance>
-        implements ProgramNotificationInstanceStore
+    implements ProgramNotificationInstanceStore
 {
     public HibernateProgramNotificationInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
@@ -67,7 +67,8 @@ public class HibernateProgramNotificationInstanceStore
     }
 
     @Override
-    public List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramStageInstance programStageInstance )
+    public List<ProgramNotificationInstance> getProgramNotificationInstances(
+        ProgramStageInstance programStageInstance )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 

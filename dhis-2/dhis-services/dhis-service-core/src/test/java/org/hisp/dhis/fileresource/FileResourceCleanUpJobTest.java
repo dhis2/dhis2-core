@@ -1,5 +1,3 @@
-package org.hisp.dhis.fileresource;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,7 @@ package org.hisp.dhis.fileresource;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import static junit.framework.TestCase.*;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
+package org.hisp.dhis.fileresource;
 
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
@@ -54,6 +48,13 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertNull;
+import static junit.framework.TestCase.assertTrue;
 
 /**
  * @author Kristian Wærstad
@@ -105,7 +106,8 @@ public class FileResourceCleanUpJobTest
     @Test
     public void testNoRetention()
     {
-        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.NONE );
+        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY,
+            FileResourceRetentionStrategy.NONE );
 
         content = "filecontentA".getBytes();
         dataValueA = createFileResourceDataValue( 'A', content );
@@ -121,7 +123,8 @@ public class FileResourceCleanUpJobTest
     @Test
     public void testRetention()
     {
-        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS );
+        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY,
+            FileResourceRetentionStrategy.THREE_MONTHS );
 
         content = "filecontentA".getBytes( StandardCharsets.UTF_8 );
         dataValueA = createFileResourceDataValue( 'A', content );
@@ -140,12 +143,12 @@ public class FileResourceCleanUpJobTest
         dataValueAuditService.getDataValueAudits( dataValueB ).get( 0 )
             .setCreated( getDate( 2000, 1, 1 ) );
 
-
         cleanUpJob.execute( null );
 
         assertNotNull( fileResourceService.getFileResource( dataValueA.getValue() ) );
         assertTrue( fileResourceService.getFileResource( dataValueA.getValue() ).isAssigned() );
-        assertNull( dataValueService.getDataValue( dataValueA.getDataElement(), dataValueA.getPeriod(), dataValueA.getSource(), null ) );
+        assertNull( dataValueService.getDataValue( dataValueA.getDataElement(), dataValueA.getPeriod(),
+            dataValueA.getSource(), null ) );
         assertNull( fileResourceService.getFileResource( dataValueB.getValue() ) );
     }
 
@@ -153,7 +156,8 @@ public class FileResourceCleanUpJobTest
     @Ignore
     public void testFalsePositive()
     {
-        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS );
+        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY,
+            FileResourceRetentionStrategy.THREE_MONTHS );
 
         content = "externalA".getBytes();
         ExternalFileResource ex = createExternal( 'A', content );
@@ -173,7 +177,8 @@ public class FileResourceCleanUpJobTest
     @Ignore
     public void testFailedUpload()
     {
-        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS );
+        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY,
+            FileResourceRetentionStrategy.THREE_MONTHS );
 
         content = "externalA".getBytes();
         ExternalFileResource ex = createExternal( 'A', content );

@@ -1,5 +1,3 @@
-package org.hisp.dhis.common;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,14 +25,16 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
+
+import java.io.IOException;
+
+import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
-import org.hisp.dhis.user.User;
-
-import java.io.IOException;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -42,7 +42,8 @@ import java.io.IOException;
 public class CustomLastUpdatedUserSerializer extends JsonSerializer<User>
 {
     @Override
-    public void serialize( User user, JsonGenerator jsonGenerator, SerializerProvider serializerProvider ) throws  IOException
+    public void serialize( User user, JsonGenerator jsonGenerator, SerializerProvider serializerProvider )
+        throws IOException
     {
         ToXmlGenerator xmlGenerator = null;
         if ( jsonGenerator instanceof ToXmlGenerator )

@@ -1,5 +1,3 @@
-package org.hisp.dhis.container;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,14 +25,14 @@ package org.hisp.dhis.container;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.container;
 
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgisContainerProvider;
 import org.testcontainers.utility.DockerImageName;
 
 /**
- * Custom PostgisContainerProvider to create
- * {@link DhisPostgreSQLContainer}
+ * Custom PostgisContainerProvider to create {@link DhisPostgreSQLContainer}
  *
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
@@ -43,6 +41,7 @@ public class DhisPostgisContainerProvider
     extends PostgisContainerProvider
 {
     private static final String DEFAULT_TAG = "10";
+
     private static final String DEFAULT_IMAGE = "mdillon/postgis";
 
     @Override

@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.importer.update.validation;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.update.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.update.validation;
 
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.mockito.Mockito.when;
@@ -204,7 +203,8 @@ public class ExpirationDaysCheckTest extends BaseValidationTest
         // Prepare program stage instance
         Map<String, ProgramStageInstance> psiMap = new HashMap<>();
         ProgramStageInstance psi = new ProgramStageInstance();
-        psi.setExecutionDate( getTodayMinusDays( 35 ) ); // month length + 5 days
+        psi.setExecutionDate( getTodayMinusDays( 35 ) ); // month length + 5
+                                                         // days
         psi.setUid( event.getUid() );
         psiMap.put( event.getUid(), psi );
         when( workContext.getProgramStageInstanceMap() ).thenReturn( psiMap );
@@ -216,7 +216,8 @@ public class ExpirationDaysCheckTest extends BaseValidationTest
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
 
         // Then
-        assertHasError( importSummary, event, "The program's expiry date has passed. It is not possible to make changes to this event" );
+        assertHasError( importSummary, event,
+            "The program's expiry date has passed. It is not possible to make changes to this event" );
     }
 
     @Test
@@ -274,12 +275,11 @@ public class ExpirationDaysCheckTest extends BaseValidationTest
         return Date.from( localDateTime.atZone( ZoneId.systemDefault() ).toInstant() );
     }
 
-    private Date getTodayMinusDays( int days)
+    private Date getTodayMinusDays( int days )
     {
         LocalDateTime localDateTime = new Date().toInstant().atZone( ZoneId.systemDefault() ).toLocalDateTime()
             .minusDays( days );
         return Date.from( localDateTime.atZone( ZoneId.systemDefault() ).toInstant() );
     }
-
 
 }

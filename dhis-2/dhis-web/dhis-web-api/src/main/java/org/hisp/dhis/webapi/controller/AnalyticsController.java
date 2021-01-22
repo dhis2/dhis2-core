@@ -35,8 +35,6 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.AllArgsConstructor;
-import lombok.NonNull;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -54,6 +52,9 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
 
 /**
  * @author Lars Helge Overland
@@ -181,7 +182,7 @@ public class AnalyticsController
             .allowAllPeriods( true ).build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
-        
+
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getRawDataValues( params );
     }
@@ -193,7 +194,7 @@ public class AnalyticsController
         HttpServletResponse response ) throws Exception
     {
         final DataQueryRequest request = DataQueryRequest.newBuilder().fromCriteria( criteria ).apiVersion( apiVersion )
-                .allowAllPeriods( true ).build();
+            .allowAllPeriods( true ).build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -261,7 +262,7 @@ public class AnalyticsController
         return analyticsService.getAggregatedDataValues( params, getItemsFromParam( criteria.getColumns() ),
             getItemsFromParam( criteria.getRows() ) );
     }
-    
+
     private DataQueryRequest mapFromCriteria( AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion )
     {
         return DataQueryRequest.newBuilder().fromCriteria( criteria ).apiVersion( apiVersion )

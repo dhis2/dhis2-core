@@ -1,5 +1,3 @@
-package org.hisp.dhis.sms.config;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,12 +25,15 @@ package org.hisp.dhis.sms.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.config;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
@@ -52,12 +53,10 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @Component( "org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" )
 public class SimplisticHttpGetGateWay
-        extends SmsGateway
+    extends SmsGateway
 {
     private final PBEStringEncryptor pbeStringEncryptor;
 
@@ -67,8 +66,8 @@ public class SimplisticHttpGetGateWay
     // Dependencies
     // -------------------------------------------------------------------------
 
-
-    public SimplisticHttpGetGateWay( RestTemplate restTemplate, @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor )
+    public SimplisticHttpGetGateWay( RestTemplate restTemplate,
+        @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor )
     {
         checkNotNull( restTemplate );
         checkNotNull( pbeStringEncryptor );
@@ -124,7 +123,8 @@ public class SimplisticHttpGetGateWay
                 requestEntity = getRequestEntity( genericConfig, text, recipients );
             }
 
-            responseEntity = restTemplate.exchange( uri, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, requestEntity, String.class );
+            responseEntity = restTemplate.exchange( uri, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST,
+                requestEntity, String.class );
         }
         catch ( HttpClientErrorException ex )
         {
@@ -169,14 +169,17 @@ public class SimplisticHttpGetGateWay
                 continue;
             }
 
-            valueStore.put( parameter.getKey(), parameter.isConfidential() ?
-                pbeStringEncryptor.decrypt( parameter.getValue() ) : parameter.getValue() );
+            valueStore.put( parameter.getKey(),
+                parameter.isConfidential() ? pbeStringEncryptor.decrypt( parameter.getValue() )
+                    : parameter.getValue() );
         }
 
         valueStore.put( KEY_TEXT, SmsUtils.encode( text ) );
         valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
 
-        final StringSubstitutor substitutor = new StringSubstitutor( valueStore ); // Matches on ${...}
+        final StringSubstitutor substitutor = new StringSubstitutor( valueStore ); // Matches
+                                                                                   // on
+                                                                                   // ${...}
 
         String data = substitutor.replace( config.getConfigurationTemplate() );
 
@@ -193,8 +196,9 @@ public class SimplisticHttpGetGateWay
         {
             if ( !parameter.isHeader() )
             {
-                valueStore.put( parameter.getKey(), parameter.isConfidential() ?
-                    pbeStringEncryptor.decrypt( parameter.getValue() ) : parameter.getValue() );
+                valueStore.put( parameter.getKey(),
+                    parameter.isConfidential() ? pbeStringEncryptor.decrypt( parameter.getValue() )
+                        : parameter.getValue() );
             }
         }
 
@@ -213,7 +217,7 @@ public class SimplisticHttpGetGateWay
         {
             if ( parameter.isHeader() )
             {
-                httpHeaders.put(parameter.getKey(), Collections.singletonList( parameter.getValue() ) );
+                httpHeaders.put( parameter.getKey(), Collections.singletonList( parameter.getValue() ) );
             }
         }
 

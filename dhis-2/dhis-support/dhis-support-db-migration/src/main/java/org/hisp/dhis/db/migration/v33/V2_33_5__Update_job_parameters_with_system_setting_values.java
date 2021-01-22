@@ -1,4 +1,3 @@
-package org.hisp.dhis.db.migration.v33;
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -26,6 +25,7 @@ package org.hisp.dhis.db.migration.v33;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.db.migration.v33;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -57,23 +57,27 @@ import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
  */
 public class V2_33_5__Update_job_parameters_with_system_setting_values extends BaseJavaMigration
 {
-    private static final Logger log = LoggerFactory.getLogger( V2_33_5__Update_job_parameters_with_system_setting_values.class );
+    private static final Logger log = LoggerFactory
+        .getLogger( V2_33_5__Update_job_parameters_with_system_setting_values.class );
 
     private static final String TRACKER_PROGRAM_SYNC_PAGE_SIZE = "syncTrackerPageSize";
+
     private static final String EVENT_PROGRAM_SYNC_PAGE_SIZE = "syncEventsPageSize";
+
     private static final String DATA_VALUES_SYNC_PAGE_SIZE = "syncDataValuesPageSize";
 
     @Override
-    public void migrate( final Context context ) throws Exception
+    public void migrate( final Context context )
+        throws Exception
     {
         // 1. Fetch data from SystemSettings if present
         int trackerPageSize = 0;
         int eventPageSize = 0;
         int dataValuesPageSize = 0;
 
-        String sql = "SELECT value FROM systemsetting WHERE name = '" + TRACKER_PROGRAM_SYNC_PAGE_SIZE +"';";
-        try ( Statement stmt = context.getConnection().createStatement();
-              ResultSet rs = stmt.executeQuery( sql ); )
+        String sql = "SELECT value FROM systemsetting WHERE name = '" + TRACKER_PROGRAM_SYNC_PAGE_SIZE + "';";
+        try (Statement stmt = context.getConnection().createStatement();
+            ResultSet rs = stmt.executeQuery( sql );)
         {
             if ( rs.next() )
             {
@@ -81,9 +85,9 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
             }
         }
 
-        sql = "SELECT value FROM systemsetting WHERE name = '" + EVENT_PROGRAM_SYNC_PAGE_SIZE +"';";
-        try ( Statement stmt = context.getConnection().createStatement();
-              ResultSet rs = stmt.executeQuery( sql ); )
+        sql = "SELECT value FROM systemsetting WHERE name = '" + EVENT_PROGRAM_SYNC_PAGE_SIZE + "';";
+        try (Statement stmt = context.getConnection().createStatement();
+            ResultSet rs = stmt.executeQuery( sql );)
         {
             if ( rs.next() )
             {
@@ -91,9 +95,9 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
             }
         }
 
-        sql = "SELECT value FROM systemsetting WHERE name = '" + DATA_VALUES_SYNC_PAGE_SIZE +"';";
-        try ( Statement stmt = context.getConnection().createStatement();
-              ResultSet rs = stmt.executeQuery( sql ); )
+        sql = "SELECT value FROM systemsetting WHERE name = '" + DATA_VALUES_SYNC_PAGE_SIZE + "';";
+        try (Statement stmt = context.getConnection().createStatement();
+            ResultSet rs = stmt.executeQuery( sql );)
         {
             if ( rs.next() )
             {
@@ -110,7 +114,8 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
             Map<Integer, JobParameters> updatedJobParameters = new HashMap<>();
 
             ObjectMapper mapper = new ObjectMapper();
-            mapper.activateDefaultTyping( BasicPolymorphicTypeValidator.builder().allowIfBaseType( JobParameters.class ).build() );
+            mapper.activateDefaultTyping(
+                BasicPolymorphicTypeValidator.builder().allowIfBaseType( JobParameters.class ).build() );
             mapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
 
             JavaType resultingJavaType = mapper.getTypeFactory().constructType( JobParameters.class );
@@ -121,10 +126,10 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
             {
                 sql = "SELECT jobconfigurationid, jsonbjobparameters FROM jobconfiguration " +
                     "WHERE jobtype = '" + JobType.TRACKER_PROGRAMS_DATA_SYNC.name() + "';";
-                try ( Statement stmt = context.getConnection().createStatement();
-                      ResultSet rs = stmt.executeQuery( sql ); )
+                try (Statement stmt = context.getConnection().createStatement();
+                    ResultSet rs = stmt.executeQuery( sql );)
                 {
-                    while ( rs.next())
+                    while ( rs.next() )
                     {
                         TrackerProgramsDataSynchronizationJobParameters jobparams = reader
                             .readValue( rs.getString( "jsonbjobparameters" ) );
@@ -139,10 +144,10 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
             {
                 sql = "SELECT jobconfigurationid, jsonbjobparameters FROM jobconfiguration " +
                     "WHERE jobtype = '" + JobType.EVENT_PROGRAMS_DATA_SYNC.name() + "';";
-                try ( Statement stmt = context.getConnection().createStatement();
-                      ResultSet rs = stmt.executeQuery( sql ); )
+                try (Statement stmt = context.getConnection().createStatement();
+                    ResultSet rs = stmt.executeQuery( sql );)
                 {
-                    while ( rs.next())
+                    while ( rs.next() )
                     {
                         EventProgramsDataSynchronizationJobParameters jobparams = reader
                             .readValue( rs.getString( "jsonbjobparameters" ) );
@@ -155,10 +160,10 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
 
             sql = "SELECT jobconfigurationid, jsonbjobparameters FROM jobconfiguration " +
                 "WHERE jobtype = '" + JobType.META_DATA_SYNC.name() + "';";
-            try ( Statement stmt = context.getConnection().createStatement();
-                  ResultSet rs = stmt.executeQuery( sql ); )
+            try (Statement stmt = context.getConnection().createStatement();
+                ResultSet rs = stmt.executeQuery( sql );)
             {
-                while ( rs.next())
+                while ( rs.next() )
                 {
                     MetadataSyncJobParameters jobparams = reader
                         .readValue( rs.getString( "jsonbjobparameters" ) );
@@ -184,8 +189,9 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
 
             for ( Map.Entry<Integer, JobParameters> jobParams : updatedJobParameters.entrySet() )
             {
-                try ( PreparedStatement ps = context.getConnection()
-                    .prepareStatement( "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobconfigurationid = ?;" ) )
+                try (PreparedStatement ps = context.getConnection()
+                    .prepareStatement(
+                        "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobconfigurationid = ?;" ))
                 {
                     PGobject pg = new PGobject();
                     pg.setType( "jsonb" );
@@ -200,7 +206,7 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
         }
 
         // 3. Remove entries from systemsetting table
-        try ( Statement stmt = context.getConnection().createStatement() )
+        try (Statement stmt = context.getConnection().createStatement())
         {
             stmt.executeUpdate( "DELETE FROM systemsetting WHERE name IN ('" + TRACKER_PROGRAM_SYNC_PAGE_SIZE +
                 "', '" + EVENT_PROGRAM_SYNC_PAGE_SIZE + "', '" + DATA_VALUES_SYNC_PAGE_SIZE + "');" );

@@ -1,5 +1,3 @@
-package org.hisp.dhis.validation;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.validation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
@@ -39,6 +38,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.persistence.PersistenceException;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -66,8 +67,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * Runs a validation task on a thread within a multi-threaded validation run.
  * <p>
@@ -83,7 +82,8 @@ public class DataValidationTask
 {
     public static final String NAME = "validationTask";
 
-    public final static String NON_AOC = ""; // String that is not an Attribute Option Combo
+    public final static String NON_AOC = ""; // String that is not an Attribute
+                                             // Option Combo
 
     private final ExpressionService expressionService;
 
@@ -118,13 +118,13 @@ public class DataValidationTask
 
     private PeriodTypeExtended periodTypeX; // Current period type extended.
 
-    private Period period;                  // Current period.
+    private Period period; // Current period.
 
-    private OrganisationUnit orgUnit;       // Current organisation unit.
+    private OrganisationUnit orgUnit; // Current organisation unit.
 
-    private long orgUnitId;                  // Current organisation unit id.
+    private long orgUnitId; // Current organisation unit id.
 
-    private ValidationRuleExtended ruleX;   // Current rule extended.
+    private ValidationRuleExtended ruleX; // Current rule extended.
 
     // Data for current period and all rules being evaluated:
     private MapMapMap<Long, String, DimensionalItemObject, Double> dataMap;
@@ -160,8 +160,8 @@ public class DataValidationTask
     }
 
     /**
-     * Get the data needed for this task, then evaluate each combination
-     * of organisation unit / period / validation rule.
+     * Get the data needed for this task, then evaluate each combination of
+     * organisation unit / period / validation rule.
      */
     private void runInternal()
     {
@@ -170,8 +170,7 @@ public class DataValidationTask
             return;
         }
 
-        loop:
-        for ( PeriodTypeExtended ptx : context.getPeriodTypeXs() )
+        loop: for ( PeriodTypeExtended ptx : context.getPeriodTypeXs() )
         {
             periodTypeX = ptx;
 
@@ -245,8 +244,8 @@ public class DataValidationTask
      * Validates one rule / period / attribute option combo.
      *
      * @param optionCombo the attribute option combo.
-     * @param leftSide    left side value.
-     * @param rightSide   right side value.
+     * @param leftSide left side value.
+     * @param rightSide right side value.
      */
     private void validateOptionCombo( String optionCombo, Double leftSide, Double rightSide )
     {
@@ -273,7 +272,7 @@ public class DataValidationTask
     /**
      * Determines if left and right side values violate a rule.
      *
-     * @param leftSide  the left side value.
+     * @param leftSide the left side value.
      * @param rightSide the right side value.
      * @return true if violation, otherwise false.
      */
@@ -316,7 +315,7 @@ public class DataValidationTask
         String test = leftSide
             + ruleX.getRule().getOperator().getMathematicalOperator()
             + rightSide;
-        return ! (Boolean) expressionService.getExpressionValue( test, SIMPLE_TEST );
+        return !(Boolean) expressionService.getExpressionValue( test, SIMPLE_TEST );
     }
 
     /**
@@ -338,7 +337,8 @@ public class DataValidationTask
             slidingWindowDataMap.putMap( dataMap );
 
             slidingWindowDataMap.putMap( getEventMapForSlidingWindow( true, periodTypeX.getEventItems() ) );
-            slidingWindowDataMap.putMap( getEventMapForSlidingWindow( false, periodTypeX.getEventItemsWithoutAttributeOptions() ) );
+            slidingWindowDataMap
+                .putMap( getEventMapForSlidingWindow( false, periodTypeX.getEventItemsWithoutAttributeOptions() ) );
         }
 
         if ( periodTypeX.areNonSlidingWindowsNeeded() )
@@ -349,10 +349,10 @@ public class DataValidationTask
     }
 
     /**
-     * For an expression (left side or right side), finds the values
-     * (grouped by attribute option combo).
+     * For an expression (left side or right side), finds the values (grouped by
+     * attribute option combo).
      *
-     * @param expression    left or right side expression.
+     * @param expression left or right side expression.
      * @param slidingWindow whether to use sliding window.
      * @return the values grouped by attribute option combo.
      */
@@ -389,11 +389,11 @@ public class DataValidationTask
 
         if ( p == null )
         {
-            log.trace("DataValidationTask calling getPeriod( id " + id + " )" );
+            log.trace( "DataValidationTask calling getPeriod( id " + id + " )" );
 
             p = periodService.getPeriod( id );
 
-            log.trace("DataValidationTask called getPeriod( id " + id + " )" );
+            log.trace( "DataValidationTask called getPeriod( id " + id + " )" );
 
             context.getPeriodIdMap().put( id, p );
         }
@@ -407,11 +407,11 @@ public class DataValidationTask
 
         if ( aoc == null )
         {
-            log.trace("DataValidationTask calling getCategoryOptionCombo( id " + id + " )" );
+            log.trace( "DataValidationTask calling getCategoryOptionCombo( id " + id + " )" );
 
             aoc = categoryService.getCategoryOptionCombo( id );
 
-            log.trace("DataValidationTask called getCategoryOptionCombo( id " + id + ")" );
+            log.trace( "DataValidationTask called getCategoryOptionCombo( id " + id + ")" );
 
             addToAocCache( aoc );
         }
@@ -425,11 +425,11 @@ public class DataValidationTask
 
         if ( aoc == null )
         {
-            log.trace("DataValidationTask calling getCategoryOptionCombo( uid " + uid + " )" );
+            log.trace( "DataValidationTask calling getCategoryOptionCombo( uid " + uid + " )" );
 
             aoc = categoryService.getCategoryOptionCombo( uid );
 
-            log.trace("DataValidationTask called getCategoryOptionCombo( uid " + uid + ")" );
+            log.trace( "DataValidationTask called getCategoryOptionCombo( uid " + uid + ")" );
 
             addToAocCache( aoc );
         }
@@ -448,7 +448,7 @@ public class DataValidationTask
      * combo.
      *
      * @param expression expression to evaluate.
-     * @param valueMap   Map of value maps, by attribute option combo.
+     * @param valueMap Map of value maps, by attribute option combo.
      * @return map of values.
      */
     private Map<String, Double> getExpressionValueMap( Expression expression,
@@ -457,7 +457,8 @@ public class DataValidationTask
         Map<String, Double> expressionValueMap = new HashMap<>();
 
         Map<DimensionalItemObject, Double> nonAocValues = valueMap.get( orgUnitId ) == null
-            ? null : valueMap.get( orgUnitId ).get( NON_AOC );
+            ? null
+            : valueMap.get( orgUnitId ).get( NON_AOC );
 
         MapMap<String, DimensionalItemObject, Double> aocValues = valueMap.get( orgUnitId );
 
@@ -567,11 +568,13 @@ public class DataValidationTask
         {
             if ( existingPeriodInterval < periodInterval )
             {
-                return; // Do not overwrite the previous value if for a shorter interval
+                return; // Do not overwrite the previous value if for a shorter
+                        // interval
             }
             else if ( existingPeriodInterval > periodInterval )
             {
-                existingValue = 0.0; // Overwrite previous value if for a longer interval
+                existingValue = 0.0; // Overwrite previous value if for a longer
+                                     // interval
             }
         }
 
@@ -636,7 +639,8 @@ public class DataValidationTask
             endDate.setTime( period.getEndDate() );
         }
 
-        // The window size is based on the frequencyOrder of the period's periodType:
+        // The window size is based on the frequencyOrder of the period's
+        // periodType:
         startDate.setTime( endDate.getTime() );
         startDate.add( Calendar.DATE, (-1 * period.frequencyOrder()) );
 
@@ -658,7 +662,7 @@ public class DataValidationTask
     /**
      * Gets analytics data.
      *
-     * @param params              event data query parameters.
+     * @param params event data query parameters.
      * @param hasAttributeOptions whether the event data has attribute options.
      * @return event data.
      */
@@ -690,18 +694,18 @@ public class DataValidationTask
         int vlInx = grid.getWidth() - 1;
 
         Map<String, OrganisationUnit> ouLookup = orgUnits.stream()
-            .collect( Collectors.toMap(BaseIdentifiableObject::getUid, o -> o ) );
+            .collect( Collectors.toMap( BaseIdentifiableObject::getUid, o -> o ) );
         Map<String, DimensionalItemObject> dxLookup = periodTypeX.getEventItems().stream()
-            .collect( Collectors.toMap(DimensionalItemObject::getDimensionItem, d -> d ) );
+            .collect( Collectors.toMap( DimensionalItemObject::getDimensionItem, d -> d ) );
         dxLookup.putAll( periodTypeX.getIndicators().stream()
-            .collect( Collectors.toMap(DimensionalItemObject::getDimensionItem, d -> d ) ) );
+            .collect( Collectors.toMap( DimensionalItemObject::getDimensionItem, d -> d ) ) );
 
         for ( List<Object> row : grid.getRows() )
         {
             String dx = (String) row.get( dxInx );
             String ao = hasAttributeOptions ? (String) row.get( aoInx ) : NON_AOC;
             String ou = (String) row.get( ouInx );
-            Double vl = ( (Number)row.get( vlInx ) ).doubleValue();
+            Double vl = ((Number) row.get( vlInx )).doubleValue();
 
             OrganisationUnit orgUnit = ouLookup.get( ou );
             DimensionalItemObject analyticsItem = dxLookup.get( dx );

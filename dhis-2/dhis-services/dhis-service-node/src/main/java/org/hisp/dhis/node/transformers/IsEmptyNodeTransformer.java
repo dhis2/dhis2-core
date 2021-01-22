@@ -1,5 +1,3 @@
-package org.hisp.dhis.node.transformers;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,17 +25,18 @@ package org.hisp.dhis.node.transformers;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.node.transformers;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
+
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.schema.Property;
 import org.springframework.stereotype.Component;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -65,7 +64,8 @@ public class IsEmptyNodeTransformer implements NodeTransformer
         }
         else if ( property.isSimple() )
         {
-            return new SimpleNode( property.getName(), StringUtils.isEmpty( ((SimpleNode) node).getValue().toString() ), property.isAttribute() );
+            return new SimpleNode( property.getName(), ObjectUtils.isEmpty( ((SimpleNode) node).getValue() ),
+                property.isAttribute() );
         }
 
         return node;

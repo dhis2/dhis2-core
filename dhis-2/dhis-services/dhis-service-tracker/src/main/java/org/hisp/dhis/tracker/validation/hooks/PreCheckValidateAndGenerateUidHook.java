@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -135,7 +134,7 @@ public class PreCheckValidateAndGenerateUidHook
         }
     }
 
-    private void validateNotesUid(List<Note> notes, ValidationErrorReporter reporter )
+    private void validateNotesUid( List<Note> notes, ValidationErrorReporter reporter )
     {
         if ( isNotEmpty( notes ) )
         {
@@ -155,10 +154,12 @@ public class PreCheckValidateAndGenerateUidHook
     }
 
     /**
-     * Check if the given UID has a valid format. A null UID is considered valid.
-     * 
+     * Check if the given UID has a valid format. A null UID is considered
+     * valid.
+     *
      * @param uid a UID. The UID string can be null.
-     * @param reporter a {@see ValidationErrorReporter} to which the error is added
+     * @param reporter a {@see ValidationErrorReporter} to which the error is
+     *        added
      * @param args list of arguments for the Error report
      * @return true, if the UID is invalid
      */

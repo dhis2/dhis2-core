@@ -1,5 +1,3 @@
-package org.hisp.dhis.dataapproval;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,20 @@ package org.hisp.dhis.dataapproval;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataapproval;
 
-import com.google.common.collect.Sets;
+import static com.google.common.collect.Sets.newHashSet;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.ACCEPT;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.UNACCEPT;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.UNAPPROVE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -59,17 +69,7 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
-import static com.google.common.collect.Sets.newHashSet;
-import static org.hisp.dhis.dataapproval.DataApprovalAction.ACCEPT;
-import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
-import static org.hisp.dhis.dataapproval.DataApprovalAction.UNACCEPT;
-import static org.hisp.dhis.dataapproval.DataApprovalAction.UNAPPROVE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Sets;
 
 /**
  * @author Jim Grace
@@ -78,6 +78,7 @@ import static org.junit.Assert.assertTrue;
 public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
 {
     private static final String ACCESS_NONE = "--------";
+
     private static final String ACCESS_READ = "r-------";
 
     @Autowired
@@ -121,27 +122,37 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     // -------------------------------------------------------------------------
 
     private DataApprovalLevel level1;
+
     private DataApprovalLevel level2;
+
     private DataApprovalLevel level3;
 
     private DataApprovalWorkflow workflowA;
+
     private DataApprovalWorkflow workflowB;
 
     private Period periodA;
+
     private Period periodB;
 
     private OrganisationUnit sourceA;
+
     private OrganisationUnit sourceB;
 
     private CurrentUserService superUserService;
+
     private CurrentUserService userAService;
+
     private CurrentUserService userBService;
+
     private CurrentUserService userCService;
+
     private CurrentUserService userDService;
 
     private User userZ;
 
     private CategoryOption optionA;
+
     private CategoryOption optionB;
 
     private Category categoryA;
@@ -149,34 +160,48 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     private CategoryCombo categoryComboA;
 
     private CategoryOptionCombo optionComboA;
+
     private CategoryOptionCombo optionComboB;
+
     private CategoryOptionCombo optionComboC;
 
     private CategoryOptionGroup optionGroupA;
+
     private CategoryOptionGroup optionGroupB;
 
     private CategoryOptionGroupSet optionGroupSetB;
 
     private Date dateA;
+
     private Date dateB;
 
     private DataApprovalAudit auditAA1;
+
     private DataApprovalAudit auditAB1;
+
     private DataApprovalAudit auditAC1;
+
     private DataApprovalAudit auditBA2;
+
     private DataApprovalAudit auditBB2;
+
     private DataApprovalAudit auditBC2;
+
     private DataApprovalAudit auditBA3;
+
     private DataApprovalAudit auditBB3;
+
     private DataApprovalAudit auditBC3;
 
     // -------------------------------------------------------------------------
     // Set up/tear down helper methods
     // -------------------------------------------------------------------------
 
-    private CurrentUserService getMockCurrentUserService( String userName, boolean superUserFlag, OrganisationUnit orgUnit, String... auths )
+    private CurrentUserService getMockCurrentUserService( String userName, boolean superUserFlag,
+        OrganisationUnit orgUnit, String... auths )
     {
-        CurrentUserService mockCurrentUserService = new MockCurrentUserService( superUserFlag, Sets.newHashSet( orgUnit ), Sets.newHashSet( orgUnit ), auths );
+        CurrentUserService mockCurrentUserService = new MockCurrentUserService( superUserFlag,
+            Sets.newHashSet( orgUnit ), Sets.newHashSet( orgUnit ), auths );
 
         User user = mockCurrentUserService.getCurrentUser();
 
@@ -189,7 +214,8 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
 
         for ( UserAuthorityGroup role : credentials.getUserAuthorityGroups() )
         {
-            role.setName( CodeGenerator.generateUid() ); // Give the role an arbitrary name
+            role.setName( CodeGenerator.generateUid() ); // Give the role an
+                                                         // arbitrary name
 
             userService.addUserAuthorityGroup( role );
         }
@@ -238,7 +264,8 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     }
 
     @Override
-    public void setUpTest() throws Exception
+    public void setUpTest()
+        throws Exception
     {
         // ---------------------------------------------------------------------
         // Add supporting data
@@ -330,15 +357,24 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         dataApprovalService.addWorkflow( workflowA );
         dataApprovalService.addWorkflow( workflowB );
 
-        DataApproval approvalAA1 = new DataApproval( level1, workflowA, periodA, sourceA, optionComboA, false, dateA, userZ );
-        DataApproval approvalAB1 = new DataApproval( level1, workflowA, periodA, sourceA, optionComboB, false, dateA, userZ );
-        DataApproval approvalAC1 = new DataApproval( level1, workflowA, periodA, sourceA, optionComboC, false, dateA, userZ );
-        DataApproval approvalBA2 = new DataApproval( level2, workflowB, periodB, sourceB, optionComboA, false, dateB, userZ );
-        DataApproval approvalBB2 = new DataApproval( level2, workflowB, periodB, sourceB, optionComboB, false, dateB, userZ );
-        DataApproval approvalBC2 = new DataApproval( level2, workflowB, periodB, sourceB, optionComboC, false, dateB, userZ );
-        DataApproval approvalBA3 = new DataApproval( level3, workflowB, periodB, sourceB, optionComboA, false, dateB, userZ );
-        DataApproval approvalBB3 = new DataApproval( level3, workflowB, periodB, sourceB, optionComboB, false, dateB, userZ );
-        DataApproval approvalBC3 = new DataApproval( level3, workflowB, periodB, sourceB, optionComboC, false, dateB, userZ );
+        DataApproval approvalAA1 = new DataApproval( level1, workflowA, periodA, sourceA, optionComboA, false, dateA,
+            userZ );
+        DataApproval approvalAB1 = new DataApproval( level1, workflowA, periodA, sourceA, optionComboB, false, dateA,
+            userZ );
+        DataApproval approvalAC1 = new DataApproval( level1, workflowA, periodA, sourceA, optionComboC, false, dateA,
+            userZ );
+        DataApproval approvalBA2 = new DataApproval( level2, workflowB, periodB, sourceB, optionComboA, false, dateB,
+            userZ );
+        DataApproval approvalBB2 = new DataApproval( level2, workflowB, periodB, sourceB, optionComboB, false, dateB,
+            userZ );
+        DataApproval approvalBC2 = new DataApproval( level2, workflowB, periodB, sourceB, optionComboC, false, dateB,
+            userZ );
+        DataApproval approvalBA3 = new DataApproval( level3, workflowB, periodB, sourceB, optionComboA, false, dateB,
+            userZ );
+        DataApproval approvalBB3 = new DataApproval( level3, workflowB, periodB, sourceB, optionComboB, false, dateB,
+            userZ );
+        DataApproval approvalBC3 = new DataApproval( level3, workflowB, periodB, sourceB, optionComboC, false, dateB,
+            userZ );
         auditAA1 = new DataApprovalAudit( approvalAA1, APPROVE );
         auditAB1 = new DataApprovalAudit( approvalAB1, UNAPPROVE );
         auditAC1 = new DataApprovalAudit( approvalAC1, ACCEPT );

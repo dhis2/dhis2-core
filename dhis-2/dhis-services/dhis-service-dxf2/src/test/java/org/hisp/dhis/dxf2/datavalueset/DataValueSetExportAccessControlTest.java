@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.datavalueset;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,10 +25,17 @@ package org.hisp.dhis.dxf2.datavalueset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.datavalueset;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Set;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.Category;
@@ -57,15 +62,9 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.Set;
-
-import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
-import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -98,21 +97,29 @@ public class DataValueSetExportAccessControlTest
     private ObjectMapper jsonMapper;
 
     private DataElement deA;
+
     private DataElement deB;
 
     private CategoryOption coA;
+
     private CategoryOption coB;
+
     private CategoryOption coC;
+
     private CategoryOption coD;
 
     private Category caA;
+
     private Category caB;
 
     private CategoryCombo ccA;
 
     private CategoryOptionCombo cocA;
+
     private CategoryOptionCombo cocB;
+
     private CategoryOptionCombo cocC;
+
     private CategoryOptionCombo cocD;
 
     private DataSet dsA;
@@ -188,7 +195,8 @@ public class DataValueSetExportAccessControlTest
      * combinations are returned.
      */
     @Test
-    public void testExportAttributeOptionComboAccessLimitedUserA() throws IOException
+    public void testExportAttributeOptionComboAccessLimitedUserA()
+        throws IOException
     {
         // User
 
@@ -243,7 +251,8 @@ public class DataValueSetExportAccessControlTest
      * combinations are used.
      */
     @Test
-    public void testExportAttributeOptionComboAccessSuperUser() throws IOException
+    public void testExportAttributeOptionComboAccessSuperUser()
+        throws IOException
     {
         // User
 
@@ -281,8 +290,8 @@ public class DataValueSetExportAccessControlTest
     }
 
     /**
-     * User does not have data read sharing access to data set. Verifies
-     * that validation fails.
+     * User does not have data read sharing access to data set. Verifies that
+     * validation fails.
      */
     @Test( expected = IllegalQueryException.class )
     public void testExportDataSetAccess()

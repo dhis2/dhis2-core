@@ -1,5 +1,3 @@
-package org.hisp.dhis.hibernate.dialect;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,13 +25,14 @@ package org.hisp.dhis.hibernate.dialect;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.hibernate.dialect;
+
+import java.sql.Types;
 
 import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.spatial.dialect.postgis.PostgisPG95Dialect;
 import org.hibernate.type.StandardBasicTypes;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
-
-import java.sql.Types;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -47,13 +46,20 @@ public class DhisPostgresDialect
         super();
         registerColumnType( Types.JAVA_OBJECT, "jsonb" );
         registerHibernateType( Types.OTHER, "pg-uuid" );
-        registerFunction( JsonbFunctions.EXTRACT_PATH, new StandardSQLFunction( JsonbFunctions.EXTRACT_PATH, StandardBasicTypes.STRING ) );
-        registerFunction( JsonbFunctions.EXTRACT_PATH_TEXT, new StandardSQLFunction( JsonbFunctions.EXTRACT_PATH_TEXT, StandardBasicTypes.STRING ) );
-        registerFunction( JsonbFunctions.HAS_USER_GROUP_IDS, new StandardSQLFunction( JsonbFunctions.HAS_USER_GROUP_IDS, StandardBasicTypes.BOOLEAN ) );
-        registerFunction( JsonbFunctions.CHECK_USER_GROUPS_ACCESS, new StandardSQLFunction( JsonbFunctions.CHECK_USER_GROUPS_ACCESS, StandardBasicTypes.BOOLEAN ) );
-        registerFunction( JsonbFunctions.HAS_USER_ID, new StandardSQLFunction( JsonbFunctions.HAS_USER_ID, StandardBasicTypes.BOOLEAN ) );
-        registerFunction( JsonbFunctions.CHECK_USER_ACCESS, new StandardSQLFunction( JsonbFunctions.CHECK_USER_ACCESS, StandardBasicTypes.BOOLEAN ) );
-        registerFunction( JsonbFunctions.REGEXP_SEARCH, new StandardSQLFunction( JsonbFunctions.REGEXP_SEARCH, StandardBasicTypes.BOOLEAN ) );
+        registerFunction( JsonbFunctions.EXTRACT_PATH,
+            new StandardSQLFunction( JsonbFunctions.EXTRACT_PATH, StandardBasicTypes.STRING ) );
+        registerFunction( JsonbFunctions.EXTRACT_PATH_TEXT,
+            new StandardSQLFunction( JsonbFunctions.EXTRACT_PATH_TEXT, StandardBasicTypes.STRING ) );
+        registerFunction( JsonbFunctions.HAS_USER_GROUP_IDS,
+            new StandardSQLFunction( JsonbFunctions.HAS_USER_GROUP_IDS, StandardBasicTypes.BOOLEAN ) );
+        registerFunction( JsonbFunctions.CHECK_USER_GROUPS_ACCESS,
+            new StandardSQLFunction( JsonbFunctions.CHECK_USER_GROUPS_ACCESS, StandardBasicTypes.BOOLEAN ) );
+        registerFunction( JsonbFunctions.HAS_USER_ID,
+            new StandardSQLFunction( JsonbFunctions.HAS_USER_ID, StandardBasicTypes.BOOLEAN ) );
+        registerFunction( JsonbFunctions.CHECK_USER_ACCESS,
+            new StandardSQLFunction( JsonbFunctions.CHECK_USER_ACCESS, StandardBasicTypes.BOOLEAN ) );
+        registerFunction( JsonbFunctions.REGEXP_SEARCH,
+            new StandardSQLFunction( JsonbFunctions.REGEXP_SEARCH, StandardBasicTypes.BOOLEAN ) );
 
     }
 }

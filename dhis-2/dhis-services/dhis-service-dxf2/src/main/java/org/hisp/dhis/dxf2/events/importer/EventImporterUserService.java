@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.importer;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,14 +25,15 @@ package org.hisp.dhis.dxf2.events.importer;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.artemis.config.UsernameSupplier;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.dxf2.events.importer;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
+
+import org.hisp.dhis.artemis.config.UsernameSupplier;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component

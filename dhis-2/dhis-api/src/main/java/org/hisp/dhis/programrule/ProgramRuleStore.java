@@ -1,5 +1,3 @@
-package org.hisp.dhis.programrule;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.programrule;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule;
 
 import java.util.List;
 import java.util.Set;
@@ -51,7 +50,7 @@ public interface ProgramRuleStore
     /**
      * Returns a {@link ProgramRule}.
      *
-     * @param name    the name of the ProgramRule to return.
+     * @param name the name of the ProgramRule to return.
      * @param program {@link Program}.
      * @return the ProgramRule with the given name
      */
@@ -69,7 +68,7 @@ public interface ProgramRuleStore
      * Get validation by {@link Program}
      *
      * @param program Program
-     * @param key     Search Program Rule by key
+     * @param key Search Program Rule by key
      * @return ProgramRule list
      */
     List<ProgramRule> get( Program program, String key );

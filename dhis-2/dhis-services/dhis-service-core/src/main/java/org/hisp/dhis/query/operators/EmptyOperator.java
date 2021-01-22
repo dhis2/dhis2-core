@@ -1,5 +1,3 @@
-package org.hisp.dhis.query.operators;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,17 +25,19 @@ package org.hisp.dhis.query.operators;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query.operators;
+
+import java.util.Collection;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.util.Collection;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -52,7 +52,7 @@ public class EmptyOperator<T extends Comparable<? super T>> extends Operator<T>
     @Override
     public Criterion getHibernateCriterion( QueryPath queryPath )
     {
-        return Restrictions.sizeEq( queryPath.getPath(),0 );
+        return Restrictions.sizeEq( queryPath.getPath(), 0 );
     }
 
     @Override
@@ -73,7 +73,7 @@ public class EmptyOperator<T extends Comparable<? super T>> extends Operator<T>
 
         if ( type.isCollection() )
         {
-            Collection<?> collection = ( Collection<?> ) value;
+            Collection<?> collection = (Collection<?>) value;
             return collection.isEmpty();
         }
 

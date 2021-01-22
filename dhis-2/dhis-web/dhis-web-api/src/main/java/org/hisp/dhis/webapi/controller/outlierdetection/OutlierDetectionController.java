@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller.outlierdetection;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,27 +25,28 @@ package org.hisp.dhis.webapi.controller.outlierdetection;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.outlierdetection;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
-import org.hisp.dhis.outlierdetection.OutlierDetectionService;
 import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
+import org.hisp.dhis.outlierdetection.OutlierDetectionService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import lombok.AllArgsConstructor;
 
 /**
  * Outlier detection API controller.
@@ -74,7 +73,8 @@ public class OutlierDetectionController
 
     @GetMapping( value = "/outlierDetection", produces = { ContextUtils.CONTENT_TYPE_CSV } )
     public void getOutliersCsv( OutlierDetectionQuery query,
-        HttpServletResponse response ) throws IOException
+        HttpServletResponse response )
+        throws IOException
     {
         OutlierDetectionRequest request = outlierService.getFromQuery( query );
 

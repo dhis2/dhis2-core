@@ -1,8 +1,3 @@
-package org.hisp.dhis.program;
-
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.user.User;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -30,7 +25,10 @@ import org.hisp.dhis.user.User;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -43,11 +41,10 @@ public interface ProgramTempOwnerStore
 
     /**
      * Adds program temo owner record
-     * 
+     *
      * @param programTempOwner the temp owner details to add
      */
     void addProgramTempOwner( ProgramTempOwner programTempOwner );
-    
 
     int getValidTempOwnerCount( Program program, TrackedEntityInstance entityInstance, User user );
 }

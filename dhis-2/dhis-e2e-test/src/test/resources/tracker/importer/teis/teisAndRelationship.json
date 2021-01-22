@@ -1,0 +1,53 @@
+{
+  "trackedEntities": [
+    {
+      "trackedEntity": "JjZ2Nwds92v",
+      "trackedEntityType": "Q9GufDoplCL",
+      "orgUnit": "g8upMTyEZGZ",
+      "attributes": [
+        {
+          "displayName": "TA First name",
+          "valueType": "TEXT",
+          "attribute": "dIVt4l5vIOa",
+          "value": "Bunny"
+        },
+        {
+          "displayName": "TA Last name",
+          "valueType": "TEXT",
+          "attribute": "kZeSYCgaHTk",
+          "value": "Bravo"
+        }
+      ]
+    },
+    {
+      "trackedEntity": "JjZ2Nwds93v",
+      "trackedEntityType": "Q9GufDoplCL",
+      "orgUnit": "g8upMTyEZGZ",
+      "attributes": [
+        {
+          "displayName": "TA First name",
+          "valueType": "TEXT",
+          "attribute": "dIVt4l5vIOa",
+          "value": "Johnny"
+        },
+        {
+          "displayName": "TA Last name",
+          "valueType": "TEXT",
+          "attribute": "kZeSYCgaHTk",
+          "value": "Bravo"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipType": "xLmPUYJX8Ks",
+      "from": {
+        "trackedEntity": "JjZ2Nwds92v"
+      },
+      "to": {
+        "trackedEntity": "JjZ2Nwds93v"
+      }
+    }
+  ]
+}

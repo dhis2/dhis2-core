@@ -1,5 +1,3 @@
-package org.hisp.dhis.container;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,13 +25,14 @@ package org.hisp.dhis.container;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.container;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Custom {@link PostgreSQLContainer} that provides additional fluent API to
@@ -82,7 +81,7 @@ public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>>
      * add multiple custom commands.
      *
      * @param configAndValue The configuration and value of the form
-     *                       "configName=configValue"
+     *        "configName=configValue"
      * @return the DhisPostgreSQLContainer
      */
     public SELF appendCustomPostgresConfig( String configAndValue )

@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,15 +25,18 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.util.ObjectUtils;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Stian Sandvold
@@ -44,7 +45,7 @@ import org.hisp.dhis.util.ObjectUtils;
 @Data
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor(staticName = "of")
+@AllArgsConstructor( staticName = "of" )
 public class TrackerIdentifier
 {
     public final static TrackerIdentifier UID = builder().idScheme( TrackerIdScheme.UID ).build();

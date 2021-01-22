@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.trackedentity;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,14 +25,16 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.trackedentity;
+
+import java.util.Objects;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
-
-import java.util.Objects;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.com>
@@ -118,7 +118,8 @@ public class ProgramOwner
             && Objects.equals( this.ownerOrgUnit, other.ownerOrgUnit );
     }
 
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return "ProgramOwner{" +
             "ownerOrgUnit='" + ownerOrgUnit + '\'' +

@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.bundle;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,12 +25,15 @@ package org.hisp.dhis.tracker.bundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.bundle;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.*;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.*;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -42,7 +43,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 
-import java.util.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -113,7 +114,8 @@ public class TrackerBundle
     private ValidationMode validationMode = ValidationMode.FULL;
 
     /**
-     * Preheat bundle for all attached objects (or null if preheater not run yet).
+     * Preheat bundle for all attached objects (or null if preheater not run
+     * yet).
      */
     private TrackerPreheat preheat;
 
@@ -158,7 +160,7 @@ public class TrackerBundle
     {
         return User.username( user );
     }
-    
+
     public Optional<TrackedEntity> getTrackedEntity( String id )
     {
         return this.trackedEntities.stream().filter( t -> t.getTrackedEntity().equals( id ) ).findFirst();

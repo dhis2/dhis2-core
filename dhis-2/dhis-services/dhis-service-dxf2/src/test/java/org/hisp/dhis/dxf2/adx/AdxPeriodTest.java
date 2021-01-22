@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.adx;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,13 @@ package org.hisp.dhis.dxf2.adx;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.adx;
+
+import static org.junit.Assert.*;
 
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -48,7 +48,7 @@ public class AdxPeriodTest
     @Test
     public void testParser()
     {
-        try 
+        try
         {
             period = AdxPeriod.parse( "2015-01-01/P1Y" );
             assertEquals( "2015", period.getIsoDate() );
@@ -65,9 +65,9 @@ public class AdxPeriodTest
             period = AdxPeriod.parse( "2015-01-05/P7D" );
             assertEquals( "2015W2", period.getIsoDate() );
         }
-        catch ( AdxException ex)
+        catch ( AdxException ex )
         {
-            fail(ex.getMessage());
+            fail( ex.getMessage() );
         }
     }
 
@@ -78,7 +78,7 @@ public class AdxPeriodTest
         {
             period = AdxPeriod.parse( "2014-01-01/P1" );
             fail( "Should have thrown exception parsing 2015-01-01/P1" );
-        } 
+        }
         catch ( Exception ex )
         {
             assertEquals( AdxException.class, ex.getClass() );
@@ -99,9 +99,9 @@ public class AdxPeriodTest
             period = AdxPeriod.parse( "2015-10-01/P1Y" );
             assertEquals( "2015Oct", period.getIsoDate() );
         }
-        catch ( AdxException ex)
+        catch ( AdxException ex )
         {
-            fail(ex.getMessage());
+            fail( ex.getMessage() );
         }
     }
 
@@ -112,7 +112,7 @@ public class AdxPeriodTest
         {
             period = AdxPeriod.parse( "2014-02-01/P1Y" );
             fail( "Should have thrown exception parsing 2014-02-01/P1Y" );
-        } 
+        }
         catch ( Exception ex )
         {
             assertEquals( AdxException.class, ex.getClass() );

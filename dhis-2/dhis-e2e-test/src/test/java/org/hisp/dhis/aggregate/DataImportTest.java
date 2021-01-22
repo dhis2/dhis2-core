@@ -43,7 +43,6 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -189,7 +188,7 @@ public class DataImportTest
     public void cleanUp()
     {
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-        queryParamsBuilder.addAll( "importReportMode=FULL", "importStrategy=DELETE"  );
+        queryParamsBuilder.addAll( "importReportMode=FULL", "importStrategy=DELETE" );
 
         ApiResponse response = dataValueSetActions.postFile( new File( "src/test/resources/aggregate/dataValues_bulk.json" ),
             queryParamsBuilder );

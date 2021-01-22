@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,7 +25,14 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -46,13 +51,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -82,14 +80,16 @@ public class ObjectBundleServiceUserTest
     }
 
     @Override
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
         renderService = _renderService;
         userService = _userService;
     }
 
     @Test
-    public void testCreateUsers() throws IOException
+    public void testCreateUsers()
+        throws IOException
     {
         createUserAndInjectSecurityContext( true );
 
@@ -135,7 +135,8 @@ public class ObjectBundleServiceUserTest
     }
 
     @Test
-    public void testUpdateUsers() throws IOException
+    public void testUpdateUsers()
+        throws IOException
     {
         createUserAndInjectSecurityContext( true );
 
@@ -153,7 +154,8 @@ public class ObjectBundleServiceUserTest
         assertEquals( 1, validate.getErrorReportsByCode( UserAuthorityGroup.class, ErrorCode.E5003 ).size() );
         objectBundleService.commit( bundle );
 
-        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/users_update.json" ).getInputStream(), RenderFormat.JSON );
+        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/users_update.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -191,7 +193,8 @@ public class ObjectBundleServiceUserTest
     }
 
     @Test
-    public void testCreateMetadataWithDuplicateUsername() throws IOException
+    public void testCreateMetadataWithDuplicateUsername()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/user_duplicate_username.json" ).getInputStream(), RenderFormat.JSON );
@@ -210,7 +213,8 @@ public class ObjectBundleServiceUserTest
     }
 
     @Test
-    public void testCreateMetadataWithDuplicateUsernameAndInjectedUser() throws IOException
+    public void testCreateMetadataWithDuplicateUsernameAndInjectedUser()
+        throws IOException
     {
         createUserAndInjectSecurityContext( true );
 
@@ -231,7 +235,8 @@ public class ObjectBundleServiceUserTest
     }
 
     @Test
-    public void testUpdateAdminUser() throws IOException
+    public void testUpdateAdminUser()
+        throws IOException
     {
         createAndInjectAdminUser();
 
@@ -249,7 +254,8 @@ public class ObjectBundleServiceUserTest
     }
 
     @Test
-    public void testCreateUsersWithInvalidPasswords() throws IOException
+    public void testCreateUsersWithInvalidPasswords()
+        throws IOException
     {
         createUserAndInjectSecurityContext( true );
 
@@ -291,7 +297,7 @@ public class ObjectBundleServiceUserTest
         assertEquals( 2, userB.getUserCredentials().getUserAuthorityGroups().size() );
 
         UserAuthorityGroup userManagerRole = manager.get( UserAuthorityGroup.class, "xJZBzAHI88H" );
-        assertNotNull(  userManagerRole );
+        assertNotNull( userManagerRole );
         userManagerRole.getSharing().resetUserAccesses();
         userManagerRole.getSharing().addUserAccess( new UserAccess( userB, "rw------" ) );
         userManagerRole.setPublicAccess( "--------" );
@@ -303,7 +309,7 @@ public class ObjectBundleServiceUserTest
         manager.update( userA );
         injectSecurityContext( userA );
 
-       metadata = renderService.fromMetadata(
+        metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/user_userrole_update.json" ).getInputStream(), RenderFormat.JSON );
 
         params = new ObjectBundleParams();

@@ -1,5 +1,3 @@
-package org.hisp.dhis.commons.config;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.commons.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.config;
 
 import java.time.Instant;
 import java.util.Date;
@@ -158,7 +157,8 @@ public class JacksonObjectMapperConfig
         module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
         module.addSerializer( Date.class, new WriteDateStdSerializer() );
 
-        // Registering a custom Instant serializer/deserializer for DTOs using Instant
+        // Registering a custom Instant serializer/deserializer for DTOs using
+        // Instant
         JavaTimeModule javaTimeModule = new JavaTimeModule();
         javaTimeModule.addSerializer( Instant.class, new WriteInstantStdSerializer() );
         javaTimeModule.addDeserializer( Instant.class, new ParseInstantStdDeserializer() );

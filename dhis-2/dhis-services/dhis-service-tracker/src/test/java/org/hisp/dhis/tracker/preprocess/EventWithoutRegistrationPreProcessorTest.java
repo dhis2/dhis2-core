@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preprocess;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,11 @@ package org.hisp.dhis.tracker.preprocess;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preprocess;
+
+import static org.junit.Assert.assertEquals;
+
+import java.util.Collections;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -34,10 +37,6 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Collections;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Luciano Fiandesio
@@ -55,7 +54,7 @@ public class EventWithoutRegistrationPreProcessorTest
     @Test
     public void testEnrollmentIsAddedIntoEventWhenItBelongsToProgramWithoutRegistration()
     {
-        //Given
+        // Given
         Event event = new Event();
         event.setProgram( "programUid" );
         TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).build();
@@ -65,10 +64,10 @@ public class EventWithoutRegistrationPreProcessorTest
         preheat.putProgramInstancesWithoutRegistration( "programUid", programInstance );
         bundle.setPreheat( preheat );
 
-        //When
+        // When
         preProcessorToTest.process( bundle );
 
-        //Then
+        // Then
         assertEquals( "programInstanceUid", bundle.getEvents().get( 0 ).getEnrollment() );
     }
 }
