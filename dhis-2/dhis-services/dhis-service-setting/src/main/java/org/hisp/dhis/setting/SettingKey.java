@@ -169,6 +169,10 @@ public enum SettingKey
     ANALYTICS_HIDE_BIMONTHLY_PERIODS( "keyHideBiMonthlyPeriods", Boolean.FALSE, Boolean.class ),
     GATHER_ANALYTICAL_OBJECT_STATISTICS_IN_DASHBOARD_VIEWS( "keyGatherAnalyticalObjectStatisticsInDashboardViews",
         Boolean.FALSE, Boolean.class ),
+    DASHBOARD_CONTEXT_MENU_ITEM_SWITCH_VIEW_TYPE( "keyDashboardContextMenuItemSwitchViewType", Boolean.TRUE, Boolean.class ),
+    DASHBOARD_CONTEXT_MENU_ITEM_OPEN_IN_RELEVANT_APP( "keyDashboardContextMenuItemOpenInRelevantApp", Boolean.TRUE, Boolean.class ),
+    DASHBOARD_CONTEXT_MENU_ITEM_SHOW_INTERPRETATIONS_AND_DETAILS( "keyDashboardContextMenuItemShowInterpretationsAndDetails", Boolean.TRUE, Boolean.class ),
+    DASHBOARD_CONTEXT_MENU_ITEM_VIEW_FULLSCREEN( "keyDashboardContextMenuItemViewFullscreen", Boolean.TRUE, Boolean.class ),
     RULE_ENGINE_ASSIGN_OVERWRITE( "ruleEngineAssignOverwrite", Boolean.FALSE, Boolean.class ),
 
     /**
