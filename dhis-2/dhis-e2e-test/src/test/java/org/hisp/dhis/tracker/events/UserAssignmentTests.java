@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,8 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+package org.hisp.dhis.tracker.events;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
@@ -87,7 +87,7 @@ public class UserAssignmentTests
         String programStageId = programActions.get( programId ).extractString( "programStages.id[0]" );
 
         // act - enabling user assignment
-        ApiResponse response = enableUserAssignmentOnProgramStage( programStageId, true );
+        ApiResponse response = programActions.programStageActions.enableUserAssignment( programStageId, true );
 
         // assert
         ResponseValidationHelper.validateObjectUpdate( response, 200 );
@@ -99,7 +99,7 @@ public class UserAssignmentTests
             .body( userAssignmentProperty, equalTo( true ) );
 
         // act - disabling user assignment
-        response = enableUserAssignmentOnProgramStage( programStageId, false );
+        response = programActions.programStageActions.enableUserAssignment( programStageId, false );
 
         // assert
         ResponseValidationHelper.validateObjectUpdate( response, 200 );
@@ -119,7 +119,7 @@ public class UserAssignmentTests
         String programId = "BJ42SUrAvHo";
         String loggedInUser = loginActions.getLoggedInUserId();
 
-        enableUserAssignmentOnProgramStage( programStageId, Boolean.parseBoolean( userAssignmentEnabled ) );
+        programActions.programStageActions.enableUserAssignment( programStageId, Boolean.parseBoolean( userAssignmentEnabled ) );
 
         ApiResponse eventResponse = createEvents( programId, programStageId, loggedInUser );
 
@@ -146,7 +146,7 @@ public class UserAssignmentTests
         String programId = "BJ42SUrAvHo";
         String loggedInUser = loginActions.getLoggedInUserId();
 
-        enableUserAssignmentOnProgramStage( programStageId, true );
+        programActions.programStageActions.enableUserAssignment( programStageId, true );
         createEvents( programId, programStageId, loggedInUser );
 
         JsonObject body = eventActions.get( "?program=" + programId + "&assignedUserMode=CURRENT" )
@@ -187,18 +187,5 @@ public class UserAssignmentTests
         eventResponse.validate().statusCode( 200 );
 
         return eventResponse;
-    }
-
-    private ApiResponse enableUserAssignmentOnProgramStage( String programStageId, boolean enabled )
-    {
-        JsonObject body = programActions.programStageActions.get( programStageId ).getBody();
-
-        body.addProperty( "enableUserAssignment", enabled );
-
-        ApiResponse response = programActions.programStageActions.update( programStageId, body );
-
-        response.validate().statusCode( 200 );
-
-        return response;
     }
 }
