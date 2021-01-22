@@ -65,12 +65,20 @@ public class TrackerActions
         logger.info( String.format( "Waiting until tracker job with id %s is completed", jobId ) );
         ApiResponse response = null;
         boolean completed = false;
+        int maxAttempts = 30;
 
-        while ( !completed )
+        while ( !completed && maxAttempts >= 0)
         {
             response = getJob( jobId );
             response.validate().statusCode( 200 );
             completed = response.extractList( "completed" ).contains( true );
+            maxAttempts--;
+        }
+
+        if ( maxAttempts == 0 )
+        {
+            logger.warning(
+                String.format( "Tracker job didn't complete in %d. Message: %s", maxAttempts, response.extract( "message" ) ) );
         }
 
         logger.info( "Tracker job is completed. Message: " + response.extract( "message" ) );
@@ -160,14 +168,15 @@ public class TrackerActions
             .addProperty( "programStage", programStageId )
             .addProperty( "program", programId )
             .addProperty( "orgUnit", ouId )
-            .addProperty( "occurredAt", Instant.now().toString())
+            .addProperty( "occurredAt", Instant.now().toString() )
             .addProperty( "status", "ACTIVE" )
             .wrapIntoArray( "events" );
 
         return object;
     }
 
-    public JsonObject buildTeiAndEnrollment(String ouId, String programId) {
+    public JsonObject buildTeiAndEnrollment( String ouId, String programId )
+    {
         JsonObject jsonObject = new JsonObjectBuilder()
             .addProperty( "trackedEntityType", "Q9GufDoplCL" )
             .addProperty( "orgUnit", ouId )
@@ -176,18 +185,19 @@ public class TrackerActions
                 .addProperty( "orgUnit", ouId )
                 .addProperty( "enrolledAt", Instant.now().toString() )
                 .addProperty( "occurredAt", Instant.now().toString() )
-                .build())
-            .wrapIntoArray("trackedEntities");
+                .build() )
+            .wrapIntoArray( "trackedEntities" );
 
         return jsonObject;
     }
 
-    public JsonObject buildTeiWithEnrollmentAndEvent( String ouId, String programId, String programStageId) {
+    public JsonObject buildTeiWithEnrollmentAndEvent( String ouId, String programId, String programStageId )
+    {
         JsonObject object = buildTeiAndEnrollment( ouId, programId );
 
-        JsonArray events = buildEvent( ouId, programId, programStageId ).getAsJsonArray("events");
+        JsonArray events = buildEvent( ouId, programId, programStageId ).getAsJsonArray( "events" );
 
-        JsonObjectBuilder.jsonObject(object)
+        JsonObjectBuilder.jsonObject( object )
             .addObjectByJsonPath( "trackedEntities[0].enrollments[0]", "events", events );
 
         return object;
