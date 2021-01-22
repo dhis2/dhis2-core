@@ -84,9 +84,14 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         baseIdentifiableObject.setAutoFields();
         baseIdentifiableObject.setLastUpdatedBy( bundle.getUser() );
 
-        if ( baseIdentifiableObject.getCreatedBy() == null )
+        if ( baseIdentifiableObject.getCreatedBy() == null && persistedObject.getCreatedBy() == null )
         {
             baseIdentifiableObject.setCreatedBy( bundle.getUser() );
+        }
+        else
+        {
+            // CreatedBy field is immutable
+            baseIdentifiableObject.setCreatedBy( persistedObject.getCreatedBy() );
         }
 
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );

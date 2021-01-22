@@ -232,31 +232,4 @@ public class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrati
         // User4 doesn't have access and it belong to UserGroup2 which also doesn't have access
         assertEquals( 1, accessManager.canRead( user4, dataValue ).size() );
     }
-
-    @Test
-    public void testUpdateCreatedBy()
-    {
-        User user1 = createUser( "user1" );
-        userService.addUser( user1 );
-
-        DataElement dataElement = createDataElement( 'A' );
-        dataElement.setValueType (ValueType.TEXT );
-        dataElement.setCreatedBy( user1 );
-        manager.save( dataElement );
-
-        dataElement = manager.get( dataElement.getUid() );
-        assertEquals( user1.getUid(), dataElement.getCreatedBy().getUid() );
-
-        User user2 = createUser( "user2" );
-        userService.addUser( user2 );
-
-        dataElement.setCreatedBy( user2 );
-        manager.update( dataElement );
-
-        manager.flush();
-
-        IdentifiableObject dataElement1 = manager.get( dataElement.getUid() );
-
-        assertEquals( user1.getUid(), dataElement1.getCreatedBy().getUid() );
-    }
 }

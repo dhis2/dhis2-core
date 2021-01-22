@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.metadata;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.MappingException;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -682,5 +681,48 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( "1", xpathTest( "count(//d:programStageSection)", outputStream.toString() ) );
         assertEquals( "SEQUENTIAL", xpathTest( "//d:MOBILE/@type", outputStream.toString() ) );
         assertEquals( "LISTING", xpathTest( "//d:DESKTOP/@type", outputStream.toString() ) );
+    }
+
+    @Test
+    public void testUpdateImmutableCreatedByField()
+        throws IOException
+    {
+        User userA = createUser( 'A', Lists.newArrayList( "ALL" ) );
+        userService.addUser( userA );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
+            .fromMetadata( new ClassPathResource( "dxf2/usergroups.json" ).getInputStream(), RenderFormat.JSON );
+
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+        params.setUser( userA );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        UserGroup userGroup = manager.get( UserGroup.class, "OPVIvvXzNTw" );
+        assertEquals( userA.getUid(), userGroup.getCreatedBy().getUid() );
+
+
+        User userB = createUser( "B", "ALL" );
+        userB.setUid( "userabcdefB" );
+        userService.addUser( userB );
+
+        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/usergroups_update.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.UPDATE );
+        params.setObjects( metadata );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        userGroup = manager.get( UserGroup.class, "OPVIvvXzNTw" );
+        assertEquals( "TA user group updated", userGroup.getName() );
+        assertEquals( userA.getUid(), userGroup.getCreatedBy().getUid() );
     }
 }
