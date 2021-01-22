@@ -75,7 +75,7 @@ public enum ValueType
     public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.of(
         INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE );
 
-    public static final Set<ValueType> DECIMAL_TYPES =ImmutableSet.of(
+    public static final Set<ValueType> DECIMAL_TYPES = ImmutableSet.of(
         NUMBER, UNIT_INTERVAL, PERCENTAGE );
 
     public static final Set<ValueType> BOOLEAN_TYPES = ImmutableSet.of(
@@ -108,18 +108,17 @@ public enum ValueType
         this.javaClass = null;
     }
 
-    ValueType( Class<?> javaClass, boolean aggregateable, Class<? extends ValueTypeOptions> valueTypeOptionsClass )
-    {
-        this.javaClass = javaClass;
-        this.aggregateable = aggregateable;
-        this.valueTypeOptionsClass = valueTypeOptionsClass;
-    }
-
     ValueType( Class<?> javaClass, boolean aggregateable )
     {
         this.javaClass = javaClass;
         this.aggregateable = aggregateable;
         this.valueTypeOptionsClass = null;
+    }
+
+    ValueType( Class<?> javaClass, boolean aggregateable, Class<? extends ValueTypeOptions> valueTypeOptionsClass )
+    {
+        this( javaClass, aggregateable );
+        this.valueTypeOptionsClass = valueTypeOptionsClass;
     }
 
     public Class<?> getJavaClass()
