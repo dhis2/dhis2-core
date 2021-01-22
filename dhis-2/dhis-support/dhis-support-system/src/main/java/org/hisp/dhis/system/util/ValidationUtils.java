@@ -29,8 +29,14 @@ package org.hisp.dhis.system.util;
 
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import java.awt.geom.Point2D;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.validator.routines.DateValidator;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -49,13 +55,8 @@ import org.hisp.dhis.render.type.ValueTypeRenderingType;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.util.DateUtils;
 
-import java.awt.geom.Point2D;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
