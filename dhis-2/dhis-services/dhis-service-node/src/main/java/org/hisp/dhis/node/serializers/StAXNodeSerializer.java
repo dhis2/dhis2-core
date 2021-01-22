@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlFactory;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.node.AbstractNodeSerializer;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.types.CollectionNode;
@@ -52,6 +53,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.List;
 
@@ -62,6 +64,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Component
 @Scope( value = "prototype", proxyMode = ScopedProxyMode.INTERFACES )
+@Slf4j
 public class StAXNodeSerializer extends AbstractNodeSerializer
 {
     public static final String CONTENT_TYPE = "application/xml";
@@ -253,28 +256,43 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
         throws IOException
     {
         checkNotNull( jsonSerializer );
+        checkNotNull( simpleNode );
+        checkNotNull( writer );
 
-        XmlFactory factory = new XmlFactory();
-        ToXmlGenerator generator = factory.createGenerator( writer );
+        if ( simpleNode.getValue() == null )
+        {
+            return;
+        }
 
-        jsonSerializer.serialize( simpleNode.getValue(), generator, null );
+        try (ToXmlGenerator generator = (new XmlFactory()).createGenerator( writer ))
+        {
+            jsonSerializer.serialize( simpleNode.getValue(), generator, null );
+        }
     }
 
     private JsonSerializer getSerializer( SimpleNode simpleNode )
     {
-        if ( simpleNode.getProperty() != null )
+        checkNotNull( simpleNode );
+
+        if ( simpleNode.getProperty() == null )
         {
-            JsonSerialize declaredAnnotation = simpleNode.getProperty().getGetterMethod().getAnnotation( JsonSerialize.class );
-            if ( declaredAnnotation != null )
+            return null;
+        }
+
+        JsonSerialize declaredAnnotation = simpleNode.getProperty().getGetterMethod()
+            .getAnnotation( JsonSerialize.class );
+        if ( declaredAnnotation != null )
+        {
+            try
             {
-                try
-                {
-                    return declaredAnnotation.using().getDeclaredConstructor( null ).newInstance( null );
-                }
-                catch ( Exception e )
-                {
-                    return null;
-                }
+                return declaredAnnotation.using()
+                    .getDeclaredConstructor( null ).newInstance( null );
+            }
+            catch ( NoSuchMethodException | IllegalAccessException
+                | InvocationTargetException | InstantiationException e)
+            {
+                log.warn( "Failed to get constructor from class with " +
+                    "@JsonSerialize annotation during serialization!", e );
             }
         }
 
@@ -296,10 +314,11 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     private void writeSubtypedClass( SimpleNode simpleNode )
         throws IOException
     {
-        XmlFactory factory = new XmlFactory();
-        ToXmlGenerator generator = factory.createGenerator( writer );
-        generator.setCodec( new XmlMapper() );
-        generator.writeObject( simpleNode.getValue() );
+        try (ToXmlGenerator generator = (new XmlFactory()).createGenerator( writer ))
+        {
+            generator.setCodec( new XmlMapper() );
+            generator.writeObject( simpleNode.getValue() );
+        }
     }
 }
 
