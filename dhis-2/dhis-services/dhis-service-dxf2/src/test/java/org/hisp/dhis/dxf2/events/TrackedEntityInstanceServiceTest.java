@@ -36,6 +36,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Objects;
@@ -43,8 +44,10 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -120,6 +123,9 @@ public class TrackedEntityInstanceServiceTest
     private TrackedEntityInstance teiFemaleA;
 
     private TrackedEntityAttribute uniqueIdAttribute;
+    private TrackedEntityAttribute trackedEntityAttributeB;
+
+    private TrackedEntityType trackedEntityType;
 
     @Override
     protected void setUpTest() throws Exception
@@ -138,7 +144,11 @@ public class TrackedEntityInstanceServiceTest
 
         trackedEntityAttributeService.addTrackedEntityAttribute( uniqueIdAttribute );
 
-        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
+        trackedEntityAttributeB = createTrackedEntityAttribute( 'B' );
+
+        trackedEntityAttributeService.addTrackedEntityAttribute( trackedEntityAttributeB );
+
+        trackedEntityType = createTrackedEntityType( 'A' );
 
         TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
         trackedEntityTypeAttribute.setTrackedEntityAttribute( uniqueIdAttribute );
@@ -501,6 +511,44 @@ public class TrackedEntityInstanceServiceTest
 
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() ) );
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( maleB.getUid() ) );
+    }
+
+    @Test
+    public void testTooLongTrackedEntityAttributeValue()
+    {
+        TrackedEntityInstance tei = new TrackedEntityInstance();
+
+        String testValue = StringUtils.repeat("x", 1201);
+
+        Attribute attribute = new Attribute( testValue );
+        attribute.setAttribute( trackedEntityAttributeB.getUid() );
+        tei.getAttributes().add( attribute );
+        tei.setTrackedEntityType( trackedEntityType.getUid() );
+
+        List<TrackedEntityInstance> teis = Lists.newArrayList( tei );
+
+        ImportOptions importOptions = new ImportOptions();
+        importOptions.setImportStrategy( ImportStrategy.UPDATE );
+        ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstances( teis, importOptions );
+
+        assertEquals( importSummaries.getStatus(), ImportStatus.ERROR );
+
+        Set<ImportConflict> conflicts = importSummaries.getImportSummaries().get( 0 ).getConflicts();
+
+        assertEquals( conflicts.size(), 1 );
+
+        boolean conflictIsPresent = false;
+
+        for( ImportConflict conflict : conflicts )
+        {
+            if ( conflict.getValue().equals( String.format( "Value exceeds the character limit of 1200 characters: '%s...'", testValue.substring( 0, 25 ) ) ) )
+            {
+                conflictIsPresent = true;
+            }
+        }
+
+        assertTrue( conflictIsPresent );
+
     }
 
     @Test
