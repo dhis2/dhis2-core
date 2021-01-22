@@ -86,6 +86,10 @@ public class DataQueryRequest
 
     protected IdScheme outputIdScheme;
 
+    protected IdScheme outputDataElementIdScheme;
+
+    protected IdScheme outputOrgUnitIdScheme;
+
     protected IdScheme inputIdScheme;
 
     protected String approvalLevel;
@@ -211,6 +215,16 @@ public class DataQueryRequest
     public IdScheme getOutputIdScheme()
     {
         return outputIdScheme;
+    }
+
+    public IdScheme getOutputDataElementIdScheme()
+    {
+        return outputDataElementIdScheme;
+    }
+
+    public IdScheme getOutputOrgUnitIdScheme()
+    {
+        return outputOrgUnitIdScheme;
     }
 
     public IdScheme getInputIdScheme()
@@ -409,6 +423,18 @@ public class DataQueryRequest
             return this;
         }
 
+        public DataQueryRequestBuilder outputDataElementIdScheme( IdScheme outputDataElementIdScheme )
+        {
+            this.request.outputDataElementIdScheme = outputDataElementIdScheme;
+            return this;
+        }
+
+        public DataQueryRequestBuilder outputOrgUnitIdScheme( IdScheme outputOrgUnitIdScheme )
+        {
+            this.request.outputOrgUnitIdScheme = outputOrgUnitIdScheme;
+            return this;
+        }
+
         public DataQueryRequestBuilder inputIdScheme( IdScheme inputIdScheme )
         {
             this.request.inputIdScheme = inputIdScheme;
@@ -482,6 +508,8 @@ public class DataQueryRequest
             this.request.order = criteria.getOrder();
             this.request.orgUnitField = criteria.getOrgUnitField();
             this.request.outputIdScheme = criteria.getOutputIdScheme();
+            this.request.outputOrgUnitIdScheme = criteria.getOutputOrgUnitIdScheme();
+            this.request.outputDataElementIdScheme = criteria.getOutputDataElementIdScheme();
             this.request.preAggregationMeasureCriteria = criteria.getPreAggregationMeasureCriteria();
             this.request.relativePeriodDate = criteria.getRelativePeriodDate();
             this.request.showHierarchy = criteria.isShowHierarchy();

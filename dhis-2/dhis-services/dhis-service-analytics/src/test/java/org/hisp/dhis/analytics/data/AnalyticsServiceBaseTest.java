@@ -45,6 +45,7 @@ import org.hisp.dhis.analytics.data.handling.DataAggregator;
 import org.hisp.dhis.analytics.data.handling.DataHandler;
 import org.hisp.dhis.analytics.data.handling.HeaderHandler;
 import org.hisp.dhis.analytics.data.handling.MetadataHandler;
+import org.hisp.dhis.analytics.data.handling.SchemaIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.constant.ConstantService;
@@ -97,6 +98,9 @@ public abstract class AnalyticsServiceBaseTest
     private DataQueryService dataQueryService;
 
     @Mock
+    private SchemaIdResponseMapper schemaIdResponseMapper;
+
+    @Mock
     private DhisConfigurationProvider dhisConfig;
 
     @Mock
@@ -120,7 +124,7 @@ public abstract class AnalyticsServiceBaseTest
             nestedIndicatorCyclicDependencyInspector );
 
         HeaderHandler headerHandler = new HeaderHandler();
-        MetadataHandler metadataHandler = new MetadataHandler( dataQueryService );
+        MetadataHandler metadataHandler = new MetadataHandler( dataQueryService, schemaIdResponseMapper );
         DataHandler dataHandler = new DataHandler( eventAnalyticsService, rawAnalyticsManager, constantService,
             resolver, expressionService, queryPlanner, queryValidator, systemSettingManager, analyticsManager,
             organisationUnitService );

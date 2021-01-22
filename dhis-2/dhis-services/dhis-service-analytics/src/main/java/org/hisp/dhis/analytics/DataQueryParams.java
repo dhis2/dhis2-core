@@ -300,9 +300,31 @@ public class DataQueryParams
     protected DisplayProperty displayProperty;
 
     /**
-     * The scheme to use as identifier in the query response.
+     * The general id scheme, which drives the values in the query response.
+     *
+     * For implementation details @see
+     * org.hisp.dhis.analytics.data.handling.MetadataHandler#applyIdScheme(DataQueryParams,
+     * Grid)
      */
     protected IdScheme outputIdScheme;
+
+    /**
+     * The id schema specific for data elements.
+     *
+     * For implementation details @see
+     * org.hisp.dhis.analytics.data.handling.MetadataHandler#applyIdScheme(DataQueryParams,
+     * Grid)
+     */
+    protected IdScheme outputDataElementIdScheme;
+
+    /**
+     * The id schema specific for org units.
+     *
+     * For implementation details @see
+     * org.hisp.dhis.analytics.data.handling.MetadataHandler#applyIdScheme(DataQueryParams,
+     * Grid)
+     */
+    protected IdScheme outputOrgUnitIdScheme;
 
     /**
      * The output format, default is OutputFormat.ANALYTICS.
@@ -536,6 +558,8 @@ public class DataQueryParams
         params.includeMetadataDetails = this.includeMetadataDetails;
         params.displayProperty = this.displayProperty;
         params.outputIdScheme = this.outputIdScheme;
+        params.outputDataElementIdScheme = this.outputDataElementIdScheme;
+        params.outputOrgUnitIdScheme = this.outputOrgUnitIdScheme;
         params.outputFormat = this.outputFormat;
         params.duplicatesOnly = this.duplicatesOnly;
         params.approvalLevel = this.approvalLevel;
@@ -597,6 +621,8 @@ public class DataQueryParams
             .add( "includeMetadataDetails", includeMetadataDetails )
             .add( "displayProperty", displayProperty )
             .add( "outputIdScheme", outputIdScheme )
+            .add( "outputDataElementIdScheme", outputDataElementIdScheme )
+            .add( "outputOrgUnitIdScheme", outputOrgUnitIdScheme )
             .add( "outputFormat", outputFormat )
             .add( "duplicatesOnly", duplicatesOnly )
             .add( "approvalLevel", approvalLevel )
@@ -1245,12 +1271,35 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether this query defines an identifier scheme different from
-     * UID.
+     * Indicates whether this query defines a master identifier scheme different
+     * from UID.
      */
-    public boolean hasNonUidOutputIdScheme()
+    public boolean isGeneralOutputIdSchemeSet()
     {
         return outputIdScheme != null && !IdScheme.UID.equals( outputIdScheme );
+    }
+
+    /**
+     * Indicates whether this query defines a master identifier scheme different
+     * from UID.
+     */
+    public boolean isOutputDataElementIdSchemeSet()
+    {
+        return outputDataElementIdScheme != null && !IdScheme.UID.equals( outputDataElementIdScheme );
+    }
+
+    /**
+     * Indicates whether this query defines a master identifier scheme different
+     * from UID.
+     */
+    public boolean isOutputOrgUnitIdSchemeSet()
+    {
+        return outputOrgUnitIdScheme != null && !IdScheme.UID.equals( outputOrgUnitIdScheme );
+    }
+
+    public boolean hasCustomIdSchemaSet()
+    {
+        return isGeneralOutputIdSchemeSet() || isOutputDataElementIdSchemeSet() || isOutputOrgUnitIdSchemeSet();
     }
 
     /**
@@ -2072,6 +2121,16 @@ public class DataQueryParams
         return outputIdScheme;
     }
 
+    public IdScheme getOutputDataElementIdScheme()
+    {
+        return outputDataElementIdScheme;
+    }
+
+    public IdScheme getOutputOrgUnitIdScheme()
+    {
+        return outputOrgUnitIdScheme;
+    }
+
     public OutputFormat getOutputFormat()
     {
         return outputFormat;
@@ -2130,6 +2189,16 @@ public class DataQueryParams
     public void setOutputIdScheme( IdScheme outputIdScheme )
     {
         this.outputIdScheme = outputIdScheme;
+    }
+
+    public void setOutputDataElementIdScheme( IdScheme outputDataElementIdScheme )
+    {
+        this.outputDataElementIdScheme = outputDataElementIdScheme;
+    }
+
+    public void setOutputOrgUnitIdScheme( IdScheme outputOrgUnitIdScheme )
+    {
+        this.outputOrgUnitIdScheme = outputOrgUnitIdScheme;
     }
 
     // -------------------------------------------------------------------------
@@ -2916,6 +2985,18 @@ public class DataQueryParams
         public Builder withOutputIdScheme( IdScheme outputIdScheme )
         {
             this.params.outputIdScheme = outputIdScheme;
+            return this;
+        }
+
+        public Builder withOutputDataElementIdScheme( IdScheme outputDataElementIdScheme )
+        {
+            this.params.outputDataElementIdScheme = outputDataElementIdScheme;
+            return this;
+        }
+
+        public Builder withOutputOrgUnitIdScheme( IdScheme outputOrgUnitIdScheme )
+        {
+            this.params.outputOrgUnitIdScheme = outputOrgUnitIdScheme;
             return this;
         }
 

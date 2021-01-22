@@ -43,8 +43,6 @@ import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDataElementOperandIdSchemeMap;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemIdSchemeMap;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -75,11 +73,15 @@ public class MetadataHandler
 {
     final DataQueryService dataQueryService;
 
-    public MetadataHandler( DataQueryService dataQueryService )
+    final SchemaIdResponseMapper schemaIdResponseMapper;
+
+    public MetadataHandler( DataQueryService dataQueryService, SchemaIdResponseMapper schemaIdResponseMapper )
     {
         checkNotNull( dataQueryService );
+        checkNotNull( schemaIdResponseMapper );
 
         this.dataQueryService = dataQueryService;
+        this.schemaIdResponseMapper = schemaIdResponseMapper;
     }
 
     /**
@@ -182,18 +184,13 @@ public class MetadataHandler
      */
     void applyIdScheme( DataQueryParams params, Grid grid )
     {
-        if ( !params.isSkipMeta() && params.hasNonUidOutputIdScheme() )
+        if ( !params.isSkipMeta() )
         {
-            Map<String, String> map = getDimensionItemIdSchemeMap( params.getAllDimensionItems(),
-                params.getOutputIdScheme() );
-
-            if ( params.isOutputFormat( DATA_VALUE_SET ) && !params.getDataElementOperands().isEmpty() )
+            if ( params.hasCustomIdSchemaSet() )
             {
-                map.putAll( getDataElementOperandIdSchemeMap(
-                    asTypedList( params.getDataElementOperands() ), params.getOutputIdScheme() ) );
+                // Apply all schemas set/mapped to the grid.
+                grid.substituteMetaData( schemaIdResponseMapper.getSchemeIdResponseMap( params ) );
             }
-
-            grid.substituteMetaData( map );
         }
     }
 }

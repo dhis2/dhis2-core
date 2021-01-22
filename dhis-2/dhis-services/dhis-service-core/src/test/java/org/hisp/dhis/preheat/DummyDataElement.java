@@ -36,14 +36,9 @@ import org.hisp.dhis.option.OptionSet;
 /**
  * @author Luciano Fiandesio
  */
-public class DummyDataElement
-    extends
-    BaseDimensionalItemObject
-    implements
-    MetadataObject,
-    ValueTypedDimensionalItemObject
+public class DummyDataElement extends BaseDimensionalItemObject
+    implements MetadataObject, ValueTypedDimensionalItemObject
 {
-
     private String url;
 
     @Override

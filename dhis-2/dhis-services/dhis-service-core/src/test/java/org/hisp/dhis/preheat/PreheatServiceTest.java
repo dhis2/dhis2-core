@@ -27,10 +27,35 @@
  */
 package org.hisp.dhis.preheat;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,6 +81,7 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,6 +108,9 @@ public class PreheatServiceTest
     @Autowired
     private AttributeService attributeService;
 
+    @Autowired
+    private UserService _userService;
+
     @Override
     public boolean emptyDatabaseAfterTest()
     {
@@ -93,6 +122,7 @@ public class PreheatServiceTest
         throws Exception
     {
         renderService = _renderService;
+        userService = _userService;
     }
 
     @Ignore
@@ -425,14 +455,12 @@ public class PreheatServiceTest
         assertFalse( preheat.isEmpty( PreheatIdentifier.CODE ) );
         assertFalse( preheat.isEmpty( PreheatIdentifier.CODE, DataElement.class ) );
         assertTrue( preheat.isEmpty( PreheatIdentifier.CODE, DataElementGroup.class ) );
-        assertFalse( preheat.isEmpty( PreheatIdentifier.CODE, User.class ) );
 
         assertTrue( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, de1.getCode() ) );
         assertTrue( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, de2.getCode() ) );
         assertFalse( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, de3.getCode() ) );
         assertFalse(
             preheat.containsKey( PreheatIdentifier.CODE, DataElementGroup.class, dataElementGroup.getCode() ) );
-        assertTrue( preheat.containsKey( PreheatIdentifier.CODE, User.class, user.getCode() ) );
     }
 
     @Test
@@ -478,12 +506,10 @@ public class PreheatServiceTest
         assertFalse( preheat.isEmpty( PreheatIdentifier.CODE ) );
         assertFalse( preheat.isEmpty( PreheatIdentifier.CODE, DataElement.class ) );
         assertTrue( preheat.isEmpty( PreheatIdentifier.CODE, DataElementGroup.class ) );
-        assertFalse( preheat.isEmpty( PreheatIdentifier.CODE, User.class ) );
 
         assertTrue( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, "DataElementCodeA" ) );
         assertTrue( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, "DataElementCodeB" ) );
         assertTrue( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, "DataElementCodeC" ) );
-        assertTrue( preheat.containsKey( PreheatIdentifier.CODE, User.class, "UserCodeA" ) );
     }
 
     @Test
@@ -631,6 +657,111 @@ public class PreheatServiceTest
 
         Map<String, IdentifiableObject> map = preheat.getMap().get( PreheatIdentifier.UID ).get( DataElement.class );
         assertEquals( 3, map.size() );
+    }
+
+    @Test
+    public void testUserPreheatCollection()
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = new HashMap<>();
+
+        User user1 = createUser( "aaa" );
+        User user2 = createUser( "bbb" );
+        User user3 = createUser( "ccc" );
+
+        metadata.put( User.class, new ArrayList<>() );
+        metadata.get( User.class ).add( user1 );
+        metadata.get( User.class ).add( user2 );
+        metadata.get( User.class ).add( user3 );
+
+        PreheatParams params = new PreheatParams();
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setPreheatMode( PreheatMode.REFERENCE );
+        params.setObjects( metadata );
+
+        Preheat preheat = preheatService.preheat( params );
+        assertNotNull( preheat.getMap().get( PreheatIdentifier.CODE ) );
+        assertNotNull( preheat.getMap().get( PreheatIdentifier.UID ) );
+
+        assertFalse( preheat.getMap().get( PreheatIdentifier.CODE ).isEmpty() );
+        assertFalse( preheat.getMap().get( PreheatIdentifier.UID ).isEmpty() );
+
+        assertEquals( 1, preheat.getMap().get( PreheatIdentifier.CODE ).size() );
+        assertEquals( 3, preheat.getMap().get( PreheatIdentifier.UID ).size() );
+    }
+
+    @Test
+    public void testDataElementUserByUidPreheat()
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = new HashMap<>();
+
+        User user1 = createUser( "aaa" );
+        DataElement dataElement1 = createDataElement( 'A' );
+        dataElement1.setUser( user1 );
+
+        DataElement dataElement2 = createDataElement( 'B' );
+        dataElement2.setUser( user1 );
+
+        DataElement dataElement3 = createDataElement( 'C' );
+        dataElement3.setUser( user1 );
+
+        metadata.put( DataElement.class, new ArrayList<>() );
+        metadata.get( DataElement.class ).add( dataElement1 );
+        metadata.get( DataElement.class ).add( dataElement2 );
+        metadata.get( DataElement.class ).add( dataElement3 );
+
+        PreheatParams params = new PreheatParams();
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setPreheatMode( PreheatMode.REFERENCE );
+        params.setObjects( metadata );
+
+        Preheat preheat = preheatService.preheat( params );
+        assertNotNull( preheat.getMap().get( PreheatIdentifier.CODE ) );
+        assertNotNull( preheat.getMap().get( PreheatIdentifier.UID ) );
+
+        assertFalse( preheat.getMap().get( PreheatIdentifier.CODE ).isEmpty() );
+        assertFalse( preheat.getMap().get( PreheatIdentifier.UID ).isEmpty() );
+
+        assertEquals( 1, preheat.getMap().get( PreheatIdentifier.CODE ).size() );
+        assertEquals( 2, preheat.getMap().get( PreheatIdentifier.UID ).size() );
+    }
+
+    @Test
+    public void testDataElementByCodeUserByUidGetUserByUidPreheat()
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = new HashMap<>();
+
+        User user1 = createUser( "aaa" );
+        DataElement dataElement1 = createDataElement( 'A' );
+        dataElement1.setUser( user1 );
+
+        DataElement dataElement2 = createDataElement( 'B' );
+        dataElement2.setUser( user1 );
+
+        DataElement dataElement3 = createDataElement( 'C' );
+        dataElement3.setUser( user1 );
+
+        metadata.put( DataElement.class, new ArrayList<>() );
+        metadata.get( DataElement.class ).add( dataElement1 );
+        metadata.get( DataElement.class ).add( dataElement2 );
+        metadata.get( DataElement.class ).add( dataElement3 );
+
+        PreheatParams params = new PreheatParams();
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setPreheatMode( PreheatMode.REFERENCE );
+        params.setObjects( metadata );
+
+        Preheat preheat = preheatService.preheat( params );
+        assertNotNull( preheat.getMap().get( PreheatIdentifier.CODE ) );
+        assertNotNull( preheat.getMap().get( PreheatIdentifier.UID ) );
+
+        assertFalse( preheat.getMap().get( PreheatIdentifier.CODE ).isEmpty() );
+        assertFalse( preheat.getMap().get( PreheatIdentifier.UID ).isEmpty() );
+
+        assertEquals( 1, preheat.getMap().get( PreheatIdentifier.CODE ).size() );
+        assertEquals( 2, preheat.getMap().get( PreheatIdentifier.UID ).size() );
+
+        assertNull( preheat.get( PreheatIdentifier.CODE, User.class, "some-user-uid" ) );
+        assertNotNull( preheat.get( PreheatIdentifier.CODE, User.class, user1.getUid() ) );
     }
 
     private void defaultSetup()
