@@ -254,7 +254,8 @@ public class DataValueController
 
             if ( dataElement.getValueType().isFile() )
             {
-                fileResource = dataValueValidation.validateAndSetAssigned( value );
+                fileResource = dataValueValidation.validateAndSetAssigned( value, dataElement.getValueType(),
+                    dataElement.getValueTypeOptions() );
             }
 
             DataValue newValue = new DataValue( dataElement, period, organisationUnit, categoryOptionCombo,
@@ -278,7 +279,8 @@ public class DataValueController
 
             if ( dataElement.getValueType().isFile() )
             {
-                fileResource = dataValueValidation.validateAndSetAssigned( value );
+                fileResource = dataValueValidation.validateAndSetAssigned( value, dataElement.getValueType(),
+                    dataElement.getValueTypeOptions() );
             }
 
             if ( dataElement.isFileType() && retentionStrategy == FileResourceRetentionStrategy.NONE )

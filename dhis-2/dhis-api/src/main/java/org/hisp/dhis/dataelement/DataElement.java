@@ -43,6 +43,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.ValueTypeOptions;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -94,6 +95,8 @@ public class DataElement extends BaseDimensionalItemObject
      * Data element value type (int, boolean, etc)
      */
     private ValueType valueType;
+
+    private ValueTypeOptions valueTypeOptions;
 
     /**
      * The name to appear in forms.
@@ -589,6 +592,19 @@ public class DataElement extends BaseDimensionalItemObject
     public void setValueType( ValueType valueType )
     {
         this.valueType = valueType;
+    }
+
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ValueTypeOptions getValueTypeOptions()
+    {
+        return valueTypeOptions;
+    }
+
+    public void setValueTypeOptions( ValueTypeOptions valueTypeOptions )
+    {
+        this.valueTypeOptions = valueTypeOptions;
     }
 
     @Override
