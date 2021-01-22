@@ -1,5 +1,3 @@
-package org.hisp.dhis.user;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,13 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import java.util.List;
 
 import javax.annotation.Nullable;
-import java.util.List;
+
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Nguyen Hong Duc
@@ -51,9 +51,9 @@ public interface UserStore
     List<User> getUsers( UserQueryParams params );
 
     /**
-     * Returns a list of users based on the given query parameters.
-     * If the specified list of orders are empty, default order of
-     * last name and first name will be applied.
+     * Returns a list of users based on the given query parameters. If the
+     * specified list of orders are empty, default order of last name and first
+     * name will be applied.
      *
      * @param params the user query parameters.
      * @param orders the already validated order strings (e.g. email:asc).
@@ -71,6 +71,7 @@ public interface UserStore
 
     /**
      * Returns number of all users
+     *
      * @return number of users
      */
     int getUserCount();
@@ -94,7 +95,9 @@ public interface UserStore
     User getUser( long userId );
 
     /**
-     * Return CurrentUserGroupInfo used for ACL check in {@link IdentifiableObjectStore}
+     * Return CurrentUserGroupInfo used for ACL check in
+     * {@link IdentifiableObjectStore}
+     *
      * @param userId
      * @return
      */

@@ -1,5 +1,3 @@
-package org.hisp.dhis.outlierdetection.service;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.outlierdetection.service;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.outlierdetection.service;
 
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
@@ -77,10 +76,13 @@ public class OutlierDetectionServiceValidationTest
     // -------------------------------------------------------------------------
 
     private DataElement deA;
+
     private DataElement deB;
+
     private DataElement deC;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
 
     @Before
@@ -167,5 +169,19 @@ public class OutlierDetectionServiceValidationTest
             .build();
 
         assertEquals( ErrorCode.E2205, subject.validateForErrorMessage( request ).getErrorCode() );
+    }
+
+    @Test
+    public void testErrorDataStartDateAfterDataEndDate()
+    {
+        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
+            .withDataElements( Lists.newArrayList( deA, deB, deC ) )
+            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2020, 6, 1 ) )
+            .withOrgUnits( Lists.newArrayList( ouA, ouB ) )
+            .withDataStartDate( getDate( 2020, 6, 1 ) )
+            .withDataEndDate( getDate( 2020, 5, 1 ) )
+            .build();
+
+        assertEquals( ErrorCode.E2207, subject.validateForErrorMessage( request ).getErrorCode() );
     }
 }

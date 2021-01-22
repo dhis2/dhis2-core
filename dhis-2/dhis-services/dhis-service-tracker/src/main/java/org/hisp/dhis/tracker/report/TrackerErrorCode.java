@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.report;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.report;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.report;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -49,8 +48,6 @@ public enum TrackerErrorCode
     E1042( "Event: `{0}`, needs to have completed date." ),
     E1056( "Event date: `{0}`, is before start date: `{1}`, for AttributeOption: `{2}`." ),
     E1057( "Event date: `{0}`, is after end date: `{1}`, for AttributeOption; `{2}`." ),
-    E1051( "Invalid event due date: `{0}`." ),
-    E1052( "Invalid event date: `{0}`." ),
     E1019( "Only Program attributes is allowed for enrollment; Non valid attribute: `{0}`." ),
     E1008( "Value: `{0}`, does not match the attribute pattern: `{1}`." ),
     E1007( "Error validating attribute value type: `{0}`; Error: `{1}`." ),
@@ -83,7 +80,7 @@ public enum TrackerErrorCode
     E1070( "Could not find OrganisationUnit: `{0}`, linked to Enrollment." ),
     E1080( "Enrollment: `{0}`, already exists." ),
     E1081( "Enrollment: `{0}`, do not exist." ),
-    E1029( "Event OrganisationUnit: `{0}`, and Program: `{1}`, don't match."),
+    E1029( "Event OrganisationUnit: `{0}`, and Program: `{1}`, don't match." ),
     E1030( "Event: `{0}`, already exists." ),
     E1032( "Event: `{0}`, do not exist." ),
     E1035( "Event: `{0}`, ProgramStage value is NULL." ),
@@ -114,21 +111,21 @@ public enum TrackerErrorCode
     E1082( "Event: `{0}`, is already deleted and can't be modified." ),
     E1113( "Enrollment: `{0}`, is already deleted and can't be modified." ),
     E1114( "TrackedEntity: `{0}`, is already deleted and can't be modified." ),
-    E1118( "Assigned user `{0}` is not a valid uid."),
-    E1119( "A Tracker Note with uid `{0}` already exists."),
-    E1120( "ProgramStage `{0}` does not allow user assignment"),
+    E1118( "Assigned user `{0}` is not a valid uid." ),
+    E1119( "A Tracker Note with uid `{0}` already exists." ),
+    E1120( "ProgramStage `{0}` does not allow user assignment" ),
 
-    //TODO: See TODO on error usage
+    // TODO: See TODO on error usage
     E1017( "Attribute: `{0}`, does not exist." ),
-    //TODO: See TODO on error usage
+    // TODO: See TODO on error usage
     E1093( "User: `{0}`, has no search access to OrganisationUnit: `{1}`." ),
-    //TODO: See TODO on error usage
+    // TODO: See TODO on error usage
     E1094( "Not allowed to update Enrollment: `{0}`, existing Program `{1}`." ),
-    //TODO: See TODO on error usage
+    // TODO: See TODO on error usage
     E1110( "Not allowed to update Event: `{0}`, existing Program `{1}`." ),
-    //TODO: See TODO on error usage
+    // TODO: See TODO on error usage
     E1111( "We have a generated attribute: `{0}`, but no pattern." ),
-    //TODO: See TODO on error usage
+    // TODO: See TODO on error usage
     E1040( "Multiple active enrollments exists for Program: `{0}`." ),
     // TODO See TODO on error usage
     E1045( "Program: `{0}`, expiry date has passed. It is not possible to make changes to this event." ),
@@ -142,6 +139,7 @@ public enum TrackerErrorCode
     E1047( "Event: `{0}`, date belongs to an expired period. It is not possible to create such event." ),
 
     E1200( "Rule engine error: `{0}`" ),
+    E1201( "Rule engine warning: `{0}`" ),
 
     E1302( "DataElement `{0}` is not valid: `{1}`" ),
     E1303( "Mandatory DataElement `{0}` is not present" ),

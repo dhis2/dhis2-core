@@ -1,5 +1,3 @@
-package org.hisp.dhis.program;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,11 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
+
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -34,16 +37,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class ProgramInstanceQueryParams
 {
     public static final int DEFAULT_PAGE = 1;
+
     public static final int DEFAULT_PAGE_SIZE = 50;
 
     /**
@@ -57,8 +57,8 @@ public class ProgramInstanceQueryParams
     private String lastUpdatedDuration;
 
     /**
-     * Organisation units for which instances in the response were registered at.
-     * Is related to the specified OrganisationUnitMode.
+     * Organisation units for which instances in the response were registered
+     * at. Is related to the specified OrganisationUnitMode.
      */
     private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
@@ -114,7 +114,8 @@ public class ProgramInstanceQueryParams
     private Integer pageSize;
 
     /**
-     * Indicates whether to include the total number of pages in the paging response.
+     * Indicates whether to include the total number of pages in the paging
+     * response.
      */
     private boolean totalPages;
 
@@ -255,7 +256,8 @@ public class ProgramInstanceQueryParams
     }
 
     /**
-     * Returns the page number, falls back to default value of 1 if not specified.
+     * Returns the page number, falls back to default value of 1 if not
+     * specified.
      */
     public int getPageWithDefault()
     {
@@ -263,7 +265,8 @@ public class ProgramInstanceQueryParams
     }
 
     /**
-     * Returns the page size, falls back to default value of 50 if not specified.
+     * Returns the page size, falls back to default value of 50 if not
+     * specified.
      */
     public int getPageSizeWithDefault()
     {

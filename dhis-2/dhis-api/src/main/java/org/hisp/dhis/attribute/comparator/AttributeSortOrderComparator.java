@@ -1,5 +1,3 @@
-package org.hisp.dhis.attribute.comparator;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,10 +25,11 @@ package org.hisp.dhis.attribute.comparator;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.attribute.Attribute;
+package org.hisp.dhis.attribute.comparator;
 
 import java.util.Comparator;
+
+import org.hisp.dhis.attribute.Attribute;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

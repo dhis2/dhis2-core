@@ -1,5 +1,3 @@
-package org.hisp.dhis.db.migration.v36;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.db.migration.v36;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.db.migration.v36;
 
 import static org.hisp.dhis.db.migration.v36.V2_36_1__normalize_program_rule_variable_names_for_duplicates.ProgramRuleMigrationUtils.findAvailableName;
 import static org.hisp.dhis.db.migration.v36.V2_36_1__normalize_program_rule_variable_names_for_duplicates.ProgramRuleMigrationUtils.renameAll;
@@ -41,11 +40,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.SneakyThrows;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
-
-import lombok.SneakyThrows;
 
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
@@ -64,6 +63,7 @@ public class V2_36_2__normalize_program_rule_names_for_duplicates
 
     /**
      * Returns a list of rules to be renamed, as pairs of (uid, name)
+     *
      * @param connection
      * @return
      * @throws SQLException
@@ -92,6 +92,7 @@ public class V2_36_2__normalize_program_rule_names_for_duplicates
 
     /**
      * Given a rule name, renames it
+     *
      * @param candidate
      * @param connection
      * @return rule names that have actually been renamed

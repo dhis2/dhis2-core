@@ -1,5 +1,3 @@
-package org.hisp.dhis.trackedentityattributevalue;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,14 +25,15 @@ package org.hisp.dhis.trackedentityattributevalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.user.User;
+package org.hisp.dhis.trackedentityattributevalue;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Abyot Asalefew
@@ -62,7 +61,7 @@ public interface TrackedEntityAttributeValueService
      * Updates an {@link TrackedEntityAttribute}.
      *
      * @param attributeValue the TrackedEntityAttribute to update.
-     * @param user           User for audits
+     * @param user User for audits
      */
     void updateTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue, User user );
 
@@ -74,16 +73,18 @@ public interface TrackedEntityAttributeValueService
     void deleteTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue );
 
     /**
-     * Retrieve a {@link TrackedEntityAttributeValue} on a {@link TrackedEntityInstance} and
-     * {@link TrackedEntityAttribute}
+     * Retrieve a {@link TrackedEntityAttributeValue} on a
+     * {@link TrackedEntityInstance} and {@link TrackedEntityAttribute}
      *
      * @param attribute {@link TrackedEntityAttribute}
      * @return TrackedEntityAttributeValue
      */
-    TrackedEntityAttributeValue getTrackedEntityAttributeValue( TrackedEntityInstance instance, TrackedEntityAttribute attribute );
+    TrackedEntityAttributeValue getTrackedEntityAttributeValue( TrackedEntityInstance instance,
+        TrackedEntityAttribute attribute );
 
     /**
-     * Retrieve {@link TrackedEntityAttributeValue} of a {@link TrackedEntityInstance}
+     * Retrieve {@link TrackedEntityAttributeValue} of a
+     * {@link TrackedEntityInstance}
      *
      * @param instance TrackedEntityAttributeValue
      * @return TrackedEntityAttributeValue list
@@ -91,7 +92,8 @@ public interface TrackedEntityAttributeValueService
     List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityInstance instance );
 
     /**
-     * Retrieve {@link TrackedEntityAttributeValue} of a {@link TrackedEntityAttribute}
+     * Retrieve {@link TrackedEntityAttributeValue} of a
+     * {@link TrackedEntityAttribute}
      *
      * @param attribute {@link TrackedEntityAttribute}
      * @return TrackedEntityAttributeValue list
@@ -99,7 +101,8 @@ public interface TrackedEntityAttributeValueService
     List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityAttribute attribute );
 
     /**
-     * Returns the number of assigned {@link TrackedEntityAttributeValue}s to the given {@link TrackedEntityAttribute}
+     * Returns the number of assigned {@link TrackedEntityAttributeValue}s to
+     * the given {@link TrackedEntityAttribute}
      *
      * @param attribute {@link TrackedEntityAttribute}
      * @return Number of assigned TrackedEntityAttributeValues
@@ -112,7 +115,7 @@ public interface TrackedEntityAttributeValueService
      * @param instances TrackedEntityAttributeValue list
      * @return TrackedEntityAttributeValue list
      */
-    //TODO: This method is never used except of the Unit Test
+    // TODO: This method is never used except of the Unit Test
     List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( Collection<TrackedEntityInstance> instances );
 
     /**

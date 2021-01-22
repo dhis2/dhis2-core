@@ -1,5 +1,3 @@
-package org.hisp.dhis.datavalue;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.datavalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datavalue;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -75,19 +74,27 @@ public class DataValueServiceTest
     // -------------------------------------------------------------------------
 
     private DataElement dataElementA;
+
     private DataElement dataElementB;
+
     private DataElement dataElementC;
+
     private DataElement dataElementD;
 
     private CategoryOptionCombo optionCombo;
 
     private Period periodA;
+
     private Period periodB;
+
     private Period periodC;
 
     private OrganisationUnit sourceA;
+
     private OrganisationUnit sourceB;
+
     private OrganisationUnit sourceC;
+
     private OrganisationUnit sourceD;
 
     // -------------------------------------------------------------------------
@@ -483,10 +490,14 @@ public class DataValueServiceTest
         dataValueService.addDataValue( dataValueB );
         dataValueService.addDataValue( dataValueC );
 
-        assertEquals( 2, dataValueService.getDataValues(  sourceB,  periodA, Lists.newArrayList( dataElementA, dataElementB ), optionCombo ).size() );
-        assertEquals( 2, dataValueService.getDataValues(  sourceB,  periodA, Lists.newArrayList( dataElementA, dataElementB ), null ).size() );
-        assertEquals( 1, dataValueService.getDataValues(  sourceB,  periodA, Lists.newArrayList( dataElementA ), optionCombo ).size() );
-        assertEquals( 1, dataValueService.getDataValues(  sourceA,  periodA, Lists.newArrayList( dataElementA, dataElementB ), optionCombo ).size() );
+        assertEquals( 2, dataValueService
+            .getDataValues( sourceB, periodA, Lists.newArrayList( dataElementA, dataElementB ), optionCombo ).size() );
+        assertEquals( 2, dataValueService
+            .getDataValues( sourceB, periodA, Lists.newArrayList( dataElementA, dataElementB ), null ).size() );
+        assertEquals( 1, dataValueService
+            .getDataValues( sourceB, periodA, Lists.newArrayList( dataElementA ), optionCombo ).size() );
+        assertEquals( 1, dataValueService
+            .getDataValues( sourceA, periodA, Lists.newArrayList( dataElementA, dataElementB ), optionCombo ).size() );
     }
 
     @Test

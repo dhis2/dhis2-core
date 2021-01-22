@@ -1,5 +1,3 @@
-package org.hisp.dhis.maintenance.jdbc;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,13 @@ package org.hisp.dhis.maintenance.jdbc;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.maintenance.jdbc;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
@@ -38,12 +43,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -146,7 +145,7 @@ public class JdbcMaintenanceStore
     public int deleteSoftDeletedTrackedEntityInstances()
     {
         /*
-         *  Get all soft deleted TEIs before they are hard deleted from database
+         * Get all soft deleted TEIs before they are hard deleted from database
          */
         List<String> deletedTeiUids = new ArrayList<>();
 
@@ -219,8 +218,8 @@ public class JdbcMaintenanceStore
                 .createdAt( LocalDateTime.now() )
                 .object( tei )
                 .uid( teiUid )
-                .auditableEntity( new AuditableEntity( TrackedEntityInstance.class, tei  ) )
+                .auditableEntity( new AuditableEntity( TrackedEntityInstance.class, tei ) )
                 .build() );
-        });
+        } );
     }
 }

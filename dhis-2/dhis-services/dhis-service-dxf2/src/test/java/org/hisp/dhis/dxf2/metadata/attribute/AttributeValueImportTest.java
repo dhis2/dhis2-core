@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.metadata.attribute;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,13 @@ package org.hisp.dhis.dxf2.metadata.attribute;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.attribute;
+
+import static org.junit.Assert.assertEquals;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -44,19 +49,15 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-
 public class AttributeValueImportTest
     extends TransactionalIntegrationTest
 {
     @Autowired
     private RenderService renderService;
+
     @Autowired
     private MetadataImportService importService;
+
     @Autowired
     private IdentifiableObjectManager manager;
 
@@ -91,9 +92,9 @@ public class AttributeValueImportTest
         DataSet dataSet = manager.get( DataSet.class, "sPnR8BCInMV" );
         assertEquals( "true", dataSet.getAttributeValue( "PtyV6lLcmol" ).getValue() );
 
-
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> attributesUpdate = renderService.fromMetadata(
-            new ClassPathResource( "attribute/attribute_update.json" ).getInputStream(), RenderFormat.JSON );
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> attributesUpdate = renderService
+            .fromMetadata(
+                new ClassPathResource( "attribute/attribute_update.json" ).getInputStream(), RenderFormat.JSON );
 
         params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );

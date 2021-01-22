@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.datavalueset;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,9 +25,24 @@ package org.hisp.dhis.dxf2.datavalueset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.datavalueset;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+
+import java.io.OutputStream;
+import java.io.Writer;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
@@ -47,19 +60,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Repository;
 
-import java.io.OutputStream;
-import java.io.Writer;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import com.google.common.base.Preconditions;
 
 /**
  * @author Lars Helge Overland
@@ -90,9 +91,9 @@ public class SpringDataValueSetStore
         this.currentUserService = currentUserService;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // DataValueSetStore implementation
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     public void writeDataValueSetXml( DataExportParams params, Date completeDate, OutputStream out )
@@ -153,23 +154,24 @@ public class SpringDataValueSetStore
         String ouScheme = idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
         String ocScheme = idSchemes.getCategoryOptionComboIdScheme().getIdentifiableString().toLowerCase();
 
-        final String sql =
-            "select de." + deScheme + " as deid, pe.startdate as pestart, pt.name as ptname, ou." + ouScheme + " as ouid, " +
-                "coc." + ocScheme + " as cocid, aoc." + ocScheme + " as aocid, " +
-                "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
-                "from datavalue dv " +
-                "join dataelement de on (dv.dataelementid=de.dataelementid) " +
-                "join period pe on (dv.periodid=pe.periodid) " +
-                "join periodtype pt on (pe.periodtypeid=pt.periodtypeid) " +
-                "join organisationunit ou on (dv.sourceid=ou.organisationunitid) " +
-                "join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) " +
-                "join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) " +
-                "where dv.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "' ";
+        final String sql = "select de." + deScheme + " as deid, pe.startdate as pestart, pt.name as ptname, ou."
+            + ouScheme + " as ouid, " +
+            "coc." + ocScheme + " as cocid, aoc." + ocScheme + " as aocid, " +
+            "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
+            "from datavalue dv " +
+            "join dataelement de on (dv.dataelementid=de.dataelementid) " +
+            "join period pe on (dv.periodid=pe.periodid) " +
+            "join periodtype pt on (pe.periodtypeid=pt.periodtypeid) " +
+            "join organisationunit ou on (dv.sourceid=ou.organisationunitid) " +
+            "join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) " +
+            "join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) " +
+            "where dv.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "' ";
 
         return sql;
     }
 
-    private void writeDataValueSet( String sql, DataExportParams params, Date completeDate, final DataValueSet dataValueSet )
+    private void writeDataValueSet( String sql, DataExportParams params, Date completeDate,
+        final DataValueSet dataValueSet )
     {
         if ( params.isSingleDataValueSet() )
         {
@@ -188,7 +190,8 @@ public class SpringDataValueSetStore
         jdbcTemplate.query( sql, new RowCallbackHandler()
         {
             @Override
-            public void processRow( ResultSet rs ) throws SQLException
+            public void processRow( ResultSet rs )
+                throws SQLException
             {
                 DataValue dataValue = dataValueSet.getDataValueInstance();
                 PeriodType pt = PeriodType.getPeriodTypeByName( rs.getString( "ptname" ) );
@@ -218,9 +221,9 @@ public class SpringDataValueSetStore
         dataValueSet.close();
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Supportive methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     private String getDataValueSql( DataExportParams params )
     {
@@ -238,32 +241,35 @@ public class SpringDataValueSetStore
         String orgUnits = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) );
         String orgUnitGroups = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnitGroups() ) );
 
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
         // Identifier schemes
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
 
-        String deSql = idScheme.getDataElementIdScheme().isAttribute() ?
-            "de.attributevalues #>> '{\"" + idScheme.getDataElementIdScheme().getAttribute() + "\", \"value\" }'  as deid" :
-            "de." + deScheme + " as deid";
+        String deSql = idScheme.getDataElementIdScheme().isAttribute()
+            ? "de.attributevalues #>> '{\"" + idScheme.getDataElementIdScheme().getAttribute()
+                + "\", \"value\" }'  as deid"
+            : "de." + deScheme + " as deid";
 
-        String ouSql = idScheme.getOrgUnitIdScheme().isAttribute() ?
-            "ou.attributevalues #>> '{\"" + idScheme.getOrgUnitIdScheme().getAttribute() + "\", \"value\" }'  as ouid" :
-            "ou." + ouScheme + " as ouid";
+        String ouSql = idScheme.getOrgUnitIdScheme().isAttribute()
+            ? "ou.attributevalues #>> '{\"" + idScheme.getOrgUnitIdScheme().getAttribute() + "\", \"value\" }'  as ouid"
+            : "ou." + ouScheme + " as ouid";
 
-        String cocSql = idScheme.getCategoryOptionComboIdScheme().isAttribute() ?
-            "coc.attributevalues #>> '{\"" + idScheme.getCategoryOptionComboIdScheme().getAttribute() + "\", \"value\" }'  as cocid" :
-            "coc." + cocScheme + " as cocid";
+        String cocSql = idScheme.getCategoryOptionComboIdScheme().isAttribute()
+            ? "coc.attributevalues #>> '{\"" + idScheme.getCategoryOptionComboIdScheme().getAttribute()
+                + "\", \"value\" }'  as cocid"
+            : "coc." + cocScheme + " as cocid";
 
-        String aocSql = idScheme.getCategoryOptionComboIdScheme().isAttribute() ?
-            "aoc.attributevalues #>> '{\"" + idScheme.getCategoryOptionComboIdScheme().getAttribute() + "\", \"value\" }'  as aocid" :
-            "aoc." + cocScheme + " as aocid";
+        String aocSql = idScheme.getCategoryOptionComboIdScheme().isAttribute()
+            ? "aoc.attributevalues #>> '{\"" + idScheme.getCategoryOptionComboIdScheme().getAttribute()
+                + "\", \"value\" }'  as aocid"
+            : "aoc." + cocScheme + " as aocid";
 
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
         // Data values
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
 
-        String sql =
-            "select " + deSql + ", pe.startdate as pestart, pt.name as ptname, " + ouSql + ", " + cocSql + ", " + aocSql + ", " +
+        String sql = "select " + deSql + ", pe.startdate as pestart, pt.name as ptname, " + ouSql + ", " + cocSql + ", "
+            + aocSql + ", " +
             "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
             "from datavalue dv " +
             "inner join dataelement de on (dv.dataelementid=de.dataelementid) " +
@@ -273,9 +279,9 @@ public class SpringDataValueSetStore
             "inner join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) " +
             "inner join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) ";
 
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
         // Filters
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
 
         if ( params.hasOrganisationUnitGroups() )
         {
@@ -324,7 +330,8 @@ public class SpringDataValueSetStore
 
         if ( params.hasStartEndDate() )
         {
-            sql += "and (pe.startdate >= '" + getMediumDateString( params.getStartDate() ) + "' and pe.enddate <= '" + getMediumDateString( params.getEndDate() ) + "') ";
+            sql += "and (pe.startdate >= '" + getMediumDateString( params.getStartDate() ) + "' and pe.enddate <= '"
+                + getMediumDateString( params.getEndDate() ) + "') ";
         }
         else if ( params.hasPeriods() )
         {
@@ -333,7 +340,8 @@ public class SpringDataValueSetStore
 
         if ( params.hasAttributeOptionCombos() )
         {
-            sql += "and dv.attributeoptioncomboid in (" + getCommaDelimitedString( getIdentifiers( params.getAttributeOptionCombos() ) ) + ") ";
+            sql += "and dv.attributeoptioncomboid in ("
+                + getCommaDelimitedString( getIdentifiers( params.getAttributeOptionCombos() ) ) + ") ";
         }
 
         if ( params.hasLastUpdated() )
@@ -342,7 +350,8 @@ public class SpringDataValueSetStore
         }
         else if ( params.hasLastUpdatedDuration() )
         {
-            sql += "and dv.lastupdated >= '" + getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "' ";
+            sql += "and dv.lastupdated >= '"
+                + getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "' ";
         }
 
         if ( user != null && !user.isSuper() )
@@ -373,27 +382,24 @@ public class SpringDataValueSetStore
         List<String> groupsIds = user.getGroups().stream().map( g -> g.getUid() )
             .collect( Collectors.toList() );
 
-        String groupAccessCheck =  groupsIds.size() > 0 ?
-            "or ( " +
-                "check_user_group_ids( co.sharing, '{"+ String.join( ",", groupsIds ) +"}' ) = true " +
-                "and check_user_groups_access( co.sharing, '__r%', '{"+ String.join( ",", groupsIds ) +"}' ) = true ) )"
+        String groupAccessCheck = groupsIds.size() > 0 ? "or ( " +
+            "check_user_group_ids( co.sharing, '{" + String.join( ",", groupsIds ) + "}' ) = true " +
+            "and check_user_groups_access( co.sharing, '__r%', '{" + String.join( ",", groupsIds ) + "}' ) = true ) )"
             : ") )";
 
-        return
-            "and dv.attributeoptioncomboid not in (" +
-                "select distinct(cocco.categoryoptioncomboid) " +
-                "from categoryoptioncombos_categoryoptions as cocco " +
-                // Get inaccessible category options
-                "where cocco.categoryoptionid not in ( " +
-                    "select co.categoryoptionid " +
-                    "from dataelementcategoryoption co " +
-                    // Public access check
-                    "where co.sharing->>'public' like '__r%' " +
-                    "or co.sharing->>'public' is null " +
-                    // User access check
-                " or co.sharing->'users'->'" + user.getUid() + "'->>'access' like '__r%'" +
-                    // User group access check
-                    groupAccessCheck
-                ;
+        return "and dv.attributeoptioncomboid not in (" +
+            "select distinct(cocco.categoryoptioncomboid) " +
+            "from categoryoptioncombos_categoryoptions as cocco " +
+            // Get inaccessible category options
+            "where cocco.categoryoptionid not in ( " +
+            "select co.categoryoptionid " +
+            "from dataelementcategoryoption co " +
+            // Public access check
+            "where co.sharing->>'public' like '__r%' " +
+            "or co.sharing->>'public' is null " +
+            // User access check
+            " or co.sharing->'users'->'" + user.getUid() + "'->>'access' like '__r%'" +
+            // User group access check
+            groupAccessCheck;
     }
 }

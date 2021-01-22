@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.importer.context;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,14 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.context;
+
+import static java.util.Collections.emptyMap;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -36,13 +42,6 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.program.Program;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static java.util.Collections.emptyMap;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 /**
  * @author Luciano Fiandesio
@@ -79,7 +78,8 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
         {
             Program program = programMap.get( event.getProgram() );
 
-            // Can't proceed with null Program, this will fail during the validation stage
+            // Can't proceed with null Program, this will fail during the
+            // validation stage
             if ( program == null )
             {
                 return emptyMap();

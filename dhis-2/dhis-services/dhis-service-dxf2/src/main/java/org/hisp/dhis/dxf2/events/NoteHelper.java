@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,18 +25,19 @@ package org.hisp.dhis.dxf2.events;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import lombok.experimental.UtilityClass;
+
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.util.DateUtils;
-
-import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class NoteHelper

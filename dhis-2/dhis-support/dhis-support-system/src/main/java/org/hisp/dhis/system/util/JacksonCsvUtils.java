@@ -1,5 +1,3 @@
-package org.hisp.dhis.system.util;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.util;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -43,9 +42,9 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 public class JacksonCsvUtils
 {
     /**
-     * Writes the given response to the given output stream as CSV
-     * using {@link CsvMapper}. The schema is inferred from the
-     * given type using {@CsvSchema}. A header line is included.
+     * Writes the given response to the given output stream as CSV using
+     * {@link CsvMapper}. The schema is inferred from the given type using
+     * {@CsvSchema}. A header line is included.
      *
      * @param value the value to write.
      * @param out the {@link OutputStream} to write to.

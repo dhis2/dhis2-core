@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preprocess;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preprocess;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preprocess;
 
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -51,8 +50,8 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor
 {
 
     /**
-     * Process the bundle's relationships collection and remove relationships that
-     * are duplicated.
+     * Process the bundle's relationships collection and remove relationships
+     * that are duplicated.
      *
      * There are 5 cases (all cases assume the same relationship type):
      *
@@ -119,7 +118,8 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor
         // Create a map where both key and value must be unique
         BidiMap<String, String> map = new DualHashBidiMap<>();
 
-        // Add a pseudo hash of all relationships to the map. If the relationship is
+        // Add a pseudo hash of all relationships to the map. If the
+        // relationship is
         // bidirectional, first
         // sort the Relationship Items
         bundle.getRelationships().stream().filter( validRelationship )

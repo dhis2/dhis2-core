@@ -1,5 +1,3 @@
-package org.hisp.dhis.node.serializers;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,9 @@ package org.hisp.dhis.node.serializers;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.node.serializers;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -56,8 +57,6 @@ import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -242,7 +241,7 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
         }
     }
 
-    private void writeWithCustomSerializer( JsonSerializer jsonSerializer, SimpleNode simpleNode)
+    private void writeWithCustomSerializer( JsonSerializer jsonSerializer, SimpleNode simpleNode )
         throws IOException, XMLStreamException
     {
         checkNotNull( jsonSerializer );

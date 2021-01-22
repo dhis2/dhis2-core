@@ -1,5 +1,3 @@
-package org.hisp.dhis.analytics.event.data;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.event.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
@@ -42,6 +41,8 @@ import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 import java.util.Date;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
@@ -77,8 +78,6 @@ import org.springframework.util.Assert;
 
 import com.google.common.collect.Lists;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Markus Bekken
  */
@@ -86,9 +85,13 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class AbstractJdbcEventAnalyticsManager
 {
     private static final String ITEM_NAME_SEP = ": ";
+
     private static final String NA = "[N/A]";
+
     protected static final String COL_COUNT = "count";
+
     protected static final String COL_EXTENT = "extent";
+
     protected static final int COORD_DEC = 6;
 
     protected static final int LAST_VALUE_YEARS_OFFSET = -10;
@@ -131,7 +134,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         else if ( maxLimit > 0 )
         {
-            sql += "limit " + ( maxLimit + 1 );
+            sql += "limit " + (maxLimit + 1);
         }
 
         return sql;
@@ -178,10 +181,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Returns the dynamic select column names to use in a group by clause. Dimensions come
-     * first and query items second. Program indicator expressions are converted to SQL expressions.
-     * When grouping with non-default analytics period boundaries, all periods are skipped in the group
-     * clause, as non default boundaries is defining their own period groups within their where clause.
+     * Returns the dynamic select column names to use in a group by clause.
+     * Dimensions come first and query items second. Program indicator
+     * expressions are converted to SQL expressions. When grouping with
+     * non-default analytics period boundaries, all periods are skipped in the
+     * group clause, as non default boundaries is defining their own period
+     * groups within their where clause.
      */
     private List<String> getGroupByColumnNames( EventQueryParams params )
     {
@@ -191,8 +196,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
     /**
      * Returns the dynamic select columns. Dimensions come first and query items
      * second. Program indicator expressions are converted to SQL expressions.
-     * In the case of non-default boundaries{@link EventQueryParams#hasNonDefaultBoundaries},
-     * the period is hard coded into the select statement with "(isoPeriod) as (periodType)".
+     * In the case of non-default
+     * boundaries{@link EventQueryParams#hasNonDefaultBoundaries}, the period is
+     * hard coded into the select statement with "(isoPeriod) as (periodType)".
      */
     protected List<String> getSelectColumns( EventQueryParams params )
     {
@@ -202,10 +208,13 @@ public abstract class AbstractJdbcEventAnalyticsManager
     /**
      * Returns the dynamic select columns. Dimensions come first and query items
      * second. Program indicator expressions are converted to SQL expressions.
-     * In the case of non-default boundaries{@link EventQueryParams#hasNonDefaultBoundaries},
-     * the period is hard coded into the select statement with "(isoPeriod) as (periodType)".
-     * @param isGroupByClause used to avoid grouping by period when using non-default boundaries
-     * where the column content would be hard coded. Used by the group-by calls.
+     * In the case of non-default
+     * boundaries{@link EventQueryParams#hasNonDefaultBoundaries}, the period is
+     * hard coded into the select statement with "(isoPeriod) as (periodType)".
+     *
+     * @param isGroupByClause used to avoid grouping by period when using
+     *        non-default boundaries where the column content would be hard
+     *        coded. Used by the group-by calls.
      */
     private List<String> getSelectColumns( EventQueryParams params, boolean isGroupByClause )
     {
@@ -233,7 +242,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( !params.hasPeriods() && params.hasFilterPeriods() )
             {
-                // Assuming same period type for all period filters, as the query planner splits into one query per period type
+                // Assuming same period type for all period filters, as the
+                // query planner splits into one query per period type
 
                 Period period = (Period) params.getFilterPeriods().get( 0 );
                 columns.add( statementBuilder.encode( period.getIsoDate() ) + " as " +
@@ -271,7 +281,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 String colName = quote( queryItem.getItemName() );
 
-                String coordSql =  "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName + ")::numeric, 6) || ']' as " + colName;
+                String coordSql = "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName
+                    + ")::numeric, 6) || ']' as " + colName;
 
                 columns.add( coordSql );
             }
@@ -346,7 +357,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         else if ( maxLimit > 0 )
         {
-            sql += "limit " + ( maxLimit + 1 );
+            sql += "limit " + (maxLimit + 1);
         }
 
         // ---------------------------------------------------------------------
@@ -384,7 +395,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 if ( params.hasValueDimension() )
                 {
-                    String itemId = params.getProgram().getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + params.getValue().getUid();
+                    String itemId = params.getProgram().getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP
+                        + params.getValue().getUid();
                     grid.addValue( itemId );
                 }
                 else if ( params.hasProgramIndicatorDimension() )
@@ -398,7 +410,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 {
 
                     String itemValue = rowSet.getString( queryItem.getItemName() );
-                    String gridValue = params.isCollapseDataDimensions() ? getCollapsedDataItemValue( queryItem, itemValue ) : itemValue;
+                    String gridValue = params.isCollapseDataDimensions()
+                        ? getCollapsedDataItemValue( queryItem, itemValue )
+                        : itemValue;
                     grid.addValue( gridValue );
                 }
             }
@@ -438,7 +452,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      *
      * @param params the {@link EventQueryParams}.
      *
-     * TODO include output type if aggregation type is count
+     *        TODO include output type if aggregation type is count
      */
     protected String getAggregateClause( EventQueryParams params )
     {
@@ -446,7 +460,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( params.hasValueDimension() ) // TODO && isNumeric
         {
-            Assert.isTrue( params.getAggregationTypeFallback().getAggregationType().isAggregateable(), "Event query aggregation type must be aggregatable" );
+            Assert.isTrue( params.getAggregationTypeFallback().getAggregationType().isAggregateable(),
+                "Event query aggregation type must be aggregatable" );
 
             String function = params.getAggregationTypeFallback().getAggregationType().getValue();
 
@@ -482,28 +497,28 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 if ( EventOutputType.TRACKED_ENTITY_INSTANCE.equals( outputType ) && params.isProgramRegistration() )
                 {
-                    return "count(distinct " + quoteAlias( "tei") + ")";
+                    return "count(distinct " + quoteAlias( "tei" ) + ")";
                 }
                 else if ( EventOutputType.ENROLLMENT.equals( outputType ) )
                 {
-                    return "count(distinct " + quoteAlias( "pi") + ")";
+                    return "count(distinct " + quoteAlias( "pi" ) + ")";
                 }
                 else // EVENT
                 {
-                    return "count(" + quoteAlias( "psi") + ")";
+                    return "count(" + quoteAlias( "psi" ) + ")";
                 }
             }
         }
     }
 
     /**
-     * Returns an item value for the given query, query item and value. Assumes that
-     * data dimensions are collapsed for the given query. Returns the short name
-     * of the given query item followed by the item value. If the given query item
-     * has a legend set, the item value is treated as an id and substituted with
-     * the matching legend name. If the given query item has an option set, the
-     * item value is treated as a code and substituted with the matching option
-     * name.
+     * Returns an item value for the given query, query item and value. Assumes
+     * that data dimensions are collapsed for the given query. Returns the short
+     * name of the given query item followed by the item value. If the given
+     * query item has a legend set, the item value is treated as an id and
+     * substituted with the matching legend name. If the given query item has an
+     * option set, the item value is treated as a code and substituted with the
+     * matching option name.
      *
      * @param item the {@link QueryItem}.
      * @param itemValue the item value.
@@ -515,11 +530,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
         Legend legend;
         Option option;
 
-        if ( item.hasLegendSet() && ( legend = item.getLegendSet().getLegendByUid( itemValue ) ) != null )
+        if ( item.hasLegendSet() && (legend = item.getLegendSet().getLegendByUid( itemValue )) != null )
         {
             return value + legend.getDisplayName();
         }
-        else if ( item.hasOptionSet() && ( option = item.getOptionSet().getOptionByCode( itemValue ) ) != null )
+        else if ( item.hasOptionSet() && (option = item.getOptionSet().getOptionByCode( itemValue )) != null )
         {
             return value + option.getDisplayName();
         }
@@ -553,9 +568,10 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Returns an SQL to select the expression or column of the item. If the item is
-     * a program indicator, the program indicator expression is returned; if the item
-     * is a data element, the item column name is returned.
+     * Returns an SQL to select the expression or column of the item. If the
+     * item is a program indicator, the program indicator expression is
+     * returned; if the item is a data element, the item column name is
+     * returned.
      *
      * @param item the {@link QueryItem}.
      */
@@ -563,8 +579,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         if ( item.isProgramIndicator() )
         {
-            ProgramIndicator programIndicator = (ProgramIndicator)item.getItem();
-            return programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), programIndicator, startDate, endDate );
+            ProgramIndicator programIndicator = (ProgramIndicator) item.getItem();
+            return programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), programIndicator,
+                startDate, endDate );
         }
         else
         {
@@ -655,8 +672,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
     /**
      * Wraps the provided interface around a common exception handling strategy
      *
-     * @param r a {@see Runnable} interface containing the code block to execute and
-     *        wrap around the exception handling
+     * @param r a {@see Runnable} interface containing the code block to execute
+     *        and wrap around the exception handling
      */
     void withExceptionHandling( Runnable r )
     {
@@ -683,18 +700,21 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected abstract String getSelectClause( EventQueryParams params );
 
     /**
-     * Generates the SQL for the from-clause. Generally this means which analytics table to get data from.
+     * Generates the SQL for the from-clause. Generally this means which
+     * analytics table to get data from.
      *
-     * @param params the {@link EventQueryParams} that define what is going to be queried.
+     * @param params the {@link EventQueryParams} that define what is going to
+     *        be queried.
      * @return SQL to add to the analytics query.
      */
     protected abstract String getFromClause( EventQueryParams params );
 
     /**
-     * Generates the SQL for the where-clause. Generally this means adding filters, grouping and ordering
-     * to the SQL.
+     * Generates the SQL for the where-clause. Generally this means adding
+     * filters, grouping and ordering to the SQL.
      *
-     * @param params the {@link EventQueryParams} that defines the details of the filters, grouping and ordering.
+     * @param params the {@link EventQueryParams} that defines the details of
+     *        the filters, grouping and ordering.
      * @return SQL to add to the analytics query.
      */
     protected abstract String getWhereClause( EventQueryParams params );

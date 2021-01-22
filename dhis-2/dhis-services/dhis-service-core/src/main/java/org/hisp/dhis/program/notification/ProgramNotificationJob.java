@@ -1,5 +1,3 @@
-package org.hisp.dhis.program.notification;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.program.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.notification;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -87,13 +86,15 @@ public class ProgramNotificationJob extends AbstractJob
         {
             runInternal();
 
-            notifier.notify( jobConfiguration, NotificationLevel.INFO, "Generated and sent scheduled program notifications: " + clock.time(), true );
+            notifier.notify( jobConfiguration, NotificationLevel.INFO,
+                "Generated and sent scheduled program notifications: " + clock.time(), true );
         }
         catch ( RuntimeException ex )
         {
             notifier.notify( jobConfiguration, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
 
-            messageService.sendSystemErrorNotification( "Generating and sending scheduled program notifications failed", ex );
+            messageService.sendSystemErrorNotification( "Generating and sending scheduled program notifications failed",
+                ex );
 
             throw ex;
         }

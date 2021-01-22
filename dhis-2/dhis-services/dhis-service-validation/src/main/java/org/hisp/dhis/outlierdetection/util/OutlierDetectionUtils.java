@@ -1,5 +1,3 @@
-package org.hisp.dhis.outlierdetection.util;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,7 +25,9 @@ package org.hisp.dhis.outlierdetection.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.outlierdetection.util;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -40,8 +40,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 public class OutlierDetectionUtils
 {
     /**
-     * Returns an organisation unit 'path' "like" clause for the given list
-     * of {@link OrganisationUnit}.
+     * Returns an organisation unit 'path' "like" clause for the given list of
+     * {@link OrganisationUnit}.
      *
      * @param query the list of {@link OrganisationUnit}.
      * @return an organisation unit 'path' "like" clause.
@@ -56,5 +56,27 @@ public class OutlierDetectionUtils
         }
 
         return StringUtils.trim( TextUtils.removeLastOr( sql ) ) + ")";
+    }
+
+    /**
+     * Returns a period data start date clause.
+     *
+     * @param dataStartDate the data start date.
+     * @return a period data start date clause.
+     */
+    public static String getDataStartDateClause( Date dataStartDate )
+    {
+        return dataStartDate != null ? "and pe.startdate >= :data_start_date " : StringUtils.EMPTY;
+    }
+
+    /**
+     * Returns a period data end date clause.
+     *
+     * @param dataStartDate the data start date.
+     * @return a period data end date clause.
+     */
+    public static String getDataEndDateClause( Date dataStartDate )
+    {
+        return dataStartDate != null ? "and pe.enddate <= :data_end_date " : StringUtils.EMPTY;
     }
 }

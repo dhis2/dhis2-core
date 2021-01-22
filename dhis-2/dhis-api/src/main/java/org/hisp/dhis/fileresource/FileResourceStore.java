@@ -1,5 +1,3 @@
-package org.hisp.dhis.fileresource;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,12 @@ package org.hisp.dhis.fileresource;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.fileresource;
+
+import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.joda.time.DateTime;
-
-import java.util.List;
 
 public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
 {

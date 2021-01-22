@@ -1,5 +1,3 @@
-package org.hisp.dhis.db.migration.v35;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.db.migration.v35;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.db.migration.v35;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -42,7 +41,8 @@ public class V2_35_17__Visualization_Move_Columns_To_Filters extends BaseJavaMig
     public void migrate( final Context context )
         throws SQLException
     {
-        // Select all Visualizations that matches "type" equals 'YEAR_OVER_YEAR_COLUMN'
+        // Select all Visualizations that matches "type" equals
+        // 'YEAR_OVER_YEAR_COLUMN'
         // or 'YEAR_OVER_YEAR_LINE' and "dimension" equals 'dx'.
         final String sql = "SELECT visualizationid, dimension, sort_order "
             + "FROM visualization_columns WHERE visualizationid IN "
@@ -59,23 +59,28 @@ public class V2_35_17__Visualization_Move_Columns_To_Filters extends BaseJavaMig
                 final String dimension = rs.getString( "dimension" );
                 final int sortOrder = rs.getInt( "sort_order" );
 
-                // Get the greater sort_order, in filters table, for the current Visualization
+                // Get the greater sort_order, in filters table, for the current
+                // Visualization
                 // id.
                 int greatVisualizationSortOrder = greaterSortOrderInFiltersTableFor( context,
                     rs.getLong( "visualizationid" ) );
 
-                // Increment the sort order so it can be inserted in the correct position.
+                // Increment the sort order so it can be inserted in the correct
+                // position.
                 greatVisualizationSortOrder++;
 
-                // Before inserting the current column into filters table, check if this column
+                // Before inserting the current column into filters table, check
+                // if this column
                 // isn't already present in filters table.
                 if ( !filtersTableContains( context, visualizationId, dimension ) )
                 {
                     // Insert the current column into filters table.
                     insertIntoFilterTable( context, visualizationId, dimension, greatVisualizationSortOrder );
 
-                    // Once the columns is copied into filters, remove it from columns table. The
-                    // "moving" process is concluded for this visualization column.
+                    // Once the columns is copied into filters, remove it from
+                    // columns table. The
+                    // "moving" process is concluded for this visualization
+                    // column.
                     deleteFromColumnsTable( context, visualizationId, dimension, sortOrder );
                 }
             }

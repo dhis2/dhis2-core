@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.security;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,10 +25,20 @@ package org.hisp.dhis.dxf2.events.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.security;
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+
 import org.hibernate.SessionFactory;
-
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
@@ -62,16 +70,7 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Sets;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -213,7 +212,8 @@ public class TrackerAccessManagerTest extends TransactionalIntegrationTest
         enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid() ),
             ImportOptions.getDefaultImportOptions() );
 
-        // this is required because the event import takes place through JDBC and
+        // this is required because the event import takes place through JDBC
+        // and
         // hibernate does not see
         // the values inserted by the JDBC session. Clearing the session, forces
         // hibernate to reload from db rather than
@@ -501,7 +501,8 @@ public class TrackerAccessManagerTest extends TransactionalIntegrationTest
         }
 
         // Cannot create events with evemntOu outside capture scope
-        assertHasError( trackerAccessManager.canCreate( user, psi, false ), "User has no create access to organisation unit:" );
+        assertHasError( trackerAccessManager.canCreate( user, psi, false ),
+            "User has no create access to organisation unit:" );
 
         // Can read events if ownerOu falls into users search scope
         assertNoErrors( trackerAccessManager.canRead( user, psi, false ) );
@@ -514,9 +515,11 @@ public class TrackerAccessManagerTest extends TransactionalIntegrationTest
 
         trackerOwnershipManager.transferOwnership( tei, programA, organisationUnitB, true, true );
 
-        // Cannot create events with eventOu outside capture scope, even if ownerOu is
+        // Cannot create events with eventOu outside capture scope, even if
+        // ownerOu is
         // also in capture scope
-        assertHasError( trackerAccessManager.canCreate( user, psi, false ), "User has no create access to organisation unit:" );
+        assertHasError( trackerAccessManager.canCreate( user, psi, false ),
+            "User has no create access to organisation unit:" );
 
         // Can read events if ownerOu falls into users capture scope
         assertNoErrors( trackerAccessManager.canRead( user, psi, false ) );

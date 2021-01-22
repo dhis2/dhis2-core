@@ -1,5 +1,3 @@
-package org.hisp.dhis.category;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,19 +25,20 @@ package org.hisp.dhis.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.category;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
 
 import org.hisp.dhis.DhisTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 /**
- * Test needs to extend DhisTest in order to test the bidirectional group set
- * to group association from both sides as save transactions must commit.
+ * Test needs to extend DhisTest in order to test the bidirectional group set to
+ * group association from both sides as save transactions must commit.
  *
  * @author Lars Helge Overland
  */
@@ -53,12 +52,19 @@ public class CategoryOptionGroupStoreTest
     private CategoryOptionGroupStore categoryOptionGroupStore;
 
     private CategoryOption coA;
+
     private CategoryOption coB;
+
     private CategoryOption coC;
+
     private CategoryOption coD;
+
     private CategoryOption coE;
+
     private CategoryOption coF;
+
     private CategoryOption coG;
+
     private CategoryOption coH;
 
     // -------------------------------------------------------------------------

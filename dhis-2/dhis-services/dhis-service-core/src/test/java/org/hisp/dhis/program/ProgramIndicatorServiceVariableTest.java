@@ -1,5 +1,3 @@
-package org.hisp.dhis.program;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,16 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.Assert.*;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashSet;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -34,15 +42,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.*;
 
 /**
  * @author Jim Grace
@@ -66,6 +65,7 @@ public class ProgramIndicatorServiceVariableTest
     private ProgramIndicator piB;
 
     private Date startDate = new GregorianCalendar( 2020, Calendar.JANUARY, 1 ).getTime();
+
     private Date endDate = new GregorianCalendar( 2020, Calendar.JANUARY, 31 ).getTime();
 
     @Override
@@ -103,31 +103,32 @@ public class ProgramIndicatorServiceVariableTest
     @Test
     public void testAnalyticsPeriodEnd()
     {
-        assertEquals("'2020-01-31'",
-            getSql("V{analytics_period_end}" ) );
+        assertEquals( "'2020-01-31'",
+            getSql( "V{analytics_period_end}" ) );
 
-        assertEquals("'2020-01-31'",
-            getSqlEnrollment("V{analytics_period_end}" ) );
+        assertEquals( "'2020-01-31'",
+            getSqlEnrollment( "V{analytics_period_end}" ) );
     }
 
     @Test
     public void testAnalyticsPeriodStart()
     {
-        assertEquals("'2020-01-01'",
-            getSql("V{analytics_period_start}" ) );
+        assertEquals( "'2020-01-01'",
+            getSql( "V{analytics_period_start}" ) );
 
-        assertEquals("'2020-01-01'",
-            getSqlEnrollment("V{analytics_period_start}" ) );
+        assertEquals( "'2020-01-01'",
+            getSqlEnrollment( "V{analytics_period_start}" ) );
     }
 
     @Test
     public void testCreationDate()
     {
-        assertEquals("created",
-            getSql("V{creation_date}" ) );
+        assertEquals( "created",
+            getSql( "V{creation_date}" ) );
 
-        assertEquals("(select created from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and created is not null and executiondate < cast( '2020-01-02' as date ) and executiondate >= cast( '2020-01-01' as date ) order by executiondate desc limit 1 )",
-            getSqlEnrollment("V{creation_date}" ) );
+        assertEquals(
+            "(select created from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and created is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date ) order by executiondate desc limit 1 )",
+            getSqlEnrollment( "V{creation_date}" ) );
     }
 
     @Test
@@ -135,158 +136,161 @@ public class ProgramIndicatorServiceVariableTest
     {
         String today = "'" + DateUtils.getLongDateString().substring( 0, 10 );
 
-        assertThat( getSql("V{current_date}" ), startsWith( today ) );
+        assertThat( getSql( "V{current_date}" ), startsWith( today ) );
 
-        assertThat( getSqlEnrollment("V{current_date}" ), startsWith( today ) );
+        assertThat( getSqlEnrollment( "V{current_date}" ), startsWith( today ) );
     }
 
     @Test
     public void testDueDate()
     {
-        assertEquals("duedate",
-            getSql("V{due_date}" ) );
+        assertEquals( "duedate",
+            getSql( "V{due_date}" ) );
 
-        assertEquals("duedate",
-            getSqlEnrollment("V{due_date}" ) );
+        assertEquals(
+            "(select duedate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and duedate is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date ) order by executiondate desc limit 1 )",
+            getSqlEnrollment( "V{due_date}" ) );
     }
 
     @Test
     public void testEnrollmentCount()
     {
-        assertEquals("distinct pi",
-            getSql("V{enrollment_count}" ) );
+        assertEquals( "distinct pi",
+            getSql( "V{enrollment_count}" ) );
 
-        assertEquals("distinct pi",
-            getSqlEnrollment("V{enrollment_count}" ) );
+        assertEquals( "distinct pi",
+            getSqlEnrollment( "V{enrollment_count}" ) );
     }
 
     @Test
     public void testEnrollmentDate()
     {
-        assertEquals("enrollmentdate",
-            getSql("V{enrollment_date}" ) );
+        assertEquals( "enrollmentdate",
+            getSql( "V{enrollment_date}" ) );
 
-        assertEquals("enrollmentdate",
-            getSqlEnrollment("V{enrollment_date}" ) );
+        assertEquals( "enrollmentdate",
+            getSqlEnrollment( "V{enrollment_date}" ) );
     }
 
     @Test
     public void testEnrollmentStatus()
     {
-        assertEquals("enrollmentstatus",
-            getSql("V{enrollment_status}" ) );
+        assertEquals( "enrollmentstatus",
+            getSql( "V{enrollment_status}" ) );
 
-        assertEquals("enrollmentstatus",
-            getSqlEnrollment("V{enrollment_status}" ) );
+        assertEquals( "enrollmentstatus",
+            getSqlEnrollment( "V{enrollment_status}" ) );
     }
 
     @Test
     public void testEventCount()
     {
-        assertEquals("distinct psi",
-            getSql("V{event_count}" ) );
+        assertEquals( "distinct psi",
+            getSql( "V{event_count}" ) );
 
-        assertEquals("distinct psi",
-            getSqlEnrollment("V{event_count}" ) );
+        assertEquals( "distinct psi",
+            getSqlEnrollment( "V{event_count}" ) );
     }
 
     @Test
     public void testExecutionDate()
     {
-        assertEquals("executiondate",
-            getSql("V{execution_date}" ) );
+        assertEquals( "executiondate",
+            getSql( "V{execution_date}" ) );
 
-        assertEquals("(select executiondate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date ) order by executiondate desc limit 1 )",
-            getSqlEnrollment("V{execution_date}" ) );
+        assertEquals(
+            "(select executiondate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date ) order by executiondate desc limit 1 )",
+            getSqlEnrollment( "V{execution_date}" ) );
     }
 
     @Test
     public void testEventDate()
     {
-        assertEquals("executiondate",
-            getSql("V{event_date}" ) );
+        assertEquals( "executiondate",
+            getSql( "V{event_date}" ) );
 
-        assertEquals("(select executiondate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date ) order by executiondate desc limit 1 )",
-            getSqlEnrollment("V{event_date}" ) );
+        assertEquals(
+            "(select executiondate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date ) order by executiondate desc limit 1 )",
+            getSqlEnrollment( "V{event_date}" ) );
     }
 
     @Test
     public void testIncidentDate()
     {
-        assertEquals("incidentdate",
-            getSql("V{incident_date}" ) );
+        assertEquals( "incidentdate",
+            getSql( "V{incident_date}" ) );
 
-        assertEquals("incidentdate",
-            getSqlEnrollment("V{incident_date}" ) );
+        assertEquals( "incidentdate",
+            getSqlEnrollment( "V{incident_date}" ) );
     }
 
     @Test
     public void testOrgUnitCount()
     {
-        assertEquals("distinct ou",
-            getSql("V{org_unit_count}" ) );
+        assertEquals( "distinct ou",
+            getSql( "V{org_unit_count}" ) );
 
-        assertEquals("distinct ou",
-            getSqlEnrollment("V{org_unit_count}" ) );
+        assertEquals( "distinct ou",
+            getSqlEnrollment( "V{org_unit_count}" ) );
     }
 
     @Test
     public void testProgramStageId()
     {
-        assertEquals("ps",
-            getSql("V{program_stage_id}" ) );
+        assertEquals( "ps",
+            getSql( "V{program_stage_id}" ) );
 
-        assertEquals("''",
-            getSqlEnrollment("V{program_stage_id}" ) );
+        assertEquals( "''",
+            getSqlEnrollment( "V{program_stage_id}" ) );
     }
 
     @Test
     public void testProgramStageName()
     {
-        assertEquals("(select name from programstage where uid = ps)",
-            getSql("V{program_stage_name}" ) );
+        assertEquals( "(select name from programstage where uid = ps)",
+            getSql( "V{program_stage_name}" ) );
 
-        assertEquals("''",
-            getSqlEnrollment("V{program_stage_name}" ) );
+        assertEquals( "''",
+            getSqlEnrollment( "V{program_stage_name}" ) );
     }
 
     @Test
     public void testSyncDate()
     {
-        assertEquals("lastupdated",
-            getSql("V{sync_date}" ) );
+        assertEquals( "lastupdated",
+            getSql( "V{sync_date}" ) );
 
-        assertEquals("lastupdated",
-            getSqlEnrollment("V{sync_date}" ) );
+        assertEquals( "lastupdated",
+            getSqlEnrollment( "V{sync_date}" ) );
     }
 
     @Test
     public void testTeiCount()
     {
-        assertEquals("distinct tei",
-            getSql("V{tei_count}" ) );
+        assertEquals( "distinct tei",
+            getSql( "V{tei_count}" ) );
 
-        assertEquals("distinct tei",
-            getSqlEnrollment("V{tei_count}" ) );
+        assertEquals( "distinct tei",
+            getSqlEnrollment( "V{tei_count}" ) );
     }
 
     @Test
     public void testValueCount()
     {
-        assertEquals("nullif(cast(() as double),0)",
-            getSql("V{value_count}" ) );
+        assertEquals( "nullif(cast(() as double),0)",
+            getSql( "V{value_count}" ) );
 
-        assertEquals("nullif(cast(() as double),0)",
-            getSqlEnrollment("V{value_count}" ) );
+        assertEquals( "nullif(cast(() as double),0)",
+            getSqlEnrollment( "V{value_count}" ) );
     }
 
     @Test
     public void testZeroPosValueCount()
     {
-        assertEquals("nullif(cast(() as double),0)",
-            getSql("V{zero_pos_value_count}" ) );
+        assertEquals( "nullif(cast(() as double),0)",
+            getSql( "V{zero_pos_value_count}" ) );
 
-        assertEquals("nullif(cast(() as double),0)",
-            getSqlEnrollment("V{zero_pos_value_count}" ) );
+        assertEquals( "nullif(cast(() as double),0)",
+            getSqlEnrollment( "V{zero_pos_value_count}" ) );
     }
 }

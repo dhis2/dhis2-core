@@ -1,5 +1,3 @@
-package org.hisp.dhis.system.database;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,18 @@ package org.hisp.dhis.system.database;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.database;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -36,13 +44,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -179,8 +180,8 @@ public class HibernateDatabaseInfoProvider
     }
 
     /**
-     * Attempts to create a spatial database extension. Checks if spatial operations
-     * are supported.
+     * Attempts to create a spatial database extension. Checks if spatial
+     * operations are supported.
      */
     private boolean isSpatialSupport()
     {

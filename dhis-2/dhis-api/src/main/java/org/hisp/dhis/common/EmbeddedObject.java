@@ -1,5 +1,3 @@
-package org.hisp.dhis.common;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 /**
  * Marker interface for marking an object to not be treated as a id object (even
@@ -34,8 +33,8 @@ package org.hisp.dhis.common;
  * normal metadata (no refs etc) but instead need to be contained in the entity
  * that owns it.
  * <p>
- * Embedded objects should also always be implemented as cascade="delete-all-orphan"
- * if they are to be persisted.
+ * Embedded objects should also always be implemented as
+ * cascade="delete-all-orphan" if they are to be persisted.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

@@ -1,5 +1,3 @@
-package org.hisp.dhis.parser.expression.literal;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,12 +25,13 @@ package org.hisp.dhis.parser.expression.literal;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.antlr.AntlrExprLiteral;
-import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
+package org.hisp.dhis.parser.expression.literal;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.BooleanLiteralContext;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.StringLiteralContext;
+
+import org.hisp.dhis.antlr.AntlrExprLiteral;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 /**
  * Gets literal values from an ANTLR parse tree to regenerate the expression.

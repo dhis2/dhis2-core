@@ -1,5 +1,3 @@
-package org.hisp.dhis.category;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,12 +25,12 @@ package org.hisp.dhis.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.category;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -47,9 +45,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.TranslationProperty;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Abyot Asalefew
@@ -78,11 +78,6 @@ public class CategoryOption
      * The name to appear in forms.
      */
     private String formName;
-
-    /**
-     * The i18n variant of the display name. Should not be persisted.
-     */
-    protected transient String displayFormName;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -171,8 +166,8 @@ public class CategoryOption
     }
 
     /**
-     * Gets an adjusted end date, adjusted if this data set has
-     * open periods after the end date.
+     * Gets an adjusted end date, adjusted if this data set has open periods
+     * after the end date.
      *
      * @param dataSet the data set to adjust for
      * @return the adjusted end date
@@ -188,9 +183,9 @@ public class CategoryOption
     }
 
     /**
-     * Gets an adjusted end date, adjusted if a data element belongs
-     * to any data sets that have open periods after the end date.
-     * If so, it chooses the latest end date.
+     * Gets an adjusted end date, adjusted if a data element belongs to any data
+     * sets that have open periods after the end date. If so, it chooses the
+     * latest end date.
      *
      * @param dataElement the data element to adjust for
      * @return the adjusted end date
@@ -218,8 +213,8 @@ public class CategoryOption
     }
 
     /**
-     * Gets an adjusted end date for a data set or, if that is not present,
-     * a data element.
+     * Gets an adjusted end date for a data set or, if that is not present, a
+     * data element.
      *
      * @param dataSet the data set to adjust for
      * @param dataElement the data element to adjust for
@@ -230,6 +225,14 @@ public class CategoryOption
         return dataSet != null
             ? getAdjustedEndDate( dataSet )
             : getAdjustedEndDate( dataElement );
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayFormName()
+    {
+        return getTranslation( TranslationProperty.FORM_NAME, getFormNameFallback() );
     }
 
     // -------------------------------------------------------------------------
@@ -270,6 +273,7 @@ public class CategoryOption
         this.endDate = endDate;
     }
 
+    @Override
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0 )
@@ -279,6 +283,7 @@ public class CategoryOption
         return organisationUnits;
     }
 
+    @Override
     public void setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
     {
         this.organisationUnits = organisationUnits;
@@ -338,6 +343,7 @@ public class CategoryOption
         this.style = style;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @PropertyRange( min = 2 )
@@ -346,6 +352,7 @@ public class CategoryOption
         return formName;
     }
 
+    @Override
     public void setFormName( String formName )
     {
         this.formName = formName;
@@ -354,21 +361,9 @@ public class CategoryOption
     /**
      * Returns the form name, or the name if it does not exist.
      */
+    @Override
     public String getFormNameFallback()
     {
         return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDisplayFormName()
-    {
-        displayFormName = getTranslation( TranslationProperty.FORM_NAME, displayFormName );
-        return displayFormName != null ? displayFormName : getFormNameFallback();
-    }
-
-    public void setDisplayFormName( String displayFormName )
-    {
-        this.displayFormName = displayFormName;
     }
 }

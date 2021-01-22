@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.programrule.implementers;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,14 @@ package org.hisp.dhis.tracker.programrule.implementers;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.programrule.implementers;
 
-import com.google.api.client.util.Lists;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.rules.models.*;
@@ -38,14 +42,11 @@ import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import com.google.api.client.util.Lists;
 
 /**
- * This implementer check if there are errors or warnings the {@link TrackerBundle}
+ * This implementer check if there are errors or warnings the
+ * {@link TrackerBundle}
  *
  * @Author Enrico Colasante
  */

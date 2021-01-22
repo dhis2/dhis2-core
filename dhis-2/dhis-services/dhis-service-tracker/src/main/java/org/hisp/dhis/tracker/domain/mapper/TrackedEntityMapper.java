@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.domain.mapper;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.domain.mapper;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.domain.mapper;
 
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -37,7 +36,8 @@ import org.mapstruct.Mapping;
     RelationshipMapper.class,
     AttributeMapper.class,
     EnrollmentMapper.class,
-    ProgramOwnerMapper.class } )
+    ProgramOwnerMapper.class,
+    InstantMapper.class } )
 public interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance, TrackedEntity>
 {
     @Mapping( target = "uid", source = "trackedEntityInstance" )

@@ -1,5 +1,3 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
 
 import java.util.List;
 import java.util.Map;
@@ -38,6 +37,7 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.rules.DataItem;
 import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 /**
  * RuleEngine has its own domain model. This service is responsible for
@@ -87,10 +87,13 @@ public interface ProgramRuleEntityMapperService
     /**
      * @return A mapped RuleEnrollment for DHIS enrollment i.e ProgramInstance.
      */
-    RuleEnrollment toMappedRuleEnrollment( ProgramInstance programInstance );
+    RuleEnrollment toMappedRuleEnrollment( ProgramInstance programInstance,
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues );
 
     /**
-     * Fetch display name for {@link ProgramRuleVariable}, {@link org.hisp.dhis.constant.Constant}
+     * Fetch display name for {@link ProgramRuleVariable},
+     * {@link org.hisp.dhis.constant.Constant}
+     *
      * @return map containing item description
      */
     Map<String, DataItem> getItemStore( List<ProgramRuleVariable> programRuleVariables );

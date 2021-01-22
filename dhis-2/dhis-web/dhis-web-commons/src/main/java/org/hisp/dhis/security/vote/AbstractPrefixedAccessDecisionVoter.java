@@ -1,5 +1,3 @@
-package org.hisp.dhis.security.vote;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,16 +25,17 @@ package org.hisp.dhis.security.vote;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-
+package org.hisp.dhis.security.vote;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: AbstractPrefixedAccessDecisionVoter.java 3160 2007-03-24 20:15:06Z torgeilo $
+ * @version $Id: AbstractPrefixedAccessDecisionVoter.java 3160 2007-03-24
+ *          20:15:06Z torgeilo $
  */
 @Slf4j
 public abstract class AbstractPrefixedAccessDecisionVoter

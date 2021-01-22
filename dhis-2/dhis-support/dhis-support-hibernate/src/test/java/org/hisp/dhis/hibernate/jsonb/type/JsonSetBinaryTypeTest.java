@@ -1,5 +1,3 @@
-package org.hisp.dhis.hibernate.jsonb.type;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,18 +25,19 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.hibernate.jsonb.type;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import org.hamcrest.Matchers;
 import org.hisp.dhis.translation.Translation;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
 
 /**
  * Unit tests for {@link JsonSetBinaryType}.

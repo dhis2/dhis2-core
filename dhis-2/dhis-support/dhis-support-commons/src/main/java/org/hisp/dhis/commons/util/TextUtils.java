@@ -1,5 +1,3 @@
-package org.hisp.dhis.commons.util;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,7 @@ package org.hisp.dhis.commons.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.commons.collection.ListUtils;
-
-import com.google.common.collect.Lists;
+package org.hisp.dhis.commons.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,6 +38,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.commons.collection.ListUtils;
+
+import com.google.common.collect.Lists;
+
 /**
  * Utility class with methods for managing strings.
  *
@@ -52,14 +51,21 @@ import java.util.stream.Collectors;
 public class TextUtils
 {
     public static final TextUtils INSTANCE = new TextUtils();
+
     public static final String EMPTY = "";
+
     public static final String SPACE = " ";
+
     public static final String SEP = "-";
+
     public static final String LN = System.getProperty( "line.separator" );
+
     public static final String SEMICOLON = ";";
 
     private static final Pattern LINK_PATTERN = Pattern.compile( "((http://|https://|www\\.).+?)($|\\n|\\r|\\r\\n| )" );
+
     private static final String DELIMITER = ", ";
+
     private static final String OPTION_SEP = ";";
 
     /**
@@ -77,9 +83,10 @@ public class TextUtils
     }
 
     /**
-     * Substitutes links in the given text with valid HTML mark-up. For instance,
-     * http://dhis2.org is replaced with <a href="http://dhis2.org">http://dhis2.org</a>,
-     * and www.dhis2.org is replaced with <a href="http://dhis2.org">www.dhis2.org</a>.
+     * Substitutes links in the given text with valid HTML mark-up. For
+     * instance, http://dhis2.org is replaced with
+     * <a href="http://dhis2.org">http://dhis2.org</a>, and www.dhis2.org is
+     * replaced with <a href="http://dhis2.org">www.dhis2.org</a>.
      *
      * @param text the text to substitute links for.
      * @return the substituted text.
@@ -145,9 +152,9 @@ public class TextUtils
 
     /**
      * Gets the sub string of the given string. If the beginIndex is larger than
-     * the length of the string, the empty string is returned. If the beginIndex +
-     * the length is larger than the length of the string, the part of the string
-     * following the beginIndex is returned. Method is out-of-range safe.
+     * the length of the string, the empty string is returned. If the beginIndex
+     * + the length is larger than the length of the string, the part of the
+     * string following the beginIndex is returned. Method is out-of-range safe.
      *
      * @param string the string.
      * @param beginIndex the zero-based begin index.
@@ -163,7 +170,7 @@ public class TextUtils
 
         final int endIndex = beginIndex + length;
 
-        if ( beginIndex >= string.length()  )
+        if ( beginIndex >= string.length() )
         {
             return EMPTY;
         }
@@ -230,7 +237,7 @@ public class TextUtils
     {
         string = StringUtils.stripEnd( string, " " );
 
-        return StringUtils.removeEndIgnoreCase( string,  remove );
+        return StringUtils.removeEndIgnoreCase( string, remove );
     }
 
     /**
@@ -249,8 +256,8 @@ public class TextUtils
      *
      * @param value the value to trim.
      * @param length the number of characters to trim.
-     * @return the trimmed value, empty if given value is null or length is higher
-     *         than the value length.
+     * @return the trimmed value, empty if given value is null or length is
+     *         higher than the value length.
      */
     public static String trimEnd( String value, int length )
     {
@@ -304,6 +311,7 @@ public class TextUtils
 
     /**
      * Joins the given elements with a {@code -} character as separator.
+     *
      * @param elements the elements to join.
      * @return the joined string.
      */
@@ -566,9 +574,9 @@ public class TextUtils
     }
 
     /**
-     * Gets the string at the given index of the array produced by splitting
-     * the given string on the given separator. Returns null if the given string
-     * is null or if the given index is out of bounds of the array.
+     * Gets the string at the given index of the array produced by splitting the
+     * given string on the given separator. Returns null if the given string is
+     * null or if the given index is out of bounds of the array.
      *
      * @param string the string to split.
      * @param separator the character to split on.
@@ -648,7 +656,8 @@ public class TextUtils
      * @param occurrences the number of matches to replace.
      * @return the replaced string.
      */
-    public static String replaceFirst( String string, final String regex, final String replacement, final int occurrences )
+    public static String replaceFirst( String string, final String regex, final String replacement,
+        final int occurrences )
     {
         StringBuffer sb = new StringBuffer();
         Matcher matcher = Pattern.compile( regex ).matcher( string );
@@ -664,9 +673,9 @@ public class TextUtils
     }
 
     /**
-     * Replaces all occurrences of the given symbols with the
-     * given replacements in the given string. Note that the replacement
-     * will match the symbol as is, i.e. no regular expression matching.
+     * Replaces all occurrences of the given symbols with the given replacements
+     * in the given string. Note that the replacement will match the symbol as
+     * is, i.e. no regular expression matching.
      *
      * @param string the string to replace.
      * @param symbolReplacementPairs the pairs of symbols and replacements.
@@ -680,7 +689,7 @@ public class TextUtils
 
         for ( int i = 0; i < pairs.size(); i += 2 )
         {
-            String symbol = Pattern.quote( pairs.get(i ) );
+            String symbol = Pattern.quote( pairs.get( i ) );
             String replacement = pairs.get( i + 1 );
 
             replaced = replaced.replaceAll( symbol, replacement );
@@ -742,8 +751,8 @@ public class TextUtils
     }
 
     /**
-     * Returns the given string as a list of lines. Splits the
-     * string on newline characters (UNIX and Windows).
+     * Returns the given string as a list of lines. Splits the string on newline
+     * characters (UNIX and Windows).
      *
      * @param string the string.
      * @return a list of lines.

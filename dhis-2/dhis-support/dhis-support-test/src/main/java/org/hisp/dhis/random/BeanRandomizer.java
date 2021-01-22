@@ -1,5 +1,3 @@
-package org.hisp.dhis.random;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,10 @@ package org.hisp.dhis.random;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.random;
+
+import static io.github.benas.randombeans.EnhancedRandomBuilder.aNewEnhancedRandomBuilder;
+import static io.github.benas.randombeans.FieldDefinitionBuilder.field;
 
 import io.github.benas.randombeans.api.EnhancedRandom;
 import io.github.benas.randombeans.api.Randomizer;
@@ -37,9 +39,6 @@ import org.locationtech.jts.geom.Geometry;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static io.github.benas.randombeans.EnhancedRandomBuilder.aNewEnhancedRandomBuilder;
-import static io.github.benas.randombeans.FieldDefinitionBuilder.field;
 
 /**
  * @author Luciano Fiandesio
@@ -60,10 +59,12 @@ public class BeanRandomizer
     }
 
     /**
-     * Generates an instance of the specified type and fill the instance's properties with random data
-     * @param type The bean type
-     * @param excludedFields a list of fields to exclude from the random population
+     * Generates an instance of the specified type and fill the instance's
+     * properties with random data
      *
+     * @param type           The bean type
+     * @param excludedFields a list of fields to exclude from the random
+     *                       population
      * @return an instance of the specified type
      */
     public <T> T randomObject( final Class<T> type, final String... excludedFields )
@@ -72,11 +73,13 @@ public class BeanRandomizer
     }
 
     /**
-     * Generates multiple instances of the specified type and fills each instance's properties with random data
-     * @param type The bean type
-     * @param amount the amount of beans to generate
-     * @param excludedFields a list of fields to exclude from the random population
+     * Generates multiple instances of the specified type and fills each
+     * instance's properties with random data
      *
+     * @param type           The bean type
+     * @param amount         the amount of beans to generate
+     * @param excludedFields a list of fields to exclude from the random
+     *                       population
      * @return an instance of the specified type
      */
     public <T> List<T> randomObjects( final Class<T> type, int amount, final String... excludedFields )

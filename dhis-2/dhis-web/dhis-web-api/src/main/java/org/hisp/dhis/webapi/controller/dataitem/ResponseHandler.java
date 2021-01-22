@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller.dataitem;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,20 @@ package org.hisp.dhis.webapi.controller.dataitem;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.dataitem;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.join;
+import static java.util.Collections.emptyList;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
+import static org.hisp.dhis.node.NodeUtils.createPager;
+import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.API_RESOURCE_PATH;
+
+import java.util.List;
+
+import javax.annotation.PostConstruct;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -45,22 +57,10 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.lang.String.join;
-import static java.util.Collections.emptyList;
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
-import static org.hisp.dhis.node.NodeUtils.createPager;
-import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.API_RESOURCE_PATH;
-
 /**
  * This class is responsible for handling the result and pagination nodes. This
  * component is coupled to the controller class, where it's being used.
- * 
+ *
  * It also keeps an internal cache which's used to speed up the pagination
  * process.
  *
@@ -102,7 +102,8 @@ class ResponseHandler
     }
 
     /**
-     * Appends the given dimensionalItemsFound (the collection of results) and fields to the rootNode.
+     * Appends the given dimensionalItemsFound (the collection of results) and
+     * fields to the rootNode.
      *
      * @param rootNode the main response root node
      * @param dimensionalItemsFound the collection of results
@@ -112,7 +113,7 @@ class ResponseHandler
         final List<BaseDimensionalItemObject> dimensionalItemsFound, final List<String> fields )
     {
         final CollectionNode collectionNode = fieldFilterService.toCollectionNode( BaseDimensionalItemObject.class,
-                new FieldFilterParams( dimensionalItemsFound, fields ) );
+            new FieldFilterParams( dimensionalItemsFound, fields ) );
         collectionNode.setName( "dataItems" );
         rootNode.addChild( collectionNode );
     }
@@ -121,7 +122,7 @@ class ResponseHandler
      * This method takes care of the pagination link and their respective
      * attributes. It will count the number of results available and base on the
      * WebOptions will calculate the pagination output.
-     * 
+     *
      * @param rootNode the node where the the pagination will be attached to
      * @param targetEntities the list of classes which requires pagination
      * @param currentUser the current logged user
@@ -155,7 +156,8 @@ class ResponseHandler
         }
     }
 
-    private long countEntityRowsTotal( final Class<? extends BaseDimensionalItemObject> entity, final WebOptions options,
+    private long countEntityRowsTotal( final Class<? extends BaseDimensionalItemObject> entity,
+        final WebOptions options,
         final List<String> filters )
     {
         final Query query = queryService.getQueryFromUrl( entity, filters, emptyList(), new Pagination(),

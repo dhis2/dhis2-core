@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.domain;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,22 +25,26 @@ package org.hisp.dhis.tracker.domain;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.locationtech.jts.geom.Geometry;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.common.BaseLinkableObject;
 import org.hisp.dhis.event.EventStatus;
+import org.locationtech.jts.geom.Geometry;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -81,6 +83,9 @@ public class Event
     private String orgUnit;
 
     @JsonProperty
+    private String orgUnitName;
+
+    @JsonProperty
     private String trackedEntity;
 
     @JsonProperty
@@ -88,25 +93,31 @@ public class Event
     private List<Relationship> relationships = new ArrayList<>();
 
     @JsonProperty
-    private String occurredAt;
+    private Instant occurredAt;
 
     @JsonProperty
-    private String scheduledAt;
+    private Instant scheduledAt;
 
     @JsonProperty
     private String storedBy;
 
     @JsonProperty
-    private boolean followUp;
+    private boolean followup;
 
     @JsonProperty
     private boolean deleted;
 
     @JsonProperty
-    private String createdAt;
+    private Instant createdAt;
 
     @JsonProperty
-    private String updatedAt;
+    private Instant createdAtClient;
+
+    @JsonProperty
+    private Instant updatedAt;
+
+    @JsonProperty
+    private Instant updatedAtClient;
 
     @JsonProperty
     private String attributeOptionCombo;
@@ -118,7 +129,7 @@ public class Event
     private String completedBy;
 
     @JsonProperty
-    private String completedAt;
+    private Instant completedAt;
 
     @JsonProperty
     private Geometry geometry;

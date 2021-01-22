@@ -1,5 +1,3 @@
-package org.hisp.dhis.validation;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,12 @@ package org.hisp.dhis.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.validation;
+
+import java.util.List;
 
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-import java.util.List;
 
 public interface ValidationTask
     extends Runnable

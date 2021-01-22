@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat.supplier;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,13 +25,14 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat.supplier;
 
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 
 /**
  * A PreheatSupplier supplies data to the {@link TrackerPreheat} object
- * 
+ *
  * @author Luciano Fiandesio
  */
 public interface PreheatSupplier
@@ -41,7 +40,7 @@ public interface PreheatSupplier
     /**
      * Adds data to the {@link TrackerPreheat} using the supplied
      * {@link TrackerImportParams}
-     * 
+     *
      * @param params {@link TrackerImportParams}
      * @param preheat {@link TrackerPreheat}
      */

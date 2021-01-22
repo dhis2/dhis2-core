@@ -1,5 +1,3 @@
-package org.hisp.dhis.program;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,15 +25,16 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
 
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Zubair Asghar
@@ -47,7 +46,8 @@ public class ProgramNotificationInstanceDeletionHandler
 {
     private final ProgramNotificationInstanceService programNotificationInstanceService;
 
-    public ProgramNotificationInstanceDeletionHandler( ProgramNotificationInstanceService programNotificationInstanceService )
+    public ProgramNotificationInstanceDeletionHandler(
+        ProgramNotificationInstanceService programNotificationInstanceService )
     {
         checkNotNull( programNotificationInstanceService );
 
@@ -63,8 +63,8 @@ public class ProgramNotificationInstanceDeletionHandler
     @Override
     public void deleteProgramInstance( ProgramInstance programInstance )
     {
-        List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceService.
-            getProgramNotificationInstances( programInstance );
+        List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceService
+            .getProgramNotificationInstances( programInstance );
 
         notificationInstances.forEach( programNotificationInstanceService::delete );
     }
@@ -72,8 +72,8 @@ public class ProgramNotificationInstanceDeletionHandler
     @Override
     public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
-        List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceService.
-            getProgramNotificationInstances( programStageInstance );
+        List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceService
+            .getProgramNotificationInstances( programStageInstance );
 
         notificationInstances.forEach( programNotificationInstanceService::delete );
     }

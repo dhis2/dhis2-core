@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller.tracker;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.tracker;
 
 import static org.hisp.dhis.tracker.AtomicMode.ALL;
 import static org.hisp.dhis.tracker.FlushMode.AUTO;
@@ -49,6 +48,8 @@ import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder
 import java.util.List;
 import java.util.Map;
 
+import lombok.Getter;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
@@ -63,8 +64,6 @@ import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 
 import com.google.common.base.Enums;
-
-import lombok.Getter;
 
 /**
  * @author Luciano Fiandesio
@@ -84,7 +83,8 @@ public class TrackerImportParamsBuilder
             .validationMode( getEnumWithDefault( ValidationMode.class, parameters, VALIDATION_MODE_KEY, FULL ) )
             .importMode( getEnumWithDefault( TrackerBundleMode.class, parameters, IMPORT_MODE_KEY, COMMIT ) )
             .identifiers( getTrackerIdentifiers( parameters ) )
-            .importStrategy( getEnumWithDefault( TrackerImportStrategy.class, parameters, IMPORT_STRATEGY_KEY, CREATE_AND_UPDATE ) )
+            .importStrategy(
+                getEnumWithDefault( TrackerImportStrategy.class, parameters, IMPORT_STRATEGY_KEY, CREATE_AND_UPDATE ) )
             .atomicMode( getEnumWithDefault( AtomicMode.class, parameters, ATOMIC_MODE_KEY, ALL ) )
             .flushMode( getEnumWithDefault( FlushMode.class, parameters, FLUSH_MODE_KEY, AUTO ) )
             .skipRuleEngine( getBooleanValueOrDefault( parameters, SKIP_RULE_ENGINE_KEY ) );
@@ -93,12 +93,14 @@ public class TrackerImportParamsBuilder
     private static <T extends Enum<T>> T getEnumWithDefault( Class<T> enumKlass, Map<String, List<String>> parameters,
         TrackerImportParamKey trackerImportParamKey, T defaultValue )
     {
-        if ( parameters == null || parameters.get( trackerImportParamKey.getKey() ) == null || parameters.get( trackerImportParamKey.getKey() ).isEmpty() )
+        if ( parameters == null || parameters.get( trackerImportParamKey.getKey() ) == null
+            || parameters.get( trackerImportParamKey.getKey() ).isEmpty() )
         {
             return defaultValue;
         }
 
-        if ( TrackerIdScheme.class.equals( enumKlass ) && IdScheme.isAttribute( parameters.get( trackerImportParamKey.getKey() ).get( 0 ) ) )
+        if ( TrackerIdScheme.class.equals( enumKlass )
+            && IdScheme.isAttribute( parameters.get( trackerImportParamKey.getKey() ).get( 0 ) ) )
         {
             return Enums.getIfPresent( enumKlass, "ATTRIBUTE" ).orNull();
         }
@@ -122,9 +124,10 @@ public class TrackerImportParamsBuilder
     }
 
     private static Boolean getBooleanValueOrDefault( Map<String, List<String>> parameters,
-                                                     TrackerImportParamKey trackerImportParamKey )
+        TrackerImportParamKey trackerImportParamKey )
     {
-        if ( parameters == null || parameters.get( trackerImportParamKey.getKey() ) == null || parameters.get( trackerImportParamKey.getKey() ).isEmpty() )
+        if ( parameters == null || parameters.get( trackerImportParamKey.getKey() ) == null
+            || parameters.get( trackerImportParamKey.getKey() ).isEmpty() )
         {
             return false;
         }
@@ -133,7 +136,7 @@ public class TrackerImportParamsBuilder
     }
 
     private static String getAttributeUidOrNull( Map<String, List<String>> parameters,
-                                                 TrackerImportParamKey trackerImportParamKey )
+        TrackerImportParamKey trackerImportParamKey )
     {
         if ( parameters == null || parameters.get( trackerImportParamKey.getKey() ) == null
             || parameters.get( trackerImportParamKey.getKey() ).isEmpty() )
@@ -163,8 +166,8 @@ public class TrackerImportParamsBuilder
     }
 
     private static TrackerIdentifier bySchemeAndKey( Map<String, List<String>> parameters,
-                                                     TrackerImportParamKey trackerImportParameterKey,
-                                                     TrackerIdScheme defaultIdScheme )
+        TrackerImportParamKey trackerImportParameterKey,
+        TrackerIdScheme defaultIdScheme )
     {
 
         TrackerIdScheme trackerIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters,
