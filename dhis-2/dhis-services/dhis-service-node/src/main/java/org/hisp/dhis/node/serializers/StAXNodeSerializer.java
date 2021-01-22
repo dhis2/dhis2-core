@@ -78,6 +78,8 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
 
     private XMLStreamWriter writer;
 
+    private ToXmlGenerator generator;
+
     @Override
     public List<String> contentTypes()
     {
@@ -89,6 +91,8 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
         throws Exception
     {
         writer = xmlFactory.createXMLStreamWriter( outputStream );
+        generator = (new XmlFactory()).createGenerator( writer );
+        generator.setCodec( new XmlMapper() );
         writer.setDefaultNamespace( rootNode.getDefaultNamespace() );
     }
 
@@ -96,6 +100,7 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     protected void flushStream()
         throws Exception
     {
+        generator.flush();
         writer.flush();
     }
 
@@ -125,16 +130,7 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     protected void startWriteSimpleNode( SimpleNode simpleNode )
         throws Exception
     {
-        String value = null;
-
-        if ( simpleNode.getValue() != null && Date.class.isAssignableFrom( simpleNode.getValue().getClass() ) )
-        {
-            value = DateUtils.getIso8601NoTz( (Date) simpleNode.getValue() );
-        }
-        else
-        {
-            value = String.valueOf( simpleNode.getValue() );
-        }
+        final String value = getValue( simpleNode );
 
         if ( simpleNode.isAttribute() )
         {
@@ -152,27 +148,31 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
                 writer.writeAttribute( simpleNode.getName(), value );
             }
         }
+        else if ( isJsonSubTypeClass( simpleNode ) )
+        {
+            writeSubtypedClass( simpleNode );
+        }
+        else if ( getCustomSerializer( simpleNode ) != null )
+        {
+            writeStartElement( simpleNode );
+            writeWithCustomSerializer( getCustomSerializer( simpleNode ), simpleNode );
+        }
+        else if ( value != null )
+        {
+            writeStartElement( simpleNode );
+            writer.writeCharacters( value );
+        }
+    }
+
+    private String getValue( SimpleNode simpleNode )
+    {
+        if ( simpleNode.getValue() != null && Date.class.isAssignableFrom( simpleNode.getValue().getClass() ) )
+        {
+            return DateUtils.getIso8601NoTz( (Date) simpleNode.getValue() );
+        }
         else
         {
-            if ( isJsonSubTypeClass( simpleNode ) )
-            {
-                writeSubtypedClass( simpleNode );
-                return;
-            }
-
-            writeStartElement( simpleNode );
-
-            JsonSerializer jsonSerializer = getSerializer( simpleNode );
-            if ( jsonSerializer != null )
-            {
-                handledCustomSerializer( jsonSerializer, simpleNode, writer );
-                return;
-            }
-
-            if ( value != null )
-            {
-                writer.writeCharacters( value );
-            }
+            return String.valueOf( simpleNode.getValue() );
         }
     }
 
@@ -182,15 +182,12 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     {
         // Don't write end element if it's a json subtype class,
         // we already wrote the end tag in the #writeSubtypedClass method
-        if ( isJsonSubTypeClass( simpleNode ) )
+        if ( simpleNode.isAttribute() || isJsonSubTypeClass( simpleNode ) )
         {
             return;
         }
 
-        if ( !simpleNode.isAttribute() )
-        {
-            writer.writeEndElement();
-        }
+        writer.writeEndElement();
     }
 
     @Override
@@ -245,16 +242,8 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
         }
     }
 
-    /**
-     * @param simpleNode the {@link SimpleNode}.
-     * @param writer     the {@link XMLStreamWriter}.
-     * @return true if given simpleNode has been serialized using custom JsonSerializer
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @throws IOException
-     */
-    private void handledCustomSerializer( JsonSerializer jsonSerializer, SimpleNode simpleNode, XMLStreamWriter writer )
-        throws IOException
+    private void writeWithCustomSerializer( JsonSerializer jsonSerializer, SimpleNode simpleNode)
+        throws IOException, XMLStreamException
     {
         checkNotNull( jsonSerializer );
         checkNotNull( simpleNode );
@@ -265,13 +254,10 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
             return;
         }
 
-        try (ToXmlGenerator generator = (new XmlFactory()).createGenerator( writer ))
-        {
-            jsonSerializer.serialize( simpleNode.getValue(), generator, null );
-        }
+        jsonSerializer.serialize( simpleNode.getValue(), generator, null );
     }
 
-    private JsonSerializer getSerializer( SimpleNode simpleNode )
+    private JsonSerializer getCustomSerializer( SimpleNode simpleNode )
     {
         checkNotNull( simpleNode );
 
@@ -290,7 +276,7 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
                     .getDeclaredConstructor( null ).newInstance( null );
             }
             catch ( NoSuchMethodException | IllegalAccessException
-                | InvocationTargetException | InstantiationException e)
+                | InvocationTargetException | InstantiationException e )
             {
                 log.warn( "Failed to get constructor from class with " +
                     "@JsonSerialize annotation during serialization!", e );
@@ -302,6 +288,8 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
 
     private boolean isJsonSubTypeClass( SimpleNode simpleNode )
     {
+        checkNotNull( simpleNode );
+
         if ( simpleNode.getValue() == null )
         {
             return false;
@@ -315,11 +303,9 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     private void writeSubtypedClass( SimpleNode simpleNode )
         throws IOException
     {
-        try (ToXmlGenerator generator = (new XmlFactory()).createGenerator( writer ))
-        {
-            generator.setCodec( new XmlMapper() );
-            generator.writeObject( simpleNode.getValue() );
-        }
+        checkNotNull( simpleNode );
+
+        generator.writeObject( simpleNode.getValue() );
     }
 }
 
