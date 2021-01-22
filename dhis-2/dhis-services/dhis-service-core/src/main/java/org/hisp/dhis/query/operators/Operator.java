@@ -74,6 +74,7 @@ public abstract class Operator<T extends Comparable<? super T>>
         this.collectionArgs.add( collectionArg );
     }
 
+    @SafeVarargs
     public Operator( String name, Typed typed, Collection<T>... collectionArgs )
     {
         this( name, typed );
@@ -89,6 +90,7 @@ public abstract class Operator<T extends Comparable<? super T>>
         validate();
     }
 
+    @SafeVarargs
     public Operator( String name, Typed typed, T... args )
     {
         this( name, typed );
