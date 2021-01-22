@@ -161,6 +161,7 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
             }
 
             writeStartElement( simpleNode );
+
             JsonSerializer jsonSerializer = getSerializer( simpleNode );
             if ( jsonSerializer != null )
             {
