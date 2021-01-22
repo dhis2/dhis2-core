@@ -805,8 +805,6 @@ CREATE TABLE dashboard (
     name character varying(230) NOT NULL,
     description text,
     userid integer,
-    filterdimensionsarerestricted boolean,
-    allowedfilterdimensions jsonb,
     externalaccess boolean,
     publicaccess character varying(8),
     favorites jsonb

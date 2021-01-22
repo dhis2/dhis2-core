@@ -39,6 +39,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -56,12 +57,12 @@ public class Dashboard
     /**
      * Whether we restrict the filter dimensions the user may select.
      */
-    private Boolean filterDimensionsAreRestricted;
+    private Boolean filterDimensionsAreRestricted = false;
 
     /**
      * Allowed filter dimensions (if any) the user may select.
      */
-    private Set<String> allowedFilterDimensions;
+    private Set<String> allowedFilterDimensions = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
