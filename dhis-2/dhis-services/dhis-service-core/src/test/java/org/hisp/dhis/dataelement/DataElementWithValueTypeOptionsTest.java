@@ -112,14 +112,14 @@ public class DataElementWithValueTypeOptionsTest extends DhisSpringTest
     {
         DataElement dataElementA = createDataElementWithFileValueTypeOptions( 'A', 100L );
         String xml = xmlMapper.writeValueAsString( dataElementA );
-        assertNotNull(xml);
+        assertNotNull( xml );
 
         dataElementStore.save( dataElementA );
         long idA = dataElementA.getId();
         DataElement fetchedObject = dataElementStore.get( idA );
 
         String xmlB = xmlMapper.writeValueAsString( fetchedObject );
-        assertNotNull(xmlB);
+        assertNotNull( xmlB );
         log.info( xmlB );
     }
 }

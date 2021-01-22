@@ -28,12 +28,13 @@ package org.hisp.dhis.node.serializers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.XmlFactory;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
 import com.google.common.collect.Lists;
-import org.hisp.dhis.common.ValueTypeOptionSerializer;
 import org.hisp.dhis.node.AbstractNodeSerializer;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.types.CollectionNode;
@@ -81,20 +82,23 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void startSerialize( RootNode rootNode, OutputStream outputStream ) throws Exception
+    protected void startSerialize( RootNode rootNode, OutputStream outputStream )
+        throws Exception
     {
         writer = xmlFactory.createXMLStreamWriter( outputStream );
         writer.setDefaultNamespace( rootNode.getDefaultNamespace() );
     }
 
     @Override
-    protected void flushStream() throws Exception
+    protected void flushStream()
+        throws Exception
     {
         writer.flush();
     }
 
     @Override
-    protected void startWriteRootNode( RootNode rootNode ) throws Exception
+    protected void startWriteRootNode( RootNode rootNode )
+        throws Exception
     {
         writer.writeStartDocument( "UTF-8", "1.0" );
 
@@ -107,14 +111,16 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void endWriteRootNode( RootNode rootNode ) throws Exception
+    protected void endWriteRootNode( RootNode rootNode )
+        throws Exception
     {
         writer.writeEndElement();
         writer.writeEndDocument();
     }
 
     @Override
-    protected void startWriteSimpleNode( SimpleNode simpleNode ) throws Exception
+    protected void startWriteSimpleNode( SimpleNode simpleNode )
+        throws Exception
     {
         String value = null;
 
@@ -145,21 +151,19 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
         }
         else
         {
-            JsonSerializer jsonSerializer = getSerializer( simpleNode );
-            if ( jsonSerializer != null )
+            if ( isJsonSubTypeClass( simpleNode ) )
             {
-                if ( jsonSerializer instanceof ValueTypeOptionSerializer )
-                {
-                    handledCustomSerializer( jsonSerializer, simpleNode, writer );
-                }else{
-                    writeStartElement( simpleNode );
-                    handledCustomSerializer( jsonSerializer, simpleNode, writer );
-                }
-
+                writeSubtypedClass( simpleNode );
                 return;
             }
 
             writeStartElement( simpleNode );
+            JsonSerializer jsonSerializer = getSerializer( simpleNode );
+            if ( jsonSerializer != null )
+            {
+                handledCustomSerializer( jsonSerializer, simpleNode, writer );
+                return;
+            }
 
             if ( value != null )
             {
@@ -172,14 +176,10 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     protected void endWriteSimpleNode( SimpleNode simpleNode )
         throws Exception
     {
-
-        JsonSerializer jsonSerializer = getSerializer( simpleNode );
-        if ( jsonSerializer != null )
+        // Don't write end element if it's a Json sub typed class, we write the enc tag in #writeSubtypedClass
+        if ( isJsonSubTypeClass( simpleNode ) )
         {
-            if ( jsonSerializer instanceof ValueTypeOptionSerializer )
-            {
-                return;
-            }
+            return;
         }
 
         if ( !simpleNode.isAttribute() )
@@ -189,19 +189,22 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void startWriteComplexNode( ComplexNode complexNode ) throws Exception
+    protected void startWriteComplexNode( ComplexNode complexNode )
+        throws Exception
     {
         writeStartElement( complexNode );
     }
 
     @Override
-    protected void endWriteComplexNode( ComplexNode complexNode ) throws Exception
+    protected void endWriteComplexNode( ComplexNode complexNode )
+        throws Exception
     {
         writer.writeEndElement();
     }
 
     @Override
-    protected void startWriteCollectionNode( CollectionNode collectionNode ) throws Exception
+    protected void startWriteCollectionNode( CollectionNode collectionNode )
+        throws Exception
     {
         if ( collectionNode.isWrapping() && !collectionNode.getChildren().isEmpty() )
         {
@@ -210,7 +213,8 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void endWriteCollectionNode( CollectionNode collectionNode ) throws Exception
+    protected void endWriteCollectionNode( CollectionNode collectionNode )
+        throws Exception
     {
         if ( collectionNode.isWrapping() && !collectionNode.getChildren().isEmpty() )
         {
@@ -276,6 +280,26 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
         return null;
     }
 
+    private boolean isJsonSubTypeClass( SimpleNode simpleNode )
+    {
+        if ( simpleNode.getValue() == null )
+        {
+            return false;
+        }
+
+        Class<?> aClass = simpleNode.getValue().getClass().getSuperclass();
+        JsonSubTypes annotation = aClass.getAnnotation( JsonSubTypes.class );
+        return annotation != null;
+    }
+
+    private void writeSubtypedClass( SimpleNode simpleNode )
+        throws IOException
+    {
+        XmlFactory factory = new XmlFactory();
+        ToXmlGenerator generator = factory.createGenerator( writer );
+        generator.setCodec( new XmlMapper() );
+        generator.writeObject( simpleNode.getValue() );
+    }
 }
 
 
