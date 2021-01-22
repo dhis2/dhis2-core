@@ -1,5 +1,3 @@
-package org.hisp.dhis.analytics.data;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO;
@@ -303,7 +302,8 @@ public class DefaultDataQueryService
         return list;
     }
 
-    // TODO Optimize so that org unit levels + boundary are used in query instead of
+    // TODO Optimize so that org unit levels + boundary are used in query
+    // instead of
     // fetching all org units one by one
 
     @Override
@@ -417,7 +417,8 @@ public class DefaultDataQueryService
                 }
             }
 
-            periods = periods.stream().distinct().collect( Collectors.toList() ); // Remove duplicates
+            periods = periods.stream().distinct().collect( Collectors.toList() ); // Remove
+                                                                                  // duplicates
 
             if ( containsRelativePeriods )
             {
@@ -500,7 +501,8 @@ public class DefaultDataQueryService
                 }
             }
 
-            ous = ous.stream().distinct().collect( Collectors.toList() ); // Remove duplicates
+            ous = ous.stream().distinct().collect( Collectors.toList() ); // Remove
+                                                                          // duplicates
 
             List<DimensionalItemObject> orgUnits = new ArrayList<>();
             List<OrganisationUnit> ousList = asTypedList( ous );
@@ -543,7 +545,8 @@ public class DefaultDataQueryService
                 throwIllegalQueryEx( ErrorCode.E7124, DimensionalObject.ORGUNIT_DIM_ID );
             }
 
-            orgUnits = orgUnits.stream().distinct().collect( Collectors.toList() ); // Remove duplicates
+            orgUnits = orgUnits.stream().distinct().collect( Collectors.toList() ); // Remove
+                                                                                    // duplicates
 
             return new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
                 orgUnits, dimensionalKeywords );

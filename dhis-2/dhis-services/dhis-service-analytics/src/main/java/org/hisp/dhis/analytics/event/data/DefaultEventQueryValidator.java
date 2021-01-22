@@ -1,5 +1,3 @@
-package org.hisp.dhis.analytics.event.data;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,14 @@ package org.hisp.dhis.analytics.event.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -45,8 +46,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component( "org.hisp.dhis.analytics.event.EventQueryValidator" )
@@ -72,7 +71,8 @@ public class DefaultEventQueryValidator
 
     @Override
     public void validate( EventQueryParams params )
-        throws IllegalQueryException, MaintenanceModeException
+        throws IllegalQueryException,
+        MaintenanceModeException
     {
         queryValidator.validateMaintenanceMode();
 
@@ -113,17 +113,19 @@ public class DefaultEventQueryValidator
         {
             error = new ErrorMessage( ErrorCode.E7203 );
         }
-        else if ( params.hasAggregationType() && !( params.hasValueDimension() || params.isAggregateData() ) )
+        else if ( params.hasAggregationType() && !(params.hasValueDimension() || params.isAggregateData()) )
         {
             error = new ErrorMessage( ErrorCode.E7204 );
         }
-        else if ( !params.hasPeriods() && ( params.getStartDate() == null || params.getEndDate() == null ) )
+        else if ( !params.hasPeriods() && (params.getStartDate() == null || params.getEndDate() == null) )
         {
             error = new ErrorMessage( ErrorCode.E7205 );
         }
-        else if ( params.getStartDate() != null && params.getEndDate() != null && params.getStartDate().after( params.getEndDate() ) )
+        else if ( params.getStartDate() != null && params.getEndDate() != null
+            && params.getStartDate().after( params.getEndDate() ) )
         {
-            error = new ErrorMessage( ErrorCode.E7206, getMediumDateString( params.getStartDate() ), getMediumDateString( params.getEndDate() ) );
+            error = new ErrorMessage( ErrorCode.E7206, getMediumDateString( params.getStartDate() ),
+                getMediumDateString( params.getEndDate() ) );
         }
         else if ( params.getPage() != null && params.getPage() <= 0 )
         {
@@ -153,9 +155,10 @@ public class DefaultEventQueryValidator
         {
             error = new ErrorMessage( ErrorCode.E7213, params.getBbox() );
         }
-        else if ( ( params.hasBbox() || params.hasClusterSize() ) && params.getCoordinateField() == null )
+        else if ( (params.hasBbox() || params.hasClusterSize()) && params.getCoordinateField() == null )
         {
-            error = new ErrorMessage( ErrorCode.E7214 );;
+            error = new ErrorMessage( ErrorCode.E7214 );
+            ;
         }
 
         for ( QueryItem item : params.getItemsAndItemFilters() )

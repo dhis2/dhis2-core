@@ -1,5 +1,3 @@
-package org.hisp.dhis.validation;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.validation;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -226,8 +225,8 @@ public class ValidationResultServiceTest
     }
 
     /**
-     * this is simply a convention in the tests that if a collection of values is
-     * tested the last one is the faulty one
+     * this is simply a convention in the tests that if a collection of values
+     * is tested the last one is the faulty one
      */
     private <T> String getFaultyValue( T value )
     {

@@ -1,5 +1,3 @@
-package org.hisp.dhis.trackedentity.hibernate;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.trackedentity.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentity.hibernate;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -76,7 +75,8 @@ public class HibernateTrackedEntityAttributeStore
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
         AclService aclService, StatementBuilder statementBuilder )
     {
-        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityAttribute.class, currentUserService, aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityAttribute.class, currentUserService, aclService,
+            true );
         this.statementBuilder = statementBuilder;
     }
 
@@ -103,7 +103,8 @@ public class HibernateTrackedEntityAttributeStore
     }
 
     @Override
-    public Optional<String> getTrackedEntityInstanceUidWithUniqueAttributeValue( TrackedEntityInstanceQueryParams params )
+    public Optional<String> getTrackedEntityInstanceUidWithUniqueAttributeValue(
+        TrackedEntityInstanceQueryParams params )
     {
         // ---------------------------------------------------------------------
         // Select clause
@@ -127,7 +128,8 @@ public class HibernateTrackedEntityAttributeStore
         {
             for ( QueryFilter filter : item.getFilters() )
             {
-                final String encodedFilter = filter.getSqlFilter( statementBuilder.encode( StringUtils.lowerCase( filter.getFilter() ), false ) );
+                final String encodedFilter = filter
+                    .getSqlFilter( statementBuilder.encode( StringUtils.lowerCase( filter.getFilter() ), false ) );
 
                 hql += hlp.whereAnd() + " exists (from TrackedEntityAttributeValue teav where teav.entityInstance=tei";
                 hql += " and teav.attribute.uid='" + item.getItemId() + "'";
@@ -155,19 +157,18 @@ public class HibernateTrackedEntityAttributeStore
 
         if ( it.hasNext() )
         {
-            return Optional.of( it.next());
+            return Optional.of( it.next() );
         }
 
         return Optional.empty();
     }
 
-
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
     public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes()
     {
         Query query = sessionFactory.getCurrentSession()
-                .createQuery( "select trackedEntityTypeAttributes from TrackedEntityType" );
+            .createQuery( "select trackedEntityTypeAttributes from TrackedEntityType" );
 
         Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new HashSet<>( query.list() );
 
@@ -176,9 +177,8 @@ public class HibernateTrackedEntityAttributeStore
             .collect( Collectors.toSet() );
     }
 
-
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
     public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram()
     {
         Map<Program, Set<TrackedEntityAttribute>> result = new HashMap<>();
@@ -191,11 +191,13 @@ public class HibernateTrackedEntityAttributeStore
         {
             if ( !result.containsKey( programTrackedEntityAttribute.getProgram() ) )
             {
-                result.put( programTrackedEntityAttribute.getProgram(), Sets.newHashSet( programTrackedEntityAttribute.getAttribute() ) );
+                result.put( programTrackedEntityAttribute.getProgram(),
+                    Sets.newHashSet( programTrackedEntityAttribute.getAttribute() ) );
             }
             else
             {
-                result.get( programTrackedEntityAttribute.getProgram() ).add( programTrackedEntityAttribute.getAttribute() );
+                result.get( programTrackedEntityAttribute.getProgram() )
+                    .add( programTrackedEntityAttribute.getAttribute() );
             }
         }
         return result;

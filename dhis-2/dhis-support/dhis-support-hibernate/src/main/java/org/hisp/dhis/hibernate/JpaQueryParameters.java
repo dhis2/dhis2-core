@@ -1,5 +1,3 @@
-package org.hisp.dhis.hibernate;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,17 +25,19 @@ package org.hisp.dhis.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.hibernate;
 
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -47,9 +47,9 @@ public class JpaQueryParameters<T> implements Serializable
     private static final long serialVersionUID = 1L;
 
     // pagination
-    private int maxResults ;
+    private int maxResults;
 
-    private int firstResult ;
+    private int firstResult;
 
     private int pageSize;
 
@@ -68,7 +68,7 @@ public class JpaQueryParameters<T> implements Serializable
 
     private List<Function<Root<T>, Expression<Long>>> countExpressions = new ArrayList<>();
 
-    private Map<String,Object> queryParameters = new HashMap<>();
+    private Map<String, Object> queryParameters = new HashMap<>();
 
     protected Class<?> clazz;
 
@@ -110,14 +110,14 @@ public class JpaQueryParameters<T> implements Serializable
 
     public boolean hasFirstResult()
     {
-        return firstResult > -1 ;
+        return firstResult > -1;
     }
 
     public boolean hasMaxResult()
     {
         return maxResults > -1;
     }
-    
+
     public boolean isCacheable( boolean defaultValue )
     {
         return cacheable != null ? cacheable : defaultValue;

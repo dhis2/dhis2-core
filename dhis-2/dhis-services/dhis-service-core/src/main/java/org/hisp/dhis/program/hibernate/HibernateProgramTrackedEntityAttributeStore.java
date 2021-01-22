@@ -1,5 +1,3 @@
-package org.hisp.dhis.program.hibernate;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,9 @@ package org.hisp.dhis.program.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.hibernate;
+
+import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -44,15 +45,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 /**
  * @author Lars Helge Overland
  */
 @Repository( "org.hisp.dhis.program.ProgramTrackedEntityAttributeStore" )
 public class HibernateProgramTrackedEntityAttributeStore
     extends HibernateIdentifiableObjectStore<ProgramTrackedEntityAttribute>
-        implements ProgramTrackedEntityAttributeStore
+    implements ProgramTrackedEntityAttributeStore
 {
     public HibernateProgramTrackedEntityAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
@@ -62,7 +61,7 @@ public class HibernateProgramTrackedEntityAttributeStore
     }
 
     @Override
-    public ProgramTrackedEntityAttribute get(Program program, TrackedEntityAttribute attribute )
+    public ProgramTrackedEntityAttribute get( Program program, TrackedEntityAttribute attribute )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 

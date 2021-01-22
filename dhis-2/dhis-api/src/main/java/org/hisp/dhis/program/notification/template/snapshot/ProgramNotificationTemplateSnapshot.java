@@ -1,5 +1,3 @@
-package org.hisp.dhis.program.notification.template.snapshot;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,18 +25,19 @@ package org.hisp.dhis.program.notification.template.snapshot;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.notification.template.snapshot;
 
 import java.util.Set;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 @Data
-@EqualsAndHashCode(callSuper=true)
+@EqualsAndHashCode( callSuper = true )
 public class ProgramNotificationTemplateSnapshot extends IdentifiableObjectSnapshot
 {
 

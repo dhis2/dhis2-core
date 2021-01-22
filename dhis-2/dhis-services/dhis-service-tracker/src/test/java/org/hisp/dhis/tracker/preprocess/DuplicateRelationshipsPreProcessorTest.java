@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preprocess;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preprocess;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preprocess;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -74,7 +73,6 @@ public class DuplicateRelationshipsPreProcessorTest
         this.preProcessor = new DuplicateRelationshipsPreProcessor();
     }
 
-
     @Test
     public void test_relationshipIsIgnored_on_null_relType()
     {
@@ -115,9 +113,9 @@ public class DuplicateRelationshipsPreProcessorTest
 
     /*
      * Verifies that:
-     * 
+     *
      * - given 2 identical relationships
-     * 
+     *
      * - one is removed
      */
     @Test
@@ -253,7 +251,7 @@ public class DuplicateRelationshipsPreProcessorTest
      * Verifies that:
      *
      * - given 2 identical relationships having identical but "inverted" data
-     * 
+     *
      * - and relationship type's bidirectional property = true
      *
      * - none is removed

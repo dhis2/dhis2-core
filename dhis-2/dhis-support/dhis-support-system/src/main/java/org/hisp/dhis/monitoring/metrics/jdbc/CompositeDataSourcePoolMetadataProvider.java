@@ -1,5 +1,3 @@
-package org.hisp.dhis.monitoring.metrics.jdbc;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.monitoring.metrics.jdbc;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.monitoring.metrics.jdbc;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,8 +35,8 @@ import java.util.List;
 import javax.sql.DataSource;
 
 /**
- * A {@link DataSourcePoolMetadataProvider} implementation that returns the first
- * {@link DataSourcePoolMetadata} that is found by one of its delegate.
+ * A {@link DataSourcePoolMetadataProvider} implementation that returns the
+ * first {@link DataSourcePoolMetadata} that is found by one of its delegate.
  *
  * @author Stephane Nicoll
  * @since 2.0.0

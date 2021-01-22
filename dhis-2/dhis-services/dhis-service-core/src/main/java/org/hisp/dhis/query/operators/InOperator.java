@@ -1,5 +1,3 @@
-package org.hisp.dhis.query.operators;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,14 @@ package org.hisp.dhis.query.operators;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query.operators;
+
+import java.util.Collection;
+import java.util.Date;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
@@ -34,12 +40,6 @@ import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
 import org.hisp.dhis.schema.Property;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.util.Collection;
-import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -63,10 +63,12 @@ public class InOperator<T extends Comparable<? super T>> extends Operator<T>
 
         if ( property.isCollection() )
         {
-            return Restrictions.in( queryPath.getPath(), getValue( Collection.class, queryPath.getProperty().getItemKlass(), args.get( 0 ) ) );
+            return Restrictions.in( queryPath.getPath(),
+                getValue( Collection.class, queryPath.getProperty().getItemKlass(), args.get( 0 ) ) );
         }
 
-        return Restrictions.in( queryPath.getPath(), getValue( Collection.class, queryPath.getProperty().getKlass(), args.get( 0 ) ) );
+        return Restrictions.in( queryPath.getPath(),
+            getValue( Collection.class, queryPath.getProperty().getKlass(), args.get( 0 ) ) );
     }
 
     @Override
@@ -76,7 +78,8 @@ public class InOperator<T extends Comparable<? super T>> extends Operator<T>
 
         if ( property.isCollection() )
         {
-            return root.get( queryPath.getPath() ).in( getValue( Collection.class, queryPath.getProperty().getItemKlass(), getCollectionArgs().get( 0 ) ) );
+            return root.get( queryPath.getPath() ).in(
+                getValue( Collection.class, queryPath.getProperty().getItemKlass(), getCollectionArgs().get( 0 ) ) );
         }
 
         return root.get( queryPath.getPath() ).in( getCollectionArgs().get( 0 ) );
@@ -111,7 +114,6 @@ public class InOperator<T extends Comparable<? super T>> extends Operator<T>
                 return true;
             }
         }
-
 
         return false;
     }

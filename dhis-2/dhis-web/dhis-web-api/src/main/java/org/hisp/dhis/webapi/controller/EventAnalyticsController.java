@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,15 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import javax.servlet.http.HttpServletResponse;
+
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
 
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
@@ -51,9 +53,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import lombok.AllArgsConstructor;
-import lombok.NonNull;
-
 /**
  * @author Lars Helge Overland
  */
@@ -64,17 +63,21 @@ public class EventAnalyticsController
 {
     private static final String RESOURCE_PATH = "/analytics/events";
 
-    @NonNull private EventDataQueryService eventDataService;
+    @NonNull
+    private EventDataQueryService eventDataService;
 
-    @NonNull private EventAnalyticsService analyticsService;
+    @NonNull
+    private EventAnalyticsService analyticsService;
 
-    @NonNull private ContextUtils contextUtils;
+    @NonNull
+    private ContextUtils contextUtils;
 
     // -------------------------------------------------------------------------
     // Aggregate
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
+    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}", produces = { APPLICATION_JSON_VALUE,
+        "application/javascript" } )
     public @ResponseBody Grid getAggregateJson( // JSON, JSONP
         @PathVariable String program,
         EventsAnalyticsQueryCriteria criteria,
@@ -85,11 +88,11 @@ public class EventAnalyticsController
         EventQueryParams params = eventDataService.getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
 
         configResponseForJson( response );
-        
+
         return analyticsService.getAggregatedEventData( params, getItemsFromParam( criteria.getColumns() ),
             getItemsFromParam( criteria.getRows() ) );
     }
-    
+
     @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}.xml" )
     public void getAggregateXml(
         @PathVariable String program,
@@ -158,7 +161,8 @@ public class EventAnalyticsController
     // Count / rectangle
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = RESOURCE_PATH + "/count/{program}", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
+    @GetMapping( value = RESOURCE_PATH + "/count/{program}", produces = { APPLICATION_JSON_VALUE,
+        "application/javascript" } )
     public @ResponseBody Rectangle getCountJson( // JSON, JSONP
         @PathVariable String program,
         EventsAnalyticsQueryCriteria criteria,
@@ -176,7 +180,8 @@ public class EventAnalyticsController
     // Clustering
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = RESOURCE_PATH + "/cluster/{program}", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
+    @GetMapping( value = RESOURCE_PATH + "/cluster/{program}", produces = { APPLICATION_JSON_VALUE,
+        "application/javascript" } )
     public @ResponseBody Grid getClusterJson( // JSON, JSONP
         @PathVariable String program,
         EventsAnalyticsQueryCriteria criteria,
@@ -203,7 +208,8 @@ public class EventAnalyticsController
     // Query
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = RESOURCE_PATH + "/query/{program}", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
+    @GetMapping( value = RESOURCE_PATH + "/query/{program}", produces = { APPLICATION_JSON_VALUE,
+        "application/javascript" } )
     public @ResponseBody Grid getQueryJson( // JSON, JSONP
         @PathVariable String program,
         EventsAnalyticsQueryCriteria criteria,
@@ -313,6 +319,7 @@ public class EventAnalyticsController
 
     private void configResponseForJson( HttpServletResponse response )
     {
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
+            CacheStrategy.RESPECT_SYSTEM_SETTING );
     }
 }

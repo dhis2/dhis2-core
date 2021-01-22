@@ -1,5 +1,3 @@
-package org.hisp.dhis.hibernate;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,12 @@ package org.hisp.dhis.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.hibernate;
+
+import java.util.Objects;
 
 import org.hibernate.Hibernate;
 import org.hibernate.proxy.HibernateProxyHelper;
-
-import java.util.Objects;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -43,7 +42,7 @@ public class HibernateProxyUtils
         throw new IllegalStateException( "Utility class" );
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings( "rawtypes" )
     public static Class getRealClass( Object object )
     {
         Objects.requireNonNull( object );

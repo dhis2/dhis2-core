@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -86,8 +85,8 @@ public abstract class AbstractTrackerDtoValidationHook
     }
 
     /**
-     * Template method Must be implemented if dtoTypeClass == Event or dtoTypeClass
-     * == null
+     * Template method Must be implemented if dtoTypeClass == Event or
+     * dtoTypeClass == null
      *
      * @param reporter ValidationErrorReporter instance
      * @param event entity to validate
@@ -184,7 +183,8 @@ public abstract class AbstractTrackerDtoValidationHook
         if ( this.strategy != null )
         {
             TrackerImportStrategy importStrategy = bundle.getImportStrategy();
-            // If there is a strategy set and it is not delete and the importing strategy is
+            // If there is a strategy set and it is not delete and the importing
+            // strategy is
             // delete,
             // just return as there is nothing to validate.
             if ( importStrategy.isDelete() && !this.strategy.isDelete() )
@@ -194,10 +194,10 @@ public abstract class AbstractTrackerDtoValidationHook
         }
 
         /*
-         * Validate the bundle, by passing each Tracker entities collection to the
-         * validation hooks. If a validation hook reports errors and has
-         * 'removeOnError=true' the Tracker entity under validation will be removed from
-         * the bundle.
+         * Validate the bundle, by passing each Tracker entities collection to
+         * the validation hooks. If a validation hook reports errors and has
+         * 'removeOnError=true' the Tracker entity under validation will be
+         * removed from the bundle.
          */
 
         validateTrackedEntities( bundle, context );
@@ -231,7 +231,7 @@ public abstract class AbstractTrackerDtoValidationHook
         while ( iterPs.hasNext() )
         {
             Enrollment ps = iterPs.next();
-            final ValidationErrorReporter reporter = validateEnrollment(context, ps);
+            final ValidationErrorReporter reporter = validateEnrollment( context, ps );
             context.getRootReporter().merge( reporter );
             if ( removeOnError() && didNotPassValidation( reporter, ps.getEnrollment() ) )
             {

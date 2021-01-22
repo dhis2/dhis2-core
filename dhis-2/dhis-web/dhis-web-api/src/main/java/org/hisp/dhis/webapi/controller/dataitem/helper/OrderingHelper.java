@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller.dataitem.helper;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.dataitem.helper;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.dataitem.helper;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.split;
@@ -80,7 +79,7 @@ public class OrderingHelper
         }
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
     private static Comparator<BaseDimensionalItemObject> getComparator( final String orderingParam )
     {
         final String[] orderingAttributes = split( orderingParam, ":" );

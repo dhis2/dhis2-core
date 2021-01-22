@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat.supplier;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat.supplier;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,7 +46,7 @@ import org.springframework.stereotype.Component;
  * This supplier adds to the pre-heat object a List of all Program Instance UIDs
  * that have at least ONE Program Stage Instance that is not logically deleted
  * ('deleted = true').
- * 
+ *
  * @author Luciano Fiandesio
  */
 @Component
@@ -63,7 +62,7 @@ public class ProgramInstancesWithAtLeastOneEventSupplier extends JdbcAbstractPre
         "and programinstance.deleted = false) " +
         "and programinstanceid in (:ids)";
 
-    protected ProgramInstancesWithAtLeastOneEventSupplier(JdbcTemplate jdbcTemplate )
+    protected ProgramInstancesWithAtLeastOneEventSupplier( JdbcTemplate jdbcTemplate )
     {
         super( jdbcTemplate );
     }

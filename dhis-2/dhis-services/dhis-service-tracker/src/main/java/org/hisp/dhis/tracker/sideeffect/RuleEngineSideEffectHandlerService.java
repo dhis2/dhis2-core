@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.sideeffect;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,12 +25,13 @@ package org.hisp.dhis.tracker.sideeffect;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.sideeffect;
+
+import java.util.List;
 
 import org.hisp.dhis.tracker.job.TrackerRuleEngineMessageManager;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 /**
  * @author Zubair Asghar

@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,14 @@ package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
 
-import com.google.common.collect.Sets;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.dxf2.events.event.EventUtils.FALLBACK_USERNAME;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.DataValue;
@@ -37,11 +41,7 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.dxf2.events.event.EventUtils.FALLBACK_USERNAME;
+import com.google.common.collect.Sets;
 
 /**
  * @author Luciano Fiandesio

@@ -1,5 +1,3 @@
-package org.hisp.dhis.organisationunit;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,17 +25,18 @@ package org.hisp.dhis.organisationunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.organisationunit;
 
 public class OrganisationUnitRelationship
 {
     private long parentId;
-    
+
     private long childId;
-    
+
     public OrganisationUnitRelationship()
     {
     }
-    
+
     public OrganisationUnitRelationship( long parentId, long childId )
     {
         this.parentId = parentId;

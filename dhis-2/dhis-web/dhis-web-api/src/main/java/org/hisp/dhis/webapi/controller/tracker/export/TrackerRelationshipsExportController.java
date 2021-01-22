@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.tracker.export;
-
 /*
- *  Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
@@ -41,6 +40,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import javax.annotation.PostConstruct;
+
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
@@ -62,9 +64,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.common.collect.ImmutableMap;
-
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 
 @RestController
 @RequestMapping( produces = APPLICATION_JSON_VALUE, value = RESOURCE_PATH + "/"

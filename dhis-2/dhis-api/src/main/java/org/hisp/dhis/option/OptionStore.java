@@ -1,5 +1,3 @@
-package org.hisp.dhis.option;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.option;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.option;
 
 import java.util.List;
 
@@ -37,9 +36,8 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  *
  * @version $OptionStore.java Jun 15, 2012 9:45:00 AM$
  */
-public interface OptionStore 
+public interface OptionStore
     extends IdentifiableObjectStore<Option>
 {
-    List<Option> getOptions( long optionSetId, String key, Integer max  );
+    List<Option> getOptions( long optionSetId, String key, Integer max );
 }
-

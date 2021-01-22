@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.utils;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.utils;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.utils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,7 +37,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.NameableObjectUtils;
@@ -142,7 +140,7 @@ public class FormUtils
         return form;
     }
 
-    private static CategoryCombo getCategoryCombo(DataSet dataset, Set<OrganisationUnit> userOrganisationUnits )
+    private static CategoryCombo getCategoryCombo( DataSet dataset, Set<OrganisationUnit> userOrganisationUnits )
     {
         if ( dataset.hasCategoryCombo() )
         {
@@ -184,18 +182,21 @@ public class FormUtils
 
                             Set<OrganisationUnit> catOptionOUs = option.getOrganisationUnits();
 
-                            if ( userOrganisationUnits == null || userOrganisationUnits.isEmpty() || catOptionOUs == null || catOptionOUs.isEmpty() )
+                            if ( userOrganisationUnits == null || userOrganisationUnits.isEmpty()
+                                || catOptionOUs == null || catOptionOUs.isEmpty() )
                             {
                                 c.getOptions().add( o );
                             }
-                            else if ( userOrganisationUnits != null && catOptionOUs != null && !Collections.disjoint( userOrganisationUnits, catOptionOUs ) )
+                            else if ( userOrganisationUnits != null && catOptionOUs != null
+                                && !Collections.disjoint( userOrganisationUnits, catOptionOUs ) )
                             {
                                 HashSet<OrganisationUnit> organisationUnits = new HashSet<>();
 
-                                catOptionOUs.stream().filter( ou -> userOrganisationUnits.contains( ou ) ).forEach( ou -> {
-                                    organisationUnits.add( ou );
-                                    organisationUnits.addAll( getChildren( ou , new HashSet<>() ) ) ;
-                                });
+                                catOptionOUs.stream().filter( ou -> userOrganisationUnits.contains( ou ) )
+                                    .forEach( ou -> {
+                                        organisationUnits.add( ou );
+                                        organisationUnits.addAll( getChildren( ou, new HashSet<>() ) );
+                                    } );
 
                                 o.setOrganisationUnits( organisationUnits );
 
@@ -280,11 +281,13 @@ public class FormUtils
         return form;
     }
 
-    private static List<Field> inputFromProgramStageDataElements( List<ProgramStageDataElement> programStageDataElements )
+    private static List<Field> inputFromProgramStageDataElements(
+        List<ProgramStageDataElement> programStageDataElements )
     {
         List<DataElement> dataElements = new ArrayList<>();
         programStageDataElements.stream()
-            .filter( programStageDataElement -> programStageDataElement != null && programStageDataElement.getDataElement() != null )
+            .filter( programStageDataElement -> programStageDataElement != null
+                && programStageDataElement.getDataElement() != null )
             .forEach( programStageDataElement -> dataElements.add( programStageDataElement.getDataElement() ) );
 
         return inputFromDataElements( dataElements, new ArrayList<>() );
