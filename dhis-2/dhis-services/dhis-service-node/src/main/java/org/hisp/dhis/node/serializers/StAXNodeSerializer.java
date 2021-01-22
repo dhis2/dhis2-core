@@ -176,7 +176,8 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     protected void endWriteSimpleNode( SimpleNode simpleNode )
         throws Exception
     {
-        // Don't write end element if it's a Json sub typed class, we write the enc tag in #writeSubtypedClass
+        // Don't write end element if it's a json subtype class,
+        // we already wrote the end tag in the #writeSubtypedClass method
         if ( isJsonSubTypeClass( simpleNode ) )
         {
             return;
