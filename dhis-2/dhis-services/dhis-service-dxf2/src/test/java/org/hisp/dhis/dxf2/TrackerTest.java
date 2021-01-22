@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,27 @@ package org.hisp.dhis.dxf2;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2;
 
-import com.google.common.collect.Sets;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.fail;
+
+import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.IntegrationTestBase;
@@ -70,24 +87,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.lang.reflect.InvocationTargetException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.fail;
+import com.google.common.collect.Sets;
 
 /**
  * @author Luciano Fiandesio
@@ -123,7 +123,7 @@ public abstract class TrackerTest extends IntegrationTestBase
     protected TrackedEntityType trackedEntityTypeA;
 
     protected OrganisationUnit organisationUnitA;
-    
+
     protected OrganisationUnit organisationUnitB;
 
     protected Program programA;
@@ -151,7 +151,7 @@ public abstract class TrackerTest extends IntegrationTestBase
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitA.setUid( CodeGenerator.generateUid() );
         organisationUnitA.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
-        
+
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitB.setUid( CodeGenerator.generateUid() );
         organisationUnitB.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
@@ -189,7 +189,7 @@ public abstract class TrackerTest extends IntegrationTestBase
             trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
 
             manager.save( organisationUnitA );
-            
+
             manager.save( organisationUnitB );
 
             manager.save( categoryComboA );
@@ -197,7 +197,7 @@ public abstract class TrackerTest extends IntegrationTestBase
             manager.save( programA );
 
             manager.save( relationshipType );
-            
+
         } );
 
         super.userService = this.userService;
@@ -351,7 +351,7 @@ public abstract class TrackerTest extends IntegrationTestBase
                 event1.setLastUpdatedAtClient( now );
                 event1.setCompletedDate( now );
                 event1.setCompletedBy( "[Unknown]" );
-                
+
                 eventList.add( event1 );
             }
 
@@ -394,12 +394,12 @@ public abstract class TrackerTest extends IntegrationTestBase
         ProgramStage programStage = createProgramStage( '1', program );
         programStage.setUid( CodeGenerator.generateUid() );
         programStage.setRepeatable( true );
-        
+
         if ( publicAccess )
         {
             programStage.setPublicAccess( AccessStringHelper.FULL );
         }
-        
+
         doInTransaction( () -> manager.save( programStage ) );
 
         return programStage;
@@ -426,7 +426,7 @@ public abstract class TrackerTest extends IntegrationTestBase
         UserAuthorityGroup userAuthorityGroup1Super = new UserAuthorityGroup();
         userAuthorityGroup1Super.setUid( "uid4" );
         userAuthorityGroup1Super
-                .setAuthorities( new HashSet<>( Arrays.asList( "z1", UserAuthorityGroup.AUTHORITY_ALL ) ) );
+            .setAuthorities( new HashSet<>( Arrays.asList( "z1", UserAuthorityGroup.AUTHORITY_ALL ) ) );
         userCredentials.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup1Super ) );
         user.setUserCredentials( userCredentials );
     }

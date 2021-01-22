@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preheat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -36,13 +35,14 @@ import lombok.RequiredArgsConstructor;
 public class ReferenceTrackerEntity
 {
     /**
-     * Reference uid: this correspond to the UID of a TEI, PS or PSI from the Tracker Import payload
+     * Reference uid: this correspond to the UID of a TEI, PS or PSI from the
+     * Tracker Import payload
      */
     private final String uid;
 
     /**
-     * Reference uid of the parent object of this Reference. This is only populated if uid references a ProgramStage
-     * or a Program Stage Instance
+     * Reference uid of the parent object of this Reference. This is only
+     * populated if uid references a ProgramStage or a Program Stage Instance
      */
     private final String parentUid;
 }

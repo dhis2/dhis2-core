@@ -1,5 +1,3 @@
-package org.hisp.dhis.deduplication.hibernate;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.deduplication.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.deduplication.hibernate;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -89,7 +88,7 @@ public class HibernatePotentialDuplicateStore
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public boolean exists( PotentialDuplicate potentialDuplicate )
     {
         NativeQuery<BigInteger> query;

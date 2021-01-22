@@ -1,5 +1,3 @@
-package org.hisp.dhis.mapping.hibernate;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.mapping.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mapping.hibernate;
 
 import java.util.List;
 
@@ -57,7 +56,7 @@ public class HibernateMapViewStore
     }
 
     @Override
-    public List<MapView> getByOrganisationUnitGroupSet(OrganisationUnitGroupSet groupSet )
+    public List<MapView> getByOrganisationUnitGroupSet( OrganisationUnitGroupSet groupSet )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 

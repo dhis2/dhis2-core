@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller.dataitem;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.dataitem;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.dataitem;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Collections.emptyList;
@@ -100,9 +99,9 @@ public class DataItemServiceFacade
     }
 
     /**
-     * This method will iterate through the list of target entities, and query each
-     * one of them using the filters and params provided. The result list will bring
-     * together the results of all target entities queried.
+     * This method will iterate through the list of target entities, and query
+     * each one of them using the filters and params provided. The result list
+     * will bring together the results of all target entities queried.
      *
      * @param targetEntities the list of entities to be retrieved
      * @param orderParams request ordering params
@@ -137,7 +136,8 @@ public class DataItemServiceFacade
 
     /**
      * This method returns a set of BaseDimensionalItemObject's based on the
-     * provided filters. It will also remove, from the filters, the objects found.
+     * provided filters. It will also remove, from the filters, the objects
+     * found.
      *
      * @param filters
      * @return the data items classes to be queried
@@ -186,7 +186,7 @@ public class DataItemServiceFacade
      * @param query the query to be executed
      * @return the list of entities found
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     private List<BaseDimensionalItemObject> executeQuery( final Query query )
     {
         final List<BaseDimensionalItemObject> dimensionalItems = (List<BaseDimensionalItemObject>) queryService
@@ -202,8 +202,8 @@ public class DataItemServiceFacade
      * @param filters request filters
      * @param options request options
      * @return the built query
-     * @throws org.hisp.dhis.query.QueryParserException if errors occur during the
-     *         query creation
+     * @throws org.hisp.dhis.query.QueryParserException if errors occur during
+     *         the query creation
      */
     private Query buildQueryForEntity( final Class<? extends BaseDimensionalItemObject> entity,
         final List<String> filters, final WebOptions options )

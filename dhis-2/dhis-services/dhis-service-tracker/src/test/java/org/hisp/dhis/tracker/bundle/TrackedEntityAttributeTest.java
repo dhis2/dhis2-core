@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.bundle;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.bundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.bundle;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -77,7 +76,7 @@ public class TrackedEntityAttributeTest
     public void testTrackedAttributePreheater()
         throws IOException
     {
-        TrackerImportParams trackerImportParams = fromJson(  "tracker/te_with_tea_data.json" );
+        TrackerImportParams trackerImportParams = fromJson( "tracker/te_with_tea_data.json" );
 
         TrackerPreheat preheat = trackerPreheatService.preheat( trackerImportParams );
 

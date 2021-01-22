@@ -1,5 +1,3 @@
-package org.hisp.dhis.node;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.node;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.node;
 
 import org.hisp.dhis.schema.Property;
 
@@ -42,14 +41,14 @@ public interface NodePropertyConverter
 
     /**
      * @param property Property instance belonging to value
-     * @param value    Actual value to transform
+     * @param value Actual value to transform
      * @return true of false depending on support
      */
     boolean canConvertTo( Property property, Object value );
 
     /**
      * @param property Property instance belonging to value
-     * @param value    Actual value to transform
+     * @param value Actual value to transform
      * @return Value transformed to a Node
      */
     Node convertTo( Property property, Object value );

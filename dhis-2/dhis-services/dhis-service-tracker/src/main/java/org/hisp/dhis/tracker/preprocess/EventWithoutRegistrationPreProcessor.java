@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preprocess;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preprocess;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preprocess;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.ProgramInstance;
@@ -35,8 +34,8 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.springframework.stereotype.Component;
 
 /**
- * This preprocessor is responsible for setting the ProgramInstance UID on
- * an Event if the Program that the event belongs is of type 'WITHOUT_REGISTRATION'
+ * This preprocessor is responsible for setting the ProgramInstance UID on an
+ * Event if the Program that the event belongs is of type 'WITHOUT_REGISTRATION'
  *
  * @author Enrico Colasante
  */
@@ -49,12 +48,15 @@ public class EventWithoutRegistrationPreProcessor
     {
         for ( Event event : bundle.getEvents() )
         {
-            // If the event program is missing, it will be captured later by validation
+            // If the event program is missing, it will be captured later by
+            // validation
             if ( !StringUtils.isEmpty( event.getProgram() ) )
             {
-                ProgramInstance enrollment = bundle.getPreheat().getProgramInstancesWithoutRegistration( event.getProgram() );
+                ProgramInstance enrollment = bundle.getPreheat()
+                    .getProgramInstancesWithoutRegistration( event.getProgram() );
 
-                if ( enrollment != null ) {
+                if ( enrollment != null )
+                {
                     event.setEnrollment( enrollment.getUid() );
                 }
             }

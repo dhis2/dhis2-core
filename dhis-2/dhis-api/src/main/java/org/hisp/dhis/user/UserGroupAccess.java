@@ -1,5 +1,3 @@
-package org.hisp.dhis.user;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,17 +25,19 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
+
+import java.io.Serializable;
+import java.util.Objects;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.schema.annotation.Property;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.schema.annotation.Property;
-
-import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -89,7 +89,7 @@ public class UserGroupAccess
 
     @JsonProperty( "id" )
     @JacksonXmlProperty( localName = "id", namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.TRUE)
+    @Property( required = Property.Value.TRUE )
     public String getUid()
     {
         return uid != null ? uid : (userGroup != null ? userGroup.getUid() : null);

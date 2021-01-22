@@ -1,5 +1,3 @@
-package org.hisp.dhis.validation;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.validation;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -82,6 +81,7 @@ public class ValidationResultStoreHqlTest
 {
 
     private final List<String> hqlQueries = new ArrayList<>();
+
     private final Map<String, Map<String, Object>> parametersByQueryAndName = new HashMap<>();
 
     private ValidationResultStore store;
@@ -99,8 +99,8 @@ public class ValidationResultStoreHqlTest
         Session session = mock( Session.class );
         when( sessionFactory.getCurrentSession() ).thenReturn( session );
         when( session.createQuery( anyString() ) ).then( createQueryInvocation -> {
-            String hql = createQueryInvocation.getArgument(0);
-            hqlQueries.add(hql);
+            String hql = createQueryInvocation.getArgument( 0 );
+            hqlQueries.add( hql );
             @SuppressWarnings( "rawtypes" )
             Query query = mock( Query.class );
             when( query.setCacheable( anyBoolean() ) ).thenReturn( query );
@@ -117,7 +117,7 @@ public class ValidationResultStoreHqlTest
         } );
     }
 
-    private void setUpUser(String orgUnitUid, Category category, CategoryOptionGroupSet groupSet )
+    private void setUpUser( String orgUnitUid, Category category, CategoryOptionGroupSet groupSet )
     {
         User user = new User();
         when( currentUserService.getCurrentUser() ).thenReturn( user );
@@ -129,12 +129,12 @@ public class ValidationResultStoreHqlTest
         user.setUserCredentials( credentials );
 
         // categories
-        Set<Category> categories = category == null ? emptySet() : singleton(category);
+        Set<Category> categories = category == null ? emptySet() : singleton( category );
         credentials.setCatDimensionConstraints( categories );
 
         // option groups
-        Set<CategoryOptionGroupSet> options = groupSet == null ? emptySet() : singleton(groupSet);
-        credentials.setCogsDimensionConstraints(options);
+        Set<CategoryOptionGroupSet> options = groupSet == null ? emptySet() : singleton( groupSet );
+        credentials.setCogsDimensionConstraints( options );
     }
 
     @Test
@@ -170,42 +170,45 @@ public class ValidationResultStoreHqlTest
     public void queryWithUserWithCategory()
     {
         Category category = new Category();
-        category.setId(42L);
-        setUpUser( "orgUid", category, null);
+        category.setId( 42L );
+        setUpUser( "orgUid", category, null );
         store.query( new ValidationResultQuery() );
-        assertHQLMatches( "from ValidationResult vr where (locate('orgUid',vr.organisationUnit.path) <> 0) and 1 = ...", 523 );
+        assertHQLMatches( "from ValidationResult vr where (locate('orgUid',vr.organisationUnit.path) <> 0) and 1 = ...",
+            523 );
     }
 
     @Test
     public void queryWithUserWithCategoryOptionGroupSet()
     {
         CategoryOptionGroupSet groupSet = new CategoryOptionGroupSet();
-        groupSet.setId(42L);
-        setUpUser( "orgUid", null, groupSet);
+        groupSet.setId( 42L );
+        setUpUser( "orgUid", null, groupSet );
         store.query( new ValidationResultQuery() );
-        assertHQLMatches( "from ValidationResult vr where (locate('orgUid',vr.organisationUnit.path) <> 0) and 1 = ...", 544 );
+        assertHQLMatches( "from ValidationResult vr where (locate('orgUid',vr.organisationUnit.path) <> 0) and 1 = ...",
+            544 );
     }
 
     @Test
     public void queryWithUserWithCategoryAndCategoryOptionGroupSet()
     {
         Category category = new Category();
-        category.setId(42L);
+        category.setId( 42L );
         CategoryOptionGroupSet groupSet = new CategoryOptionGroupSet();
-        groupSet.setId(42L);
-        setUpUser( "orgUid", category, groupSet);
+        groupSet.setId( 42L );
+        setUpUser( "orgUid", category, groupSet );
         store.query( new ValidationResultQuery() );
-        assertHQLMatches( "from ValidationResult vr where (locate('orgUid',vr.organisationUnit.path) <> 0) and 1 = ...", 988 );
+        assertHQLMatches( "from ValidationResult vr where (locate('orgUid',vr.organisationUnit.path) <> 0) and 1 = ...",
+            988 );
     }
 
     @Test
     public void queryWithOrgUnitFilter()
     {
         ValidationResultQuery query = new ValidationResultQuery();
-        query.setOu(asList("uid1", "uid2"));
-        store.query(query);
-        assertHQLMatches("from ValidationResult vr where vr.organisationUnit.uid in :orgUnitsUids ");
-        assertHQLParameter("orgUnitsUids", asList("uid1", "uid2"));
+        query.setOu( asList( "uid1", "uid2" ) );
+        store.query( query );
+        assertHQLMatches( "from ValidationResult vr where vr.organisationUnit.uid in :orgUnitsUids " );
+        assertHQLParameter( "orgUnitsUids", asList( "uid1", "uid2" ) );
         assertHQLParameterCount( 1 );
     }
 
@@ -213,10 +216,10 @@ public class ValidationResultStoreHqlTest
     public void queryWithValidationRuleFilter()
     {
         ValidationResultQuery query = new ValidationResultQuery();
-        query.setVr(asList("uid1", "uid2"));
-        store.query(query);
-        assertHQLMatches("from ValidationResult vr where vr.validationRule.uid in :validationRulesUids ");
-        assertHQLParameter("validationRulesUids", asList("uid1", "uid2"));
+        query.setVr( asList( "uid1", "uid2" ) );
+        store.query( query );
+        assertHQLMatches( "from ValidationResult vr where vr.validationRule.uid in :validationRulesUids " );
+        assertHQLParameter( "validationRulesUids", asList( "uid1", "uid2" ) );
         assertHQLParameterCount( 1 );
     }
 
@@ -224,12 +227,13 @@ public class ValidationResultStoreHqlTest
     public void queryWithOrgUnitAndValidationRuleFilter()
     {
         ValidationResultQuery query = new ValidationResultQuery();
-        query.setOu(asList("uid1", "uid2"));
-        query.setVr(asList("uid3", "uid4"));
-        store.query(query);
-        assertHQLMatches("from ValidationResult vr where vr.organisationUnit.uid in :orgUnitsUids  and vr.validationRule.uid in :validationRulesUids ");
-        assertHQLParameter("orgUnitsUids", asList("uid1", "uid2"));
-        assertHQLParameter("validationRulesUids", asList("uid3", "uid4"));
+        query.setOu( asList( "uid1", "uid2" ) );
+        query.setVr( asList( "uid3", "uid4" ) );
+        store.query( query );
+        assertHQLMatches(
+            "from ValidationResult vr where vr.organisationUnit.uid in :orgUnitsUids  and vr.validationRule.uid in :validationRulesUids " );
+        assertHQLParameter( "orgUnitsUids", asList( "uid1", "uid2" ) );
+        assertHQLParameter( "validationRulesUids", asList( "uid3", "uid4" ) );
         assertHQLParameterCount( 2 );
     }
 
@@ -239,7 +243,8 @@ public class ValidationResultStoreHqlTest
         ValidationResultQuery query = new ValidationResultQuery();
         query.setPe( singletonList( "2017Q1" ) );
         store.query( query );
-        assertHQLMatches( "from ValidationResult vr where( ((vr.period.startDate <= :periodId1End ) and (vr.period.endDate >= :periodId1Start )))" );
+        assertHQLMatches(
+            "from ValidationResult vr where( ((vr.period.startDate <= :periodId1End ) and (vr.period.endDate >= :periodId1Start )))" );
         PeriodType quarterly = PeriodType.getByNameIgnoreCase( DateUnitType.QUARTERLY.getName() );
         Period q1_2017 = quarterly.createPeriod( "2017Q1" );
         assertNotNull( q1_2017 );
@@ -248,12 +253,12 @@ public class ValidationResultStoreHqlTest
         assertHQLParameterCount( 2 );
     }
 
-    private void assertHQLMatches(String expected )
+    private void assertHQLMatches( String expected )
     {
         assertHQLMatches( expected, -1 );
     }
 
-    private void assertHQLMatches(String expected, int expectedLength )
+    private void assertHQLMatches( String expected, int expectedLength )
     {
         assertEquals( 1, hqlQueries.size() );
         String actual = hqlQueries.get( 0 );

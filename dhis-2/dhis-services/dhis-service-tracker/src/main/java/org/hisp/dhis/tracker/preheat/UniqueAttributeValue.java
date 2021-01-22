@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,23 +25,29 @@ package org.hisp.dhis.tracker.preheat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 /**
- * Simple pojo used to store the data for {@link TrackedEntityAttributeValue} that are needed
- * in the Validation phase
+ * Simple pojo used to store the data for {@link TrackedEntityAttributeValue}
+ * that are needed in the Validation phase
  *
  * @author Enrico Colasante
  */
 @Getter
 @AllArgsConstructor
-public class UniqueAttributeValue {
+public class UniqueAttributeValue
+{
 
     private String teiUid;
+
     private String attributeUid;
+
     private String value;
+
     private String orgUnitId;
 }

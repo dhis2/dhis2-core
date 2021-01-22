@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.report;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,17 +25,18 @@ package org.hisp.dhis.tracker.report;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.report;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import lombok.Data;
+
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.Data;
 
 /**
  * This report keeps track of the elapsed time for each stage of the validation
@@ -101,7 +100,8 @@ public class TrackerTimingsStats
         return timers.getOrDefault( TOTAL_OPS, DEFAULT_VALUE );
     }
 
-    public String getTotalRequest() {
+    public String getTotalRequest()
+    {
 
         return timers.getOrDefault( TOTAL_REQUEST_OPS, DEFAULT_VALUE );
     }

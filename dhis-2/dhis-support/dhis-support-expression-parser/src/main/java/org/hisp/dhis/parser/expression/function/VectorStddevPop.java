@@ -1,5 +1,3 @@
-package org.hisp.dhis.parser.expression.function;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,12 @@ package org.hisp.dhis.parser.expression.function;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.parser.expression.function;
+
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Vector function: stddevPop (population standard deviation)

@@ -1,5 +1,3 @@
-package org.hisp.dhis.organisationunit;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.organisationunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.organisationunit;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -34,13 +33,13 @@ import java.util.Set;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.coordinate.CoordinateObject;
 import org.hisp.dhis.common.coordinate.CoordinateUtils;
+import org.locationtech.jts.geom.Geometry;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Kristian Nordal
@@ -51,7 +50,7 @@ public class OrganisationUnitGroup
     implements MetadataObject, CoordinateObject
 {
     private String symbol;
-    
+
     private String color;
 
     private Set<OrganisationUnit> members = new HashSet<>();
@@ -198,7 +197,6 @@ public class OrganisationUnitGroup
         this.geometry = geometry;
     }
 
-
     public boolean hasDescendantsWithCoordinates()
     {
         return CoordinateUtils.hasDescendantsWithCoordinates( members );
@@ -209,7 +207,7 @@ public class OrganisationUnitGroup
     public FeatureType getFeatureType()
     {
 
-        return geometry != null ? FeatureType.getTypeFromName(this.geometry.getGeometryType()) : null;
+        return geometry != null ? FeatureType.getTypeFromName( this.geometry.getGeometryType() ) : null;
     }
 
     @Override

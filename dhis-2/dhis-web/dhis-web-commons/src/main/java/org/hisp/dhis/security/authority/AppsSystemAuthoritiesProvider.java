@@ -1,5 +1,3 @@
-package org.hisp.dhis.security.authority;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,13 +25,14 @@ package org.hisp.dhis.security.authority;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.appmanager.AppManager;
+package org.hisp.dhis.security.authority;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.appmanager.AppManager;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

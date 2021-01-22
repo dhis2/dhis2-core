@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preheat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -282,9 +281,9 @@ public class DefaultTrackerPreheatServiceTest
         final TrackerPreheat preheat = subject.preheat( preheatParams );
 
         // Then
-        assertTrue( preheat.getNote( notes.get( 0 ).getUid() ).isPresent());
-        assertTrue( preheat.getNote( notes.get( 1 ).getUid() ).isPresent());
-        assertTrue( preheat.getNote( notes.get( 2 ).getUid() ).isPresent());
+        assertTrue( preheat.getNote( notes.get( 0 ).getUid() ).isPresent() );
+        assertTrue( preheat.getNote( notes.get( 1 ).getUid() ).isPresent() );
+        assertTrue( preheat.getNote( notes.get( 2 ).getUid() ).isPresent() );
     }
 
     @Test
@@ -307,16 +306,16 @@ public class DefaultTrackerPreheatServiceTest
         when( trackedEntityCommentStore.getByUid( anyList(), any( User.class ) ) ).thenReturn( notes );
 
         final TrackerImportParams preheatParams = TrackerImportParams.builder()
-                .user( getUser() )
-                .events( events )
-                .build();
+            .user( getUser() )
+            .events( events )
+            .build();
 
         final TrackerPreheat preheat = subject.preheat( preheatParams );
 
         // Then
-        assertTrue( preheat.getNote( notes.get( 0 ).getUid() ).isPresent());
-        assertTrue( preheat.getNote( notes.get( 1 ).getUid() ).isPresent());
-        assertTrue( preheat.getNote( notes.get( 2 ).getUid() ).isPresent());
+        assertTrue( preheat.getNote( notes.get( 0 ).getUid() ).isPresent() );
+        assertTrue( preheat.getNote( notes.get( 1 ).getUid() ).isPresent() );
+        assertTrue( preheat.getNote( notes.get( 2 ).getUid() ).isPresent() );
 
     }
 

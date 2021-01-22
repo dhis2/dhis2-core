@@ -1,5 +1,3 @@
-package org.hisp.dhis.analytics.data;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.COMPLETENESS_DIMENSION_TYPES;
@@ -36,6 +35,8 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
@@ -53,8 +54,6 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Lars Helge Overland
  */
@@ -67,7 +66,8 @@ public class DefaultQueryValidator
 
     private final NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
 
-    public DefaultQueryValidator( SystemSettingManager systemSettingManager, NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector )
+    public DefaultQueryValidator( SystemSettingManager systemSettingManager,
+        NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector )
     {
         checkNotNull( systemSettingManager );
         checkNotNull( nestedIndicatorCyclicDependencyInspector );
@@ -107,8 +107,10 @@ public class DefaultQueryValidator
         }
 
         final List<DimensionalItemObject> dataElements = Lists.newArrayList( params.getDataElements() );
-        params.getProgramDataElements().forEach( pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );
-        final List<DataElement> nonAggDataElements = FilterUtils.inverseFilter( asTypedList( dataElements ), AggregatableDataElementFilter.INSTANCE );
+        params.getProgramDataElements()
+            .forEach( pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );
+        final List<DataElement> nonAggDataElements = FilterUtils.inverseFilter( asTypedList( dataElements ),
+            AggregatableDataElementFilter.INSTANCE );
 
         if ( !params.isSkipDataDimensionValidation() )
         {
@@ -142,7 +144,8 @@ public class DefaultQueryValidator
         }
         else if ( params.hasStartEndDate() && !params.getReportingRates().isEmpty() )
         {
-            error = new ErrorMessage( ErrorCode.E7107 );;
+            error = new ErrorMessage( ErrorCode.E7107 );
+            ;
         }
         else if ( !params.getFilterIndicators().isEmpty() && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
         {
@@ -160,7 +163,8 @@ public class DefaultQueryValidator
         {
             error = new ErrorMessage( ErrorCode.E7111, getDimensions( params.getDuplicateDimensions() ) );
         }
-        else if ( !params.getAllReportingRates().isEmpty() && !params.containsOnlyDimensionsAndFilters( COMPLETENESS_DIMENSION_TYPES ) )
+        else if ( !params.getAllReportingRates().isEmpty()
+            && !params.containsOnlyDimensionsAndFilters( COMPLETENESS_DIMENSION_TYPES ) )
         {
             error = new ErrorMessage( ErrorCode.E7112, COMPLETENESS_DIMENSION_TYPES );
         }
@@ -168,7 +172,8 @@ public class DefaultQueryValidator
         {
             error = new ErrorMessage( ErrorCode.E7113 );
         }
-        else if ( params.hasDimensionOrFilter( CATEGORYOPTIONCOMBO_DIM_ID ) && ( params.getAllDataElements().size() != params.getAllDataDimensionItems().size() ) )
+        else if ( params.hasDimensionOrFilter( CATEGORYOPTIONCOMBO_DIM_ID )
+            && (params.getAllDataElements().size() != params.getAllDataDimensionItems().size()) )
         {
             error = new ErrorMessage( ErrorCode.E7114 );
         }
@@ -199,7 +204,8 @@ public class DefaultQueryValidator
             }
             else if ( !params.hasDimension( ORGUNIT_DIM_ID ) )
             {
-                error = new ErrorMessage( ErrorCode.E7119 );;
+                error = new ErrorMessage( ErrorCode.E7119 );
+                ;
             }
         }
 

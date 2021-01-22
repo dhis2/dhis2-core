@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,9 +25,13 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
@@ -40,9 +42,6 @@ import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.mappers.TrackedEntityInstanceMapper;
 import org.springframework.stereotype.Component;
-
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Luciano Fiandesio
@@ -63,7 +62,8 @@ public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
             // Fetch all Tracked Entity Instance present in the payload
             List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getIncludingDeleted( ids );
 
-            // Get the uids of all the TEIs which are root (a TEI is not root when is a
+            // Get the uids of all the TEIs which are root (a TEI is not root
+            // when is a
             // property of another object, e.g. enrollment)
             final List<String> rootEntities = params.getTrackedEntities().stream()
                 .map( TrackedEntity::getTrackedEntity )

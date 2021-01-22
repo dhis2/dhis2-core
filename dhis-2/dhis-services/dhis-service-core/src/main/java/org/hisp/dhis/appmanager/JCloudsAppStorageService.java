@@ -1,4 +1,3 @@
-package org.hisp.dhis.appmanager;
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -26,6 +25,7 @@ package org.hisp.dhis.appmanager;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.appmanager;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
@@ -302,7 +302,8 @@ public class JCloudsAppStorageService
             app.setAppStorageSource( AppStorageSource.JCLOUDS );
 
             // -----------------------------------------------------------------
-            // Check if app with same key is currently being deleted (deletion_in_progress)
+            // Check if app with same key is currently being deleted
+            // (deletion_in_progress)
             // -----------------------------------------------------------------
             Optional<App> existingApp = appCache.getIfPresent( app.getKey() );
             if ( existingApp.isPresent() && existingApp.get().getAppState() == AppStatus.DELETION_IN_PROGRESS )
@@ -361,9 +362,9 @@ public class JCloudsAppStorageService
             } );
 
             log.info( String.format( ""
-                    + "New app '%s' installed"
-                    + "\n\tInstall path: %s"
-                    + (namespace != null && !namespace.isEmpty() ? "\n\tNamespace reserved: %s" : ""),
+                + "New app '%s' installed"
+                + "\n\tInstall path: %s"
+                + (namespace != null && !namespace.isEmpty() ? "\n\tNamespace reserved: %s" : ""),
                 app.getName(), dest, namespace ) );
 
             // -----------------------------------------------------------------
@@ -523,8 +524,8 @@ public class JCloudsAppStorageService
                 if ( container != null )
                 {
                     log.warn( String.format( "Container name '%s' is illegal. " +
-                            "Standard domain name naming conventions apply (no underscores allowed). " +
-                            "Using default container name ' %s'", container,
+                        "Standard domain name naming conventions apply (no underscores allowed). " +
+                        "Using default container name ' %s'", container,
                         ConfigurationKey.FILESTORE_CONTAINER.getDefaultValue() ) );
                 }
 

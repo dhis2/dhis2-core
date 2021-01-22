@@ -1,5 +1,3 @@
-package org.hisp.dhis.sms.config;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,13 +25,14 @@ package org.hisp.dhis.sms.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.config;
+
+import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Zubair Asghar.
@@ -55,7 +54,8 @@ public class SMPPGateway extends SmsGateway
     }
 
     @Override
-    public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig )
+    public OutboundMessageResponse send( String subject, String text, Set<String> recipients,
+        SmsGatewayConfig gatewayConfig )
     {
         SMPPGatewayConfig config = (SMPPGatewayConfig) gatewayConfig;
 

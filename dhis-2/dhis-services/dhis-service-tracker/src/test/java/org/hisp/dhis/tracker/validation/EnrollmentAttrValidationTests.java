@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -91,7 +90,8 @@ public class EnrollmentAttrValidationTests
     public void testAttributesMissingUid()
         throws IOException
     {
-        TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_te_attr-missing-uuid.json" );
+        TrackerImportParams params = createBundleFromJson(
+            "tracker/validations/enrollments_te_attr-missing-uuid.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
 
@@ -122,8 +122,10 @@ public class EnrollmentAttrValidationTests
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1076 ) ) ) );
     }
 
-    //TODO: Fails with: (need to figure out how to force deletion here first)
-    // * ERROR 22:47:50,353 Failed to invoke method deleteTrackedEntityAttribute on DeletionHandler 'ProgramDeletionHandler' (DefaultDeletionManager.java [main])
+    // TODO: Fails with: (need to figure out how to force deletion here first)
+    // * ERROR 22:47:50,353 Failed to invoke method deleteTrackedEntityAttribute
+    // on DeletionHandler 'ProgramDeletionHandler' (DefaultDeletionManager.java
+    // [main])
     @Test
     @Ignore( "Delete not impl." )
     public void testAttributesMissingTeA()

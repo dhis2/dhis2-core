@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.report;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,14 @@ package org.hisp.dhis.tracker.report;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.report;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import lombok.Data;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -43,20 +44,19 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 
-import lombok.Data;
-
 /**
  * A class that collects {@link TrackerErrorReport} during the validation
  * process.
- * 
+ *
  * Each {@link TrackerErrorReport} collection is connected to a specific Tracker
  * entity (Tracked Entity, Enrollment, etc.) via the "mainUid" attribute
- * 
- * 
+ *
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
-// TODO: should this be "ValidationReporter" since it does not only report errors ?
+// TODO: should this be "ValidationReporter" since it does not only report
+// errors ?
 public class ValidationErrorReporter
 {
     private final List<TrackerErrorReport> reportList;
@@ -78,8 +78,8 @@ public class ValidationErrorReporter
     private TrackerType dtoType;
 
     /*
-     * A map that keep tracks of all the invalid Tracker objects encountered during
-     * the validation process
+     * A map that keep tracks of all the invalid Tracker objects encountered
+     * during the validation process
      */
     private Map<TrackerType, List<String>> invalidDTOs;
 
@@ -190,13 +190,14 @@ public class ValidationErrorReporter
     }
 
     /**
-     * Checks if the provided uid and Tracker Type is part of the invalid entities
+     * Checks if the provided uid and Tracker Type is part of the invalid
+     * entities
      */
     public boolean isInvalid( TrackerType trackerType, String uid )
     {
         return this.invalidDTOs.getOrDefault( trackerType, new ArrayList<>() ).contains( uid );
     }
-    
+
     public TrackerPreheat getPreheat()
     {
         return this.getValidationContext().getBundle().getPreheat();

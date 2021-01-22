@@ -1,5 +1,3 @@
-package org.hisp.dhis.program;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
 import java.io.Serializable;
 import java.util.Calendar;
@@ -50,7 +49,7 @@ public class ProgramTempOwner implements Serializable
 {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -2030234810482111257L;
 
@@ -63,7 +62,7 @@ public class ProgramTempOwner implements Serializable
     private Date validTill;
 
     private User user;
-    
+
     private TrackedEntityInstance entityInstance;
 
     // -------------------------------------------------------------------------
@@ -179,7 +178,7 @@ public class ProgramTempOwner implements Serializable
     {
         this.user = user;
     }
-    
+
     public Date addHoursToJavaUtilDate( Date date, int hours )
     {
         Calendar calendar = Calendar.getInstance();
@@ -187,5 +186,5 @@ public class ProgramTempOwner implements Serializable
         calendar.add( Calendar.HOUR_OF_DAY, hours );
         return calendar.getTime();
     }
-    
+
 }

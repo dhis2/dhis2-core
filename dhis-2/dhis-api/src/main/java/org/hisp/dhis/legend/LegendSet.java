@@ -1,5 +1,3 @@
-package org.hisp.dhis.legend;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,13 @@ package org.hisp.dhis.legend;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.legend;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -39,11 +39,10 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.legend.comparator.LegendValueComparator;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Jan Henrik Overland
@@ -93,7 +92,7 @@ public class LegendSet
     {
         return legends.stream().sorted( LegendValueComparator.INSTANCE ).collect( Collectors.toList() );
     }
-    
+
     public Map<String, String> getLegendUidPropertyMap( IdScheme idScheme )
     {
         return legends.stream().collect( Collectors.toMap( Legend::getUid, l -> l.getPropertyValue( idScheme ) ) );

@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -65,9 +64,11 @@ public class FilteringOutUndeclaredDataElementsProcessor implements Processor
         Set<String> programStageDataElementUids = getDataElementUidsFromProgramStage( event.getProgramStage(),
             ctx );
 
-        // we're filtering data values in event as well to make it "homogeneus" with the
+        // we're filtering data values in event as well to make it "homogeneus"
+        // with the
         // main logic of preprocessors,
-        // even if these changes are not reflected in database, since data values to be
+        // even if these changes are not reflected in database, since data
+        // values to be
         // stored are eventually taken from context
         event.setDataValues(
             event.getDataValues().stream()

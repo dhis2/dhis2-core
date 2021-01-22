@@ -1,5 +1,3 @@
-package org.hisp.dhis.cache;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.cache;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.cache;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.springframework.util.Assert.hasText;
@@ -93,7 +92,8 @@ public class RedisCache<V> implements Cache<V>
         {
             redisTemplate.expire( redisKey, expiryInSeconds, SECONDS );
         }
-        return Optional.ofNullable( Optional.ofNullable( redisTemplate.boundValueOps( redisKey ).get() ).orElse( defaultValue ) );
+        return Optional
+            .ofNullable( Optional.ofNullable( redisTemplate.boundValueOps( redisKey ).get() ).orElse( defaultValue ) );
     }
 
     @Override

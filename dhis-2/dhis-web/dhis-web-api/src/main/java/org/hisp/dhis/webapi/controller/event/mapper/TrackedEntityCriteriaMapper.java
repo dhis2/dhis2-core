@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller.event.mapper;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.event.mapper;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.event.mapper;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -174,7 +173,7 @@ public class TrackedEntityCriteriaMapper
         Program program = validateProgram( criteria );
         params.setQuery( queryFilter )
             .setProgram( program )
-            .setProgramStage( validateProgramStage( criteria, program) )
+            .setProgramStage( validateProgramStage( criteria, program ) )
             .setProgramStatus( criteria.getProgramStatus() )
             .setFollowUp( criteria.getFollowUp() )
             .setLastUpdatedStartDate( criteria.getLastUpdatedStartDate() )
@@ -239,8 +238,8 @@ public class TrackedEntityCriteriaMapper
 
     /**
      * Creates a QueryItem from the given item string. Item is on format
-     * {attribute-id}:{operator}:{filter-value}[:{operator}:{filter-value}]. Only
-     * the attribute-id is mandatory.
+     * {attribute-id}:{operator}:{filter-value}[:{operator}:{filter-value}].
+     * Only the attribute-id is mandatory.
      */
     private QueryItem getQueryItem( String item, Map<String, TrackedEntityAttribute> attributes )
     {
@@ -300,7 +299,8 @@ public class TrackedEntityCriteriaMapper
         return program;
     }
 
-    private ProgramStage validateProgramStage( TrackedEntityInstanceCriteria criteria, Program program ) {
+    private ProgramStage validateProgramStage( TrackedEntityInstanceCriteria criteria, Program program )
+    {
 
         final String programStage = criteria.getProgramStage();
 
@@ -363,24 +363,26 @@ public class TrackedEntityCriteriaMapper
             .orElse( null );
     }
 
-    private void validateOrderParams( TrackedEntityInstanceQueryParams params, List<String> orderParams, Map<String, TrackedEntityAttribute> attributes )
+    private void validateOrderParams( TrackedEntityInstanceQueryParams params, List<String> orderParams,
+        Map<String, TrackedEntityAttribute> attributes )
     {
         if ( orderParams != null && !orderParams.isEmpty() )
         {
-            for( String orderParam : orderParams )
+            for ( String orderParam : orderParams )
             {
                 String[] prop = orderParam.split( ":" );
 
                 if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
                 {
-                    if ( !params.getStaticOrderColumns().contains( prop[0] ) && !attributes.isEmpty() && !attributes.containsKey( prop[0] ) )
+                    if ( !params.getStaticOrderColumns().contains( prop[0] ) && !attributes.isEmpty()
+                        && !attributes.containsKey( prop[0] ) )
                     {
-                        throw new IllegalQueryException("Invalid order property: " + prop[0] );
+                        throw new IllegalQueryException( "Invalid order property: " + prop[0] );
                     }
                 }
                 else
                 {
-                    throw new IllegalQueryException("Invalid order parameter: " + orderParam );
+                    throw new IllegalQueryException( "Invalid order parameter: " + orderParam );
                 }
             }
         }

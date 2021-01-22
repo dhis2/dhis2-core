@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -137,13 +136,13 @@ public class EventSecurityImportValidationTest
     protected void initTest()
         throws IOException
     {
-        setUpMetadata("tracker/tracker_basic_metadata.json");
+        setUpMetadata( "tracker/tracker_basic_metadata.json" );
 
         TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
-        trackerBundleParams.setUser( user  );
+        trackerBundleParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
         assertEquals( 5, trackerBundle.getTrackedEntities().size() );
@@ -157,7 +156,7 @@ public class EventSecurityImportValidationTest
         trackerBundleParams = renderService
             .fromJson(
                 new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
-                    TrackerImportParams.class );
+                TrackerImportParams.class );
 
         trackerBundleParams.setUser( user );
 

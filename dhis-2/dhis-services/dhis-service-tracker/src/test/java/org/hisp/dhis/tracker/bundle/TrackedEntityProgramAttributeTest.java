@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.bundle;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.bundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.bundle;
 
 import static org.junit.Assert.assertEquals;
 
@@ -113,7 +112,7 @@ public class TrackedEntityProgramAttributeTest
         assertEquals( 4, attributeValues.size() );
 
         manager.clear();
-        
+
         // update
 
         trackerImportParams = fromJson( "tracker/te_program_with_tea_update_data.json" );

@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.tracker.preheat.mappers.FullUserMapper;
@@ -74,7 +73,8 @@ public class TrackerUserService
         {
             user = currentUserService.getCurrentUser();
         }
-        // Make a copy of the user object, retaining only the properties required for
+        // Make a copy of the user object, retaining only the properties
+        // required for
         // the import operation
         return FullUserMapper.INSTANCE.map( user );
     }

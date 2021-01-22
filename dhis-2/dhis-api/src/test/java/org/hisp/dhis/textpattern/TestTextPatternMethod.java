@@ -1,5 +1,3 @@
-package org.hisp.dhis.textpattern;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,10 +25,11 @@ package org.hisp.dhis.textpattern;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.junit.Test;
+package org.hisp.dhis.textpattern;
 
 import static org.junit.Assert.*;
+
+import org.junit.Test;
 
 public class TestTextPatternMethod
 {

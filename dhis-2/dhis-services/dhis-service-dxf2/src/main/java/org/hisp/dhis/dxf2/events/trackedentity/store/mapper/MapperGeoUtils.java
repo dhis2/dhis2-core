@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,16 +25,16 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
 import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.geometry.jts.WKBReader;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.util.StringUtils;
-
-import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Luciano Fiandesio

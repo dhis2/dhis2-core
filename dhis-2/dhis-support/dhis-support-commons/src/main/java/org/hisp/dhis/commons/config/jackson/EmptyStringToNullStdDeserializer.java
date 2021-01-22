@@ -1,5 +1,3 @@
-package org.hisp.dhis.commons.config.jackson;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,13 +25,15 @@ package org.hisp.dhis.commons.config.jackson;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.config.jackson;
+
+import java.io.IOException;
+
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import org.springframework.util.StringUtils;
-
-import java.io.IOException;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -41,7 +41,8 @@ import java.io.IOException;
 public class EmptyStringToNullStdDeserializer extends JsonDeserializer<String>
 {
     @Override
-    public String deserialize( JsonParser parser, DeserializationContext context ) throws IOException
+    public String deserialize( JsonParser parser, DeserializationContext context )
+        throws IOException
     {
         String result = parser.getValueAsString();
 
