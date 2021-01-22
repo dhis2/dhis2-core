@@ -50,7 +50,6 @@ import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -193,14 +192,15 @@ public class HibernateTrackedEntityInstanceStore
 
     private String buildTrackedEntityInstanceCountHql( TrackedEntityInstanceQueryParams params )
     {
+        String orderQuery = getOrderClause( params );
+
         return buildTrackedEntityInstanceHql( params, false )
             .replaceFirst( SELECT_TEI, "select count(distinct tei) from" )
             .replaceFirst( "inner join fetch tei.programInstances", "inner join tei.programInstances" )
             .replaceFirst( "inner join fetch pi.programStageInstances", "inner join pi.programStageInstances" )
             .replaceFirst( "inner join fetch psi.assignedUser", "inner join psi.assignedUser" )
             .replaceFirst( "inner join fetch tei.programOwners", "inner join tei.programOwners" )
-            .replaceFirst( "order by case when pi.status = 'ACTIVE' then 1 when pi.status = 'COMPLETED' then 2 else 3 end asc, tei.lastUpdated desc ", "" )
-            .replaceFirst( "order by tei.lastUpdated desc ", "" );
+            .replaceFirst( orderQuery, " " );
     }
 
     private String withProgram( TrackedEntityInstanceQueryParams params, SqlHelper hlp )
@@ -316,7 +316,18 @@ public class HibernateTrackedEntityInstanceStore
         //Used for switching between registration org unit or ownership org unit. Default source is registration ou.
         String teiOuSource = params.hasProgram() ? "po.organisationUnit" : "tei.organisationUnit";
 
+        if ( params.hasAttributeAsOrder() )
+        {
+            hql += " left join tei.trackedEntityAttributeValues teav2 "+
+                "left join teav2.attribute as attr2 ";
+        }
+
         hql += withProgram( params, hlp );
+
+        if ( params.hasAttributeAsOrder() )
+        {
+            hql += hlp.whereAnd() + " attr2.uid='" + params.getFirstAttributeOrder() + "'  ";
+        }
 
         // If sync job, fetch only TEAVs that are supposed to be synchronized
 
@@ -373,9 +384,7 @@ public class HibernateTrackedEntityInstanceStore
 
         hql += addWhereConditionally( hlp, !params.isIncludeDeleted(), () -> " tei.deleted is false " );
 
-        hql += addConditionally( params.hasProgram(),
-            "order by case when pi.status = 'ACTIVE' then 1 when pi.status = 'COMPLETED' then 2 else 3 end asc, tei.lastUpdated desc",
-            "order by tei.lastUpdated desc" );
+        hql += getOrderClause( params );
 
         return hql;
     }
@@ -421,7 +430,7 @@ public class HibernateTrackedEntityInstanceStore
         // Order clause
         // ---------------------------------------------------------------------
 
-        sql += getOrderClause( params );
+        sql += getGridOrderClause( params );
 
         // ---------------------------------------------------------------------
         // Paging clause
@@ -666,10 +675,42 @@ public class HibernateTrackedEntityInstanceStore
 
     private String getOrderClause( TrackedEntityInstanceQueryParams params )
     {
-        List<String> cols = getStaticGridColumns();
+        String orderQuery = params.hasProgram() ? "order by case when pi.status = 'ACTIVE' then 1 when pi.status = 'COMPLETED' then 2 else 3 end asc, tei.lastUpdated desc " : "order by tei.lastUpdated desc ";
 
-        if ( params.getOrders() != null && params.getAttributes() != null && !params.getAttributes().isEmpty()
-            && !cols.isEmpty() )
+        ArrayList<String> orderFields = new ArrayList<>();
+
+        if ( params.hasOrders() )
+        {
+            for ( String order : params.getOrders() )
+            {
+                String[] prop = getOrder( order );
+
+                if ( prop != null )
+                {
+                    if ( params.getStaticOrderColumns().contains( prop[0] ) )
+                    {
+                        orderFields.add( params.getStaticOrderColumnValue( prop[0] ) + " " + prop[1] );
+                    }
+                    else
+                    {
+                        orderFields.add( "teav2.plainValue " + prop[1] );
+                        break; // currently we support only a single attribute order
+                    }
+                }
+            }
+
+            if ( !orderFields.isEmpty() )
+            {
+                orderQuery = "order by " + StringUtils.join( orderFields, ',' );
+            }
+        }
+
+        return orderQuery;
+    }
+
+    private String getGridOrderClause( TrackedEntityInstanceQueryParams params )
+    {
+        if ( params.hasOrders() )
         {
             ArrayList<String> orderFields = new ArrayList<>();
 
@@ -677,26 +718,14 @@ public class HibernateTrackedEntityInstanceStore
             {
                 String[] prop = order.split( ":" );
 
-                if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
+                if ( params.getStaticOrderColumns().contains( prop[0] ) )
                 {
-                    if ( cols.contains( prop[0] ) )
-                    {
-                        orderFields.add( prop[0] + " " + prop[1] );
-                    }
-                    else
-                    {
-
-                        for ( QueryItem item : params.getAttributes() )
-                        {
-                            if ( prop[0].equals( item.getItemId() ) )
-                            {
-                                orderFields.add( statementBuilder.columnQuote( prop[0] ) + " " + prop[1] );
-                                break;
-                            }
-                        }
-                    }
+                    orderFields.add( prop[0] + " " + prop[1] );
                 }
-
+                else if( isAttributeOrder( params, prop[0] ) )
+                {
+                    orderFields.add( statementBuilder.columnQuote( prop[0] ) + " " + prop[1] );
+                }
             }
 
             if ( !orderFields.isEmpty() )
@@ -713,10 +742,20 @@ public class HibernateTrackedEntityInstanceStore
         return "order by lastUpdated desc ";
     }
 
-    private List<String> getStaticGridColumns()
+    private boolean isAttributeOrder( TrackedEntityInstanceQueryParams params, String attributeId )
     {
+        if ( params.hasAttributes() )
+        {
+            for ( QueryItem item : params.getAttributes() )
+            {
+                if ( attributeId.equals( item.getItemId() ) )
+                {
+                    return true;
+                }
+            }
+        }
 
-        return Arrays.asList( TRACKED_ENTITY_INSTANCE_ID, CREATED_ID, LAST_UPDATED_ID, ORG_UNIT_ID, ORG_UNIT_NAME, TRACKED_ENTITY_ID, INACTIVE_ID );
+        return false;
     }
 
     private String getEventWhereClause( TrackedEntityInstanceQueryParams params )
@@ -835,6 +874,18 @@ public class HibernateTrackedEntityInstanceStore
         hql += " psi.deleted=false ";
 
         return hql;
+    }
+
+    private String[] getOrder( String order )
+    {
+        String[] prop = order.split( ":" );
+
+        if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
+        {
+            return prop;
+        }
+
+        return null;
     }
 
     @Override

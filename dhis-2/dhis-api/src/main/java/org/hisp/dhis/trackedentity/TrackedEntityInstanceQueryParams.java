@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity;
  */
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -50,6 +51,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -76,6 +78,19 @@ public class TrackedEntityInstanceQueryParams
 
     public static final int DEFAULT_PAGE = 1;
     public static final int DEFAULT_PAGE_SIZE = 50;
+
+    private static final Map<String, String> ORDER_COLS_MAP = ImmutableMap.<String, String> builder()
+        .put( "uid", "tei.uid" )
+        .put( CREATED_ID, "tei.created" )
+        .put( "storedBy", "tei.storedBy")
+        .put( "lastUpdated", "tei.lastUpdated")
+        .put( "lastUpdatedAtClient", "tei.lastUpdatedAtClient")
+        .put( "lastSynchronized", "tei.lastSynchronized")
+        .put( "orgUnitName", "tei.organisationUnit.name")
+        .put( INACTIVE_ID, "tei.inactive")
+        .put( DELETED, "tei.deleted")
+        .put( "enrollmentStatus", "pi.status" )
+        .build();
 
     /**
      * Query value, will apply to all relevant attributes.
@@ -163,17 +178,17 @@ public class TrackedEntityInstanceQueryParams
      * Selection mode for the specified organisation units, default is ACCESSIBLE.
      */
     private OrganisationUnitSelectionMode organisationUnitMode = OrganisationUnitSelectionMode.DESCENDANTS;
-    
+
     /**
      * Selection mode for user assignment of events.
      */
     private AssignedUserSelectionMode assignedUserSelectionMode;
-    
+
     /**
      * Set of user ids to filter based on events assigned to the users.
      */
     private Set<String> assignedUsers = new HashSet<>();
-    
+
     /**
      * Set of tei uids to explicitly select.
      */
@@ -183,8 +198,8 @@ public class TrackedEntityInstanceQueryParams
     /**
      * ProgramStage to be used in conjunction with eventstatus.
      */
-    private ProgramStage programStage; 
-   
+    private ProgramStage programStage;
+
     /**
      * Status of any events in the specified program.
      */
@@ -372,7 +387,7 @@ public class TrackedEntityInstanceQueryParams
             setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED );
         }
     }
-    
+
     /**
      * Prepares the assignedUsers list to the current user id, if the selection mode is CURRENT.
      */
@@ -384,38 +399,38 @@ public class TrackedEntityInstanceQueryParams
             this.assignedUserSelectionMode = AssignedUserSelectionMode.PROVIDED;
         }
     }
-    
+
     public boolean hasTrackedEntityInstances()
     {
         return CollectionUtils.isNotEmpty( this.trackedEntityInstanceUids );
     }
-    
+
     public boolean hasAssignedUsers()
     {
         return this.assignedUsers != null && !this.assignedUsers.isEmpty();
     }
-    
+
     public boolean isIncludeOnlyUnassignedEvents()
     {
         return AssignedUserSelectionMode.NONE.equals( this.assignedUserSelectionMode );
     }
-    
+
     public boolean isIncludeOnlyAssignedEvents()
     {
         return AssignedUserSelectionMode.ANY.equals( this.assignedUserSelectionMode );
     }
-    
+
     public TrackedEntityInstanceQueryParams addAttributes( List<QueryItem> attrs )
     {
         attributes.addAll( attrs );
         return this;
     }
-    
+
     public boolean hasFilterForEvents()
     {
         return hasAssignedUsers() || isIncludeOnlyAssignedEvents() || isIncludeOnlyUnassignedEvents() || hasEventStatus();
     }
-    
+
     /**
      * Add the given attributes to this params if they are not already present.
      */
@@ -652,7 +667,7 @@ public class TrackedEntityInstanceQueryParams
     {
         return organisationUnitMode != null && organisationUnitMode.equals( mode );
     }
-    
+
     /**
      * Indicates whether this parameters specifies a programStage.
      */
@@ -721,6 +736,50 @@ public class TrackedEntityInstanceQueryParams
         }
 
         return true;
+    }
+
+    /**
+     * Indicated whether this params specifies ordering
+     */
+    public boolean hasOrders()
+    {
+        return orders != null && !orders.isEmpty();
+    }
+
+    public boolean hasAttributeAsOrder()
+    {
+        if ( hasOrders() )
+        {
+            for ( String order : getOrders() )
+            {
+                String[] prop = order.split( ":" );
+
+                if ( prop.length == 2 && !getStaticOrderColumns().contains( prop[0] ) )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public String getFirstAttributeOrder()
+    {
+        if ( hasOrders() )
+        {
+            for ( String order : getOrders() )
+            {
+                String[] prop = order.split( ":" );
+
+                if ( prop.length == 2 && !getStaticOrderColumns().contains( prop[0] ) )
+                {
+                    return prop[0];
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -1173,7 +1232,7 @@ public class TrackedEntityInstanceQueryParams
         this.assignedUserSelectionMode = assignedUserMode;
         return this;
     }
-    
+
     public Set<String> getTrackedEntityInstanceUids()
     {
         return trackedEntityInstanceUids;
@@ -1204,5 +1263,15 @@ public class TrackedEntityInstanceQueryParams
     public void setTrackedEntityTypes( List<TrackedEntityType> trackedEntityTypes )
     {
         this.trackedEntityTypes = trackedEntityTypes;
+    }
+
+    public Set<String> getStaticOrderColumns()
+    {
+        return ORDER_COLS_MAP.keySet();
+    }
+
+    public String getStaticOrderColumnValue( String key )
+    {
+        return ORDER_COLS_MAP.get( key );
     }
 }
