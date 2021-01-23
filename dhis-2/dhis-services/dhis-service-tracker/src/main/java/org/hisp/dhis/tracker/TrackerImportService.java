@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker;
 
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 
@@ -36,8 +35,9 @@ import org.hisp.dhis.tracker.report.TrackerImportReport;
 public interface TrackerImportService
 {
     /**
-     * Import object using provided params. Takes the objects through all phases of the importer
-     * from preheating to validation, and then finished with a commit (unless its validate only)
+     * Import object using provided params. Takes the objects through all phases
+     * of the importer from preheating to validation, and then finished with a
+     * commit (unless its validate only)
      *
      * @param params Parameters for import, including objects
      * @return Report giving status of import (and any errors)

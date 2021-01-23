@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller.datavalue;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.datavalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.datavalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -45,6 +44,8 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypeOptions;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -119,7 +120,7 @@ class DataValidator
 
     /**
      * Retrieve the respective DataElement and validates if it's accessible.
-     * 
+     *
      * @param deUid the data element uid.
      * @return the DataElement object respective.
      * @throws WebMessageException if the validation fails.
@@ -139,7 +140,7 @@ class DataValidator
 
     /**
      * Retrieve and validate a CategoryOptionCombo based on the given coUid.
-     * 
+     *
      * @param coUid the category option uid.
      * @param requireCategoryOptionCombo flag used as part of the validation.
      * @return the respective and valid CategoryOptionCombo.
@@ -172,9 +173,9 @@ class DataValidator
     }
 
     /**
-     * Retrieves and validate the respective CategoryOptionCombo (attribute option
-     * combo) based on the given arguments.
-     * 
+     * Retrieves and validate the respective CategoryOptionCombo (attribute
+     * option combo) based on the given arguments.
+     *
      * @param ccUid the category combo identifier.
      * @param cp the category and option query string.
      * @return the valid CategoryOptionCombo (attribute option combo).
@@ -196,7 +197,7 @@ class DataValidator
 
     /**
      * Reads and validate the given period.
-     * 
+     *
      * @param pe the period.
      * @return the validated Period.
      * @throws WebMessageException if the validation fails.
@@ -216,7 +217,7 @@ class DataValidator
 
     /**
      * Validates the OrganisationUnit dates against the given period.
-     * 
+     *
      * @param organisationUnit the OrganisationUnit and its dates.
      * @param period the period to be checked.
      * @throws WebMessageException if the validation fails.
@@ -237,7 +238,7 @@ class DataValidator
 
     /**
      * Retrieves and validate an OrganisationUnit.
-     * 
+     *
      * @param ouUid the organisation unit uid.
      * @return the valid OrganisationUnit.
      * @throws WebMessageException if the validation fails.
@@ -266,7 +267,7 @@ class DataValidator
     /**
      * Validates if the given DataSet uid exists and is accessible and if the
      * DataSet contains the informed DataElement.
-     * 
+     *
      * @param dsUid the DataSet uid.
      * @param dataElement the data element to be checked in the DataSet.
      * @return the valid DataSet.
@@ -297,8 +298,9 @@ class DataValidator
     }
 
     /**
-     * Validate if the is after the last future period allowed by the DataElement.
-     * 
+     * Validate if the is after the last future period allowed by the
+     * DataElement.
+     *
      * @param period the period to be validated.
      * @param dataElement the base DataElement.
      * @throws WebMessageException if the validation fails.
@@ -317,9 +319,9 @@ class DataValidator
     }
 
     /**
-     * Check for an invalid period withing the given CategoryOptionCombo (attribute
-     * option combo).
-     * 
+     * Check for an invalid period withing the given CategoryOptionCombo
+     * (attribute option combo).
+     *
      * @param attributeOptionCombo is the CategoryOptionCombo.
      * @param period the period to be checked.
      * @param dataSet the data set (if present) to be checked.
@@ -339,7 +341,8 @@ class DataValidator
                     + " for attributeOption '" + option.getName() + "'" ) );
             }
 
-            if ( option.getEndDate() != null && period.getStartDate().after( option.getAdjustedEndDate( dataSet, dataElement ) ) )
+            if ( option.getEndDate() != null
+                && period.getStartDate().after( option.getAdjustedEndDate( dataSet, dataElement ) ) )
             {
                 throw new WebMessageException( conflict( "Period " + period.getIsoDate() + " is after end date "
                     + i18nManager.getI18nFormat().formatDate( option.getAdjustedEndDate( dataSet, dataElement ) )
@@ -351,7 +354,7 @@ class DataValidator
     /**
      * Validate if the DataSet or DataElement is locked based on the input
      * arguments.
-     * 
+     *
      * @param user the current User.
      * @param dataElement the DataElement.
      * @param period the Period.
@@ -374,7 +377,7 @@ class DataValidator
 
     /**
      * Validate if the period is open for the given DataSet or DataElement.
-     * 
+     *
      * @param dataElement the DataElement.
      * @param dataSet the DataSet.
      * @param period the Period.
@@ -392,46 +395,59 @@ class DataValidator
     }
 
     /**
-     * Validates if the given file resource uid has a valid FileResource associated
-     * with.
-     * 
+     * Validates if the given file resource uid has a valid FileResource
+     * associated with.
+     *
      * @param fileResourceUid the uid of the FileResource.
+     * @param valueType
+     * @param valueTypeOptions
      * @return a valid FileResource.
      * @throws WebMessageException if any validation fails.
      */
-    FileResource validateAndSetAssigned( final String fileResourceUid )
+    FileResource validateAndSetAssigned( final String fileResourceUid, ValueType valueType,
+        ValueTypeOptions valueTypeOptions )
         throws WebMessageException
     {
-        final FileResource fileResource;
-
-        if ( fileResourceUid != null )
+        if ( fileResourceUid == null )
         {
-            fileResource = fileResourceService.getFileResource( fileResourceUid );
-
-            if ( fileResource == null || fileResource.getDomain() != DATA_VALUE )
-            {
-                throw new WebMessageException( notFound( FileResource.class, fileResourceUid ) );
-            }
-
-            if ( fileResource.isAssigned() )
-            {
-                throw new WebMessageException(
-                    conflict( "File resource already assigned or linked to another data value" ) );
-            }
-
-            fileResource.setAssigned( true );
+            throw new WebMessageException( conflict( "Missing parameter" ) );
         }
-        else
+
+        FileResource fileResource = fileResourceService.getFileResource( fileResourceUid );
+
+        if ( fileResource == null || fileResource.getDomain() != DATA_VALUE )
         {
-            throw new WebMessageException( conflict( "Missing parameter 'value'" ) );
+            throw new WebMessageException( notFound( FileResource.class, fileResourceUid ) );
         }
+
+        if ( fileResource.isAssigned() )
+        {
+            throw new WebMessageException(
+                conflict( "File resource already assigned or linked to another data value" ) );
+        }
+
+        if ( valueType != null && valueTypeOptions != null )
+        {
+            String validationResult = dataValueIsValid( fileResource, valueType, valueTypeOptions );
+
+            if ( validationResult != null )
+            {
+                fileResourceService.deleteFileResource( fileResource );
+
+                throw new WebMessageException( conflict(
+                    String.format( "File resource failed value type option validation, " +
+                        "result was: '%s'", validationResult ) ) );
+            }
+        }
+
+        fileResource.setAssigned( true );
 
         return fileResource;
     }
 
     /**
      * Validates a comment.
-     * 
+     *
      * @param comment the comment to be validated.
      * @throws WebMessageException if the validation fails.
      */
@@ -448,7 +464,7 @@ class DataValidator
 
     /**
      * Checks if the given data value is a valid association with the OptionSet.
-     * 
+     *
      * @param dataValue
      * @param optionSet
      * @param dataElement
@@ -466,9 +482,9 @@ class DataValidator
     }
 
     /**
-     * Validates if the given dataValue is valid for the given DataElement,
-     * and normalize it if the dataValue is a boolean type.
-     * 
+     * Validates if the given dataValue is valid for the given DataElement, and
+     * normalize it if the dataValue is a boolean type.
+     *
      * @param dataValue
      * @param dataElement
      * @return the normalized boolean or the same dataValue provided
@@ -491,7 +507,7 @@ class DataValidator
 
     /**
      * Checks if the User has write access to the given CategoryOptionCombo.
-     * 
+     *
      * @param user the User.
      * @param categoryOptionCombo the CategoryOptionCombo.
      * @throws WebMessageException if the validation fails.
@@ -511,7 +527,7 @@ class DataValidator
     /**
      * Checks if the User has write access to the given CategoryOptionCombo
      * (attribute option combo).
-     * 
+     *
      * @param user the User.
      * @param attributeOptionCombo the CategoryOptionCombo.
      * @throws WebMessageException if the validation fails.
@@ -530,7 +546,7 @@ class DataValidator
 
     /**
      * Check if the respective User has read access to the given DataValue.
-     * 
+     *
      * @param user the User.
      * @param dataValue the DataValue.
      * @throws WebMessageException if the validation fails.

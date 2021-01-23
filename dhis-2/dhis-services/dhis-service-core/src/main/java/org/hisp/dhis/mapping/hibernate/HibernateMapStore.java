@@ -1,5 +1,3 @@
-package org.hisp.dhis.mapping.hibernate;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.mapping.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mapping.hibernate;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -56,7 +55,8 @@ public class HibernateMapStore
     @Override
     public int countMapViewMaps( MapView mapView )
     {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from Map c where :mapView in elements(c.mapViews)" );
+        Query<Long> query = getTypedQuery(
+            "select count(distinct c) from Map c where :mapView in elements(c.mapViews)" );
         query.setParameter( "mapView", mapView );
 
         return query.getSingleResult().intValue();

@@ -1,5 +1,3 @@
-package org.hisp.dhis.artemis.audit.listener;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.artemis.audit.listener;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.artemis.audit.listener;
 
 import org.hisp.dhis.audit.AuditAttribute;
 
@@ -36,7 +35,7 @@ import org.hisp.dhis.audit.AuditAttribute;
 
 public class NestedTestImplementation
     extends
-        org.hisp.dhis.artemis.audit.listener.TestImplementation
+    org.hisp.dhis.artemis.audit.listener.TestImplementation
 {
     private String testAttribute3;
 

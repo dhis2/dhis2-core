@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.aggregates;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.aggregates;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.aggregates;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -68,7 +67,6 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
     @Autowired
     private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
 
-
     @Override
     protected void mockCurrentUserService()
     {
@@ -100,7 +98,7 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-                .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false );
 
         assertThat( trackedEntityInstances, hasSize( 0 ) );
     }
@@ -115,9 +113,11 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
             trackedEntityTypeZ.setName( "TrackedEntityTypeZ" + trackedEntityTypeZ.getUid() );
             trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeZ );
 
-            // When saving the trackedEntityType using addTrackedEntityType, the public access value is ignored
+            // When saving the trackedEntityType using addTrackedEntityType, the
+            // public access value is ignored
             // therefore we need to update the previously saved TeiType
-            final TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeZ.getUid());
+            final TrackedEntityType trackedEntityType = trackedEntityTypeService
+                .getTrackedEntityType( trackedEntityTypeZ.getUid() );
             trackedEntityType.setPublicAccess( DATA_READ );
             trackedEntityTypeService.updateTrackedEntityType( trackedEntityType );
 
@@ -134,7 +134,7 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-                .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false );
 
         assertThat( trackedEntityInstances, hasSize( 2 ) );
     }

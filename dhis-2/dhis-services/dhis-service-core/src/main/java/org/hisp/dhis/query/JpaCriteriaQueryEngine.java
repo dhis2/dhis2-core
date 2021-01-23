@@ -1,5 +1,3 @@
-package org.hisp.dhis.query;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,21 @@ package org.hisp.dhis.query;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -37,19 +50,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -125,7 +125,8 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         Predicate predicate = buildPredicates( builder, root, query );
 
         predicate.getExpressions().addAll( store
-            .getSharingPredicates( builder, query.getUser() ).stream().map( t -> t.apply( root ) ).collect( Collectors.toList() ) );
+            .getSharingPredicates( builder, query.getUser() ).stream().map( t -> t.apply( root ) )
+            .collect( Collectors.toList() ) );
 
         criteriaQuery.where( predicate );
 
@@ -133,7 +134,8 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         {
             criteriaQuery.orderBy( query.getOrders().stream()
                 .map( o -> o.isAscending() ? builder.asc( root.get( o.getProperty().getFieldName() ) )
-                    : builder.desc( root.get( o.getProperty().getFieldName() ) ) ).collect( Collectors.toList() ) );
+                    : builder.desc( root.get( o.getProperty().getFieldName() ) ) )
+                .collect( Collectors.toList() ) );
         }
 
         TypedQuery<T> typedQuery = sessionFactory.getCurrentSession().createQuery( criteriaQuery );
@@ -184,7 +186,8 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         Predicate predicate = buildPredicates( builder, root, query );
 
         predicate.getExpressions().addAll( store
-            .getSharingPredicates( builder, query.getUser() ).stream().map( t -> t.apply( root ) ).collect( Collectors.toList() ) );
+            .getSharingPredicates( builder, query.getUser() ).stream().map( t -> t.apply( root ) )
+            .collect( Collectors.toList() ) );
 
         criteriaQuery.where( predicate );
 
@@ -192,7 +195,8 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         {
             criteriaQuery.orderBy( query.getOrders().stream()
                 .map( o -> o.isAscending() ? builder.asc( root.get( o.getProperty().getName() ) )
-                    : builder.desc( root.get( o.getProperty().getName() ) ) ).collect( Collectors.toList() ) );
+                    : builder.desc( root.get( o.getProperty().getName() ) ) )
+                .collect( Collectors.toList() ) );
         }
 
         TypedQuery<Long> typedQuery = sessionFactory.getCurrentSession().createQuery( criteriaQuery );
@@ -240,16 +244,14 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
     {
         switch ( type )
         {
-            case AND:
-                return builder.conjunction();
-            case OR:
-                return builder.disjunction();
+        case AND:
+            return builder.conjunction();
+        case OR:
+            return builder.disjunction();
         }
 
         return builder.conjunction();
     }
-
-
 
     private <Y> Predicate getPredicate( CriteriaBuilder builder, Root<Y> root, Restriction restriction )
     {
@@ -261,8 +263,8 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         return restriction.getOperator().getPredicate( builder, root, restriction.getQueryPath() );
     }
 
-
-    private <Y> void addPredicate( CriteriaBuilder builder, Root<Y> root, Predicate predicateJunction, org.hisp.dhis.query.Criterion criterion )
+    private <Y> void addPredicate( CriteriaBuilder builder, Root<Y> root, Predicate predicateJunction,
+        org.hisp.dhis.query.Criterion criterion )
     {
         if ( Restriction.class.isInstance( criterion ) )
         {
@@ -296,7 +298,8 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         }
     }
 
-    private <Y> void addJunction( CriteriaBuilder builder, Root<Y> root, Predicate junction, org.hisp.dhis.query.Criterion criterion )
+    private <Y> void addJunction( CriteriaBuilder builder, Root<Y> root, Predicate junction,
+        org.hisp.dhis.query.Criterion criterion )
     {
         if ( Restriction.class.isInstance( criterion ) )
         {

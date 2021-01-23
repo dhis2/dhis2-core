@@ -1,5 +1,3 @@
-package org.hisp.dhis.monitoring.metrics.jdbc;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,18 +25,21 @@ package org.hisp.dhis.monitoring.metrics.jdbc;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.monitoring.metrics.jdbc;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.function.Function;
+
+import javax.sql.DataSource;
+
+import org.springframework.util.Assert;
+import org.springframework.util.ConcurrentReferenceHashMap;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.binder.MeterBinder;
-import org.springframework.util.Assert;
-import org.springframework.util.ConcurrentReferenceHashMap;
-
-import javax.sql.DataSource;
-import java.util.Collection;
-import java.util.Map;
-import java.util.function.Function;
 
 /**
  * @author Jon Schneider

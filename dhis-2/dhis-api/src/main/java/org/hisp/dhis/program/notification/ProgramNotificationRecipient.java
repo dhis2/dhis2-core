@@ -1,5 +1,3 @@
-package org.hisp.dhis.program.notification;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.program.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.notification;
 
 import org.hisp.dhis.notification.NotificationRecipient;
 
@@ -34,7 +33,8 @@ import org.hisp.dhis.notification.NotificationRecipient;
  * @author Halvdan Hoem Grelland
  */
 public enum ProgramNotificationRecipient
-    implements NotificationRecipient
+    implements
+    NotificationRecipient
 {
     TRACKED_ENTITY_INSTANCE( true ),
     ORGANISATION_UNIT_CONTACT( true ),

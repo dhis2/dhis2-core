@@ -1,5 +1,3 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,9 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
@@ -45,8 +46,6 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.util.DateUtils;
-
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,13 +67,14 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     private final NotificationTemplateService notificationTemplateService;
 
     public RuleActionScheduleMessageImplementer( ProgramNotificationTemplateService programNotificationTemplateService,
-         NotificationLoggingService notificationLoggingService,
-         ProgramInstanceService programInstanceService,
-         ProgramStageInstanceService programStageInstanceService,
-         ProgramNotificationInstanceService programNotificationInstanceService,
-         NotificationTemplateService notificationTemplateService )
+        NotificationLoggingService notificationLoggingService,
+        ProgramInstanceService programInstanceService,
+        ProgramStageInstanceService programStageInstanceService,
+        ProgramNotificationInstanceService programNotificationInstanceService,
+        NotificationTemplateService notificationTemplateService )
     {
-        super( programNotificationTemplateService, notificationLoggingService, programInstanceService, programStageInstanceService );
+        super( programNotificationTemplateService, notificationLoggingService, programInstanceService,
+            programStageInstanceService );
         this.programNotificationInstanceService = programNotificationInstanceService;
         this.notificationTemplateService = notificationTemplateService;
     }
@@ -110,13 +110,14 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
             return;
         }
 
-        ProgramNotificationInstance notificationInstance = notificationTemplateService.createNotificationInstance( template, date );
+        ProgramNotificationInstance notificationInstance = notificationTemplateService
+            .createNotificationInstance( template, date );
         notificationInstance.setProgramStageInstance( null );
         notificationInstance.setProgramInstance( programInstance );
 
         programNotificationInstanceService.save( notificationInstance );
 
-        log.info( String.format( LOG_MESSAGE , template.getUid() ) );
+        log.info( String.format( LOG_MESSAGE, template.getUid() ) );
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
@@ -135,7 +136,6 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
             handleSingleEvent( ruleEffect, programStageInstance );
             return;
         }
-
 
         if ( !validate( ruleEffect, programStageInstance.getProgramInstance() ) )
         {
@@ -158,7 +158,8 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
             return;
         }
 
-        ProgramNotificationInstance notificationInstance = notificationTemplateService.createNotificationInstance( template, date );
+        ProgramNotificationInstance notificationInstance = notificationTemplateService
+            .createNotificationInstance( template, date );
         notificationInstance.setProgramStageInstance( programStageInstance );
         notificationInstance.setProgramInstance( null );
 
@@ -206,7 +207,8 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
             return;
         }
 
-        ProgramNotificationInstance notificationInstance = notificationTemplateService.createNotificationInstance( template, date );
+        ProgramNotificationInstance notificationInstance = notificationTemplateService
+            .createNotificationInstance( template, date );
         notificationInstance.setProgramStageInstance( programStageInstance );
         notificationInstance.setProgramInstance( null );
 

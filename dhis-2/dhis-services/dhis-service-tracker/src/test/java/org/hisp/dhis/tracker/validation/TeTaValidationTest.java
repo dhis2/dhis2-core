@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -37,8 +36,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.hisp.dhis.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;

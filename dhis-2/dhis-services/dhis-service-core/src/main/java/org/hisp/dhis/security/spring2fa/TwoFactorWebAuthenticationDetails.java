@@ -1,5 +1,3 @@
-package org.hisp.dhis.security.spring2fa;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,10 @@ package org.hisp.dhis.security.spring2fa;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.spring2fa;
 
 import javax.servlet.http.HttpServletRequest;
+
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 
 /**
@@ -59,4 +59,3 @@ public class TwoFactorWebAuthenticationDetails
         this.code = code;
     }
 }
-

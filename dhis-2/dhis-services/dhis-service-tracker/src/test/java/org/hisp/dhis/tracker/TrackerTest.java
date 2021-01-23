@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,10 +25,17 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker;
+
+import static org.junit.Assert.assertTrue;
+
+import java.beans.Introspector;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
-
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -51,13 +56,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-
-import java.beans.Introspector;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Luciano Fiandesio
@@ -155,8 +153,8 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
     }
 
     /**
-     * Makes sure that the Tracker entities in the provided TrackerBundle have the
-     * 'uid' attribute identical to the json identifier.
+     * Makes sure that the Tracker entities in the provided TrackerBundle have
+     * the 'uid' attribute identical to the json identifier.
      */
     protected TrackerImportParams syncIdentifiers( TrackerImportParams trackerImportParams )
     {

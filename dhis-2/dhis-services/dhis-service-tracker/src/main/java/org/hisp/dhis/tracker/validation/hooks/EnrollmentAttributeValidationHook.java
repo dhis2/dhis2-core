@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1017;
@@ -133,7 +132,8 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     {
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
-        // Build a data structures of attributes eligible for mandatory validations:
+        // Build a data structures of attributes eligible for mandatory
+        // validations:
         // 1 - attributes from enrollments whose value is not empty or null
         // 2 - attributes already existing in TEI (from preheat)
 
@@ -142,7 +142,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .map( Enrollment::getAttributes )
             .orElse( Collections.emptyList() )
             .stream()
-            .filter( this::isNonEmpty)
+            .filter( this::isNonEmpty )
             .collect( Collectors.toMap(
                 Attribute::getAttribute,
                 Attribute::getValue ) );
@@ -170,7 +170,8 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
                 () -> !mergedAttributes.contains( mandatoryProgramAttributeUid ), reporter, E1018,
                 mandatoryProgramAttributeUid, program.getUid(), enrollment.getEnrollment() ) );
 
-        // enrollment must not contain any attribute which is not defined in program
+        // enrollment must not contain any attribute which is not defined in
+        // program
         enrollmentNonEmptyAttributeUids
             .forEach(
                 ( attrUid, attrVal ) -> addErrorIf( () -> !programAttributesMap.containsKey( attrUid ), reporter, E1019,
@@ -192,9 +193,9 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .collect( Collectors.toSet() );
     }
 
-    private boolean isNonEmpty(Attribute attribute )
+    private boolean isNonEmpty( Attribute attribute )
     {
-        return StringUtils.isNotBlank( attribute.getValue() ) && StringUtils.isNotBlank(attribute.getAttribute());
+        return StringUtils.isNotBlank( attribute.getValue() ) && StringUtils.isNotBlank( attribute.getAttribute() );
     }
 
     private String getOrgUnitUidFromTei( TrackerImportValidationContext context, String teiUid )

@@ -52,9 +52,6 @@
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
       },
-      "user": {
-        "id": "M5zQapPyTZI"
-      },
       "notificationTemplates": [],
       "programStageDataElements": [
         {
@@ -211,16 +208,87 @@
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
       },
-      "user": {
-        "id": "M5zQapPyTZI"
-      },
       "notificationTemplates": [],
+      "programStageDataElements": [
+        {
+          "id": "cSc37t1TzTj",
+          "dataElement": {
+            "id": "BuZ5LGNfGEU"
+          }
+        },
+        {
+          "id": "F6AIyOWCnxW",
+          "dataElement": {
+            "id": "ZrqtjjveTFc"
+          }
+        },
+        {
+          "id": "sMP1n58QvwT",
+          "dataElement": {
+            "id": "mB2QHw1tU96"
+          }
+        },
+        {
+          "dataElement": {
+            "id": "ILRgzHhzFkg"
+          }
+        },
+        {
+          "dataElement":  {
+            "id": "z3Z4TD3oBCP"
+          }
+        },
+        {
+          "dataElement": {
+            "id": "inc5BJvr4W5"
+          }
+        }
+      ],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "attributeValues": [],
+      "userAccesses": [],
+      "programStageSections": []
+    },
+    {
+      "id": "PaOOjwLVW23",
+      "name": "Second stage - repeatable",
+      "allowGenerateNextVisit": false,
+      "publicAccess": "rwrw----",
+      "formType": "DEFAULT",
+      "generatedByEnrollmentDate": false,
+      "displayFormName": "Second stage - repeatable",
+      "sortOrder": 2,
+      "hideDueDate": false,
+      "enableUserAssignment": false,
+      "minDaysFromStart": 3,
+      "favorite": false,
+      "preGenerateUID": false,
+      "displayName": "Second stage - repeatable",
+      "externalAccess": false,
+      "openAfterEnrollment": false,
+      "repeatable": true,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": false,
+      "blockEntryForm": false,
+      "program": {
+        "id": "f1AyMswryyQ"
+      },
       "programStageDataElements": [],
       "translations": [],
       "userGroupAccesses": [
         {
           "access": "rwrw----",
           "userGroupUid": "OPVIvvXzNTw",
+          "displayName": "TA user group",
           "id": "OPVIvvXzNTw"
         }
       ],
@@ -420,6 +488,9 @@
       "programStages": [
         {
           "id": "nlXNK4b7LVr"
+        },
+        {
+          "id": "PaOOjwLVW23"
         }
       ],
       "userAccesses": []
@@ -493,12 +564,12 @@
     {
       "created": "2019-04-23T09:20:41.834",
       "lastUpdated": "2019-04-23T09:21:18.063",
-      "name": "TA Parent",
+      "name": "TA Sibling",
       "id": "xLmPUYJX8Ks",
       "bidirectional": true,
       "publicAccess": "rw------",
-      "toFromName": "Parent",
-      "fromToName": "Child",
+      "toFromName": "Sibling of",
+      "fromToName": "Sibling of",
       "fromConstraint": {
         "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
         "trackedEntityType": {
@@ -520,6 +591,38 @@
       ],
       "translations": [],
       "userAccesses": []
+    },
+    {
+      "lastUpdated": "2020-11-20T09:06:23.348",
+      "id": "TV9oB9LT3sh",
+      "created": "2020-11-20T09:06:23.348",
+      "name": "TA Parent to Child",
+      "bidirectional": false,
+      "displayName": "TA Parent to Child",
+      "publicAccess": "rw------",
+      "fromToName": "Parent Of",
+      "externalAccess": false,
+      "displayFromToName": "Parent Of",
+      "favorite": false,
+      "toConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "Q9GufDoplCL"
+        }
+      },
+      "fromConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "Q9GufDoplCL"
+        }
+      },
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ]
     }
   ],
   "trackedEntityTypes": [
@@ -531,7 +634,7 @@
       "publicAccess": "rw------",
       "maxTeiCountToReturn": 0,
       "allowAuditLog": false,
-      "featureType": "NONE",
+      "featureType": "POLYGON",
       "minAttributesRequiredToSearch": 1,
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
@@ -3412,7 +3515,7 @@
       "name": "TA Comment",
       "shortName": "Comment",
       "aggregationType": "NONE",
-      "domainType": "AGGREGATE",
+      "domainType": "TRACKER",
       "publicAccess": "rw------",
       "valueType": "LONG_TEXT",
       "zeroIsSignificant": false,
@@ -3439,7 +3542,7 @@
       "name": "TA Diabetes",
       "shortName": "TA Diabetes",
       "aggregationType": "COUNT",
-      "domainType": "AGGREGATE",
+      "domainType": "TRACKER",
       "publicAccess": "rw------",
       "valueType": "BOOLEAN",
       "zeroIsSignificant": false,
@@ -3493,7 +3596,7 @@
       "name": "TA Pregnant",
       "shortName": "TA Pregnant",
       "aggregationType": "SUM",
-      "domainType": "AGGREGATE",
+      "domainType": "TRACKER",
       "publicAccess": "rw------",
       "valueType": "TRUE_ONLY",
       "zeroIsSignificant": false,

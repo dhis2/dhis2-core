@@ -1,5 +1,3 @@
-package org.hisp.dhis.artemis.audit;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,26 +25,27 @@ package org.hisp.dhis.artemis.audit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.artemis.audit;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.DelayQueue;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Buffers Audit messages prior to sending them to the Audit queue. This
  * scheduler is disabled by default (config key: audit.inmemory-queue.enabled)
  * and should be used only in very high-traffic environments. Note that upon a
  * JVM crash, the Audit messages in this queue will be lost.
- * 
+ *
  * The buffer is based on a {@link DelayQueue} where messages are buffered for 5
  * seconds, before being de-queued to the Artemis broker.
- * 
+ *
  * To avoid excessive memory pressure, max 200 messages can stay in the queue:
  * in-excess messages are processed immediately.
  *

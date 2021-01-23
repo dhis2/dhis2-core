@@ -1,5 +1,3 @@
-package org.hisp.dhis.common;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,20 +25,24 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 /**
  * Defines the selection of assigned user.
- * 
+ *
  * <ul>
  * <li>CURRENT: The current logged in user.</li>
  * <li>PROVIDED: The user provided in the param/payload.</li>
  * <li>NONE: Unassigned.</li>
  * <li>ANY: Assigned to anyone.</li>
  * </ul>
- * 
+ *
  * @author Ameen Mohamed
  */
 public enum AssignedUserSelectionMode
 {
-    CURRENT, PROVIDED, NONE, ANY;
+    CURRENT,
+    PROVIDED,
+    NONE,
+    ANY;
 }

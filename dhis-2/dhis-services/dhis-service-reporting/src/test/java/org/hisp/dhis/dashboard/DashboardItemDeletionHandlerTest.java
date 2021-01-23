@@ -1,5 +1,3 @@
-package org.hisp.dhis.dashboard;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,9 @@ package org.hisp.dhis.dashboard;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dashboard;
+
+import static org.junit.Assert.*;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.chart.ChartType;
@@ -48,8 +49,6 @@ import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Jim Grace
@@ -112,12 +111,12 @@ public class DashboardItemDeletionHandlerTest
         dashboardItem.setVisualization( visualization );
         dashboardService.saveDashboard( dashboard );
 
-        assertEquals(1, dashboardService.getVisualizationDashboardItems( visualization ).size() );
+        assertEquals( 1, dashboardService.getVisualizationDashboardItems( visualization ).size() );
         assertEquals( 1, dashboard.getItemCount() );
 
         visualizationService.delete( visualization );
 
-        assertEquals(0, dashboardService.getVisualizationDashboardItems( visualization ).size() );
+        assertEquals( 0, dashboardService.getVisualizationDashboardItems( visualization ).size() );
         assertEquals( 0, dashboard.getItemCount() );
     }
 
@@ -134,12 +133,12 @@ public class DashboardItemDeletionHandlerTest
         dashboardItem.setEventChart( eventChart );
         dashboardService.saveDashboard( dashboard );
 
-        assertEquals(1, dashboardService.getEventChartDashboardItems( eventChart ).size() );
+        assertEquals( 1, dashboardService.getEventChartDashboardItems( eventChart ).size() );
         assertEquals( 1, dashboard.getItemCount() );
 
         eventChartService.deleteEventChart( eventChart );
 
-        assertEquals(0, dashboardService.getEventChartDashboardItems( eventChart ).size() );
+        assertEquals( 0, dashboardService.getEventChartDashboardItems( eventChart ).size() );
         assertEquals( 0, dashboard.getItemCount() );
     }
 
@@ -153,12 +152,12 @@ public class DashboardItemDeletionHandlerTest
         dashboardItem.setMap( map );
         dashboardService.saveDashboard( dashboard );
 
-        assertEquals(1, dashboardService.getMapDashboardItems( map ).size() );
+        assertEquals( 1, dashboardService.getMapDashboardItems( map ).size() );
         assertEquals( 1, dashboard.getItemCount() );
 
         mappingService.deleteMap( map );
 
-        assertEquals(0, dashboardService.getMapDashboardItems( map ).size() );
+        assertEquals( 0, dashboardService.getMapDashboardItems( map ).size() );
         assertEquals( 0, dashboard.getItemCount() );
     }
 
@@ -174,12 +173,12 @@ public class DashboardItemDeletionHandlerTest
         dashboardItem.setEventReport( eventReport );
         dashboardService.saveDashboard( dashboard );
 
-        assertEquals(1, dashboardService.getEventReportDashboardItems( eventReport ).size() );
+        assertEquals( 1, dashboardService.getEventReportDashboardItems( eventReport ).size() );
         assertEquals( 1, dashboard.getItemCount() );
 
         eventReportService.deleteEventReport( eventReport );
 
-        assertEquals(0, dashboardService.getEventReportDashboardItems( eventReport ).size() );
+        assertEquals( 0, dashboardService.getEventReportDashboardItems( eventReport ).size() );
         assertEquals( 0, dashboard.getItemCount() );
     }
 
@@ -191,25 +190,25 @@ public class DashboardItemDeletionHandlerTest
         userService.addUser( userA );
         userService.addUser( userB );
 
-        dashboardItem.getUsers().add ( userA );
-        dashboardItem.getUsers().add ( userA ); // Test removing duplicates
-        dashboardItem.getUsers().add ( userB );
+        dashboardItem.getUsers().add( userA );
+        dashboardItem.getUsers().add( userA ); // Test removing duplicates
+        dashboardItem.getUsers().add( userB );
         dashboardService.saveDashboard( dashboard );
 
-        assertEquals(1, dashboardService.getUserDashboardItems( userA ).size() );
-        assertEquals(1, dashboardService.getUserDashboardItems( userB ).size() );
+        assertEquals( 1, dashboardService.getUserDashboardItems( userA ).size() );
+        assertEquals( 1, dashboardService.getUserDashboardItems( userB ).size() );
         assertEquals( 1, dashboard.getItemCount() );
 
         userService.deleteUser( userA );
 
-        assertEquals(0, dashboardService.getUserDashboardItems( userA ).size() );
-        assertEquals(1, dashboardService.getUserDashboardItems( userB ).size() );
+        assertEquals( 0, dashboardService.getUserDashboardItems( userA ).size() );
+        assertEquals( 1, dashboardService.getUserDashboardItems( userB ).size() );
         assertEquals( 1, dashboard.getItemCount() );
 
         userService.deleteUser( userB );
 
-        assertEquals(0, dashboardService.getUserDashboardItems( userA ).size() );
-        assertEquals(0, dashboardService.getUserDashboardItems( userB ).size() );
+        assertEquals( 0, dashboardService.getUserDashboardItems( userA ).size() );
+        assertEquals( 0, dashboardService.getUserDashboardItems( userB ).size() );
         assertEquals( 0, dashboard.getItemCount() );
     }
 
@@ -223,25 +222,25 @@ public class DashboardItemDeletionHandlerTest
         reportService.saveReport( reportA );
         reportService.saveReport( reportB );
 
-        dashboardItem.getReports().add ( reportA );
-        dashboardItem.getReports().add ( reportA ); // Test removing duplicates
-        dashboardItem.getReports().add ( reportB );
+        dashboardItem.getReports().add( reportA );
+        dashboardItem.getReports().add( reportA ); // Test removing duplicates
+        dashboardItem.getReports().add( reportB );
         dashboardService.saveDashboard( dashboard );
 
-        assertEquals(1, dashboardService.getReportDashboardItems( reportA ).size() );
-        assertEquals(1, dashboardService.getReportDashboardItems( reportB ).size() );
+        assertEquals( 1, dashboardService.getReportDashboardItems( reportA ).size() );
+        assertEquals( 1, dashboardService.getReportDashboardItems( reportB ).size() );
         assertEquals( 1, dashboard.getItemCount() );
 
         reportService.deleteReport( reportA );
 
-        assertEquals(0, dashboardService.getReportDashboardItems( reportA ).size() );
-        assertEquals(1, dashboardService.getReportDashboardItems( reportB ).size() );
+        assertEquals( 0, dashboardService.getReportDashboardItems( reportA ).size() );
+        assertEquals( 1, dashboardService.getReportDashboardItems( reportB ).size() );
         assertEquals( 1, dashboard.getItemCount() );
 
         reportService.deleteReport( reportB );
 
-        assertEquals(0, dashboardService.getReportDashboardItems( reportA ).size() );
-        assertEquals(0, dashboardService.getReportDashboardItems( reportB ).size() );
+        assertEquals( 0, dashboardService.getReportDashboardItems( reportA ).size() );
+        assertEquals( 0, dashboardService.getReportDashboardItems( reportB ).size() );
         assertEquals( 0, dashboard.getItemCount() );
     }
 
@@ -257,25 +256,26 @@ public class DashboardItemDeletionHandlerTest
         documentService.saveDocument( documentA );
         documentService.saveDocument( documentB );
 
-        dashboardItem.getResources().add ( documentA );
-        dashboardItem.getResources().add ( documentA ); // Test removing duplicates
-        dashboardItem.getResources().add ( documentB );
+        dashboardItem.getResources().add( documentA );
+        dashboardItem.getResources().add( documentA ); // Test removing
+                                                       // duplicates
+        dashboardItem.getResources().add( documentB );
         dashboardService.saveDashboard( dashboard );
 
-        assertEquals(1, dashboardService.getDocumentDashboardItems( documentA ).size() );
-        assertEquals(1, dashboardService.getDocumentDashboardItems( documentB ).size() );
+        assertEquals( 1, dashboardService.getDocumentDashboardItems( documentA ).size() );
+        assertEquals( 1, dashboardService.getDocumentDashboardItems( documentB ).size() );
         assertEquals( 1, dashboard.getItemCount() );
 
         documentService.deleteDocument( documentA );
 
-        assertEquals(0, dashboardService.getDocumentDashboardItems( documentA ).size() );
-        assertEquals(1, dashboardService.getDocumentDashboardItems( documentB ).size() );
+        assertEquals( 0, dashboardService.getDocumentDashboardItems( documentA ).size() );
+        assertEquals( 1, dashboardService.getDocumentDashboardItems( documentB ).size() );
         assertEquals( 1, dashboard.getItemCount() );
 
         documentService.deleteDocument( documentB );
 
-        assertEquals(0, dashboardService.getDocumentDashboardItems( documentA ).size() );
-        assertEquals(0, dashboardService.getDocumentDashboardItems( documentB ).size() );
+        assertEquals( 0, dashboardService.getDocumentDashboardItems( documentA ).size() );
+        assertEquals( 0, dashboardService.getDocumentDashboardItems( documentB ).size() );
         assertEquals( 0, dashboard.getItemCount() );
     }
 }

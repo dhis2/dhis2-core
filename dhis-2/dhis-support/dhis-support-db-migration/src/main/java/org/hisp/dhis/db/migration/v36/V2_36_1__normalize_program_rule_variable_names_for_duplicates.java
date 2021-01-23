@@ -1,5 +1,3 @@
-package org.hisp.dhis.db.migration.v36;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.db.migration.v36;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.db.migration.v36;
 
 import static org.hisp.dhis.db.migration.v36.V2_36_1__normalize_program_rule_variable_names_for_duplicates.ProgramRuleMigrationUtils.findAvailableName;
 
@@ -45,12 +44,12 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
-
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
@@ -83,6 +82,7 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
 
     /**
      * Returns a list of rule variable to be renamed, as pairs of (uid, name)
+     *
      * @param connection
      * @return
      * @throws SQLException
@@ -114,6 +114,7 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
 
     /**
      * Given a rule variable name, renames it
+     *
      * @param candidate
      * @param connection
      * @return variable names that have actually been renamed
@@ -147,6 +148,7 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
 
     /**
      * Detects which Program Rules have been affected by variable renaming
+     *
      * @param renamedVariableNames
      * @param connection
      * @return
@@ -184,14 +186,15 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
     }
 
     /**
-     * Utility class which shares commons method with Program Name flyway migration
-     * (i.e. V2_36_2__normalize_program_rule_names_for_duplicates)
+     * Utility class which shares commons method with Program Name flyway
+     * migration (i.e. V2_36_2__normalize_program_rule_names_for_duplicates)
      */
     static class ProgramRuleMigrationUtils
     {
 
         /**
          * Try to append a numeric suffix to variable name
+         *
          * @param originalName
          * @param existingNames
          * @return

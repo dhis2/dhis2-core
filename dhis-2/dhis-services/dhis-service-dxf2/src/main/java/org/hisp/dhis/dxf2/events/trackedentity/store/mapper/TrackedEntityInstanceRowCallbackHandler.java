@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,8 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.getColumnName;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.CREATED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.CREATEDCLIENT;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.DELETED;
@@ -39,6 +37,7 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityI
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.UID;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.UPDATED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.UPDATEDCLIENT;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.getColumnName;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -50,20 +49,19 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.jdbc.core.RowCallbackHandler;
-
 import org.locationtech.jts.geom.Geometry;
+import org.springframework.jdbc.core.RowCallbackHandler;
 
 /**
  * @author Luciano Fiandesio
  */
 public class TrackedEntityInstanceRowCallbackHandler
-        implements
-        RowCallbackHandler
+    implements
+    RowCallbackHandler
 {
     private Map<String, TrackedEntityInstance> items;
 
-    public TrackedEntityInstanceRowCallbackHandler( )
+    public TrackedEntityInstanceRowCallbackHandler()
     {
         this.items = new LinkedHashMap<>();
     }
@@ -89,7 +87,7 @@ public class TrackedEntityInstanceRowCallbackHandler
         {
             tei.setGeometry( geo.get() );
             tei.setFeatureType( FeatureType.getTypeFromName( geo.get().getGeometryType() ) );
-            tei.setCoordinates(GeoUtils.getCoordinatesFromGeometry( geo.get() ));
+            tei.setCoordinates( GeoUtils.getCoordinatesFromGeometry( geo.get() ) );
         }
 
         return tei;

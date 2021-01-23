@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.aggregates;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,20 +25,21 @@ package org.hisp.dhis.dxf2.events.aggregates;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.aggregates;
 
 import java.util.List;
 
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
-
 import lombok.Builder;
 import lombok.Value;
+
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 
 /**
  * @author Luciano Fiandesio
  */
 @Value
-@Builder(toBuilder = true)
+@Builder( toBuilder = true )
 public class AggregateContext
 {
     /**

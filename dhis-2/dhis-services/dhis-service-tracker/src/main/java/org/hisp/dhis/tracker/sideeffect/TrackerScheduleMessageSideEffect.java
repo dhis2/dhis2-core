@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.sideeffect;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,15 +25,19 @@ package org.hisp.dhis.tracker.sideeffect;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.sideeffect;
+
+import lombok.Builder;
+import lombok.Data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import lombok.Builder;
-import lombok.Data;
 
 /**
- * DHIS2 equivalent to rule engine {@link org.hisp.dhis.rules.models.RuleActionScheduleMessage}
+ * DHIS2 equivalent to rule engine
+ * {@link org.hisp.dhis.rules.models.RuleActionScheduleMessage}
+ *
  * @author Zubair Asghar
  */
 

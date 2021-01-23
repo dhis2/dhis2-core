@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.bundle;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.bundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.bundle;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -91,7 +90,8 @@ public class TrackedEntityProgramAttributeEncryptionTest
 
         assertEquals( 5, attributeValues.size() );
 
-        // not really a great test, but we are using a random seed for salt, so it changes on every run... we might want to
+        // not really a great test, but we are using a random seed for salt, so
+        // it changes on every run... we might want to
         // add another EncryptionConfig test profile
         RowCallbackHandler handler = resultSet -> assertNotNull( resultSet.getString( "encryptedvalue" ) );
         jdbcTemplate.query( "select * from trackedentityattributevalue where encryptedvalue is not null ", handler );

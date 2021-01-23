@@ -1,5 +1,3 @@
-package org.hisp.dhis.common;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,13 +25,14 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.springframework.util.Base64Utils;
+package org.hisp.dhis.common;
 
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
+
+import org.springframework.util.Base64Utils;
 
 /**
  * @author bobj
@@ -46,6 +45,7 @@ public class CodeGenerator
     public static final String ALLOWED_CHARS = "0123456789" + letters;
 
     public static final int NUMBER_OF_CODEPOINTS = ALLOWED_CHARS.length();
+
     public static final int CODESIZE = 11;
 
     private static final Pattern CODE_PATTERN = Pattern.compile( "^[a-zA-Z]{1}[a-zA-Z0-9]{10}$" );
@@ -128,7 +128,7 @@ public class CodeGenerator
     public static String getRandomUrlToken()
     {
         SecureRandom sr = new SecureRandom();
-        byte[] tokenBytes = new byte[ URL_RANDOM_TOKEN_LENGTH ];
+        byte[] tokenBytes = new byte[URL_RANDOM_TOKEN_LENGTH];
         sr.nextBytes( tokenBytes );
 
         return Base64Utils.encodeToUrlSafeString( tokenBytes );

@@ -1,5 +1,3 @@
-package org.hisp.dhis.user;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,10 +25,11 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+package org.hisp.dhis.user;
 
 import java.util.Set;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * This interface defined methods for getting access to the currently logged in
@@ -46,13 +45,13 @@ public interface CurrentUserService
 
     /**
      * @return the username of the currently logged in user. If no user is
-     *          logged in or the auto access admin is active, null is returned.
+     *         logged in or the auto access admin is active, null is returned.
      */
     String getCurrentUsername();
 
     /**
      * @return the currently logged in user. If no user is logged in or the auto
-     *          access admin is active, null is returned.
+     *         access admin is active, null is returned.
      */
     User getCurrentUser();
 
@@ -61,19 +60,19 @@ public interface CurrentUserService
 
     /**
      * @return the user info for the currently logged in user. If no user is
-     *          logged in or the auto access admin is active, null is returned.
+     *         logged in or the auto access admin is active, null is returned.
      */
     UserInfo getCurrentUserInfo();
 
     /**
-     * @return the data capture organisation units of the current user, empty set
-     *          if no current user.
+     * @return the data capture organisation units of the current user, empty
+     *         set if no current user.
      */
     Set<OrganisationUnit> getCurrentUserOrganisationUnits();
 
     /**
-     * @return true if the current logged in user has the ALL privileges set, false
-     *          otherwise.
+     * @return true if the current logged in user has the ALL privileges set,
+     *         false otherwise.
      */
     boolean currentUserIsSuper();
 
@@ -95,8 +94,8 @@ public interface CurrentUserService
     CurrentUserGroupInfo getCurrentUserGroupsInfo();
 
     /**
-     * Invalidate UserGroupInfo Cache for given username
-     * Ignore if username doesn't exist
+     * Invalidate UserGroupInfo Cache for given username Ignore if username
+     * doesn't exist
      */
     void invalidateUserGroupCache( String username );
 

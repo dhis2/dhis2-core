@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation.service;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.service;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.service;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -36,6 +35,9 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -53,9 +55,6 @@ import org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -64,11 +63,14 @@ import lombok.RequiredArgsConstructor;
 public class DefaultTrackerImportAccessManager
     implements TrackerImportAccessManager
 {
-    @NonNull private final AclService aclService;
+    @NonNull
+    private final AclService aclService;
 
-    @NonNull private final TrackerOwnershipManager ownershipAccessManager;
+    @NonNull
+    private final TrackerOwnershipManager ownershipAccessManager;
 
-    @NonNull private final OrganisationUnitService organisationUnitService;
+    @NonNull
+    private final OrganisationUnitService organisationUnitService;
 
     public void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, OrganisationUnit orgUnit )
     {
@@ -80,7 +82,8 @@ public class DefaultTrackerImportAccessManager
 
         if ( !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit ) )
         {
-            //TODO: This state I can't reach, can't enroll in programs without registration...
+            // TODO: This state I can't reach, can't enroll in programs without
+            // registration...
             // maybe remove in the new importer?
             reporter.addError( newReport( TrackerErrorCode.E1093 )
                 .addArg( user )
@@ -138,7 +141,8 @@ public class DefaultTrackerImportAccessManager
         }
         else
         {
-            //TODO: This state I can't reach, can't enroll in programs without registration...
+            // TODO: This state I can't reach, can't enroll in programs without
+            // registration...
             // maybe remove in the new importer?
             checkOrgUnitInSearchScope( reporter, organisationUnit );
         }
@@ -173,8 +177,8 @@ public class DefaultTrackerImportAccessManager
     }
 
     @Override
-    public void checkWriteEnrollmentAccess(ValidationErrorReporter reporter, Program program,
-        String trackedEntity, OrganisationUnit organisationUnit)
+    public void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Program program,
+        String trackedEntity, OrganisationUnit organisationUnit )
     {
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         User user = bundle.getUser();
@@ -220,7 +224,8 @@ public class DefaultTrackerImportAccessManager
         else
         {
             checkProgramStageWriteAccess( reporter, user, programStage );
-            // at this point the link between program and program stage should be validated
+            // at this point the link between program and program stage should
+            // be validated
             // so it is safe to fetch the Program from the program stage
             final String programUid = programStage.getProgram().getUid();
             final Program program = reporter.getPreheat().getAll( Program.class )

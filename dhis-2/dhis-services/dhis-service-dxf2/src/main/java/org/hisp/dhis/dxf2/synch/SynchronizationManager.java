@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.synch;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.synch;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.synch;
 
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -42,7 +41,8 @@ public interface SynchronizationManager
      *
      * @return an {@link ImportSummary}.
      */
-    ImportSummary executeDataValuePush() throws WebMessageParseException;
+    ImportSummary executeDataValuePush()
+        throws WebMessageParseException;
 
     /**
      * Executes a meta data pull operation from remote server.

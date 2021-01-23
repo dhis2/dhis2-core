@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.event;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,16 +25,16 @@ package org.hisp.dhis.dxf2.events.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.event;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
 
-import org.postgis.PGgeometry;
+import lombok.experimental.UtilityClass;
 
 import org.locationtech.jts.geom.Geometry;
-
-import lombok.experimental.UtilityClass;
+import org.postgis.PGgeometry;
 
 @UtilityClass
 class JdbcEventSupport
@@ -47,7 +45,8 @@ class JdbcEventSupport
         return date != null ? new Timestamp( date.getTime() ) : null;
     }
 
-    PGgeometry toGeometry( Geometry geometry ) throws SQLException
+    PGgeometry toGeometry( Geometry geometry )
+        throws SQLException
     {
         return geometry != null ? new PGgeometry( geometry.toText() ) : null;
     }
