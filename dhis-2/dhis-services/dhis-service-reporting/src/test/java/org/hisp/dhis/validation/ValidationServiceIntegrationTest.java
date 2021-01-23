@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.validation;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static junit.framework.TestCase.assertEquals;
+import static org.hisp.dhis.expression.Operator.*;
+import static org.junit.Assert.assertTrue;
+
+import java.util.*;
+
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.*;
 import org.hisp.dhis.dataelement.DataElement;
@@ -44,12 +48,8 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
-
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertFalse;
-import static org.hisp.dhis.expression.Operator.*;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * ValidationService tests that need to run against a Postgres db.
@@ -141,22 +141,28 @@ public class ValidationServiceIntegrationTest
     @Test
     public void testDataElementAndDEO()
     {
-        dataValueService.addDataValue( createDataValue( dataElementA, periodA, orgUnitA, defaultCombo, defaultCombo, "10" ) );
+        dataValueService
+            .addDataValue( createDataValue( dataElementA, periodA, orgUnitA, defaultCombo, defaultCombo, "10" ) );
 
-        Expression expressionLeft = new Expression("#{" + dataElementA.getUid() + "} + #{" + dataElementA.getUid() + "." + defaultCombo.getUid() + "}", "expressionLeft" );
+        Expression expressionLeft = new Expression(
+            "#{" + dataElementA.getUid() + "} + #{" + dataElementA.getUid() + "." + defaultCombo.getUid() + "}",
+            "expressionLeft" );
         Expression expressionRight = new Expression( "10", "expressionRight" );
 
-        ValidationRule validationRule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, periodTypeMonthly );
+        ValidationRule validationRule = createValidationRule( "R", equal_to, expressionLeft, expressionRight,
+            periodTypeMonthly );
 
         validationRuleService.saveValidationRule( validationRule );
 
         Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( Lists.newArrayList( validationRule ), orgUnitA, Lists.newArrayList( periodA ) )
+            .validationAnalysis( validationService
+                .newParamsBuilder( Lists.newArrayList( validationRule ), orgUnitA, Lists.newArrayList( periodA ) )
                 .build() );
 
         Collection<ValidationResult> reference = new HashSet<>();
 
-        ValidationResult referenceA =  new ValidationResult( validationRule, periodA, orgUnitA, defaultCombo, 20.0, 10.0, dayInPeriodA );
+        ValidationResult referenceA = new ValidationResult( validationRule, periodA, orgUnitA, defaultCombo, 20.0, 10.0,
+            dayInPeriodA );
 
         assertEquals( 1, results.size() );
 
