@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.bundle;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.bundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.bundle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +36,7 @@ import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -97,7 +97,8 @@ public class DefaultTrackerBundleService
     private ImmutableMap<TrackerType, BiFunction<Session, TrackerBundle, TrackerTypeReport>> COMMIT_MAPPER;
 
     @PostConstruct
-    public void initMaps() {
+    public void initMaps()
+    {
 
         COMMIT_MAPPER = new ImmutableMap.Builder<TrackerType, BiFunction<Session, TrackerBundle, TrackerTypeReport>>()
             .put( TrackerType.ENROLLMENT,

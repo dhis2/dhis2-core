@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.importer;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.partition;
@@ -37,6 +36,8 @@ import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
@@ -46,8 +47,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -84,7 +83,7 @@ public class EventImporter
         {
             return importSummaries;
         }
-        
+
         notifier.clear( jobConfiguration ).notify( jobConfiguration, "Importing events" );
         final Clock clock = new Clock( log ).startClock();
 
@@ -92,7 +91,7 @@ public class EventImporter
 
         final WorkContext context = workContextLoader.load( importOptions, events );
 
-        log.debug( "::: event tracker import context load took : " + ( nanoTime() - now) );
+        log.debug( "::: event tracker import context load took : " + (nanoTime() - now) );
 
         final List<List<Event>> partitions = partition( events, BATCH_SIZE );
 

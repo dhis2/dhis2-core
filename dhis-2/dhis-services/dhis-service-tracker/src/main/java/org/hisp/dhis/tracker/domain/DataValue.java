@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.domain;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,12 +25,16 @@ package org.hisp.dhis.tracker.domain;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.Instant;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -44,10 +46,10 @@ import lombok.NoArgsConstructor;
 public class DataValue
 {
     @JsonProperty
-    private String createdAt;
+    private Instant createdAt;
 
     @JsonProperty
-    private String updatedAt;
+    private Instant updatedAt;
 
     @JsonProperty
     private String storedBy;

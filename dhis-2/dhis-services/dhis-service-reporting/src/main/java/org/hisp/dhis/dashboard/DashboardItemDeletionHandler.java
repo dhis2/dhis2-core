@@ -1,5 +1,3 @@
-package org.hisp.dhis.dashboard;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.dashboard;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dashboard;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -138,7 +137,8 @@ public class DashboardItemDeletionHandler extends DeletionHandler
     {
         for ( DashboardItem item : dashboardService.getReportDashboardItems( report ) )
         {
-            while ( item.getReports().contains( report ) ) // In case of duplicates
+            while ( item.getReports().contains( report ) ) // In case of
+                                                           // duplicates
             {
                 item.getReports().remove( report );
             }
@@ -155,7 +155,8 @@ public class DashboardItemDeletionHandler extends DeletionHandler
     {
         for ( DashboardItem item : dashboardService.getDocumentDashboardItems( document ) )
         {
-            while ( item.getResources().contains( document ) ) // In case of duplicates
+            while ( item.getResources().contains( document ) ) // In case of
+                                                               // duplicates
             {
                 item.getResources().remove( document );
             }

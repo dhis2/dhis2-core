@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.importer.context;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,13 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.context;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -48,7 +48,6 @@ import org.hisp.dhis.program.Program;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Luciano Fiandesio
@@ -102,8 +101,8 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
         case1( ImportOptions.getDefaultImportOptions() );
 
         /*
-         * Case 2: Event has 'attributeOptionCombo' value set, but it's not found ->
-         * fetch default coc
+         * Case 2: Event has 'attributeOptionCombo' value set, but it's not
+         * found -> fetch default coc
          */
         case2( ImportOptions.getDefaultImportOptions() );
 
@@ -113,14 +112,15 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
         case3( ImportOptions.getDefaultImportOptions() );
 
         /*
-         * Case 4: Event has no 'attributeCategoryOptions' or 'attributeOptionCombo'
-         * values set -> fetch default coc
+         * Case 4: Event has no 'attributeCategoryOptions' or
+         * 'attributeOptionCombo' values set -> fetch default coc
          */
         case4( ImportOptions.getDefaultImportOptions() );
 
         /*
-         * Case 5: Event has both 'attributeCategoryOptions' and 'attributeOptionCombo'
-         * values set attributeOptionCombo is used to fetch the coc
+         * Case 5: Event has both 'attributeCategoryOptions' and
+         * 'attributeOptionCombo' values set attributeOptionCombo is used to
+         * fetch the coc
          */
         case5( ImportOptions.getDefaultImportOptions() );
     }

@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1015;
@@ -130,7 +129,8 @@ public class EnrollmentInExistingValidationHook
 
             if ( !activeOnly.isEmpty() && !activeOnly.contains( enrollment ) )
             {
-                // TODO: How do we do this check on an import set, this only checks when the DB already contains it
+                // TODO: How do we do this check on an import set, this only
+                // checks when the DB already contains it
                 addError( reporter, E1015, tei, program );
             }
         }
@@ -148,7 +148,8 @@ public class EnrollmentInExistingValidationHook
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
-        //checkNotNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+        // checkNotNull( trackedEntityInstance,
+        // TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
@@ -166,7 +167,8 @@ public class EnrollmentInExistingValidationHook
             {
 
                 ValidationErrorReporter localReporter = new ValidationErrorReporter( reporter.getValidationContext() );
-                trackerImportAccessManager.checkReadEnrollmentAccess( localReporter, programInstance.getProgram(), programInstance.getOrganisationUnit(), programInstance.getEntityInstance().getUid());
+                trackerImportAccessManager.checkReadEnrollmentAccess( localReporter, programInstance.getProgram(),
+                    programInstance.getOrganisationUnit(), programInstance.getEntityInstance().getUid() );
 
                 if ( localReporter.hasErrors() )
                 {
@@ -194,8 +196,8 @@ public class EnrollmentInExistingValidationHook
     }
 
     /**
-     * Get a {@link TrackedEntityInstance} from the pre-heat or from the reference
-     * tree.
+     * Get a {@link TrackedEntityInstance} from the pre-heat or from the
+     * reference tree.
      *
      * @param reporter the {@link ValidationErrorReporter} object
      * @param uid the UID of a {@link TrackedEntityInstance} object

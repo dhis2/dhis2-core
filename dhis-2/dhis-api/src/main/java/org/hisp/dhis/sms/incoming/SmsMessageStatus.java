@@ -1,5 +1,3 @@
-package org.hisp.dhis.sms.incoming;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,17 @@ package org.hisp.dhis.sms.incoming;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.incoming;
 
 /**
  * Status of an incoming sms.
  */
 public enum SmsMessageStatus
 {
-    INCOMING, PROCESSING, UNHANDLED, FAILED, PROCESSED, SENT, 
+    INCOMING,
+    PROCESSING,
+    UNHANDLED,
+    FAILED,
+    PROCESSED,
+    SENT,
 }

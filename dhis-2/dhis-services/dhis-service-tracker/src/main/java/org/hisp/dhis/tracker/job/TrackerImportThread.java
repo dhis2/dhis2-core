@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.job;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.job;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.job;
 
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -59,7 +58,9 @@ public class TrackerImportThread
         Assert.notNull( trackerImportParams, "Field trackerImportParams can not be null. " );
 
         trackerImportService
-            .importTracker( trackerImportParams ); // discard returned report, it has been put on the jobs endpoint
+            .importTracker( trackerImportParams ); // discard returned report,
+                                                   // it has been put on the
+                                                   // jobs endpoint
     }
 
     public void setTrackerImportParams( TrackerImportParams trackerImportParams )

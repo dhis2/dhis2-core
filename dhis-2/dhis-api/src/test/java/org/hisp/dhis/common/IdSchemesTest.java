@@ -1,5 +1,3 @@
-package org.hisp.dhis.common;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 import static org.junit.Assert.*;
 
@@ -38,24 +37,24 @@ public class IdSchemesTest
     public void testGetIdScheme()
     {
         IdSchemes schemes = new IdSchemes();
-        
+
         schemes.setDataElementIdScheme( IdScheme.UID.name() );
         schemes.setIdScheme( IdScheme.CODE.name() );
-        
+
         assertEquals( IdScheme.UID, schemes.getDataElementIdScheme() );
         assertEquals( IdScheme.CODE, schemes.getOrgUnitIdScheme() );
-        assertEquals( IdScheme.CODE, schemes.getIdScheme() );        
+        assertEquals( IdScheme.CODE, schemes.getIdScheme() );
     }
-    
+
     @Test
     public void testFrom()
     {
         IdScheme schemeA = IdScheme.from( IdScheme.ATTR_ID_SCHEME_PREFIX + "abcdefghijA" );
         IdScheme schemeB = IdScheme.from( "CODE" );
-        
+
         assertEquals( IdentifiableProperty.ATTRIBUTE, schemeA.getIdentifiableProperty() );
         assertEquals( "abcdefghijA", schemeA.getAttribute() );
-        
+
         assertEquals( IdentifiableProperty.CODE, schemeB.getIdentifiableProperty() );
     }
 }

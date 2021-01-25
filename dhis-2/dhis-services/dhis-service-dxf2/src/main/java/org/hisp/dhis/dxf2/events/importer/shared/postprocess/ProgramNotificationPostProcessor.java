@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.importer.shared.postprocess;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.shared.postprocess;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.shared.postprocess;
 
 import static org.hisp.dhis.event.EventStatus.SCHEDULE;
 
@@ -52,7 +51,8 @@ public class ProgramNotificationPostProcessor implements Processor
     {
         if ( !ctx.getImportOptions().isSkipNotifications() )
         {
-            // When this processor is invoked from insert event, then programStageInstance
+            // When this processor is invoked from insert event, then
+            // programStageInstance
             // might be null and need to be built from Event.
             final ProgramStageInstance programStageInstance = getProgramStageInstance( ctx, event );
 

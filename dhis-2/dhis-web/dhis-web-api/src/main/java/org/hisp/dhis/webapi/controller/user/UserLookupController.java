@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller.user;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,11 @@ package org.hisp.dhis.webapi.controller.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.user;
 
-import com.google.common.collect.Sets;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -47,8 +48,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.google.common.collect.Sets;
 
 /**
  * The user lookup API provides a minimal user information endpoint.

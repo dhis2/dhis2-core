@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1083;
@@ -167,8 +166,12 @@ public class PreCheckOwnershipValidationHook
         if ( tei != null )
         {
             trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
-                tei.getUid(), tei.getOrganisationUnit() );// This orgUnit could not be in the Preheat because is part of
-                                                          // an already persisted Entity
+                tei.getUid(), tei.getOrganisationUnit() );// This orgUnit could
+                                                          // not be in the
+                                                          // Preheat because is
+                                                          // part of
+                                                          // an already
+                                                          // persisted Entity
         }
         else
         {
@@ -177,7 +180,8 @@ public class PreCheckOwnershipValidationHook
 
             if ( trackedEntity.isPresent() )
             {
-                // We need to retrieve the orgUnit from the Preheat getting the uid from the TEI
+                // We need to retrieve the orgUnit from the Preheat getting the
+                // uid from the TEI
                 // in the payload
                 trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
                     trackedEntity.get().getUid(),
@@ -219,9 +223,16 @@ public class PreCheckOwnershipValidationHook
         }
         else
         {
-            if ( programInstance.getEntityInstance() != null ) // TODO luciano: we should add a early check where
-                                                               // validation fails if a pi has no TEI and program is
-                                                               // with registration
+            if ( programInstance.getEntityInstance() != null ) // TODO luciano:
+                                                               // we should add
+                                                               // a early check
+                                                               // where
+                                                               // validation
+                                                               // fails if a pi
+                                                               // has no TEI and
+                                                               // program is
+                                                               // with
+                                                               // registration
             {
                 teiUid = programInstance.getEntityInstance().getUid();
             }
@@ -265,7 +276,9 @@ public class PreCheckOwnershipValidationHook
         programStage = noProgramStageAndProgramIsWithoutReg ? program.getProgramStageByStage( 1 ) : programStage;
 
         trackerImportAccessManager.checkEventWriteAccess( reporter, programStage, organisationUnit, categoryOptionCombo,
-            teiUid, isCreatableInSearchScope ); // TODO: calculate correct isCreatableInSearchScope value
+            teiUid, isCreatableInSearchScope ); // TODO: calculate correct
+                                                // isCreatableInSearchScope
+                                                // value
     }
 
     protected void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter, Event event,

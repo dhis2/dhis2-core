@@ -1,5 +1,3 @@
-package org.hisp.dhis.interpretation.hibernate;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.interpretation.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.interpretation.hibernate;
 
 import java.util.List;
 
@@ -96,9 +95,10 @@ public class HibernateInterpretationStore
     @Override
     public long countVisualizationInterpretations( Visualization visualization )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.visualization=:visualization" )
-            .setParameter( "visualization", visualization )
-            .setCacheable( cacheable );
+        Query query = getQuery(
+            "select count(distinct c) from " + clazz.getName() + " c where c.visualization=:visualization" )
+                .setParameter( "visualization", visualization )
+                .setCacheable( cacheable );
 
         return ((Long) query.uniqueResult()).intValue();
     }

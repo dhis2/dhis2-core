@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,13 +25,17 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1056;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1057;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
+import java.time.Instant;
 import java.util.Date;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.category.CategoryOption;
@@ -47,8 +49,6 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -93,8 +93,8 @@ public class EventCategoryOptValidationHook
         Date eventDate;
         try
         {
-            eventDate = DateUtils.parseDate( ObjectUtils
-                .firstNonNull( event.getOccurredAt(), event.getScheduledAt(), DateUtils.getIso8601( new Date() ) ) );
+            eventDate = DateUtils.fromInstant( ObjectUtils
+                .firstNonNull( event.getOccurredAt(), event.getScheduledAt(), Instant.now() ) );
         }
         catch ( IllegalArgumentException e )
         {
@@ -114,7 +114,7 @@ public class EventCategoryOptValidationHook
 
             if ( option.getEndDate() != null && eventDate.compareTo( option.getEndDate() ) > 0 )
             {
-                addError( reporter, E1057, eventDate, option.getEndDate(),  categoryOptionCombo );
+                addError( reporter, E1057, eventDate, option.getEndDate(), categoryOptionCombo );
             }
         }
     }

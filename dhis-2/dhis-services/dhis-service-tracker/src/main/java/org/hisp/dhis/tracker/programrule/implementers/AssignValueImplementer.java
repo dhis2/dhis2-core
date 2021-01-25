@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.programrule.implementers;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,9 +25,15 @@ package org.hisp.dhis.tracker.programrule.implementers;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.programrule.implementers;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
 import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -46,13 +50,11 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerReportUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import com.google.common.collect.Lists;
 
 /**
- * This implementer assign a value to a field if it is empty, otherwise returns an error
+ * This implementer assign a value to a field if it is empty, otherwise returns
+ * an error
  *
  * @Author Enrico Colasante
  */
@@ -93,13 +95,15 @@ public class AssignValueImplementer
                 addOrOverwriteDataValue( actionRule );
                 issues.add( new ProgramRuleIssue( TrackerReportUtils
                     .formatMessage( TrackerErrorCode.E1308, actionRule.getDataValue().get().getDataElement(),
-                        actionRule.getEvent().getEvent() ), IssueType.WARNING ) );
+                        actionRule.getEvent().getEvent() ),
+                    IssueType.WARNING ) );
             }
             else
             {
                 issues.add( new ProgramRuleIssue( TrackerReportUtils
                     .formatMessage( TrackerErrorCode.E1307, actionRule.getDataValue().get().getDataElement(),
-                        actionRule.getEvent().getEvent() ), IssueType.ERROR ) );
+                        actionRule.getEvent().getEvent() ),
+                    IssueType.ERROR ) );
             }
         }
 
@@ -124,13 +128,15 @@ public class AssignValueImplementer
                 addOrOverwriteAttribute( actionRule );
                 issues.add( new ProgramRuleIssue( TrackerReportUtils
                     .formatMessage( TrackerErrorCode.E1310, actionRule.getAttribute().get().getAttribute(),
-                        actionRule.getEnrollment().getEnrollment() ), IssueType.WARNING ) );
+                        actionRule.getEnrollment().getEnrollment() ),
+                    IssueType.WARNING ) );
             }
             else
             {
                 issues.add( new ProgramRuleIssue( TrackerReportUtils
                     .formatMessage( TrackerErrorCode.E1310, actionRule.getAttribute().get().getAttribute(),
-                        actionRule.getEnrollment().getEnrollment() ), IssueType.ERROR ) );
+                        actionRule.getEnrollment().getEnrollment() ),
+                    IssueType.ERROR ) );
             }
         }
 

@@ -1,5 +1,3 @@
-package org.hisp.dhis.query;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,13 @@ package org.hisp.dhis.query;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public enum Direction
 {
-    ASCENDING, DESCENDING
+    ASCENDING,
+    DESCENDING
 }

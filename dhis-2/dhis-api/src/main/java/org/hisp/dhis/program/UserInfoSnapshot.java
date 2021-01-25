@@ -1,5 +1,3 @@
-package org.hisp.dhis.program;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,12 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
 import java.util.Optional;
+
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.notification.template.snapshot.IdentifiableObjectSnapshot;
@@ -37,13 +39,10 @@ import org.hisp.dhis.user.User;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-
 /**
  * Data structure to hold user information during save/update of events,
  * enrollments and comments
- * 
+ *
  * @author Giuseppe Nespolino
  */
 @NoArgsConstructor

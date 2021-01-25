@@ -1,5 +1,3 @@
-package org.hisp.dhis.user.sharing;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,17 +25,20 @@ package org.hisp.dhis.user.sharing;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user.sharing;
+
+import java.io.Serializable;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.user.User;
-
-import java.io.Serializable;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

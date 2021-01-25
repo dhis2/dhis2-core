@@ -1,5 +1,3 @@
-package org.hisp.dhis.dataapproval;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,17 +25,19 @@ package org.hisp.dhis.dataapproval;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataapproval;
+
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
 
 /**
  * Records the approval of DataSet values for a given OrganisationUnit and
@@ -110,7 +110,8 @@ public class DataApprovalLevel
     }
 
     /**
-     * Indicates whether this approval level specified a category option group set.
+     * Indicates whether this approval level specified a category option group
+     * set.
      */
     public boolean hasCategoryOptionGroupSet()
     {
@@ -118,7 +119,8 @@ public class DataApprovalLevel
     }
 
     /**
-     * Indicates whether the given approval level represents the same level as this.
+     * Indicates whether the given approval level represents the same level as
+     * this.
      */
     public boolean levelEquals( DataApprovalLevel other )
     {
@@ -132,9 +134,8 @@ public class DataApprovalLevel
             return false;
         }
 
-        if ( categoryOptionGroupSet != null ?
-            !categoryOptionGroupSet.equals( other.getCategoryOptionGroupSet() ) :
-            other.getCategoryOptionGroupSet() != null )
+        if ( categoryOptionGroupSet != null ? !categoryOptionGroupSet.equals( other.getCategoryOptionGroupSet() )
+            : other.getCategoryOptionGroupSet() != null )
         {
             return false;
         }
@@ -153,7 +154,8 @@ public class DataApprovalLevel
             "name=" + name +
             ", level=" + level +
             ", orgUnitLevel=" + orgUnitLevel +
-            ", categoryOptionGroupSet='" + (categoryOptionGroupSet == null ? "(null)" : categoryOptionGroupSet.getName()) + "'" +
+            ", categoryOptionGroupSet='"
+            + (categoryOptionGroupSet == null ? "(null)" : categoryOptionGroupSet.getName()) + "'" +
             ", created=" + created +
             ", lastUpdated=" + lastUpdated +
             '}';

@@ -1,6 +1,3 @@
-package org.hisp.dhis.webapi.controller;
-
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -28,6 +25,7 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -174,8 +172,9 @@ public class AuditController
         if ( storageStatus != FileResourceStorageStatus.STORED )
         {
             // HTTP 409, for lack of a more suitable status code
-            WebMessage webMessage = WebMessageUtils.conflict( "The content is being processed and is not available yet. Try again later.",
-                    "The content requested is in transit to the file store and will be available at a later time." );
+            WebMessage webMessage = WebMessageUtils.conflict(
+                "The content is being processed and is not available yet. Try again later.",
+                "The content requested is in transit to the file store and will be available at a later time." );
             webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
 
             throw new WebMessageException( webMessage );
@@ -208,8 +207,8 @@ public class AuditController
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
-        @RequestParam( required = false, defaultValue = "1" ) int page
-    ) throws WebMessageException
+        @RequestParam( required = false, defaultValue = "1" ) int page )
+        throws WebMessageException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -237,13 +236,15 @@ public class AuditController
         }
         else
         {
-            int total = dataValueAuditService.countDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo,
+            int total = dataValueAuditService.countDataValueAudits( dataElements, periods, organisationUnits,
+                categoryOptionCombo,
                 attributeOptionCombo, auditType );
 
             pager = new Pager( page, total, pageSize );
 
             dataValueAudits = dataValueAuditService.getDataValueAudits( dataElements, periods,
-                organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType, pager.getOffset(), pager.getPageSize() );
+                organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType, pager.getOffset(),
+                pager.getPageSize() );
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -253,7 +254,8 @@ public class AuditController
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
 
-        CollectionNode trackedEntityAttributeValueAudits = rootNode.addChild( new CollectionNode( "dataValueAudits", true ) );
+        CollectionNode trackedEntityAttributeValueAudits = rootNode
+            .addChild( new CollectionNode( "dataValueAudits", true ) );
         trackedEntityAttributeValueAudits.addChildren( fieldFilterService.toCollectionNode( DataValueAudit.class,
             new FieldFilterParams( dataValueAudits, fields ) ).getChildren() );
 
@@ -262,14 +264,14 @@ public class AuditController
 
     @RequestMapping( value = "trackedEntityDataValue", method = RequestMethod.GET )
     public @ResponseBody RootNode getTrackedEntityDataValueAudit(
-            @RequestParam( required = false, defaultValue = "" ) List<String> de,
-            @RequestParam( required = false, defaultValue = "" ) List<String> psi,
-            @RequestParam( required = false ) AuditType auditType,
-            @RequestParam( required = false ) Boolean skipPaging,
-            @RequestParam( required = false ) Boolean paging,
-            @RequestParam( required = false, defaultValue = "50" ) int pageSize,
-            @RequestParam( required = false, defaultValue = "1" ) int page
-    ) throws WebMessageException
+        @RequestParam( required = false, defaultValue = "" ) List<String> de,
+        @RequestParam( required = false, defaultValue = "" ) List<String> psi,
+        @RequestParam( required = false ) AuditType auditType,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false, defaultValue = "50" ) int pageSize,
+        @RequestParam( required = false, defaultValue = "1" ) int page )
+        throws WebMessageException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -287,16 +289,17 @@ public class AuditController
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
             dataValueAudits = trackedEntityDataValueAuditService.getTrackedEntityDataValueAudits(
-                    dataElements, programStageInstances, auditType );
+                dataElements, programStageInstances, auditType );
         }
         else
         {
-            int total = trackedEntityDataValueAuditService.countTrackedEntityDataValueAudits( dataElements, programStageInstances, auditType );
+            int total = trackedEntityDataValueAuditService.countTrackedEntityDataValueAudits( dataElements,
+                programStageInstances, auditType );
 
             pager = new Pager( page, total, pageSize );
 
             dataValueAudits = trackedEntityDataValueAuditService.getTrackedEntityDataValueAudits(
-                    dataElements, programStageInstances, auditType, pager.getOffset(), pager.getPageSize() );
+                dataElements, programStageInstances, auditType, pager.getOffset(), pager.getPageSize() );
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -306,8 +309,10 @@ public class AuditController
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
 
-        CollectionNode trackedEntityAttributeValueAudits = rootNode.addChild( new CollectionNode( "trackedEntityDataValueAudits", true ) );
-        trackedEntityAttributeValueAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityDataValueAudit.class,
+        CollectionNode trackedEntityAttributeValueAudits = rootNode
+            .addChild( new CollectionNode( "trackedEntityDataValueAudits", true ) );
+        trackedEntityAttributeValueAudits
+            .addChildren( fieldFilterService.toCollectionNode( TrackedEntityDataValueAudit.class,
                 new FieldFilterParams( dataValueAudits, fields ) ).getChildren() );
 
         return rootNode;
@@ -315,14 +320,14 @@ public class AuditController
 
     @RequestMapping( value = "trackedEntityAttributeValue", method = RequestMethod.GET )
     public @ResponseBody RootNode getTrackedEntityAttributeValueAudit(
-            @RequestParam( required = false, defaultValue = "" ) List<String> tea,
-            @RequestParam( required = false, defaultValue = "" ) List<String> tei,
-            @RequestParam( required = false ) AuditType auditType,
-            @RequestParam( required = false ) Boolean skipPaging,
-            @RequestParam( required = false ) Boolean paging,
-            @RequestParam( required = false, defaultValue = "50" ) int pageSize,
-            @RequestParam( required = false, defaultValue = "1" ) int page
-    ) throws WebMessageException
+        @RequestParam( required = false, defaultValue = "" ) List<String> tea,
+        @RequestParam( required = false, defaultValue = "" ) List<String> tei,
+        @RequestParam( required = false ) AuditType auditType,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false, defaultValue = "50" ) int pageSize,
+        @RequestParam( required = false, defaultValue = "1" ) int page )
+        throws WebMessageException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -335,17 +340,18 @@ public class AuditController
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
             attributeValueAudits = trackedEntityAttributeValueAuditService.getTrackedEntityAttributeValueAudits(
-                    trackedEntityAttributes, trackedEntityInstances, auditType );
+                trackedEntityAttributes, trackedEntityInstances, auditType );
         }
         else
         {
-            int total = trackedEntityAttributeValueAuditService.countTrackedEntityAttributeValueAudits( trackedEntityAttributes,
-                    trackedEntityInstances, auditType );
+            int total = trackedEntityAttributeValueAuditService.countTrackedEntityAttributeValueAudits(
+                trackedEntityAttributes,
+                trackedEntityInstances, auditType );
 
             pager = new Pager( page, total, pageSize );
 
             attributeValueAudits = trackedEntityAttributeValueAuditService.getTrackedEntityAttributeValueAudits(
-                    trackedEntityAttributes, trackedEntityInstances, auditType, pager.getOffset(), pager.getPageSize() );
+                trackedEntityAttributes, trackedEntityInstances, auditType, pager.getOffset(), pager.getPageSize() );
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -355,8 +361,10 @@ public class AuditController
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
 
-        CollectionNode trackedEntityAttributeValueAudits = rootNode.addChild( new CollectionNode( "trackedEntityAttributeValueAudits", true ) );
-        trackedEntityAttributeValueAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityAttributeValueAudit.class,
+        CollectionNode trackedEntityAttributeValueAudits = rootNode
+            .addChild( new CollectionNode( "trackedEntityAttributeValueAudits", true ) );
+        trackedEntityAttributeValueAudits
+            .addChildren( fieldFilterService.toCollectionNode( TrackedEntityAttributeValueAudit.class,
                 new FieldFilterParams( attributeValueAudits, fields ) ).getChildren() );
 
         return rootNode;
@@ -373,8 +381,7 @@ public class AuditController
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
-        @RequestParam( required = false, defaultValue = "1" ) int page
-    )
+        @RequestParam( required = false, defaultValue = "1" ) int page )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -424,8 +431,7 @@ public class AuditController
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
-        @RequestParam( required = false, defaultValue = "1" ) int page
-    )
+        @RequestParam( required = false, defaultValue = "1" ) int page )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -437,11 +443,11 @@ public class AuditController
         TrackedEntityInstanceAuditQueryParams params = new TrackedEntityInstanceAuditQueryParams();
 
         params.setTrackedEntityInstances( new HashSet<>( tei ) );
-        params.setUsers( new HashSet<>(  user ) );
+        params.setUsers( new HashSet<>( user ) );
         params.setAuditType( auditType );
         params.setStartDate( startDate );
         params.setEndDate( endDate );
-        params.setSkipPaging( PagerUtils.isSkipPaging( skipPaging, paging )  );
+        params.setSkipPaging( PagerUtils.isSkipPaging( skipPaging, paging ) );
 
         List<TrackedEntityInstanceAudit> teiAudits;
         Pager pager = null;
@@ -465,7 +471,8 @@ public class AuditController
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
 
-        CollectionNode trackedEntityInstanceAudits = rootNode.addChild( new CollectionNode( "trackedEntityInstanceAudits", true ) );
+        CollectionNode trackedEntityInstanceAudits = rootNode
+            .addChild( new CollectionNode( "trackedEntityInstanceAudits", true ) );
         trackedEntityInstanceAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityInstanceAudit.class,
             new FieldFilterParams( teiAudits, fields ) ).getChildren() );
 
@@ -473,11 +480,12 @@ public class AuditController
 
     }
 
-    //-----------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------
     // Helpers
-    //-----------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------
 
-    private List<TrackedEntityInstance> getTrackedEntityInstances( List<String> teiIdentifiers ) throws WebMessageException
+    private List<TrackedEntityInstance> getTrackedEntityInstances( List<String> teiIdentifiers )
+        throws WebMessageException
     {
         List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
 
@@ -494,7 +502,8 @@ public class AuditController
         return trackedEntityInstances;
     }
 
-    private TrackedEntityInstance getTrackedEntityInstance( String tei ) throws WebMessageException
+    private TrackedEntityInstance getTrackedEntityInstance( String tei )
+        throws WebMessageException
     {
         if ( tei == null )
         {
@@ -505,13 +514,15 @@ public class AuditController
 
         if ( trackedEntityInstance == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal trackedEntityInstance identifier: " + tei ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Illegal trackedEntityInstance identifier: " + tei ) );
         }
 
         return trackedEntityInstance;
     }
 
-    private List<TrackedEntityAttribute> getTrackedEntityAttributes( List<String> teaIdentifiers ) throws WebMessageException
+    private List<TrackedEntityAttribute> getTrackedEntityAttributes( List<String> teaIdentifiers )
+        throws WebMessageException
     {
         List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
 
@@ -528,7 +539,8 @@ public class AuditController
         return trackedEntityAttributes;
     }
 
-    private TrackedEntityAttribute getTrackedEntityAttribute( String tea ) throws WebMessageException
+    private TrackedEntityAttribute getTrackedEntityAttribute( String tea )
+        throws WebMessageException
     {
         if ( tea == null )
         {
@@ -539,13 +551,15 @@ public class AuditController
 
         if ( trackedEntityAttribute == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal trackedEntityAttribute identifier: " + tea ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Illegal trackedEntityAttribute identifier: " + tea ) );
         }
 
         return trackedEntityAttribute;
     }
 
-    private List<ProgramStageInstance> getProgramStageInstances( List<String> psIdentifiers ) throws WebMessageException
+    private List<ProgramStageInstance> getProgramStageInstances( List<String> psIdentifiers )
+        throws WebMessageException
     {
         List<ProgramStageInstance> programStageInstances = new ArrayList<>();
 
@@ -562,7 +576,8 @@ public class AuditController
         return programStageInstances;
     }
 
-    private ProgramStageInstance getProgramStageInstance( String ps ) throws WebMessageException
+    private ProgramStageInstance getProgramStageInstance( String ps )
+        throws WebMessageException
     {
         if ( ps == null )
         {
@@ -573,13 +588,15 @@ public class AuditController
 
         if ( programStageInstance == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal programStageInstance identifier: " + ps ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Illegal programStageInstance identifier: " + ps ) );
         }
 
         return programStageInstance;
     }
 
-    private List<DataElement> getDataElementsByDataSet( List<String> dsIdentifiers ) throws WebMessageException
+    private List<DataElement> getDataElementsByDataSet( List<String> dsIdentifiers )
+        throws WebMessageException
     {
         List<DataElement> dataElements = new ArrayList<>();
 
@@ -598,7 +615,8 @@ public class AuditController
         return dataElements;
     }
 
-    private List<DataElement> getDataElements( List<String> deIdentifier ) throws WebMessageException
+    private List<DataElement> getDataElements( List<String> deIdentifier )
+        throws WebMessageException
     {
         List<DataElement> dataElements = new ArrayList<>();
 
@@ -615,7 +633,8 @@ public class AuditController
         return dataElements;
     }
 
-    private DataElement getDataElement( String de ) throws WebMessageException
+    private DataElement getDataElement( String de )
+        throws WebMessageException
     {
         if ( de == null )
         {
@@ -632,7 +651,8 @@ public class AuditController
         return dataElement;
     }
 
-    private List<Period> getPeriods( List<String> peIdentifiers ) throws WebMessageException
+    private List<Period> getPeriods( List<String> peIdentifiers )
+        throws WebMessageException
     {
         List<Period> periods = new ArrayList<>();
 
@@ -653,7 +673,8 @@ public class AuditController
         return periods;
     }
 
-    private List<OrganisationUnit> getOrganisationUnit( List<String> ou ) {
+    private List<OrganisationUnit> getOrganisationUnit( List<String> ou )
+    {
         if ( ou == null )
         {
             return new ArrayList<>();
@@ -662,7 +683,8 @@ public class AuditController
         return manager.getByUid( OrganisationUnit.class, ou );
     }
 
-    private List<CategoryOptionCombo> getCategoryOptionCombo( List<String> coc ) {
+    private List<CategoryOptionCombo> getCategoryOptionCombo( List<String> coc )
+    {
         if ( coc == null )
         {
             return new ArrayList<>();
@@ -671,7 +693,8 @@ public class AuditController
         return manager.getByUid( CategoryOptionCombo.class, coc );
     }
 
-    private CategoryOptionCombo getCategoryOptionCombo( @RequestParam String co ) throws WebMessageException
+    private CategoryOptionCombo getCategoryOptionCombo( @RequestParam String co )
+        throws WebMessageException
     {
         if ( co == null )
         {
@@ -682,13 +705,15 @@ public class AuditController
 
         if ( categoryOptionCombo == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal categoryOptionCombo identifier: " + co ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Illegal categoryOptionCombo identifier: " + co ) );
         }
 
         return categoryOptionCombo;
     }
 
-    private CategoryOptionCombo getAttributeOptionCombo( @RequestParam String cc ) throws WebMessageException
+    private CategoryOptionCombo getAttributeOptionCombo( @RequestParam String cc )
+        throws WebMessageException
     {
         if ( cc == null )
         {
@@ -699,7 +724,8 @@ public class AuditController
 
         if ( attributeOptionCombo == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal attributeOptionCombo identifier: " + cc ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Illegal attributeOptionCombo identifier: " + cc ) );
         }
 
         return attributeOptionCombo;

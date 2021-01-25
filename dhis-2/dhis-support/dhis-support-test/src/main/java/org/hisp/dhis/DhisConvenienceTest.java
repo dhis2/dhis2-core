@@ -1,5 +1,3 @@
-package org.hisp.dhis;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,13 +25,34 @@ package org.hisp.dhis;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hashing;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.attribute.Attribute;
@@ -132,11 +151,11 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.utils.Dxf2NamespaceResolver;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
@@ -161,28 +180,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
 import org.xml.sax.InputSource;
 
-import javax.annotation.PostConstruct;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 
 /**
  * @author Lars Helge Overland
@@ -255,9 +257,9 @@ public abstract class DhisConvenienceTest
     /**
      * Creates a date.
      *
-     * @param year  the year.
+     * @param year the year.
      * @param month the month.
-     * @param day   the day of month.
+     * @param day the day of month.
      * @return a date.
      */
     public static Date getDate( int year, int month, int day )
@@ -299,7 +301,7 @@ public abstract class DhisConvenienceTest
      * method. This is useful for black-box testing where one will not know the
      * implementation type of the returned collection for a method.
      *
-     * @param actual    the actual collection to check.
+     * @param actual the actual collection to check.
      * @param reference the reference objects to check against.
      * @return true if the collections are equal, false otherwise.
      */
@@ -374,16 +376,17 @@ public abstract class DhisConvenienceTest
     // -------------------------------------------------------------------------
 
     /**
-     * Sets a dependency on the target service. This method can be used to set mock
-     * implementations of dependencies on services for testing purposes. The
-     * advantage of using this method over setting the services directly is that the
-     * test can still be executed against the interface type of the service; making
-     * the test unaware of the implementation and thus re-usable. A weakness is that
-     * the field name of the dependency must be assumed.
+     * Sets a dependency on the target service. This method can be used to set
+     * mock implementations of dependencies on services for testing purposes.
+     * The advantage of using this method over setting the services directly is
+     * that the test can still be executed against the interface type of the
+     * service; making the test unaware of the implementation and thus
+     * re-usable. A weakness is that the field name of the dependency must be
+     * assumed.
      *
      * @param targetService the target service.
-     * @param fieldName     the name of the dependency field in the target service.
-     * @param dependency    the dependency.
+     * @param fieldName the name of the dependency field in the target service.
+     * @param dependency the dependency.
      */
     protected void setDependency( Object targetService, String fieldName, Object dependency )
     {
@@ -393,17 +396,18 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * Sets a dependency on the target service. This method can be used to set mock
-     * implementations of dependencies on services for testing purposes. The
-     * advantage of using this method over setting the services directly is that the
-     * test can still be executed against the interface type of the service; making
-     * the test unaware of the implementation and thus re-usable. A weakness is that
-     * the field name of the dependency must be assumed.
+     * Sets a dependency on the target service. This method can be used to set
+     * mock implementations of dependencies on services for testing purposes.
+     * The advantage of using this method over setting the services directly is
+     * that the test can still be executed against the interface type of the
+     * service; making the test unaware of the implementation and thus
+     * re-usable. A weakness is that the field name of the dependency must be
+     * assumed.
      *
      * @param targetService the target service.
-     * @param fieldName     the name of the dependency field in the target service.
-     * @param dependency    the dependency.
-     * @param clazz         the interface type of the dependency.
+     * @param fieldName the name of the dependency field in the target service.
+     * @param dependency the dependency.
+     * @param clazz the interface type of the dependency.
      */
     protected void setDependency( Object targetService, String fieldName, Object dependency, Class<?> clazz )
     {
@@ -414,7 +418,7 @@ public abstract class DhisConvenienceTest
             String setMethodName = "set" + fieldName.substring( 0, 1 ).toUpperCase()
                 + fieldName.substring( 1 );
 
-            Class<?>[] argumentClass = new Class<?>[]{ clazz };
+            Class<?>[] argumentClass = new Class<?>[] { clazz };
 
             Method method = targetService.getClass().getMethod( setMethodName, argumentClass );
 
@@ -428,8 +432,9 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * If the given class is advised by Spring AOP it will return the target class,
-     * i.e. the advised class. If not the given class is returned unchanged.
+     * If the given class is advised by Spring AOP it will return the target
+     * class, i.e. the advised class. If not the given class is returned
+     * unchanged.
      *
      * @param object the object.
      */
@@ -459,7 +464,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param categoryCombo   The category combo.
+     * @param categoryCombo The category combo.
      */
     public static DataElement createDataElement( char uniqueCharacter, CategoryCombo categoryCombo )
     {
@@ -490,7 +495,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param valueType       The value type.
+     * @param valueType The value type.
      * @param aggregationType The aggregation type.
      */
     public static DataElement createDataElement( char uniqueCharacter, ValueType valueType,
@@ -505,9 +510,9 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param valueType       The value type.
+     * @param valueType The value type.
      * @param aggregationType The aggregation type.
-     * @param domainType      The domain type.
+     * @param domainType The domain type.
      */
     public static DataElement createDataElement( char uniqueCharacter, ValueType valueType,
         AggregationType aggregationType, DataElementDomain domainType )
@@ -522,8 +527,8 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param categoryComboUniqueIdentifier A unique character to identify the
-     *                                      category option combo.
-     * @param categories                    the categories category options.
+     *        category option combo.
+     * @param categories the categories category options.
      * @return CategoryOptionCombo
      */
     public static CategoryCombo createCategoryCombo( char categoryComboUniqueIdentifier, Category... categories )
@@ -541,10 +546,10 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param categoryComboUniqueIdentifier   A unique character to identify the
-     *                                        category combo.
+     * @param categoryComboUniqueIdentifier A unique character to identify the
+     *        category combo.
      * @param categoryOptionUniqueIdentifiers Unique characters to identify the
-     *                                        category options.
+     *        category options.
      * @return CategoryOptionCombo
      */
     public static CategoryOptionCombo createCategoryOptionCombo( char categoryComboUniqueIdentifier,
@@ -566,7 +571,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param categoryCombo   the category combo.
+     * @param categoryCombo the category combo.
      * @param categoryOptions the category options.
      * @return CategoryOptionCombo
      */
@@ -600,8 +605,9 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param categoryUniqueIdentifier A unique character to identify the category.
-     * @param categoryOptions          the category options.
+     * @param categoryUniqueIdentifier A unique character to identify the
+     *        category.
+     * @param categoryOptions the category options.
      * @return Category
      */
     public static Category createCategory( char categoryUniqueIdentifier,
@@ -627,9 +633,9 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param uniqueIdentifier A unique character to identify the category option
-     *                         group.
-     * @param categoryOptions  the category options.
+     * @param uniqueIdentifier A unique character to identify the category
+     *        option group.
+     * @param categoryOptions the category options.
      * @return CategoryOptionGroup
      */
     public static CategoryOptionGroup createCategoryOptionGroup( char uniqueIdentifier,
@@ -650,9 +656,9 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param categoryGroupSetUniqueIdentifier A unique character to identify the
-     *                                         category option group set.
-     * @param categoryOptionGroups             the category option groups.
+     * @param categoryGroupSetUniqueIdentifier A unique character to identify
+     *        the category option group set.
+     * @param categoryOptionGroups the category option groups.
      * @return CategoryOptionGroupSet
      */
     public static CategoryOptionGroupSet createCategoryOptionGroupSet( char categoryGroupSetUniqueIdentifier,
@@ -732,7 +738,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param type            The type.
+     * @param type The type.
      */
     public static Indicator createIndicator( char uniqueCharacter, IndicatorType type )
     {
@@ -795,7 +801,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param periodType      The period type.
+     * @param periodType The period type.
      */
     public static DataSet createDataSet( char uniqueCharacter, PeriodType periodType )
     {
@@ -804,8 +810,8 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param periodType      The period type.
-     * @param categoryCombo   The category combo.
+     * @param periodType The period type.
+     * @param categoryCombo The category combo.
      */
     public static DataSet createDataSet( char uniqueCharacter, PeriodType periodType, CategoryCombo categoryCombo )
     {
@@ -840,7 +846,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param html            the form HTML content.
+     * @param html the form HTML content.
      */
     public static DataEntryForm createDataEntryForm( char uniqueCharacter, String html )
     {
@@ -876,7 +882,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param parent          The parent.
+     * @param parent The parent.
      */
     public static OrganisationUnit createOrganisationUnit( char uniqueCharacter, OrganisationUnit parent )
     {
@@ -907,7 +913,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param name   The name, short name and code of the organisation unit.
+     * @param name The name, short name and code of the organisation unit.
      * @param parent The parent.
      */
     public static OrganisationUnit createOrganisationUnit( String name, OrganisationUnit parent )
@@ -953,7 +959,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param type      The PeriodType.
+     * @param type The PeriodType.
      * @param startDate The start date.
      */
     public static Period createPeriod( PeriodType type, Date startDate )
@@ -968,9 +974,9 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param type      The PeriodType.
+     * @param type The PeriodType.
      * @param startDate The start date.
-     * @param endDate   The end date.
+     * @param endDate The end date.
      */
     public static Period createPeriod( PeriodType type, Date startDate, Date endDate )
     {
@@ -994,7 +1000,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param startDate The start date.
-     * @param endDate   The end date.
+     * @param endDate The end date.
      */
     public static Period createPeriod( Date startDate, Date endDate )
     {
@@ -1011,10 +1017,10 @@ public abstract class DhisConvenienceTest
     /**
      * Uses the given category option combo also as attribute option combo.
      *
-     * @param dataElement         The data element.
-     * @param period              The period.
-     * @param source              The source.
-     * @param value               The value.
+     * @param dataElement The data element.
+     * @param period The period.
+     * @param source The source.
+     * @param value The value.
      * @param categoryOptionCombo The category (and attribute) option combo.
      */
     public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
@@ -1035,11 +1041,11 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param dataElement          The data element.
-     * @param period               The period.
-     * @param source               The source.
-     * @param value                The value.
-     * @param categoryOptionCombo  The category option combo.
+     * @param dataElement The data element.
+     * @param period The period.
+     * @param source The source.
+     * @param value The value.
+     * @param categoryOptionCombo The category option combo.
      * @param attributeOptionCombo The attribute option combo.
      */
     public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
@@ -1049,13 +1055,13 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param dataElement          The data element.
-     * @param period               The period.
-     * @param source               The source.
-     * @param value                The value.
-     * @param categoryOptionCombo  The category option combo.
+     * @param dataElement The data element.
+     * @param period The period.
+     * @param source The source.
+     * @param value The value.
+     * @param categoryOptionCombo The category option combo.
      * @param attributeOptionCombo The attribute option combo.
-     * @param deleted              Whether the data valeu is deleted.
+     * @param deleted Whether the data valeu is deleted.
      */
     public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value,
@@ -1080,10 +1086,10 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param operator        The operator.
-     * @param leftSide        The left side expression.
-     * @param rightSide       The right side expression.
-     * @param periodType      The period-type.
+     * @param operator The operator.
+     * @param leftSide The left side expression.
+     * @param rightSide The right side expression.
+     * @param periodType The period-type.
      */
     public static ValidationRule createValidationRule( String uniqueCharacter, Operator operator, Expression leftSide,
         Expression rightSide, PeriodType periodType )
@@ -1092,11 +1098,11 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param uniqueCharacter    A unique character to identify the object.
-     * @param operator           The operator.
-     * @param leftSide           The left side expression.
-     * @param rightSide          The right side expression.
-     * @param periodType         The period-type.
+     * @param uniqueCharacter A unique character to identify the object.
+     * @param operator The operator.
+     * @param leftSide The left side expression.
+     * @param rightSide The right side expression.
+     * @param periodType The period-type.
      * @param skipFormValidation Skip when validating forms.
      */
     public static ValidationRule createValidationRule( String uniqueCharacter, Operator operator, Expression leftSide,
@@ -1121,10 +1127,10 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param operator        The operator.
-     * @param leftSide        The left side expression.
-     * @param rightSide       The right side expression.
-     * @param periodType      The period-type.
+     * @param operator The operator.
+     * @param leftSide The left side expression.
+     * @param rightSide The right side expression.
+     * @param periodType The period-type.
      */
     public static ValidationRule createValidationRule( char uniqueCharacter, Operator operator, Expression leftSide,
         Expression rightSide, PeriodType periodType )
@@ -1148,7 +1154,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param uniqueCharacter  A unique character to identify the object.
+     * @param uniqueCharacter A unique character to identify the object.
      * @param expressionString The expression string.
      */
     public static Expression createExpression2( char uniqueCharacter, String expressionString )
@@ -1164,18 +1170,18 @@ public abstract class DhisConvenienceTest
     /**
      * Creates a Predictor
      *
-     * @param output                the data element where the predictor stores its predictions
-     * @param combo                 the category option combo (or null) under which the predictors
-     *                              are stored
-     * @param uniqueCharacter       A unique character to identify the object.
-     * @param generator             The right side expression.
-     * @param skipTest              The skiptest expression
-     * @param periodType            The period-type.
-     * @param organisationUnitLevel The organisation unit level to be evaluated by
-     *                              this rule.
+     * @param output the data element where the predictor stores its predictions
+     * @param combo the category option combo (or null) under which the
+     *        predictors are stored
+     * @param uniqueCharacter A unique character to identify the object.
+     * @param generator The right side expression.
+     * @param skipTest The skiptest expression
+     * @param periodType The period-type.
+     * @param organisationUnitLevel The organisation unit level to be evaluated
+     *        by this rule.
      * @param sequentialSampleCount How many sequential past periods to sample.
-     * @param annualSampleCount     How many years of past periods to sample.
-     * @param sequentialSkipCount   How many periods in the current year to skip
+     * @param annualSampleCount How many years of past periods to sample.
+     * @param sequentialSkipCount How many periods in the current year to skip
      */
     public static Predictor createPredictor( DataElement output, CategoryOptionCombo combo,
         String uniqueCharacter, Expression generator, Expression skipTest, PeriodType periodType,
@@ -1190,18 +1196,18 @@ public abstract class DhisConvenienceTest
     /**
      * Creates a Predictor
      *
-     * @param output                 The data element where the predictor stores its predictions
-     * @param combo                  The category option combo (or null) under which the predictors
-     *                               are stored
-     * @param uniqueCharacter        A unique character to identify the object.
-     * @param generator              The right side expression.
-     * @param skipTest               The skiptest expression
-     * @param periodType             The period-type.
-     * @param organisationUnitLevels The organisation unit levels to be evaluated by
-     *                               this rule.
-     * @param sequentialSampleCount  How many sequential past periods to sample.
-     * @param annualSampleCount      How many years of past periods to sample.
-     * @param sequentialSkipCount    How many periods in the current year to skip
+     * @param output The data element where the predictor stores its predictions
+     * @param combo The category option combo (or null) under which the
+     *        predictors are stored
+     * @param uniqueCharacter A unique character to identify the object.
+     * @param generator The right side expression.
+     * @param skipTest The skiptest expression
+     * @param periodType The period-type.
+     * @param organisationUnitLevels The organisation unit levels to be
+     *        evaluated by this rule.
+     * @param sequentialSampleCount How many sequential past periods to sample.
+     * @param annualSampleCount How many years of past periods to sample.
+     * @param sequentialSkipCount How many periods in the current year to skip
      */
     public static Predictor createPredictor( DataElement output, CategoryOptionCombo combo,
         String uniqueCharacter, Expression generator, Expression skipTest, PeriodType periodType,
@@ -1393,7 +1399,7 @@ public abstract class DhisConvenienceTest
 
     public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter )
     {
-        return createUserAuthorityGroup( uniqueCharacter, new String[]{} );
+        return createUserAuthorityGroup( uniqueCharacter, new String[] {} );
     }
 
     public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter, String... auths )
@@ -1861,7 +1867,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueChar A unique character to identify the object.
-     * @param content    The content of the file
+     * @param content The content of the file
      * @return a fileResource object
      */
     public static FileResource createFileResource( char uniqueChar, byte[] content )
@@ -1881,7 +1887,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueChar A unique character to identify the object.
-     * @param content    The content of the file
+     * @param content The content of the file
      * @return an externalFileResource object
      */
     public static ExternalFileResource createExternalFileResource( char uniqueChar, byte[] content )
@@ -1897,7 +1903,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param sql             A query statement to retreive record/data from database.
+     * @param sql A query statement to retreive record/data from database.
      * @return a sqlView instance
      */
     public static SqlView createSqlView( char uniqueCharacter, String sql )
@@ -1916,7 +1922,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param value           The value for constant
+     * @param value The value for constant
      * @return a constant instance
      */
     public static Constant createConstant( char uniqueCharacter, double value )
@@ -2057,11 +2063,11 @@ public abstract class DhisConvenienceTest
 
     /**
      * Injects the externalDir property of LocationManager to
-     * user.home/dhis2_test_dir. LocationManager dependency must be retrieved from
-     * the context up front.
+     * user.home/dhis2_test_dir. LocationManager dependency must be retrieved
+     * from the context up front.
      *
-     * @param locationManager The LocationManager to be injected with the external
-     *                        directory.
+     * @param locationManager The LocationManager to be injected with the
+     *        external directory.
      */
     public void setExternalTestDir( LocationManager locationManager )
     {
@@ -2120,7 +2126,7 @@ public abstract class DhisConvenienceTest
      * <code>userService</code> to be injected into the test.
      *
      * @param allAuth whether to grant ALL authority to user.
-     * @param auths   authorities to grant to user.
+     * @param auths authorities to grant to user.
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( boolean allAuth, String... auths )
@@ -2134,8 +2140,8 @@ public abstract class DhisConvenienceTest
      * <code>userService</code> to be injected into the test.
      *
      * @param organisationUnits the organisation units of the user.
-     * @param allAuth           whether to grant the ALL authority to user.
-     * @param auths             authorities to grant to user.
+     * @param allAuth whether to grant the ALL authority to user.
+     * @param auths authorities to grant to user.
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits, boolean allAuth,
@@ -2149,10 +2155,11 @@ public abstract class DhisConvenienceTest
      * "username". Requires <code>identifiableObjectManager</code> and
      * <code>userService</code> to be injected into the test.
      *
-     * @param organisationUnits         the organisation units of the user.
-     * @param dataViewOrganisationUnits the data view organisation units of the user.
-     * @param allAuth                   whether to grant the ALL authority to the user.
-     * @param auths                     authorities to grant to the user.
+     * @param organisationUnits the organisation units of the user.
+     * @param dataViewOrganisationUnits the data view organisation units of the
+     *        user.
+     * @param allAuth whether to grant the ALL authority to the user.
+     * @param auths authorities to grant to the user.
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits,
@@ -2167,19 +2174,20 @@ public abstract class DhisConvenienceTest
      * <code>userService</code> to be injected into the test.
      * <p>
      *
-     * @param organisationUnits         the organisation units of the user.
-     * @param dataViewOrganisationUnits the data view organisation units of the user.
-     * @param catDimensionConstraints   the category dimension constraints of the user.
-     * @param allAuth                   whether to grant the ALL authority to the user.
-     * @param auths                     authorities to grant to the user.
-     *                                  =======
-     * @param organisationUnits         the organisation units of the user.
+     * @param organisationUnits the organisation units of the user.
      * @param dataViewOrganisationUnits the data view organisation units of the
-     *                                  user.
-     * @param catDimensionConstraints   the category dimension constraints of the
-     *                                  user.
-     * @param allAuth                   whether to grant the ALL authority to the user.
-     * @param auths                     authorities to grant to the user.
+     *        user.
+     * @param catDimensionConstraints the category dimension constraints of the
+     *        user.
+     * @param allAuth whether to grant the ALL authority to the user.
+     * @param auths authorities to grant to the user. =======
+     * @param organisationUnits the organisation units of the user.
+     * @param dataViewOrganisationUnits the data view organisation units of the
+     *        user.
+     * @param catDimensionConstraints the category dimension constraints of the
+     *        user.
+     * @param allAuth whether to grant the ALL authority to the user.
+     * @param auths authorities to grant to the user.
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits,

@@ -1,5 +1,3 @@
-package org.hisp.dhis.system.util;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.util;
 
 import static junit.framework.TestCase.*;
 import static org.hisp.dhis.system.util.GeoUtils.getBoxShape;
@@ -36,11 +35,10 @@ import static org.junit.Assert.assertFalse;
 import java.io.IOException;
 
 import org.geotools.geojson.geom.GeometryJSON;
-import org.hisp.dhis.utils.TestResourceUtils;
 import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.utils.TestResourceUtils;
 import org.junit.Assert;
 import org.junit.Test;
-
 import org.locationtech.jts.geom.Geometry;
 
 /**
@@ -75,14 +73,14 @@ public class GeoUtilsTest
     @Test
     public void testReplaceUnsafeSvgText()
     {
-        String text =
-            "<svg xmlns=\"http://www.w3.org/2000/svg\">" +
-            "<text id=\"ext-sprite-1866\" zIndex=\"500\" text=\"Measles Coverage <1y\" font=\"bold 18px Arial,Sans-serif,Lucida Grande\" hidden=\"false\">" +
-            "<text id=\"ext-sprite-1866\" zIndex=\"500\" text=\"BCG & DPT Coverage\" font=\"bold 18px Arial,Sans-serif,Lucida Grande\" hidden=\"false\">" +
+        String text = "<svg xmlns=\"http://www.w3.org/2000/svg\">" +
+            "<text id=\"ext-sprite-1866\" zIndex=\"500\" text=\"Measles Coverage <1y\" font=\"bold 18px Arial,Sans-serif,Lucida Grande\" hidden=\"false\">"
+            +
+            "<text id=\"ext-sprite-1866\" zIndex=\"500\" text=\"BCG & DPT Coverage\" font=\"bold 18px Arial,Sans-serif,Lucida Grande\" hidden=\"false\">"
+            +
             "</svg>";
 
-        String expected =
-            "<svg xmlns=\"http://www.w3.org/2000/svg\">" +
+        String expected = "<svg xmlns=\"http://www.w3.org/2000/svg\">" +
             "<text id=\"ext-sprite-1866\" zIndex=\"500\" text=\"Measles Coverage 1y\" hidden=\"false\">" +
             "<text id=\"ext-sprite-1866\" zIndex=\"500\" text=\"BCG  DPT Coverage\" hidden=\"false\">" +
             "</svg>";
@@ -103,7 +101,7 @@ public class GeoUtilsTest
         {
             Geometry g = GeoUtils.getGeometryFromCoordinatesAndType( FeatureType.POINT, _point );
 
-            assertEquals("Point", g.getGeometryType());
+            assertEquals( "Point", g.getGeometryType() );
             assertTrue( g.isValid() );
         }
         catch ( IOException e )
@@ -115,7 +113,7 @@ public class GeoUtilsTest
         {
             Geometry g = GeoUtils.getGeometryFromCoordinatesAndType( FeatureType.POLYGON, _polygon );
 
-            assertEquals("Polygon", g.getGeometryType());
+            assertEquals( "Polygon", g.getGeometryType() );
             assertTrue( g.isValid() );
         }
         catch ( IOException e )
@@ -127,7 +125,7 @@ public class GeoUtilsTest
         {
             Geometry g = GeoUtils.getGeometryFromCoordinatesAndType( FeatureType.MULTI_POLYGON, _multipolygon );
 
-            assertEquals("MultiPolygon", g.getGeometryType());
+            assertEquals( "MultiPolygon", g.getGeometryType() );
             assertTrue( g.isValid() );
         }
         catch ( IOException e )
@@ -152,7 +150,7 @@ public class GeoUtilsTest
 
     @Test
     public void testVerifyPointIsWithinPolygon()
-            throws IOException
+        throws IOException
     {
         String downtownOslo = TestResourceUtils.getFileContent( "gis/downtownOslo.json" );
 
@@ -170,7 +168,7 @@ public class GeoUtilsTest
 
     @Test
     public void testVerifyPointIsWithinMultiPolygon()
-            throws IOException
+        throws IOException
     {
         String downtownOslo = TestResourceUtils.getFileContent( "gis/brasilMultiPolygon.json" );
 

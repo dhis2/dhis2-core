@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preheat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -37,7 +36,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.api.client.util.Maps;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -56,6 +54,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.api.client.util.Maps;
 import com.google.common.collect.Lists;
 
 /**
@@ -170,7 +169,7 @@ public class TrackerPreheatServiceTest
     public void testPreheatValidation()
         throws IOException
     {
-        TrackerImportParams params = fromJson(  "tracker/event_events.json" );
+        TrackerImportParams params = fromJson( "tracker/event_events.json" );
 
         assertTrue( params.getTrackedEntities().isEmpty() );
         assertTrue( params.getEnrollments().isEmpty() );
@@ -183,7 +182,7 @@ public class TrackerPreheatServiceTest
     {
         setUpMetadata( "tracker/event_metadata.json" );
 
-        TrackerImportParams params = fromJson(  "tracker/event_events.json" );
+        TrackerImportParams params = fromJson( "tracker/event_events.json" );
 
         assertTrue( params.getTrackedEntities().isEmpty() );
         assertTrue( params.getEnrollments().isEmpty() );

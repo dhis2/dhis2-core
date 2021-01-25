@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -38,7 +37,11 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.GEOMETRY_CANT_BE_NULL;
 
-import com.google.api.client.util.Lists;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
@@ -49,14 +52,10 @@ import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.locationtech.jts.geom.Geometry;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.api.client.util.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -90,7 +89,8 @@ public class ValidationUtils
         {
             if ( isNotEmpty( note.getValue() ) ) // Ignore notes with no text
             {
-                // If a note having the same UID already exist in the db, raise error
+                // If a note having the same UID already exist in the db, raise
+                // error
                 if ( isNotEmpty( note.getNote() ) && context.getNote( note.getNote() ).isPresent() )
                 {
                     reporter.addError( newReport( E1119 ).addArgs( note.getNote() ) );

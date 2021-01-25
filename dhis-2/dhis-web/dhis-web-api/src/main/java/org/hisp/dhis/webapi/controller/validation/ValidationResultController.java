@@ -1,4 +1,3 @@
-package org.hisp.dhis.webapi.controller.validation;
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -26,6 +25,7 @@ package org.hisp.dhis.webapi.controller.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.validation;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
@@ -84,9 +84,7 @@ public class ValidationResultController
     }
 
     @GetMapping
-    public
-    @ResponseBody
-    RootNode getObjectList( ValidationResultQuery query, HttpServletResponse response )
+    public @ResponseBody RootNode getObjectList( ValidationResultQuery query, HttpServletResponse response )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -105,7 +103,8 @@ public class ValidationResultController
             rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
         }
 
-        rootNode.addChild( fieldFilterService.toCollectionNode( ValidationResult.class, new FieldFilterParams( validationResults, fields ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( ValidationResult.class,
+            new FieldFilterParams( validationResults, fields ) ) );
 
         setNoStore( response );
         return rootNode;
@@ -116,7 +115,7 @@ public class ValidationResultController
         throws WebMessageException
     {
         ValidationResult result = validationResultService.getById( id );
-        checkFound(id, result);
+        checkFound( id, result );
         return result;
     }
 
@@ -127,7 +126,7 @@ public class ValidationResultController
         throws WebMessageException
     {
         ValidationResult result = validationResultService.getById( id );
-        checkFound(id, result);
+        checkFound( id, result );
         validationResultService.deleteValidationResult( result );
     }
 

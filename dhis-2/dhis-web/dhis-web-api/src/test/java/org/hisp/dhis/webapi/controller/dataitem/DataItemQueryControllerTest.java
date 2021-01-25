@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller.dataitem;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.dataitem;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.dataitem;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -164,8 +163,8 @@ public class DataItemQueryControllerTest
         when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
         when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( invalidAcl );
 
-        final IllegalQueryException ex = assertThrows(IllegalQueryException.class,
-                () -> dataItemQueryController.getJson(anyUrlParameters, anyOrderParams, anyUser));
-        assertThat(ex.getMessage(), containsString( "does not have read access for object" ));
+        final IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> dataItemQueryController.getJson( anyUrlParameters, anyOrderParams, anyUser ) );
+        assertThat( ex.getMessage(), containsString( "does not have read access for object" ) );
     }
 }
