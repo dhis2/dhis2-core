@@ -44,6 +44,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.*;
@@ -127,17 +128,17 @@ public class AssignValueImplementer
                 Boolean.TRUE.equals( canOverwrite ) ||
                 isTheSameValue( actionRule, bundle.getPreheat() ) )
             {
-                addOrOverwriteAttribute( actionRule );
+                addOrOverwriteAttribute( actionRule, bundle );
                 issues.add( new ProgramRuleIssue( TrackerReportUtils
                     .formatMessage( TrackerErrorCode.E1310, actionRule.getAttribute().get().getAttribute(),
-                        actionRule.getEnrollment().getEnrollment() ),
+                        actionRule.getEnrollment() ),
                     IssueType.WARNING ) );
             }
             else
             {
                 issues.add( new ProgramRuleIssue( TrackerReportUtils
                     .formatMessage( TrackerErrorCode.E1310, actionRule.getAttribute().get().getAttribute(),
-                        actionRule.getEnrollment().getEnrollment() ),
+                        actionRule.getEnrollment() ),
                     IssueType.ERROR ) );
             }
         }
@@ -164,7 +165,7 @@ public class AssignValueImplementer
     {
         TrackedEntityAttribute attribute = preheat.get( TrackedEntityAttribute.class, actionRule.getField() );
         String value = actionRule.getValue();
-        Optional<Attribute> optionalAttribute = actionRule.getEnrollment().getAttributes().stream()
+        Optional<Attribute> optionalAttribute = actionRule.getAttributes().stream()
             .filter( at -> at.getAttribute().equals( actionRule.getField() ) )
             .findAny();
         if ( optionalAttribute.isPresent() )
@@ -206,9 +207,10 @@ public class AssignValueImplementer
         }
     }
 
-    private void addOrOverwriteAttribute( EnrollmentActionRule actionRule )
+    private void addOrOverwriteAttribute( EnrollmentActionRule actionRule, TrackerBundle bundle )
     {
-        List<Attribute> attributes = actionRule.getEnrollment().getAttributes();
+        List<Attribute> attributes = bundle.getEnrollment( actionRule.getEnrollment() )
+            .map( Enrollment::getAttributes ).orElse( Lists.newArrayList() );
         Optional<Attribute> optionalAttribute = attributes.stream()
             .filter( at -> at.getAttribute().equals( actionRule.getField() ) )
             .findAny();

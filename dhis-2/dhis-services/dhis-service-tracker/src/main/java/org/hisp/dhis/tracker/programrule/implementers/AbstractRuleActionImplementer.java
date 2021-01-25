@@ -38,6 +38,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.rules.models.AttributeType;
@@ -45,6 +46,7 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAttribute;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -175,9 +177,9 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
             return dataValues;
         }
         List<String> payloadDataElements = dataValues.stream()
-            .map( dv -> dv.getDataElement() )
+            .map( DataValue::getDataElement )
             .collect( Collectors.toList() );
-        Set<DataValue> dataValuesFromDb = programStageInstance.getEventDataValues().stream()
+        Set<DataValue> mergedDataValues = programStageInstance.getEventDataValues().stream()
             .filter( dv -> !payloadDataElements.contains( dv.getDataElement() ) )
             .map( dv -> {
                 DataValue dataValue = new DataValue();
@@ -186,9 +188,30 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                 return dataValue;
             } )
             .collect( Collectors.toSet() );
-        Set<DataValue> mergedDataValues = dataValuesFromDb;
         mergedDataValues.addAll( dataValues );
         return mergedDataValues;
+    }
+
+    private List<Attribute> mergeAttributes( List<Attribute> attributes, ProgramInstance programInstance )
+    {
+        if ( programInstance == null )
+        {
+            return attributes;
+        }
+        List<String> payloadAttributes = attributes.stream()
+            .map( Attribute::getAttribute )
+            .collect( Collectors.toList() );
+        List<Attribute> mergedAttributes = programInstance.getAttributeValues().stream()
+            .filter( at -> !payloadAttributes.contains( at.getAttribute().getUid() ) )
+            .map( at -> {
+                Attribute attribute = new Attribute();
+                attribute.setAttribute( at.getAttribute().getUid() );
+                attribute.setValue( at.getValue() );
+                return attribute;
+            } )
+            .collect( Collectors.toList() );
+        mergedAttributes.addAll( attributes );
+        return mergedAttributes;
     }
 
     /**
@@ -206,16 +229,25 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
             .stream()
             .filter( entry -> getEnrollment( bundle, entry.getKey() ).isPresent() )
             .collect( Collectors.toMap( Map.Entry::getKey,
-                e -> e.getValue()
-                    .stream()
-                    .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
-                    .map( effect -> new EnrollmentActionRule(
-                        getEnrollment( bundle, e.getKey() ).get(), effect.data(),
-                        getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
-                        getContent( (T) effect.ruleAction() ) ) )
-                    .filter( actionRule -> actionRule.getAttributeType() == UNKNOWN ||
-                        actionRule.getAttributeType() == TRACKED_ENTITY_ATTRIBUTE )
-                    .collect( Collectors.toList() ) ) );
+                e -> {
+                    Enrollment enrollment = getEnrollment( bundle, e.getKey() ).get();
+                    ProgramInstance programInstance = bundle.getPreheat().get( ProgramInstance.class,
+                        enrollment.getEnrollment() );
+
+                    List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(), programInstance );
+
+                    List<EnrollmentActionRule> enrollmentActionRules = e.getValue()
+                        .stream()
+                        .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
+                        .map( effect -> new EnrollmentActionRule(
+                            enrollment.getEnrollment(), effect.data(),
+                            getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
+                            getContent( (T) effect.ruleAction() ), attributes ) )
+                        .filter( actionRule -> actionRule.getAttributeType() == UNKNOWN ||
+                            actionRule.getAttributeType() == TRACKED_ENTITY_ATTRIBUTE )
+                        .collect( Collectors.toList() );
+                    return enrollmentActionRules;
+                } ) );
     }
 
     private boolean isDataElementPartOfProgramStage( String dataElementUid, ProgramStage programStage )
