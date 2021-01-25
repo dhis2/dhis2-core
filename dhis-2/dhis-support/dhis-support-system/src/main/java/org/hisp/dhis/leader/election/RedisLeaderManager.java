@@ -33,6 +33,9 @@ import java.util.concurrent.TimeUnit;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
@@ -60,9 +63,16 @@ public class RedisLeaderManager implements LeaderManager
 
     private RedisTemplate<String, ?> redisTemplate;
 
-    public RedisLeaderManager( Long timeToLiveMinutes, RedisTemplate<String, ?> redisTemplate )
+    public RedisLeaderManager( Long timeToLiveMinutes, RedisTemplate<String, ?> redisTemplate,
+        DhisConfigurationProvider dhisConfigurationProbider )
     {
-        this.nodeId = UUID.randomUUID().toString();
+        this.nodeId = dhisConfigurationProbider.getProperty( ConfigurationKey.NODE_ID );
+        if ( StringUtils.isEmpty( this.nodeId ) )
+        {
+            this.nodeId = UUID.randomUUID().toString();
+            log.info( "Explicit nodeId undefined in dhis.conf for this instance. Generated random nodeId=%s",
+                this.nodeId );
+        }
         log.info( "Setting up redis based leader manager on NodeId:" + this.nodeId );
         this.timeToLiveSeconds = timeToLiveMinutes * 60;
         this.redisTemplate = redisTemplate;
@@ -113,6 +123,24 @@ public class RedisLeaderManager implements LeaderManager
     public void setSchedulingManager( SchedulingManager schedulingManager )
     {
         this.schedulingManager = schedulingManager;
+    }
+
+    @Override
+    public String getCurrentNodeId()
+    {
+        return this.nodeId;
+    }
+
+    @Override
+    public String getLeaderNodeId()
+    {
+        byte[] leaderIdBytes = redisTemplate.getConnectionFactory().getConnection().get( key.getBytes() );
+        String leaderId = null;
+        if ( leaderIdBytes != null )
+        {
+            leaderId = new String( leaderIdBytes );
+        }
+        return leaderId;
     }
 
 }

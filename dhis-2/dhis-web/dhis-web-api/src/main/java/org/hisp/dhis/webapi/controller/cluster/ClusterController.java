@@ -25,56 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.leader.election;
 
-import org.hisp.dhis.scheduling.SchedulingManager;
+package org.hisp.dhis.webapi.controller.cluster;
+
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.leader.election.LeaderInfo;
+import org.hisp.dhis.leader.election.LeaderManager;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Manages cluster leader node elections, renewals, revocations and to check
- * whether the current instance is the leader in the cluster.
- *
  * @author Ameen Mohamed
  */
-public interface LeaderManager
+@RestController
+@RequestMapping( "/cluster" )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class ClusterController
 {
-    /**
-     * Extend the expiration time of leadership if this node is the current
-     * leader.
-     */
-    void renewLeader();
+    @Autowired
+    private LeaderManager leaderManager;
 
-    /**
-     * Attempt to become the leader.
-     */
-    void electLeader();
+    // -------------------------------------------------------------------------
+    // Resources
+    // -------------------------------------------------------------------------
 
-    /**
-     * Check if the current instance is the leader.
-     *
-     * @return true if this instance is the leader, false otherwise.
-     */
-    boolean isLeader();
+    @GetMapping( value = "/leader" )
+    public @ResponseBody LeaderInfo getLeaderInfo()
+        throws WebMessageException
+    {
+       LeaderInfo leaderInfo = new LeaderInfo();
+     
+       leaderInfo.setLeaderNodeId( leaderManager.getLeaderNodeId() );
+       leaderInfo.setLeader( leaderManager.isLeader() );
+       leaderInfo.setCurrentNodeId( leaderManager.getCurrentNodeId() );
 
-    /**
-     * Setter to set the scheduling manager to gain access to systems scheduling
-     * mechanisms.
-     *
-     * @param schedulingManager the instantiated scheduling manager.
-     */
-    void setSchedulingManager( SchedulingManager schedulingManager );
-
-    /**
-     * Get the nodeID that was generated for the current instance.
-     *
-     * @return the nodeID
-     */
-    String getCurrentNodeId();
-
-    /**
-     * Get the nodeID for the current leader instance in the cluster.
-     *
-     * @return the nodeID of the leader instance.
-     */
-    String getLeaderNodeId();
-
+        return leaderInfo;
+    }
 }

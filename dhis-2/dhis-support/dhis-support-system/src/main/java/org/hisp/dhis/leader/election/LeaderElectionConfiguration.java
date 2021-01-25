@@ -31,6 +31,7 @@ import org.hisp.dhis.condition.RedisDisabledCondition;
 import org.hisp.dhis.condition.RedisEnabledCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -50,6 +51,9 @@ public class LeaderElectionConfiguration
     @Autowired( required = false )
     private RedisTemplate<String, ?> redisTemplate;
 
+    @Autowired
+    private DhisConfigurationProvider dhisConfigurationProvider;
+
     @Bean
     @Qualifier( "leaderTimeToLive" )
     public ConfigurationPropertyFactoryBean leaderTimeToLive()
@@ -62,7 +66,8 @@ public class LeaderElectionConfiguration
     @Conditional( RedisEnabledCondition.class )
     public LeaderManager redisLeaderManager()
     {
-        return new RedisLeaderManager( Long.parseLong( (String) leaderTimeToLive().getObject() ), redisTemplate );
+        return new RedisLeaderManager( Long.parseLong( (String) leaderTimeToLive().getObject() ), redisTemplate,
+            dhisConfigurationProvider );
     }
 
     @Bean
@@ -70,7 +75,7 @@ public class LeaderElectionConfiguration
     @Conditional( RedisDisabledCondition.class )
     public LeaderManager noOpLeaderManager()
     {
-        return new NoOpLeaderManager();
+        return new NoOpLeaderManager( dhisConfigurationProvider );
     }
 
 }

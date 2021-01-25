@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,54 +27,19 @@
  */
 package org.hisp.dhis.leader.election;
 
-import org.hisp.dhis.scheduling.SchedulingManager;
+import lombok.Data;
 
-/**
- * Manages cluster leader node elections, renewals, revocations and to check
- * whether the current instance is the leader in the cluster.
- *
- * @author Ameen Mohamed
- */
-public interface LeaderManager
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Data
+public class LeaderInfo
 {
-    /**
-     * Extend the expiration time of leadership if this node is the current
-     * leader.
-     */
-    void renewLeader();
+    @JsonProperty
+    private String leaderNodeId;
 
-    /**
-     * Attempt to become the leader.
-     */
-    void electLeader();
+    @JsonProperty
+    private String currentNodeId;
 
-    /**
-     * Check if the current instance is the leader.
-     *
-     * @return true if this instance is the leader, false otherwise.
-     */
-    boolean isLeader();
-
-    /**
-     * Setter to set the scheduling manager to gain access to systems scheduling
-     * mechanisms.
-     *
-     * @param schedulingManager the instantiated scheduling manager.
-     */
-    void setSchedulingManager( SchedulingManager schedulingManager );
-
-    /**
-     * Get the nodeID that was generated for the current instance.
-     *
-     * @return the nodeID
-     */
-    String getCurrentNodeId();
-
-    /**
-     * Get the nodeID for the current leader instance in the cluster.
-     *
-     * @return the nodeID of the leader instance.
-     */
-    String getLeaderNodeId();
-
+    @JsonProperty
+    private boolean leader;
 }
