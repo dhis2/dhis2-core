@@ -64,6 +64,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationManager;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter;
 import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
@@ -208,6 +209,86 @@ public class DhisWebApiWebSecurityConfig
                 .authorizationCodeServices( jdbcAuthorizationCodeServices() )
                 .tokenStore( tokenStore() )
                 .authenticationManager( providerManager );
+        }
+    }
+
+    @Configuration
+    @Order( 1009 )
+    public static class ResourceServerSecurityConfig extends WebSecurityConfigurerAdapter
+    {
+        @Autowired
+        private DhisClientRegistrationRepository dhisClientRegistrationRepository;
+
+        @Autowired
+        private DhisOAuth2AuthorizationRequestResolver dhisOAuth2AuthorizationRequestResolver;
+
+        @Autowired
+        private DefaultAuthenticationEventPublisher authenticationEventPublisher;
+
+        public void configure( AuthenticationManagerBuilder auth )
+            throws Exception
+        {
+            auth.authenticationEventPublisher( authenticationEventPublisher );
+        }
+
+        // @Bean
+        // JwtDecoder jwtDecoder() {
+        // NimbusJwtDecoder jwtDecoder = (NimbusJwtDecoder)
+        // JwtDecoders.fromOidcIssuerLocation("https://idsvr.example.com/oauth/v2/oauth-anonymous");
+        //
+        //// OAuth2TokenValidator<Jwt> audienceValidator = new
+        // AudienceValidator(audience);
+        //// OAuth2TokenValidator<Jwt> withIssuer =
+        // JwtValidators.createDefaultWithIssuer(issuer);
+        //// OAuth2TokenValidator<Jwt> withAudience = new
+        // DelegatingOAuth2TokenValidator<>(withIssuer, audienceValidator);
+        ////
+        //// jwtDecoder.setJwtValidator(withAudience);
+        //
+        // return jwtDecoder;
+        // }
+
+        @Override
+        protected void configure( HttpSecurity http )
+            throws Exception
+        {
+            Set<String> providerIds = dhisClientRegistrationRepository.getAllRegistrationId();
+
+            http
+                .antMatcher( "/reserv/**" )
+                .authorizeRequests( authorize -> {
+                    authorize
+                        .antMatchers( "/reserv/resource" ).permitAll()
+                        .antMatchers( "/reserv/resource/**" ).permitAll();
+                    authorize.anyRequest().authenticated();
+                } )
+                .oauth2ResourceServer()
+                .jwt( jwt -> jwt.decoder(
+                    JwtDecoders.fromOidcIssuerLocation( "https://accounts.google.com" ) ) );
+            //
+            // http
+            // .antMatcher( "/oauth2/**" )
+            // .authorizeRequests( authorize -> {
+            // for ( String providerId : providerIds )
+            // {
+            // authorize
+            // .antMatchers( "/oauth2/authorization/" + providerId ).permitAll()
+            // .antMatchers( "/oauth2/code/" + providerId ).permitAll();
+            // }
+            // authorize.anyRequest().authenticated();
+            // } )
+            //
+            // .oauth2Login( oauth2 -> oauth2
+            // .failureUrl( "/dhis-web-dashboard" )
+            // .clientRegistrationRepository( dhisClientRegistrationRepository )
+            // .loginProcessingUrl( "/oauth2/code/*" )
+            // .authorizationEndpoint()
+            // .authorizationRequestResolver(
+            // dhisOAuth2AuthorizationRequestResolver ) )
+            //
+            // .csrf().disable();
+            //
+            // setHttpHeaders( http );
         }
     }
 
@@ -378,6 +459,18 @@ public class DhisWebApiWebSecurityConfig
 
             // Adds the resource (oath2 token) jwtFilter after http basic filer.
             http.addFilterAfter( resourcesServerFilter, BasicAuthenticationFilter.class );
+
+            // BearerTokenAuthenticationFilter jwtFilter = new
+            // BearerTokenAuthenticationFilter(oauthAuthenticationManager( http
+            // ));
+            // jwtFilter.setBearerTokenResolver(new
+            // DefaultBearerTokenResolver());
+            // jwtFilter.setAuthenticationEntryPoint(new
+            // BearerTokenAuthenticationEntryPoint());
+            // jwtFilter = postProcess(jwtFilter);
+
+            // http.addFilterAfter( jwtFilter,
+            // OAuth2AuthenticationProcessingFilter.class );
 
             setHttpHeaders( http );
         }
