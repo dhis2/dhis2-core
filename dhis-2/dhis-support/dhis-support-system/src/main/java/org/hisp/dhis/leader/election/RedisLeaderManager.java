@@ -110,13 +110,24 @@ public class RedisLeaderManager implements LeaderManager
     @Override
     public boolean isLeader()
     {
+        String leaderId = getLeaderNodeIdFromRedis();
+        return nodeId.equals( leaderId );
+    }
+
+    private String getLeaderNodeIdFromRedis()
+    {
+        if ( redisTemplate.getConnectionFactory() == null
+            || redisTemplate.getConnectionFactory().getConnection() == null )
+        {
+            return null;
+        }
         byte[] leaderIdBytes = redisTemplate.getConnectionFactory().getConnection().get( key.getBytes() );
         String leaderId = null;
         if ( leaderIdBytes != null )
         {
             leaderId = new String( leaderIdBytes );
         }
-        return nodeId.equals( leaderId );
+        return leaderId;
     }
 
     @Override
@@ -134,12 +145,7 @@ public class RedisLeaderManager implements LeaderManager
     @Override
     public String getLeaderNodeId()
     {
-        byte[] leaderIdBytes = redisTemplate.getConnectionFactory().getConnection().get( key.getBytes() );
-        String leaderId = null;
-        if ( leaderIdBytes != null )
-        {
-            leaderId = new String( leaderIdBytes );
-        }
+        String leaderId = getLeaderNodeIdFromRedis();
         return leaderId;
     }
 
