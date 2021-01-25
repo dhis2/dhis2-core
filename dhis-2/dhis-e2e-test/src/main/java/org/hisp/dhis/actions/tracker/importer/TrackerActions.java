@@ -65,7 +65,7 @@ public class TrackerActions
         logger.info( String.format( "Waiting until tracker job with id %s is completed", jobId ) );
         ApiResponse response = null;
         boolean completed = false;
-        int maxAttempts = 30;
+        int maxAttempts = 100;
 
         while ( !completed && maxAttempts > 0)
         {
