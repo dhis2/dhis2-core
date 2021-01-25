@@ -500,12 +500,9 @@ public class DefaultPreheatService implements PreheatService
             return map;
         }
 
-        Map<Class<?>, List<?>> targets = new HashMap<>( objects ); // Clone
-                                                                   // objects
-                                                                   // list, we
-                                                                   // don't want
-                                                                   // to modify
-                                                                   // it
+        // Clone objects list, we don't want to modify it
+        Map<Class<?>, List<?>> targets = new HashMap<>( objects );
+
         collectScanTargets( targets );
 
         for ( Class<?> klass : targets.keySet() )
