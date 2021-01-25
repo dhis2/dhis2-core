@@ -55,15 +55,7 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -87,8 +79,14 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -123,23 +121,6 @@ public class PreheatServiceTest
     {
         renderService = _renderService;
         userService = _userService;
-    }
-
-    @Ignore
-    @Test( expected = PreheatException.class )
-    public void testValidateAllFail()
-    {
-        PreheatParams params = new PreheatParams().setPreheatMode( PreheatMode.ALL );
-        preheatService.validate( params );
-    }
-
-    @Test
-    public void testValidateAll()
-    {
-        PreheatParams params = new PreheatParams().setPreheatMode( PreheatMode.ALL );
-        params.getClasses().add( DataElement.class );
-
-        preheatService.validate( params );
     }
 
     @Test
@@ -281,94 +262,6 @@ public class PreheatServiceTest
         assertTrue( references.get( DataElement.class ).contains( de1.getCode() ) );
         assertTrue( references.get( DataElement.class ).contains( de2.getCode() ) );
         assertTrue( references.get( DataElement.class ).contains( de3.getCode() ) );
-    }
-
-    @Test
-    @SuppressWarnings( "unchecked" )
-    public void testPreheatAllUID()
-    {
-        DataElementGroup dataElementGroup = new DataElementGroup( "DataElementGroupA" );
-        dataElementGroup.setAutoFields();
-
-        DataElement de1 = createDataElement( 'A' );
-        DataElement de2 = createDataElement( 'B' );
-        DataElement de3 = createDataElement( 'C' );
-
-        manager.save( de1 );
-        manager.save( de2 );
-        manager.save( de3 );
-
-        User user = createUser( 'A' );
-        manager.save( user );
-
-        dataElementGroup.addDataElement( de1 );
-        dataElementGroup.addDataElement( de2 );
-        dataElementGroup.addDataElement( de3 );
-
-        dataElementGroup.setUser( user );
-        manager.save( dataElementGroup );
-
-        PreheatParams params = new PreheatParams();
-        params.setPreheatMode( PreheatMode.ALL );
-        params.setClasses( Sets.newHashSet( DataElement.class, DataElementGroup.class, User.class ) );
-
-        preheatService.validate( params );
-        Preheat preheat = preheatService.preheat( params );
-
-        assertFalse( preheat.isEmpty() );
-        assertFalse( preheat.isEmpty( PreheatIdentifier.UID ) );
-        assertFalse( preheat.isEmpty( PreheatIdentifier.UID, DataElement.class ) );
-        assertFalse( preheat.isEmpty( PreheatIdentifier.UID, DataElementGroup.class ) );
-        assertFalse( preheat.isEmpty( PreheatIdentifier.UID, User.class ) );
-
-        assertTrue( preheat.containsKey( PreheatIdentifier.UID, DataElement.class, de1.getUid() ) );
-        assertTrue( preheat.containsKey( PreheatIdentifier.UID, DataElement.class, de2.getUid() ) );
-        assertTrue( preheat.containsKey( PreheatIdentifier.UID, DataElement.class, de3.getUid() ) );
-        assertTrue( preheat.containsKey( PreheatIdentifier.UID, DataElementGroup.class, dataElementGroup.getUid() ) );
-        assertTrue( preheat.containsKey( PreheatIdentifier.UID, User.class, user.getUid() ) );
-    }
-
-    @Test
-    public void testPreheatAllMetadataUID()
-    {
-        DataElementGroup dataElementGroup = new DataElementGroup( "DataElementGroupA" );
-        dataElementGroup.setAutoFields();
-
-        DataElement de1 = createDataElement( 'A' );
-        DataElement de2 = createDataElement( 'B' );
-        DataElement de3 = createDataElement( 'C' );
-
-        manager.save( de1 );
-        manager.save( de2 );
-        manager.save( de3 );
-
-        User user = createUser( 'A' );
-        manager.save( user );
-
-        dataElementGroup.addDataElement( de1 );
-        dataElementGroup.addDataElement( de2 );
-        dataElementGroup.addDataElement( de3 );
-
-        dataElementGroup.setUser( user );
-        manager.save( dataElementGroup );
-
-        PreheatParams params = new PreheatParams();
-        params.setPreheatMode( PreheatMode.ALL );
-
-        preheatService.validate( params );
-        Preheat preheat = preheatService.preheat( params );
-
-        assertFalse( preheat.isEmpty() );
-        assertFalse( preheat.isEmpty( PreheatIdentifier.UID ) );
-        assertFalse( preheat.isEmpty( PreheatIdentifier.UID, DataElement.class ) );
-        assertFalse( preheat.isEmpty( PreheatIdentifier.UID, DataElementGroup.class ) );
-        assertFalse( preheat.isEmpty( PreheatIdentifier.UID, User.class ) );
-
-        assertTrue( preheat.containsKey( PreheatIdentifier.UID, DataElement.class, de1.getUid() ) );
-        assertTrue( preheat.containsKey( PreheatIdentifier.UID, DataElement.class, de2.getUid() ) );
-        assertTrue( preheat.containsKey( PreheatIdentifier.UID, DataElement.class, de3.getUid() ) );
-        assertTrue( preheat.containsKey( PreheatIdentifier.UID, DataElementGroup.class, dataElementGroup.getUid() ) );
-        assertTrue( preheat.containsKey( PreheatIdentifier.UID, User.class, user.getUid() ) );
     }
 
     @Test
