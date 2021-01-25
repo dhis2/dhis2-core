@@ -51,7 +51,6 @@ import org.hisp.dhis.webapi.mvc.messageconverter.PdfMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.RenderServiceMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
