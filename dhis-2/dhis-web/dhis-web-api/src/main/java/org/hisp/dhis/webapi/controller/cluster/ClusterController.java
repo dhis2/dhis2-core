@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.webapi.controller.cluster;
 
 import org.hisp.dhis.common.DhisApiVersion;
@@ -58,11 +57,11 @@ public class ClusterController
     public @ResponseBody LeaderInfo getLeaderInfo()
         throws WebMessageException
     {
-       LeaderInfo leaderInfo = new LeaderInfo();
-     
-       leaderInfo.setLeaderNodeId( leaderManager.getLeaderNodeId() );
-       leaderInfo.setLeader( leaderManager.isLeader() );
-       leaderInfo.setCurrentNodeId( leaderManager.getCurrentNodeId() );
+        LeaderInfo leaderInfo = new LeaderInfo();
+
+        leaderInfo.setLeaderNodeId( leaderManager.getLeaderNodeId() );
+        leaderInfo.setLeader( leaderManager.isLeader() );
+        leaderInfo.setCurrentNodeId( leaderManager.getCurrentNodeId() );
 
         return leaderInfo;
     }
