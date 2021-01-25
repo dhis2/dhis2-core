@@ -573,13 +573,9 @@ public class PreheatServiceTest
         params.setObjects( metadata );
 
         Preheat preheat = preheatService.preheat( params );
-        assertNotNull( preheat.getMap().get( PreheatIdentifier.CODE ) );
+
         assertNotNull( preheat.getMap().get( PreheatIdentifier.UID ) );
-
-        assertFalse( preheat.getMap().get( PreheatIdentifier.CODE ).isEmpty() );
         assertFalse( preheat.getMap().get( PreheatIdentifier.UID ).isEmpty() );
-
-        assertEquals( 1, preheat.getMap().get( PreheatIdentifier.CODE ).size() );
         assertEquals( 3, preheat.getMap().get( PreheatIdentifier.UID ).size() );
     }
 
