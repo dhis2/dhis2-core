@@ -67,7 +67,7 @@ public class TrackerActions
         boolean completed = false;
         int maxAttempts = 30;
 
-        while ( !completed && maxAttempts >= 0)
+        while ( !completed && maxAttempts > 0)
         {
             response = getJob( jobId );
             response.validate().statusCode( 200 );
