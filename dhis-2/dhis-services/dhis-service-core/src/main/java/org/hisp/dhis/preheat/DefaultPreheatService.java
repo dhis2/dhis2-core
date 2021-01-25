@@ -589,7 +589,7 @@ public class DefaultPreheatService implements PreheatService
     private void collectAnalyticalObjectReferences(
         Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> map, Object object )
     {
-        if ( AnalyticalObject.class.isInstance( object ) )
+        if ( object instanceof AnalyticalObject )
         {
             BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
             List<DataDimensionItem> dataDimensionItems = analyticalObject.getDataDimensionItems();
@@ -659,11 +659,11 @@ public class DefaultPreheatService implements PreheatService
             return new HashMap<>();
         }
 
-        if ( Collection.class.isInstance( object ) )
+        if ( object instanceof Collection )
         {
             return collectObjectReferences( (Collection<?>) object );
         }
-        else if ( Map.class.isInstance( object ) )
+        else if ( object instanceof Map )
         {
             return collectObjectReferences( (Map<Class<?>, List<?>>) object );
         }
@@ -697,9 +697,8 @@ public class DefaultPreheatService implements PreheatService
             return map;
         }
 
-        Map<Class<?>, List<?>> targets = new HashMap<>();
-        targets.putAll( objects ); // clone objects list, we don't want to
-                                   // modify it
+        // clone objects list, we don't want to modify it
+        Map<Class<?>, List<?>> targets = new HashMap<>( objects );
         collectScanTargets( targets );
 
         for ( Class<?> objectClass : targets.keySet() )
