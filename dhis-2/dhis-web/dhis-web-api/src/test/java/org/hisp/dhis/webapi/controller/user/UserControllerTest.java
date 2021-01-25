@@ -27,12 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
-import static org.mockito.hamcrest.MockitoHamcrest.argThat;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static org.hamcrest.Matchers.containsInAnyOrder;

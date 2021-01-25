@@ -29,6 +29,8 @@ package org.hisp.dhis.security;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.system.util.SecurityUtils;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
@@ -40,8 +42,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Torgeir Lorange Ostby
