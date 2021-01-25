@@ -376,7 +376,7 @@ public class DhisWebApiWebSecurityConfig
             resourcesServerFilter.setAuthenticationManager( oauthAuthenticationManager( http ) );
             resourcesServerFilter.setStateless( false );
 
-            // Adds the resource (oath2 token) filter after http basic filer.
+            // Adds the resource (oath2 token) jwtFilter after http basic filer.
             http.addFilterAfter( resourcesServerFilter, BasicAuthenticationFilter.class );
 
             setHttpHeaders( http );
