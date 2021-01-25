@@ -569,7 +569,7 @@ public class Preheat
     {
         return (klass == User.class || klass == UserCredentials.class
             || klass == UserAuthorityGroup.class)
-            ? PreheatIdentifier.UID
-            : identifier;
+                ? PreheatIdentifier.UID
+                : identifier;
     }
 }
