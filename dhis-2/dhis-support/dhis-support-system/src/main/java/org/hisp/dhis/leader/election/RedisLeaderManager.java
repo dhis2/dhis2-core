@@ -116,8 +116,7 @@ public class RedisLeaderManager implements LeaderManager
 
     private String getLeaderNodeIdFromRedis()
     {
-        if ( redisTemplate.getConnectionFactory() == null
-            || redisTemplate.getConnectionFactory().getConnection() == null )
+        if ( redisTemplate.getConnectionFactory() == null )
         {
             return null;
         }
