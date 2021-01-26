@@ -53,6 +53,7 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -213,6 +214,28 @@ public class DataValidatorTest
             () -> dataValidator.getAndValidateDataElement( uid ) );
 
         assertEquals( ErrorCode.E1100, ex.getErrorCode() );
+    }
+
+    @Test
+    public void testInvalidPeriod()
+    {
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> dataValidator.getAndValidatePeriod( "05020213" ) );
+
+        assertEquals( ErrorCode.E1101, ex.getErrorCode() );
+    }
+
+    @Test
+    public void testGetMissingOrgUnit()
+    {
+        final String uid = CodeGenerator.generateUid();
+
+        when( idObjectManager.get( OrganisationUnit.class, uid ) ).thenReturn( null );
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> dataValidator.getAndValidateOrganisationUnit( uid ) );
+
+        assertEquals( ErrorCode.E1102, ex.getErrorCode() );
     }
 
     @Test( expected = IllegalQueryException.class )
