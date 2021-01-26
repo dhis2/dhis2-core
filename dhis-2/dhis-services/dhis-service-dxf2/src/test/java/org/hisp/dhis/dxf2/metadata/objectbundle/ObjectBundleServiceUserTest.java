@@ -27,13 +27,6 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -51,6 +44,13 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -110,8 +110,8 @@ public class ObjectBundleServiceUserTest
         List<User> users = manager.getAll( User.class );
         assertEquals( 4, users.size() );
 
-        User userA = manager.get( User.class, "sPWjoHSY03y" );
-        User userB = manager.get( User.class, "MwhEJUnTHkn" );
+        User userA = userService.getUser( "sPWjoHSY03y" );
+        User userB = userService.getUser( "MwhEJUnTHkn" );
 
         assertNotNull( userA );
         assertNotNull( userB );

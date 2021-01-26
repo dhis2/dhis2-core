@@ -27,15 +27,9 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -52,7 +46,14 @@ import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
-import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -253,7 +254,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
             user.setOrganisationUnits( (Set<OrganisationUnit>) userReferenceMap.get( "organisationUnits" ) );
             user.setDataViewOrganisationUnits(
                 (Set<OrganisationUnit>) userReferenceMap.get( "dataViewOrganisationUnits" ) );
-            userCredentials.setCreatedBy( (User) userCredentialsReferenceMap.get( "user" ) );
+            userCredentials.setCreatedBy( (User) userCredentialsReferenceMap.get( BaseIdentifiableObject_.CREATED_BY ) );
             userCredentials.setUserInfo( user );
 
             preheatService.connectReferences( user, bundle.getPreheat(), bundle.getPreheatIdentifier() );

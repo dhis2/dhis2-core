@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.common;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -53,13 +53,12 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.util.SharingUtils;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Bob Jolliffe
@@ -137,11 +136,6 @@ public class BaseIdentifiableObject
      * Owner of this object.
      */
     protected User createdBy;
-
-    /**
-     * This is replaced by createdBy property
-     */
-    protected transient User user;
 
     /**
      * Access for user groups.
@@ -470,9 +464,8 @@ public class BaseIdentifiableObject
     @Override
     public void setUser( User user )
     {
-        //TODO remove this after implemented functions for using Owner property
-        this.user = user;
-        setCreatedBy( user );
+        //TODO remove this after implementing functions for using Owner property
+        setCreatedBy( createdBy == null ? user : createdBy );
         setOwner( user != null ? user.getUid() : null );
     }
 
@@ -507,7 +500,7 @@ public class BaseIdentifiableObject
         return sharing.isExternal();
     }
 
-    public void setExternalAccess( Boolean externalAccess )
+    public void setExternalAccess( boolean externalAccess )
     {
         getSharing().setExternal( externalAccess );
     }

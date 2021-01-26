@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Iterator;
-
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -41,7 +38,10 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.apache.commons.lang3.StringUtils;
+
+import java.util.Iterator;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -87,7 +87,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         {
             baseIdentifiableObject.setCreatedBy( bundle.getUser() );
         }
-        else
+        else if ( persistedObject.getCreatedBy() != null )
         {
             // CreatedBy field is immutable
             baseIdentifiableObject.setCreatedBy( persistedObject.getCreatedBy() );
