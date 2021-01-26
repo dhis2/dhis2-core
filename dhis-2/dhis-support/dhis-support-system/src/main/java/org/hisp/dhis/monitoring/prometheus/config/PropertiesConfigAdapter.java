@@ -56,12 +56,10 @@ public class PropertiesConfigAdapter<T>
     }
 
     /**
-     * Get the value from the properties or use a fallback from the
-     * {@code defaults}.
+     * Get the value from the properties or use a fallback from the {@code defaults}.
      *
      * @param getter the getter for the properties
-     * @param fallback the fallback method, usually super interface method
-     *        reference
+     * @param fallback the fallback method, usually super interface method reference
      * @param <V> the value type
      * @return the property or fallback value
      */

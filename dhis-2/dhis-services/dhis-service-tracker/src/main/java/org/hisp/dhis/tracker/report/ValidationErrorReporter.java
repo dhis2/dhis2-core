@@ -45,11 +45,10 @@ import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 
 /**
- * A class that collects {@link TrackerErrorReport} during the validation
- * process.
+ * A class that collects {@link TrackerErrorReport} during the validation process.
  *
- * Each {@link TrackerErrorReport} collection is connected to a specific Tracker
- * entity (Tracked Entity, Enrollment, etc.) via the "mainUid" attribute
+ * Each {@link TrackerErrorReport} collection is connected to a specific Tracker entity (Tracked Entity, Enrollment,
+ * etc.) via the "mainUid" attribute
  *
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -78,8 +77,7 @@ public class ValidationErrorReporter
     private TrackerType dtoType;
 
     /*
-     * A map that keep tracks of all the invalid Tracker objects encountered
-     * during the validation process
+     * A map that keep tracks of all the invalid Tracker objects encountered during the validation process
      */
     private Map<TrackerType, List<String>> invalidDTOs;
 
@@ -190,8 +188,7 @@ public class ValidationErrorReporter
     }
 
     /**
-     * Checks if the provided uid and Tracker Type is part of the invalid
-     * entities
+     * Checks if the provided uid and Tracker Type is part of the invalid entities
      */
     public boolean isInvalid( TrackerType trackerType, String uid )
     {

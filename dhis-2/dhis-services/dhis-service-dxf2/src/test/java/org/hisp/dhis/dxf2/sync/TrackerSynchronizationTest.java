@@ -236,10 +236,8 @@ public class TrackerSynchronizationTest extends DhisSpringTest
     @Test
     @Ignore
     /*
-     * TODO: fails in H2 with newer
-     * AbstractTrackedEntityInstanceService::getTrackedEntityInstances because
-     * of some custom postgresql syntax/function. We should find a way to test
-     * this in a different way
+     * TODO: fails in H2 with newer AbstractTrackedEntityInstanceService::getTrackedEntityInstances because of some
+     * custom postgresql syntax/function. We should find a way to test this in a different way
      */
     public void testSkipSyncFunctionality()
     {

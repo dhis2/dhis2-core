@@ -45,9 +45,8 @@ import lombok.Setter;
 import org.hisp.dhis.common.DimensionType;
 
 /**
- * This class is used to hold the association between a dimension and its type.
- * Its main goal is to track the associations across dynamic dimensions and
- * their actual type.
+ * This class is used to hold the association between a dimension and its type. Its main goal is to track the
+ * associations across dynamic dimensions and their actual type.
  */
 @Getter
 @Setter
@@ -64,21 +63,17 @@ public class DimensionDescriptor
     }
 
     /**
-     * Based on the given dimension and the given DimensionDescriptor list, this
-     * method will retrieve the respective dimension identifier. See the
-     * examples below.
+     * Based on the given dimension and the given DimensionDescriptor list, this method will retrieve the respective
+     * dimension identifier. See the examples below.
      *
-     * For regular dimensions: a "dimension" `dx` will have a type of
-     * {@link DimensionType#DATA_X}. Hence the dimension identifier returned
-     * will be `dx`.
+     * For regular dimensions: a "dimension" `dx` will have a type of {@link DimensionType#DATA_X}. Hence the dimension
+     * identifier returned will be `dx`.
      *
-     * For dynamic dimensions: a "dimension" `mq4jAnN6fg3` (of an org unit, for
-     * example), will have a type of {@link DimensionType#ORGANISATION_UNIT}.
-     * Hence the dimension identifier returned by this method will be `ou`.
+     * For dynamic dimensions: a "dimension" `mq4jAnN6fg3` (of an org unit, for example), will have a type of
+     * {@link DimensionType#ORGANISATION_UNIT}. Hence the dimension identifier returned by this method will be `ou`.
      *
      * @param dimensionDescriptors the list of descriptors to be compared.
-     * @param dimension the value to be retrieved from the list of
-     *        dimensionDescriptors
+     * @param dimension the value to be retrieved from the list of dimensionDescriptors
      * @return the respective descriptive value
      */
     public static String getDimensionIdentifierFor( final String dimension,
@@ -102,12 +97,10 @@ public class DimensionDescriptor
     }
 
     /**
-     * This method will return the respective dimension identifier associated
-     * with the current dimension {@link #type}.
+     * This method will return the respective dimension identifier associated with the current dimension {@link #type}.
      *
-     * @return the dimension identifier. See
-     *         {@link org.hisp.dhis.common.DimensionalObject} for the list of
-     *         possible dimension identifiers.
+     * @return the dimension identifier. See {@link org.hisp.dhis.common.DimensionalObject} for the list of possible
+     *         dimension identifiers.
      */
     private String getDimensionIdentifier()
     {

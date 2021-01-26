@@ -172,8 +172,7 @@ public class DataValueCheck implements Checker
     }
 
     /**
-     * Checks that the specified Data Element ID (uid/code/id) corresponds to an
-     * existing Data Element
+     * Checks that the specified Data Element ID (uid/code/id) corresponds to an existing Data Element
      *
      */
     private boolean checkHasValidDataElement( ImportSummary importSummary, WorkContext ctx, DataValue dataValue )

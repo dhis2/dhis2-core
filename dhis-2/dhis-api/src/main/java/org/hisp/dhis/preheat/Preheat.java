@@ -120,8 +120,7 @@ public class Preheat
     private Map<Class<?>, Set<String>> uniqueAttributes = new HashMap<>();
 
     /**
-     * Map of all unique attributes values, mapped by class type => attribute
-     * uid => object uid.
+     * Map of all unique attributes values, mapped by class type => attribute uid => object uid.
      */
     private Map<Class<?>, Map<String, Map<String, String>>> uniqueAttributeValues = new HashMap<>();
 

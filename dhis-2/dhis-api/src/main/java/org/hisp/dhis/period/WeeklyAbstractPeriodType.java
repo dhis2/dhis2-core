@@ -123,8 +123,7 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
     }
 
     /**
-     * Generates weekly Periods for the whole year in which the given Period's
-     * startDate exists.
+     * Generates weekly Periods for the whole year in which the given Period's startDate exists.
      */
     @Override
     public List<Period> generatePeriods( DateTimeUnit start )
@@ -150,8 +149,7 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
     }
 
     /**
-     * Generates the last 52 weeks where the last one is the week which the
-     * given date is inside.
+     * Generates the last 52 weeks where the last one is the week which the given date is inside.
      */
     @Override
     public List<Period> generateRollingPeriods( DateTimeUnit end, Calendar calendar )

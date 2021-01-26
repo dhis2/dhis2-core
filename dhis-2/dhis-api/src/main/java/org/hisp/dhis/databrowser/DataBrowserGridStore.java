@@ -33,8 +33,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.period.PeriodType;
 
 /**
- * Contains methods for creating aggregated count queries for the Data Browser
- * module.
+ * Contains methods for creating aggregated count queries for the Data Browser module.
  *
  * @author joakibj, martinwa, briane, eivinhb
  *
@@ -48,8 +47,7 @@ public interface DataBrowserGridStore
     // -------------------------------------------------------------------------
 
     /**
-     * Finds all DataSets connected to any period in betweenPeriodIds and does
-     * an aggregated count.
+     * Finds all DataSets connected to any period in betweenPeriodIds and does an aggregated count.
      *
      * @param betweenPeriodIds list of Period ids
      * @param periodType
@@ -59,8 +57,7 @@ public interface DataBrowserGridStore
     Grid getDataSetsBetweenPeriods( List<Integer> betweenPeriodIds, PeriodType periodType, boolean isZeroAdded );
 
     /**
-     * Finds all DataElementGroups connected to any period in betweenPeriodIds
-     * and does an aggregated count.
+     * Finds all DataElementGroups connected to any period in betweenPeriodIds and does an aggregated count.
      *
      * @param betweenPeriodIds list of Period ids
      * @param isZeroAdded if true then Zero can be added and false is not
@@ -69,8 +66,7 @@ public interface DataBrowserGridStore
     Grid getDataElementGroupsBetweenPeriods( List<Integer> betweenPeriodIds, boolean isZeroAdded );
 
     /**
-     * Finds all OrganisationUnitGroups connected to any period in
-     * betweenPeriodIds and does an aggregated count.
+     * Finds all OrganisationUnitGroups connected to any period in betweenPeriodIds and does an aggregated count.
      *
      * @param betweenPeriodIds list of Period ids
      * @param isZeroAdded if true then Zero can be added and false is not
@@ -81,9 +77,8 @@ public interface DataBrowserGridStore
     /**
      * Always called first.
      *
-     * Sets the structure in DataBrowserTable for DataElements. Finds all
-     * DataSets with DataValue in betweenPeriod List and given DataSetId. Then
-     * calls on helpers internally to set it up.
+     * Sets the structure in DataBrowserTable for DataElements. Finds all DataSets with DataValue in betweenPeriod List
+     * and given DataSetId. Then calls on helpers internally to set it up.
      *
      * @param grid the Grid to set the structure in
      * @param dataSetId the DataSet id
@@ -94,9 +89,8 @@ public interface DataBrowserGridStore
     /**
      * Always called first.
      *
-     * Sets the structure in DataBrowserTable for DataElements. Finds all
-     * DataElementGroups with DataValue in betweenPeriod List and given
-     * DataElementGroupId. Then calls on helpers internally to set it up.
+     * Sets the structure in DataBrowserTable for DataElements. Finds all DataElementGroups with DataValue in
+     * betweenPeriod List and given DataElementGroupId. Then calls on helpers internally to set it up.
      *
      * @param grid the Grid to set the structure in
      * @param dataElementGroupId the DataElementGroup id
@@ -107,10 +101,8 @@ public interface DataBrowserGridStore
     /**
      * Always called first.
      *
-     * Sets the structure in DataBrowserTable for DataElementGroups. Finds all
-     * OrganisationUnitGroups with DataValue in betweenPeriod List and given
-     * OrganisationUnitGroup id. Then calls on helpers in DataBrowserTable to
-     * set it up.
+     * Sets the structure in DataBrowserTable for DataElementGroups. Finds all OrganisationUnitGroups with DataValue in
+     * betweenPeriod List and given OrganisationUnitGroup id. Then calls on helpers in DataBrowserTable to set it up.
      *
      * @param grid the Grid to set the structure in
      * @param orgUnitGroupId the OrganisationUnitGroup id
@@ -121,10 +113,8 @@ public interface DataBrowserGridStore
     /**
      * Always called first.
      *
-     * Sets the structure in DataBrowserTable for OrgUnits. Finds all
-     * OrganisationUnits with DataValues in betweenPeriod List and given
-     * OrganisationUnit parent id. Then calls on helpers in DataBrowserTable to
-     * set it up.
+     * Sets the structure in DataBrowserTable for OrgUnits. Finds all OrganisationUnits with DataValues in betweenPeriod
+     * List and given OrganisationUnit parent id. Then calls on helpers in DataBrowserTable to set it up.
      *
      * @param grid the Grid to set the structure in
      * @param orgUnitParent the OrganisationUnit parent id
@@ -135,10 +125,8 @@ public interface DataBrowserGridStore
     /**
      * Always called first.
      *
-     * Sets the structure in DataBrowserTable for DataElements. Finds all
-     * OrganisationUnits with DataValue in betweenPeriod List and given
-     * OrganisationUnit id. Then calls on helpers in DataBrowserTable to set it
-     * up.
+     * Sets the structure in DataBrowserTable for DataElements. Finds all OrganisationUnits with DataValue in
+     * betweenPeriod List and given OrganisationUnit id. Then calls on helpers in DataBrowserTable to set it up.
      *
      * @param grid the Grid to set the structure in
      * @param orgUnitId the OrganisationUnit id
@@ -147,8 +135,7 @@ public interface DataBrowserGridStore
     void setDataElementStructureForOrgUnit( Grid grid, Integer orgUnitId, List<Integer> metaIds );
 
     /**
-     * Sets DataElement count-Columns in DataBrowserTable for betweenPeriod List
-     * connected to one DataSet.
+     * Sets DataElement count-Columns in DataBrowserTable for betweenPeriod List connected to one DataSet.
      *
      * @param grid the Grid to insert column into
      * @param dataSetId id of DataSet the DataElements are for
@@ -162,8 +149,7 @@ public interface DataBrowserGridStore
         List<Integer> betweenPeriodIds, List<Integer> metaIds, boolean isZeroAdded );
 
     /**
-     * Sets DataElement count-Columns in DataBrowserTable for betweenPeriod List
-     * connected to one DataElementGroup.
+     * Sets DataElement count-Columns in DataBrowserTable for betweenPeriod List connected to one DataElementGroup.
      *
      * @param grid the Grid to insert column into
      * @param dataElementGroupId id of DataElementGroup the DataElements are for
@@ -176,8 +162,7 @@ public interface DataBrowserGridStore
         List<Integer> betweenPeriodIds, List<Integer> metaIds, boolean isZeroAdded );
 
     /**
-     * Sets the DataElementGroup count-Columns in DataBrowserTable for
-     * betweenPeriod List connected to one OrgUnitGroup.
+     * Sets the DataElementGroup count-Columns in DataBrowserTable for betweenPeriod List connected to one OrgUnitGroup.
      *
      * @param grid the Grid to insert column into
      * @param orgUnitGroupId id of OrgUnitGroup the DataElementGroups are for
@@ -190,8 +175,7 @@ public interface DataBrowserGridStore
         List<Integer> betweenPeriodIds, List<Integer> metaIds, boolean isZeroAdded );
 
     /**
-     * Sets OrgUnit count-Columns in DataBrowserTable for betweenPeriod List
-     * connected to one OrganisationUnit parent.
+     * Sets OrgUnit count-Columns in DataBrowserTable for betweenPeriod List connected to one OrganisationUnit parent.
      *
      * @param grid the Grid to insert column into
      * @param orgUnitParent the OrganisationUnit parent id
@@ -205,8 +189,7 @@ public interface DataBrowserGridStore
         Integer maxLevel, List<Integer> metaIds, boolean isZeroAdded );
 
     /**
-     * Sets DataElement count-Columns in DataBrowserTable for betweenPeriod List
-     * connected to one OrgUnit.
+     * Sets DataElement count-Columns in DataBrowserTable for betweenPeriod List connected to one OrgUnit.
      *
      * @param grid the Grid to insert column into
      * @param orgUnitId id of OrganisationUnit the DataElements are for

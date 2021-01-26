@@ -38,17 +38,15 @@ import org.hisp.dhis.user.User;
 
 /**
  * <p>
- * This interface is responsible for retrieving tracked entity instances (TEI).
- * The query methods accepts a TrackedEntityInstanceQueryParams object which
- * encapsulates all arguments.
+ * This interface is responsible for retrieving tracked entity instances (TEI). The query methods accepts a
+ * TrackedEntityInstanceQueryParams object which encapsulates all arguments.
  * </p>
  * <p/>
  * <p>
- * The TEIs are returned as a Grid object, which is a two-dimensional list with
- * headers. The TEI attribute values are returned in the same order as specified
- * in the arguments. The grid has a set of columns which are always present
- * starting at index 0, followed by attributes specified for the query. All
- * values in the grid are of type String. The order is:
+ * The TEIs are returned as a Grid object, which is a two-dimensional list with headers. The TEI attribute values are
+ * returned in the same order as specified in the arguments. The grid has a set of columns which are always present
+ * starting at index 0, followed by attributes specified for the query. All values in the grid are of type String. The
+ * order is:
  * </p>
  * <p/>
  * <ul>
@@ -60,8 +58,8 @@ import org.hisp.dhis.user.User;
  * <ul>
  * <p/>
  * <p>
- * Attributes specified in the query follows on the next column indexes. Example
- * usage for retrieving TEIs with two attributes using one attribute as filter:
+ * Attributes specified in the query follows on the next column indexes. Example usage for retrieving TEIs with two
+ * attributes using one attribute as filter:
  * </p>
  *
  * <pre>
@@ -101,8 +99,7 @@ public interface TrackedEntityInstanceService
     String SEPARATOR = "_";
 
     /**
-     * Returns a grid with tracked entity instance values based on the given
-     * TrackedEntityInstanceQueryParams.
+     * Returns a grid with tracked entity instance values based on the given TrackedEntityInstanceQueryParams.
      *
      * @param params the TrackedEntityInstanceQueryParams.
      * @return a grid.
@@ -110,13 +107,11 @@ public interface TrackedEntityInstanceService
     Grid getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params );
 
     /**
-     * Returns a list with tracked entity instance values based on the given
-     * TrackedEntityInstanceQueryParams.
+     * Returns a list with tracked entity instance values based on the given TrackedEntityInstanceQueryParams.
      *
      * @param params the TrackedEntityInstanceQueryParams.
-     * @param skipAccessValidation If true, access validation is skipped. Should
-     *        be set to true only for internal tasks (e.g. currently used by
-     *        synchronization job)
+     * @param skipAccessValidation If true, access validation is skipped. Should be set to true only for internal tasks
+     *        (e.g. currently used by synchronization job)
      * @return List of TEIs matching the params
      */
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params,
@@ -125,31 +120,26 @@ public interface TrackedEntityInstanceService
     List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation );
 
     /**
-     * Return the count of the Tracked entity instances that meet the criteria
-     * specified in params
+     * Return the count of the Tracked entity instances that meet the criteria specified in params
      *
      * @param params Parameteres that specify searching criteria
      * @param skipAccessValidation If true, the access validation is skipped
-     * @param skipSearchScopeValidation If true, the search scope validation is
-     *        skipped
-     * @return the count of the Tracked entity instances that meet the criteria
-     *         specified in params
+     * @param skipSearchScopeValidation If true, the search scope validation is skipped
+     * @return the count of the Tracked entity instances that meet the criteria specified in params
      */
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
         boolean skipSearchScopeValidation );
 
     /**
-     * Decides whether current user is authorized to perform the given query.
-     * IllegalQueryException is thrown if not.
+     * Decides whether current user is authorized to perform the given query. IllegalQueryException is thrown if not.
      *
      * @param params the TrackedEntityInstanceQueryParams.
      */
     void decideAccess( TrackedEntityInstanceQueryParams params );
 
     /**
-     * Validates scope of given TrackedEntityInstanceQueryParams. The params is
-     * considered valid if no exception are thrown and the method returns
-     * normally.
+     * Validates scope of given TrackedEntityInstanceQueryParams. The params is considered valid if no exception are
+     * thrown and the method returns normally.
      *
      * @param params the TrackedEntityInstanceQueryParams.
      * @param isGridSearch specifies whether search is made for a Grid response
@@ -159,9 +149,8 @@ public interface TrackedEntityInstanceService
         throws IllegalQueryException;
 
     /**
-     * Validates the given TrackedEntityInstanceQueryParams. The params is
-     * considered valid if no exception are thrown and the method returns
-     * normally.
+     * Validates the given TrackedEntityInstanceQueryParams. The params is considered valid if no exception are thrown
+     * and the method returns normally.
      *
      * @param params the TrackedEntityInstanceQueryParams.
      * @throws IllegalQueryException if the given params is invalid.
@@ -196,8 +185,8 @@ public interface TrackedEntityInstanceService
     /**
      * Updates a last sync timestamp on specified TrackedEntityInstances
      *
-     * @param trackedEntityInstanceUIDs UIDs of Tracked entity instances where
-     *        the lastSynchronized flag should be updated
+     * @param trackedEntityInstanceUIDs UIDs of Tracked entity instances where the lastSynchronized flag should be
+     *        updated
      * @param lastSynchronized The date of last successful sync
      */
     void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized );
@@ -214,8 +203,7 @@ public interface TrackedEntityInstanceService
      * Returns the {@link TrackedEntityAttribute} with the given UID.
      *
      * @param uid the UID.
-     * @return the TrackedEntityInstanceAttribute with the given UID, or null if
-     *         no match.
+     * @return the TrackedEntityInstanceAttribute with the given UID, or null if no match.
      */
     TrackedEntityInstance getTrackedEntityInstance( String uid );
 
@@ -224,14 +212,12 @@ public interface TrackedEntityInstanceService
      *
      * @param uid the UID.
      * @param user User
-     * @return the TrackedEntityInstanceAttribute with the given UID, or null if
-     *         no match.
+     * @return the TrackedEntityInstanceAttribute with the given UID, or null if no match.
      */
     TrackedEntityInstance getTrackedEntityInstance( String trackedEntityInstance, User user );
 
     /**
-     * Checks for the existence of a TEI by UID. Deleted values are not taken
-     * into account.
+     * Checks for the existence of a TEI by UID. Deleted values are not taken into account.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -239,8 +225,7 @@ public interface TrackedEntityInstanceService
     boolean trackedEntityInstanceExists( String uid );
 
     /**
-     * Checks for the existence of a TEI by UID. Takes into account also the
-     * deleted values.
+     * Checks for the existence of a TEI by UID. Takes into account also the deleted values.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -248,8 +233,7 @@ public interface TrackedEntityInstanceService
     boolean trackedEntityInstanceExistsIncludingDeleted( String uid );
 
     /**
-     * Returns UIDs of existing TrackedEntityInstances (including deleted) from
-     * the provided UIDs
+     * Returns UIDs of existing TrackedEntityInstances (including deleted) from the provided UIDs
      *
      * @param uids TEI UIDs to check
      * @return Set containing UIDs of existing TEIs (including deleted)

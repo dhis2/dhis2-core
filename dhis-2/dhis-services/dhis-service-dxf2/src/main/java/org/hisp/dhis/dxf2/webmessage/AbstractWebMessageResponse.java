@@ -36,9 +36,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 public class AbstractWebMessageResponse implements WebMessageResponse
 {
     /**
-     * Optional type property. Since we are using the somewhat generic name
-     * 'response' for the data part of the message, this can be used to signal
-     * what kind of response this is.
+     * Optional type property. Since we are using the somewhat generic name 'response' for the data part of the message,
+     * this can be used to signal what kind of response this is.
      * <p/>
      * Some examples might be 'ImportCount', 'ImportSummary', etc.
      */

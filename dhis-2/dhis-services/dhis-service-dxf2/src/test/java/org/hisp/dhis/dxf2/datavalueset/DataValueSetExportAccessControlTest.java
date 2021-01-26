@@ -190,9 +190,8 @@ public class DataValueSetExportAccessControlTest
     }
 
     /**
-     * User has data read sharing access to cocA and coCB through category
-     * options. Verifies that only data values for those attribute option
-     * combinations are returned.
+     * User has data read sharing access to cocA and coCB through category options. Verifies that only data values for
+     * those attribute option combinations are returned.
      */
     @Test
     public void testExportAttributeOptionComboAccessLimitedUserA()
@@ -247,8 +246,7 @@ public class DataValueSetExportAccessControlTest
     }
 
     /**
-     * User is super user. Verifies that no restriction on attribute option
-     * combinations are used.
+     * User is super user. Verifies that no restriction on attribute option combinations are used.
      */
     @Test
     public void testExportAttributeOptionComboAccessSuperUser()
@@ -290,8 +288,7 @@ public class DataValueSetExportAccessControlTest
     }
 
     /**
-     * User does not have data read sharing access to data set. Verifies that
-     * validation fails.
+     * User does not have data read sharing access to data set. Verifies that validation fails.
      */
     @Test( expected = IllegalQueryException.class )
     public void testExportDataSetAccess()
@@ -327,8 +324,7 @@ public class DataValueSetExportAccessControlTest
     }
 
     /**
-     * User has no data read sharing access to cocA through category options.
-     * Verifies that validation fails.
+     * User has no data read sharing access to cocA through category options. Verifies that validation fails.
      */
     @Test( expected = IllegalQueryException.class )
     public void testExportExplicitAttributeOptionComboAccess()

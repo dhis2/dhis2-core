@@ -495,11 +495,11 @@ public class SharingController
     }
 
     /**
-     * This method is being used only during the deprecation process of the
-     * Pivot/ReportTable API. It must be removed once the process is complete.
+     * This method is being used only during the deprecation process of the Pivot/ReportTable API. It must be removed
+     * once the process is complete.
      *
-     * @return "visualization" if the given type is equals to "reportTable" or
-     *         "chart", otherwise it returns the given type itself.
+     * @return "visualization" if the given type is equals to "reportTable" or "chart", otherwise it returns the given
+     *         type itself.
      */
     @Deprecated
     private String getSharingType( final String type )

@@ -773,8 +773,7 @@ public class DefaultChartService
     }
 
     /**
-     * Sets basic configuration including title font, subtitle, background paint
-     * and anti-alias on the given JFreeChart.
+     * Sets basic configuration including title font, subtitle, background paint and anti-alias on the given JFreeChart.
      */
     private void setBasicConfig( JFreeChart jFreeChart, BaseChart chart )
     {
@@ -883,8 +882,7 @@ public class DefaultChartService
     }
 
     /**
-     * Creates a key based on the given input. Sorts the key on its components
-     * to remove significance of column order.
+     * Creates a key based on the given input. Sorts the key on its components to remove significance of column order.
      */
     private String getKey( NameableObject series, NameableObject category, AnalyticsType analyticsType )
     {
@@ -902,8 +900,7 @@ public class DefaultChartService
     }
 
     /**
-     * Returns a list of sorted nameable objects. Sorting is defined per the
-     * corresponding value in the given value map.
+     * Returns a list of sorted nameable objects. Sorting is defined per the corresponding value in the given value map.
      */
     private List<NameableObject> getSortedCategories( List<NameableObject> categories, BaseChart chart,
         Map<String, Object> valueMap )

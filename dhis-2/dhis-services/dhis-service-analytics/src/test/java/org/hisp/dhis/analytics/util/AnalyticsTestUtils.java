@@ -68,8 +68,7 @@ public class AnalyticsTestUtils
     }
 
     /**
-     * Test if values from keyValue corresponds with values in
-     * aggregatedResultMapping. Also test for null values.
+     * Test if values from keyValue corresponds with values in aggregatedResultMapping. Also test for null values.
      *
      * @param aggregatedResultData aggregated results
      * @param keyValue expected results
@@ -105,9 +104,8 @@ public class AnalyticsTestUtils
     }
 
     /**
-     * Test if values from keyValue corresponds with values in
-     * aggregatedDataValueMapping. Also test for null values, and "" as key in
-     * aggregatedDataValueMapping
+     * Test if values from keyValue corresponds with values in aggregatedDataValueMapping. Also test for null values,
+     * and "" as key in aggregatedDataValueMapping
      *
      * @param aggregatedResultMapping aggregated values
      * @param keyValue expected results
@@ -132,8 +130,7 @@ public class AnalyticsTestUtils
     }
 
     /**
-     * Test if values from keyValue corresponds with values in
-     * aggregatedDataValueSet. Also test for null values.
+     * Test if values from keyValue corresponds with values in aggregatedDataValueSet. Also test for null values.
      *
      * @param aggregatedResultSet aggregated values
      * @param keyValue expected results

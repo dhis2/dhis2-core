@@ -42,8 +42,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * Records the approval of DataSet values for a given OrganisationUnit and
- * Period.
+ * Records the approval of DataSet values for a given OrganisationUnit and Period.
  *
  * @author Jim Grace
  */
@@ -91,8 +90,7 @@ public class DataApproval
     private CategoryOptionCombo attributeOptionCombo;
 
     /**
-     * Whether the approval has been accepted (optional, usually by another
-     * user.)
+     * Whether the approval has been accepted (optional, usually by another user.)
      */
     private boolean accepted;
 

@@ -50,8 +50,7 @@ public class AppHubUtils
     private static final Pattern API_VERSION_PATTERN = Pattern.compile( "v\\d+" );
 
     /**
-     * Validates the path and query segment. Checks whether the query is null or
-     * contains illegal strings.
+     * Validates the path and query segment. Checks whether the query is null or contains illegal strings.
      *
      * @param query the query.
      * @throws IllegalQueryException if the query is invalid.
@@ -71,8 +70,7 @@ public class AppHubUtils
     }
 
     /**
-     * Validate the API version. Must start with {@code v} followed by an
-     * integer.
+     * Validate the API version. Must start with {@code v} followed by an integer.
      *
      * @param apiVersion the API version string.
      * @throws IllegalQueryException if the API version is invalid.
@@ -99,8 +97,7 @@ public class AppHubUtils
     }
 
     /**
-     * Returns an {@link HttpEntity} with {@link HttpHeaders} set to accept a
-     * {@code application/json} response.
+     * Returns an {@link HttpEntity} with {@link HttpHeaders} set to accept a {@code application/json} response.
      *
      * @return a {@link HttpEntity}.
      */

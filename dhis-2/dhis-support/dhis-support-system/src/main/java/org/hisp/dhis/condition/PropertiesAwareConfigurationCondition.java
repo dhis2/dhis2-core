@@ -37,10 +37,8 @@ import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.ConfigurationCondition;
 
 /**
- * Loads the DHIS2 configuration provider within the context of a Spring
- * Configuration condition. This is required, since the
- * {@link DefaultDhisConfigurationProvider} is not available as Spring Bean when
- * the condition is evaluated.
+ * Loads the DHIS2 configuration provider within the context of a Spring Configuration condition. This is required,
+ * since the {@link DefaultDhisConfigurationProvider} is not available as Spring Bean when the condition is evaluated.
  *
  * @author Luciano Fiandesio
  */

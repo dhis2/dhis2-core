@@ -99,8 +99,7 @@ public class DateTimeUnit
     private int millis;
 
     /**
-     * TimeZone for this dateTime instance, defaults to the local tz, used when
-     * converting to/from joda/jdk calenders.
+     * TimeZone for this dateTime instance, defaults to the local tz, used when converting to/from joda/jdk calenders.
      */
     private TimeZone timeZone = TimeZone.getDefault();
 

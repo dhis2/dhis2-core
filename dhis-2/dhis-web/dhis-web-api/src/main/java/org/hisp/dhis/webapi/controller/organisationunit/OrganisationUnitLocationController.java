@@ -117,8 +117,7 @@ public class OrganisationUnitLocationController
     }
 
     /**
-     * Get lowest level Org Units that includes the location in their polygon
-     * shape.
+     * Get lowest level Org Units that includes the location in their polygon shape.
      */
     @RequestMapping( value = "/orgUnitByLocation", method = RequestMethod.GET, produces = { "*/*",
         "application/json" } )

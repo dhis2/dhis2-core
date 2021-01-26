@@ -557,9 +557,8 @@ public class ExpressionServiceTest
     // -------------------------------------------------------------------------
 
     /**
-     * Evaluates a test expression, against getExpressionDimensionalItemObjects
-     * and getExpressionValue. Returns a string containing first the returned
-     * value from getExpressionValue, and then the items returned from
+     * Evaluates a test expression, against getExpressionDimensionalItemObjects and getExpressionValue. Returns a string
+     * containing first the returned value from getExpressionValue, and then the items returned from
      * getExpressionDimensionalItemObjects, if any, separated by spaces.
      *
      * @param expr expression to evaluate
@@ -589,9 +588,8 @@ public class ExpressionServiceTest
     }
 
     /**
-     * Evaluates a test expression, against getExpressionDimensionalItemObjects
-     * and getExpressionValue. Returns a string containing first the returned
-     * value from getExpressionValue, and then the items returned from
+     * Evaluates a test expression, against getExpressionDimensionalItemObjects and getExpressionValue. Returns a string
+     * containing first the returned value from getExpressionValue, and then the items returned from
      * getExpressionDimensionalItemObjects, if any, separated by spaces.
      *
      * @param expr expression to evaluate
@@ -604,11 +602,9 @@ public class ExpressionServiceTest
     }
 
     /**
-     * Evaluates a test predictor expression, against
-     * getExpressionDimensionalItemObjects and getExpressionValue. Returns a
-     * string containing first the returned value from getExpressionValue, and
-     * then the items returned from getExpressionDimensionalItemObjects, if any,
-     * separated by spaces.
+     * Evaluates a test predictor expression, against getExpressionDimensionalItemObjects and getExpressionValue.
+     * Returns a string containing first the returned value from getExpressionValue, and then the items returned from
+     * getExpressionDimensionalItemObjects, if any, separated by spaces.
      *
      * @param expr expression to evaluate
      * @param missingValueStrategy strategy to use if item value is missing

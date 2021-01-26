@@ -122,8 +122,7 @@ public class ContextUtils
     private static final String QUERY_STRING_SEP = "?";
 
     /**
-     * Regular expression that extracts the attachment file name from a content
-     * disposition header value.
+     * Regular expression that extracts the attachment file name from a content disposition header value.
      */
     private static final Pattern CONTENT_DISPOSITION_ATTACHMENT_FILENAME_PATTERN = Pattern
         .compile( "attachment;\\s*filename=\"?([^;\"]+)\"?" );
@@ -278,8 +277,8 @@ public class ContextUtils
     }
 
     /**
-     * Indicates whether the media type (content type) of the given HTTP request
-     * is compatible with the given media type.
+     * Indicates whether the media type (content type) of the given HTTP request is compatible with the given media
+     * type.
      *
      * @param response the HTTP response.
      * @param mediaType the media type.
@@ -299,15 +298,12 @@ public class ContextUtils
     }
 
     /**
-     * Returns a mapping of dimension identifiers and dimension option
-     * identifiers based on the given set of dimension strings. Splits the
-     * strings using : as separator. Returns null of dimensions are null or
-     * empty.
+     * Returns a mapping of dimension identifiers and dimension option identifiers based on the given set of dimension
+     * strings. Splits the strings using : as separator. Returns null of dimensions are null or empty.
      * <p/>
      * TODO remove
      *
-     * @param dimensions the set of strings on format
-     *        dimension:dimension-option.
+     * @param dimensions the set of strings on format dimension:dimension-option.
      * @return a map of dimensions and dimension options.
      */
     public static Map<String, String> getDimensionsAndOptions( Set<String> dimensions )
@@ -350,8 +346,7 @@ public class ContextUtils
     }
 
     /**
-     * Adds basic authentication by adding an Authorization header to the given
-     * HttpHeaders object.
+     * Adds basic authentication by adding an Authorization header to the given HttpHeaders object.
      *
      * @param headers the HttpHeaders object.
      * @param username the user name.
@@ -363,13 +358,11 @@ public class ContextUtils
     }
 
     /**
-     * Clears the given collection if it is not modified according to the HTTP
-     * cache validation. This method looks up the ETag sent in the request from
-     * the "If-None-Match" header value, generates an ETag based on the given
-     * collection of IdentifiableObjects and compares them for equality. If this
-     * evaluates to true, it will set status code 304 Not Modified on the
-     * response and remove all elements from the given list. It will set the
-     * ETag header on the response in any case.
+     * Clears the given collection if it is not modified according to the HTTP cache validation. This method looks up
+     * the ETag sent in the request from the "If-None-Match" header value, generates an ETag based on the given
+     * collection of IdentifiableObjects and compares them for equality. If this evaluates to true, it will set status
+     * code 304 Not Modified on the response and remove all elements from the given list. It will set the ETag header on
+     * the response in any case.
      *
      * @param request the HttpServletRequest.
      * @param response the HttpServletResponse.
@@ -397,17 +390,14 @@ public class ContextUtils
     }
 
     /**
-     * This method looks up the ETag sent in the request from the
-     * "If-None-Match" header value and compares it to the given tag. If they
-     * match, it will set status code 304 Not Modified on the response. It will
-     * set the ETag header on the response in any case. It will wrap the given
-     * tag in quotes.
+     * This method looks up the ETag sent in the request from the "If-None-Match" header value and compares it to the
+     * given tag. If they match, it will set status code 304 Not Modified on the response. It will set the ETag header
+     * on the response in any case. It will wrap the given tag in quotes.
      *
      * @param request the HttpServletRequest.
      * @param response the HttpServletResponse.
      * @param tag the tag to compare.
-     * @return true if the given tag match the request tag and the response is
-     *         considered not modified, false if not.
+     * @return true if the given tag match the request tag and the response is considered not modified, false if not.
      */
     public static boolean isNotModified( HttpServletRequest request, HttpServletResponse response, String tag )
     {
@@ -428,12 +418,10 @@ public class ContextUtils
     }
 
     /**
-     * Indicates whether the given requests indicates that it accepts a
-     * compressed response.
+     * Indicates whether the given requests indicates that it accepts a compressed response.
      *
      * @param request the HttpServletRequest.
-     * @return whether the given requests indicates that it accepts a compressed
-     *         response.
+     * @return whether the given requests indicates that it accepts a compressed response.
      */
     public static boolean isAcceptCsvGzip( HttpServletRequest request )
     {
@@ -443,13 +431,11 @@ public class ContextUtils
     }
 
     /**
-     * Extracts and returns the file name from a content disposition header
-     * value.
+     * Extracts and returns the file name from a content disposition header value.
      *
-     * @param contentDispositionHeaderValue the content disposition header value
-     *        from which the file name should be extracted.
-     * @return the extracted file name or <code>null</code> content disposition
-     *         has no filename.
+     * @param contentDispositionHeaderValue the content disposition header value from which the file name should be
+     *        extracted.
+     * @return the extracted file name or <code>null</code> content disposition has no filename.
      */
     @Nullable
     public static String getAttachmentFileName( @Nullable String contentDispositionHeaderValue )
@@ -464,8 +450,7 @@ public class ContextUtils
     }
 
     /**
-     * Returns the value associated with a double wildcard ({@code **}) in the
-     * request mapping.
+     * Returns the value associated with a double wildcard ({@code **}) in the request mapping.
      * <p>
      * As an example, for a request mapping {@code /apps/**} and a request
      * {@code /apps/data-visualizer/index.html?id=123}, this method will return

@@ -48,8 +48,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 /**
- * Manager for database queries related to outlier data detection based on
- * min-max values.
+ * Manager for database queries related to outlier data detection based on min-max values.
  *
  * @author Lars Helge Overland
  */
@@ -65,8 +64,7 @@ public class MinMaxOutlierDetectionManager
     }
 
     /**
-     * Returns a list of outlier data values based on min-max values for the
-     * given request.
+     * Returns a list of outlier data values based on min-max values for the given request.
      *
      * @param request the {@link OutlierDetectionRequest}.
      * @return a list of {@link OutlierValue}.

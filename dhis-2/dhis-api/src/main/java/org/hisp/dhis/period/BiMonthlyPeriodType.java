@@ -101,8 +101,7 @@ public class BiMonthlyPeriodType
     }
 
     /**
-     * Generates bimonthly Periods for the whole year in which the start date of
-     * the given Period exists.
+     * Generates bimonthly Periods for the whole year in which the start date of the given Period exists.
      */
     @Override
     public List<Period> generatePeriods( DateTimeUnit dateTimeUnit )
@@ -126,8 +125,7 @@ public class BiMonthlyPeriodType
     }
 
     /**
-     * Generates the last 6 bi-months where the last one is the bi-month which
-     * the given date is inside.
+     * Generates the last 6 bi-months where the last one is the bi-month which the given date is inside.
      */
     @Override
     public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )

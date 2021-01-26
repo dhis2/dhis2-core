@@ -56,8 +56,8 @@ public interface ProgramMessageService
     void validateQueryParameters( ProgramMessageQueryParams params );
 
     /**
-     * To validate {@link ProgramMessage message} payload in order to make sure
-     * prerequisite values exist before message can be processed.
+     * To validate {@link ProgramMessage message} payload in order to make sure prerequisite values exist before message
+     * can be processed.
      *
      * @param message the ProgramMessage.
      */
@@ -68,9 +68,8 @@ public interface ProgramMessageService
     // -------------------------------------------------------------------------
 
     /**
-     * Send message batch based on their {@link DeliveryChannel channel}. If the
-     * DeliveryChannel is not configured with suitable value, batch will be
-     * invalidated.
+     * Send message batch based on their {@link DeliveryChannel channel}. If the DeliveryChannel is not configured with
+     * suitable value, batch will be invalidated.
      *
      * @param programMessages the ProgramMessage.
      */

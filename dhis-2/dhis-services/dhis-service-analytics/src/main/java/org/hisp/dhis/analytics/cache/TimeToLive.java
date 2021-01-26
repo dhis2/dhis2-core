@@ -38,9 +38,8 @@ import java.time.Instant;
 import java.util.Date;
 
 /**
- * This class is responsible for computing a time to live value based on the
- * given date before today and a TTL factor. The calculation of the TTL will be
- * done by the method compute() - check this method for the calculation details.
+ * This class is responsible for computing a time to live value based on the given date before today and a TTL factor.
+ * The calculation of the TTL will be done by the method compute() - check this method for the calculation details.
  */
 public class TimeToLive
     implements
@@ -63,14 +62,12 @@ public class TimeToLive
     }
 
     /**
-     * Execute the internal rules in order to calculate a TTL for the given
-     * parameters. The current rules are based on a configurable timeout
-     * "ttlFactor" (through SettingKey) which will be used in the calculation of
-     * this time to live. Basically:
+     * Execute the internal rules in order to calculate a TTL for the given parameters. The current rules are based on a
+     * configurable timeout "ttlFactor" (through SettingKey) which will be used in the calculation of this time to live.
+     * Basically:
      *
-     * Older the "dateBeforeToday", higher the "ttlFactor", longer the TTL. The
-     * formula is basically: TTL = "ttlFactor" * (diff between now and the
-     * "dateBeforeToday")
+     * Older the "dateBeforeToday", higher the "ttlFactor", longer the TTL. The formula is basically: TTL = "ttlFactor"
+     * * (diff between now and the "dateBeforeToday")
      *
      * @return the computed TTL value.
      */
@@ -78,9 +75,8 @@ public class TimeToLive
     public long compute()
     {
         /*
-         * If the difference between the most recent date and NOW is 0 (zero) it
-         * means the current day, so set the days multiplier to 1 (one) avoiding
-         * multiplying by 0 (zero).
+         * If the difference between the most recent date and NOW is 0 (zero) it means the current day, so set the days
+         * multiplier to 1 (one) avoiding multiplying by 0 (zero).
          */
         final long daysDiff = daysBetweenDateBeforeTodayAndNow( dateBeforeToday.toInstant() );
         final long daysMultiplier = daysDiff > 0 ? daysDiff : DEFAULT_MULTIPLIER;
@@ -89,9 +85,8 @@ public class TimeToLive
     }
 
     /**
-     * Calculates the difference between now and the given date. It has a the
-     * particularity of returning ZERO (0) if the diff is negative (because it
-     * means that the input date is ahead of now).
+     * Calculates the difference between now and the given date. It has a the particularity of returning ZERO (0) if the
+     * diff is negative (because it means that the input date is ahead of now).
      *
      * @param dateBeforeToday the date to subtract from now
      * @return the difference of days

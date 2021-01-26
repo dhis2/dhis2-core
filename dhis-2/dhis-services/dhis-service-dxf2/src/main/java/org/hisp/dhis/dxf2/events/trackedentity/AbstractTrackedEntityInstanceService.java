@@ -185,8 +185,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
      * @param set1 a Set
      * @param set2 a second Set
      * @param condition a boolean condition
-     * @return if condition is true, a new Set consisting of the first and
-     *         second set. If false, the first set
+     * @return if condition is true, a new Set consisting of the first and second set. If false, the first set
      */
     private Set<TrackedEntityAttribute> mergeIf( Set<TrackedEntityAttribute> set1, Set<TrackedEntityAttribute> set2,
         boolean condition )
@@ -452,8 +451,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     }
 
     /**
-     * Filters out Tracked Entity Instances which are already present in the
-     * database (regardless of the 'deleted' state)
+     * Filters out Tracked Entity Instances which are already present in the database (regardless of the 'deleted'
+     * state)
      *
      * @param trackedEntityInstances TEIs to import
      * @param importSummaries ImportSummaries used for import

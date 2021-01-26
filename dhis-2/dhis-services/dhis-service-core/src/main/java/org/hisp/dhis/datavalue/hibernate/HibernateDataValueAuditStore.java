@@ -189,8 +189,8 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     }
 
     /**
-     * Returns a list of Predicates generated from given parameters. Returns an
-     * empty list if given Period does not exist in database.
+     * Returns a list of Predicates generated from given parameters. Returns an empty list if given Period does not
+     * exist in database.
      *
      * @param builder the {@link CriteriaBuilder}.
      * @param dataElements the list of data elements.

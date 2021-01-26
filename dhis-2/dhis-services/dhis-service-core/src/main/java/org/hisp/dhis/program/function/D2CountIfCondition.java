@@ -72,8 +72,8 @@ public class D2CountIfCondition
     // -------------------------------------------------------------------------
 
     /**
-     * Gets a complete expression that is used to test a condition (e.g. "<5")
-     * by putting a "0" in front to get a complete expression (e.g., "0<5").
+     * Gets a complete expression that is used to test a condition (e.g. "<5") by putting a "0" in front to get a
+     * complete expression (e.g., "0<5").
      *
      * @param ctx the expression context
      * @return the complete expression

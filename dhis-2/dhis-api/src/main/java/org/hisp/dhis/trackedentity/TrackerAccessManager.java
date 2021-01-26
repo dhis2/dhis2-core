@@ -76,8 +76,7 @@ public interface TrackerAccessManager
      * Checks the sharing read access to EventDataValue
      *
      * @param user User validated for write access
-     * @param programStageInstance ProgramStageInstance under which the
-     *        EventDataValue belongs
+     * @param programStageInstance ProgramStageInstance under which the EventDataValue belongs
      * @param dataElement DataElement of EventDataValue
      * @return Empty list if read access allowed, list of errors otherwise.
      */
@@ -88,8 +87,7 @@ public interface TrackerAccessManager
      * Checks the sharing write access to EventDataValue
      *
      * @param user User validated for write access
-     * @param programStageInstance ProgramStageInstance under which the
-     *        EventDataValue belongs
+     * @param programStageInstance ProgramStageInstance under which the EventDataValue belongs
      * @param dataElement DataElement of EventDataValue
      * @return Empty list if write access allowed, list of errors otherwise.
      */

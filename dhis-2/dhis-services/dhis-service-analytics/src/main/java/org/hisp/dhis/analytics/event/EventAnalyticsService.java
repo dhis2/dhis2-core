@@ -36,8 +36,8 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 
 /**
- * This interface is responsible for retrieving aggregated event data. Data will
- * be returned in a grid object or as a dimensional key-value mapping.
+ * This interface is responsible for retrieving aggregated event data. Data will be returned in a grid object or as a
+ * dimensional key-value mapping.
  *
  * @author Lars Helge Overland
  */
@@ -84,13 +84,12 @@ public interface EventAnalyticsService
     Grid getAggregatedEventData( EventQueryParams params );
 
     /**
-     * Generates an aggregated value grid for the given query. The grid will
-     * represent a table with dimensions used as columns and rows as specified
-     * in columns and rows dimension arguments. If columns and rows are null or
-     * empty, the normalized table will be returned.
+     * Generates an aggregated value grid for the given query. The grid will represent a table with dimensions used as
+     * columns and rows as specified in columns and rows dimension arguments. If columns and rows are null or empty, the
+     * normalized table will be returned.
      *
-     * If meta data is included in the query, the meta data map of the grid will
-     * contain keys described in {@link AnalyticsMetaDataKey}.
+     * If meta data is included in the query, the meta data map of the grid will contain keys described in
+     * {@link AnalyticsMetaDataKey}.
      *
      * @param params the event query parameters.
      * @param columns the identifiers of the dimensions to use as columns.
@@ -125,8 +124,7 @@ public interface EventAnalyticsService
     Grid getEventClusters( EventQueryParams params );
 
     /**
-     * Returns a Rectangle with information about event count and extent of the
-     * spatial rectangle for the given query.
+     * Returns a Rectangle with information about event count and extent of the spatial rectangle for the given query.
      *
      * @param params the event query parameters.
      * @return event clusters as a Grid object.

@@ -48,9 +48,8 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 /**
- * This component configures the Hibernate Auditing listeners. The listeners are
- * responsible for "intercepting" Hibernate-managed objects after a save/update
- * operation and pass them to the Auditing sub-system.
+ * This component configures the Hibernate Auditing listeners. The listeners are responsible for "intercepting"
+ * Hibernate-managed objects after a save/update operation and pass them to the Auditing sub-system.
  * <p>
  * This bean is not active during tests.
  *

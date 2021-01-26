@@ -53,33 +53,25 @@ public class ProgramRuleVariable
     private Program program;
 
     /**
-     * The source of the variables content. Allowed values are:
-     * dataelement_newest_event_program_stage Get a specific data elements value
-     * from the most recent event in the current enrollment, but within one
-     * program stage. dataelement_uID and programstage_uID needs to be
-     * specified. dataelement_newest_event_program Get a specific data elements
-     * value from the most recent event in the current enrollment, regardless of
-     * program stage.datalement_uID needs to be specified.
-     * dataelement_current_event Get a specific data elements value, but only
-     * within the current event. dataelement_previous_event Get a specific data
-     * elements value, specifically from the event preceding the current event,
-     * if this exists. calculated_value Do not assign the variable a hard-linked
-     * source, it will be populated by rules with assignvariable actions(i.e.
-     * calculation rules). tei_attribute Get a specific attribute from the
-     * current tracked entity. the linked attribute will be used to lookup the
-     * attributes uID value.
+     * The source of the variables content. Allowed values are: dataelement_newest_event_program_stage Get a specific
+     * data elements value from the most recent event in the current enrollment, but within one program stage.
+     * dataelement_uID and programstage_uID needs to be specified. dataelement_newest_event_program Get a specific data
+     * elements value from the most recent event in the current enrollment, regardless of program stage.datalement_uID
+     * needs to be specified. dataelement_current_event Get a specific data elements value, but only within the current
+     * event. dataelement_previous_event Get a specific data elements value, specifically from the event preceding the
+     * current event, if this exists. calculated_value Do not assign the variable a hard-linked source, it will be
+     * populated by rules with assignvariable actions(i.e. calculation rules). tei_attribute Get a specific attribute
+     * from the current tracked entity. the linked attribute will be used to lookup the attributes uID value.
      */
     private ProgramRuleVariableSourceType sourceType;
 
     /**
-     * Used for sourceType tei_attribute to determine which attribute to fetch
-     * into the variable.
+     * Used for sourceType tei_attribute to determine which attribute to fetch into the variable.
      */
     private TrackedEntityAttribute attribute;
 
     /**
-     * The data element that is linked to the variable. Must be defined if the
-     * sourceType is one of the following:
+     * The data element that is linked to the variable. Must be defined if the sourceType is one of the following:
      * <p/>
      * <ul>
      * <li>dataelement_newest_event_program_stage</li>
@@ -90,14 +82,14 @@ public class ProgramRuleVariable
     private DataElement dataElement;
 
     /**
-     * If the dataElement or trackedEntityAttribute is connected to an option
-     * set, use this option sets code(and not the name) as value
+     * If the dataElement or trackedEntityAttribute is connected to an option set, use this option sets code(and not the
+     * name) as value
      */
     private boolean useCodeForOptionSet;
 
     /**
-     * Specification of the program stage that the variable should be fetched
-     * from. Only used for source type dataelement_newest_event_program_stage
+     * Specification of the program stage that the variable should be fetched from. Only used for source type
+     * dataelement_newest_event_program_stage
      */
     private ProgramStage programStage;
 

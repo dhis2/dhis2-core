@@ -31,8 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
 
 /**
- * Utilities for analytics SQL operations, compatible with PostgreSQL and H2
- * database platforms.
+ * Utilities for analytics SQL operations, compatible with PostgreSQL and H2 database platforms.
  *
  * @author Lars Helge Overland
  */
@@ -51,8 +50,8 @@ public class AnalyticsSqlUtils
     private static final String SEPARATOR = ".";
 
     /**
-     * Quotes the given relation (typically a column). Quotes part of the given
-     * relation are encoded (replaced by double quotes that is).
+     * Quotes the given relation (typically a column). Quotes part of the given relation are encoded (replaced by double
+     * quotes that is).
      *
      * @param relation the relation (typically a column).
      * @return the quoted relation.
@@ -67,8 +66,8 @@ public class AnalyticsSqlUtils
     }
 
     /**
-     * Quotes and qualifies the given relation (typically a column). Quotes part
-     * of the given relation are encoded (replaced by double quotes that is).
+     * Quotes and qualifies the given relation (typically a column). Quotes part of the given relation are encoded
+     * (replaced by double quotes that is).
      *
      * @param relation the relation (typically a column).
      * @return the quoted relation.
@@ -81,9 +80,8 @@ public class AnalyticsSqlUtils
     }
 
     /**
-     * Quotes and qualifies the given relation (typically a column). Quotes part
-     * of the given relation are encoded (replaced by double quotes that is).
-     * The alias used is {@link AnalyticsSqlUtils#ANALYTICS_TBL_ALIAS}.
+     * Quotes and qualifies the given relation (typically a column). Quotes part of the given relation are encoded
+     * (replaced by double quotes that is). The alias used is {@link AnalyticsSqlUtils#ANALYTICS_TBL_ALIAS}.
      *
      * @return the quoted and qualified relation.
      */
@@ -125,9 +123,8 @@ public class AnalyticsSqlUtils
 
     /**
      * <p>
-     * Returns a string containing closing parenthesis. The number of
-     * parenthesis is based on the number of missing closing parenthesis in the
-     * argument string.
+     * Returns a string containing closing parenthesis. The number of parenthesis is based on the number of missing
+     * closing parenthesis in the argument string.
      *
      * <p>
      * Example:

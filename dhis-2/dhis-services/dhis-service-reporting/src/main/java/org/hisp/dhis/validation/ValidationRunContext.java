@@ -48,9 +48,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * This class keeps track of a validation analysis. It contains information
- * about the initial params of the analysis, The current state of the analysis
- * and the final results of the analysis.
+ * This class keeps track of a validation analysis. It contains information about the initial params of the analysis,
+ * The current state of the analysis and the final results of the analysis.
  *
  * @author Stian Sandvold
  */
@@ -232,8 +231,7 @@ public class ValidationRunContext
         }
 
         /**
-         * Builds the actual ValidationRunContext object configured with the
-         * builder
+         * Builds the actual ValidationRunContext object configured with the builder
          *
          * @return a new ValidationParam based on the builders configuration
          */
@@ -284,8 +282,7 @@ public class ValidationRunContext
         }
 
         /**
-         * This is an optional constraint to which attributeCombo we should
-         * check
+         * This is an optional constraint to which attributeCombo we should check
          *
          * @param attributeCombo
          */
@@ -296,8 +293,7 @@ public class ValidationRunContext
         }
 
         /**
-         * This is the default attributeOptionCombo which should always be
-         * present
+         * This is the default attributeOptionCombo which should always be present
          *
          * @param defaultAttributeCombo
          */

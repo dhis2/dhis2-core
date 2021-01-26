@@ -109,15 +109,14 @@ public class ParserUtils
     public final static ExpressionItemMethod ITEM_REGENERATE = ExpressionItem::regenerate;
 
     /**
-     * Used for syntax checking when we don't have a list of actual periods for
-     * collecting samples.
+     * Used for syntax checking when we don't have a list of actual periods for collecting samples.
      */
     public final static List<Period> DEFAULT_SAMPLE_PERIODS = ImmutableList.of(
         PeriodType.getPeriodFromIsoString( "20010101" ) );
 
     /**
-     * Assume that an item of the form #{...} has a syntax that could be used in
-     * a program indicator expression for #{programStageUid.dataElementUid}
+     * Assume that an item of the form #{...} has a syntax that could be used in a program indicator expression for
+     * #{programStageUid.dataElementUid}
      *
      * @param ctx the item context
      */
@@ -130,8 +129,8 @@ public class ParserUtils
     }
 
     /**
-     * Assume that an item of the form A{...} has a syntax that could be used in
-     * an expression for A{progamUid.attributeUid}
+     * Assume that an item of the form A{...} has a syntax that could be used in an expression for
+     * A{progamUid.attributeUid}
      *
      * @param ctx the item context
      */
@@ -144,8 +143,8 @@ public class ParserUtils
     }
 
     /**
-     * Assume that an item of the form A{...} has a syntax that could be used be
-     * used in an program expression for A{attributeUid}
+     * Assume that an item of the form A{...} has a syntax that could be used be used in an program expression for
+     * A{attributeUid}
      *
      * @param ctx the item context
      */

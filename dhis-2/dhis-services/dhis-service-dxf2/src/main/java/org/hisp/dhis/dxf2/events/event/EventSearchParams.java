@@ -171,8 +171,7 @@ public class EventSearchParams
     private List<QueryItem> filters = new ArrayList<>();
 
     /**
-     * DataElements to be included in the response. Can be used to filter
-     * response.
+     * DataElements to be included in the response. Can be used to filter response.
      */
     private Set<QueryItem> dataElements = new HashSet<>();
 
@@ -185,8 +184,7 @@ public class EventSearchParams
     private boolean synchronizationQuery;
 
     /**
-     * Indicates a point in the time used to decide the data that should not be
-     * synchronized
+     * Indicates a point in the time used to decide the data that should not be synchronized
      */
     private Date skipChangedBefore;
 

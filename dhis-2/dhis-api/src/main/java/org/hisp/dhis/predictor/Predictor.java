@@ -80,8 +80,7 @@ public class Predictor
     private PeriodType periodType;
 
     /**
-     * When non-empty, this is a boolean valued generator which indicates when
-     * this rule should be skipped
+     * When non-empty, this is a boolean valued generator which indicates when this rule should be skipped
      */
     private Expression sampleSkipTest;
 
@@ -91,24 +90,22 @@ public class Predictor
     private Set<OrganisationUnitLevel> organisationUnitLevels;
 
     /**
-     * The number of sequential periods from which to collect samples to average
-     * (Monitoring-type rules only). Sequential periods are those immediately
-     * preceding (or immediately following in previous years) the selected
+     * The number of sequential periods from which to collect samples to average (Monitoring-type rules only).
+     * Sequential periods are those immediately preceding (or immediately following in previous years) the selected
      * period.
      */
     private Integer sequentialSampleCount;
 
     /**
-     * The number of annual periods from which to collect samples to average
-     * (Monitoring-type rules only). Annual periods are from previous years.
-     * Samples collected from previous years can also include sequential periods
+     * The number of annual periods from which to collect samples to average (Monitoring-type rules only). Annual
+     * periods are from previous years. Samples collected from previous years can also include sequential periods
      * adjacent to the equivalent period in previous years.
      */
     private Integer annualSampleCount;
 
     /**
-     * The number of immediate sequential periods to skip (in the current year)
-     * when collecting samples for aggregate functions
+     * The number of immediate sequential periods to skip (in the current year) when collecting samples for aggregate
+     * functions
      */
     private Integer sequentialSkipCount;
 
@@ -130,8 +127,7 @@ public class Predictor
     // -------------------------------------------------------------------------
 
     /**
-     * Gets the predictor description, but returns the predictor name if there
-     * is no description.
+     * Gets the predictor description, but returns the predictor name if there is no description.
      *
      * @return the description (or name).
      */

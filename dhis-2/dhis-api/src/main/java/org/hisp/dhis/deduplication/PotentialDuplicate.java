@@ -39,22 +39,19 @@ public class PotentialDuplicate
     extends BaseIdentifiableObject
 {
     /**
-     * teiA represents the UID of a TrackedEntityInstance. teiA is required.
-     * teiA is a potential duplicate of teiB. if teiB is null, it indicates a
-     * user has flagged teiA as a potential duplicate, without knowing which
+     * teiA represents the UID of a TrackedEntityInstance. teiA is required. teiA is a potential duplicate of teiB. if
+     * teiB is null, it indicates a user has flagged teiA as a potential duplicate, without knowing which
      * TrackedEntityInstance it is a duplicate of.
      */
     private String teiA;
 
     /**
-     * teiB represents the UID of a TrackedEntityInstance. teiB is optional.
-     * teiB is a potential duplicate of teiA.
+     * teiB represents the UID of a TrackedEntityInstance. teiB is optional. teiB is a potential duplicate of teiA.
      */
     private String teiB;
 
     /**
-     * status represents the state of the PotentialDuplicate. all new Potential
-     * duplicates are OPEN by default.
+     * status represents the state of the PotentialDuplicate. all new Potential duplicates are OPEN by default.
      */
     private DeduplicationStatus status = DeduplicationStatus.OPEN;
 

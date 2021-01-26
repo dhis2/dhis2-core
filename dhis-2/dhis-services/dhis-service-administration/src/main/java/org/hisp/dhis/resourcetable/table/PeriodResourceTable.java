@@ -147,10 +147,9 @@ public class PeriodResourceTable
     /**
      * Resolves the year from the given period.
      * <p>
-     * Weekly period types are treated differently from other period types. A
-     * week is considered to belong to the year for which 4 days or more fall
-     * inside. In this logic, 3 days are added to the week start day and the
-     * year of the modified start date is used as reference year for the period.
+     * Weekly period types are treated differently from other period types. A week is considered to belong to the year
+     * for which 4 days or more fall inside. In this logic, 3 days are added to the week start day and the year of the
+     * modified start date is used as reference year for the period.
      *
      * @param period the {@link Period}.
      * @return the year.

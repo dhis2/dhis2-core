@@ -66,8 +66,7 @@ public interface Node extends Ordered
     boolean is( NodeType type );
 
     /**
-     * Helper that checks if node is of simple type, useful to checking if you
-     * are allowed to add children to this node.
+     * Helper that checks if node is of simple type, useful to checking if you are allowed to add children to this node.
      *
      * @return true if type is simple
      * @see org.hisp.dhis.node.NodeType
@@ -98,8 +97,8 @@ public interface Node extends Ordered
     boolean isMetadata();
 
     /**
-     * Namespace for this node. Not all serializers support this, and its up to
-     * the NodeSerializer implementation to decide what to do with this.
+     * Namespace for this node. Not all serializers support this, and its up to the NodeSerializer implementation to
+     * decide what to do with this.
      *
      * @return namespace
      * @see org.hisp.dhis.node.NodeSerializer
@@ -107,8 +106,8 @@ public interface Node extends Ordered
     String getNamespace();
 
     /**
-     * Comment for this node. Not all serializers support this, and its up to
-     * the NodeSerializer implementation to decide what to do with this.
+     * Comment for this node. Not all serializers support this, and its up to the NodeSerializer implementation to
+     * decide what to do with this.
      *
      * @return namespace
      * @see org.hisp.dhis.node.NodeSerializer
@@ -148,9 +147,8 @@ public interface Node extends Ordered
     <T extends Node> void addChildren( Iterable<T> children );
 
     /**
-     * Get all child notes associated with this node. Please note that the
-     * returned list is a copy of the internal list, and changes to the list
-     * will not be reflected in the node.
+     * Get all child notes associated with this node. Please note that the returned list is a copy of the internal list,
+     * and changes to the list will not be reflected in the node.
      *
      * @return List of child nodes associated with this node
      */

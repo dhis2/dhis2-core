@@ -505,8 +505,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Ignores data element dimension and generates 2 x 3 = 6 combinations based
-     * on organisation unit and period dimensions.
+     * Ignores data element dimension and generates 2 x 3 = 6 combinations based on organisation unit and period
+     * dimensions.
      */
     @Test
     public void testGetDimensionOptionPermutations()
@@ -561,9 +561,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query spans two period types and two aggregation types. Splits in 2
-     * queries for each period type, then splits in 4 queries on data elements
-     * to satisfy optimal of 4 queries per query group.
+     * Query spans two period types and two aggregation types. Splits in 2 queries for each period type, then splits in
+     * 4 queries on data elements to satisfy optimal of 4 queries per query group.
      */
     @Test
     public void planQueryA()
@@ -592,9 +591,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query spans 3 period types. Splits in 3 queries for each period type,
-     * then splits in 2 queries on organisation units to satisfy optimal for a
-     * total of 6 queries.
+     * Query spans 3 period types. Splits in 3 queries for each period type, then splits in 2 queries on organisation
+     * units to satisfy optimal for a total of 6 queries.
      */
     @Test
     public void planQueryB()
@@ -623,10 +621,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query spans 3 organisation unit levels. Splits in 3 queries for each
-     * level, then splits in 2 queries on organisation units to satisfy optimal
-     * for a total of 5 queries, as there are only 5 organisation units in
-     * total.
+     * Query spans 3 organisation unit levels. Splits in 3 queries for each level, then splits in 2 queries on
+     * organisation units to satisfy optimal for a total of 5 queries, as there are only 5 organisation units in total.
      */
     @Test
     public void planQueryC()
@@ -668,9 +664,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query spans 2 aggregation types. Splits on 2 aggregation types, then
-     * splits one query on 3 days in period to satisfy optimal for a total of 4
-     * queries.
+     * Query spans 2 aggregation types. Splits on 2 aggregation types, then splits one query on 3 days in period to
+     * satisfy optimal for a total of 4 queries.
      */
     @Test
     public void planQueryD()
@@ -701,9 +696,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query spans 2 aggregation types. Splits on 2 aggregation types, then
-     * splits one query on 3 days in period to satisfy optimal for a total of 4
-     * queries. No organisation units specified.
+     * Query spans 2 aggregation types. Splits on 2 aggregation types, then splits one query on 3 days in period to
+     * satisfy optimal for a total of 4 queries. No organisation units specified.
      */
     @Test
     public void planQueryE()
@@ -780,8 +774,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Splits in 4 queries on data elements, then 2 queries on organisation
-     * units to satisfy optimal for a total of 8 queries.
+     * Splits in 4 queries on data elements, then 2 queries on organisation units to satisfy optimal for a total of 8
+     * queries.
      */
     @Test
     public void planQueryH()
@@ -809,10 +803,9 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query spans 3 period types. Splits in 3 queries for each period type,
-     * then splits in 2 queries on data type, then splits in 2 queries on data
-     * elements to satisfy optimal for a total of 12 queries, because query has
-     * 2 different aggregation types.
+     * Query spans 3 period types. Splits in 3 queries for each period type, then splits in 2 queries on data type, then
+     * splits in 2 queries on data elements to satisfy optimal for a total of 12 queries, because query has 2 different
+     * aggregation types.
      */
     @Test
     public void planQueryI()
@@ -857,8 +850,7 @@ public class QueryPlannerTest
     }
 
     /**
-     * Splits in 4 queries on data sets to satisfy optimal for a total of 4
-     * queries.
+     * Splits in 4 queries on data sets to satisfy optimal for a total of 4 queries.
      */
     @Test
     public void planQueryK()
@@ -887,9 +879,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Splits in 2 queries for each data type, then 2 queries for each data
-     * element, then 2 queries for each organisation unit to satisfy optimal for
-     * a total of 8 queries with 4 queries across 2 sequential queries.
+     * Splits in 2 queries for each data type, then 2 queries for each data element, then 2 queries for each
+     * organisation unit to satisfy optimal for a total of 8 queries with 4 queries across 2 sequential queries.
      */
     @Test
     public void planQueryL()
@@ -916,8 +907,7 @@ public class QueryPlannerTest
     }
 
     /**
-     * Splits in 4 queries for data elements to satisfy optimal for a total of 4
-     * queries.
+     * Splits in 4 queries for data elements to satisfy optimal for a total of 4 queries.
      */
     @Test
     public void planQueryM()
@@ -1001,8 +991,7 @@ public class QueryPlannerTest
     }
 
     /**
-     * No data dimension items or data element group set dimension items
-     * specified, illegal query.
+     * No data dimension items or data element group set dimension items specified, illegal query.
      */
     @Test( expected = IllegalQueryException.class )
     public void planQueryNoDataItems()
@@ -1018,8 +1007,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Splits in 4 queries for each period to satisfy optimal for a total of 4
-     * queries, because all queries have different periods.
+     * Splits in 4 queries for each period to satisfy optimal for a total of 4 queries, because all queries have
+     * different periods.
      */
     @Test
     public void planQueryStartEndDateRestrictionQueryGrouperA()
@@ -1061,8 +1050,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Splits in 4 queries for each period to satisfy optimal for a total of 4
-     * queries, because all queries have different periods.
+     * Splits in 4 queries for each period to satisfy optimal for a total of 4 queries, because all queries have
+     * different periods.
      */
     @Test
     public void planQueryStartEndDateRestrictionQueryGrouperB()
@@ -1101,9 +1090,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Split on two data elements. Set aggregation type average and value type
-     * integer on query. Convert aggregation type from data elements to average
-     * and then to average integer.
+     * Split on two data elements. Set aggregation type average and value type integer on query. Convert aggregation
+     * type from data elements to average and then to average integer.
      */
     @Test
     public void planQueryAggregationTypeA()
@@ -1133,9 +1121,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Split on two data elements. Set aggregation type average and value type
-     * boolean on query. Convert aggregation type from data elements to average
-     * and then to average boolean.
+     * Split on two data elements. Set aggregation type average and value type boolean on query. Convert aggregation
+     * type from data elements to average and then to average boolean.
      */
     @Test
     public void planQueryAggregationTypeB()
@@ -1165,9 +1152,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query is type disaggregation as aggregation period type for periods is
-     * monthly and data elements period type is yearly. Split on two data
-     * elements.
+     * Query is type disaggregation as aggregation period type for periods is monthly and data elements period type is
+     * yearly. Split on two data elements.
      */
     @Test
     public void planQueryDataElementDisaggregation()
@@ -1197,9 +1183,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query is type disaggregation as aggregation period type for periods is
-     * monthly and data element groups period type is yearly. Split on two org
-     * units.
+     * Query is type disaggregation as aggregation period type for periods is monthly and data element groups period
+     * type is yearly. Split on two org units.
      */
     @Test
     public void planQueryDataElementGroupSetDisaggregation()

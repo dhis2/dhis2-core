@@ -121,25 +121,22 @@ public abstract class ResourceTable<T>
     public abstract String getCreateTempTableStatement();
 
     /**
-     * Provides an insert into select from SQL statement for populating the
-     * temporary resource table.
+     * Provides an insert into select from SQL statement for populating the temporary resource table.
      *
      * @return an insert into select from SQL statement.
      */
     public abstract Optional<String> getPopulateTempTableStatement();
 
     /**
-     * Provides content for the temporary resource table as a list of object
-     * arrays.
+     * Provides content for the temporary resource table as a list of object arrays.
      *
      * @return content for the temporary resource table.
      */
     public abstract Optional<List<Object[]>> getPopulateTempTableContent();
 
     /**
-     * Returns SQL create index statements for the temporary table. Note that
-     * the indexes name must have a random component to avoid uniqueness
-     * conflicts.
+     * Returns SQL create index statements for the temporary table. Note that the indexes name must have a random
+     * component to avoid uniqueness conflicts.
      *
      * @return a list of SQL create index statements.
      */

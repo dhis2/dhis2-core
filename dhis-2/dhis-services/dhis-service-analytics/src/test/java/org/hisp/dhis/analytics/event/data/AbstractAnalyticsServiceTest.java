@@ -66,8 +66,8 @@ import org.opengis.geometry.primitive.Point;
 import com.google.common.collect.Lists;
 
 /**
- * This class only tests the "shared" code of AbstractAnalyticsService, which
- * includes Grid header generation and Grid Metadata
+ * This class only tests the "shared" code of AbstractAnalyticsService, which includes Grid header generation and Grid
+ * Metadata
  *
  * @author Luciano Fiandesio
  */

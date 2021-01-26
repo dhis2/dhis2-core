@@ -43,9 +43,8 @@ public interface ProgramStageStore
      * Retrieve a program stage by name and a program
      *
      * @param name Name of program stage
-     * @param program Specify a {@link Program} for retrieving a program stage.
-     *        The system allows the name of program stages are duplicated on
-     *        different programs
+     * @param program Specify a {@link Program} for retrieving a program stage. The system allows the name of program
+     *        stages are duplicated on different programs
      * @return ProgramStage
      */
     ProgramStage getByNameAndProgram( String name, Program program );

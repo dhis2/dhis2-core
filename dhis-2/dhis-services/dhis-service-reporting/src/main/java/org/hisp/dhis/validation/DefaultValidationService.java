@@ -262,11 +262,9 @@ public class DefaultValidationService
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a new Builder with basic configuration based on the input
-     * parameters.
+     * Returns a new Builder with basic configuration based on the input parameters.
      *
-     * @param parameters ValidationRuleParameters for creating
-     *        ValidationRuleContext
+     * @param parameters ValidationRuleParameters for creating ValidationRuleContext
      * @return Builder with basic configuration based on input.
      */
     private ValidationRunContext getValidationContext( ValidationAnalysisParams parameters )
@@ -340,8 +338,7 @@ public class DefaultValidationService
     }
 
     /**
-     * For each period type, allow all the longer period types in validation
-     * queries.
+     * For each period type, allow all the longer period types in validation queries.
      *
      * @param periodTypeXs period types to generate allowed period types from.
      */
@@ -446,8 +443,7 @@ public class DefaultValidationService
     }
 
     /**
-     * Checks to see if a dimensional item object has values stored in the
-     * database by attribute option combo.
+     * Checks to see if a dimensional item object has values stored in the database by attribute option combo.
      *
      * @param object dimensional item object
      * @return true if values are stored by attribuete option combo.
@@ -477,9 +473,8 @@ public class DefaultValidationService
     }
 
     /**
-     * Gets the PeriodTypeExtended from the context object. If not found,
-     * creates a new PeriodTypeExtended object, puts it into the context object,
-     * and returns it.
+     * Gets the PeriodTypeExtended from the context object. If not found, creates a new PeriodTypeExtended object, puts
+     * it into the context object, and returns it.
      *
      * @param periodTypeXMap period type map to extended period types.
      * @param periodType period type to search for

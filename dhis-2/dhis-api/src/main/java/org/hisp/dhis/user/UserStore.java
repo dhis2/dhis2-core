@@ -51,9 +51,8 @@ public interface UserStore
     List<User> getUsers( UserQueryParams params );
 
     /**
-     * Returns a list of users based on the given query parameters. If the
-     * specified list of orders are empty, default order of last name and first
-     * name will be applied.
+     * Returns a list of users based on the given query parameters. If the specified list of orders are empty, default
+     * order of last name and first name will be applied.
      *
      * @param params the user query parameters.
      * @param orders the already validated order strings (e.g. email:asc).
@@ -95,8 +94,7 @@ public interface UserStore
     User getUser( long userId );
 
     /**
-     * Return CurrentUserGroupInfo used for ACL check in
-     * {@link IdentifiableObjectStore}
+     * Return CurrentUserGroupInfo used for ACL check in {@link IdentifiableObjectStore}
      *
      * @param userId
      * @return

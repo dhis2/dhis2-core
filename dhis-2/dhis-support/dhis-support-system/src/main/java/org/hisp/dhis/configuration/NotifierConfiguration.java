@@ -42,8 +42,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * This class deals with the configuring an appropriate notifier depending on
- * whether redis is enabled or not.
+ * This class deals with the configuring an appropriate notifier depending on whether redis is enabled or not.
  *
  * @author Ameen Mohamed
  */

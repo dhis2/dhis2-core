@@ -81,13 +81,11 @@ public class DefaultProgramIndicatorSubqueryBuilder
     }
 
     /**
-     * Generate a subquery based on the result of a Program Indicator and an
-     * (optional) Relationship Type
+     * Generate a subquery based on the result of a Program Indicator and an (optional) Relationship Type
      *
      * @param programIndicator a {@see ProgramIndicator} object
      * @param relationshipType an optional {@see RelationshipType} object
-     * @param outerSqlEntity a {@see AnalyticsType} object, representing the
-     *        outer sql context
+     * @param outerSqlEntity a {@see AnalyticsType} object, representing the outer sql context
      * @param earliestStartDate reporting start date
      * @param latestDate reporting end date
      *
@@ -136,12 +134,10 @@ public class DefaultProgramIndicatorSubqueryBuilder
      *
      * Rules:
      *
-     * 1) outer = event | inner = enrollment -> pi = ax.pi (enrollment is the
-     * enrollmennt linked to the inline event) 2) outer = enrollment | inner =
-     * event -> pi = ax.pi 3) outer = event | inner = event -> psi = ax.psi
-     * (inner operate on same event as outer) 4) outer = enrollemnt | inner =
-     * enrollment -> pi = ax.pi (enrollment operates on the same enrollment as
-     * outer) 5) if RelationshipType, call the RelationshipTypeJoinGenerator
+     * 1) outer = event | inner = enrollment -> pi = ax.pi (enrollment is the enrollmennt linked to the inline event) 2)
+     * outer = enrollment | inner = event -> pi = ax.pi 3) outer = event | inner = event -> psi = ax.psi (inner operate
+     * on same event as outer) 4) outer = enrollemnt | inner = enrollment -> pi = ax.pi (enrollment operates on the same
+     * enrollment as outer) 5) if RelationshipType, call the RelationshipTypeJoinGenerator
      *
      * @param outerSqlEntity the outer sql type (enrollment or event)
      * @param pi a Program Indicator object

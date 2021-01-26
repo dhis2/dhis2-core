@@ -70,9 +70,8 @@ public class AnalyticsServiceProgramDataElementTest
     AnalyticsServiceBaseTest
 {
     /**
-     * This test verifies that a call to the Analytics Service with a Data
-     * Element of type Program Data Element, triggers a call to the Event
-     * Analytics Service
+     * This test verifies that a call to the Analytics Service with a Data Element of type Program Data Element,
+     * triggers a call to the Event Analytics Service
      */
     @Test
     public void verifyProgramDataElementInQueryCallsEventsAnalytics()

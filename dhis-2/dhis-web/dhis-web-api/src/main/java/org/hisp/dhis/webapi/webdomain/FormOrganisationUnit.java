@@ -33,8 +33,7 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Simplified organisation unit class, to be used where all you need is a label
- * + dataSets.
+ * Simplified organisation unit class, to be used where all you need is a label + dataSets.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

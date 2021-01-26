@@ -34,8 +34,8 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.springframework.stereotype.Component;
 
 /**
- * This preprocessor is responsible for setting the ProgramInstance UID on an
- * Event if the Program that the event belongs is of type 'WITHOUT_REGISTRATION'
+ * This preprocessor is responsible for setting the ProgramInstance UID on an Event if the Program that the event
+ * belongs is of type 'WITHOUT_REGISTRATION'
  *
  * @author Enrico Colasante
  */

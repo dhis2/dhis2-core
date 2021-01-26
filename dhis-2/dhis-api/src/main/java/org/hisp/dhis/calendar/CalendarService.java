@@ -30,8 +30,7 @@ package org.hisp.dhis.calendar;
 import java.util.List;
 
 /**
- * Simple service for returning all available calendars, and also giving the
- * current system calendar.
+ * Simple service for returning all available calendars, and also giving the current system calendar.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @see Calendar

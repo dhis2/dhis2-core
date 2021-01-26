@@ -144,15 +144,13 @@ public interface Calendar
      * @param dateTimeUnit DateUnit representing local year, month, day
      * @param type Interval type to get
      * @param offset Offset to start at, can be negative of positive
-     * @param length How many periods to asks for, i.e. type = MONTH, length =
-     *        2, two months
+     * @param length How many periods to asks for, i.e. type = MONTH, length = 2, two months
      * @return Interval for interval type based on dateUnit
      */
     DateInterval toInterval( DateTimeUnit dateTimeUnit, DateIntervalType type, int offset, int length );
 
     /**
-     * Gets interval of type based on DateUnit using default options, 0 for
-     * offset, 1 for length
+     * Gets interval of type based on DateUnit using default options, 0 for offset, 1 for length
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
      * @param type Interval type to get
@@ -174,8 +172,7 @@ public interface Calendar
      *
      * @param type Interval type to get
      * @param offset Offset to start at, can be negative of positive
-     * @param length How many periods to asks for, i.e. type = MONTH, length =
-     *        2, two months
+     * @param length How many periods to asks for, i.e. type = MONTH, length = 2, two months
      * @return Interval for interval type based on dateUnit
      */
     DateInterval toInterval( DateIntervalType type, int offset, int length );
@@ -186,8 +183,7 @@ public interface Calendar
      * @param dateTimeUnit DateUnit representing local year, month, day
      * @param type Interval type to get
      * @param offset Offset to start at, can be negative of positive
-     * @param length How many periods to asks for, i.e. type = MONTH, length =
-     *        2, two months
+     * @param length How many periods to asks for, i.e. type = MONTH, length = 2, two months
      * @param periods How many periods to generate
      * @return Interval for interval type based on dateUnit
      */
@@ -237,8 +233,7 @@ public interface Calendar
     int weeksInYear( int year );
 
     /**
-     * Gets week number using local DateUnit, week number is calculated based on
-     * ISO 8601 week numbers
+     * Gets week number using local DateUnit, week number is calculated based on ISO 8601 week numbers
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
      * @return Week number
@@ -246,8 +241,7 @@ public interface Calendar
     int isoWeek( DateTimeUnit dateTimeUnit );
 
     /**
-     * Returns week number using local DateUnit, week number is calculated based
-     * on local calendar.
+     * Returns week number using local DateUnit, week number is calculated based on local calendar.
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
      * @return Week number
@@ -255,8 +249,7 @@ public interface Calendar
     int week( DateTimeUnit dateTimeUnit );
 
     /**
-     * Gets the ISO 8601 weekday for this local DateUnit, using ISO 8601 day
-     * numbering, 1=Monday => 7=Sunday.
+     * Gets the ISO 8601 weekday for this local DateUnit, using ISO 8601 day numbering, 1=Monday => 7=Sunday.
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
      * @return Weekday number
@@ -264,8 +257,7 @@ public interface Calendar
     int isoWeekday( DateTimeUnit dateTimeUnit );
 
     /**
-     * Gets the local weekday for this local DateUnit, using ISO 8601 day
-     * numbering, 1=Monday => 7=Sunday.
+     * Gets the local weekday for this local DateUnit, using ISO 8601 day numbering, 1=Monday => 7=Sunday.
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
      * @return Weekday number

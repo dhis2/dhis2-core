@@ -156,12 +156,10 @@ public class ProgramIndicator
     }
 
     /**
-     * Indicates whether the program indicator has standard reporting period
-     * boundaries, and can use the pre-aggregated data in the analytics tables
-     * directly, or whether a custom set of boundaries is used.
+     * Indicates whether the program indicator has standard reporting period boundaries, and can use the pre-aggregated
+     * data in the analytics tables directly, or whether a custom set of boundaries is used.
      *
-     * @return true if the program indicator uses custom boundaries that the
-     *         database query will need to handle.
+     * @return true if the program indicator uses custom boundaries that the database query will need to handle.
      */
     public Boolean hasNonDefaultBoundaries()
     {
@@ -171,10 +169,9 @@ public class ProgramIndicator
     }
 
     /**
-     * Checks if indicator expression or indicator filter expression contains
-     * V{analytics_period_end} or V{analytics_period_start}. It will be use in
-     * conjunction with hasNonDefaultBoundaries() in order to split sql queries
-     * for each period provided.
+     * Checks if indicator expression or indicator filter expression contains V{analytics_period_end} or
+     * V{analytics_period_start}. It will be use in conjunction with hasNonDefaultBoundaries() in order to split sql
+     * queries for each period provided.
      *
      * @return true if expression has analytics period variables.
      */
@@ -185,8 +182,8 @@ public class ProgramIndicator
     }
 
     /**
-     * Indicates whether the program indicator includes event boundaries, to be
-     * applied if the program indicator queries event data.
+     * Indicates whether the program indicator includes event boundaries, to be applied if the program indicator queries
+     * event data.
      */
     public Boolean hasEventBoundary()
     {
@@ -194,11 +191,9 @@ public class ProgramIndicator
     }
 
     /**
-     * Returns the boundary for the latest event date to include in the further
-     * evaluation.
+     * Returns the boundary for the latest event date to include in the further evaluation.
      *
-     * @return The analytics period boundary that defines the event end date.
-     *         Null if none is found.
+     * @return The analytics period boundary that defines the event end date. Null if none is found.
      */
     public AnalyticsPeriodBoundary getEndEventBoundary()
     {
@@ -214,11 +209,9 @@ public class ProgramIndicator
     }
 
     /**
-     * Returns the boundary for the earliest event date to include in the
-     * further evaluation.
+     * Returns the boundary for the earliest event date to include in the further evaluation.
      *
-     * @return The analytics period boundary that defines the event start date.
-     *         Null if none is found.
+     * @return The analytics period boundary that defines the event start date. Null if none is found.
      */
     public AnalyticsPeriodBoundary getStartEventBoundary()
     {
@@ -234,8 +227,7 @@ public class ProgramIndicator
     }
 
     /**
-     * Determines wether there exists any analytics period boundaries that has
-     * type "Event in program stage".
+     * Determines wether there exists any analytics period boundaries that has type "Event in program stage".
      *
      * @return true if any boundary exists with type "Event in program stage"
      */
@@ -252,9 +244,8 @@ public class ProgramIndicator
     }
 
     /**
-     * Returns any analytics period boundaries that has type "Event in program
-     * stage", organized as a map where the program stage is the key, and the
-     * list of boundaries for that program stage is the value.
+     * Returns any analytics period boundaries that has type "Event in program stage", organized as a map where the
+     * program stage is the key, and the list of boundaries for that program stage is the value.
      */
     public Map<String, Set<AnalyticsPeriodBoundary>> getEventDateCohortBoundaryByProgramStage()
     {

@@ -378,8 +378,7 @@ public class DataValueSetController
     }
 
     /**
-     * Writes the input stream to a temporary file, and returns a new input
-     * stream connected to the file.
+     * Writes the input stream to a temporary file, and returns a new input stream connected to the file.
      *
      * @param in the InputStream.
      * @return an InputStream.
@@ -400,15 +399,13 @@ public class DataValueSetController
     }
 
     /**
-     * Returns an output stream with the appropriate compression based on the
-     * given {@link Compression} argument.
+     * Returns an output stream with the appropriate compression based on the given {@link Compression} argument.
      *
      * @param response the {@link HttpServletResponse}.
      * @param attachment the file download attachment name
      * @param compression the Compression {@link Compression}
      * @param format the file format, can be json, xml or csv.
-     * @return Compressed OutputStream if given compression is given, otherwise
-     *         just return uncompressed outputStream
+     * @return Compressed OutputStream if given compression is given, otherwise just return uncompressed outputStream
      */
     private OutputStream compress( HttpServletResponse response, String attachment, Compression compression,
         String format )

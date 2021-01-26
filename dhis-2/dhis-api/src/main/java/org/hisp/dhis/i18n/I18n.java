@@ -59,8 +59,7 @@ public class I18n
      * Get a translated String for a given key for the currently selected locale
      *
      * @param key the key for a given translation
-     * @return a translated String for a given key, or the key if no translation
-     *         is found.
+     * @return a translated String for a given key, or the key if no translation is found.
      */
     public String getString( String key )
     {

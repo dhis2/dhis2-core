@@ -123,8 +123,7 @@ public class BiWeeklyAbstractPeriodType
     }
 
     /**
-     * Generates bi-weekly Periods for the whole year in which the given
-     * Period's startDate exists.
+     * Generates bi-weekly Periods for the whole year in which the given Period's startDate exists.
      */
     @Override
     public List<Period> generatePeriods( DateTimeUnit start )
@@ -144,8 +143,7 @@ public class BiWeeklyAbstractPeriodType
     }
 
     /**
-     * Generates the last 26 bi-weeks where the last one is the week which the
-     * given date is inside.
+     * Generates the last 26 bi-weeks where the last one is the week which the given date is inside.
      */
     @Override
     public List<Period> generateRollingPeriods( DateTimeUnit end, Calendar calendar )

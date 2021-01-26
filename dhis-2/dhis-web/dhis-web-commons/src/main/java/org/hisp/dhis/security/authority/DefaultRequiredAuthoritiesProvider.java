@@ -42,8 +42,7 @@ import com.opensymphony.xwork2.config.entities.ActionConfig;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: DefaultRequiredAuthoritiesProvider.java 3160 2007-03-24
- *          20:15:06Z torgeilo $
+ * @version $Id: DefaultRequiredAuthoritiesProvider.java 3160 2007-03-24 20:15:06Z torgeilo $
  */
 public class DefaultRequiredAuthoritiesProvider
     implements RequiredAuthoritiesProvider

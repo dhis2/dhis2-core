@@ -84,8 +84,7 @@ public class DimItemDataElementAndOperand
     // -------------------------------------------------------------------------
 
     /**
-     * Does an item of the form #{...} have the syntax of a data element operand
-     * (as opposed to a data element)?
+     * Does an item of the form #{...} have the syntax of a data element operand (as opposed to a data element)?
      *
      * @param ctx the item context
      * @return true if data element operand syntax

@@ -33,9 +33,8 @@ import java.util.concurrent.Callable;
 import java.util.function.Function;
 
 /**
- * Map which allows storing a {@link Callable} and caches its return value on
- * the first call to get(Object, Callable). Subsequent calls returns the cached
- * value.
+ * Map which allows storing a {@link Callable} and caches its return value on the first call to get(Object, Callable).
+ * Subsequent calls returns the cached value.
  *
  * @author Lars Helge Overland
  */
@@ -57,15 +56,13 @@ public class CachingMap<K, V>
     // -------------------------------------------------------------------------
 
     /**
-     * Returns the cached value if available or executes the {@link Callable}
-     * and returns the value, which is also cached. Will not attempt to fetch
-     * values for null keys, to avoid potentially expensive and pointless
-     * operations. Will cache entries with null values.
+     * Returns the cached value if available or executes the {@link Callable} and returns the value, which is also
+     * cached. Will not attempt to fetch values for null keys, to avoid potentially expensive and pointless operations.
+     * Will cache entries with null values.
      *
      * @param key the key.
      * @param callable the {@link Callable}.
-     * @return the return value of the {@link Callable}, either from cache or
-     *         immediate execution.
+     * @return the return value of the {@link Callable}, either from cache or immediate execution.
      */
     public V get( K key, Callable<V> callable )
     {
@@ -102,16 +99,14 @@ public class CachingMap<K, V>
     }
 
     /**
-     * Returns the cached value if available or executes the {@link Callable}
-     * and returns the value, which is also cached. If the value produced, the
-     * default value will be returned. Will not attempt to fetch values for null
+     * Returns the cached value if available or executes the {@link Callable} and returns the value, which is also
+     * cached. If the value produced, the default value will be returned. Will not attempt to fetch values for null
      * keys, to avoid potentially expensive and pointless operations.
      *
      * @param key the key.
      * @param callable the {@link Callable}.
      * @param defaultValue the default value.
-     * @return the return value of the {@link Callable}, either from cache or
-     *         immediate execution.
+     * @return the return value of the {@link Callable}, either from cache or immediate execution.
      */
     public V get( K key, Callable<V> callable, V defaultValue )
     {
@@ -121,12 +116,10 @@ public class CachingMap<K, V>
     }
 
     /**
-     * Loads the cache with the given content. Entries for which the key is a
-     * null reference are ignored.
+     * Loads the cache with the given content. Entries for which the key is a null reference are ignored.
      *
      * @param collection the content collection.
-     * @param keyMapper the function to produce the cache key for a content
-     *        item.
+     * @param keyMapper the function to produce the cache key for a content item.
      * @return a reference to this caching map.
      */
     public CachingMap<K, V> load( Collection<V> collection, Function<V, K> keyMapper )
@@ -167,8 +160,7 @@ public class CachingMap<K, V>
     }
 
     /**
-     * Returns the ratio between cache hits and misses from calling the
-     * {@code get} method.
+     * Returns the ratio between cache hits and misses from calling the {@code get} method.
      *
      * @return the cache hit versus miss ratio.
      */

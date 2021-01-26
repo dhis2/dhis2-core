@@ -87,9 +87,8 @@ public class LocaleUtils
     }
 
     /**
-     * Creates a list of locales of all possible specifities based on the given
-     * Locale. As an example, for the given locale "en_UK", the locales "en" and
-     * "en_UK" are returned.
+     * Creates a list of locales of all possible specifities based on the given Locale. As an example, for the given
+     * locale "en_UK", the locales "en" and "en_UK" are returned.
      *
      * @param locale the Locale.
      * @return a list of locale strings.

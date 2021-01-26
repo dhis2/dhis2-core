@@ -37,8 +37,7 @@ import org.hisp.dhis.util.SessionUtils;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: DefaultTreeStateManager.java 5282 2008-05-28 10:41:06Z larshelg
- *          $
+ * @version $Id: DefaultTreeStateManager.java 5282 2008-05-28 10:41:06Z larshelg $
  */
 public class DefaultTreeStateManager
     implements TreeStateManager

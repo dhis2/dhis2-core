@@ -42,8 +42,7 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStage;
 
 /**
- * Remove data elements from event and context map which are not present in the
- * program stage that is linked to it.
+ * Remove data elements from event and context map which are not present in the program stage that is linked to it.
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */

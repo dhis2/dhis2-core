@@ -31,13 +31,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * An interval set is a collection of map objects that are distributed into
- * intervals according to their value.
+ * An interval set is a collection of map objects that are distributed into intervals according to their value.
  *
- * The core functionality of this class is encapsulated into its method
- * applyIntervalSetToMapLayer, which takes a map layer as input, creates an
- * interval set for it, and distributes its map objects into intervals according
- * to the given distribution strategy.
+ * The core functionality of this class is encapsulated into its method applyIntervalSetToMapLayer, which takes a map
+ * layer as input, creates an interval set for it, and distributes its map objects into intervals according to the given
+ * distribution strategy.
  *
  * @author Olai Solheim <olais@ifi.uio.no>
  */
@@ -62,8 +60,7 @@ public class IntervalSet
     // -------------------------------------------------------------------------
 
     /**
-     * Populates object low and object high based on the given list of map
-     * objects.
+     * Populates object low and object high based on the given list of map objects.
      */
     public IntervalSet setLowHigh( List<InternalMapObject> mapObjects )
     {

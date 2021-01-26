@@ -97,8 +97,7 @@ public class GridHeader
     }
 
     /**
-     * Sets the column property to the name value. Sets the type property to
-     * String.
+     * Sets the column property to the name value. Sets the type property to String.
      *
      * @param name formal header name.
      * @param hidden indicates whether header is hidden.

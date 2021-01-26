@@ -47,13 +47,11 @@ import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.interceptor.Interceptor;
 
 /**
- * This interceptor will intercept exceptions and redirect to appropriate
- * exception results / pages defined in the global-results section in the XWork
- * configuration.
+ * This interceptor will intercept exceptions and redirect to appropriate exception results / pages defined in the
+ * global-results section in the XWork configuration.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: WebWorkExceptionInterceptor.java 6335 2008-11-20 11:11:26Z
- *          larshelg $
+ * @version $Id: WebWorkExceptionInterceptor.java 6335 2008-11-20 11:11:26Z larshelg $
  */
 @Slf4j
 public class ExceptionInterceptor

@@ -38,8 +38,8 @@ import java.util.function.Function;
 import org.springframework.data.redis.core.RedisTemplate;
 
 /**
- * A redis backed implementation of {@link Cache}. This implementation uses a
- * shared redis cache server for any number of instances.
+ * A redis backed implementation of {@link Cache}. This implementation uses a shared redis cache server for any number
+ * of instances.
  *
  * @author Ameen Mohamed
  */

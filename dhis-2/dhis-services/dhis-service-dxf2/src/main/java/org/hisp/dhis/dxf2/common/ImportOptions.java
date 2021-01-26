@@ -40,9 +40,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.google.common.base.MoreObjects;
 
 /**
- * The idScheme is a general setting which will apply to all objects. The
- * idSchemes can also be defined for specific objects such as
- * dataElementIdScheme. The general setting will override specific settings.
+ * The idScheme is a general setting which will apply to all objects. The idSchemes can also be defined for specific
+ * objects such as dataElementIdScheme. The general setting will override specific settings.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -103,9 +102,8 @@ public class ImportOptions
     private boolean skipLastUpdated;
 
     /**
-     * This flag signals the system that the request contains Event Data Values
-     * that have to be merged with the existing Data Values (as opposed to a
-     * full replacement)
+     * This flag signals the system that the request contains Event Data Values that have to be merged with the existing
+     * Data Values (as opposed to a full replacement)
      */
     private boolean mergeDataValues;
 
@@ -183,8 +181,7 @@ public class ImportOptions
     }
 
     /**
-     * Returns the notification level, or if not specified, returns the given
-     * default notification level.
+     * Returns the notification level, or if not specified, returns the given default notification level.
      *
      * @param defaultLevel the default notification level.
      * @return the notification level.

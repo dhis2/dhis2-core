@@ -36,8 +36,7 @@ import java.util.Map;
 public interface TextPatternService
 {
     /**
-     * Resolves a pattern by injecting values into the TextPattern and returning
-     * a fully resolved pattern
+     * Resolves a pattern by injecting values into the TextPattern and returning a fully resolved pattern
      *
      * @param pattern the pattern to inject values into
      * @param values the values to inject

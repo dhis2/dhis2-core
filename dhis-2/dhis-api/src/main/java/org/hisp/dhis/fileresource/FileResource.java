@@ -71,9 +71,8 @@ public class FileResource
     private String storageKey;
 
     /**
-     * Flag indicating whether the resource is assigned (e.g. to a DataValue) or
-     * not. Unassigned FileResources are generally safe to delete when reaching
-     * a certain age (unassigned objects might be in staging).
+     * Flag indicating whether the resource is assigned (e.g. to a DataValue) or not. Unassigned FileResources are
+     * generally safe to delete when reaching a certain age (unassigned objects might be in staging).
      */
     private boolean assigned = false;
 
@@ -83,9 +82,8 @@ public class FileResource
     private FileResourceDomain domain;
 
     /**
-     * To keep track of those files which are not pre-generated and need to be
-     * processed later. Flag will be set to true for FileResource having more
-     * than one file associated with it (e.g images)
+     * To keep track of those files which are not pre-generated and need to be processed later. Flag will be set to true
+     * for FileResource having more than one file associated with it (e.g images)
      */
     private boolean hasMultipleStorageFiles;
 

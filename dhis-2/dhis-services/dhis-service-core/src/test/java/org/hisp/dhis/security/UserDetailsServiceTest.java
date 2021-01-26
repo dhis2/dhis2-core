@@ -43,9 +43,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 /**
- * Tests the effects of {@link UserCredentials#setDisabled(boolean)} or
- * {@link UserCredentials#setAccountExpiry(Date)} on the {@link UserDetails}
- * ability to log in.
+ * Tests the effects of {@link UserCredentials#setDisabled(boolean)} or {@link UserCredentials#setAccountExpiry(Date)}
+ * on the {@link UserDetails} ability to log in.
  *
  * @author Jan Bernitt
  */

@@ -34,10 +34,8 @@ import org.slf4j.Logger;
 import org.slf4j.event.Level;
 
 /**
- * This class maintains a static list of logged statements and check if the
- * statement was already logged before logging it again. It is useful to remove
- * duplicated log entries from code that runs multiple times (e.g. init
- * routines)
+ * This class maintains a static list of logged statements and check if the statement was already logged before logging
+ * it again. It is useful to remove duplicated log entries from code that runs multiple times (e.g. init routines)
  *
  * @author Luciano Fiandesio
  */
@@ -46,8 +44,7 @@ public abstract class LogOnceLogger
     private static Set<String> logged = ConcurrentHashMap.newKeySet();
 
     /**
-     * Creates a log entry with a specific Log level. The entry will be logged
-     * only once
+     * Creates a log entry with a specific Log level. The entry will be logged only once
      *
      * @param log The SLF4J log to use
      * @param level The SLF4J log level

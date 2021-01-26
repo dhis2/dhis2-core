@@ -39,8 +39,7 @@ import com.opensymphony.xwork2.Action;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: AddSelectedOrganisationUnitAction.java 2869 2007-02-20
- *          14:26:09Z andegje $
+ * @version $Id: AddSelectedOrganisationUnitAction.java 2869 2007-02-20 14:26:09Z andegje $
  */
 public class AddSelectedOrganisationUnitAction
     implements Action

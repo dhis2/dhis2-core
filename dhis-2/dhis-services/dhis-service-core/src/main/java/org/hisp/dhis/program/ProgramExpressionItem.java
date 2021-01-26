@@ -41,12 +41,11 @@ import org.hisp.dhis.program.variable.ProgramVariableItem;
 /**
  * Program indicator expression item
  * <p/>
- * The only two methods that are used by program indicator-only items are
- * {@link ExpressionItem#getDescription} and {@link ExpressionItem#getSql}.
+ * The only two methods that are used by program indicator-only items are {@link ExpressionItem#getDescription} and
+ * {@link ExpressionItem#getSql}.
  * <p/>
- * getDescription checks the expression item syntax, and returns the expected
- * return data type. For data items, it also registers the translation of any
- * UIDs into human-readable object names.
+ * getDescription checks the expression item syntax, and returns the expected return data type. For data items, it also
+ * registers the translation of any UIDs into human-readable object names.
  *
  * @author Jim Grace
  */

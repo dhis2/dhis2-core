@@ -61,8 +61,7 @@ public class ProgramInstanceRepeatableStageCheck implements Checker
         }
 
         /*
-         * ProgramInstance should never be null. If it's null, the
-         * ProgramInstanceCheck should report this anomaly.
+         * ProgramInstance should never be null. If it's null, the ProgramInstanceCheck should report this anomaly.
          */
         // @formatter:off
         if ( programInstance != null &&

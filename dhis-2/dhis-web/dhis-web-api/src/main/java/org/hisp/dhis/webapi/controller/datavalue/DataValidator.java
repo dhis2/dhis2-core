@@ -66,9 +66,8 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
 /**
- * This a simple component responsible for extracting and encapsulating
- * validation rules from the controller layer. This can be seen as an extension
- * of the controller.
+ * This a simple component responsible for extracting and encapsulating validation rules from the controller layer. This
+ * can be seen as an extension of the controller.
  */
 @Component
 class DataValidator
@@ -173,8 +172,7 @@ class DataValidator
     }
 
     /**
-     * Retrieves and validate the respective CategoryOptionCombo (attribute
-     * option combo) based on the given arguments.
+     * Retrieves and validate the respective CategoryOptionCombo (attribute option combo) based on the given arguments.
      *
      * @param ccUid the category combo identifier.
      * @param cp the category and option query string.
@@ -265,8 +263,7 @@ class DataValidator
     }
 
     /**
-     * Validates if the given DataSet uid exists and is accessible and if the
-     * DataSet contains the informed DataElement.
+     * Validates if the given DataSet uid exists and is accessible and if the DataSet contains the informed DataElement.
      *
      * @param dsUid the DataSet uid.
      * @param dataElement the data element to be checked in the DataSet.
@@ -298,8 +295,7 @@ class DataValidator
     }
 
     /**
-     * Validate if the is after the last future period allowed by the
-     * DataElement.
+     * Validate if the is after the last future period allowed by the DataElement.
      *
      * @param period the period to be validated.
      * @param dataElement the base DataElement.
@@ -319,8 +315,7 @@ class DataValidator
     }
 
     /**
-     * Check for an invalid period withing the given CategoryOptionCombo
-     * (attribute option combo).
+     * Check for an invalid period withing the given CategoryOptionCombo (attribute option combo).
      *
      * @param attributeOptionCombo is the CategoryOptionCombo.
      * @param period the period to be checked.
@@ -352,8 +347,7 @@ class DataValidator
     }
 
     /**
-     * Validate if the DataSet or DataElement is locked based on the input
-     * arguments.
+     * Validate if the DataSet or DataElement is locked based on the input arguments.
      *
      * @param user the current User.
      * @param dataElement the DataElement.
@@ -395,8 +389,7 @@ class DataValidator
     }
 
     /**
-     * Validates if the given file resource uid has a valid FileResource
-     * associated with.
+     * Validates if the given file resource uid has a valid FileResource associated with.
      *
      * @param fileResourceUid the uid of the FileResource.
      * @param valueType
@@ -482,8 +475,8 @@ class DataValidator
     }
 
     /**
-     * Validates if the given dataValue is valid for the given DataElement, and
-     * normalize it if the dataValue is a boolean type.
+     * Validates if the given dataValue is valid for the given DataElement, and normalize it if the dataValue is a
+     * boolean type.
      *
      * @param dataValue
      * @param dataElement
@@ -525,8 +518,7 @@ class DataValidator
     }
 
     /**
-     * Checks if the User has write access to the given CategoryOptionCombo
-     * (attribute option combo).
+     * Checks if the User has write access to the given CategoryOptionCombo (attribute option combo).
      *
      * @param user the User.
      * @param attributeOptionCombo the CategoryOptionCombo.

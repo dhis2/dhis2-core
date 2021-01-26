@@ -48,11 +48,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Notifier implementation backed by redis. It holds 2 types of data.
- * Notifications and Summaries. Since order of the Notifications and Summaries
- * are important, (to limit the maximum number of objects held), we use a
- * combination of "Sorted Sets" , "HashMaps" and "Values" (data structures in
- * redis) to have a similar behaviour as InMemoryNotifier.
+ * Notifier implementation backed by redis. It holds 2 types of data. Notifications and Summaries. Since order of the
+ * Notifications and Summaries are important, (to limit the maximum number of objects held), we use a combination of
+ * "Sorted Sets" , "HashMaps" and "Values" (data structures in redis) to have a similar behaviour as InMemoryNotifier.
  *
  * @author Ameen Mohamed
  */

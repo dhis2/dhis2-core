@@ -42,8 +42,7 @@ import org.hisp.dhis.user.User;
 public interface EventStore
 {
     /**
-     * Inserts a List of {@see ProgramStageInstance}. Notes are not stored at
-     * this stage.
+     * Inserts a List of {@see ProgramStageInstance}. Notes are not stored at this stage.
      *
      * @param programStageInstances a List of {@see ProgramStageInstance}
      *
@@ -52,8 +51,7 @@ public interface EventStore
     List<ProgramStageInstance> saveEvents( List<ProgramStageInstance> programStageInstances );
 
     /**
-     * Updates a List of {@see ProgramStageInstance}. Notes are not stored at
-     * this stage.
+     * Updates a List of {@see ProgramStageInstance}. Notes are not stored at this stage.
      *
      * @param programStageInstances a List of {@see ProgramStageInstance}
      *
@@ -71,16 +69,15 @@ public interface EventStore
     int getEventCount( EventSearchParams params, List<OrganisationUnit> organisationUnits );
 
     /**
-     * Delete list of given events to be removed. This operation also remove
-     * comments connected to each Event.
+     * Delete list of given events to be removed. This operation also remove comments connected to each Event.
      *
      * @param events List to be removed
      */
     void delete( List<Event> events );
 
     /**
-     * Updates the "last updated" and "last updated By" of the Tracked Entity
-     * Instances matching the provided list of UIDs
+     * Updates the "last updated" and "last updated By" of the Tracked Entity Instances matching the provided list of
+     * UIDs
      *
      * @param teiUid a List of Tracked Entity Instance uid
      * @param user the User to use for the last update by value. Can be null.

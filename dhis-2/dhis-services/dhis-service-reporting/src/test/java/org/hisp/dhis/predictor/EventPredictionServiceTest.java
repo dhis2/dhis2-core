@@ -433,8 +433,7 @@ public class EventPredictionServiceTest
     }
 
     /**
-     * The tests for all event predictors are combined into one test, because
-     * the setup time for a test is so long.
+     * The tests for all event predictors are combined into one test, because the setup time for a test is so long.
      */
     @Test
     public void testPredictEvents()

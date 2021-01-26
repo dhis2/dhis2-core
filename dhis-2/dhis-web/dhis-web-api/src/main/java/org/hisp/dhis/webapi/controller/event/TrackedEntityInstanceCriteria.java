@@ -60,8 +60,7 @@ public class TrackedEntityInstanceCriteria
     private String ou;
 
     /**
-     * Selection mode for the specified organisation units, default is
-     * ACCESSIBLE.
+     * Selection mode for the specified organisation units, default is ACCESSIBLE.
      */
     private OrganisationUnitSelectionMode ouMode;
 
@@ -71,14 +70,12 @@ public class TrackedEntityInstanceCriteria
     private String program;
 
     /**
-     * The {@see ProgramStatus} of the Tracked Entity Instance in the given
-     * program.
+     * The {@see ProgramStatus} of the Tracked Entity Instance in the given program.
      */
     private ProgramStatus programStatus;
 
     /**
-     * Indicates whether the Tracked Entity Instance is marked for follow up for
-     * the specified Program.
+     * Indicates whether the Tracked Entity Instance is marked for follow up for the specified Program.
      */
     private Boolean followUp;
 
@@ -143,14 +140,12 @@ public class TrackedEntityInstanceCriteria
     private AssignedUserSelectionMode assignedUserMode;
 
     /**
-     * Semicolon-delimited list of user UIDs to filter based on events assigned
-     * to the users.
+     * Semicolon-delimited list of user UIDs to filter based on events assigned to the users.
      */
     private String assignedUser;
 
     /**
-     * Program Stage UID, used for filtering TEIs based on the selected Program
-     * Stage
+     * Program Stage UID, used for filtering TEIs based on the selected Program Stage
      */
     private String programStage;
 
@@ -185,8 +180,7 @@ public class TrackedEntityInstanceCriteria
     private Integer pageSize;
 
     /**
-     * Indicates whether to include the total number of pages in the paging
-     * response.
+     * Indicates whether to include the total number of pages in the paging response.
      */
     private boolean totalPages;
 

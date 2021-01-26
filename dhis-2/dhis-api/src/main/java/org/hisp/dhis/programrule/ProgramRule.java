@@ -66,21 +66,18 @@ public class ProgramRule
     private ProgramStage programStage;
 
     /**
-     * The collection of actions that will be triggered if the the rule is
-     * triggered.
+     * The collection of actions that will be triggered if the the rule is triggered.
      */
     private Set<ProgramRuleAction> programRuleActions = new HashSet<>();
 
     /**
-     * The condition expression, if this expression is evaluated to true, the
-     * actions is triggered.
+     * The condition expression, if this expression is evaluated to true, the actions is triggered.
      */
     private String condition;
 
     /**
-     * The priority of the rule within the program. The lower the priority, the
-     * earlier the rule is run. Null means that the rule is run last(together
-     * will all other null-rules)
+     * The priority of the rule within the program. The lower the priority, the earlier the rule is run. Null means that
+     * the rule is run last(together will all other null-rules)
      */
     private Integer priority;
 

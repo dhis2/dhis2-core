@@ -185,9 +185,8 @@ public enum ValueType
     }
 
     /**
-     * Returns a simplified value type. As an example, if the value type is any
-     * numeric type such as integer, percentage, then {@link ValueType#NUMBER}
-     * is returned. Can return any of:
+     * Returns a simplified value type. As an example, if the value type is any numeric type such as integer,
+     * percentage, then {@link ValueType#NUMBER} is returned. Can return any of:
      *
      * <ul>
      * <li>{@link ValueType#NUMBER} for any numeric types.</li>

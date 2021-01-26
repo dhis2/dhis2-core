@@ -30,10 +30,8 @@ package org.hisp.dhis.feedback;
 /**
  * Error series:
  *
- * E2000 - E2999: Data E3000 - E3999: Security E4000 - E4999: Metadata
- * validation E5000 - E5999: Preheat E6000 - E6999: Metadata import E7000 -
- * E7099: Scheduling E7100 - E7199: Aggregate analytics E7200 - E7299: Event
- * analytics
+ * E2000 - E2999: Data E3000 - E3999: Security E4000 - E4999: Metadata validation E5000 - E5999: Preheat E6000 - E6999:
+ * Metadata import E7000 - E7099: Scheduling E7100 - E7199: Aggregate analytics E7200 - E7299: Event analytics
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

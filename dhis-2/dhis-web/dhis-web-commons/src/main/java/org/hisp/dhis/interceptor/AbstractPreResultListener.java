@@ -34,8 +34,8 @@ import com.opensymphony.xwork2.interceptor.Interceptor;
 import com.opensymphony.xwork2.interceptor.PreResultListener;
 
 /**
- * The intention of this class is to stop execution of the pre result listener
- * when an exception is thrown in the action invocation.
+ * The intention of this class is to stop execution of the pre result listener when an exception is thrown in the action
+ * invocation.
  *
  * @author Torgeir Lorange Ostby
  */

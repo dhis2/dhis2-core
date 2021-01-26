@@ -60,8 +60,7 @@ public interface MetadataVersionService
     void updateVersion( MetadataVersion version );
 
     /**
-     * Updates the name of the metadata version with the given identifier and
-     * name.
+     * Updates the name of the metadata version with the given identifier and name.
      *
      * @param id the identifier.
      * @param name the name.

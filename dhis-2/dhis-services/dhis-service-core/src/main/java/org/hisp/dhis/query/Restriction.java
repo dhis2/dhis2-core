@@ -38,8 +38,7 @@ import org.hisp.dhis.query.planner.QueryPath;
 public class Restriction implements Criterion
 {
     /**
-     * Path to property you want to restrict only, one first-level properties
-     * are currently supported.
+     * Path to property you want to restrict only, one first-level properties are currently supported.
      */
     private String path;
 

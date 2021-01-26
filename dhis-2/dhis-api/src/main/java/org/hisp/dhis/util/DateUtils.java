@@ -156,8 +156,7 @@ public class DateUtils
     }
 
     /**
-     * Converts a Date to the GMT timezone and formats it to the format
-     * yyyy-MM-dd HH:mm:ssZ.
+     * Converts a Date to the GMT timezone and formats it to the format yyyy-MM-dd HH:mm:ssZ.
      *
      * @param date the Date to parse.
      * @return A formatted date string.
@@ -291,8 +290,7 @@ public class DateUtils
     }
 
     /**
-     * Parses a date from a String on the format YYYY-MM-DD. Returns null if the
-     * given string is null.
+     * Parses a date from a String on the format YYYY-MM-DD. Returns null if the given string is null.
      *
      * @param string the String to parse.
      * @return a Date based on the given String.
@@ -304,14 +302,12 @@ public class DateUtils
     }
 
     /**
-     * Tests if the given base date is between the given start date and end
-     * date, including the dates themselves.
+     * Tests if the given base date is between the given start date and end date, including the dates themselves.
      *
      * @param baseDate the date used as base for the test.
      * @param startDate the start date.
      * @param endDate the end date.
-     * @return <code>true</code> if the base date is between the start date and
-     *         end date, <code>false</code> otherwise.
+     * @return <code>true</code> if the base date is between the start date and end date, <code>false</code> otherwise.
      */
     public static boolean between( Date baseDate, Date startDate, Date endDate )
     {
@@ -330,14 +326,12 @@ public class DateUtils
     }
 
     /**
-     * Tests if the given base date is strictly between the given start date and
-     * end date.
+     * Tests if the given base date is strictly between the given start date and end date.
      *
      * @param baseDate the date used as base for the test.
      * @param startDate the start date.
      * @param endDate the end date.
-     * @return <code>true</code> if the base date is between the start date and
-     *         end date, <code>false</code> otherwise.
+     * @return <code>true</code> if the base date is between the start date and end date, <code>false</code> otherwise.
      */
     public static boolean strictlyBetween( Date baseDate, Date startDate, Date endDate )
     {
@@ -355,8 +349,8 @@ public class DateUtils
     }
 
     /**
-     * Returns the number of days since 01/01/1970. The value is rounded off to
-     * the floor value and does not take daylight saving time into account.
+     * Returns the number of days since 01/01/1970. The value is rounded off to the floor value and does not take
+     * daylight saving time into account.
      *
      * @param date the date.
      * @return number of days since Epoch.
@@ -367,9 +361,8 @@ public class DateUtils
     }
 
     /**
-     * Returns the number of days between the start date (inclusive) and end
-     * date (exclusive). The value is rounded off to the floor value and does
-     * not take daylight saving time into account.
+     * Returns the number of days between the start date (inclusive) and end date (exclusive). The value is rounded off
+     * to the floor value and does not take daylight saving time into account.
      *
      * @param startDate the start-date.
      * @param endDate the end-date.
@@ -381,9 +374,8 @@ public class DateUtils
     }
 
     /**
-     * Returns the number of days between the start date (inclusive) and end
-     * date (inclusive). The value is rounded off to the floor value and does
-     * not take daylight saving time into account.
+     * Returns the number of days between the start date (inclusive) and end date (inclusive). The value is rounded off
+     * to the floor value and does not take daylight saving time into account.
      *
      * @param startDate the start-date.
      * @param endDate the end-date.
@@ -395,9 +387,8 @@ public class DateUtils
     }
 
     /**
-     * Calculates the number of days between the start and end-date. Note this
-     * method is taking daylight saving time into account and has a performance
-     * overhead.
+     * Calculates the number of days between the start and end-date. Note this method is taking daylight saving time
+     * into account and has a performance overhead.
      *
      * @param startDate the start date.
      * @param endDate the end date.
@@ -414,8 +405,7 @@ public class DateUtils
      * Checks if the date provided in argument is today's date.
      *
      * @param date to check
-     * @return <code>true</code> if date is representing today's date
-     *         <code>false</code> otherwise
+     * @return <code>true</code> if date is representing today's date <code>false</code> otherwise
      */
     public static boolean isToday( Date date )
     {
@@ -425,9 +415,8 @@ public class DateUtils
     }
 
     /**
-     * Calculates the number of months between the start and end-date. Note this
-     * method is taking daylight saving time into account and has a performance
-     * overhead.
+     * Calculates the number of months between the start and end-date. Note this method is taking daylight saving time
+     * into account and has a performance overhead.
      *
      * @param startDate the start date.
      * @param endDate the end date.
@@ -457,13 +446,11 @@ public class DateUtils
     }
 
     /**
-     * Returns the nearest date forward in time with the given hour of day, with
-     * the minute, second and millisecond to zero. If the hour equals the
-     * current hour of day, the next following day is used.
+     * Returns the nearest date forward in time with the given hour of day, with the minute, second and millisecond to
+     * zero. If the hour equals the current hour of day, the next following day is used.
      *
      * @param hourOfDay the hour of the day.
-     * @param now the date representing the current time, if null, the current
-     *        time is used.
+     * @param now the date representing the current time, if null, the current time is used.
      * @return the nearest date forward in time with the given hour of day.
      */
     public static Date getNextDate( int hourOfDay, Date now )
@@ -523,12 +510,10 @@ public class DateUtils
     }
 
     /**
-     * This method checks whether the String inDate is a valid date following
-     * the format "yyyy-MM-dd".
+     * This method checks whether the String inDate is a valid date following the format "yyyy-MM-dd".
      *
      * @param dateString the string to be checked.
-     * @return true/false depending on whether the string is a date according to
-     *         the format "yyyy-MM-dd".
+     * @return true/false depending on whether the string is a date according to the format "yyyy-MM-dd".
      */
     public static boolean dateIsValid( String dateString )
     {
@@ -536,13 +521,11 @@ public class DateUtils
     }
 
     /**
-     * This method checks whether the String inDate is a valid date following
-     * the format "yyyy-MM-dd".
+     * This method checks whether the String inDate is a valid date following the format "yyyy-MM-dd".
      *
      * @param calendar Calendar to be used
      * @param dateString the string to be checked.
-     * @return true/false depending on whether the string is a date according to
-     *         the format "yyyy-MM-dd".
+     * @return true/false depending on whether the string is a date according to the format "yyyy-MM-dd".
      */
     public static boolean dateIsValid( org.hisp.dhis.calendar.Calendar calendar, String dateString )
     {
@@ -562,12 +545,10 @@ public class DateUtils
     }
 
     /**
-     * This method checks whether the String dateTimeString is a valid datetime
-     * following the format "yyyy-MM-dd".
+     * This method checks whether the String dateTimeString is a valid datetime following the format "yyyy-MM-dd".
      *
      * @param dateTimeString the string to be checked.
-     * @return true/false depending on whether the string is a valid datetime
-     *         according to the format "yyyy-MM-dd".
+     * @return true/false depending on whether the string is a valid datetime according to the format "yyyy-MM-dd".
      */
     public static boolean dateTimeIsValid( final String dateTimeString )
     {
@@ -625,15 +606,12 @@ public class DateUtils
     }
 
     /**
-     * Method responsible for adding a positive or negative number based in a
-     * chronological unit.
+     * Method responsible for adding a positive or negative number based in a chronological unit.
      *
-     * @param date the date to be modified. It's the input date for the
-     *        calculation.
+     * @param date the date to be modified. It's the input date for the calculation.
      * @param addend a positive or negative integer to be added to the date.
-     * @param chronoUnit the unit of time to be used in the calculation. It's
-     *        fully based in the Calendar API. Valid values could be:
-     *        Calendar.DATE, Calendar.MILLISECOND, etc..
+     * @param chronoUnit the unit of time to be used in the calculation. It's fully based in the Calendar API. Valid
+     *        values could be: Calendar.DATE, Calendar.MILLISECOND, etc..
      * @return the resultant date after the addition.
      */
     public static Date calculateDateFrom( final Date date, final int addend, final int chronoUnit )
@@ -664,8 +642,8 @@ public class DateUtils
     }
 
     /**
-     * Returns a pretty string representing the interval between the given start
-     * and end dates using a day, month, second format.
+     * Returns a pretty string representing the interval between the given start and end dates using a day, month,
+     * second format.
      *
      * @param start the start date.
      * @param end the end date.
@@ -684,8 +662,8 @@ public class DateUtils
     }
 
     /**
-     * Returns a pretty string representing the interval between the given start
-     * and end dates using a day, month, second format.
+     * Returns a pretty string representing the interval between the given start and end dates using a day, month,
+     * second format.
      *
      * @param ms the number of milliseconds in the interval.
      * @return a string, or null if the given start or end date is null.
@@ -696,8 +674,8 @@ public class DateUtils
     }
 
     /**
-     * Parses the given string into a Date using the supported date formats.
-     * Returns null if the string cannot be parsed.
+     * Parses the given string into a Date using the supported date formats. Returns null if the string cannot be
+     * parsed.
      *
      * @param dateString the date string.
      * @return a date.
@@ -742,8 +720,7 @@ public class DateUtils
     }
 
     /**
-     * Creates a {@link java.util.Date} from the given
-     * {@link java.time.LocalDateTime} based on the UTC time zone.
+     * Creates a {@link java.util.Date} from the given {@link java.time.LocalDateTime} based on the UTC time zone.
      *
      * @param time the LocalDateTime.
      * @return a Date.
@@ -771,8 +748,8 @@ public class DateUtils
     }
 
     /**
-     * Parses the given string into a {@link java.time.Duration} object. The
-     * string syntax is [amount][unit]. The supported units are:
+     * Parses the given string into a {@link java.time.Duration} object. The string syntax is [amount][unit]. The
+     * supported units are:
      * <p>
      * <ul>
      * <li>"d": Days</li>
@@ -781,8 +758,7 @@ public class DateUtils
      * <li>"s": Seconds</li>
      * </ul>
      *
-     * @param duration the duration string, an example describing 12 days is
-     *        "12d".
+     * @param duration the duration string, an example describing 12 days is "12d".
      * @return a Duration object, or null if the duration string is invalid.
      */
     public static Duration getDuration( String duration )
@@ -830,8 +806,7 @@ public class DateUtils
     }
 
     /**
-     * Returns the latest, non-null date of the given dates. If all dates are
-     * null, then null is returned.
+     * Returns the latest, non-null date of the given dates. If all dates are null, then null is returned.
      *
      * @param dates the dates.
      * @return the latest, non-null date.
@@ -855,9 +830,8 @@ public class DateUtils
     }
 
     /**
-     * Parses the given string into a Date object. In case the date parsed falls
-     * in a daylight savings transition, the date is parsed via a local date and
-     * converted to the first valid time after the DST gap. When the fallback is
+     * Parses the given string into a Date object. In case the date parsed falls in a daylight savings transition, the
+     * date is parsed via a local date and converted to the first valid time after the DST gap. When the fallback is
      * used, any timezone offset in the given format would be ignored.
      *
      * @param dateString The string to parse

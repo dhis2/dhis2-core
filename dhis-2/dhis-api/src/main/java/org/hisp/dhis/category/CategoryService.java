@@ -65,9 +65,8 @@ public interface CategoryService
     void updateCategory( Category category );
 
     /**
-     * Deletes a Category. The Category is also removed from any CategoryCombos
-     * if it is a member of. It is not possible to delete a Category with
-     * options.
+     * Deletes a Category. The Category is also removed from any CategoryCombos if it is a member of. It is not possible
+     * to delete a Category with options.
      *
      * @param category the Category to delete.
      */
@@ -112,8 +111,7 @@ public interface CategoryService
     List<Category> getDisaggregationCategories();
 
     /**
-     * Retrieves all DataElementCategories of dimension type disaggregation and
-     * data dimensional. Ignores ACL / sharing.
+     * Retrieves all DataElementCategories of dimension type disaggregation and data dimensional. Ignores ACL / sharing.
      *
      * @return a list of CategoryCombos.
      */
@@ -127,8 +125,7 @@ public interface CategoryService
     List<Category> getAttributeCategories();
 
     /**
-     * Retrieves all DataElementCategories of dimension type attribute and data
-     * dimensional. Ignores ACL / sharing.
+     * Retrieves all DataElementCategories of dimension type attribute and data dimensional. Ignores ACL / sharing.
      *
      * @return a list of CategoryCombos.
      */
@@ -187,8 +184,7 @@ public interface CategoryService
     /**
      * Returns all CategoryOptions.
      *
-     * @return a list of all CategoryOptions, or an empty collection if there
-     *         are no CategoryOptions.
+     * @return a list of all CategoryOptions, or an empty collection if there are no CategoryOptions.
      */
     List<CategoryOption> getAllCategoryOptions();
 
@@ -196,25 +192,22 @@ public interface CategoryService
      * Returns all CategoryOptions for the given Category.
      *
      * @param category the Category.
-     * @return a list of all CategoryOptions, or an empty collection if there
-     *         are no CategoryOptions.
+     * @return a list of all CategoryOptions, or an empty collection if there are no CategoryOptions.
      */
     List<CategoryOption> getCategoryOptions( Category category );
 
     /**
-     * Returns all CategoryOptions for the given Category that the user has data
-     * write access.
+     * Returns all CategoryOptions for the given Category that the user has data write access.
      *
      * @param category the Category.
      * @param user to check data write access for
-     * @return a list of all CategoryOptions, or an empty collection if there
-     *         are no CategoryOptions.
+     * @return a list of all CategoryOptions, or an empty collection if there are no CategoryOptions.
      */
     List<CategoryOption> getDataWriteCategoryOptions( Category category, User user );
 
     /**
-     * Returns a set of CategoryOptions that may be seen by the current user, if
-     * the current user has any Category constraint(s).
+     * Returns a set of CategoryOptions that may be seen by the current user, if the current user has any Category
+     * constraint(s).
      *
      * @param userCredentials User credentials to check restrictions for.
      * @return Set of CategoryOptions if constrained, else null.
@@ -375,8 +368,7 @@ public interface CategoryService
         Set<CategoryOption> categoryOptions );
 
     /**
-     * Retrieves the CategoryOptionCombo with the given uid and
-     * {@link IdentifiableProperty}.
+     * Retrieves the CategoryOptionCombo with the given uid and {@link IdentifiableProperty}.
      *
      * @param id the id of the CategoryOptionCombo.
      * @param property the type of id to use
@@ -392,8 +384,7 @@ public interface CategoryService
     List<CategoryOptionCombo> getAllCategoryOptionCombos();
 
     /**
-     * Generates and persists a default Category, CategoryOption, CategoryCombo
-     * and CategoryOptionCombo.
+     * Generates and persists a default Category, CategoryOption, CategoryCombo and CategoryOptionCombo.
      */
     void generateDefaultDimension();
 
@@ -412,26 +403,23 @@ public interface CategoryService
     void generateOptionCombos( CategoryCombo categoryCombo );
 
     /**
-     * Invokes updateOptionCombos( CategoryCombo ) for all category combos which
-     * the given category is a part of.
+     * Invokes updateOptionCombos( CategoryCombo ) for all category combos which the given category is a part of.
      *
      * @param category the Category.
      */
     void updateOptionCombos( Category category );
 
     /**
-     * Generates the complete set of category option combos for the given
-     * category combo and compares it to the set of persisted category option
-     * combos. Those which are not matched are persisted.
+     * Generates the complete set of category option combos for the given category combo and compares it to the set of
+     * persisted category option combos. Those which are not matched are persisted.
      *
      * @param categoryCombo the CategoryCombo.
      */
     void updateOptionCombos( CategoryCombo categoryCombo );
 
     /**
-     * Returns the category option combo with the given uid. Respects access
-     * control by only returning objects which the current user has
-     * {@code data write} access to.
+     * Returns the category option combo with the given uid. Respects access control by only returning objects which the
+     * current user has {@code data write} access to.
      *
      * @param property the property.
      * @param id the id.
@@ -493,8 +481,8 @@ public interface CategoryService
     List<CategoryOptionGroup> getCategoryOptionGroups( CategoryOptionGroupSet groupSet );
 
     /**
-     * Returns a set of CategoryOptionGroups that may be seen by the current
-     * user, if the current user has any CategoryOptionGroupSet constraint(s).
+     * Returns a set of CategoryOptionGroups that may be seen by the current user, if the current user has any
+     * CategoryOptionGroupSet constraint(s).
      *
      * @param userCredentials User credentials to check restrictions for.
      * @return Set of CategoryOptionGroups if constrained, else null.

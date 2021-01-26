@@ -41,8 +41,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 /**
- * Java based migration class that populates base dhis2 schema if the db is
- * empty.
+ * Java based migration class that populates base dhis2 schema if the db is empty.
  *
  * @author Ameen Mohamed
  *

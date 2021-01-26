@@ -150,9 +150,8 @@ public class WorkContextLoader
     }
 
     /**
-     * Make sure that the {@see User} object's properties are properly
-     * initialized, to avoid running into Hibernate-related issues during
-     * validation
+     * Make sure that the {@see User} object's properties are properly initialized, to avoid running into
+     * Hibernate-related issues during validation
      *
      * @param importOptions the {@see ImportOptions} object
      */
@@ -181,10 +180,8 @@ public class WorkContextLoader
     }
 
     /**
-     * Force Hibernate to pre-load all collections for the
-     * {@see UserCredentials} object and fetch the "isSuper()" data. This is
-     * required to avoid an Hibernate error later, when this object becomes
-     * detached from the Hibernate Session.
+     * Force Hibernate to pre-load all collections for the {@see UserCredentials} object and fetch the "isSuper()" data.
+     * This is required to avoid an Hibernate error later, when this object becomes detached from the Hibernate Session.
      */
     private void initUserCredentials( UserCredentials userCredentials )
     {

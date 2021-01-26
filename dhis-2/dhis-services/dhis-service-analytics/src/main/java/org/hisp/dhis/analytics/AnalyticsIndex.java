@@ -78,8 +78,8 @@ public class AnalyticsIndex
     // -------------------------------------------------------------------------
 
     /**
-     * Returns index name for column. Purpose of code suffix is to avoid
-     * uniqueness collision between indexes for temporary and real tables.
+     * Returns index name for column. Purpose of code suffix is to avoid uniqueness collision between indexes for
+     * temporary and real tables.
      *
      * @param tableType the {@link AnalyticsTableType}.
      */

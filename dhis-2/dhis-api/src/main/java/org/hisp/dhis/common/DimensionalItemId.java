@@ -36,8 +36,8 @@ import java.util.Objects;
 import com.google.common.base.MoreObjects;
 
 /**
- * Holds the DimensionItemType of a DimensionalItemObject, and the identifier
- * strings of the objects that that make up the DimensionalItemObject
+ * Holds the DimensionItemType of a DimensionalItemObject, and the identifier strings of the objects that that make up
+ * the DimensionalItemObject
  *
  * @author Jim Grace
  */

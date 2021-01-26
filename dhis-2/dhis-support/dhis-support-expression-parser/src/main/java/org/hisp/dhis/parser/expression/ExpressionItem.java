@@ -44,14 +44,14 @@ public interface ExpressionItem
     extends AntlrExprItem
 {
     /**
-     * Collects the description of an individual data item, to use later in
-     * constructing a description of the expression as a whole.
+     * Collects the description of an individual data item, to use later in constructing a description of the expression
+     * as a whole.
      * <p/>
-     * This method only needs to be overridden for items that have UIDs that
-     * need to be translated into human-readable object names.
+     * This method only needs to be overridden for items that have UIDs that need to be translated into human-readable
+     * object names.
      * <p/>
-     * For other items, evaluate all paths to be sure that we collect the
-     * description of any items that may be within this expression.
+     * For other items, evaluate all paths to be sure that we collect the description of any items that may be within
+     * this expression.
      *
      * @param ctx the expression context
      * @param visitor the tree visitor
@@ -63,17 +63,13 @@ public interface ExpressionItem
     }
 
     /**
-     * Collects the item id of an individual data item, so it can later be
-     * looked up in the database (as with indicators, validation rules and
-     * predictors.)
+     * Collects the item id of an individual data item, so it can later be looked up in the database (as with
+     * indicators, validation rules and predictors.)
      * <p/>
-     * This method only needs to be overridden for items that have UIDs that
-     * need to be looked up in the database.
+     * This method only needs to be overridden for items that have UIDs that need to be looked up in the database.
      * <p/>
-     * For other items, evaluate all paths to be sure that we collect the UIDs
-     * of any items that may be within this expression. But don't return null
-     * from this function, to make sure that no part of the expression is
-     * skipped.
+     * For other items, evaluate all paths to be sure that we collect the UIDs of any items that may be within this
+     * expression. But don't return null from this function, to make sure that no part of the expression is skipped.
      *
      * @param ctx the expression context
      * @param visitor the tree visitor
@@ -87,15 +83,12 @@ public interface ExpressionItem
     }
 
     /**
-     * Collects the organisation unit group for which we will need counts.
-     * (applies to expression service items).
+     * Collects the organisation unit group for which we will need counts. (applies to expression service items).
      * <p/>
-     * This method only needs to be overridden for the organisation unit group
-     * count.
+     * This method only needs to be overridden for the organisation unit group count.
      * <p/>
-     * For other items, evaluate all paths to be sure that we collect any
-     * organisation unit groups that may be within this expression. But if we
-     * hit a parser exception (like constant not found), continue.
+     * For other items, evaluate all paths to be sure that we collect any organisation unit groups that may be within
+     * this expression. But if we hit a parser exception (like constant not found), continue.
      *
      * @param ctx the expression context
      * @param visitor the tree visitor
@@ -114,12 +107,10 @@ public interface ExpressionItem
     }
 
     /**
-     * Returns the value of the expression item. Also used for syntax checking.
-     * (For program indicator-only items, this may return a dummy value because
-     * the real evaluation is done in SQL.)
+     * Returns the value of the expression item. Also used for syntax checking. (For program indicator-only items, this
+     * may return a dummy value because the real evaluation is done in SQL.)
      * <p/>
-     * For the lower-level Antlr... items, this method calls the lower-level
-     * evaluate routine.
+     * For the lower-level Antlr... items, this method calls the lower-level evaluate routine.
      * <p/>
      * For all other items, this method must be overridden.
      *
@@ -133,14 +124,12 @@ public interface ExpressionItem
     }
 
     /**
-     * Provides a default implementation for the lower-level Antlr... evaluate
-     * method.
+     * Provides a default implementation for the lower-level Antlr... evaluate method.
      * <p/>
      * The lower-level Antlr... items must provide this method.
      * <p/>
-     * If a higher-level item does not override the method evaluate(...
-     * CommonExpressionVisitor ...) then this default implementation will be
-     * called, resulting in an exception.
+     * If a higher-level item does not override the method evaluate(... CommonExpressionVisitor ...) then this default
+     * implementation will be called, resulting in an exception.
      *
      * @param ctx the expression context
      * @param visitor the tree visitor
@@ -153,12 +142,10 @@ public interface ExpressionItem
     }
 
     /**
-     * Finds the value of an expression function, evaluating all the arguments
-     * of logical functions that might not always evaluate all arguments based
-     * on the truth value of some arguments (e.g. if, and, or, firstNonNull).
+     * Finds the value of an expression function, evaluating all the arguments of logical functions that might not
+     * always evaluate all arguments based on the truth value of some arguments (e.g. if, and, or, firstNonNull).
      * <p/>
-     * For those few logical functions that may not normally evaluate all
-     * arguments, this method must be overridden.
+     * For those few logical functions that may not normally evaluate all arguments, this method must be overridden.
      * <p/>
      * For other items, this method does not need to be overridden.
      *
@@ -174,8 +161,8 @@ public interface ExpressionItem
     /**
      * Generates the SQL for a program indicator expression item.
      * <p/>
-     * This method must be overridden for all items used in program indicator
-     * expressions, otherwise an exception will be thrown.
+     * This method must be overridden for all items used in program indicator expressions, otherwise an exception will
+     * be thrown.
      * <p/>
      * For other items, this method does not need to be overridden.
      *
@@ -189,20 +176,17 @@ public interface ExpressionItem
     }
 
     /**
-     * Regenerates the original item syntax from the parse tree, or in some
-     * cases substitutes a value if one is present. This method is used to
-     * regenerate the expression in the backend while substituting key
-     * backend-determined values, such as DHIS 2 constants and the number of org
-     * units in an org unit group. The expression, with these backend-determined
-     * values substituted, can then be passed to the front-end for evaluation
-     * that fills in the other data values.
+     * Regenerates the original item syntax from the parse tree, or in some cases substitutes a value if one is present.
+     * This method is used to regenerate the expression in the backend while substituting key backend-determined values,
+     * such as DHIS 2 constants and the number of org units in an org unit group. The expression, with these
+     * backend-determined values substituted, can then be passed to the front-end for evaluation that fills in the other
+     * data values.
      * <p/>
-     * This method only needs to be overridden for items such as DHIS 2
-     * constants and org unit groups counts that provide back-end values before
-     * the front-end fills in the data values.
+     * This method only needs to be overridden for items such as DHIS 2 constants and org unit groups counts that
+     * provide back-end values before the front-end fills in the data values.
      * <p/>
-     * For other items, this method just reconstructs the expression text from
-     * the current token and the token's children.
+     * For other items, this method just reconstructs the expression text from the current token and the token's
+     * children.
      *
      * @param ctx the expression context
      * @param visitor the tree visitor

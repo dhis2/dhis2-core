@@ -103,12 +103,11 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 
 /**
- * The following statements are added not to cause api break. They need to be
- * remove say in 2.26 or so once users are aware of the changes.
+ * The following statements are added not to cause api break. They need to be remove say in 2.26 or so once users are
+ * aware of the changes.
  * <p>
- * programEnrollmentStartDate= ObjectUtils.firstNonNull(
- * programEnrollmentStartDate, programStartDate ); programEnrollmentEndDate=
- * ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
+ * programEnrollmentStartDate= ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
+ * programEnrollmentEndDate= ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

@@ -34,8 +34,7 @@ import org.hisp.dhis.tracker.programrule.IssueType;
 import org.springframework.stereotype.Component;
 
 /**
- * This implementer show errors on a completed enrollment or event calculated by
- * Rule Engine.
+ * This implementer show errors on a completed enrollment or event calculated by Rule Engine.
  *
  * @Author Enrico Colasante
  */

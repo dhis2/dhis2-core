@@ -110,9 +110,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.ImmutableMap;
 
 /**
- * The expression is a string describing a formula containing data element ids
- * and category option combo ids. The formula can potentially contain references
- * to data element totals.
+ * The expression is a string describing a formula containing data element ids and category option combo ids. The
+ * formula can potentially contain references to data element totals.
  *
  * @author Margrethe Store
  * @author Lars Helge Overland
@@ -642,8 +641,7 @@ public class DefaultExpressionService
     }
 
     /**
-     * Returns all non-aggregated and all aggregated dimensional item object ids
-     * in the given expression.
+     * Returns all non-aggregated and all aggregated dimensional item object ids in the given expression.
      *
      * @param expression the expression to parse.
      * @param parseType the type of expression to parse.
@@ -713,8 +711,7 @@ public class DefaultExpressionService
     }
 
     /**
-     * Regenerates an expression from the parse tree, with values substituted
-     * for constants and orgUnitCounts.
+     * Regenerates an expression from the parse tree, with values substituted for constants and orgUnitCounts.
      *
      * @param expression the expresion to regenerate.
      * @param constants map of constants to use for calculation.
@@ -786,11 +783,10 @@ public class DefaultExpressionService
     }
 
     /**
-     * Converts a Map of {@see DimensionalItemObject} and values into a Map of
-     * {@see DimensionalItemObject} identifier and value.
+     * Converts a Map of {@see DimensionalItemObject} and values into a Map of {@see DimensionalItemObject} identifier
+     * and value.
      *
-     * If the {@see DimensionalItemObject} has a Period offset set, the value of
-     * the offset is added to the Map key:
+     * If the {@see DimensionalItemObject} has a Period offset set, the value of the offset is added to the Map key:
      *
      * [identifier.periodOffset]
      *
@@ -809,9 +805,8 @@ public class DefaultExpressionService
     }
 
     /**
-     * Converts a Map of Maps of {@see Period}, {@see DimensionalItemObject} and
-     * values into a Map of Maps of {@see Period}, {@see DimensionalItemObject}
-     * identifier and value
+     * Converts a Map of Maps of {@see Period}, {@see DimensionalItemObject} and values into a Map of Maps of
+     * {@see Period}, {@see DimensionalItemObject} identifier and value
      *
      * @param periodValueMap a Map of Maps
      *

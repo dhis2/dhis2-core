@@ -36,9 +36,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * The ReportParams object represents report parameters for a ReportTable.
- * Report parameters are meant to make ReportTables more generic, as it can
- * avoid having dynamic, selectable parameters rather than static.
+ * The ReportParams object represents report parameters for a ReportTable. Report parameters are meant to make
+ * ReportTables more generic, as it can avoid having dynamic, selectable parameters rather than static.
  *
  * @author Lars Helge Overland
  * @version $Id$

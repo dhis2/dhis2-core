@@ -462,9 +462,8 @@ public class DefaultSecurityService
     }
 
     /**
-     * Verifies all parameters needed for account restore and checks validity of
-     * the user supplied token and code. If the restore cannot be verified a
-     * descriptive error string is returned.
+     * Verifies all parameters needed for account restore and checks validity of the user supplied token and code. If
+     * the restore cannot be verified a descriptive error string is returned.
      *
      * @param credentials the user credentials.
      * @param token the user supplied token.

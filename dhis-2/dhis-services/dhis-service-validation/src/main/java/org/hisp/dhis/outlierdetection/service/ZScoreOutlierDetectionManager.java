@@ -50,8 +50,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 /**
- * Manager for database queries related to outlier data detection based on
- * z-score.
+ * Manager for database queries related to outlier data detection based on z-score.
  *
  * @author Lars Helge Overland
  */
@@ -67,8 +66,7 @@ public class ZScoreOutlierDetectionManager
     }
 
     /**
-     * Returns a list of outlier data values based on z-score for the given
-     * request.
+     * Returns a list of outlier data values based on z-score for the given request.
      *
      * @param request the {@link OutlierDetectionRequest}.
      * @return a list of {@link OutlierValue}.

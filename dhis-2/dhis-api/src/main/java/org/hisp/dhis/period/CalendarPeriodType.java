@@ -37,8 +37,7 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 import com.google.common.collect.Lists;
 
 /**
- * The superclass of all PeriodTypes which represent typical calendar periods
- * like days, weeks, months, etc.
+ * The superclass of all PeriodTypes which represent typical calendar periods like days, weeks, months, etc.
  *
  * @author Torgeir Lorange Ostby
  * @version $Id: CalendarPeriodType.java 2952 2007-03-01 23:40:10Z torgeilo $
@@ -56,13 +55,11 @@ public abstract class CalendarPeriodType
     // -------------------------------------------------------------------------
 
     /**
-     * Generates a list of Periods for a defined time span containing the given
-     * Period. E.g. if the given Period is March 2007, and a monthly PeriodType
-     * generates for a year, all months in 2007 should be generated and returned
-     * in order.
+     * Generates a list of Periods for a defined time span containing the given Period. E.g. if the given Period is
+     * March 2007, and a monthly PeriodType generates for a year, all months in 2007 should be generated and returned in
+     * order.
      *
-     * @param period the Period which touches the time span to generate Periods
-     *        for.
+     * @param period the Period which touches the time span to generate Periods for.
      * @return a list of Periods for a defined time span.
      */
     public List<Period> generatePeriods( Period period )
@@ -71,10 +68,9 @@ public abstract class CalendarPeriodType
     }
 
     /**
-     * Generates a list of Periods for a defined time span containing the given
-     * date. E.g. if the given date is March 2007, and a monthly PeriodType
-     * generates for a year, all months in 2007 should be generated and returned
-     * in order.
+     * Generates a list of Periods for a defined time span containing the given date. E.g. if the given date is March
+     * 2007, and a monthly PeriodType generates for a year, all months in 2007 should be generated and returned in
+     * order.
      *
      * @param date the date which touches the time span to generate Periods for.
      * @return a list of Periods for a defined time span.
@@ -96,9 +92,8 @@ public abstract class CalendarPeriodType
     public abstract List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar );
 
     /**
-     * Generates a list of Periods for the last 5 years. Must be overridden by
-     * CalendarPeriodTypes which do not generate periods for the current year
-     * only in their implementation of generatePeriods( Date ).
+     * Generates a list of Periods for the last 5 years. Must be overridden by CalendarPeriodTypes which do not generate
+     * periods for the current year only in their implementation of generatePeriods( Date ).
      *
      * @param date the date which touches the time span to generate Periods for.
      * @return a list of Periods for a defined time span.
@@ -126,9 +121,8 @@ public abstract class CalendarPeriodType
     }
 
     /**
-     * Generates a list of all Periods between the given start and end date. The
-     * first period will span the start date. The last period will span the end
-     * date.
+     * Generates a list of all Periods between the given start and end date. The first period will span the start date.
+     * The last period will span the end date.
      *
      * @param startDate the start date.
      * @param endDate the end date.

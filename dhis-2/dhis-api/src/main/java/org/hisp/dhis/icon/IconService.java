@@ -45,8 +45,7 @@ public interface IconService
     Collection<IconData> getIcons();
 
     /**
-     * Gets info about the icons in the system tagged with all the keywords in a
-     * collection
+     * Gets info about the icons in the system tagged with all the keywords in a collection
      *
      * @param keywords collection of keywords
      * @return a collection of matching icons

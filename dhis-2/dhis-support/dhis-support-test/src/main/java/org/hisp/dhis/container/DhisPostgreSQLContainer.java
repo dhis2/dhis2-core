@@ -35,8 +35,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 /**
- * Custom {@link PostgreSQLContainer} that provides additional fluent API to
- * customize PostgreSQL configuration.
+ * Custom {@link PostgreSQLContainer} that provides additional fluent API to customize PostgreSQL configuration.
  *
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
@@ -75,13 +74,10 @@ public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>>
     }
 
     /**
-     * Append custom postgres configuration to be customized when starting the
-     * container. The configAndValue should be of the form
-     * "configName=configValue". This method can be invoked multiple times to
-     * add multiple custom commands.
+     * Append custom postgres configuration to be customized when starting the container. The configAndValue should be
+     * of the form "configName=configValue". This method can be invoked multiple times to add multiple custom commands.
      *
-     * @param configAndValue The configuration and value of the form
-     *        "configName=configValue"
+     * @param configAndValue The configuration and value of the form "configName=configValue"
      * @return the DhisPostgreSQLContainer
      */
     public SELF appendCustomPostgresConfig( String configAndValue )

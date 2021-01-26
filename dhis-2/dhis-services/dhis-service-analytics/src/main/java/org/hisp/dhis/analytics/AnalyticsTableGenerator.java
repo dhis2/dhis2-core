@@ -32,8 +32,8 @@ import javax.annotation.Nullable;
 import org.hisp.dhis.scheduling.JobConfiguration;
 
 /**
- * Interface responsible for generating analytics tables. Will look for and
- * invoke implementations of interface {@link AnalyticsTableService}.
+ * Interface responsible for generating analytics tables. Will look for and invoke implementations of interface
+ * {@link AnalyticsTableService}.
  *
  * @author Lars Helge Overland
  */

@@ -43,8 +43,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * Class representing a validation violation. The validationRule, period and org
- * unit properties make up a composite unique key.
+ * Class representing a validation violation. The validationRule, period and org unit properties make up a composite
+ * unique key.
  *
  * @author Margrethe Store
  */
@@ -75,19 +75,15 @@ public class ValidationResult
     private Double rightsideValue;
 
     /**
-     * This property is a reference to which data was used to generate the
-     * result. For rules comparing fixed periods, this dayInPeriod only
-     * indicates when in a period the validation was done For rules comparing
-     * sliding windows, this will indicate where the end-position of the sliding
-     * window was during the validation (IE: the window will span over the days:
-     * (period.startDate + dayInPeriod - period.daysInPeriod) to
-     * (period.startDate + dayInPeriod)
+     * This property is a reference to which data was used to generate the result. For rules comparing fixed periods,
+     * this dayInPeriod only indicates when in a period the validation was done For rules comparing sliding windows,
+     * this will indicate where the end-position of the sliding window was during the validation (IE: the window will
+     * span over the days: (period.startDate + dayInPeriod - period.daysInPeriod) to (period.startDate + dayInPeriod)
      */
     private int dayInPeriod;
 
     /**
-     * Indicated whether this ValidationResult has generated a notification for
-     * users or not.
+     * Indicated whether this ValidationResult has generated a notification for users or not.
      */
     private Boolean notificationSent = false;
 
@@ -134,9 +130,8 @@ public class ValidationResult
     }
 
     /**
-     * Note: this method is called from threads in which it may not be possible
-     * to initialize lazy Hibernate properties. So object properties to compare
-     * must be chosen accordingly.
+     * Note: this method is called from threads in which it may not be possible to initialize lazy Hibernate properties.
+     * So object properties to compare must be chosen accordingly.
      */
     @Override
     public boolean equals( Object object )
@@ -253,12 +248,12 @@ public class ValidationResult
     }
 
     /**
-     * Compare ValidationResults so they will be listed in the desired order: by
-     * validationRule, period, attributeOptionCombo and orgUnit.
+     * Compare ValidationResults so they will be listed in the desired order: by validationRule, period,
+     * attributeOptionCombo and orgUnit.
      *
      * @param other The other ValidationResult to compare with.
-     * @return a negative integer, zero, or a positive integer as this object is
-     *         less than, equal to, or greater than the specified object.
+     * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than
+     *         the specified object.
      */
     @Override
     public int compareTo( ValidationResult other )

@@ -30,16 +30,14 @@ package org.hisp.dhis.program.variable;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 /**
- * Program variable interface, used by classes that implement the logic for each
- * program variable.
+ * Program variable interface, used by classes that implement the logic for each program variable.
  *
  * @author Jim Grace
  */
 public interface ProgramVariable
 {
     /**
-     * Finds the default value of program indicator variable. it's just to check
-     * for validity.
+     * Finds the default value of program indicator variable. it's just to check for validity.
      *
      * @return the value of the variable
      */

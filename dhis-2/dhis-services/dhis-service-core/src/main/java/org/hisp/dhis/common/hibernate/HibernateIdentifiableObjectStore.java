@@ -112,8 +112,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     /**
-     * Indicates whether the object represented by the implementation does not
-     * have persisted identifiable object properties.
+     * Indicates whether the object represented by the implementation does not have persisted identifiable object
+     * properties.
      */
     private boolean isTransientIdentifiableProperties()
     {
@@ -985,8 +985,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     /**
-     * Get sharing predicates based on given user and
-     * AclService.LIKE_READ_METADATA
+     * Get sharing predicates based on given user and AclService.LIKE_READ_METADATA
      *
      * @param builder CriteriaBuilder
      * @param user User
@@ -1076,8 +1075,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     /**
-     * Get Predicate for checking Sharing access for given User's uid and
-     * UserGroup Uids
+     * Get Predicate for checking Sharing access for given User's uid and UserGroup Uids
      *
      * @param builder CriteriaBuilder
      * @param userUid User Uid for checking access
@@ -1126,8 +1124,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     /**
-     * Get Predicate for checking Data Sharing access for given User's uid and
-     * UserGroup Uids
+     * Get Predicate for checking Data Sharing access for given User's uid and UserGroup Uids
      *
      * @param builder CriteriaBuilder
      * @param userUid User Uid for checking access
@@ -1176,8 +1173,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     // ----------------------------------------------------------------------
 
     /**
-     * Checks whether the given user has public access to the given identifiable
-     * object.
+     * Checks whether the given user has public access to the given identifiable object.
      *
      * @param user the user.
      * @param identifiableObject the identifiable object.

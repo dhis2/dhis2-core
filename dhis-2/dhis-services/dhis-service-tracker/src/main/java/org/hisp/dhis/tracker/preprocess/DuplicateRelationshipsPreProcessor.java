@@ -40,8 +40,7 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.springframework.stereotype.Component;
 
 /**
- * This preprocessor is responsible for removing duplicated relationships from
- * the Tracker import payload.
+ * This preprocessor is responsible for removing duplicated relationships from the Tracker import payload.
  *
  * @author Luciano Fiandesio
  */
@@ -50,8 +49,7 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor
 {
 
     /**
-     * Process the bundle's relationships collection and remove relationships
-     * that are duplicated.
+     * Process the bundle's relationships collection and remove relationships that are duplicated.
      *
      * There are 5 cases (all cases assume the same relationship type):
      *

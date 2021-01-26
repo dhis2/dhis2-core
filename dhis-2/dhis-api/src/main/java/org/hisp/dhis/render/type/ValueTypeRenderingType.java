@@ -30,9 +30,9 @@ package org.hisp.dhis.render.type;
 import com.google.common.collect.ImmutableSet;
 
 /**
- * This class represents all the different ways ValueTypes can be rendered.
- * constrains is defined in StaticRenderingConfiguration.java and is enforced in
- * DataElementObjectBundleHook and TrackedEntityAttributeObjectBundleHook
+ * This class represents all the different ways ValueTypes can be rendered. constrains is defined in
+ * StaticRenderingConfiguration.java and is enforced in DataElementObjectBundleHook and
+ * TrackedEntityAttributeObjectBundleHook
  */
 public enum ValueTypeRenderingType
 {

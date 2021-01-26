@@ -225,8 +225,7 @@ public class ValidationResultServiceTest
     }
 
     /**
-     * this is simply a convention in the tests that if a collection of values
-     * is tested the last one is the faulty one
+     * this is simply a convention in the tests that if a collection of values is tested the last one is the faulty one
      */
     private <T> String getFaultyValue( T value )
     {

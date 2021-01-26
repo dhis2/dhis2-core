@@ -105,8 +105,8 @@ public class CategoryOption
     }
 
     /**
-     * Returns a set of category option group sets which are associated with the
-     * category option groups of this category option.
+     * Returns a set of category option group sets which are associated with the category option groups of this category
+     * option.
      */
     public Set<CategoryOptionGroupSet> getGroupSets()
     {
@@ -166,8 +166,7 @@ public class CategoryOption
     }
 
     /**
-     * Gets an adjusted end date, adjusted if this data set has open periods
-     * after the end date.
+     * Gets an adjusted end date, adjusted if this data set has open periods after the end date.
      *
      * @param dataSet the data set to adjust for
      * @return the adjusted end date
@@ -183,9 +182,8 @@ public class CategoryOption
     }
 
     /**
-     * Gets an adjusted end date, adjusted if a data element belongs to any data
-     * sets that have open periods after the end date. If so, it chooses the
-     * latest end date.
+     * Gets an adjusted end date, adjusted if a data element belongs to any data sets that have open periods after the
+     * end date. If so, it chooses the latest end date.
      *
      * @param dataElement the data element to adjust for
      * @return the adjusted end date
@@ -213,8 +211,7 @@ public class CategoryOption
     }
 
     /**
-     * Gets an adjusted end date for a data set or, if that is not present, a
-     * data element.
+     * Gets an adjusted end date for a data set or, if that is not present, a data element.
      *
      * @param dataSet the data set to adjust for
      * @param dataElement the data element to adjust for

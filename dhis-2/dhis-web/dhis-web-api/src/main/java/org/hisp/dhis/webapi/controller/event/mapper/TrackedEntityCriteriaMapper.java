@@ -206,9 +206,8 @@ public class TrackedEntityCriteriaMapper
     }
 
     /**
-     * Creates a QueryFilter from the given query string. Query is on format
-     * {operator}:{filter-value}. Only the filter-value is mandatory. The EQ
-     * QueryOperator is used as operator if not specified.
+     * Creates a QueryFilter from the given query string. Query is on format {operator}:{filter-value}. Only the
+     * filter-value is mandatory. The EQ QueryOperator is used as operator if not specified.
      */
     private QueryFilter getQueryFilter( String query )
     {
@@ -238,8 +237,7 @@ public class TrackedEntityCriteriaMapper
 
     /**
      * Creates a QueryItem from the given item string. Item is on format
-     * {attribute-id}:{operator}:{filter-value}[:{operator}:{filter-value}].
-     * Only the attribute-id is mandatory.
+     * {attribute-id}:{operator}:{filter-value}[:{operator}:{filter-value}]. Only the attribute-id is mandatory.
      */
     private QueryItem getQueryItem( String item, Map<String, TrackedEntityAttribute> attributes )
     {

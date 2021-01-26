@@ -107,32 +107,30 @@ public interface AppManager
     List<App> getAppsByType( AppType appType, Collection<App> apps );
 
     /**
-     * Returns a list of all installed apps with name equal the given name and
-     * operator. Currently supports eq and ilike.
+     * Returns a list of all installed apps with name equal the given name and operator. Currently supports eq and
+     * ilike.
      *
      * @return list of installed apps with given name
      */
     List<App> getAppsByName( String name, Collection<App> apps, String operator );
 
     /**
-     * Returns a list of all installed apps with shortName equal the given name
-     * and operator. Currently supports eq and ilike.
+     * Returns a list of all installed apps with shortName equal the given name and operator. Currently supports eq and
+     * ilike.
      *
      * @return list of installed apps with given name
      */
     List<App> getAppsByShortName( String shortName, Collection<App> apps, String operator );
 
     /**
-     * Returns a list of all installed apps which are either bundled or not
-     * bundled operator. Currently supports eq.
+     * Returns a list of all installed apps which are either bundled or not bundled operator. Currently supports eq.
      *
      * @return list of installed apps with given isBundled property
      */
     List<App> getAppsByIsBundled( boolean isBundled, Collection<App> apps );
 
     /**
-     * Return a list of all installed apps with given filter list Currently
-     * support filtering by AppType and name
+     * Return a list of all installed apps with given filter list Currently support filtering by AppType and name
      *
      * @param filter
      * @return Return a list of all installed apps with given filter list
@@ -177,8 +175,7 @@ public interface AppManager
      * Deletes the given app.
      *
      * @param app the app to delete.
-     * @param deleteAppData decide if associated data in dataStore should be
-     *        deleted or not.
+     * @param deleteAppData decide if associated data in dataStore should be deleted or not.
      */
     void deleteApp( App app, boolean deleteAppData );
 
@@ -212,8 +209,7 @@ public interface AppManager
     boolean isAccessible( App app, User user );
 
     /**
-     * Returns the app associated with the namespace, or null if no app is
-     * associated.
+     * Returns the app associated with the namespace, or null if no app is associated.
      *
      * @param namespace the namespace to check
      * @return App or null
@@ -221,8 +217,7 @@ public interface AppManager
     App getAppByNamespace( String namespace );
 
     /**
-     * Looks up and returns the file associated with the app and pageName, if it
-     * exists
+     * Looks up and returns the file associated with the app and pageName, if it exists
      *
      * @param app the app to look up files for
      * @param pageName the page requested

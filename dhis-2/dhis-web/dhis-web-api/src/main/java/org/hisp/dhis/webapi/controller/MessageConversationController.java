@@ -783,8 +783,8 @@ public class MessageConversationController
     // --------------------------------------------------------------------------
 
     /**
-     * Deletes a MessageConversation. Note that this is a HARD delete and
-     * therefore requires override authority for the current user.
+     * Deletes a MessageConversation. Note that this is a HARD delete and therefore requires override authority for the
+     * current user.
      *
      * @param uid the uid of the MessageConversation to delete.
      * @throws Exception
@@ -945,20 +945,17 @@ public class MessageConversationController
     // --------------------------------------------------------------------------
 
     /**
-     * Determines whether the current user has permission to modify the given
-     * user in a MessageConversation.
+     * Determines whether the current user has permission to modify the given user in a MessageConversation.
      * <p>
-     * The modification is either marking a conversation read/unread for the
-     * user or removing the user from the MessageConversation.
+     * The modification is either marking a conversation read/unread for the user or removing the user from the
+     * MessageConversation.
      * <p>
-     * Since there are no per-conversation authorities provided the permission
-     * is given if the current user equals the user or if the current user has
-     * update-permission to User objects.
+     * Since there are no per-conversation authorities provided the permission is given if the current user equals the
+     * user or if the current user has update-permission to User objects.
      *
      * @param currentUser the current user to check authorization for.
      * @param user the user to remove from a conversation.
-     * @return true if the current user is allowed to remove the user from a
-     *         conversation, false otherwise.
+     * @return true if the current user is allowed to remove the user from a conversation, false otherwise.
      */
     private boolean canModifyUserConversation( User currentUser, User user )
     {
@@ -966,13 +963,11 @@ public class MessageConversationController
     }
 
     /**
-     * Determines whether the given user has permission to read the
-     * MessageConversation.
+     * Determines whether the given user has permission to read the MessageConversation.
      *
      * @param user the user to check permission for.
      * @param messageConversation the MessageConversation to access.
-     * @return true if the user can read the MessageConversation, false
-     *         otherwise.
+     * @return true if the user can read the MessageConversation, false otherwise.
      */
     private boolean canReadMessageConversation( User user,
         org.hisp.dhis.message.MessageConversation messageConversation )
@@ -1036,8 +1031,7 @@ public class MessageConversationController
     }
 
     /**
-     * /* Returns the specified message after making sure the user has access to
-     * it.
+     * /* Returns the specified message after making sure the user has access to it.
      *
      * @param mcUid the message conversation UID.
      * @param msgUid the message UID.

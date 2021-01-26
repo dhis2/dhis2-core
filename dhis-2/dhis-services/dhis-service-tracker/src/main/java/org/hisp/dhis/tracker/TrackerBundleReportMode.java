@@ -38,14 +38,12 @@ public enum TrackerBundleReportMode
     FULL,
 
     /**
-     * Returns tracker bundle report with errors and warnings but without
-     * timings.
+     * Returns tracker bundle report with errors and warnings but without timings.
      */
     ERRORS,
 
     /**
-     * Returns tracker bundle report with warnings but without errors and
-     * timings.
+     * Returns tracker bundle report with warnings but without errors and timings.
      */
     WARNINGS,
 

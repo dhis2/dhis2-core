@@ -30,8 +30,8 @@ package org.hisp.dhis.webapi.controller.exception;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 
 /**
- * Created by vanyas on 4/22/17. This exception can be used for handling
- * Metadata Import related conflict exceptions to return 409.
+ * Created by vanyas on 4/22/17. This exception can be used for handling Metadata Import related conflict exceptions to
+ * return 409.
  */
 public class MetadataImportConflictException
     extends Exception

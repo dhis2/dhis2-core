@@ -32,8 +32,8 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * Immutable class representing parameters for query planning. Should be
- * instantiated using the Builder class. Example usage:
+ * Immutable class representing parameters for query planning. Should be instantiated using the Builder class. Example
+ * usage:
  *
  * <pre>
  * {
@@ -74,8 +74,7 @@ public class QueryPlannerParams
     // -------------------------------------------------------------------------
 
     /**
-     * Returns the number of optimal queries for the planner to return for each
-     * query group.
+     * Returns the number of optimal queries for the planner to return for each query group.
      *
      * @return number of optimal queries.
      */

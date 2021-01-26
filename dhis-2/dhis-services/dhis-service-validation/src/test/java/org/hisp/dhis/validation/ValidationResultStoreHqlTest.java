@@ -67,13 +67,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * Simple unit tests for {@link HibernateValidationResultStore} that mocks the
- * actual hibernate part to verify that the SQL query generated from a
- * {@link ValidationResultQuery} is reasonable.
+ * Simple unit tests for {@link HibernateValidationResultStore} that mocks the actual hibernate part to verify that the
+ * SQL query generated from a {@link ValidationResultQuery} is reasonable.
  *
- * This test also verifies that other methods that use the same part of the
- * implementation are not affected by changes related to the
- * {@link ValidationResultQuery}.
+ * This test also verifies that other methods that use the same part of the implementation are not affected by changes
+ * related to the {@link ValidationResultQuery}.
  *
  * @author Jan Bernitt
  */

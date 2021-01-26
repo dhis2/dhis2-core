@@ -108,8 +108,7 @@ public class ProgramStage
     private ObjectStyle style;
 
     /**
-     * Enabled this property to show a pop-up for confirming Complete a program
-     * after to complete a program-stage
+     * Enabled this property to show a pop-up for confirming Complete a program after to complete a program-stage
      */
     private Boolean remindCompleted = false;
 

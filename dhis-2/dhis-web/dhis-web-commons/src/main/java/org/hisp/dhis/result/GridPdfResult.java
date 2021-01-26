@@ -44,8 +44,8 @@ import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.Result;
 
 /**
- * Creates a PDF representation of the given Grid or list of Grids and writes it
- * to the servlet outputstream. One of the grid or grids arguments must be set.
+ * Creates a PDF representation of the given Grid or list of Grids and writes it to the servlet outputstream. One of the
+ * grid or grids arguments must be set.
  *
  * @author Lars Helge Overland
  */

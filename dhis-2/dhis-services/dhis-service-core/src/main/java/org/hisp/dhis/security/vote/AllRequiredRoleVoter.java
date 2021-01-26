@@ -35,9 +35,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
 /**
- * RoleVoter which requires all org.springframework.security.ConfigAttributes to
- * be granted authorities, given that the ConfigAttributes have the specified
- * prefix ("ROLE_" by default). If there are no supported ConfigAttributes it
+ * RoleVoter which requires all org.springframework.security.ConfigAttributes to be granted authorities, given that the
+ * ConfigAttributes have the specified prefix ("ROLE_" by default). If there are no supported ConfigAttributes it
  * abstains from voting.
  *
  * @see org.springframework.security.access.vote.RoleVoter

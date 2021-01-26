@@ -58,15 +58,13 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 /**
- * This class is responsible for handling the result and pagination nodes. This
- * component is coupled to the controller class, where it's being used.
+ * This class is responsible for handling the result and pagination nodes. This component is coupled to the controller
+ * class, where it's being used.
  *
- * It also keeps an internal cache which's used to speed up the pagination
- * process.
+ * It also keeps an internal cache which's used to speed up the pagination process.
  *
- * IMPORTANT: This cache should be removed once we have a new centralized
- * caching solution in place. At that stage, the new solution should be
- * favoured.
+ * IMPORTANT: This cache should be removed once we have a new centralized caching solution in place. At that stage, the
+ * new solution should be favoured.
  */
 @Component
 class ResponseHandler
@@ -102,8 +100,7 @@ class ResponseHandler
     }
 
     /**
-     * Appends the given dimensionalItemsFound (the collection of results) and
-     * fields to the rootNode.
+     * Appends the given dimensionalItemsFound (the collection of results) and fields to the rootNode.
      *
      * @param rootNode the main response root node
      * @param dimensionalItemsFound the collection of results
@@ -119,9 +116,8 @@ class ResponseHandler
     }
 
     /**
-     * This method takes care of the pagination link and their respective
-     * attributes. It will count the number of results available and base on the
-     * WebOptions will calculate the pagination output.
+     * This method takes care of the pagination link and their respective attributes. It will count the number of
+     * results available and base on the WebOptions will calculate the pagination output.
      *
      * @param rootNode the node where the the pagination will be attached to
      * @param targetEntities the list of classes which requires pagination

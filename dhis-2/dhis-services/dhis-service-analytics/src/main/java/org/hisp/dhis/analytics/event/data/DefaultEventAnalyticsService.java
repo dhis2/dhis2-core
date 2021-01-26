@@ -231,13 +231,11 @@ public class DefaultEventAnalyticsService
     }
 
     /**
-     * Creates a grid with table layout for downloading event reports. The grid
-     * is dynamically made from rows and columns input, which refers to the
-     * dimensions requested.
+     * Creates a grid with table layout for downloading event reports. The grid is dynamically made from rows and
+     * columns input, which refers to the dimensions requested.
      *
-     * For event reports each option for a dimension will be an
-     * {@link EventAnalyticsDimensionalItem} and all permutations will be added
-     * to the grid.
+     * For event reports each option for a dimension will be an {@link EventAnalyticsDimensionalItem} and all
+     * permutations will be added to the grid.
      *
      * @param params the {@link EventQueryParams}.
      * @param columns the identifiers of the dimensions to use as columns.
@@ -285,8 +283,7 @@ public class DefaultEventAnalyticsService
     }
 
     /**
-     * Generates an output grid for event analytics download based on input
-     * parameters.
+     * Generates an output grid for event analytics download based on input parameters.
      *
      * @param grid the result grid.
      * @param params the {@link EventQueryParams}.
@@ -371,8 +368,7 @@ public class DefaultEventAnalyticsService
     }
 
     /**
-     * Puts elements into the mapping table. The elements are fetched from the
-     * query parameters.
+     * Puts elements into the mapping table. The elements are fetched from the query parameters.
      *
      * @param grid the {@link Grid}.
      * @param params the {@link EventQueryParams}.
@@ -405,13 +401,10 @@ public class DefaultEventAnalyticsService
     }
 
     /**
-     * Adds dimensional items to the given list of objects. Send in a list of
-     * {@link EventAnalyticsDimensionalItem} and add properties from
-     * {@link ValueTypedDimensionalItemObject} parameter.
+     * Adds dimensional items to the given list of objects. Send in a list of {@link EventAnalyticsDimensionalItem} and
+     * add properties from {@link ValueTypedDimensionalItemObject} parameter.
      *
-     * @param eventDimensionalItemObject the
-     *        {@link ValueTypedDimensionalItemObject} object to get properties
-     *        from.
+     * @param eventDimensionalItemObject the {@link ValueTypedDimensionalItemObject} object to get properties from.
      * @param objects the list of {@link EventAnalyticsDimensionalItem} objects.
      * @param grid the {@link Grid} from the event analytics request.
      * @param dimension the dimension identifier.
@@ -710,8 +703,7 @@ public class DefaultEventAnalyticsService
     }
 
     /**
-     * Adds event data to the given grid. Returns the number of events matching
-     * the given event query.
+     * Adds event data to the given grid. Returns the number of events matching the given event query.
      *
      * @param grid the {@link Grid}.
      * @param params the {@link EventQueryParams}.

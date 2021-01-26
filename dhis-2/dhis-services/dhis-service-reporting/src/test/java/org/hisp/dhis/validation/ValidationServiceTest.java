@@ -453,14 +453,12 @@ public class ValidationServiceTest
     /**
      * Returns a naturally ordered list of ValidationResults.
      * <p>
-     * When comparing two collections, this assures that all the items are in
-     * the same order for comparison. It also means that when there are
-     * different values for the same period/rule/source, etc., the results are
-     * more likely to be in the same order to make it easier to see the
-     * difference.
+     * When comparing two collections, this assures that all the items are in the same order for comparison. It also
+     * means that when there are different values for the same period/rule/source, etc., the results are more likely to
+     * be in the same order to make it easier to see the difference.
      * <p>
-     * By making this a List instead of, say a TreeSet, duplicate values (if any
-     * should exist by mistake!) are preserved.
+     * By making this a List instead of, say a TreeSet, duplicate values (if any should exist by mistake!) are
+     * preserved.
      *
      * @param results collection of ValidationResult to order.
      * @return ValidationResults in their natural order.
@@ -483,19 +481,16 @@ public class ValidationServiceTest
     }
 
     /**
-     * Asserts that a collection of ValidationResult matches a reference
-     * collection. If it doesn't, log some extra diagnostic information.
+     * Asserts that a collection of ValidationResult matches a reference collection. If it doesn't, log some extra
+     * diagnostic information.
      * <p>
-     * This method was written in response to intermittent test failures. The
-     * extra diagnostic information is an attempt to further investigate the
-     * nature of the failures.
+     * This method was written in response to intermittent test failures. The extra diagnostic information is an attempt
+     * to further investigate the nature of the failures.
      * <p>
-     * A partial stack trace is logged (just within this file), so when the test
-     * is working, the check inequality can be commented out and the tester can
-     * generate a reference of expected vales for each call.
+     * A partial stack trace is logged (just within this file), so when the test is working, the check inequality can be
+     * commented out and the tester can generate a reference of expected vales for each call.
      * <p>
-     * Also tests to be sure that each result expression was evaluated
-     * correctly.
+     * Also tests to be sure that each result expression was evaluated correctly.
      *
      * @param reference the reference collection of ValidationResult.
      * @param results collection of ValidationResult to test.

@@ -44,10 +44,9 @@ public class UserGroupObjectBundleHook extends AbstractObjectBundleHook
     }
 
     /**
-     * As User property of UserGroup is marked with @JsonIgnore ( see
-     * {@link UserGroup} ), the new object will always has User = NULL. So we
-     * need to get this from persisted UserGroup, otherwise it will always be
-     * set to current User when updating.
+     * As User property of UserGroup is marked with @JsonIgnore ( see {@link UserGroup} ), the new object will always
+     * has User = NULL. So we need to get this from persisted UserGroup, otherwise it will always be set to current User
+     * when updating.
      *
      * @param object
      * @param persistedObject

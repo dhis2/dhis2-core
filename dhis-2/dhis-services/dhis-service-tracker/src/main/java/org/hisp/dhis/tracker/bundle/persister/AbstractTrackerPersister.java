@@ -76,8 +76,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     }
 
     /**
-     * Template method that can be used by classes extending this class to
-     * execute the persistence flow of Tracker entities
+     * Template method that can be used by classes extending this class to execute the persistence flow of Tracker
+     * entities
      *
      * @param session a valid Hibernate Session
      * @param bundle the Bundle to persist
@@ -199,14 +199,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     // // // // // // // //
 
     /**
-     * Executes the configured pre-creation hooks. This method takes place only
-     * once, just before the objects persistence
+     * Executes the configured pre-creation hooks. This method takes place only once, just before the objects
+     * persistence
      */
     protected abstract void runPreCreateHooks( TrackerBundle bundle );
 
     /**
-     * Converts an object implementing the {@link TrackerDto} interface into the
-     * corresponding Hibernate-managed object
+     * Converts an object implementing the {@link TrackerDto} interface into the corresponding Hibernate-managed object
      */
     protected abstract V convert( TrackerBundle bundle, T trackerDto );
 
@@ -216,22 +215,19 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     protected abstract void persistComments( V entity );
 
     /**
-     * Execute the persistence of Data values linked to the entity being
-     * processed
+     * Execute the persistence of Data values linked to the entity being processed
      */
     protected abstract void updateDataValues( Session session, TrackerPreheat preheat,
         T trackerDto, V hibernateEntity );
 
     /**
-     * Execute the persistence of Attribute values linked to the entity being
-     * processed
+     * Execute the persistence of Attribute values linked to the entity being processed
      */
     protected abstract void updateAttributes( Session session, TrackerPreheat preheat,
         T trackerDto, V hibernateEntity );
 
     /**
-     * Updates the {@link TrackerPreheat} object with the entity that has been
-     * persisted
+     * Updates the {@link TrackerPreheat} object with the entity that has been persisted
      */
     protected abstract void updatePreheat( TrackerPreheat preheat, V convertedDto );
 
@@ -251,8 +247,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     protected abstract TrackerType getType();
 
     /**
-     * Executes the configured post-creation hooks. This method takes place only
-     * once, after all objects have been persisted.
+     * Executes the configured post-creation hooks. This method takes place only once, after all objects have been
+     * persisted.
      */
     protected abstract void runPostCreateHooks( TrackerBundle bundle );
 

@@ -91,8 +91,7 @@ public class PageRange
     }
 
     /**
-     * Moves the range to the next page. Returns true if the range has another
-     * page, false if not.
+     * Moves the range to the next page. Returns true if the range has another page, false if not.
      *
      * @return true if range has another page, false if not.
      */
@@ -171,8 +170,8 @@ public class PageRange
     }
 
     /**
-     * Returns a list of all pages. Each item is an array where index 0 holds
-     * the from index and index 1 holds the to index. Resets the page.
+     * Returns a list of all pages. Each item is an array where index 0 holds the from index and index 1 holds the to
+     * index. Resets the page.
      *
      * @return a list of all pages.
      */

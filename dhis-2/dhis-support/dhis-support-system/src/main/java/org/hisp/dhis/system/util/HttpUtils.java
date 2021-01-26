@@ -55,8 +55,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
 /**
- * This class has the utility methods to invoke REST endpoints for various HTTP
- * methods.
+ * This class has the utility methods to invoke REST endpoints for various HTTP methods.
  *
  * @author vanyas
  */
@@ -66,8 +65,7 @@ public class HttpUtils
     private static final String CONTENT_TYPE_ZIP = "application/gzip";
 
     /**
-     * Method to make an HTTP GET call to a given URL with/without
-     * authentication.
+     * Method to make an HTTP GET call to a given URL with/without authentication.
      *
      * @throws Exception
      *         </pre>
@@ -131,8 +129,7 @@ public class HttpUtils
     }
 
     /**
-     * Method to make an HTTP POST call to a given URL with/without
-     * authentication.
+     * Method to make an HTTP POST call to a given URL with/without authentication.
      *
      */
     public static DhisHttpResponse httpPOST( String requestURL, Object body, boolean authorize, String username,
@@ -205,8 +202,7 @@ public class HttpUtils
     }
 
     /**
-     * Method to make an HTTP DELETE call to a given URL with/without
-     * authentication.
+     * Method to make an HTTP DELETE call to a given URL with/without authentication.
      *
      * @throws Exception
      *         </pre>

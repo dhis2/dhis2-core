@@ -554,8 +554,7 @@ public abstract class AbstractRelationshipService
     }
 
     /**
-     * Checks the relationship for any conflicts, like missing or invalid
-     * references.
+     * Checks the relationship for any conflicts, like missing or invalid references.
      */
     private List<ImportConflict> checkRelationship( Relationship relationship )
     {
@@ -611,8 +610,7 @@ public abstract class AbstractRelationshipService
     }
 
     /**
-     * Finds and returns any conflicts between relationship and relationship
-     * type
+     * Finds and returns any conflicts between relationship and relationship type
      *
      * @param constraint the constraint to check
      * @param relationshipItem the relationshipItem to check

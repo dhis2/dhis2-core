@@ -39,8 +39,7 @@ public interface FieldParser
      * Parses and writes out fieldMap with included/excluded properties.
      *
      * @param filter String to parse, can be used for both inclusion/exclusion
-     * @return FieldMap with property name as key, and another FieldMap as value
-     *         (recursive)
+     * @return FieldMap with property name as key, and another FieldMap as value (recursive)
      * @see org.hisp.dhis.fieldfilter.FieldMap
      */
     FieldMap parse( String filter );

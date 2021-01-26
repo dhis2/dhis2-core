@@ -59,8 +59,7 @@ public class GeoToolsPrimitiveFromJsonFactory
     }
 
     /**
-     * Create a GeoTools geometric coordinate primitive from coordinates in
-     * json.
+     * Create a GeoTools geometric coordinate primitive from coordinates in json.
      *
      * @param json the json array of components
      * @return the coordinate
@@ -72,8 +71,7 @@ public class GeoToolsPrimitiveFromJsonFactory
     }
 
     /**
-     * Create a GeoTools geometric multi-polygon primitive from coordinates in
-     * json.
+     * Create a GeoTools geometric multi-polygon primitive from coordinates in json.
      *
      * @param json the json array of polygons
      * @return the multi-polygon

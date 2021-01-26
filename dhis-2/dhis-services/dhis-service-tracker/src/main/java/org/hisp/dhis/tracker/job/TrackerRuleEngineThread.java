@@ -40,10 +40,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * Class represents a thread which will be triggered as soon as tracker rule
- * engine consumer consumes a message from tracker rule engine queue. It loops
- * through the list of rule effects and implement it if it has an associated
- * rule implementer class.
+ * Class represents a thread which will be triggered as soon as tracker rule engine consumer consumes a message from
+ * tracker rule engine queue. It loops through the list of rule effects and implement it if it has an associated rule
+ * implementer class.
  *
  * @author Zubair Asghar
  */

@@ -65,50 +65,44 @@ public class WorkContext
     private final ImportOptions importOptions;
 
     /**
-     * Holds a Map of all Programs in the system. See {@see ProgramSupplier} for
-     * a detailed explanation of the data kept in this map
+     * Holds a Map of all Programs in the system. See {@see ProgramSupplier} for a detailed explanation of the data kept
+     * in this map
      *
      * Map: key -> Program ID (based on IdScheme) value -> Program
      */
     private final Map<String, Program> programsMap;
 
     /**
-     * Holds a Map of all {@see OrganisationUnit} associated to the Events to
-     * import. Each {@see OrganisationUnit} also contain the complete hierarchy
-     * ( via .getParent() )
+     * Holds a Map of all {@see OrganisationUnit} associated to the Events to import. Each {@see OrganisationUnit} also
+     * contain the complete hierarchy ( via .getParent() )
      *
      * Map: key -> Event UID value -> OrganisationUnit
      */
     private final Map<String, OrganisationUnit> organisationUnitMap;
 
     /**
-     * Holds a Map of all {@see TrackedEntityInstance} associated to the Events
-     * to import.
+     * Holds a Map of all {@see TrackedEntityInstance} associated to the Events to import.
      *
-     * Map: key -> Event UID value -> Pair<TrackedEntityInstance,
-     * canBeUpdatedByCurrentUser boolean>
+     * Map: key -> Event UID value -> Pair<TrackedEntityInstance, canBeUpdatedByCurrentUser boolean>
      */
     private final Map<String, Pair<TrackedEntityInstance, Boolean>> trackedEntityInstanceMap;
 
     /**
-     * Holds a Map of all {@see ProgramInstance} associated to the Events to
-     * import.
+     * Holds a Map of all {@see ProgramInstance} associated to the Events to import.
      *
      * Map: key -> Event UID value -> ProgramInstance
      */
     private final Map<String, ProgramInstance> programInstanceMap;
 
     /**
-     * Holds a Map of all {@see ProgramStageInstance} associated to the Events
-     * to import.
+     * Holds a Map of all {@see ProgramStageInstance} associated to the Events to import.
      *
      * Map: key -> ProgramStageInstance UID value -> ProgramStageInstance
      */
     private final Map<String, ProgramStageInstance> programStageInstanceMap;
 
     /**
-     * Holds a Map of all {@see CategoryOptionCombo} associated to the Events to
-     * import.
+     * Holds a Map of all {@see CategoryOptionCombo} associated to the Events to import.
      *
      * Map: key -> Event UID value -> CategoryOptionCombo
      */
@@ -122,13 +116,11 @@ public class WorkContext
     private final Map<String, DataElement> dataElementMap;
 
     /**
-     * Holds a Map of the EventDataValue for each event. Each entry value in the
-     * Map, has a Set of EventDataValue, which have been already "prepared" for
-     * update (insert/update). This means that the "incoming" Data Values have
-     * been merged with the already existing Data Values (in case of an update).
-     * This is the "reference" Map for Data Values during the Event import
-     * process, meaning that the import components should only reference this
-     * Map when dealing with Event Data Values (validation, etc)
+     * Holds a Map of the EventDataValue for each event. Each entry value in the Map, has a Set of EventDataValue, which
+     * have been already "prepared" for update (insert/update). This means that the "incoming" Data Values have been
+     * merged with the already existing Data Values (in case of an update). This is the "reference" Map for Data Values
+     * during the Event import process, meaning that the import components should only reference this Map when dealing
+     * with Event Data Values (validation, etc)
      *
      */
     private final Map<String, Set<EventDataValue>> eventDataValueMap;
@@ -138,9 +130,8 @@ public class WorkContext
     private final Map<String, Note> notesMap;
 
     /**
-     * Holds a Map of Program ID (primary key) and List of Org Unit ID
-     * associated to each program. Note that the List only contains the Org Unit
-     * ID of org units that are specified in the payload.
+     * Holds a Map of Program ID (primary key) and List of Org Unit ID associated to each program. Note that the List
+     * only contains the Org Unit ID of org units that are specified in the payload.
      */
     private final Map<Long, List<Long>> programWithOrgUnitsMap;
 
@@ -150,8 +141,7 @@ public class WorkContext
     private final ServiceDelegator serviceDelegator;
 
     /**
-     * Checks within all the cached program for a ProgramStage having the uid
-     * matching the specified uid.
+     * Checks within all the cached program for a ProgramStage having the uid matching the specified uid.
      *
      * @param programStageId the id according to the IdScheme of a program stage
      * @return a ProgramStage object or null

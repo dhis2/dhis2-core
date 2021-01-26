@@ -35,8 +35,8 @@ import java.util.List;
 import javax.sql.DataSource;
 
 /**
- * A {@link DataSourcePoolMetadataProvider} implementation that returns the
- * first {@link DataSourcePoolMetadata} that is found by one of its delegate.
+ * A {@link DataSourcePoolMetadataProvider} implementation that returns the first {@link DataSourcePoolMetadata} that is
+ * found by one of its delegate.
  *
  * @author Stephane Nicoll
  * @since 2.0.0
@@ -46,8 +46,7 @@ public class CompositeDataSourcePoolMetadataProvider implements DataSourcePoolMe
     private final List<DataSourcePoolMetadataProvider> providers;
 
     /**
-     * Create a {@link CompositeDataSourcePoolMetadataProvider} instance with an
-     * initial collection of delegates to use.
+     * Create a {@link CompositeDataSourcePoolMetadataProvider} instance with an initial collection of delegates to use.
      *
      * @param providers the data source pool metadata providers
      */

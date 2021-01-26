@@ -112,8 +112,7 @@ public class DataElementGroup
     }
 
     /**
-     * Returns the value type of the data elements in this group. Uses an
-     * arbitrary member to determine the value type.
+     * Returns the value type of the data elements in this group. Uses an arbitrary member to determine the value type.
      */
     public ValueType getValueType()
     {
@@ -121,8 +120,8 @@ public class DataElementGroup
     }
 
     /**
-     * Returns the aggregation type of the data elements in this group. Uses an
-     * arbitrary member to determine the aggregation operator.
+     * Returns the aggregation type of the data elements in this group. Uses an arbitrary member to determine the
+     * aggregation operator.
      */
     public AggregationType getAggregationType()
     {
@@ -130,8 +129,8 @@ public class DataElementGroup
     }
 
     /**
-     * Returns the period type of the data elements in this group. Uses an
-     * arbitrary member to determine the period type.
+     * Returns the period type of the data elements in this group. Uses an arbitrary member to determine the period
+     * type.
      */
     public PeriodType getPeriodType()
     {

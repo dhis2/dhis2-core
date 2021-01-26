@@ -48,9 +48,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
 
 /**
- * DataElementGroupSet is a set of DataElementGroups. It is by default
- * exclusive, in the sense that a DataElement can only be a member of one or
- * zero of the DataElementGroups in a DataElementGroupSet.
+ * DataElementGroupSet is a set of DataElementGroups. It is by default exclusive, in the sense that a DataElement can
+ * only be a member of one or zero of the DataElementGroups in a DataElementGroupSet.
  *
  * @author Lars Helge Overland
  */

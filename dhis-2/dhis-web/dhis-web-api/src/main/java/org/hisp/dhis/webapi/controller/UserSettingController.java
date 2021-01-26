@@ -176,8 +176,7 @@ public class UserSettingController
      *
      * @param key the name of a UserSettingKey
      * @return the UserSettingKey
-     * @throws WebMessageException throws an exception if no UserSettingKey was
-     *         found
+     * @throws WebMessageException throws an exception if no UserSettingKey was found
      */
     private UserSettingKey getUserSettingKey( String key )
         throws WebMessageException
@@ -193,16 +192,13 @@ public class UserSettingController
     }
 
     /**
-     * Tries to find a user based on the uid or username. If none is supplied,
-     * currentUser will be returned. If uid or username is found, it will also
-     * make sure the current user has access to the user.
+     * Tries to find a user based on the uid or username. If none is supplied, currentUser will be returned. If uid or
+     * username is found, it will also make sure the current user has access to the user.
      *
      * @param uid the user uid
      * @param username the user username
-     * @return the user found with uid or username, or current user if no uid or
-     *         username was specified
-     * @throws WebMessageException throws an exception if user was not found, or
-     *         current user don't have access
+     * @return the user found with uid or username, or current user if no uid or username was specified
+     * @throws WebMessageException throws an exception if user was not found, or current user don't have access
      */
     private User getUser( String uid, String username )
         throws WebMessageException

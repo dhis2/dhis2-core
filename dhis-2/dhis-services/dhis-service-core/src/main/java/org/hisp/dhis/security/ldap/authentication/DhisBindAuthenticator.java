@@ -38,9 +38,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
 
 /**
- * Authenticator which checks whether LDAP authentication is configured. If not,
- * the authentication will be aborted, otherwise authentication is delegated to
- * Spring BindAuthenticator.
+ * Authenticator which checks whether LDAP authentication is configured. If not, the authentication will be aborted,
+ * otherwise authentication is delegated to Spring BindAuthenticator.
  *
  * @author Lars Helge Overland
  */

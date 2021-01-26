@@ -61,9 +61,8 @@ public class DefaultStyleManager
     private final UserSettingService userSettingService;
 
     /**
-     * Map for styles. The key refers to the user setting key and the value
-     * refers to the path to the CSS file of the style relative to
-     * /dhis-web-commons/.
+     * Map for styles. The key refers to the user setting key and the value refers to the path to the CSS file of the
+     * style relative to /dhis-web-commons/.
      */
     private final SortedMap<String, String> styles;
 

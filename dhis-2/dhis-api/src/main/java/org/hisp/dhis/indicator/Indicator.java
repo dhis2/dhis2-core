@@ -155,8 +155,7 @@ public class Indicator
     }
 
     /**
-     * A denominator value of "1" implies that there is no denominator and that
-     * the indicator represents a sum.
+     * A denominator value of "1" implies that there is no denominator and that the indicator represents a sum.
      */
     @Override
     public TotalAggregationType getTotalAggregationType()

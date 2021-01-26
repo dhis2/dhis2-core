@@ -32,8 +32,8 @@ import java.util.List;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 
 /**
- * Service responsible for asynchronous handling of TrackerImport side effect.
- * For now they related to audit, notifications and program rule effect.
+ * Service responsible for asynchronous handling of TrackerImport side effect. For now they related to audit,
+ * notifications and program rule effect.
  *
  * @author Zubair Asghar
  */

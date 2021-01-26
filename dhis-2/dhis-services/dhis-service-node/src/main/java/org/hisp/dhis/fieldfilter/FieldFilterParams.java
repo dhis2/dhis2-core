@@ -40,8 +40,7 @@ public final class FieldFilterParams
     private User user;
 
     /**
-     * List of object(s) to filter through. If more than one, a wrapper is
-     * required.
+     * List of object(s) to filter through. If more than one, a wrapper is required.
      */
     private List<?> objects = new ArrayList<>();
 

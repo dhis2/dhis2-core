@@ -87,8 +87,7 @@ public class UserCredentials
     private String username;
 
     /**
-     * Indicates whether this credentials can only be authenticated externally,
-     * such as through OpenID or LDAP.
+     * Indicates whether this credentials can only be authenticated externally, such as through OpenID or LDAP.
      */
     private boolean externalAuth;
 
@@ -128,8 +127,7 @@ public class UserCredentials
     private Set<UserAuthorityGroup> userAuthorityGroups = new HashSet<>();
 
     /**
-     * Category option group set dimensions to constrain data analytics
-     * aggregation.
+     * Category option group set dimensions to constrain data analytics aggregation.
      */
     private Set<CategoryOptionGroupSet> cogsDimensionConstraints = new HashSet<>();
 
@@ -174,14 +172,12 @@ public class UserCredentials
     private boolean invitation;
 
     /**
-     * Indicates whether this is user is disabled, which means the user cannot
-     * be authenticated.
+     * Indicates whether this is user is disabled, which means the user cannot be authenticated.
      */
     private boolean disabled;
 
     /**
-     * The timestamp representing when the user account expires. If not set the
-     * account does never expire.
+     * The timestamp representing when the user account expires. If not set the account does never expire.
      */
     private Date accountExpiry;
 
@@ -228,8 +224,7 @@ public class UserCredentials
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a concatenated String of the display names of all user authority
-     * groups for this user credentials.
+     * Returns a concatenated String of the display names of all user authority groups for this user credentials.
      */
     public String getUserAuthorityGroupsName()
     {
@@ -237,8 +232,7 @@ public class UserCredentials
     }
 
     /**
-     * Returns a set of the aggregated authorities for all user authority groups
-     * of this user credentials.
+     * Returns a set of the aggregated authorities for all user authority groups of this user credentials.
      */
     public Set<String> getAllAuthorities()
     {
@@ -265,8 +259,7 @@ public class UserCredentials
     }
 
     /**
-     * Indicates whether this user credentials has at least one authority
-     * through its user authority groups.
+     * Indicates whether this user credentials has at least one authority through its user authority groups.
      */
     public boolean hasAuthorities()
     {
@@ -282,8 +275,7 @@ public class UserCredentials
     }
 
     /**
-     * Tests whether this user credentials has any of the authorities in the
-     * given set.
+     * Tests whether this user credentials has any of the authorities in the given set.
      *
      * @param auths the authorities to compare with.
      * @return true or false.
@@ -295,8 +287,7 @@ public class UserCredentials
     }
 
     /**
-     * Tests whether the user has the given authority. Returns true in any case
-     * if the user has the ALL authority.
+     * Tests whether the user has the given authority. Returns true in any case if the user has the ALL authority.
      */
     public boolean isAuthorized( String auth )
     {
@@ -311,9 +302,8 @@ public class UserCredentials
     }
 
     /**
-     * Indicates whether this user credentials is a super user, implying that
-     * the ALL authority is present in at least one of the user authority groups
-     * of this user credentials.
+     * Indicates whether this user credentials is a super user, implying that the ALL authority is present in at least
+     * one of the user authority groups of this user credentials.
      */
     public boolean isSuper()
     {
@@ -332,16 +322,13 @@ public class UserCredentials
     }
 
     /**
-     * Indicates whether this user credentials can issue the given user
-     * authority group. First the given authority group must not be null. Second
-     * this user credentials must not contain the given authority group. Third
-     * the authority group must be a subset of the aggregated user authorities
-     * of this user credentials, or this user credentials must have the ALL
-     * authority.
+     * Indicates whether this user credentials can issue the given user authority group. First the given authority group
+     * must not be null. Second this user credentials must not contain the given authority group. Third the authority
+     * group must be a subset of the aggregated user authorities of this user credentials, or this user credentials must
+     * have the ALL authority.
      *
      * @param group the user authority group.
-     * @param canGrantOwnUserAuthorityGroups indicates whether this users can
-     *        grant its own authority groups to others.
+     * @param canGrantOwnUserAuthorityGroups indicates whether this users can grant its own authority groups to others.
      */
     public boolean canIssueUserRole( UserAuthorityGroup group, boolean canGrantOwnUserAuthorityGroups )
     {
@@ -366,12 +353,10 @@ public class UserCredentials
     }
 
     /**
-     * Indicates whether this user credentials can issue all of the user
-     * authority groups in the given collection.
+     * Indicates whether this user credentials can issue all of the user authority groups in the given collection.
      *
      * @param groups the collection of user authority groups.
-     * @param canGrantOwnUserAuthorityGroups indicates whether this users can
-     *        grant its own authority groups to others.
+     * @param canGrantOwnUserAuthorityGroups indicates whether this users can grant its own authority groups to others.
      */
     public boolean canIssueUserRoles( Collection<UserAuthorityGroup> groups, boolean canGrantOwnUserAuthorityGroups )
     {
@@ -387,9 +372,8 @@ public class UserCredentials
     }
 
     /**
-     * Indicates whether this user credentials can modify the given user
-     * credentials. This user credentials must have the ALL authority or possess
-     * all user authorities of the other user credentials to do so.
+     * Indicates whether this user credentials can modify the given user credentials. This user credentials must have
+     * the ALL authority or possess all user authorities of the other user credentials to do so.
      *
      * @param other the user credentials to modify.
      */
@@ -411,9 +395,8 @@ public class UserCredentials
     }
 
     /**
-     * Return the name of this user credentials. More specifically, if this
-     * credentials has a user it will return the first name and surname of that
-     * user, if not it returns the username of this credentials.
+     * Return the name of this user credentials. More specifically, if this credentials has a user it will return the
+     * first name and surname of that user, if not it returns the username of this credentials.
      *
      * @return the name.
      */
@@ -432,9 +415,8 @@ public class UserCredentials
     }
 
     /**
-     * Tests whether the credentials contain all needed parameters to perform an
-     * account restore. If a parameter is missing a descriptive error string is
-     * returned.
+     * Tests whether the credentials contain all needed parameters to perform an account restore. If a parameter is
+     * missing a descriptive error string is returned.
      *
      * @return null on success, a descriptive error string on failure.
      */
@@ -454,8 +436,7 @@ public class UserCredentials
     }
 
     /**
-     * Returns the dimensions to use as constrains (filters) in data analytics
-     * aggregation.
+     * Returns the dimensions to use as constrains (filters) in data analytics aggregation.
      */
     public Set<DimensionalObject> getDimensionConstraints()
     {

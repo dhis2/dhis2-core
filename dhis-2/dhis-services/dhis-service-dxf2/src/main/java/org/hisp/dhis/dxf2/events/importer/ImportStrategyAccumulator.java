@@ -40,8 +40,8 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
- * This class aggregates Events by operation type (Insert, Update, Delete)
- * during an Event import process, based on the specified {@see ImportStrategy}
+ * This class aggregates Events by operation type (Insert, Update, Delete) during an Event import process, based on the
+ * specified {@see ImportStrategy}
  *
  * @author Luciano Fiandesio
  */

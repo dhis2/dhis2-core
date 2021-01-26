@@ -42,8 +42,7 @@ public interface MethodType
     boolean validatePattern( String raw );
 
     /**
-     * Validates a text against a format. Format will be adjusted based on the
-     * MethodType
+     * Validates a text against a format. Format will be adjusted based on the MethodType
      *
      * @param format the format to validate for
      * @param text the text to validate

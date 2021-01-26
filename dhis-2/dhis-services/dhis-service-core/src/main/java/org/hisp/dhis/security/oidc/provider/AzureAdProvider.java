@@ -46,8 +46,7 @@ import com.google.common.collect.ImmutableMap;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  *         <p>
- *         Well known url for reference. In a perfect world we would dynamically
- *         parse this.
+ *         Well known url for reference. In a perfect world we would dynamically parse this.
  *         https://login.microsoftonline.com/"+tenant+"/v2.0/.well-known/openid-configuration
  */
 public class AzureAdProvider extends DhisOidcProvider

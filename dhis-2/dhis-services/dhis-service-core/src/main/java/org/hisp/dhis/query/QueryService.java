@@ -38,8 +38,7 @@ import org.hisp.dhis.query.Junction.Type;
 public interface QueryService
 {
     /**
-     * Return objects matching given query, T typed according to QueryEngine
-     * implementation.
+     * Return objects matching given query, T typed according to QueryEngine implementation.
      *
      * @param query Query instance to use
      * @return Matching objects
@@ -47,8 +46,7 @@ public interface QueryService
     List<? extends IdentifiableObject> query( Query query );
 
     /**
-     * Return objects matching given query, T typed according to QueryEngine
-     * implementation.
+     * Return objects matching given query, T typed according to QueryEngine implementation.
      *
      * @param query Query instance to use
      * @param transformer ResultTransformer to use for mutating the result
@@ -66,8 +64,7 @@ public interface QueryService
     long count( Query query );
 
     /**
-     * Create a query instance from a given set of filters
-     * (property:operator:value), and a list of orders.
+     * Create a query instance from a given set of filters (property:operator:value), and a list of orders.
      *
      * @param klass Type of object you want to query
      * @param filters List of filters to use as basis for query instance

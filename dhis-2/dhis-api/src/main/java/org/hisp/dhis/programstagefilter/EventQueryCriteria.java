@@ -65,20 +65,17 @@ public class EventQueryCriteria implements Serializable
     private OrganisationUnitSelectionMode ouMode;
 
     /**
-     * Property indicating the assigned user selection mode for the event
-     * filter.
+     * Property indicating the assigned user selection mode for the event filter.
      */
     private AssignedUserSelectionMode assignedUserMode;
 
     /**
-     * Property which contains the required assigned user ids to be used in the
-     * event filter.
+     * Property which contains the required assigned user ids to be used in the event filter.
      */
     private Set<String> assignedUsers;
 
     /**
-     * Property which contains the required field ordering along with its
-     * direction (asc/desc)
+     * Property which contains the required field ordering along with its direction (asc/desc)
      */
     private String order;
 

@@ -186,8 +186,7 @@ public class EventSecurityTest
     }
 
     /**
-     * program = DATA READ/WRITE programStage = DATA READ/WRITE orgUnit =
-     * Accessible status = SUCCESS
+     * program = DATA READ/WRITE programStage = DATA READ/WRITE orgUnit = Accessible status = SUCCESS
      */
     @Test
     public void testAddEventSimpleUserFullAccess1()
@@ -215,8 +214,7 @@ public class EventSecurityTest
     }
 
     /**
-     * program = DATA READ programStage = DATA READ/WRITE orgUnit = Accessible
-     * status = ERROR
+     * program = DATA READ programStage = DATA READ/WRITE orgUnit = Accessible status = ERROR
      */
     @Test
     public void testAddEventSimpleUserFullAccess2()
@@ -239,8 +237,7 @@ public class EventSecurityTest
     }
 
     /**
-     * program = DATA READ/WRITE programStage = DATA READ orgUnit = Accessible
-     * status = ERROR
+     * program = DATA READ/WRITE programStage = DATA READ orgUnit = Accessible status = ERROR
      */
     @Test
     public void testAddEventSimpleUserFullAccess3()
@@ -266,8 +263,7 @@ public class EventSecurityTest
     }
 
     /**
-     * program = DATA READ/WRITE programStage = DATA READ/WRITE orgUnit = Not
-     * Accessible status = ERROR
+     * program = DATA READ/WRITE programStage = DATA READ/WRITE orgUnit = Not Accessible status = ERROR
      */
     @Test
     public void testAddEventSimpleUserFullAccess4()
@@ -288,8 +284,7 @@ public class EventSecurityTest
     }
 
     /**
-     * program = DATA READ programStage = DATA READ orgUnit = Accessible status
-     * = SUCCESS
+     * program = DATA READ programStage = DATA READ orgUnit = Accessible status = SUCCESS
      */
     @Test
     public void testAddEventSimpleUserFullAccess5()
@@ -330,8 +325,7 @@ public class EventSecurityTest
     }
 
     /**
-     * program = DATA WRITE programStage = DATA WRITE orgUnit = Accessible
-     * status = SUCCESS
+     * program = DATA WRITE programStage = DATA WRITE orgUnit = Accessible status = SUCCESS
      */
     @Test
     public void testAddEventSimpleUserFullAccess6()
@@ -372,8 +366,7 @@ public class EventSecurityTest
     }
 
     /**
-     * program = DATA WRITE programStage = DATA WRITE orgUnit = Not Accessible
-     * status = ERROR
+     * program = DATA WRITE programStage = DATA WRITE orgUnit = Not Accessible status = ERROR
      */
     @Test( expected = IllegalQueryException.class )
     public void testAddEventSimpleUserFullAccess7()
@@ -413,8 +406,7 @@ public class EventSecurityTest
     }
 
     /**
-     * program = DATA READ programStage = DATA READ orgUnit = Not Accessible
-     * status = ERROR
+     * program = DATA READ programStage = DATA READ orgUnit = Not Accessible status = ERROR
      */
     @Test( expected = IllegalQueryException.class )
     public void testAddEventSimpleUserFullAccess8()

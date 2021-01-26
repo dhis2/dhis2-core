@@ -65,8 +65,7 @@ public class Options
     // --------------------------------------------------------------------------
 
     /**
-     * Indicates whether the given object type is enabled. Takes the assumeTrue
-     * parameter into account.
+     * Indicates whether the given object type is enabled. Takes the assumeTrue parameter into account.
      */
     public boolean isEnabled( String type )
     {
@@ -76,8 +75,7 @@ public class Options
     }
 
     /**
-     * Indicates whether the given object type is disabled. Takes the assumeTrue
-     * parameter into account.
+     * Indicates whether the given object type is disabled. Takes the assumeTrue parameter into account.
      */
     public boolean isDisabled( String type )
     {
@@ -102,8 +100,7 @@ public class Options
     }
 
     /**
-     * Indicates whether the options contains a non-null option value for the
-     * given parameter key.
+     * Indicates whether the options contains a non-null option value for the given parameter key.
      */
     public boolean containsValue( String key )
     {

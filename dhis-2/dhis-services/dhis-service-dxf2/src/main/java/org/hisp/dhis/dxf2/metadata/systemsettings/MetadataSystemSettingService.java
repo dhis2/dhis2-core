@@ -28,8 +28,7 @@
 package org.hisp.dhis.dxf2.metadata.systemsettings;
 
 /**
- * MetadataSystemSettingService is the helper class for getting the Versioning
- * endpoint specific constructs.
+ * MetadataSystemSettingService is the helper class for getting the Versioning endpoint specific constructs.
  *
  * Created by vanyas on 6/27/16.
  */

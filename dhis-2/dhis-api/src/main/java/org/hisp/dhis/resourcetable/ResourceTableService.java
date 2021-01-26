@@ -35,20 +35,18 @@ public interface ResourceTableService
     String ID = ResourceTableService.class.getName();
 
     /**
-     * Generates a resource table containing the hierarchy graph for each
-     * OrganisationUnit.
+     * Generates a resource table containing the hierarchy graph for each OrganisationUnit.
      */
     void generateOrganisationUnitStructures();
 
     /**
-     * Generates a resource table containing data sets and organisation units
-     * with their associated attribute option combinations.
+     * Generates a resource table containing data sets and organisation units with their associated attribute option
+     * combinations.
      */
     void generateDataSetOrganisationUnitCategoryTable();
 
     /**
-     * Generates a resource table containing id and a derived name for all
-     * CategoryOptionCombos.
+     * Generates a resource table containing id and a derived name for all CategoryOptionCombos.
      */
     void generateCategoryOptionComboNames();
 
@@ -90,8 +88,7 @@ public interface ResourceTableService
     void generatePeriodTable();
 
     /**
-     * Generates a resource table for all data elements and relevant category
-     * option combinations.
+     * Generates a resource table for all data elements and relevant category option combinations.
      */
     void generateCategoryOptionComboTable();
 

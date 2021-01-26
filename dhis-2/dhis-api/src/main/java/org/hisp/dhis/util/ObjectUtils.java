@@ -41,8 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 public class ObjectUtils
 {
     /**
-     * Returns the first non-null argument. Returns null if all arguments are
-     * null.
+     * Returns the first non-null argument. Returns null if all arguments are null.
      *
      * @param objects the objects.
      * @return the first non-null argument.
@@ -133,8 +132,8 @@ public class ObjectUtils
     }
 
     /**
-     * Returns a list of strings, where the strings are the result of calling
-     * String.valueOf( Object ) of each object in the given collection.
+     * Returns a list of strings, where the strings are the result of calling String.valueOf( Object ) of each object in
+     * the given collection.
      *
      * @param objects the collection of objects.
      * @return a list of strings.
@@ -152,9 +151,8 @@ public class ObjectUtils
     }
 
     /**
-     * Joins the elements of the provided collection into a string. The provided
-     * string mapping function is used to produce the string for each object.
-     * Null is returned if the provided collection is null.
+     * Joins the elements of the provided collection into a string. The provided string mapping function is used to
+     * produce the string for each object. Null is returned if the provided collection is null.
      *
      * @param collection the collection of elements.
      * @param separator the separator of elements in the returned string.

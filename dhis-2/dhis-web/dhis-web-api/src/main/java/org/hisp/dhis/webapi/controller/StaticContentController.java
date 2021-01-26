@@ -87,8 +87,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.google.common.collect.ImmutableMap;
 
 /**
- * Serves and uploads custom images for the logo on the front page (logo_front)
- * and for the logo on the top banner (logo_banner).
+ * Serves and uploads custom images for the logo on the front page (logo_front) and for the logo on the top banner
+ * (logo_banner).
  *
  * @author Stian Sandvold
  */
@@ -131,18 +131,15 @@ public class StaticContentController
     }
 
     /**
-     * Serves the descriptor object for the file associated with the given key.
-     * If the given key of the associated file is not found, this endpoint will
-     * return HTTP NOT_FOUND. The attribute "Accept=application/json" in the
-     * HTTP Header should be set in order to trigger this endpoint. The only
-     * supported image type at this moment is PNG.
+     * Serves the descriptor object for the file associated with the given key. If the given key of the associated file
+     * is not found, this endpoint will return HTTP NOT_FOUND. The attribute "Accept=application/json" in the HTTP
+     * Header should be set in order to trigger this endpoint. The only supported image type at this moment is PNG.
      *
      * @param key the key associated with the static file.
      * @param request the current HttpServletRequest.
      *
      * @return the SimpleStaticResource object related to the given key.
-     * @throws WebMessageException if the the informed key is not found or the
-     *         associated file is not persisted.
+     * @throws WebMessageException if the the informed key is not found or the associated file is not persisted.
      */
     @GetMapping( value = "/{key}", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<SimpleImageResource> getStaticImages( final @PathVariable( "key" ) String key,
@@ -175,8 +172,7 @@ public class StaticContentController
     }
 
     /**
-     * Serves the PNG associated with the key. If custom logo is not used the
-     * request will redirect to the default.
+     * Serves the PNG associated with the key. If custom logo is not used the request will redirect to the default.
      *
      * @param key key associated with the file.
      */
@@ -225,8 +221,7 @@ public class StaticContentController
     }
 
     /**
-     * Uploads PNG images based on a key. Only accepts PNG and white listed
-     * keys.
+     * Uploads PNG images based on a key. Only accepts PNG and white listed keys.
      *
      * @param key the key.
      * @param file the image file.
@@ -282,8 +277,7 @@ public class StaticContentController
     /**
      * Returns the relative URL of the default logo for a given key.
      *
-     * @param key the key associated with the logo or null if the key does not
-     *        exist.
+     * @param key the key associated with the logo or null if the key does not exist.
      * @return the relative URL of the logo.
      */
     private String getDefaultLogoUrl( HttpServletRequest request, String key )

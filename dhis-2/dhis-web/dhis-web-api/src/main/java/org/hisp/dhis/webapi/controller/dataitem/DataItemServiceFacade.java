@@ -62,11 +62,9 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.ImmutableMap;
 
 /**
- * This class is tight to the controller layer and is responsible to encapsulate
- * logic that does not belong to the controller but does not belong to the
- * service layer either. In other words, these set of methods sit between the
- * controller and service layers. The main goal is to alleviate the controller
- * layer.
+ * This class is tight to the controller layer and is responsible to encapsulate logic that does not belong to the
+ * controller but does not belong to the service layer either. In other words, these set of methods sit between the
+ * controller and service layers. The main goal is to alleviate the controller layer.
  */
 @Component
 public class DataItemServiceFacade
@@ -99,9 +97,8 @@ public class DataItemServiceFacade
     }
 
     /**
-     * This method will iterate through the list of target entities, and query
-     * each one of them using the filters and params provided. The result list
-     * will bring together the results of all target entities queried.
+     * This method will iterate through the list of target entities, and query each one of them using the filters and
+     * params provided. The result list will bring together the results of all target entities queried.
      *
      * @param targetEntities the list of entities to be retrieved
      * @param orderParams request ordering params
@@ -135,9 +132,8 @@ public class DataItemServiceFacade
     }
 
     /**
-     * This method returns a set of BaseDimensionalItemObject's based on the
-     * provided filters. It will also remove, from the filters, the objects
-     * found.
+     * This method returns a set of BaseDimensionalItemObject's based on the provided filters. It will also remove, from
+     * the filters, the objects found.
      *
      * @param filters
      * @return the data items classes to be queried
@@ -202,8 +198,7 @@ public class DataItemServiceFacade
      * @param filters request filters
      * @param options request options
      * @return the built query
-     * @throws org.hisp.dhis.query.QueryParserException if errors occur during
-     *         the query creation
+     * @throws org.hisp.dhis.query.QueryParserException if errors occur during the query creation
      */
     private Query buildQueryForEntity( final Class<? extends BaseDimensionalItemObject> entity,
         final List<String> filters, final WebOptions options )

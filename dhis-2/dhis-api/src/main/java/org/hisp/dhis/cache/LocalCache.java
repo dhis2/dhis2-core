@@ -39,8 +39,8 @@ import java.util.function.Function;
 import org.cache2k.Cache2kBuilder;
 
 /**
- * Local cache implementation of {@link Cache}. This implementation is backed by
- * Caffeine library which uses an in memory Map implementation.
+ * Local cache implementation of {@link Cache}. This implementation is backed by Caffeine library which uses an in
+ * memory Map implementation.
  *
  * @author Ameen Mohamed
  */

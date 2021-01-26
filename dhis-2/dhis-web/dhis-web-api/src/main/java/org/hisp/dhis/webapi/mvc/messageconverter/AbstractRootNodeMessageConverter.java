@@ -57,8 +57,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessageConverter<RootNode>
 {
     /**
-     * File name that will get a media type related suffix when included as an
-     * attachment file name.
+     * File name that will get a media type related suffix when included as an attachment file name.
      */
     private static final Set<String> EXTENSIBLE_ATTACHMENT_FILENAMES = Collections
         .unmodifiableSet( new HashSet<>( Collections.singleton( "metadata" ) ) );

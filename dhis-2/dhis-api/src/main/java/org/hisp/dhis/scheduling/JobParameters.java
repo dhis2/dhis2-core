@@ -33,8 +33,7 @@ import java.util.Optional;
 import org.hisp.dhis.feedback.ErrorReport;
 
 /**
- * Interface for job specific parameters. Serializable so that we can store the
- * object in the database.
+ * Interface for job specific parameters. Serializable so that we can store the object in the database.
  *
  * @author Henning Håkonsen
  */

@@ -36,9 +36,8 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 import com.google.common.collect.Lists;
 
 /**
- * PeriodType for monthly Periods. A valid monthly Period has startDate set to
- * the first day of a calendar month, and endDate set to the last day of the
- * same month.
+ * PeriodType for monthly Periods. A valid monthly Period has startDate set to the first day of a calendar month, and
+ * endDate set to the last day of the same month.
  *
  * @author Torgeir Lorange Ostby
  * @version $Id: MonthlyPeriodType.java 2971 2007-03-03 18:54:56Z torgeilo $
@@ -109,8 +108,7 @@ public class MonthlyPeriodType
     }
 
     /**
-     * Generates monthly Periods for the whole year in which the given Period's
-     * startDate exists.
+     * Generates monthly Periods for the whole year in which the given Period's startDate exists.
      */
     @Override
     public List<Period> generatePeriods( DateTimeUnit dateTimeUnit )
@@ -134,8 +132,7 @@ public class MonthlyPeriodType
     }
 
     /**
-     * Generates the last 12 months where the last one is the month which the
-     * given date is inside.
+     * Generates the last 12 months where the last one is the month which the given date is inside.
      */
     @Override
     public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )

@@ -41,8 +41,8 @@ import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 /**
- * This validator checks if in the payload there is more than one valid event
- * per enrollment based on a ProgramStage that is not repeatable.
+ * This validator checks if in the payload there is more than one valid event per enrollment based on a ProgramStage
+ * that is not repeatable.
  *
  * @author Enrico Colasante
  */

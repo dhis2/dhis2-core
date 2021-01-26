@@ -58,8 +58,8 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
- * Main Jackson Mapper configuration. Any component that requires JSON/XML
- * serialization should use the Jackson mappers configured in this class.
+ * Main Jackson Mapper configuration. Any component that requires JSON/XML serialization should use the Jackson mappers
+ * configured in this class.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

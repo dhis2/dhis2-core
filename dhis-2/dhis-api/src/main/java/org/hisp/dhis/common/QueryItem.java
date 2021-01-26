@@ -45,8 +45,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
- * Class which encapsulates a query parameter and value. Operator and filter are
- * inherited from QueryFilter.
+ * Class which encapsulates a query parameter and value. Operator and filter are inherited from QueryFilter.
  *
  * @author Lars Helge Overland
  */
@@ -180,8 +179,7 @@ public class QueryItem
     }
 
     /**
-     * Returns a string representation of the query filters. Returns null if
-     * item has no query items.
+     * Returns a string representation of the query filters. Returns null if item has no query items.
      */
     public String getFiltersAsString()
     {
@@ -246,9 +244,8 @@ public class QueryItem
     }
 
     /**
-     * Returns filter items for all filters associated with this query item. If
-     * no filter items are specified, return all items part of the legend set.
-     * If not legend set is specified, returns null.
+     * Returns filter items for all filters associated with this query item. If no filter items are specified, return
+     * all items part of the legend set. If not legend set is specified, returns null.
      */
     public List<String> getLegendSetFilterItemsOrAll()
     {
@@ -261,9 +258,8 @@ public class QueryItem
     }
 
     /**
-     * Returns filter items for all filters associated with this query item. If
-     * no filter items are specified, return all items part of the option set.
-     * If not option set is specified, returns null.
+     * Returns filter items for all filters associated with this query item. If no filter items are specified, return
+     * all items part of the option set. If not option set is specified, returns null.
      */
     public List<String> getOptionSetFilterItemsOrAll()
     {
@@ -276,9 +272,8 @@ public class QueryItem
     }
 
     /**
-     * Returns option filter items. Options are specified by code but returned
-     * as identifiers, so the codes are mapped to options and then to
-     * identifiers.
+     * Returns option filter items. Options are specified by code but returned as identifiers, so the codes are mapped
+     * to options and then to identifiers.
      *
      * //TODO clean up and standardize on identifier.
      */
@@ -302,8 +297,8 @@ public class QueryItem
     }
 
     /**
-     * Returns SQL filter for the given query filter and SQL encoded filter. If
-     * the item value type is text-based, the filter is converted to lower-case.
+     * Returns SQL filter for the given query filter and SQL encoded filter. If the item value type is text-based, the
+     * filter is converted to lower-case.
      *
      * @param filter the query filter.
      * @param encodedFilter the SQL encoded filter.

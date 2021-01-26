@@ -174,8 +174,7 @@ public class GeoFeatureController
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a list of {@link GeoFeature}. Returns null if not modified based
-     * on the request.
+     * Returns a list of {@link GeoFeature}. Returns null if not modified based on the request.
      *
      * @param ou the organisation unit parameter
      * @param oug the organisation unit group parameter
@@ -243,8 +242,7 @@ public class GeoFeatureController
      * @param params the {@link DataQueryParams}.
      * @param dimensionalItemObjects the list of {@link DimensionalItemObject}.
      * @param includeGroupSets whether to include group sets.
-     * @param useOrgUnitGroup whether to use org unit group when retrieving
-     *        features.
+     * @param useOrgUnitGroup whether to use org unit group when retrieving features.
      * @return a list of {@link GeoFeature}.
      */
     private List<GeoFeature> getGeoFeatures( DataQueryParams params,

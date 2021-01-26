@@ -82,8 +82,7 @@ public abstract class ProgramCountFunction
     }
 
     /**
-     * Get the description for the first arg #{programStageUid.dataElementUid}
-     * and return a value with its data type.
+     * Get the description for the first arg #{programStageUid.dataElementUid} and return a value with its data type.
      *
      * @param ctx the expression context
      * @param visitor the tree visitor

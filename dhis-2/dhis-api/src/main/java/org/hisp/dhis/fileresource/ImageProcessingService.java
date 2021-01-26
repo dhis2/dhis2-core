@@ -39,13 +39,11 @@ public interface ImageProcessingService
 {
     /**
      *
-     * Service creates images in pre-defined sizes given in
-     * {@link ImageFileDimension} and puts the collection in map
+     * Service creates images in pre-defined sizes given in {@link ImageFileDimension} and puts the collection in map
      *
      * @param fileResource file resource with image content type
      * @param file image file
-     * @return map containing {@link ImageFileDimension} and its associated
-     *         file.
+     * @return map containing {@link ImageFileDimension} and its associated file.
      */
     Map<ImageFileDimension, File> createImages( FileResource fileResource, File file );
 }

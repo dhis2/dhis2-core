@@ -130,8 +130,7 @@ public interface PredictorService
     /**
      * Get all predictor groups.
      *
-     * @return a List of predictor groups or null if it there are no predictor
-     *         groups.
+     * @return a List of predictor groups or null if it there are no predictor groups.
      */
     List<PredictorGroup> getAllPredictorGroups();
 }

@@ -67,15 +67,14 @@ public class FilterUtils
     }
 
     /**
-     * Filters the given collection using the given {@link Filter} retaining
-     * only items which does NOT pass the filter evaluation.
+     * Filters the given collection using the given {@link Filter} retaining only items which does NOT pass the filter
+     * evaluation.
      *
      * @param <T> type.
      * @param collection the {@link Collection}.
      * @param filter the filter.
      * @param <V> the type of the collection members.
-     * @return the inverse filtered collection, null if any input parameter is
-     *         null.
+     * @return the inverse filtered collection, null if any input parameter is null.
      */
     public static <T extends Collection<V>, V> T inverseFilter( T collection, Filter<V> filter )
     {

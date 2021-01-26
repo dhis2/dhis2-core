@@ -47,8 +47,7 @@ public interface AnalyticsTableHookStore
     List<AnalyticsTableHook> getByPhase( AnalyticsTablePhase phase );
 
     /**
-     * Returns a list of {@link AnalyticsTableHook} with the given phase and
-     * given resource table type.
+     * Returns a list of {@link AnalyticsTableHook} with the given phase and given resource table type.
      *
      * @param phase the {@link AnalyticsTablePhase}.
      * @param resourceTableType the {@link ResourceTableType}.
@@ -58,8 +57,7 @@ public interface AnalyticsTableHookStore
         ResourceTableType resourceTableType );
 
     /**
-     * Returns a list of {@link AnalyticsTableHook} with the given phase and
-     * given analytics table type.
+     * Returns a list of {@link AnalyticsTableHook} with the given phase and given analytics table type.
      *
      * @param phase the {@link AnalyticsTablePhase}.
      * @param analyticsTableType the {@link AnalyticsTableType}.
@@ -69,8 +67,7 @@ public interface AnalyticsTableHookStore
         AnalyticsTableType analyticsTableType );
 
     /**
-     * Executes the SQL commands for the given list of
-     * {@link AnalyticsTableHook}.
+     * Executes the SQL commands for the given list of {@link AnalyticsTableHook}.
      *
      * @param hooks the list of analytics table hooks.
      */

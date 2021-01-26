@@ -49,9 +49,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * This filter places an hashed version of the Session ID in the Log4j Mapped
- * Diagnostic Context (MDC) of log4j. The session id is then logged in all log
- * statements and can be used to correlate different requests.
+ * This filter places an hashed version of the Session ID in the Log4j Mapped Diagnostic Context (MDC) of log4j. The
+ * session id is then logged in all log statements and can be used to correlate different requests.
  *
  * @author Luciano Fiandesio
  */

@@ -63,14 +63,12 @@ public class DefaultPreheatCacheService implements PreheatCacheService
     /**
      * Data structure to hold the metadata cache:
      *
-     * - the key is the full class name of the metadata class getting cached
-     * (e.g. "org.hisp.dhis.program.Program")
+     * - the key is the full class name of the metadata class getting cached (e.g. "org.hisp.dhis.program.Program")
      *
      * - the value is a Cache2K cache holding the objects to cache
      *
-     * Caveat: this data structure may reference multiple times the same
-     * objects, if different {@link TrackerIdScheme} are used during different
-     * imports.
+     * Caveat: this data structure may reference multiple times the same objects, if different {@link TrackerIdScheme}
+     * are used during different imports.
      */
     private static Map<String, Cache<String, IdentifiableObject>> cache = new HashMap<>();
 

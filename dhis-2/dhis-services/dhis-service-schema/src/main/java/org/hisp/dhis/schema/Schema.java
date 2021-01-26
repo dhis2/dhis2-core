@@ -105,15 +105,13 @@ public class Schema implements Ordered, Klass
     private final String plural;
 
     /**
-     * Is this class considered metadata, this is mainly used for our metadata
-     * importer/exporter.
+     * Is this class considered metadata, this is mainly used for our metadata importer/exporter.
      */
     private final boolean metadata;
 
     /**
-     * Specifies if the class is a more installation specific metadata object,
-     * that will not be exported by default. In some cases it is meaningful that
-     * this metadata can also be transferred between system installations.
+     * Specifies if the class is a more installation specific metadata object, that will not be exported by default. In
+     * some cases it is meaningful that this metadata can also be transferred between system installations.
      */
     private final boolean secondaryMetadata;
 
@@ -123,9 +121,8 @@ public class Schema implements Ordered, Klass
     private String namespace;
 
     /**
-     * This will normally be set to equal singular, but in certain cases it
-     * might be useful to have another name for when this class is used as an
-     * item inside a collection.
+     * This will normally be set to equal singular, but in certain cases it might be useful to have another name for
+     * when this class is used as an item inside a collection.
      */
     private String name;
 
@@ -135,8 +132,8 @@ public class Schema implements Ordered, Klass
     private String displayName;
 
     /**
-     * This will normally be set to equal plural, and is normally used as a
-     * wrapper for a collection of instances of this klass type.
+     * This will normally be set to equal plural, and is normally used as a wrapper for a collection of instances of
+     * this klass type.
      */
     private String collectionName;
 
@@ -161,26 +158,22 @@ public class Schema implements Ordered, Klass
     private String apiEndpoint;
 
     /**
-     * Used by LinkService to link to the Schema describing this type (if
-     * reference).
+     * Used by LinkService to link to the Schema describing this type (if reference).
      */
     private String href;
 
     /**
-     * Are any properties on this class being persisted, if false, this file
-     * does not have any hbm file attached to it.
+     * Are any properties on this class being persisted, if false, this file does not have any hbm file attached to it.
      */
     private boolean persisted;
 
     /**
-     * Should new instances always be default private, even if the user can
-     * create public instances.
+     * Should new instances always be default private, even if the user can create public instances.
      */
     private boolean defaultPrivate;
 
     /**
-     * If this is true, do not require private authority for create/update of
-     * instances of this type.
+     * If this is true, do not require private authority for create/update of instances of this type.
      */
     private boolean implicitPrivateAuthority;
 
@@ -190,8 +183,7 @@ public class Schema implements Ordered, Klass
     private List<Authority> authorities = Lists.newArrayList();
 
     /**
-     * Map of all exposed properties on this class, where key is property name,
-     * and value is instance of Property class.
+     * Map of all exposed properties on this class, where key is property name, and value is instance of Property class.
      *
      * @see org.hisp.dhis.schema.Property
      */
@@ -304,12 +296,10 @@ public class Schema implements Ordered, Klass
     }
 
     /**
-     * Returns if class contains more installation specific metadata, that will
-     * not be exported by default. In some cases it is meaningful that this
-     * metadata can also be transferred between system installations.
+     * Returns if class contains more installation specific metadata, that will not be exported by default. In some
+     * cases it is meaningful that this metadata can also be transferred between system installations.
      *
-     * @return <code>true</code> if class contains more installation specific
-     *         metadata.
+     * @return <code>true</code> if class contains more installation specific metadata.
      */
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

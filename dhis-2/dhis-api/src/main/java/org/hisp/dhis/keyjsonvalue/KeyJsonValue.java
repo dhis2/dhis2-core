@@ -49,8 +49,7 @@ public class KeyJsonValue
     private String key;
 
     /**
-     * A value referenced by a key and namespace, JSON-formatted data stored as
-     * a string but in a jsonb column.
+     * A value referenced by a key and namespace, JSON-formatted data stored as a string but in a jsonb column.
      */
     private String jbPlainValue;
 
@@ -65,9 +64,8 @@ public class KeyJsonValue
     private String encryptedValue;
 
     /**
-     * Temporary variable to hold any new values set during session. Will be
-     * made into the correct type when being persisted by the persistence layer
-     * (encrypted or plain).
+     * Temporary variable to hold any new values set during session. Will be made into the correct type when being
+     * persisted by the persistence layer (encrypted or plain).
      */
     private String value;
 

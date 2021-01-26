@@ -51,8 +51,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
- * Allows certain type/uid combinations to be externally accessed (no login
- * required).
+ * Allows certain type/uid combinations to be externally accessed (no login required).
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

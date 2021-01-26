@@ -37,18 +37,15 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 import com.google.common.collect.Lists;
 
 /**
- * Remaps approval levels within a workflow for analytics tables approved data
- * visibility. This handles the case where a workflow does not include all data
- * approval levels. Where approval levels are skipped by the workflow, they are
+ * Remaps approval levels within a workflow for analytics tables approved data visibility. This handles the case where a
+ * workflow does not include all data approval levels. Where approval levels are skipped by the workflow, they are
  * remapped upwords so that higher-level users can see the approved data.
  * <p/>
- * For example, if a workfow includes approval levels 1,2,4, and 5, the approved
- * data will be tagged at levels 1,2,3, and 5. This allows level 2 users to see
- * data in this workflow that is approved at level 4.
+ * For example, if a workfow includes approval levels 1,2,4, and 5, the approved data will be tagged at levels 1,2,3,
+ * and 5. This allows level 2 users to see data in this workflow that is approved at level 4.
  * <p/>
- * As another example, if a workflow includes levels 3,4,5, and 7, the approved
- * data will be tagged at levels 1,4,5, and 6. This allows level 1 users to see
- * level 3 approved data, and level 5 users to see level 7 approved data.
+ * As another example, if a workflow includes levels 3,4,5, and 7, the approved data will be tagged at levels 1,4,5, and
+ * 6. This allows level 1 users to see level 3 approved data, and level 5 users to see level 7 approved data.
  *
  * @author Jim Grace
  */

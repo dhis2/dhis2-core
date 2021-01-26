@@ -45,9 +45,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
- * Class for Audit messages, mostly compatible with
- * {@link org.hisp.dhis.audit.Audit} but has some additions relevant only to
- * Artemis messages.
+ * Class for Audit messages, mostly compatible with {@link org.hisp.dhis.audit.Audit} but has some additions relevant
+ * only to Artemis messages.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -82,16 +81,15 @@ public class Audit implements SerializableMessage
     private AuditAttributes attributes = new AuditAttributes();
 
     /**
-     * This property holds the serialized Audited entity: it should not be used
-     * during the construction of an instance of this object
+     * This property holds the serialized Audited entity: it should not be used during the construction of an instance
+     * of this object
      */
     @JsonProperty
     private Object data;
 
     /**
-     * This property should be used when constructing an Audit instance to send
-     * to the Audit sub-system The AuditableEntity object allows the
-     * AuditManager to serialize the audited entity only if needed
+     * This property should be used when constructing an Audit instance to send to the Audit sub-system The
+     * AuditableEntity object allows the AuditManager to serialize the audited entity only if needed
      */
     @JsonIgnore
     private AuditableEntity auditableEntity;
@@ -103,8 +101,7 @@ public class Audit implements SerializableMessage
     }
 
     /**
-     * Converts the AMQP Audit object to a DAO Audit object. The data property
-     * will only be set if data == string.
+     * Converts the AMQP Audit object to a DAO Audit object. The data property will only be set if data == string.
      * <p>
      * TODO should we just do .toString() if its not a string objects?
      *

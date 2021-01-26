@@ -51,8 +51,7 @@ public interface MetadataExportService
         MetadataExportParams params );
 
     /**
-     * Returns same result as getMetadata, but metadata is returned as Node
-     * objects instead.
+     * Returns same result as getMetadata, but metadata is returned as Node objects instead.
      *
      * @param params Export parameters
      * @return RootNode instance with children containing all exported objects
@@ -67,8 +66,7 @@ public interface MetadataExportService
     void validate( MetadataExportParams params );
 
     /**
-     * Parses, and creates a MetadataExportParams instance based on given map of
-     * parameters.
+     * Parses, and creates a MetadataExportParams instance based on given map of parameters.
      *
      * @param parameters Key-Value map of wanted parameters
      * @return MetadataExportParams instance created based on input parameters
@@ -76,9 +74,8 @@ public interface MetadataExportService
     MetadataExportParams getParamsFromMap( Map<String, List<String>> parameters );
 
     /**
-     * Exports an object including a set of selected dependencies. Only a subset
-     * of the specified export parameters are used for the metadata with
-     * dependencies export.
+     * Exports an object including a set of selected dependencies. Only a subset of the specified export parameters are
+     * used for the metadata with dependencies export.
      *
      * @param object Object to export including dependencies
      * @return Original object + selected set of dependencies
@@ -87,14 +84,12 @@ public interface MetadataExportService
         IdentifiableObject object );
 
     /**
-     * Exports an object including a set of selected dependencies as RootNode.
-     * Only a subset of the specified export parameters are used for the
-     * metadata with dependencies export.
+     * Exports an object including a set of selected dependencies as RootNode. Only a subset of the specified export
+     * parameters are used for the metadata with dependencies export.
      *
      * @param object Object to export including dependencies
      * @param params Parameters that affect the export.
-     * @return Original object + selected set of dependencies, exported as
-     *         RootNode
+     * @return Original object + selected set of dependencies, exported as RootNode
      */
     RootNode getMetadataWithDependenciesAsNode( IdentifiableObject object, @Nonnull MetadataExportParams params );
 

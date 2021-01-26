@@ -34,8 +34,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.notification.TemplateVariable;
 
 /**
- * Defines the variables for a {@link ProgramNotificationTemplate}. on a
- * {@link org.hisp.dhis.program.Program Program}.
+ * Defines the variables for a {@link ProgramNotificationTemplate}. on a {@link org.hisp.dhis.program.Program Program}.
  *
  * The supported variable names are:
  *

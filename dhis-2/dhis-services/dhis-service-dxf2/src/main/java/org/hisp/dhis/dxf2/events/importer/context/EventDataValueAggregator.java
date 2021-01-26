@@ -45,8 +45,8 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
- * Consolidates Event Data Values in a single Map, where the key is the Event
- * uid and the value is a Set of {@see EventDataValue}, ready for persistence.
+ * Consolidates Event Data Values in a single Map, where the key is the Event uid and the value is a Set of
+ * {@see EventDataValue}, ready for persistence.
  *
  *
  * @author Luciano Fiandesio

@@ -54,8 +54,7 @@ public interface TrackedEntityInstanceAuditService
     void addTrackedEntityInstanceAudit( List<TrackedEntityInstanceAudit> trackedEntityInstanceAudits );
 
     /**
-     * Deletes tracked entity instance audit for the given tracked entity
-     * instance
+     * Deletes tracked entity instance audit for the given tracked entity instance
      *
      * @param trackedEntityInstance the tracked entity instance
      */

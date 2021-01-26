@@ -39,9 +39,8 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 
 /**
- * When storing DataValues without associated dimensions there is a need to
- * refer to a default dimension. This populator persists a CategoryCombo named
- * by the CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME property and a corresponding
+ * When storing DataValues without associated dimensions there is a need to refer to a default dimension. This populator
+ * persists a CategoryCombo named by the CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME property and a corresponding
  * DataElementCatoryOptionCombo which should be used for this purpose.
  *
  * @author Lars Helge Overland

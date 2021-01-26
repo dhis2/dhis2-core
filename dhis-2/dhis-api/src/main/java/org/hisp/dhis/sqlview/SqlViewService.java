@@ -81,8 +81,7 @@ public interface SqlViewService
      * Creates the SQL view in the database. Checks if the SQL query is valid.
      *
      * @param sqlView the SQL view.
-     * @return null if the view was created successfully, a non-null error
-     *         message if the operation failed.
+     * @return null if the view was created successfully, a non-null error message if the operation failed.
      * @throws {@link IllegalQueryException} if the SQL query is invalid.
      */
     String createViewTable( SqlView sqlView );
@@ -93,10 +92,8 @@ public interface SqlViewService
      * Returns the SQL view as a grid. Checks if the SQL query is valid.
      *
      * @param sqlView the SQL view to render.
-     * @param criteria the criteria on the format key:value, will be applied as
-     *        criteria on the SQL result set.
-     * @param variables the variables on the format key:value, will be
-     *        substituted with variables inside the SQL view.
+     * @param criteria the criteria on the format key:value, will be applied as criteria on the SQL result set.
+     * @param variables the variables on the format key:value, will be substituted with variables inside the SQL view.
      * @return a grid.
      * @throws {@link IllegalQueryException} if the SQL query is invalid.
      */

@@ -36,9 +36,8 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 import com.google.common.collect.Lists;
 
 /**
- * PeriodType for quarterly Periods. A valid quarterly Period has startDate set
- * to the first day of a calendar quarter, and endDate set to the last day of
- * the same quarter.
+ * PeriodType for quarterly Periods. A valid quarterly Period has startDate set to the first day of a calendar quarter,
+ * and endDate set to the last day of the same quarter.
  *
  * @author Torgeir Lorange Ostby
  * @version $Id: QuarterlyPeriodType.java 2971 2007-03-03 18:54:56Z torgeilo $
@@ -120,8 +119,7 @@ public class QuarterlyPeriodType
     }
 
     /**
-     * Generates quarterly Periods for the whole year in which the given
-     * Period's startDate exists.
+     * Generates quarterly Periods for the whole year in which the given Period's startDate exists.
      */
     @Override
     public List<Period> generatePeriods( DateTimeUnit dateTimeUnit )
@@ -144,8 +142,7 @@ public class QuarterlyPeriodType
     }
 
     /**
-     * Generates the last 4 quarters where the last one is the quarter which the
-     * given date is inside.
+     * Generates the last 4 quarters where the last one is the quarter which the given date is inside.
      */
     @Override
     public List<Period> generateRollingPeriods( Date date )

@@ -32,8 +32,8 @@ import org.hisp.dhis.schema.Klass;
 import com.google.common.collect.Iterators;
 
 /**
- * Simple class for checking if an object is one of several allowed classes,
- * mainly used in Operator where a parameter can be type constrained.
+ * Simple class for checking if an object is one of several allowed classes, mainly used in Operator where a parameter
+ * can be type constrained.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

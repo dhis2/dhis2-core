@@ -80,8 +80,7 @@ public class FileResourceBlocklist
         "bat" );
 
     /**
-     * Indicates whether the given file resource has a valid file extension and
-     * content type according to the blacklist.
+     * Indicates whether the given file resource has a valid file extension and content type according to the blacklist.
      *
      * @param fileResource the {@link FileResource}.
      * @return true if valid, false if invalid.

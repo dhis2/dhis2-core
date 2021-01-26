@@ -64,8 +64,8 @@ public interface GenericStore<T>
     void delete( T object );
 
     /**
-     * Retrieves the object with the given identifier. This method will first
-     * look in the current Session, then hit the database if not existing.
+     * Retrieves the object with the given identifier. This method will first look in the current Session, then hit the
+     * database if not existing.
      *
      * @param id the object identifier.
      * @return the object identified by the given identifier.

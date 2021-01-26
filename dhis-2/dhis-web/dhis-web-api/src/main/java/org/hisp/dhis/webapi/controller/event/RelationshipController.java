@@ -273,8 +273,7 @@ public class RelationshipController
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a Predicate that filters out ImportSummary depending on
-     * importOptions and the summary itself
+     * Returns a Predicate that filters out ImportSummary depending on importOptions and the summary itself
      *
      * @param importOptions
      * @return a Predicate for ImportSummary
@@ -288,9 +287,8 @@ public class RelationshipController
     }
 
     /**
-     * Creates a Consumer that takes an ImportSummary and sets the href
-     * property, based on the request root path, api endpoint and the reference
-     * from the import summary.
+     * Creates a Consumer that takes an ImportSummary and sets the href property, based on the request root path, api
+     * endpoint and the reference from the import summary.
      *
      * @param request
      * @return a Consumer for ImportSummary

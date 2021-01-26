@@ -164,8 +164,7 @@ public abstract class AbstractAnalyticsService
     protected abstract long addEventData( Grid grid, EventQueryParams params );
 
     /**
-     * Adds meta data values to the given grid based on the given data query
-     * parameters.
+     * Adds meta data values to the given grid based on the given data query parameters.
      *
      * @param params the data query parameters.
      * @param grid the grid.
@@ -243,8 +242,7 @@ public abstract class AbstractAnalyticsService
     }
 
     /**
-     * Returns a map between dimension identifiers and lists of dimension item
-     * identifiers.
+     * Returns a map between dimension identifiers and lists of dimension item identifiers.
      *
      * @param params the data query parameters.
      * @return a map.

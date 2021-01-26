@@ -32,9 +32,8 @@ import java.util.Date;
 import org.hisp.dhis.user.User;
 
 /**
- * Current status of data approval for a given selection of data from a data
- * set. Returns the approval state and, if approved for this particular
- * selection, approval information.
+ * Current status of data approval for a given selection of data from a data set. Returns the approval state and, if
+ * approved for this particular selection, approval information.
  *
  * @author Jim Grace
  */
@@ -46,22 +45,19 @@ public class DataApprovalStatus
     private DataApprovalState state;
 
     /**
-     * If the selection of data is approved, the data approval level object at
-     * which it is approved. If the selection is approved at more than one
-     * level, this is for the highest level of approval.
+     * If the selection of data is approved, the data approval level object at which it is approved. If the selection is
+     * approved at more than one level, this is for the highest level of approval.
      */
     private DataApprovalLevel approvedLevel;
 
     /**
-     * If the selection of data is approved, the ID of the highest organisation
-     * unit at which there is approval.
+     * If the selection of data is approved, the ID of the highest organisation unit at which there is approval.
      */
     private int approvedOrgUnitId;
 
     /**
-     * If the selection of data is approved, the approval level (same as above)
-     * but if the selection is not approved, the level for this orgUnit at which
-     * it could be approved (if any).
+     * If the selection of data is approved, the approval level (same as above) but if the selection is not approved,
+     * the level for this orgUnit at which it could be approved (if any).
      */
     private DataApprovalLevel actionLevel;
 
@@ -81,8 +77,7 @@ public class DataApprovalStatus
     private String attributeOptionComboUid;
 
     /**
-     * If the selection is approved, whether or not it is accepted at the
-     * highest level approved.
+     * If the selection is approved, whether or not it is accepted at the highest level approved.
      */
     private boolean accepted;
 
@@ -92,14 +87,13 @@ public class DataApprovalStatus
     private DataApprovalPermissions permissions;
 
     /**
-     * If the selection is approved, and if present (not always needed), the
-     * date at which the highest level of approval was created.
+     * If the selection is approved, and if present (not always needed), the date at which the highest level of approval
+     * was created.
      */
     private Date created;
 
     /**
-     * If the selection is approved, and if present (not always needed), The
-     * user who made this approval.
+     * If the selection is approved, and if present (not always needed), The user who made this approval.
      */
     private User creator;
 

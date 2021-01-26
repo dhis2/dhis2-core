@@ -42,13 +42,11 @@ import org.springframework.util.concurrent.ListenableFuture;
 public interface MessageSender
 {
     /**
-     * Sends a message. The given message will be sent to the given set of
-     * users.
+     * Sends a message. The given message will be sent to the given set of users.
      *
      * @param subject the message subject.
      * @param text the message text.
-     * @param footer the message footer. Optionally included by the
-     *        implementation.
+     * @param footer the message footer. Optionally included by the implementation.
      * @param users the users to send the message to.
      * @param forceSend force sending the message despite user settings.
      */

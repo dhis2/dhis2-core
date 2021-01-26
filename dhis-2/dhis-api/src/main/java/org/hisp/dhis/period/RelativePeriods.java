@@ -384,8 +384,8 @@ public class RelativePeriods
     }
 
     /**
-     * Gets a list of Periods based on the given input and the state of this
-     * RelativePeriods. The current date is set to todays date minus one month.
+     * Gets a list of Periods based on the given input and the state of this RelativePeriods. The current date is set to
+     * todays date minus one month.
      *
      * @param format the i18n format.
      * @return a list of relative Periods.
@@ -396,15 +396,12 @@ public class RelativePeriods
     }
 
     /**
-     * Gets a list of Periods based on the given input and the state of this
-     * RelativePeriods.
+     * Gets a list of Periods based on the given input and the state of this RelativePeriods.
      *
-     * @param date the date representing now. If null the current date will be
-     *        used.
+     * @param date the date representing now. If null the current date will be used.
      * @param format the i18n format.
-     * @param financialYearStart the start of a financial year. Configurable
-     *        through system settings and should be one of the values in the
-     *        enum {@link AnalyticsFinancialYearStartKey}
+     * @param financialYearStart the start of a financial year. Configurable through system settings and should be one
+     *        of the values in the enum {@link AnalyticsFinancialYearStartKey}
      * @return a list of relative Periods.
      */
     public List<Period> getRelativePeriods( Date date, I18nFormat format, boolean dynamicNames,
@@ -660,8 +657,7 @@ public class RelativePeriods
     }
 
     /**
-     * Gets a list of financial periods based on the given input and the state
-     * of this RelativePeriods.
+     * Gets a list of financial periods based on the given input and the state of this RelativePeriods.
      *
      * @param financialPeriodType The financial period type to get
      * @param format the i18n format.
@@ -697,8 +693,8 @@ public class RelativePeriods
     }
 
     /**
-     * Returns a list of relative periods. The name will be dynamic depending on
-     * the dynamicNames argument. The short name will always be dynamic.
+     * Returns a list of relative periods. The name will be dynamic depending on the dynamicNames argument. The short
+     * name will always be dynamic.
      *
      * @param periodType the period type.
      * @param periodNames the array of period names.
@@ -714,9 +710,8 @@ public class RelativePeriods
     }
 
     /**
-     * Returns a list of relative rolling periods. The name will be dynamic
-     * depending on the dynamicNames argument. The short name will always be
-     * dynamic.
+     * Returns a list of relative rolling periods. The name will be dynamic depending on the dynamicNames argument. The
+     * short name will always be dynamic.
      *
      * @param periodType the period type.
      * @param periodNames the array of period names.
@@ -732,8 +727,8 @@ public class RelativePeriods
     }
 
     /**
-     * Returns a list of relative periods. The name will be dynamic depending on
-     * the dynamicNames argument. The short name will always be dynamic.
+     * Returns a list of relative periods. The name will be dynamic depending on the dynamicNames argument. The short
+     * name will always be dynamic.
      *
      * @param relatives the list of periods.
      * @param periodNames the array of period names.
@@ -757,8 +752,8 @@ public class RelativePeriods
     }
 
     /**
-     * Returns relative period. The name will be dynamic depending on the
-     * dynamicNames argument. The short name will always be dynamic.
+     * Returns relative period. The name will be dynamic depending on the dynamicNames argument. The short name will
+     * always be dynamic.
      *
      * @param periodType the period type.
      * @param periodName the period name.
@@ -774,9 +769,8 @@ public class RelativePeriods
     }
 
     /**
-     * Sets the name and short name of the given Period. The name will be
-     * formatted to the real period name if the given dynamicNames argument is
-     * true. The short name will be formatted in any case.
+     * Sets the name and short name of the given Period. The name will be formatted to the real period name if the given
+     * dynamicNames argument is true. The short name will be formatted in any case.
      *
      * @param period the period.
      * @param periodName the period name.
@@ -792,13 +786,11 @@ public class RelativePeriods
     }
 
     /**
-     * Returns a RelativePeriods instance based on the given list of
-     * RelativePeriodsEnum.
+     * Returns a RelativePeriods instance based on the given list of RelativePeriodsEnum.
      *
      * @param relativePeriod a list of RelativePeriodsEnum.
-     * @param financialYearStart the start of a financial year. Configurable
-     *        through system settings and should be one of the values in the
-     *        enum {@link AnalyticsFinancialYearStartKey}
+     * @param financialYearStart the start of a financial year. Configurable through system settings and should be one
+     *        of the values in the enum {@link AnalyticsFinancialYearStartKey}
      * @return a RelativePeriods instance.
      */
     public static List<Period> getRelativePeriodsFromEnum( RelativePeriodEnum relativePeriod, Date date,
@@ -857,8 +849,7 @@ public class RelativePeriods
     }
 
     /**
-     * Returns a list of RelativePeriodEnums based on the state of this
-     * RelativePeriods.
+     * Returns a list of RelativePeriodEnums based on the state of this RelativePeriods.
      *
      * @return a list of RelativePeriodEnums.
      */

@@ -66,9 +66,8 @@ public class MetadataImportParams
     private User user;
 
     /**
-     * How should the user property be handled, by default it is left as is. You
-     * can override this to use current user, or a selected user instead (not
-     * yet supported).
+     * How should the user property be handled, by default it is left as is. You can override this to use current user,
+     * or a selected user instead (not yet supported).
      */
     private UserOverrideMode userOverrideMode = UserOverrideMode.NONE;
 
@@ -113,8 +112,7 @@ public class MetadataImportParams
     private FlushMode flushMode = FlushMode.AUTO;
 
     /**
-     * Decides how much to report back to the user (errors only, or a more full
-     * per object report).
+     * Decides how much to report back to the user (errors only, or a more full per object report).
      */
     private ImportReportMode importReportMode = ImportReportMode.ERRORS;
 

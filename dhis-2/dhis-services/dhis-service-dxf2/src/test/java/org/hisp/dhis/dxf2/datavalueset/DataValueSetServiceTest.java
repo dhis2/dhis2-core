@@ -1111,8 +1111,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
     }
 
     /**
-     * User does not have data write access for DataSet Expect fail on data
-     * sharing check
+     * User does not have data write access for DataSet Expect fail on data sharing check
      *
      * @throws IOException
      */
@@ -1134,8 +1133,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
     }
 
     /**
-     * User has data write access for DataSet DataValue use default category
-     * combo Expect success
+     * User has data write access for DataSet DataValue use default category combo Expect success
      *
      * @throws IOException
      */
@@ -1156,8 +1154,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
     }
 
     /**
-     * User has data write access for DataSet and data read access for
-     * categoryOptions Expect fail
+     * User has data write access for DataSet and data read access for categoryOptions Expect fail
      *
      * @throws IOException
      */
@@ -1180,8 +1177,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
     }
 
     /**
-     * User has data write access for DataSet and also categoryOptions Expect
-     * success
+     * User has data write access for DataSet and also categoryOptions Expect success
      *
      * @throws IOException
      */

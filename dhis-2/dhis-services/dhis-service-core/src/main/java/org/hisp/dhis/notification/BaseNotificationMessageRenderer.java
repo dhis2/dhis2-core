@@ -176,8 +176,8 @@ public abstract class BaseNotificationMessageRenderer<T>
     // -------------------------------------------------------------------------
 
     /**
-     * Gets a Map of variable resolver functions, keyed by the Template
-     * Variable. The returned Map should not be mutable.
+     * Gets a Map of variable resolver functions, keyed by the Template Variable. The returned Map should not be
+     * mutable.
      */
     protected abstract Map<TemplateVariable, Function<T, String>> getVariableResolvers();
 

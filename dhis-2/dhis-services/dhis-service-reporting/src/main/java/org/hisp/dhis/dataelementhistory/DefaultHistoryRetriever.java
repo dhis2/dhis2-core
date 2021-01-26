@@ -173,12 +173,10 @@ public class DefaultHistoryRetriever
     }
 
     /**
-     * Finds the lowest value entered in the periode given by
-     * history.historyLenght.
+     * Finds the lowest value entered in the periode given by history.historyLenght.
      *
      * @param history DataElementHistory
-     * @return the lowest Double value entred. If no values are entred,
-     *         Double.MAX_VALUE is returned
+     * @return the lowest Double value entred. If no values are entred, Double.MAX_VALUE is returned
      */
     private Double getMinValue( DataElementHistory history )
     {
@@ -200,12 +198,10 @@ public class DefaultHistoryRetriever
     }
 
     /**
-     * Finds the highest value entered in the periode given by
-     * history.historyLenght.
+     * Finds the highest value entered in the periode given by history.historyLenght.
      *
      * @param history DataElementHistory
-     * @return the highest entred value. If no value is entred
-     *         Double.NEGATIVE_INFINITY is returned
+     * @return the highest entred value. If no value is entred Double.NEGATIVE_INFINITY is returned
      */
     private Double getMaxValue( DataElementHistory history )
     {

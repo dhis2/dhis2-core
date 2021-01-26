@@ -158,13 +158,11 @@ public class ContextUtils
     }
 
     /**
-     * Clears the given collection if it is not modified according to the HTTP
-     * cache validation. This method looks up the ETag sent in the request from
-     * the "If-None-Match" header value, generates an ETag based on the given
-     * collection of IdentifiableObjects and compares them for equality. If this
-     * evaluates to true, it will set status code 304 Not Modified on the
-     * response and remove all elements from the given list. It will also set
-     * the ETag header on the response in any case.
+     * Clears the given collection if it is not modified according to the HTTP cache validation. This method looks up
+     * the ETag sent in the request from the "If-None-Match" header value, generates an ETag based on the given
+     * collection of IdentifiableObjects and compares them for equality. If this evaluates to true, it will set status
+     * code 304 Not Modified on the response and remove all elements from the given list. It will also set the ETag
+     * header on the response in any case.
      *
      * @param request the HttpServletRequest.
      * @param response the HttpServletResponse.
@@ -192,12 +190,10 @@ public class ContextUtils
     }
 
     /**
-     * Returns true if the given object is not modified according to the HTTP
-     * cache validation. This method looks up the ETag sent in the request from
-     * the "If-None-Match" header value, generates an ETag based on the given
-     * collection of IdentifiableObjects and compares them for equality. If this
-     * evaluates to true, it will set status code 304 Not Modified on the
-     * response. It will also set the ETag header on the response in any case.
+     * Returns true if the given object is not modified according to the HTTP cache validation. This method looks up the
+     * ETag sent in the request from the "If-None-Match" header value, generates an ETag based on the given collection
+     * of IdentifiableObjects and compares them for equality. If this evaluates to true, it will set status code 304 Not
+     * Modified on the response. It will also set the ETag header on the response in any case.
      *
      * @param request the HttpServletRequest.
      * @param response the HttpServletResponse.
@@ -223,8 +219,7 @@ public class ContextUtils
     }
 
     /**
-     * Creates a ZipOutputStream based on the HttpServletResponse and puts a new
-     * ZipEntry with the given filename to it.
+     * Creates a ZipOutputStream based on the HttpServletResponse and puts a new ZipEntry with the given filename to it.
      *
      * @param out the output stream.
      * @param fileName the filename of the file inside the ZIP archive.

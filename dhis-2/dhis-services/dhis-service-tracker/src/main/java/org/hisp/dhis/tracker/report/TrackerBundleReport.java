@@ -40,8 +40,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * The Bundle Report is responsible for aggregating the outcome of the
- * persistence stage of the Tracker Import.
+ * The Bundle Report is responsible for aggregating the outcome of the persistence stage of the Tracker Import.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

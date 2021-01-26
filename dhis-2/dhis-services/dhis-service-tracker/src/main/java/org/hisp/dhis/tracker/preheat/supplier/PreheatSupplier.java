@@ -38,8 +38,7 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 public interface PreheatSupplier
 {
     /**
-     * Adds data to the {@link TrackerPreheat} using the supplied
-     * {@link TrackerImportParams}
+     * Adds data to the {@link TrackerPreheat} using the supplied {@link TrackerImportParams}
      *
      * @param params {@link TrackerImportParams}
      * @param preheat {@link TrackerPreheat}

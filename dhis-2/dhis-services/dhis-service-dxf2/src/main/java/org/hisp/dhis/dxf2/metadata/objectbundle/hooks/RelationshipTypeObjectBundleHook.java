@@ -106,8 +106,7 @@ public class RelationshipTypeObjectBundleHook
     }
 
     /**
-     * Handles the references for RelationshipType, persisting any objects that
-     * might end up in a transient state.
+     * Handles the references for RelationshipType, persisting any objects that might end up in a transient state.
      *
      * @param relationshipType
      */
@@ -118,8 +117,7 @@ public class RelationshipTypeObjectBundleHook
     }
 
     /**
-     * Handles the references for RelationshipConstraint, persisting any bject
-     * that might end up in a transient state.
+     * Handles the references for RelationshipConstraint, persisting any bject that might end up in a transient state.
      *
      * @param relationshipConstraint
      */
@@ -151,8 +149,7 @@ public class RelationshipTypeObjectBundleHook
     }
 
     /**
-     * Validates the RelationshipType. A type should have constraints for both
-     * left and right side.
+     * Validates the RelationshipType. A type should have constraints for both left and right side.
      *
      * @param relationshipType
      * @return
@@ -184,9 +181,8 @@ public class RelationshipTypeObjectBundleHook
     }
 
     /**
-     * Validates RelationshipConstraint. Each constraint requires different
-     * properties set or not set depending on the RelationshipEntity set for
-     * this constraint.
+     * Validates RelationshipConstraint. Each constraint requires different properties set or not set depending on the
+     * RelationshipEntity set for this constraint.
      *
      * @param constraint
      * @return

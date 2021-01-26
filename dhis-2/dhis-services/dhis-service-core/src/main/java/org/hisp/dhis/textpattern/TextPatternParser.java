@@ -47,8 +47,7 @@ public class TextPatternParser
         String.format( "[\\s]*(?<Segment>(?<Method>%s|%s)|%s)+?[\\s]*", TEXT_REGEX, METHOD_REGEX, JOIN_REGEX ) );
 
     /**
-     * Parses an expression, identifying segments and builds an IDExpression.
-     * throws exception if syntax is invalid
+     * Parses an expression, identifying segments and builds an IDExpression. throws exception if syntax is invalid
      *
      * @param pattern the expression to parse
      * @return IDExpression representing the expression
@@ -78,8 +77,8 @@ public class TextPatternParser
         /*
          * We go trough all matches. Matches can be one of the following:
          *
-         * <ul> <li>a TEXT method ("..")</li> <li>any TextPatternMethod
-         * (Excluding TEXT) (method(param))</li> <li>a join ( + )</li> </ul>
+         * <ul> <li>a TEXT method ("..")</li> <li>any TextPatternMethod (Excluding TEXT) (method(param))</li> <li>a join
+         * ( + )</li> </ul>
          *
          * Matches that are invalid includes methods with unknown method names
          */

@@ -366,8 +366,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable
      * @param week The week of the date
      * @param calendar The calendar used to calculate the daate
      * @param firstDayOfWeek The first day of the week
-     * @param adjustedDate The first day of the year adjusted to the first day
-     *        of the week it belongs to
+     * @param adjustedDate The first day of the year adjusted to the first day of the week it belongs to
      *
      * @return The Date of the week
      */

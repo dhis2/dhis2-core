@@ -288,9 +288,8 @@ public class GetOrganisationUnitTreeAction
     }
 
     /**
-     * Returns the number of org unit levels to cache offline based on the given
-     * org unit level argument, next the org unit level from the user org unit,
-     * next the level from the configuration.
+     * Returns the number of org unit levels to cache offline based on the given org unit level argument, next the org
+     * unit level from the user org unit, next the level from the configuration.
      */
     private Integer getOfflineOrganisationUnitLevels()
     {

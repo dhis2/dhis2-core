@@ -42,11 +42,9 @@ import com.google.common.collect.Multimap;
 public abstract class AbstractAggregate
 {
     /**
-     * Executes the Supplier asynchronously using the thread pool from the
-     * provided {@see Executor}
+     * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
      *
-     * @param condition A condition that, if true, executes the Supplier, if
-     *        false, returns an empty Multimap
+     * @param condition A condition that, if true, executes the Supplier, if false, returns an empty Multimap
      * @param supplier The Supplier to execute
      * @param executor an Executor instance
      *
@@ -59,8 +57,7 @@ public abstract class AbstractAggregate
     }
 
     /**
-     * Executes the Supplier asynchronously using the thread pool from the
-     * provided {@see Executor}
+     * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
      *
      * @param supplier The Supplier to execute
      *

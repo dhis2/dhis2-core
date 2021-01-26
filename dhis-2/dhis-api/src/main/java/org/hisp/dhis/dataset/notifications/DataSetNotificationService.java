@@ -37,19 +37,16 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 public interface DataSetNotificationService
 {
     /**
-     * Send all scheduled dataset notifications for the given day. These
-     * notifications could be reminders for upcoming datasets submissions or it
-     * could be reminders for datasets where submissions are overdue.
+     * Send all scheduled dataset notifications for the given day. These notifications could be reminders for upcoming
+     * datasets submissions or it could be reminders for datasets where submissions are overdue.
      *
-     * @param day the Date representing the day relative to the scheduled
-     *        notifications for which to send messages.
+     * @param day the Date representing the day relative to the scheduled notifications for which to send messages.
      */
     void sendScheduledDataSetNotificationsForDay( Date day );
 
     /**
-     * Send completion notifications when a DataSet is completed. If the DataSet
-     * is not configured with suitable {@link DataSetNotificationTemplate
-     * templates}, nothing will happen.
+     * Send completion notifications when a DataSet is completed. If the DataSet is not configured with suitable
+     * {@link DataSetNotificationTemplate templates}, nothing will happen.
      *
      * @param completeDataSetRegistration the CompleteDataSetRegistration.
      */

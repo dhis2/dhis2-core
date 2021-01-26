@@ -43,9 +43,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * The goal of this Pre-processor is to assign a Program Instance (Enrollment)
- * to the Event getting processed. If the Program Instance can not be assigned,
- * the Event will not pass validation.
+ * The goal of this Pre-processor is to assign a Program Instance (Enrollment) to the Event getting processed. If the
+ * Program Instance can not be assigned, the Event will not pass validation.
  *
  * @author Luciano Fiandesio
  */

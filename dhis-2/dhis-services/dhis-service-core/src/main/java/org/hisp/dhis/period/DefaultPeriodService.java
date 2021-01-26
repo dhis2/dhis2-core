@@ -284,10 +284,9 @@ public class DefaultPeriodService
     }
 
     /**
-     * Fix issue DHIS2-7539 If period doesn't exist in cache and database. Need
-     * to add and sync with database right away in a separate
-     * session/transaction. Otherwise will get foreign key constraint error in
-     * subsequence calls of batch.flush()
+     * Fix issue DHIS2-7539 If period doesn't exist in cache and database. Need to add and sync with database right away
+     * in a separate session/transaction. Otherwise will get foreign key constraint error in subsequence calls of
+     * batch.flush()
      **/
     @Override
     @Transactional( readOnly = true )

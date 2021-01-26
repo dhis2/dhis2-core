@@ -154,12 +154,10 @@ public class PreCheckValidateAndGenerateUidHook
     }
 
     /**
-     * Check if the given UID has a valid format. A null UID is considered
-     * valid.
+     * Check if the given UID has a valid format. A null UID is considered valid.
      *
      * @param uid a UID. The UID string can be null.
-     * @param reporter a {@see ValidationErrorReporter} to which the error is
-     *        added
+     * @param reporter a {@see ValidationErrorReporter} to which the error is added
      * @param args list of arguments for the Error report
      * @return true, if the UID is invalid
      */

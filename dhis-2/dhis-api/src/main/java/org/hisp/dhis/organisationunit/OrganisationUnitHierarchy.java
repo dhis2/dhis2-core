@@ -38,8 +38,7 @@ import java.util.Set;
 /**
  * Class which encapsulates logic for the organisation unit hierarchy.
  *
- * The key format for the organisation unit group variant is "<parent org unit
- * id>:<group id>".
+ * The key format for the organisation unit group variant is "<parent org unit id>:<group id>".
  *
  * @author Lars Helge Overland
  */

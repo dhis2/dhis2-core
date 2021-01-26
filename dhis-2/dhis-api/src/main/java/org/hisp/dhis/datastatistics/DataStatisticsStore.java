@@ -40,8 +40,7 @@ public interface DataStatisticsStore
     extends GenericStore<DataStatistics>
 {
     /**
-     * Retrieves data from database and maps aggregated data to
-     * AggregatedStatistic object.
+     * Retrieves data from database and maps aggregated data to AggregatedStatistic object.
      *
      * @param eventInterval interval of DAY, MONTH, WEEK, YEAR.
      * @param startDate the start date.

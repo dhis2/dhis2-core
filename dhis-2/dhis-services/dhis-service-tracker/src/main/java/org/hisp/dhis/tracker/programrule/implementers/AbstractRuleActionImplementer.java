@@ -70,8 +70,7 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
      *
      * @param eventActionRules Actions to be applied to the bundle
      * @param bundle where to get the events from
-     * @return A list of program rule issues that can be either warnings or
-     *         errors
+     * @return A list of program rule issues that can be either warnings or errors
      */
     abstract List<ProgramRuleIssue> applyToEvents( Map.Entry<String, List<EventActionRule>> eventActionRules,
         TrackerBundle bundle );
@@ -81,8 +80,7 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
      *
      * @param enrollmentActionRules Actions to be applied to the bundle
      * @param bundle where to get the enrollments from
-     * @return A list of program rule issues that can be either warnings or
-     *         errors
+     * @return A list of program rule issues that can be either warnings or errors
      */
     abstract List<ProgramRuleIssue> applyToEnrollments(
         Map.Entry<String, List<EnrollmentActionRule>> enrollmentActionRules, TrackerBundle bundle );
@@ -124,9 +122,8 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
     }
 
     /**
-     * Filter the actions by - the action class of the implementer - events
-     * linked to data values that are part of a different Program Stage - events
-     * linked to data values that do not need to be validated
+     * Filter the actions by - the action class of the implementer - events linked to data values that are part of a
+     * different Program Stage - events linked to data values that do not need to be validated
      *
      * @param effects a map of event and effects
      * @param bundle

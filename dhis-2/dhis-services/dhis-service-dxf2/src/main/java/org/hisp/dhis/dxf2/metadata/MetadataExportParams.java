@@ -56,8 +56,7 @@ public class MetadataExportParams
     private User user;
 
     /**
-     * If doing full export, this contains the list of classes you want
-     * exported.
+     * If doing full export, this contains the list of classes you want exported.
      */
     private Set<Class<? extends IdentifiableObject>> classes = new HashSet<>();
 
@@ -67,8 +66,7 @@ public class MetadataExportParams
     private Map<Class<? extends IdentifiableObject>, Query> queries = new HashMap<>();
 
     /**
-     * Contains a set of field filters that allows the default field filter
-     * (:owner) to be overridden.
+     * Contains a set of field filters that allows the default field filter (:owner) to be overridden.
      */
     private Map<Class<? extends IdentifiableObject>, List<String>> fields = new HashMap<>();
 
@@ -88,14 +86,12 @@ public class MetadataExportParams
     private List<String> defaultOrder = new ArrayList<>();
 
     /**
-     * Should exported payload include defaults (coc, co etc)
-     * objects/references.
+     * Should exported payload include defaults (coc, co etc) objects/references.
      */
     private Defaults defaults = Defaults.INCLUDE;
 
     /**
-     * Inclusion strategy to use. There are a few already defined inclusions in
-     * the Inclusions enum.
+     * Inclusion strategy to use. There are a few already defined inclusions in the Inclusions enum.
      */
     private InclusionStrategy inclusionStrategy = InclusionStrategy.Include.NON_NULL;
 

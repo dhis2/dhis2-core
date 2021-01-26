@@ -80,11 +80,9 @@ public class SchedulingManagerTest
     }
 
     /**
-     * No assertions in this test. Tester has to verify by looking at the output
-     * in the terminal. JobA should fire at the first minute and every minute
-     * after that. jobB should fire every second. (Unless sleep in actual job -
-     * or the job uses longer time than the expected delay to next execution
-     * time)
+     * No assertions in this test. Tester has to verify by looking at the output in the terminal. JobA should fire at
+     * the first minute and every minute after that. jobB should fire every second. (Unless sleep in actual job - or the
+     * job uses longer time than the expected delay to next execution time)
      */
     @Test
     @Ignore

@@ -46,17 +46,13 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
 /**
- * Job for continuous update of analytics tables. Performs analytics table
- * update on a schedule where the full analytics table update is done once per
- * day, and the latest analytics partition update is done with a fixed delay.
+ * Job for continuous update of analytics tables. Performs analytics table update on a schedule where the full analytics
+ * table update is done once per day, and the latest analytics partition update is done with a fixed delay.
  * <p>
- * When to run the full update is determined by
- * {@link ContinuousAnalyticsJobParameters#getHourOfDay()}, which specifies the
- * hour of day to run the full update. The next scheduled full analytics table
- * update time is persisted using a system setting. A full analytics table
- * update is performed when the current time is after the next scheduled full
- * update time. Otherwise, a partial update of the latest analytics partition
- * table is performed.
+ * When to run the full update is determined by {@link ContinuousAnalyticsJobParameters#getHourOfDay()}, which specifies
+ * the hour of day to run the full update. The next scheduled full analytics table update time is persisted using a
+ * system setting. A full analytics table update is performed when the current time is after the next scheduled full
+ * update time. Otherwise, a partial update of the latest analytics partition table is performed.
  *
  * @author Lars Helge Overland
  */

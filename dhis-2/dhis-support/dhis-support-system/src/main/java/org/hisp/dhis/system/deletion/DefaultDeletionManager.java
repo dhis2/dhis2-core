@@ -44,8 +44,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * TODO: Add support for failed allow tests on "transitive" deletion handlers
- * which are called as part of delete methods.
+ * TODO: Add support for failed allow tests on "transitive" deletion handlers which are called as part of delete
+ * methods.
  *
  * @author Lars Helge Overland
  */
@@ -59,8 +59,7 @@ public class DefaultDeletionManager
     private static final String ALLOW_METHOD_PREFIX = "allowDelete";
 
     /**
-     * Deletion handlers registered in context are subscribed to deletion
-     * notifications through auto-wiring.
+     * Deletion handlers registered in context are subscribed to deletion notifications through auto-wiring.
      */
     @Autowired( required = false )
     private List<DeletionHandler> deletionHandlers;

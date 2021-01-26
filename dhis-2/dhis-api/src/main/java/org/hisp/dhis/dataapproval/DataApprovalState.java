@@ -28,11 +28,11 @@
 package org.hisp.dhis.dataapproval;
 
 /**
- * Current state of data approval for a selected combination of data set,
- * period, organisation unit, and category options or category group options.
+ * Current state of data approval for a selected combination of data set, period, organisation unit, and category
+ * options or category group options.
  *
- * ACCEPTED_HERE refers the approval being accepted by the level above, implying
- * that the approval has an accepted state at this level.
+ * ACCEPTED_HERE refers the approval being accepted by the level above, implying that the approval has an accepted state
+ * at this level.
  *
  * APPROVED_HERE refers to the data being approved by this level.
  *
@@ -41,8 +41,7 @@ package org.hisp.dhis.dataapproval;
 public enum DataApprovalState
 {
     /**
-     * Data approval does not apply to this selection. (Data is neither
-     * "approved" nor "unapproved".)
+     * Data approval does not apply to this selection. (Data is neither "approved" nor "unapproved".)
      */
     UNAPPROVABLE( /* approved */ false, /* approvable */ false, /*
                                                                  * unapprovable
@@ -50,8 +49,8 @@ public enum DataApprovalState
         /* accepted */ false, /* acceptable */ false, /* unacceptable */ false ),
 
     /**
-     * At least some data within the selection is unapproved and waiting for
-     * approval at a higher organisation unit level (not approvable here.)
+     * At least some data within the selection is unapproved and waiting for approval at a higher organisation unit
+     * level (not approvable here.)
      */
     UNAPPROVED_ABOVE( /* approved */ false, /* approvable */ false, /*
                                                                      * unapprovable
@@ -59,8 +58,8 @@ public enum DataApprovalState
         /* accepted */ false, /* acceptable */ false, /* unacceptable */ false ),
 
     /**
-     * At least some data within the selection is unapproved and waiting for
-     * lower-level approval (not ready for approving here.)
+     * At least some data within the selection is unapproved and waiting for lower-level approval (not ready for
+     * approving here.)
      */
     UNAPPROVED_WAITING( /* approved */ false, /* approvable */ false, /*
                                                                        * unapprovable
@@ -75,8 +74,7 @@ public enum DataApprovalState
                                                                     */ false,
         /* accepted */ false, /* acceptable */ false, /* unacceptable */ false ),
     /**
-     * Data is approved, but at a higher organisation unit level (so cannot be
-     * unapproved here.)
+     * Data is approved, but at a higher organisation unit level (so cannot be unapproved here.)
      */
     APPROVED_ABOVE( /* approved */ true, /* approvable */ false, /*
                                                                   * unapprovable

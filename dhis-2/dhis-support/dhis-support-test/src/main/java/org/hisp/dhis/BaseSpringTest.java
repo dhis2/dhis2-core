@@ -69,9 +69,8 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
     protected static JdbcTemplate jdbcTemplate;
 
     /*
-     * Flag that determines if the IntegrationTestData annotation has been
-     * running the database init script. We only want to run the init script
-     * once per unit test
+     * Flag that determines if the IntegrationTestData annotation has been running the database init script. We only
+     * want to run the init script once per unit test
      */
     public static boolean dataInit = false;
 

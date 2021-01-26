@@ -38,8 +38,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * This class represents how a class (DataElement or TrackedEntityAttribute), a
- * ValueType or OptionSet can be rendered
+ * This class represents how a class (DataElement or TrackedEntityAttribute), a ValueType or OptionSet can be rendered
  */
 public class ObjectValueTypeRenderingOption
 {
@@ -59,8 +58,7 @@ public class ObjectValueTypeRenderingOption
     private boolean hasOptionSet;
 
     /**
-     * A set of renderingTypes available for the combination of clazz valueType
-     * and hasOptionSet
+     * A set of renderingTypes available for the combination of clazz valueType and hasOptionSet
      */
     private Set<ValueTypeRenderingType> renderingTypes;
 

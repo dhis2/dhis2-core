@@ -46,8 +46,7 @@ import org.hisp.dhis.schema.Schema;
 import org.springframework.stereotype.Component;
 
 /**
- * This component is responsible for fetching all the unique attributes for a
- * {@link IdentifiableObject} subclass.
+ * This component is responsible for fetching all the unique attributes for a {@link IdentifiableObject} subclass.
  *
  * @author Luciano Fiandesio
  */
@@ -66,12 +65,10 @@ public class SchemaToDataFetcher
     }
 
     /**
-     * Executes a read-only query for the given Schema class and fetches only
-     * the fields marked as "unique".
+     * Executes a read-only query for the given Schema class and fetches only the fields marked as "unique".
      *
      * @param schema a {@link Schema}
-     * @return a List of objects corresponding to the "klass" of the given
-     *         Schema
+     * @return a List of objects corresponding to the "klass" of the given Schema
      */
     public List<? extends IdentifiableObject> fetch( Schema schema )
     {

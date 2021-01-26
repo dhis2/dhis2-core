@@ -36,9 +36,8 @@ import org.hisp.dhis.period.Period;
 import com.google.common.collect.ImmutableSet;
 
 /**
- * This class represents the most fundamental parameters to run a validation
- * rule analysis. The class is immutable and is meant to work as a gap-filler
- * for the different use-cases of validation rule analysis (Data set validation,
+ * This class represents the most fundamental parameters to run a validation rule analysis. The class is immutable and
+ * is meant to work as a gap-filler for the different use-cases of validation rule analysis (Data set validation,
  * "manual" validation and scheduled validation).
  *
  * @author Stian Sandvold
@@ -46,12 +45,10 @@ import com.google.common.collect.ImmutableSet;
 public final class ValidationAnalysisParams
 {
     /*
-     * Required properties: Although required, they can be empty collections. If
-     * any of the collections are empty, there would be nothing to analyse. This
-     * is still a valid state for the params to have. The attribute option combo
-     * can also be null, in that case the default attribute option combo will be
-     * used. The organisation unit can be null, in that case all organisation
-     * units will be used.
+     * Required properties: Although required, they can be empty collections. If any of the collections are empty, there
+     * would be nothing to analyse. This is still a valid state for the params to have. The attribute option combo can
+     * also be null, in that case the default attribute option combo will be used. The organisation unit can be null, in
+     * that case all organisation units will be used.
      */
     private ImmutableSet<ValidationRule> validationRules;
 
@@ -62,8 +59,7 @@ public final class ValidationAnalysisParams
     private CategoryOptionCombo attributeOptionCombo;
 
     /*
-     * Optional properties: These have default values, which disables the
-     * behaviour represented by them.
+     * Optional properties: These have default values, which disables the behaviour represented by them.
      */
     private boolean includeOrgUnitDescendants = false;
 
@@ -136,8 +132,7 @@ public final class ValidationAnalysisParams
     }
 
     /**
-     * Gets whether or not the results of the analysis should be persisted in
-     * the database after the analysis
+     * Gets whether or not the results of the analysis should be persisted in the database after the analysis
      *
      * @return true if results should be persisted, false if not.
      */
@@ -147,13 +142,10 @@ public final class ValidationAnalysisParams
     }
 
     /**
-     * Gets which day of a period the analysis should be run for. If a
-     * validation rule is utilizing sliding windows, this property will decide
-     * the positioning of the window relative to the period checked. In cases
-     * where the dayInPeriod is larger than the length of a period, the last day
-     * of the period will be used. If dayInPeriod is -1, it will not be used to
-     * position the window, and the window will be positioned according to the
-     * current date.
+     * Gets which day of a period the analysis should be run for. If a validation rule is utilizing sliding windows,
+     * this property will decide the positioning of the window relative to the period checked. In cases where the
+     * dayInPeriod is larger than the length of a period, the last day of the period will be used. If dayInPeriod is -1,
+     * it will not be used to position the window, and the window will be positioned according to the current date.
      *
      * @return -1 if disabled, or a positive integer if enabled.
      */
@@ -163,9 +155,8 @@ public final class ValidationAnalysisParams
     }
 
     /**
-     * Limits the number of results we should look for. This can help prevent
-     * the analysis running too long by stopping after a set number of results,
-     * as well as limit any payload trough api.
+     * Limits the number of results we should look for. This can help prevent the analysis running too long by stopping
+     * after a set number of results, as well as limit any payload trough api.
      *
      * @return number of results we should look for
      */
@@ -202,8 +193,7 @@ public final class ValidationAnalysisParams
         /**
          * If set to true, organisation unit descendants will be included
          *
-         * @param includeOrgUnitDescendants true if organisation unit
-         *        descendants will be included, false if not.
+         * @param includeOrgUnitDescendants true if organisation unit descendants will be included, false if not.
          * @return the updated builder object
          */
         public Builder withIncludeOrgUnitDescendants( boolean includeOrgUnitDescendants )
@@ -215,8 +205,7 @@ public final class ValidationAnalysisParams
         /**
          * If set to true, results will be persisted in the database
          *
-         * @param persistResults true if results should be persisted, false if
-         *        not.
+         * @param persistResults true if results should be persisted, false if not.
          * @return the updated builder object
          */
         public Builder withPersistResults( boolean persistResults )
@@ -226,11 +215,9 @@ public final class ValidationAnalysisParams
         }
 
         /**
-         * If set to true, notifications will be sent after the analysis is
-         * completed if any results where found
+         * If set to true, notifications will be sent after the analysis is completed if any results where found
          *
-         * @param sendNotifications true if notifications should be sent, false
-         *        if not.
+         * @param sendNotifications true if notifications should be sent, false if not.
          * @return the updated builder object
          */
         public Builder withSendNotifications( boolean sendNotifications )
@@ -240,10 +227,9 @@ public final class ValidationAnalysisParams
         }
 
         /**
-         * Decides the position of the sliding window, for rules that utilizes
-         * this feature. -1 means disabled, and integers bigger than the period
-         * length will position the window to the end of the period. If -1 the
-         * analysis will use todays date to position the window
+         * Decides the position of the sliding window, for rules that utilizes this feature. -1 means disabled, and
+         * integers bigger than the period length will position the window to the end of the period. If -1 the analysis
+         * will use todays date to position the window
          *
          * @param dayInPeriod -1 if disabled, any positive integer if enabled
          * @return the updated builder object

@@ -31,8 +31,7 @@ import java.util.Collection;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: SystemAuthoritiesProvider.java 3160 2007-03-24 20:15:06Z
- *          torgeilo $
+ * @version $Id: SystemAuthoritiesProvider.java 3160 2007-03-24 20:15:06Z torgeilo $
  */
 public interface SystemAuthoritiesProvider
 {

@@ -31,12 +31,10 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Defines methods for working with OrganisationUnitGroups and
- * OrganisationUnitGroupSets.
+ * Defines methods for working with OrganisationUnitGroups and OrganisationUnitGroupSets.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: OrganisationUnitGroupService.java 3286 2007-05-07 18:05:21Z
- *          larshelg $
+ * @version $Id: OrganisationUnitGroupService.java 3286 2007-05-07 18:05:21Z larshelg $
  */
 public interface OrganisationUnitGroupService
 {
@@ -87,8 +85,7 @@ public interface OrganisationUnitGroupService
     /**
      * Returns all OrganisationUnitGroups.
      *
-     * @return a list of all the OrganisationUnitGroups, or an empty list if no
-     *         OrganisationUnitGroup exists.
+     * @return a list of all the OrganisationUnitGroups, or an empty list if no OrganisationUnitGroup exists.
      */
     List<OrganisationUnitGroup> getAllOrganisationUnitGroups();
 
@@ -129,8 +126,7 @@ public interface OrganisationUnitGroupService
      * Returns an OrganisationUnitGroupSet.
      *
      * @param id the id of the OrganisationUnitGroupSet to return.
-     * @return the OrganisationUnitGroupSet with the given id, or null if no
-     *         match.
+     * @return the OrganisationUnitGroupSet with the given id, or null if no match.
      */
     OrganisationUnitGroupSet getOrganisationUnitGroupSet( long id );
 
@@ -138,39 +134,36 @@ public interface OrganisationUnitGroupService
      * Returns an OrganisationUnitGroupSet.
      *
      * @param uid the id of the OrganisationUnitGroupSet to return.
-     * @return the OrganisationUnitGroupSet with the given uid, or null if no
-     *         match.
+     * @return the OrganisationUnitGroupSet with the given uid, or null if no match.
      */
     OrganisationUnitGroupSet getOrganisationUnitGroupSet( String uid );
 
     /**
      * Returns all OrganisationUnitGroupSets.
      *
-     * @return a list of all OrganisationUnitGroupSets, or an empty collection
-     *         if no OrganisationUnitGroupSet exists.
+     * @return a list of all OrganisationUnitGroupSets, or an empty collection if no OrganisationUnitGroupSet exists.
      */
     List<OrganisationUnitGroupSet> getAllOrganisationUnitGroupSets();
 
     /**
      * Returns all compulsory OrganisationUnitGroupSets.
      *
-     * @return a list of all compulsory OrganisationUnitGroupSets, or an empty
-     *         collection if there are no compulsory OrganisationUnitGroupSets.
+     * @return a list of all compulsory OrganisationUnitGroupSets, or an empty collection if there are no compulsory
+     *         OrganisationUnitGroupSets.
      */
     List<OrganisationUnitGroupSet> getCompulsoryOrganisationUnitGroupSets();
 
     /**
-     * Returns all compulsory OrganisationUnitGroupSets which have one ore more
-     * members.
+     * Returns all compulsory OrganisationUnitGroupSets which have one ore more members.
      *
-     * @return a list of all OrganisationUnitGroupSets, or an empty collection
-     *         if there are no compulsory OrganisationUnitGroupSets.
+     * @return a list of all OrganisationUnitGroupSets, or an empty collection if there are no compulsory
+     *         OrganisationUnitGroupSets.
      */
     List<OrganisationUnitGroupSet> getCompulsoryOrganisationUnitGroupSetsWithMembers();
 
     /**
-     * Returns a Collection of compulsory OrganisationUnitGroupSets which groups
-     * the given OrganisationUnit is not a member of.
+     * Returns a Collection of compulsory OrganisationUnitGroupSets which groups the given OrganisationUnit is not a
+     * member of.
      *
      * @param organisationUnit the OrganisationUnit.
      * @return a Collection of OrganisationUnitGroupSets.

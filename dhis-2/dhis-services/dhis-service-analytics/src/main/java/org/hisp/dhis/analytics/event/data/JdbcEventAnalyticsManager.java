@@ -96,8 +96,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
- * TODO could use row_number() and filtering for paging. TODO introduce
- * dedicated "year" partition column.
+ * TODO could use row_number() and filtering for paging. TODO introduce dedicated "year" partition column.
  *
  * @author Lars Helge Overland
  */
@@ -126,8 +125,7 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * Adds event to the given grid based on the given parameters and SQL
-     * statement.
+     * Adds event to the given grid based on the given parameters and SQL statement.
      *
      * @param params the {@link EventQueryParams}.
      * @param grid the {@link Grid}.
@@ -320,9 +318,8 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * Returns a from SQL clause for the given analytics table partition. If the
-     * query has a non-default time field specified, a join with the
-     * {@code date period structure} resource table in that field is included.
+     * Returns a from SQL clause for the given analytics table partition. If the query has a non-default time field
+     * specified, a join with the {@code date period structure} resource table in that field is included.
      *
      * @param params the {@link EventQueryParams}.
      */
@@ -361,17 +358,14 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * Returns a from and where SQL clause. If this is a program indicator with
-     * non-default boundaries, the relationship with the reporting period is
-     * specified with where conditions on the enrollment or incident dates. If
-     * the default boundaries is used, or the query does not include program
-     * indicators, the periods are joined in from the analytics tables the
-     * normal way. A where clause can never have a mix of indicators with
-     * non-default boundaries and regular analytics table periods.
+     * Returns a from and where SQL clause. If this is a program indicator with non-default boundaries, the relationship
+     * with the reporting period is specified with where conditions on the enrollment or incident dates. If the default
+     * boundaries is used, or the query does not include program indicators, the periods are joined in from the
+     * analytics tables the normal way. A where clause can never have a mix of indicators with non-default boundaries
+     * and regular analytics table periods.
      * <p>
-     * If the query has a non-default time field specified, the query will use
-     * the period type columns from the {@code date period structure} resource
-     * table through an alias to reflect the period aggregation.
+     * If the query has a non-default time field specified, the query will use the period type columns from the
+     * {@code date period structure} resource table through an alias to reflect the period aggregation.
      *
      * @param params the {@link EventQueryParams}.
      */
@@ -581,11 +575,9 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * Generates a sub query which provides a view of the data where each row is
-     * ranked by the execution date, latest first. The events are partitioned by
-     * org unit and attribute option combo. A column {@code pe_rank} defines the
-     * rank. Only data for the last 10 years relative to the period end date is
-     * included.
+     * Generates a sub query which provides a view of the data where each row is ranked by the execution date, latest
+     * first. The events are partitioned by org unit and attribute option combo. A column {@code pe_rank} defines the
+     * rank. Only data for the last 10 years relative to the period end date is included.
      *
      * @param the {@link EventQueryParams}.
      */
@@ -620,9 +612,8 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * Returns quoted names of columns for the {@link AggregationType#LAST} sub
-     * query. The period dimension is replaced by the name of the single period
-     * in the given query.
+     * Returns quoted names of columns for the {@link AggregationType#LAST} sub query. The period dimension is replaced
+     * by the name of the single period in the given query.
      *
      * @param the {@link EventQueryParams}.
      */
@@ -663,8 +654,7 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * If the coordinateField points to an Item of type ORG UNIT, add the
-     * "_geom" suffix to the field name.
+     * If the coordinateField points to an Item of type ORG UNIT, add the "_geom" suffix to the field name.
      */
     private String resolveCoordinateFieldColumnName( String coordinateField, EventQueryParams params )
     {

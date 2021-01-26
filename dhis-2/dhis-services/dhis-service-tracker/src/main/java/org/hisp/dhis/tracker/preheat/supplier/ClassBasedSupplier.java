@@ -50,9 +50,8 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.Lists;
 
 /**
- * This supplier collects all the references from the Tracker Import payload and
- * executes class-based strategies, based on the type of the object in the
- * payload.
+ * This supplier collects all the references from the Tracker Import payload and executes class-based strategies, based
+ * on the type of the object in the payload.
  *
  * @author Luciano Fiandesio
  */
@@ -69,8 +68,7 @@ public class ClassBasedSupplier
     private final TrackerIdentifierCollector identifierCollector;
 
     /**
-     * A Map correlating a Tracker class name to the Preheat strategy class name
-     * to use to load the data
+     * A Map correlating a Tracker class name to the Preheat strategy class name to use to load the data
      */
     private Map<String, String> classStrategies;
 
@@ -87,9 +85,8 @@ public class ClassBasedSupplier
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
         /*
-         * Collects all references from the payload and create a Map where key
-         * is the reference type (e.g. Enrollment) and the value is a Set of
-         * identifiers (e.g. a list of all Enrollment UIDs found in the payload)
+         * Collects all references from the payload and create a Map where key is the reference type (e.g. Enrollment)
+         * and the value is a Set of identifiers (e.g. a list of all Enrollment UIDs found in the payload)
          */
         Map<Class<?>, Set<String>> identifierMap = identifierCollector.collect( params, preheat.getDefaults() );
 

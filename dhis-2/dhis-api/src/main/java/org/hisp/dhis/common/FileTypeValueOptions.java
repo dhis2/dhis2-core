@@ -38,17 +38,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * A {@link ValueTypeOptions} sub class implementing options for a corresponding
- * {@link ValueType}.FILE_RESOURCE or {@link ValueType}.IMAGE
+ * A {@link ValueTypeOptions} sub class implementing options for a corresponding {@link ValueType}.FILE_RESOURCE or
+ * {@link ValueType}.IMAGE
  *
  * <p>
- * This object is saved as a jsonb column and can be used to validate that a
- * FileResource has the wanted properties.
+ * This object is saved as a jsonb column and can be used to validate that a FileResource has the wanted properties.
  *
  * <p>
- * This class is used in the
- * {@link org.hisp.dhis.system.util.ValidationUtils#validateFileResource }
- * method.
+ * This class is used in the {@link org.hisp.dhis.system.util.ValidationUtils#validateFileResource } method.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  * @see ValueTypeOptions

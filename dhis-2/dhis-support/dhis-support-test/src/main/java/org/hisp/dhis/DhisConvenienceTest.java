@@ -296,9 +296,8 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * Compares two collections for equality. This method does not check for the
-     * implementation type of the collection in contrast to the native equals
-     * method. This is useful for black-box testing where one will not know the
+     * Compares two collections for equality. This method does not check for the implementation type of the collection
+     * in contrast to the native equals method. This is useful for black-box testing where one will not know the
      * implementation type of the returned collection for a method.
      *
      * @param actual the actual collection to check.
@@ -360,8 +359,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * Asserts that a {@link IllegalQueryException} is thrown with the given
-     * {@link ErrorCode}.
+     * Asserts that a {@link IllegalQueryException} is thrown with the given {@link ErrorCode}.
      *
      * @param exception the {@link IllegalQueryException}.
      * @param errorCode the {@link ErrorCode}.
@@ -376,13 +374,10 @@ public abstract class DhisConvenienceTest
     // -------------------------------------------------------------------------
 
     /**
-     * Sets a dependency on the target service. This method can be used to set
-     * mock implementations of dependencies on services for testing purposes.
-     * The advantage of using this method over setting the services directly is
-     * that the test can still be executed against the interface type of the
-     * service; making the test unaware of the implementation and thus
-     * re-usable. A weakness is that the field name of the dependency must be
-     * assumed.
+     * Sets a dependency on the target service. This method can be used to set mock implementations of dependencies on
+     * services for testing purposes. The advantage of using this method over setting the services directly is that the
+     * test can still be executed against the interface type of the service; making the test unaware of the
+     * implementation and thus re-usable. A weakness is that the field name of the dependency must be assumed.
      *
      * @param targetService the target service.
      * @param fieldName the name of the dependency field in the target service.
@@ -396,13 +391,10 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * Sets a dependency on the target service. This method can be used to set
-     * mock implementations of dependencies on services for testing purposes.
-     * The advantage of using this method over setting the services directly is
-     * that the test can still be executed against the interface type of the
-     * service; making the test unaware of the implementation and thus
-     * re-usable. A weakness is that the field name of the dependency must be
-     * assumed.
+     * Sets a dependency on the target service. This method can be used to set mock implementations of dependencies on
+     * services for testing purposes. The advantage of using this method over setting the services directly is that the
+     * test can still be executed against the interface type of the service; making the test unaware of the
+     * implementation and thus re-usable. A weakness is that the field name of the dependency must be assumed.
      *
      * @param targetService the target service.
      * @param fieldName the name of the dependency field in the target service.
@@ -432,9 +424,8 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * If the given class is advised by Spring AOP it will return the target
-     * class, i.e. the advised class. If not the given class is returned
-     * unchanged.
+     * If the given class is advised by Spring AOP it will return the target class, i.e. the advised class. If not the
+     * given class is returned unchanged.
      *
      * @param object the object.
      */
@@ -526,8 +517,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param categoryComboUniqueIdentifier A unique character to identify the
-     *        category option combo.
+     * @param categoryComboUniqueIdentifier A unique character to identify the category option combo.
      * @param categories the categories category options.
      * @return CategoryOptionCombo
      */
@@ -546,10 +536,8 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param categoryComboUniqueIdentifier A unique character to identify the
-     *        category combo.
-     * @param categoryOptionUniqueIdentifiers Unique characters to identify the
-     *        category options.
+     * @param categoryComboUniqueIdentifier A unique character to identify the category combo.
+     * @param categoryOptionUniqueIdentifiers Unique characters to identify the category options.
      * @return CategoryOptionCombo
      */
     public static CategoryOptionCombo createCategoryOptionCombo( char categoryComboUniqueIdentifier,
@@ -605,8 +593,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param categoryUniqueIdentifier A unique character to identify the
-     *        category.
+     * @param categoryUniqueIdentifier A unique character to identify the category.
      * @param categoryOptions the category options.
      * @return Category
      */
@@ -633,8 +620,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param uniqueIdentifier A unique character to identify the category
-     *        option group.
+     * @param uniqueIdentifier A unique character to identify the category option group.
      * @param categoryOptions the category options.
      * @return CategoryOptionGroup
      */
@@ -656,8 +642,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param categoryGroupSetUniqueIdentifier A unique character to identify
-     *        the category option group set.
+     * @param categoryGroupSetUniqueIdentifier A unique character to identify the category option group set.
      * @param categoryOptionGroups the category option groups.
      * @return CategoryOptionGroupSet
      */
@@ -1171,14 +1156,12 @@ public abstract class DhisConvenienceTest
      * Creates a Predictor
      *
      * @param output the data element where the predictor stores its predictions
-     * @param combo the category option combo (or null) under which the
-     *        predictors are stored
+     * @param combo the category option combo (or null) under which the predictors are stored
      * @param uniqueCharacter A unique character to identify the object.
      * @param generator The right side expression.
      * @param skipTest The skiptest expression
      * @param periodType The period-type.
-     * @param organisationUnitLevel The organisation unit level to be evaluated
-     *        by this rule.
+     * @param organisationUnitLevel The organisation unit level to be evaluated by this rule.
      * @param sequentialSampleCount How many sequential past periods to sample.
      * @param annualSampleCount How many years of past periods to sample.
      * @param sequentialSkipCount How many periods in the current year to skip
@@ -1197,14 +1180,12 @@ public abstract class DhisConvenienceTest
      * Creates a Predictor
      *
      * @param output The data element where the predictor stores its predictions
-     * @param combo The category option combo (or null) under which the
-     *        predictors are stored
+     * @param combo The category option combo (or null) under which the predictors are stored
      * @param uniqueCharacter A unique character to identify the object.
      * @param generator The right side expression.
      * @param skipTest The skiptest expression
      * @param periodType The period-type.
-     * @param organisationUnitLevels The organisation unit levels to be
-     *        evaluated by this rule.
+     * @param organisationUnitLevels The organisation unit levels to be evaluated by this rule.
      * @param sequentialSampleCount How many sequential past periods to sample.
      * @param annualSampleCount How many years of past periods to sample.
      * @param sequentialSkipCount How many periods in the current year to skip
@@ -2062,12 +2043,10 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * Injects the externalDir property of LocationManager to
-     * user.home/dhis2_test_dir. LocationManager dependency must be retrieved
-     * from the context up front.
+     * Injects the externalDir property of LocationManager to user.home/dhis2_test_dir. LocationManager dependency must
+     * be retrieved from the context up front.
      *
-     * @param locationManager The LocationManager to be injected with the
-     *        external directory.
+     * @param locationManager The LocationManager to be injected with the external directory.
      */
     public void setExternalTestDir( LocationManager locationManager )
     {
@@ -2121,9 +2100,8 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * Creates a user and injects into the security context with username
-     * "username". Requires <code>identifiableObjectManager</code> and
-     * <code>userService</code> to be injected into the test.
+     * Creates a user and injects into the security context with username "username". Requires
+     * <code>identifiableObjectManager</code> and <code>userService</code> to be injected into the test.
      *
      * @param allAuth whether to grant ALL authority to user.
      * @param auths authorities to grant to user.
@@ -2135,9 +2113,8 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * Creates a user and injects into the security context with username
-     * "username". Requires <code>identifiableObjectManager</code> and
-     * <code>userService</code> to be injected into the test.
+     * Creates a user and injects into the security context with username "username". Requires
+     * <code>identifiableObjectManager</code> and <code>userService</code> to be injected into the test.
      *
      * @param organisationUnits the organisation units of the user.
      * @param allAuth whether to grant the ALL authority to user.
@@ -2151,13 +2128,11 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * Creates a user and injects into the security context with username
-     * "username". Requires <code>identifiableObjectManager</code> and
-     * <code>userService</code> to be injected into the test.
+     * Creates a user and injects into the security context with username "username". Requires
+     * <code>identifiableObjectManager</code> and <code>userService</code> to be injected into the test.
      *
      * @param organisationUnits the organisation units of the user.
-     * @param dataViewOrganisationUnits the data view organisation units of the
-     *        user.
+     * @param dataViewOrganisationUnits the data view organisation units of the user.
      * @param allAuth whether to grant the ALL authority to the user.
      * @param auths authorities to grant to the user.
      * @return the user.
@@ -2169,23 +2144,18 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * Creates a user and injects into the security context with username
-     * "username". Requires <code>identifiableObjectManager</code> and
-     * <code>userService</code> to be injected into the test.
+     * Creates a user and injects into the security context with username "username". Requires
+     * <code>identifiableObjectManager</code> and <code>userService</code> to be injected into the test.
      * <p>
      *
      * @param organisationUnits the organisation units of the user.
-     * @param dataViewOrganisationUnits the data view organisation units of the
-     *        user.
-     * @param catDimensionConstraints the category dimension constraints of the
-     *        user.
+     * @param dataViewOrganisationUnits the data view organisation units of the user.
+     * @param catDimensionConstraints the category dimension constraints of the user.
      * @param allAuth whether to grant the ALL authority to the user.
      * @param auths authorities to grant to the user. =======
      * @param organisationUnits the organisation units of the user.
-     * @param dataViewOrganisationUnits the data view organisation units of the
-     *        user.
-     * @param catDimensionConstraints the category dimension constraints of the
-     *        user.
+     * @param dataViewOrganisationUnits the data view organisation units of the user.
+     * @param catDimensionConstraints the category dimension constraints of the user.
      * @param allAuth whether to grant the ALL authority to the user.
      * @param auths authorities to grant to the user.
      * @return the user.

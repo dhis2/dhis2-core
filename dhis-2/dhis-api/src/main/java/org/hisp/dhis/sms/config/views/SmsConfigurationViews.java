@@ -29,8 +29,8 @@ package org.hisp.dhis.sms.config.views;
 
 /**
  *
- * Json view to keep confidential parameters from exposing through API and make
- * sure their availability while de-serialisation.
+ * Json view to keep confidential parameters from exposing through API and make sure their availability while
+ * de-serialisation.
  *
  * @Author Zubair Asghar.
  */

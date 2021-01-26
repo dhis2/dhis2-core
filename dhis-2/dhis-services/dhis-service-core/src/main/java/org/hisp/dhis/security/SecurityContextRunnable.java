@@ -31,8 +31,8 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
- * Implementation of a runnable that makes sure the thread is run in the same
- * security context as the creator, you must implement the call method.
+ * Implementation of a runnable that makes sure the thread is run in the same security context as the creator, you must
+ * implement the call method.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

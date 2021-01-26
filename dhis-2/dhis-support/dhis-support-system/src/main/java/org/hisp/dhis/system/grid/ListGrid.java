@@ -96,14 +96,13 @@ public class ListGrid
     private Map<String, Object> metaData;
 
     /**
-     * A Map which can hold internal arbitrary meta data. Will not be
-     * serialized.
+     * A Map which can hold internal arbitrary meta data. Will not be serialized.
      */
     private Map<String, Object> internalMetaData;
 
     /**
-     * A two dimensional List which simulates a grid where the first list
-     * represents rows and the second represents columns.
+     * A two dimensional List which simulates a grid where the first list represents rows and the second represents
+     * columns.
      */
     private List<List<Object>> grid;
 
@@ -118,8 +117,7 @@ public class ListGrid
     private int currentRowReadIndex = -1;
 
     /**
-     * Represents a mapping between column names and the index of the column in
-     * the grid.
+     * Represents a mapping between column names and the index of the column in the grid.
      */
     private Map<String, Integer> columnIndexMap = new HashMap<>();
 
@@ -1109,8 +1107,8 @@ public class ListGrid
     }
 
     /**
-     * Updates the mapping between header columns and grid indexes. This method
-     * should be invoked whenever the columns are manipulated.
+     * Updates the mapping between header columns and grid indexes. This method should be invoked whenever the columns
+     * are manipulated.
      */
     private void updateColumnIndexMap()
     {

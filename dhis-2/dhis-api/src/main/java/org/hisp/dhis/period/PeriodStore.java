@@ -58,8 +58,7 @@ public interface PeriodStore
      * @param startDate the start date of the Period.
      * @param endDate the end date of the Period.
      * @param periodType the PeriodType of the Period
-     * @return the Period matching the dates and periodtype, or null if no
-     *         match.
+     * @return the Period matching the dates and periodtype, or null if no match.
      */
     Period getPeriod( Date startDate, Date endDate, PeriodType periodType );
 
@@ -69,43 +68,38 @@ public interface PeriodStore
      * @param startDate the start date of the Period.
      * @param endDate the end date of the Period.
      * @param periodType the PeriodType of the Period
-     * @return the Period matching the dates and periodtype, or null if no
-     *         match.
+     * @return the Period matching the dates and periodtype, or null if no match.
      */
     Period getPeriodFromDates( Date startDate, Date endDate, PeriodType periodType );
 
     /**
-     * Returns all Periods with start date after or equal the specified start
-     * date and end date before or equal the specified end date.
+     * Returns all Periods with start date after or equal the specified start date and end date before or equal the
+     * specified end date.
      *
      * @param startDate the ultimate start date.
      * @param endDate the ultimate end date.
-     * @return a list of all Periods with start date after or equal the
-     *         specified start date and end date before or equal the specified
-     *         end date, or an empty collection if no Periods match.
+     * @return a list of all Periods with start date after or equal the specified start date and end date before or
+     *         equal the specified end date, or an empty collection if no Periods match.
      */
     List<Period> getPeriodsBetweenDates( Date startDate, Date endDate );
 
     /**
-     * Returns all Periods of the specified PeriodType with start date after or
-     * equal the specified start date and end date before or equal the specified
-     * end date.
+     * Returns all Periods of the specified PeriodType with start date after or equal the specified start date and end
+     * date before or equal the specified end date.
      *
      * @param periodType the PeriodType.
      * @param startDate the ultimate start date.
      * @param endDate the ultimate end date.
-     * @return a list of all Periods with start date after or equal the
-     *         specified start date and end date before or equal the specified
-     *         end date, or an empty collection if no Periods match.
+     * @return a list of all Periods with start date after or equal the specified start date and end date before or
+     *         equal the specified end date, or an empty collection if no Periods match.
      */
     List<Period> getPeriodsBetweenDates( PeriodType periodType, Date startDate, Date endDate );
 
     List<Period> getPeriodsBetweenOrSpanningDates( Date startDate, Date endDate );
 
     /**
-     * Returns all intersecting Periods between the startDate and endDate based
-     * on PeriodType For example if the startDate is 2007-05-01 and endDate is
-     * 2007-08-01 and periodType is Quarterly then it returns the periods for
+     * Returns all intersecting Periods between the startDate and endDate based on PeriodType For example if the
+     * startDate is 2007-05-01 and endDate is 2007-08-01 and periodType is Quarterly then it returns the periods for
      * Q2,Q3
      *
      * @param periodType is the ultimate period type
@@ -116,13 +110,11 @@ public interface PeriodStore
     List<Period> getIntersectingPeriodsByPeriodType( PeriodType periodType, Date startDate, Date endDate );
 
     /**
-     * Returns Periods where at least one its days is between the given start
-     * date and end date.
+     * Returns Periods where at least one its days is between the given start date and end date.
      *
      * @param startDate the start date.
      * @param endDate the end date.
-     * @return Periods where at least one its days is between the given start
-     *         date and end date.
+     * @return Periods where at least one its days is between the given start date and end date.
      */
     List<Period> getIntersectingPeriods( Date startDate, Date endDate );
 
@@ -130,14 +122,13 @@ public interface PeriodStore
      * Returns all Periods with a given PeriodType.
      *
      * @param periodType the PeriodType of the Periods to return.
-     * @return all Periods with the given PeriodType, or an empty list if no
-     *         Periods match.
+     * @return all Periods with the given PeriodType, or an empty list if no Periods match.
      */
     List<Period> getPeriodsByPeriodType( PeriodType periodType );
 
     /**
-     * Checks if the given period is associated with the current session and
-     * loads it if not. Null is returned if the period does not exist.
+     * Checks if the given period is associated with the current session and loads it if not. Null is returned if the
+     * period does not exist.
      *
      * @param period the Period.
      * @return the Period.
@@ -145,9 +136,8 @@ public interface PeriodStore
     Period reloadPeriod( Period period );
 
     /**
-     * Checks if the given period is associated with the current session and
-     * loads it if not. The period is persisted if it does not exist. The
-     * persisted Period is returned.
+     * Checks if the given period is associated with the current session and loads it if not. The period is persisted if
+     * it does not exist. The persisted Period is returned.
      *
      * @param period the Period.
      * @return the persisted Period.
@@ -192,14 +182,13 @@ public interface PeriodStore
     /**
      * Returns all PeriodTypes.
      *
-     * @return a list of all PeriodTypes, or an empty list if there are no
-     *         PeriodTypes.
+     * @return a list of all PeriodTypes, or an empty list if there are no PeriodTypes.
      */
     List<PeriodType> getAllPeriodTypes();
 
     /**
-     * Checks if the given periodType is associated with the current session and
-     * loads it if not. Null is returned if the period does not exist.
+     * Checks if the given periodType is associated with the current session and loads it if not. Null is returned if
+     * the period does not exist.
      *
      * @param periodType the PeriodType.
      * @return the Period.

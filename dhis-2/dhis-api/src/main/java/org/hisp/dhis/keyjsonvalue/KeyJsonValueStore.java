@@ -49,19 +49,16 @@ public interface KeyJsonValueStore
      * Retrieves a list of keys associated with a given namespace.
      *
      * @param namespace the namespace to retrieve keys from
-     * @return a list of strings representing the different keys in the
-     *         namespace
+     * @return a list of strings representing the different keys in the namespace
      */
     List<String> getKeysInNamespace( String namespace );
 
     /**
-     * Retrieves a list of keys associated with a given namespace which are
-     * updated after lastUpdated time.
+     * Retrieves a list of keys associated with a given namespace which are updated after lastUpdated time.
      *
      * @param namespace the namespace to retrieve keys from
      * @param lastUpdated the lastUpdated time to retrieve keys from
-     * @return a list of strings representing the different keys in the
-     *         namespace
+     * @return a list of strings representing the different keys in the namespace
      */
     List<String> getKeysInNamespace( String namespace, Date lastUpdated );
 

@@ -338,9 +338,8 @@ public class EventManager
     }
 
     /**
-     * Filters out Events which are already present in the database (regardless
-     * of the 'deleted' state) as well as duplicates within the payload (if
-     * stage is not repeatable)
+     * Filters out Events which are already present in the database (regardless of the 'deleted' state) as well as
+     * duplicates within the payload (if stage is not repeatable)
      *
      * @param events Events to import
      * @param importSummaries ImportSummaries used for import

@@ -55,9 +55,8 @@ import com.google.common.collect.Lists;
 /**
  * @author Stian Sandvold
  *
- *         NB! This class is mostly code from pre 2.28's DefaultAppManager. This
- *         is to support apps installed before 2.28. post 2.28, all
- *         installations using DHIS2 will use JCloudsAppStorageService.
+ *         NB! This class is mostly code from pre 2.28's DefaultAppManager. This is to support apps installed before
+ *         2.28. post 2.28, all installations using DHIS2 will use JCloudsAppStorageService.
  */
 @Slf4j
 @Service( "org.hisp.dhis.appmanager.LocalAppStorageService" )

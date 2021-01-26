@@ -104,8 +104,7 @@ public class EventChart
     private EventOutputType outputType;
 
     /**
-     * Indicates whether to collapse all data dimensions into a single
-     * dimension.
+     * Indicates whether to collapse all data dimensions into a single dimension.
      */
     private boolean collapseDataDimensions;
 

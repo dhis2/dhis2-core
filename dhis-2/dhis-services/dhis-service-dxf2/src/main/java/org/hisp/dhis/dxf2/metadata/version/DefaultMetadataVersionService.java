@@ -209,9 +209,8 @@ public class DefaultMetadataVersionService
     }
 
     /**
-     * This method is taking care of 3 steps: 1. Generating a metadata snapshot
-     * (using the ExportService) 2. Saving that snapshot to the DataStore 3.
-     * Creating the actual MetadataVersion entry.
+     * This method is taking care of 3 steps: 1. Generating a metadata snapshot (using the ExportService) 2. Saving that
+     * snapshot to the DataStore 3. Creating the actual MetadataVersion entry.
      */
     @Override
     @Transactional
@@ -368,8 +367,7 @@ public class DefaultMetadataVersionService
     // --------------------------------------------------------------------------
 
     /**
-     * Generates the metadata export based on the created date of the current
-     * version.
+     * Generates the metadata export based on the created date of the current version.
      */
     private ByteArrayOutputStream getMetadataExport( Date minDate )
     {

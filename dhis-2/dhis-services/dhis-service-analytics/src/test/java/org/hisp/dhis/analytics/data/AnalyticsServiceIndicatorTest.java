@@ -121,9 +121,8 @@ public class AnalyticsServiceIndicatorTest
     }
 
     /**
-     * IndicatorF | | v IndicatorG + + + | | | IndicatorH<-----+ |
-     * +----->IndicatorL + + | | | v | +------>IndicatorI | | |
-     * +------>IndicatorM
+     * IndicatorF | | v IndicatorG + + + | | | IndicatorH<-----+ | +----->IndicatorL + + | | | v | +------>IndicatorI |
+     * | | +------>IndicatorM
      *
      *
      */
@@ -254,9 +253,8 @@ public class AnalyticsServiceIndicatorTest
     }
 
     /**
-     * IndicatorB <-------> anyElement IndicatorA <-------> IndicatorB +
-     * IndicatorC IndicatorC <-------> IndicatorB IndicatorD <------->
-     * IndicatorB + IndicatorC
+     * IndicatorB <-------> anyElement IndicatorA <-------> IndicatorB + IndicatorC IndicatorC <-------> IndicatorB
+     * IndicatorD <-------> IndicatorB + IndicatorC
      */
     @Test
     public void verifyIndicatorCyclicDependencyIsNotTriggered7()
@@ -279,9 +277,8 @@ public class AnalyticsServiceIndicatorTest
     }
 
     /**
-     * IndicatorB <-------> anyElement IndicatorA <-------> IndicatorB +
-     * IndicatorC IndicatorC <-------> IndicatorB IndicatorD <------->
-     * IndicatorB
+     * IndicatorB <-------> anyElement IndicatorA <-------> IndicatorB + IndicatorC IndicatorC <-------> IndicatorB
+     * IndicatorD <-------> IndicatorB
      */
     @Test
     public void verifyIndicatorCyclicDependencyIsNotTriggered8()
@@ -304,9 +301,8 @@ public class AnalyticsServiceIndicatorTest
     }
 
     /**
-     * IndicatorB <-------> anyElement IndicatorA <------->
-     * IndicatorB/IndicatorC IndicatorC <-------> 1/IndicatorB IndicatorD
-     * <-------> IndicatorB
+     * IndicatorB <-------> anyElement IndicatorA <-------> IndicatorB/IndicatorC IndicatorC <-------> 1/IndicatorB
+     * IndicatorD <-------> IndicatorB
      */
     @Test
     public void verifyIndicatorCyclicDependencyIsNotTriggered9()
@@ -349,9 +345,8 @@ public class AnalyticsServiceIndicatorTest
     }
 
     /**
-     * IndicatorF | | v IndicatorG<---------------------+ + + + | | | | |
-     * IndicatorH<-----+ | +----->IndicatorL | + | | | v | | IndicatorI | | | |
-     * | | | +------>IndicatorM+-----------------------+
+     * IndicatorF | | v IndicatorG<---------------------+ + + + | | | | | IndicatorH<-----+ | +----->IndicatorL | + | |
+     * | v | | IndicatorI | | | | | | | +------>IndicatorM+-----------------------+
      *
      *
      *
@@ -395,8 +390,7 @@ public class AnalyticsServiceIndicatorTest
     }
 
     /**
-     * +------->IndicatorA | + | | | v | IndicatorB | + + + | |
-     * IndicatorC<-----+ +-->IndicatorD + | v DataElementA
+     * +------->IndicatorA | + | | | v | IndicatorB | + + + | | IndicatorC<-----+ +-->IndicatorD + | v DataElementA
      */
     @Test
     public void verifyIndicatorCyclicDependencyIsDetected4()
@@ -512,8 +506,7 @@ public class AnalyticsServiceIndicatorTest
     }
 
     /**
-     * IndicatorA <-------> 1/IndicatorB IndicatorB <-------> IndicatorA +
-     * IndicatorC IndicatorC <-------> anyElement
+     * IndicatorA <-------> 1/IndicatorB IndicatorB <-------> IndicatorA + IndicatorC IndicatorC <-------> anyElement
      */
     @Test
     public void verifyIndicatorCyclicDependencyIsDetected10()

@@ -28,8 +28,8 @@
 package org.hisp.dhis.system.startup;
 
 /**
- * Convenience class for creating startup routines. Contains a setter for the
- * runlevel property which should be used in bean mappings.
+ * Convenience class for creating startup routines. Contains a setter for the runlevel property which should be used in
+ * bean mappings.
  *
  * @author <a href="mailto:torgeilo@gmail.com">Torgeir Lorange Ostby</a>
  */

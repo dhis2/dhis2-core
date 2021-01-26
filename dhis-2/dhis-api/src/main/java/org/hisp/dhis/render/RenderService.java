@@ -81,11 +81,9 @@ public interface RenderService
         throws IOException;
 
     /**
-     * Parses metadata stream and automatically finds collections of id object
-     * based on root properties.
+     * Parses metadata stream and automatically finds collections of id object based on root properties.
      * <p>
-     * i.e. A property called "dataElements" would be tried to parsed as a
-     * collection of data elements.
+     * i.e. A property called "dataElements" would be tried to parsed as a collection of data elements.
      *
      * @param inputStream Stream to read from
      * @param format Payload format (only JSON is supported)

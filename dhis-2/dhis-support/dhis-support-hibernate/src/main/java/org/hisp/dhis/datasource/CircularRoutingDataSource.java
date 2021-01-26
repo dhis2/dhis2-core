@@ -40,8 +40,7 @@ import org.springframework.jdbc.datasource.AbstractDataSource;
 import com.google.common.collect.Iterators;
 
 /**
- * Data source implementation which routes to the configured target data sources
- * in a circular fashion.
+ * Data source implementation which routes to the configured target data sources in a circular fashion.
  *
  * @author Lars Helge Overland
  */

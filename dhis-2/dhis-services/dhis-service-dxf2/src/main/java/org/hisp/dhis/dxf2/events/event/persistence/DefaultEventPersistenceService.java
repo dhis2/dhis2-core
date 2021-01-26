@@ -123,8 +123,8 @@ public class DefaultEventPersistenceService
     }
 
     /**
-     * Updates the "lastupdated" and "lastupdatedBy" of the Tracked Entity
-     * Instances linked to the provided list of Events.
+     * Updates the "lastupdated" and "lastupdatedBy" of the Tracked Entity Instances linked to the provided list of
+     * Events.
      *
      * @param context a {@see WorkContext}
      * @param events a List of {@see Event}

@@ -48,17 +48,15 @@ import com.google.common.base.MoreObjects;
 public class WebMessage
 {
     /**
-     * Message status, currently two statuses are available: OK, ERROR. Default
-     * value is OK.
+     * Message status, currently two statuses are available: OK, ERROR. Default value is OK.
      *
      * @see Status
      */
     protected Status status = Status.OK;
 
     /**
-     * Internal code for this message. Should be used to help with third party
-     * clients which should not have to resort to string parsing of message to
-     * know what is happening.
+     * Internal code for this message. Should be used to help with third party clients which should not have to resort
+     * to string parsing of message to know what is happening.
      */
     protected Integer code;
 
@@ -68,26 +66,22 @@ public class WebMessage
     protected HttpStatus httpStatus = HttpStatus.OK;
 
     /**
-     * The {@link ErrorCode} which describes a potential error. Only relevant
-     * for {@link Status#ERROR}.
+     * The {@link ErrorCode} which describes a potential error. Only relevant for {@link Status#ERROR}.
      */
     protected ErrorCode errorCode;
 
     /**
-     * Non-technical message, should be simple and could possibly be used to
-     * display message to an end-user.
+     * Non-technical message, should be simple and could possibly be used to display message to an end-user.
      */
     protected String message;
 
     /**
-     * Technical message that should explain as much details as possible, mainly
-     * to be used for debugging.
+     * Technical message that should explain as much details as possible, mainly to be used for debugging.
      */
     protected String devMessage;
 
     /**
-     * When a simple text feedback is not enough, you can use this interface to
-     * implement your own message responses.
+     * When a simple text feedback is not enough, you can use this interface to implement your own message responses.
      *
      * @see WebMessageResponse
      */

@@ -96,8 +96,7 @@ public class CombinationGenerator<T>
     }
 
     /**
-     * Returns the next combination. Returns null if there are no more
-     * combinations.
+     * Returns the next combination. Returns null if there are no more combinations.
      */
     public List<T> getNext()
     {

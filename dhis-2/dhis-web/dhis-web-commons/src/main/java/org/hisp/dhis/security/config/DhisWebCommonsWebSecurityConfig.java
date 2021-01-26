@@ -88,8 +88,7 @@ import com.google.common.collect.ImmutableSet;
 public class DhisWebCommonsWebSecurityConfig
 {
     /**
-     * This configuration class is responsible for setting up the session
-     * management.
+     * This configuration class is responsible for setting up the session management.
      */
     @Configuration
     @Order( 3300 )
@@ -117,8 +116,7 @@ public class DhisWebCommonsWebSecurityConfig
     }
 
     /**
-     * This configuration class is responsible for setting up the form login and
-     * everything related to the web pages.
+     * This configuration class is responsible for setting up the form login and everything related to the web pages.
      */
     @Configuration
     @Order( 2200 )

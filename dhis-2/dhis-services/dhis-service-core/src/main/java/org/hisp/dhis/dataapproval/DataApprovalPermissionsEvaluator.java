@@ -41,13 +41,11 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 
 /**
- * This package private class holds the context for deciding on data approval
- * permissions. The context contains both system settings and some qualities of
- * the user.
+ * This package private class holds the context for deciding on data approval permissions. The context contains both
+ * system settings and some qualities of the user.
  * <p>
- * This class is especially efficient if the settings are set once and then used
- * several times to generate ApprovalPermissions for different DataApproval
- * objects.
+ * This class is especially efficient if the settings are set once and then used several times to generate
+ * ApprovalPermissions for different DataApproval objects.
  *
  * @author Jim Grace
  */
@@ -82,8 +80,8 @@ class DataApprovalPermissionsEvaluator
         .build();
 
     /**
-     * Clears the user approval level cache, for unit testing when the same user
-     * ID may have different approval levels in quick succession.
+     * Clears the user approval level cache, for unit testing when the same user ID may have different approval levels
+     * in quick succession.
      */
     public static void invalidateCache()
     {
@@ -91,8 +89,7 @@ class DataApprovalPermissionsEvaluator
     }
 
     /**
-     * Allocates and populates the context for determining user permissions on
-     * one or more DataApproval objects.
+     * Allocates and populates the context for determining user permissions on one or more DataApproval objects.
      *
      * @param currentUserService Current user service
      * @param organisationUnitService OrganisationUnit service
@@ -134,16 +131,14 @@ class DataApprovalPermissionsEvaluator
     }
 
     /**
-     * Evaluates approval permissions in the approval status according to the
-     * context of system settings and user information.
+     * Evaluates approval permissions in the approval status according to the context of system settings and user
+     * information.
      * <p>
-     * Also adjusts the approval state as necessary if acceptances are not
-     * configured.
+     * Also adjusts the approval state as necessary if acceptances are not configured.
      * <p>
      * If there is a data permissions state, also takes this into account.
      * <p>
-     * It is assumed that the org units have been filtered already for only the
-     * org units that a user may see (read).
+     * It is assumed that the org units have been filtered already for only the org units that a user may see (read).
      *
      * @param status the data approval status (if any)
      * @param workflow the data approval workflow

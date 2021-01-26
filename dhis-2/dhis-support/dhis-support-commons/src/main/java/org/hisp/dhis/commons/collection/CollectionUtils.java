@@ -59,8 +59,8 @@ public class CollectionUtils
     }
 
     /**
-     * Searches for and returns the first string which starts with the given
-     * prefix. Removes the match from the collection.
+     * Searches for and returns the first string which starts with the given prefix. Removes the match from the
+     * collection.
      *
      * @param collection the collection.
      * @param prefix the string prefix.
@@ -85,8 +85,7 @@ public class CollectionUtils
     }
 
     /**
-     * Applies the given consumer to each item in the given collection after
-     * filtering out null items.
+     * Applies the given consumer to each item in the given collection after filtering out null items.
      *
      * @param collection the collection.
      * @param consumer the consumer.

@@ -34,8 +34,8 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.data.redis.core.RedisTemplate;
 
 /**
- * A Builder class that helps in building Cache instances. Sensible defaults are
- * in place which can be modified with a fluent builder api.
+ * A Builder class that helps in building Cache instances. Sensible defaults are in place which can be modified with a
+ * fluent builder api.
  *
  * @author Ameen Mohamed
  *
@@ -60,9 +60,8 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
     }
 
     /**
-     * Configure the cache instance to use local inmemory storage even in
-     * clustered or standalone environment. Ideally used in scenarios where
-     * stale data is not critical and faster lookup is preferred.
+     * Configure the cache instance to use local inmemory storage even in clustered or standalone environment. Ideally
+     * used in scenarios where stale data is not critical and faster lookup is preferred.
      *
      * @return The builder instance.
      */
@@ -74,21 +73,16 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
     }
 
     /**
-     * Creates and returns a cacheInstance based on the system configuration and
-     * the cache builder parameters. If {@code maximumSize} is 0 then a
-     * NoOpCache instance will be returned which does not cache anything. This
-     * can be used during system testings where cache has to be disabled. If
-     * {@code maximumSize} is greater than 0 than based on {@code redis.enabled}
-     * property in dhis.conf, either Redis backed implementation
-     * {@link RedisCache} will be returned or a Local Caffeine backed cache
-     * implementation {@link LocalCache} will be returned. For Local cache,
-     * every instance created using this method will be logically separate and
-     * will not share any state. However, when using Redis Cache, every instance
-     * created using this method will use the same redis store.
+     * Creates and returns a cacheInstance based on the system configuration and the cache builder parameters. If
+     * {@code maximumSize} is 0 then a NoOpCache instance will be returned which does not cache anything. This can be
+     * used during system testings where cache has to be disabled. If {@code maximumSize} is greater than 0 than based
+     * on {@code redis.enabled} property in dhis.conf, either Redis backed implementation {@link RedisCache} will be
+     * returned or a Local Caffeine backed cache implementation {@link LocalCache} will be returned. For Local cache,
+     * every instance created using this method will be logically separate and will not share any state. However, when
+     * using Redis Cache, every instance created using this method will use the same redis store.
      *
-     * @return A cache instance based on the system configuration and input
-     *         parameters. Returns one of {@link RedisCache}, {@link LocalCache}
-     *         or {@link NoOpCache}
+     * @return A cache instance based on the system configuration and input parameters. Returns one of
+     *         {@link RedisCache}, {@link LocalCache} or {@link NoOpCache}
      */
     @Override
     public Cache<V> build()

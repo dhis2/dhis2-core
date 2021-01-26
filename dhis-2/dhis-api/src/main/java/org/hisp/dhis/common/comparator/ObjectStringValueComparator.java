@@ -31,8 +31,7 @@ import java.util.Comparator;
 import java.util.Objects;
 
 /**
- * Converts the given objects based on their string value. Null objects are
- * interpreted as empty strings.
+ * Converts the given objects based on their string value. Null objects are interpreted as empty strings.
  *
  * @author Lars Helge Overland
  */

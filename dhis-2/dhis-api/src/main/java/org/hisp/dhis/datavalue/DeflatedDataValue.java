@@ -38,8 +38,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * The purpose of this class is to avoid the overhead of creating objects for
- * associated objects, in order to reduce heap space usage during export.
+ * The purpose of this class is to avoid the overhead of creating objects for associated objects, in order to reduce
+ * heap space usage during export.
  *
  * @author Lars Helge Overland
  * @version $Id$

@@ -49,8 +49,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 
 /**
- * Reschedule old jobs and execute jobs which were scheduled when the server was
- * not running.
+ * Reschedule old jobs and execute jobs which were scheduled when the server was not running.
  *
  * @author Henning Håkonsen
  */

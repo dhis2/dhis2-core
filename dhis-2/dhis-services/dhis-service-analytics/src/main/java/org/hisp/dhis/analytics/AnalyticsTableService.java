@@ -35,8 +35,7 @@ package org.hisp.dhis.analytics;
 public interface AnalyticsTableService
 {
     /**
-     * Returns the {@link AnalyticsTableType} of analytics table which this
-     * manager handles.
+     * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
      *
      * @return the type of analytics table.
      */

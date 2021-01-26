@@ -32,9 +32,8 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 import org.joda.time.DateTimeConstants;
 
 /**
- * PeriodType for six-monthly Periods. A valid six-monthly Period has startDate
- * set to either January 1st or July 1st, and endDate set to the last day of the
- * fifth month after the startDate.
+ * PeriodType for six-monthly Periods. A valid six-monthly Period has startDate set to either January 1st or July 1st,
+ * and endDate set to the last day of the fifth month after the startDate.
  *
  * @author Torgeir Lorange Ostby
  * @version $Id: SixMonthlyPeriodType.java 2971 2007-03-03 18:54:56Z torgeilo $

@@ -46,14 +46,12 @@ public interface ProgramNotificationInstanceService
     ProgramNotificationInstance get( long programNotificationInstance );
 
     /**
-     * return ProgramNotificationInstances associated with this enrollment
-     * (ProgramInstance)
+     * return ProgramNotificationInstances associated with this enrollment (ProgramInstance)
      */
     List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramInstance programInstance );
 
     /**
-     * return ProgramNotificationInstances associated with this event
-     * (ProgramStageInstance)
+     * return ProgramNotificationInstances associated with this event (ProgramStageInstance)
      */
     List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramStageInstance programStageInstance );
 }

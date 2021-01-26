@@ -103,8 +103,7 @@ public class MapUtils
     }
 
     /**
-     * Creates a java.awt.Color from a dhis style color string, e.g. '#ff3200'
-     * is an orange color.
+     * Creates a java.awt.Color from a dhis style color string, e.g. '#ff3200' is an orange color.
      *
      * @param string the color in string, e.g. '#ff3200'
      * @return the Color, or null if string is null or empty.
@@ -142,8 +141,8 @@ public class MapUtils
     }
 
     /**
-     * Indicates whether the given JsonNode is empty, which implies that the
-     * node is not null and has a size greater than 0.
+     * Indicates whether the given JsonNode is empty, which implies that the node is not null and has a size greater
+     * than 0.
      *
      * @param json the JsonNode.
      * @return true if the given JsonNode is non empty, false otherwise.
@@ -215,12 +214,10 @@ public class MapUtils
     }
 
     /**
-     * Calculates the width and height of an two-dimensional area. If width is
-     * not null, the width will be used and the height will be calculated. If
-     * the height is not null, the height will be used and the width will be
-     * calculated. If both width and height are not null, the width or height
-     * will be adjusted to the greatest value possible without exceeding any of
-     * max width and max height.
+     * Calculates the width and height of an two-dimensional area. If width is not null, the width will be used and the
+     * height will be calculated. If the height is not null, the height will be used and the width will be calculated.
+     * If both width and height are not null, the width or height will be adjusted to the greatest value possible
+     * without exceeding any of max width and max height.
      *
      * @param maxWidth the maximum width.
      * @param maxHeight the maximum height.
@@ -228,8 +225,7 @@ public class MapUtils
      * @param subtractHeight the value to subtract from final height
      * @param widthFactor the width to height factor.
      * @return array where first position holds the width and second the height.
-     * @throws IllegalArgumentException if none of width and height are
-     *         specified.
+     * @throws IllegalArgumentException if none of width and height are specified.
      */
     public static int[] getWidthHeight( Integer maxWidth, Integer maxHeight, int subtractWidth, int subtractHeight,
         double widthFactor )

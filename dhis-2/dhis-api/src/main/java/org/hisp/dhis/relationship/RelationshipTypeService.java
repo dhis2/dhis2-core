@@ -91,8 +91,7 @@ public interface RelationshipTypeService
     /**
      * Returns all {@link RelationshipType}
      *
-     * @return a collection of all RelationshipType, or an empty collection if
-     *         there are no RelationshipTypes.
+     * @return a collection of all RelationshipType, or an empty collection if there are no RelationshipTypes.
      */
     List<RelationshipType> getAllRelationshipTypes();
 }

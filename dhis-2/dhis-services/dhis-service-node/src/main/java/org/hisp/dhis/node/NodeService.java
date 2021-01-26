@@ -44,8 +44,7 @@ public interface NodeService
      * Find a nodeSerializer that supports contentType or return null.
      *
      * @param contentType NodeSerializer contentType
-     * @return NodeSerializer that support contentType, or null if not match was
-     *         found
+     * @return NodeSerializer that support contentType, or null if not match was found
      * @see org.hisp.dhis.node.NodeSerializer
      */
     NodeSerializer getNodeSerializer( String contentType );
@@ -63,8 +62,7 @@ public interface NodeService
      * Find a nodeDeserializer that supports contentType or return null.
      *
      * @param contentType NodeDeserializer contentType
-     * @return NodeDeserializer that support contentType, or null if not match
-     *         was found
+     * @return NodeDeserializer that support contentType, or null if not match was found
      * @see org.hisp.dhis.node.NodeDeserializer
      */
     NodeDeserializer getNodeDeserializer( String contentType );

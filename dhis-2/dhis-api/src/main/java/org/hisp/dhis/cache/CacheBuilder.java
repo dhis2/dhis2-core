@@ -30,8 +30,8 @@ package org.hisp.dhis.cache;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A Builder class that helps in building Cache instances. Sensible defaults are
- * in place which can be modified with a fluent builder api.
+ * A Builder class that helps in building Cache instances. Sensible defaults are in place which can be modified with a
+ * fluent builder api.
  *
  * @author Ameen Mohamed
  *
@@ -40,29 +40,26 @@ import java.util.concurrent.TimeUnit;
 public interface CacheBuilder<V>
 {
     /**
-     * Set the maximum size for the cache instance to be built. If set to 0, no
-     * caching will take place. Cannot be a negative value.
+     * Set the maximum size for the cache instance to be built. If set to 0, no caching will take place. Cannot be a
+     * negative value.
      *
      * @param maximumSize The maximum size
      * @return The builder instance
-     * @throws IllegalArgumentException if specified maximumSize is a negative
-     *         value.
+     * @throws IllegalArgumentException if specified maximumSize is a negative value.
      */
     public CacheBuilder<V> withMaximumSize( long maximumSize );
 
     /**
      * Sets the minimum total size for the internal data structures.
      *
-     * @param initialCapacity minimum total size for the internal data
-     *        structures
+     * @param initialCapacity minimum total size for the internal data structures
      * @return this {@code CacheBuilder} instance (for chaining)
      * @throws IllegalArgumentException if {@code initialCapacity} is negative
      */
     public CacheBuilder<V> withInitialCapacity( int initialCapacity );
 
     /**
-     * Set the cacheRegion for the cache instance to be built. If not specified
-     * default is "default" region.
+     * Set the cacheRegion for the cache instance to be built. If not specified default is "default" region.
      *
      * @param region The cache region name to be used.
      * @return The builder instance.
@@ -71,8 +68,7 @@ public interface CacheBuilder<V>
     public CacheBuilder<V> forRegion( String region );
 
     /**
-     * Configure the cache instance to expire the keys, if the expiry duration
-     * elapses after last access.
+     * Configure the cache instance to expire the keys, if the expiry duration elapses after last access.
      *
      * @param duration The duration
      * @param timeUnit The time unit of the duration
@@ -82,8 +78,8 @@ public interface CacheBuilder<V>
     public CacheBuilder<V> expireAfterAccess( long duration, TimeUnit timeUnit );
 
     /**
-     * Configure the cache instance to expire the keys, if the expiry duration
-     * elapses after writing. The key expires irrespective of the last access.
+     * Configure the cache instance to expire the keys, if the expiry duration elapses after writing. The key expires
+     * irrespective of the last access.
      *
      * @param duration The duration
      * @param timeUnit The time unit of the duration
@@ -93,9 +89,8 @@ public interface CacheBuilder<V>
     public CacheBuilder<V> expireAfterWrite( long duration, TimeUnit timeUnit );
 
     /**
-     * Configure the cache instance to have a default value if the key does not
-     * have an associated value in cache. The default value will not be stored
-     * in the cache.
+     * Configure the cache instance to have a default value if the key does not have an associated value in cache. The
+     * default value will not be stored in the cache.
      *
      * @param defaultValue The default value
      * @return The builder instance.
@@ -103,9 +98,8 @@ public interface CacheBuilder<V>
     public CacheBuilder<V> withDefaultValue( V defaultValue );
 
     /**
-     * Configure the cache instance to use local inmemory storage even in
-     * clustered or standalone environment. Ideally used in scenarios where
-     * stale data is not critical and faster lookup is preferred.
+     * Configure the cache instance to use local inmemory storage even in clustered or standalone environment. Ideally
+     * used in scenarios where stale data is not critical and faster lookup is preferred.
      *
      * @return The builder instance.
      */

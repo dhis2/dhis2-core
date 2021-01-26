@@ -34,8 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.scheduling.SchedulingManager;
 
 /**
- * No operation leader election implementation which will be used when redis is
- * not configured.
+ * No operation leader election implementation which will be used when redis is not configured.
  *
  * @author Ameen Mohamed
  */

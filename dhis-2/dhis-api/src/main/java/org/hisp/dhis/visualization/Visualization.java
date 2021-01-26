@@ -183,8 +183,8 @@ public class Visualization
     private RegressionType regressionType = RegressionType.NONE;
 
     /**
-     * List of {@link Series}. Refers to the dimension items in the first
-     * dimension of the "columns" list by dimension item identifier.
+     * List of {@link Series}. Refers to the dimension items in the first dimension of the "columns" list by dimension
+     * item identifier.
      */
     private List<Series> series = new ArrayList<>();
 
@@ -229,8 +229,7 @@ public class Visualization
     private VisualizationFontStyle fontStyle;
 
     /**
-     * The key of the color set to use for visualization items, like columns and
-     * bars.
+     * The key of the color set to use for visualization items, like columns and bars.
      */
     private String colorSet;
 
@@ -263,8 +262,7 @@ public class Visualization
     private List<AxisV2> axes = new ArrayList<>();
 
     /**
-     * The period of years of this visualization. See RelativePeriodEnum for a
-     * valid list of enum based strings.
+     * The period of years of this visualization. See RelativePeriodEnum for a valid list of enum based strings.
      */
     private List<String> yearlySeries = new ArrayList<>();
 
@@ -283,20 +281,18 @@ public class Visualization
     private boolean skipRounding;
 
     /**
-     * Indicates whether the visualization contains regression columns. More
-     * likely to be applicable to pivot and reports.
+     * Indicates whether the visualization contains regression columns. More likely to be applicable to pivot and
+     * reports.
      */
     private boolean regression;
 
     /**
-     * Indicates whether the visualization contains cumulative values or
-     * columns.
+     * Indicates whether the visualization contains cumulative values or columns.
      */
     private boolean cumulativeValues;
 
     /**
-     * User stacked values or not. Very likely to be applied for
-     * graphics/charts.
+     * User stacked values or not. Very likely to be applied for graphics/charts.
      */
     private boolean percentStackedValues;
 
@@ -352,8 +348,8 @@ public class Visualization
     private transient Map<String, String> parentGraphMap = new HashMap<>();
 
     /*
-     * Common transient collections used to return the respective values to the
-     * client. They are the main attributes for any kind of visualization.
+     * Common transient collections used to return the respective values to the client. They are the main attributes for
+     * any kind of visualization.
      */
     private transient List<DimensionalObject> columns = new ArrayList<>();
 
@@ -372,8 +368,7 @@ public class Visualization
     private transient String gridTitle;
 
     /*
-     * Collections mostly used for analytics tabulated data, like pivots or
-     * reports.
+     * Collections mostly used for analytics tabulated data, like pivots or reports.
      */
     private transient List<List<DimensionalItemObject>> gridColumns = new ArrayList<>();
 
@@ -1142,8 +1137,8 @@ public class Visualization
     }
 
     /**
-     * Returns the list of DimensionDescriptor held internally to the current
-     * Visualization object. See {@link #addDimensionDescriptor}.
+     * Returns the list of DimensionDescriptor held internally to the current Visualization object. See
+     * {@link #addDimensionDescriptor}.
      *
      * @return the list of DimensionDescriptor's held.
      */
@@ -1153,11 +1148,10 @@ public class Visualization
     }
 
     /**
-     * This method will hold the mapping of a dimension and its respective
-     * formal type.
+     * This method will hold the mapping of a dimension and its respective formal type.
      *
-     * @param dimension the dimension, which should also be found in
-     *        "{@link #columnDimensions}" and "{@link #rowDimensions}".
+     * @param dimension the dimension, which should also be found in "{@link #columnDimensions}" and
+     *        "{@link #rowDimensions}".
      * @param dimensionType the formal dimension type. See {@link DimensionType}
      */
     public void addDimensionDescriptor( final String dimension, final DimensionType dimensionType )
@@ -1291,8 +1285,7 @@ public class Visualization
     // -------------------------------------------------------------------------
 
     /**
-     * Based on the Chart dimension, this method will bring the collection of
-     * child items related to its series.
+     * Based on the Chart dimension, this method will bring the collection of child items related to its series.
      *
      * @return a list of DimensionalItemObject representing the Chart series
      */
@@ -1309,8 +1302,7 @@ public class Visualization
     }
 
     /**
-     * Based on the Chart dimension, this method will bring the collection of
-     * child items related to its category.
+     * Based on the Chart dimension, this method will bring the collection of child items related to its category.
      *
      * @return a list of DimensionalItemObject representing the Chart category
      */
@@ -1327,8 +1319,8 @@ public class Visualization
     }
 
     /**
-     * Returns a list of dimensional items based on the given dimension and
-     * internal attributes of the current Visualization object.
+     * Returns a list of dimensional items based on the given dimension and internal attributes of the current
+     * Visualization object.
      *
      * @param dimension a given dimension
      * @return the list of DimensionalItemObject's
@@ -1490,8 +1482,7 @@ public class Visualization
     }
 
     /**
-     * Generates a grid for this visualization based on the given aggregate
-     * value map.
+     * Generates a grid for this visualization based on the given aggregate value map.
      *
      * @param grid the grid, should be empty and not null.
      * @param valueMap the mapping of identifiers to aggregate values.
@@ -1662,8 +1653,8 @@ public class Visualization
     }
 
     /**
-     * Generates a pretty column name based on the given display property of the
-     * argument objects. Null arguments are ignored in the name.
+     * Generates a pretty column name based on the given display property of the argument objects. Null arguments are
+     * ignored in the name.
      */
     public static String getPrettyColumnName( final List<DimensionalItemObject> objects,
         final DisplayProperty displayProperty )
@@ -1678,12 +1669,10 @@ public class Visualization
     }
 
     /**
-     * Generates a column name based on short-names of the argument objects.
-     * Null arguments are ignored in the name.
+     * Generates a column name based on short-names of the argument objects. Null arguments are ignored in the name.
      * <p/>
-     * The period column name must be static when on columns so it can be
-     * re-used in reports, hence the name property is used which will be
-     * formatted only when the period dimension is on rows.
+     * The period column name must be static when on columns so it can be re-used in reports, hence the name property is
+     * used which will be formatted only when the period dimension is on rows.
      */
     public static String getColumnName( final List<DimensionalItemObject> objects )
     {
@@ -1724,9 +1713,8 @@ public class Visualization
     }
 
     /**
-     * Checks whether the given List of IdentifiableObjects contains an object
-     * which is an OrganisationUnit and has the currentParent property set to
-     * true.
+     * Checks whether the given List of IdentifiableObjects contains an object which is an OrganisationUnit and has the
+     * currentParent property set to true.
      *
      * @param objects the List of IdentifiableObjects.
      */
@@ -1743,8 +1731,7 @@ public class Visualization
     }
 
     /**
-     * Returns the name of the parent organisation unit, or an empty string if
-     * null.
+     * Returns the name of the parent organisation unit, or an empty string if null.
      */
     public String getParentOrganisationUnitName()
     {

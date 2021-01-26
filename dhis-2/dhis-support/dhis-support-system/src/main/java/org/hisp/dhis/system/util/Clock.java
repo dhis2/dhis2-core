@@ -90,8 +90,7 @@ public class Clock
     }
 
     /**
-     * Timestamps the given message using the elapsed time of this Clock and
-     * logs it using the logger.
+     * Timestamps the given message using the elapsed time of this Clock and logs it using the logger.
      *
      * @param message the message to log.
      * @return this Clock.

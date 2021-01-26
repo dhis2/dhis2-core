@@ -42,22 +42,18 @@ import org.hisp.dhis.hibernate.encryption.HibernateEncryptorRegistry;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 
 /**
- * Hibernate {@link UserType} implementation which employs a
- * {@link PBEStringEncryptor} to perform transparent encryption/decryption of
- * {@link String} properties.
+ * Hibernate {@link UserType} implementation which employs a {@link PBEStringEncryptor} to perform transparent
+ * encryption/decryption of {@link String} properties.
  *
- * The employed encryptor is resolved from the
- * {@link HibernateEncryptorRegistry}, which must be set up with a named
- * encryptor. The encryptor is resolved through the 'encryptor' parameter, which
- * looks up the given name in the registry.
+ * The employed encryptor is resolved from the {@link HibernateEncryptorRegistry}, which must be set up with a named
+ * encryptor. The encryptor is resolved through the 'encryptor' parameter, which looks up the given name in the
+ * registry.
  *
- * If no 'encryptor' parameter is given, or the given name does not resolve to a
- * {@link PBEStringEncryptor} in the {@link HibernateEncryptorRegistry}, an
- * {@link IllegalArgumentException} is thrown at initialization.
+ * If no 'encryptor' parameter is given, or the given name does not resolve to a {@link PBEStringEncryptor} in the
+ * {@link HibernateEncryptorRegistry}, an {@link IllegalArgumentException} is thrown at initialization.
  *
- * This class implements a similar pattern to the encrypted types provided by
- * the org.jasypt.hibernate4 package, but serves to avoid this dependency (which
- * breaks on Hibernate > 5.1.x).
+ * This class implements a similar pattern to the encrypted types provided by the org.jasypt.hibernate4 package, but
+ * serves to avoid this dependency (which breaks on Hibernate > 5.1.x).
  *
  * @author Halvdan Hoem Grelland
  */

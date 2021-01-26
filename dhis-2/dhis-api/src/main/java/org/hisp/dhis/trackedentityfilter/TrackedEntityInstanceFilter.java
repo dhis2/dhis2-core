@@ -63,8 +63,7 @@ public class TrackedEntityInstanceFilter
     private String description;
 
     /**
-     * Property indicating the filter's order in tracked entity instance search
-     * UI
+     * Property indicating the filter's order in tracked entity instance search UI
      */
     private int sortOrder;
 
@@ -79,8 +78,7 @@ public class TrackedEntityInstanceFilter
     private ProgramStatus enrollmentStatus;
 
     /**
-     * Property indicating whether to filter tracked entity instances whose
-     * enrollments are marked for followup or not
+     * Property indicating whether to filter tracked entity instances whose enrollments are marked for followup or not
      */
     private Boolean followup = false;
 
@@ -90,8 +88,7 @@ public class TrackedEntityInstanceFilter
     private FilterPeriod enrollmentCreatedPeriod;
 
     /**
-     * Property to filter tracked entity instances based on event dates and
-     * statues
+     * Property to filter tracked entity instances based on event dates and statues
      */
     private List<EventFilter> eventFilters = new ArrayList<>();
 

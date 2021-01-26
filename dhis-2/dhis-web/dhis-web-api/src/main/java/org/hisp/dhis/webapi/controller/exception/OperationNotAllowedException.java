@@ -28,8 +28,7 @@
 package org.hisp.dhis.webapi.controller.exception;
 
 /**
- * Created by sultanm. This exception could be used in all operation forbidden
- * cases
+ * Created by sultanm. This exception could be used in all operation forbidden cases
  */
 public class OperationNotAllowedException
     extends Exception

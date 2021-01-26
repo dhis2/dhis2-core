@@ -301,12 +301,11 @@ public class HibernateValidationResultStore
     }
 
     /**
-     * If we should, restrict which validation results the user is entitled to
-     * see, based on the user's organisation units and on the user's dimension
-     * constraints if the user has them.
+     * If we should, restrict which validation results the user is entitled to see, based on the user's organisation
+     * units and on the user's dimension constraints if the user has them.
      * <p>
-     * If the current user is null (e.g. running a system process or a JUnit
-     * test) or superuser, there is no restriction.
+     * If the current user is null (e.g. running a system process or a JUnit test) or superuser, there is no
+     * restriction.
      *
      * @param sqlHelper to help with "where" and/or "and" in the where clause.
      * @return String to add restrictions to the HQL query.
@@ -383,8 +382,7 @@ public class HibernateValidationResultStore
     }
 
     /**
-     * Returns a HQL string that determines whether an object is readable by a
-     * user.
+     * Returns a HQL string that determines whether an object is readable by a user.
      *
      * @param x the object to test for readability.
      * @param u the user who might be able to read the object.

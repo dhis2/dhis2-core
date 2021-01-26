@@ -44,8 +44,7 @@ public interface ObjectBundleHook
      *
      * @param object Object to validate
      * @param bundle Current validation phase bundle
-     * @return Empty list if not errors, if errors then populated with one or
-     *         more ErrorReports
+     * @return Empty list if not errors, if errors then populated with one or more ErrorReports
      */
     <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle );
 
@@ -64,8 +63,7 @@ public interface ObjectBundleHook
     void postCommit( ObjectBundle bundle );
 
     /**
-     * Run before a type import has started. I.e. run before importing orgUnits,
-     * dataElements, etc.
+     * Run before a type import has started. I.e. run before importing orgUnits, dataElements, etc.
      *
      * @param bundle Current commit phase bundle
      */
@@ -73,8 +71,7 @@ public interface ObjectBundleHook
         ObjectBundle bundle );
 
     /**
-     * Run after a type import has finished. I.e. run before importing orgUnits,
-     * dataElements, etc.
+     * Run after a type import has finished. I.e. run before importing orgUnits, dataElements, etc.
      *
      * @param bundle Current commit phase bundle
      */

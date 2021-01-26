@@ -140,8 +140,8 @@ public class DataValidationTask
     }
 
     /**
-     * Evaluates validation rules for a single organisation unit. This is the
-     * central method in validation rule evaluation.
+     * Evaluates validation rules for a single organisation unit. This is the central method in validation rule
+     * evaluation.
      */
     @Override
     @Transactional
@@ -160,8 +160,8 @@ public class DataValidationTask
     }
 
     /**
-     * Get the data needed for this task, then evaluate each combination of
-     * organisation unit / period / validation rule.
+     * Get the data needed for this task, then evaluate each combination of organisation unit / period / validation
+     * rule.
      */
     private void runInternal()
     {
@@ -203,8 +203,8 @@ public class DataValidationTask
     }
 
     /**
-     * Validates one rule / period by seeing which attribute option combos exist
-     * for that data, and then iterating through those attribute option combos.
+     * Validates one rule / period by seeing which attribute option combos exist for that data, and then iterating
+     * through those attribute option combos.
      */
     private void validateRule()
     {
@@ -321,8 +321,8 @@ public class DataValidationTask
     /**
      * Gets the data for this period:
      * <p/>
-     * dataMap contains data for non-sliding window expressions.
-     * slidingWindowDataMap contains data for sliding window expressions.
+     * dataMap contains data for non-sliding window expressions. slidingWindowDataMap contains data for sliding window
+     * expressions.
      */
     private void getData()
     {
@@ -349,8 +349,7 @@ public class DataValidationTask
     }
 
     /**
-     * For an expression (left side or right side), finds the values (grouped by
-     * attribute option combo).
+     * For an expression (left side or right side), finds the values (grouped by attribute option combo).
      *
      * @param expression left or right side expression.
      * @param slidingWindow whether to use sliding window.
@@ -444,8 +443,7 @@ public class DataValidationTask
     }
 
     /**
-     * Evaluates an expression, returning a map of values by attribute option
-     * combo.
+     * Evaluates an expression, returning a map of values by attribute option combo.
      *
      * @param expression expression to evaluate.
      * @param valueMap Map of value maps, by attribute option combo.

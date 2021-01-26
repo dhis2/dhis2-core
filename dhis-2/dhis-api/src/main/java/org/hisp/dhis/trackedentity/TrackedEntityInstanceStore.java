@@ -53,8 +53,7 @@ public interface TrackedEntityInstanceStore
     int getTrackedEntityInstanceCountForGrid( TrackedEntityInstanceQueryParams params );
 
     /**
-     * Checks for the existence of a TEI by UID. Deleted TEIs are not taken into
-     * account.
+     * Checks for the existence of a TEI by UID. Deleted TEIs are not taken into account.
      *
      * @param uid PSI UID to check for.
      * @return true/false depending on result.
@@ -62,8 +61,7 @@ public interface TrackedEntityInstanceStore
     boolean exists( String uid );
 
     /**
-     * Checks for the existence of a TEI by UID. Takes into account also the
-     * deleted TEIs.
+     * Checks for the existence of a TEI by UID. Takes into account also the deleted TEIs.
      *
      * @param uid PSI UID to check for.
      * @return true/false depending on result.
@@ -71,8 +69,7 @@ public interface TrackedEntityInstanceStore
     boolean existsIncludingDeleted( String uid );
 
     /**
-     * Returns UIDs of existing TrackedEntityInstances (including deleted) from
-     * the provided UIDs
+     * Returns UIDs of existing TrackedEntityInstances (including deleted) from the provided UIDs
      *
      * @param uids TEI UIDs to check
      * @return List containing UIDs of existing TEIs (including deleted)
@@ -83,16 +80,15 @@ public interface TrackedEntityInstanceStore
      * Fetches TrackedEntityInstances matching the given list of UIDs
      *
      * @param uids a List of UID
-     * @return a List containing the TrackedEntityInstances matching the given
-     *         parameters list
+     * @return a List containing the TrackedEntityInstances matching the given parameters list
      */
     List<TrackedEntityInstance> getIncludingDeleted( List<String> uids );
 
     /**
      * Set lastSynchronized timestamp to provided timestamp for provided TEIs
      *
-     * @param trackedEntityInstanceUIDs UIDs of Tracked entity instances where
-     *        the lastSynchronized flag should be updated
+     * @param trackedEntityInstanceUIDs UIDs of Tracked entity instances where the lastSynchronized flag should be
+     *        updated
      * @param lastSynchronized The date of last successful sync
      */
     void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized );

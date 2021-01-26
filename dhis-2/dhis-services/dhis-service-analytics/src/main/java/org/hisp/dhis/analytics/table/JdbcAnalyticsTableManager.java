@@ -87,17 +87,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
- * This class manages the analytics tables. The analytics table is a
- * denormalized table designed for analysis which contains raw data values.
+ * This class manages the analytics tables. The analytics table is a denormalized table designed for analysis which
+ * contains raw data values.
  * <p>
- * The analytics table is horizontally partitioned. The partition key is the
- * start date of the period of the data record. The table is partitioned
- * according to time span with one partition per calendar quarter.
+ * The analytics table is horizontally partitioned. The partition key is the start date of the period of the data
+ * record. The table is partitioned according to time span with one partition per calendar quarter.
  * <p>
- * The data records in this table are not aggregated. Typically, queries will
- * aggregate in organisation unit hierarchy dimension, in the period/time
- * dimension, and the category dimensions, as well as organisation unit group
- * set dimensions.
+ * The data records in this table are not aggregated. Typically, queries will aggregate in organisation unit hierarchy
+ * dimension, in the period/time dimension, and the category dimensions, as well as organisation unit group set
+ * dimensions.
  * <p>
  * This analytics table is partitioned by year.
  *
@@ -337,10 +335,8 @@ public class JdbcAnalyticsTableManager
     }
 
     /**
-     * Returns sub-query for approval level. First looks for approval level in
-     * data element resource table which will indicate level 0 (highest) if
-     * approval is not required. Then looks for highest level in dataapproval
-     * table.
+     * Returns sub-query for approval level. First looks for approval level in data element resource table which will
+     * indicate level 0 (highest) if approval is not required. Then looks for highest level in dataapproval table.
      *
      * @param year the data year.
      */
@@ -467,8 +463,8 @@ public class JdbcAnalyticsTableManager
     }
 
     /**
-     * Returns the distinct years which contain data values, relative to the
-     * from date in the given parameters, if it exists.
+     * Returns the distinct years which contain data values, relative to the from date in the given parameters, if it
+     * exists.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @return a list of data years.
@@ -557,8 +553,7 @@ public class JdbcAnalyticsTableManager
     }
 
     /**
-     * Indicates whether the system should ignore data which has not been
-     * approved in analytics tables.
+     * Indicates whether the system should ignore data which has not been approved in analytics tables.
      *
      * @param year the year of the data partition.
      */

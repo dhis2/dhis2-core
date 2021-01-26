@@ -47,34 +47,32 @@ public interface TrackedEntityInstanceStore
      * Get a Map of {@see TrackedEntityInstance} by Primary Keys
      *
      * @param ids a list of Tracked Entity Instance Primary Keys
-     * @return a Map where key is a {@see TrackedEntityInstance} uid and the key
-     *         is the corresponding {@see TrackedEntityInstance}
+     * @return a Map where key is a {@see TrackedEntityInstance} uid and the key is the corresponding
+     *         {@see TrackedEntityInstance}
      */
     Map<String, TrackedEntityInstance> getTrackedEntityInstances( List<Long> ids, AggregateContext ctx );
 
     /**
-     * Fetches all the relationships having the TEI id specified in the arg as
-     * "left" or "right" relationship
+     * Fetches all the relationships having the TEI id specified in the arg as "left" or "right" relationship
      *
      * @param ids a list of Tracked Entity Instance Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
-     *         the key a List of {@see Relationship} objects
+     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the key a List of {@see Relationship}
+     *         objects
      */
     Multimap<String, Relationship> getRelationships( List<Long> ids );
 
     /**
      *
      * @param ids @param ids a list of Tracked Entity Instance Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
-     *         the key a List of {@see Attribute} objects
+     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the key a List of {@see Attribute} objects
      */
     Multimap<String, Attribute> getAttributes( List<Long> ids );
 
     /**
      *
      * @param ids a list of Tracked Entity Instance Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
-     *         the * key a List of {@see ProgramOwner} objects
+     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the * key a List of {@see ProgramOwner}
+     *         objects
      */
     Multimap<String, ProgramOwner> getProgramOwners( List<Long> ids );
 
@@ -83,8 +81,7 @@ public interface TrackedEntityInstanceStore
      *
      * @param ids a list of Tracked Entinty Instance primary keys
      * @param ctx
-     * @return Tei uids mapped to a list of program uids to which user has
-     *         ownership
+     * @return Tei uids mapped to a list of program uids to which user has ownership
      */
     Multimap<String, String> getOwnedTeis( List<Long> ids, AggregateContext ctx );
 }

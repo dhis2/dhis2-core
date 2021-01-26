@@ -38,8 +38,7 @@ import java.util.regex.Pattern;
 public class RegexUtils
 {
     /**
-     * Return the matches in the given input based on the given pattern and
-     * group number.
+     * Return the matches in the given input based on the given pattern and group number.
      *
      * @param pattern the pattern.
      * @param input the input. If the input is null, an empty set is returned.
@@ -66,8 +65,7 @@ public class RegexUtils
     }
 
     /**
-     * Return the matches in the given input based on the given pattern and
-     * group name.
+     * Return the matches in the given input based on the given pattern and group name.
      *
      * @param pattern the pattern.
      * @param input the input.

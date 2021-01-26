@@ -38,9 +38,8 @@ import org.hisp.dhis.user.User;
 /**
  * The MapGenerationService interface generates map images from Map objects.
  *
- * Map objects may be built by adding layers to them, and once passed to
- * generateMapImage it will render an image representing the map according to
- * the properties defined by Map and MapView.
+ * Map objects may be built by adding layers to them, and once passed to generateMapImage it will render an image
+ * representing the map according to the properties defined by Map and MapView.
  *
  * TODO Extend with more configuration options, e.g. width
  *
@@ -55,8 +54,7 @@ public interface MapGenerationService
      * Generate an image that represents this map.
      *
      * @param mapView the map view that will be rendered,
-     * @return the rendered map image or null if there is no data for the map
-     *         view.
+     * @return the rendered map image or null if there is no data for the map view.
      */
     BufferedImage generateMapImage( MapView mapView );
 
@@ -64,8 +62,7 @@ public interface MapGenerationService
      * Generate an image that represents this map.
      *
      * @param map the map that will be rendered,
-     * @return the rendered map image or null if there is no data for the map
-     *         view.
+     * @return the rendered map image or null if there is no data for the map view.
      */
     BufferedImage generateMapImage( Map map );
 
@@ -77,8 +74,7 @@ public interface MapGenerationService
      * @param unit the organisation unit.
      * @param width the maximum width of the map image.
      * @param height the maximum height of the map image.
-     * @return the rendered map image or null if there is no data for the map
-     *         view.
+     * @return the rendered map image or null if there is no data for the map view.
      */
     BufferedImage generateMapImage( Map map, Date date, OrganisationUnit unit, Integer width, Integer height );
 

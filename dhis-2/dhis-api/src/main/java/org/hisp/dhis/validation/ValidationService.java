@@ -47,8 +47,7 @@ public interface ValidationService
     int MAX_SCHEDULED_ALERTS = 100000;
 
     /**
-     * Start a validation analysis, based on the supplied parameters. See
-     * ValidationAnalysisParams for more information
+     * Start a validation analysis, based on the supplied parameters. See ValidationAnalysisParams for more information
      *
      * @param parameters the parameters to base the analysis on.
      * @return a collection of ValidationResults found.
@@ -56,9 +55,8 @@ public interface ValidationService
     List<ValidationResult> validationAnalysis( ValidationAnalysisParams parameters );
 
     /**
-     * Validate that missing data values have a corresponding comment, assuming
-     * that the given data set has the noValueRequiresComment property set to
-     * true.
+     * Validate that missing data values have a corresponding comment, assuming that the given data set has the
+     * noValueRequiresComment property set to true.
      *
      * @param dataSet the data set.
      * @param period the period.

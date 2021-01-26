@@ -518,15 +518,12 @@ public class EnrollmentImportValidationTest
     }
 
     /*
-     * FAILS ERROR 00:26:29,461 Value too long for column
-     * "GEOMETRY BINARY(255)":
+     * FAILS ERROR 00:26:29,461 Value too long for column "GEOMETRY BINARY(255)":
      * "X'aced000573720021636f6d2e7669766964736f6c7574696f6e732e6a74732e67656f6d2e506f696e7444077bad161cbb2a0200014c000b636f6f7264696e61... (1168)"
-     * ; SQL statement: insert into programinstance (uid, created, lastUpdated,
-     * createdAtClient, lastUpdatedAtClient, incidentDate, enrollmentdate,
-     * enddate, followup, completedBy, geometry, deleted, storedby, status,
-     * trackedentityinstanceid, programid, organisationunitid,
-     * programinstanceid) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-     * ?, ?, ?) [22001-196] (SqlExceptionHelper.java [main])
+     * ; SQL statement: insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpdatedAtClient,
+     * incidentDate, enrollmentdate, enddate, followup, completedBy, geometry, deleted, storedby, status,
+     * trackedentityinstanceid, programid, organisationunitid, programinstanceid) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+     * ?, ?, ?, ?, ?, ?, ?, ?) [22001-196] (SqlExceptionHelper.java [main])
      */
     @Test
     public void testBadGeoOnEnrollmentMissingFeatureType()

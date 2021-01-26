@@ -58,9 +58,8 @@ public class ProgramRuleConfig
     private ConstantService constantService;
 
     /**
-     * This bean is used in the system when an event is intercepted by
-     * {@link ProgramRuleEngineListener}. Only the notification rule actions are
-     * executed.
+     * This bean is used in the system when an event is intercepted by {@link ProgramRuleEngineListener}. Only the
+     * notification rule actions are executed.
      */
     @Bean( "notificationRuleEngine" )
     public ProgramRuleEngine oldRuleEngine( OldImplementableRuleService oldImplementableRuleService )
@@ -71,8 +70,7 @@ public class ProgramRuleConfig
     }
 
     /**
-     * This bean is used when the new importer is called. All the relevant rule
-     * actions are executed.
+     * This bean is used when the new importer is called. All the relevant rule actions are executed.
      */
     @Bean( "serviceTrackerRuleEngine" )
     public ProgramRuleEngine newRuleEngine( NewImplementableRuleService newImplementableRuleService )

@@ -70,9 +70,8 @@ public class PaginatedList<T>
     }
 
     /**
-     * Sets the number of pages. The page size will be calculated and set in
-     * order to provide the appropriate total number of pages. The resulting
-     * number of pages can be lower than the given argument but not higher.
+     * Sets the number of pages. The page size will be calculated and set in order to provide the appropriate total
+     * number of pages. The resulting number of pages can be lower than the given argument but not higher.
      *
      * @param pages the number of pages.
      * @return this PaginatedList
@@ -85,10 +84,8 @@ public class PaginatedList<T>
     }
 
     /**
-     * Returns the next page in the list. The page size is defined by the
-     * argument given in the constructor. If there is no more pages, null is
-     * returned. The returned page is not guaranteed to have the same size as
-     * the page size.
+     * Returns the next page in the list. The page size is defined by the argument given in the constructor. If there is
+     * no more pages, null is returned. The returned page is not guaranteed to have the same size as the page size.
      *
      * @return the next page.
      */

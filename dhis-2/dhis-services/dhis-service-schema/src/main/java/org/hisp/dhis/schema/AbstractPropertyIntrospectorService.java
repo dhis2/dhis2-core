@@ -185,8 +185,7 @@ public abstract class AbstractPropertyIntrospectorService
     }
 
     /**
-     * Introspect a class and return a map with key=property-name, and
-     * value=Property class.
+     * Introspect a class and return a map with key=property-name, and value=Property class.
      *
      * @param klass Class to scan
      * @return Map with key=property-name, and value=Property class

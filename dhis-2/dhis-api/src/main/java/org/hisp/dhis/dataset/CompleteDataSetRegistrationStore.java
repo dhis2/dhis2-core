@@ -57,8 +57,7 @@ public interface CompleteDataSetRegistrationStore
     void updateCompleteDataSetRegistration( CompleteDataSetRegistration registration );
 
     /**
-     * Retrieves the CompleteDataSetRegistration for the given DataSet, Period
-     * and Source.
+     * Retrieves the CompleteDataSetRegistration for the given DataSet, Period and Source.
      *
      * @param dataSet the DataSet.
      * @param period the Period.
@@ -84,27 +83,23 @@ public interface CompleteDataSetRegistrationStore
     List<CompleteDataSetRegistration> getAllCompleteDataSetRegistrations();
 
     /**
-     * Deletes the CompleteDataSetRegistrations associated with the given
-     * DataSet.
+     * Deletes the CompleteDataSetRegistrations associated with the given DataSet.
      *
      * @param dataSet the DataSet.
      */
     void deleteCompleteDataSetRegistrations( DataSet dataSet );
 
     /**
-     * Deletes the CompleteDataSetRegistrations associated with the given
-     * OrganisationUnit.
+     * Deletes the CompleteDataSetRegistrations associated with the given OrganisationUnit.
      *
      * @param unit the OrganisationUnit.
      */
     void deleteCompleteDataSetRegistrations( OrganisationUnit unit );
 
     /**
-     * Returns the number of Complete DataSets which have been updated at or
-     * after the given date time.
+     * Returns the number of Complete DataSets which have been updated at or after the given date time.
      *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
+     * @param lastUpdated specifies the date to filter complete data sets last updated after
      * @return the number of completed DataSets.
      */
     int getCompleteDataSetCountLastUpdatedAfter( Date lastUpdated );

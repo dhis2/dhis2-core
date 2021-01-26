@@ -67,8 +67,7 @@ public interface ProgramRuleActionService
     /**
      * Returns all {@link ProgramRuleAction}.
      *
-     * @return a collection of all ProgramRuleAction, or an empty collection if
-     *         there are no ProgramRuleActions.
+     * @return a collection of all ProgramRuleAction, or an empty collection if there are no ProgramRuleActions.
      */
     List<ProgramRuleAction> getAllProgramRuleAction();
 

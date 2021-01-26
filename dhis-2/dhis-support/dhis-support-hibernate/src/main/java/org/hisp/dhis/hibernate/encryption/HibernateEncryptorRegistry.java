@@ -35,9 +35,8 @@ import com.google.common.collect.Maps;
 
 /**
  * Singleton registry for all (named) Hibernate Encryptors.
- * {@link org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType
- * EncryptedStringUserType} depends on this singleton to access the appropriate
- * encryptor(s).
+ * {@link org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType EncryptedStringUserType} depends on this
+ * singleton to access the appropriate encryptor(s).
  *
  * @author Halvdan Hoem Grelland
  */
@@ -62,8 +61,7 @@ public final class HibernateEncryptorRegistry
     }
 
     /**
-     * Registers the given {@link PBEStringEncryptor PBEStringEncryptors} by
-     * name.
+     * Registers the given {@link PBEStringEncryptor PBEStringEncryptors} by name.
      *
      * @param encryptors a map of names and encryptors.
      */

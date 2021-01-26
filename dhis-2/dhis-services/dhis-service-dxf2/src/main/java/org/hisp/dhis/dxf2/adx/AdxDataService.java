@@ -86,15 +86,13 @@ public interface AdxDataService
         IdSchemes outputIdSchemes );
 
     /**
-     * Post data. Takes ADX Data from input stream and saves a series of DXF2
-     * DataValueSets.
+     * Post data. Takes ADX Data from input stream and saves a series of DXF2 DataValueSets.
      *
      * @param in the InputStream.
      * @param importOptions the importOptions.
      * @param id the task id, can be null.
      *
-     * @return an ImportSummaries collection of ImportSummary for each
-     *         DataValueSet.
+     * @return an ImportSummaries collection of ImportSummary for each DataValueSet.
      */
     ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobConfiguration id );
 
@@ -105,8 +103,7 @@ public interface AdxDataService
      * @param importOptions the importOptions.
      * @param id the task id, can be null.
      *
-     * @return an ImportSummaries collection of ImportSummary for each
-     *         DataValueSet.
+     * @return an ImportSummaries collection of ImportSummary for each DataValueSet.
      * @throws AdxException for conflicts during export process.
      */
     void writeDataValueSet( DataExportParams params, OutputStream out )

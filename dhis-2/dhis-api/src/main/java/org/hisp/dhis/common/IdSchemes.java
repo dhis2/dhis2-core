@@ -32,9 +32,8 @@ import org.hisp.dhis.util.ObjectUtils;
 import com.google.common.base.MoreObjects;
 
 /**
- * Identifier schemes used to map meta data. The general identifier scheme can
- * be overridden by id schemes specific to individual object types. The default
- * id scheme is UID.
+ * Identifier schemes used to map meta data. The general identifier scheme can be overridden by id schemes specific to
+ * individual object types. The default id scheme is UID.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

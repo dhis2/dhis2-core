@@ -101,8 +101,7 @@ public abstract class AbstractEventJdbcTableManager
     }
 
     /**
-     * Returns the select clause, potentially with a cast statement, based on
-     * the given value type.
+     * Returns the select clause, potentially with a cast statement, based on the given value type.
      *
      * @param valueType the value type to represent as database column type.
      */
@@ -166,8 +165,7 @@ public abstract class AbstractEventJdbcTableManager
     }
 
     /**
-     * Populates the given analytics table partition using the given columns and
-     * join statement.
+     * Populates the given analytics table partition using the given columns and join statement.
      *
      * @param partition the {@link AnalyticsTablePartition}.
      * @param columns the list of {@link AnalyticsTableColumn}.

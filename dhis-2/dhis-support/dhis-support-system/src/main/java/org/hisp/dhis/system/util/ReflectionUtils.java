@@ -62,8 +62,8 @@ public class ReflectionUtils
         "publicAccess", "externalAccess", "userGroupAccesses", "userAccesses", "sharing" );
 
     /**
-     * Invokes method getId() for this object and returns the return value. An
-     * int return type is expected. If the operation fails -1 is returned.
+     * Invokes method getId() for this object and returns the return value. An int return type is expected. If the
+     * operation fails -1 is returned.
      *
      * @param object object to call getId() on.
      * @return The identifier.
@@ -122,8 +122,7 @@ public class ReflectionUtils
     }
 
     /**
-     * Sets a property for the supplied object. Throws an
-     * UnsupportedOperationException if the operation fails.
+     * Sets a property for the supplied object. Throws an UnsupportedOperationException if the operation fails.
      *
      * @param object Object to modify
      * @param name Name of property to set
@@ -153,8 +152,7 @@ public class ReflectionUtils
     }
 
     /**
-     * Sets a property for the supplied object. Throws an
-     * UnsupportedOperationException if the operation fails.
+     * Sets a property for the supplied object. Throws an UnsupportedOperationException if the operation fails.
      *
      * @param object Object to modify
      * @param namePrefix prefix of the property name to set
@@ -169,8 +167,8 @@ public class ReflectionUtils
     }
 
     /**
-     * Returns the name of the class that the object is an instance of
-     * org.hisp.dhis.indicator.Indicator returns Indicator.
+     * Returns the name of the class that the object is an instance of org.hisp.dhis.indicator.Indicator returns
+     * Indicator.
      *
      * @param object object to determine className for.
      * @return String containing the class name.
@@ -493,8 +491,7 @@ public class ReflectionUtils
     }
 
     /**
-     * Get all uniquely declared methods on a given Class, if methods are
-     * overriden only the topmost method is returned.
+     * Get all uniquely declared methods on a given Class, if methods are overriden only the topmost method is returned.
      *
      * @param klass Class
      * @return List of uniquely declared methods
@@ -505,8 +502,8 @@ public class ReflectionUtils
     }
 
     /**
-     * Returns a multimap of the mapping method-name -> [methods]. Useful to
-     * find overloaded methods in a class hierarchy.
+     * Returns a multimap of the mapping method-name -> [methods]. Useful to find overloaded methods in a class
+     * hierarchy.
      *
      * @param klass Class
      * @return Multimap of method-name -> [methods]

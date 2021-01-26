@@ -2636,12 +2636,10 @@ public class DataApprovalServiceTest
     }
 
     /**
-     * Returns approval status and permissions information as a string. This
-     * allows a test to compare the result against a string and test several
-     * things at once. More importantly, it shows in the log all of the ways in
-     * which the test status and permissions differs from expected, instead of
-     * showing only one different value. This can save time in understanding the
-     * difference between the expected value and the test result.
+     * Returns approval status and permissions information as a string. This allows a test to compare the result against
+     * a string and test several things at once. More importantly, it shows in the log all of the ways in which the test
+     * status and permissions differs from expected, instead of showing only one different value. This can save time in
+     * understanding the difference between the expected value and the test result.
      *
      * @param workflow Approval workflow
      * @param period Approval period

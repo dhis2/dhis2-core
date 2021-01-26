@@ -59,8 +59,8 @@ public interface TrackedEntityAttributeValueStore
     int deleteByTrackedEntityInstance( TrackedEntityInstance instance );
 
     /**
-     * Retrieve a {@link TrackedEntityAttributeValue} on a
-     * {@link TrackedEntityInstance} and {@link TrackedEntityAttribute}
+     * Retrieve a {@link TrackedEntityAttributeValue} on a {@link TrackedEntityInstance} and
+     * {@link TrackedEntityAttribute}
      *
      * @param instance the {@link TrackedEntityInstance}
      * @param attribute the {@link TrackedEntityAttribute}
@@ -69,8 +69,7 @@ public interface TrackedEntityAttributeValueStore
     TrackedEntityAttributeValue get( TrackedEntityInstance instance, TrackedEntityAttribute attribute );
 
     /**
-     * Retrieve {@link TrackedEntityAttributeValue} of a
-     * {@link TrackedEntityInstance}
+     * Retrieve {@link TrackedEntityAttributeValue} of a {@link TrackedEntityInstance}
      *
      * @param instance TrackedEntityInstance
      * @return TrackedEntityAttributeValue list
@@ -78,8 +77,7 @@ public interface TrackedEntityAttributeValueStore
     List<TrackedEntityAttributeValue> get( TrackedEntityInstance instance );
 
     /**
-     * Retrieve {@link TrackedEntityAttributeValue} of a
-     * {@link TrackedEntityInstance}
+     * Retrieve {@link TrackedEntityAttributeValue} of a {@link TrackedEntityInstance}
      *
      * @param attribute the {@link TrackedEntityAttribute}
      * @return TrackedEntityAttributeValue list
@@ -95,8 +93,8 @@ public interface TrackedEntityAttributeValueStore
     List<TrackedEntityAttributeValue> get( Collection<TrackedEntityInstance> instances );
 
     /**
-     * Search TrackedEntityAttributeValue objects by a TrackedEntityAttribute
-     * and a attribute value (performs partial search )
+     * Search TrackedEntityAttributeValue objects by a TrackedEntityAttribute and a attribute value (performs partial
+     * search )
      *
      * @param attribute TrackedEntityAttribute
      * @param searchText A string for searching by attribute values
@@ -105,8 +103,7 @@ public interface TrackedEntityAttributeValueStore
     List<TrackedEntityAttributeValue> searchByValue( TrackedEntityAttribute attribute, String searchText );
 
     /**
-     * Gets a list of {@link TrackedEntityAttributeValue} that matches the
-     * parameters
+     * Gets a list of {@link TrackedEntityAttributeValue} that matches the parameters
      *
      * @param attribute {@link TrackedEntityAttribute} to get value for
      * @param values List of literal values
@@ -115,12 +112,10 @@ public interface TrackedEntityAttributeValueStore
     List<TrackedEntityAttributeValue> get( TrackedEntityAttribute attribute, Collection<String> values );
 
     /**
-     * Gets a list of {@link TrackedEntityAttributeValue} that matches the
-     * parameters
+     * Gets a list of {@link TrackedEntityAttributeValue} that matches the parameters
      *
      * @param attribute {@link TrackedEntityAttribute} to get value for
-     * @param value literal value to find within the specified
-     *        {@link TrackedEntityAttribute}
+     * @param value literal value to find within the specified {@link TrackedEntityAttribute}
      * @return list of {@link TrackedEntityAttributeValue}
      */
     List<TrackedEntityAttributeValue> get( TrackedEntityAttribute attribute, String value );
@@ -135,8 +130,7 @@ public interface TrackedEntityAttributeValueStore
     List<TrackedEntityAttributeValue> get( TrackedEntityInstance instance, Program program );
 
     /**
-     * Return the number of assigned {@link TrackedEntityAttributeValue}s to the
-     * {@link TrackedEntityAttribute}
+     * Return the number of assigned {@link TrackedEntityAttributeValue}s to the {@link TrackedEntityAttribute}
      *
      * @param attribute {@link TrackedEntityAttribute}
      * @return Number of assigned TrackedEntityAttributeValues

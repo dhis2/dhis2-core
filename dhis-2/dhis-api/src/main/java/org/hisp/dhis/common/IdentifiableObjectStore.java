@@ -46,8 +46,7 @@ public interface IdentifiableObjectStore<T>
      * Saves the given object instance.
      *
      * @param object the object instance.
-     * @param clearSharing indicates whether to clear all sharing related
-     *        properties.
+     * @param clearSharing indicates whether to clear all sharing related properties.
      */
     void save( T object, boolean clearSharing );
 
@@ -115,8 +114,7 @@ public interface IdentifiableObjectStore<T>
     T getByCode( String code );
 
     /**
-     * Retrieves the attribute value associated with the unique attribute and
-     * the given value.
+     * Retrieves the attribute value associated with the unique attribute and the given value.
      *
      * @param attribute the attribute.
      * @param value the value.
@@ -134,8 +132,7 @@ public interface IdentifiableObjectStore<T>
     List<T> getAllOrderedName();
 
     /**
-     * Retrieves the objects determined by the given first result and max
-     * result.
+     * Retrieves the objects determined by the given first result and max result.
      *
      * @param first the first result object to return.
      * @param max the max number of result objects to return.
@@ -189,8 +186,7 @@ public interface IdentifiableObjectStore<T>
     List<T> getAllLikeName( String name, int first, int max, boolean caseSensitive );
 
     /**
-     * Retrieves a List of objects where the name matches the conjunction of the
-     * given set of words.
+     * Retrieves a List of objects where the name matches the conjunction of the given set of words.
      *
      * @param words the set of words.
      * @param first the first result object to return.
@@ -200,9 +196,8 @@ public interface IdentifiableObjectStore<T>
     List<T> getAllLikeName( Set<String> words, int first, int max );
 
     /**
-     * Retrieves the objects determined by the given first result and max
-     * result. The returned list is ordered by the last updated property
-     * descending.
+     * Retrieves the objects determined by the given first result and max result. The returned list is ordered by the
+     * last updated property descending.
      *
      * @param first the first result object to return.
      * @param max the max number of result objects to return.
@@ -269,8 +264,7 @@ public interface IdentifiableObjectStore<T>
     List<T> getByName( Collection<String> names );
 
     /**
-     * Retrieves a list of objects referenced by the given List of uids.
-     * Bypasses the ACL system.
+     * Retrieves a list of objects referenced by the given List of uids. Bypasses the ACL system.
      *
      * @param uids a List of uids.
      * @return a list of objects.
@@ -316,8 +310,7 @@ public interface IdentifiableObjectStore<T>
     Date getLastUpdated();
 
     /**
-     * Returns the number of objects that are equal to or newer than given last
-     * updated date.
+     * Returns the number of objects that are equal to or newer than given last updated date.
      *
      * @param lastUpdated Date to compare to.
      * @return the number of objects equal or newer than given date.
@@ -325,8 +318,7 @@ public interface IdentifiableObjectStore<T>
     int getCountGeLastUpdated( Date lastUpdated );
 
     /**
-     * Returns the number of objects that are equal to or newer than given
-     * created date.
+     * Returns the number of objects that are equal to or newer than given created date.
      *
      * @param created Date to compare to.
      * @return the number of objects equal or newer than given date.

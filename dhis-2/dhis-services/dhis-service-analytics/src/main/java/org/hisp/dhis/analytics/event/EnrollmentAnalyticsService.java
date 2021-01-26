@@ -30,8 +30,8 @@ package org.hisp.dhis.analytics.event;
 import org.hisp.dhis.common.Grid;
 
 /**
- * This interface is responsible for retrieving aggregated event data. Data will
- * be returned in a grid object or as a dimensional key-value mapping.
+ * This interface is responsible for retrieving aggregated event data. Data will be returned in a grid object or as a
+ * dimensional key-value mapping.
  *
  * @author Markus Bekken
  */

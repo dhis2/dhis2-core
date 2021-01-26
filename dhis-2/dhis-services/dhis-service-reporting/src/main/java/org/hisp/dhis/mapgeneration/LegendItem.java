@@ -34,8 +34,7 @@ import java.awt.Rectangle;
 import java.awt.Stroke;
 
 /**
- * A legend item is a graphical presentation of a interval. It serves as a
- * helper for the Legend class.
+ * A legend item is a graphical presentation of a interval. It serves as a helper for the Legend class.
  *
  * @author Kristin Simonsen <krissimo@ifi.uio.no>
  * @author Kjetil Andresen <kjetil.andrese@gmail.com>

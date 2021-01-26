@@ -90,8 +90,7 @@ public class QueryKey
     }
 
     /**
-     * Adds a component value to this key if the given object is not null,
-     * supplied by the given value supplier.
+     * Adds a component value to this key if the given object is not null, supplied by the given value supplier.
      *
      * @param property the key property.
      * @param object the object to check for null.
@@ -108,8 +107,8 @@ public class QueryKey
     }
 
     /**
-     * Returns a plain text key based on the components of this key. Use
-     * {@link QueryKey#build()} to obtain a shorter and more usable key.
+     * Returns a plain text key based on the components of this key. Use {@link QueryKey#build()} to obtain a shorter
+     * and more usable key.
      */
     public String asPlainKey()
     {
@@ -117,8 +116,7 @@ public class QueryKey
     }
 
     /**
-     * Returns a 40-character unique key. The key is a SHA-1 hash of the
-     * components of this key.
+     * Returns a 40-character unique key. The key is a SHA-1 hash of the components of this key.
      */
     public String build()
     {

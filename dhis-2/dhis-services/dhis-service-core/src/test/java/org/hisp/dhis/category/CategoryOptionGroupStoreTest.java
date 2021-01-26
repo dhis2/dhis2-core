@@ -37,8 +37,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Test needs to extend DhisTest in order to test the bidirectional group set to
- * group association from both sides as save transactions must commit.
+ * Test needs to extend DhisTest in order to test the bidirectional group set to group association from both sides as
+ * save transactions must commit.
  *
  * @author Lars Helge Overland
  */

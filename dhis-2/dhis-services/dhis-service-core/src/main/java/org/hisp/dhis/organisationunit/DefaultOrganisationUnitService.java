@@ -820,8 +820,7 @@ public class DefaultOrganisationUnitService
     }
 
     /**
-     * Get lowest level/target level Organisation Units that includes the
-     * coordinates.
+     * Get lowest level/target level Organisation Units that includes the coordinates.
      */
     @Override
     @Transactional( readOnly = true )
@@ -902,8 +901,7 @@ public class DefaultOrganisationUnitService
     // -------------------------------------------------------------------------
 
     /**
-     * Searches organisation units until finding one with polygon containing
-     * point.
+     * Searches organisation units until finding one with polygon containing point.
      */
     private List<OrganisationUnit> getTopLevelOrgUnitWithPoint( double longitude, double latitude, int searchLevel,
         int stopLevel )

@@ -52,8 +52,7 @@ public class ProgramStageDataElement
     private DataElement dataElement;
 
     /**
-     * True if this dataElement is mandatory in the dataEntryForm for this
-     * programStage
+     * True if this dataElement is mandatory in the dataEntryForm for this programStage
      */
     private boolean compulsory = false;
 
@@ -69,8 +68,7 @@ public class ProgramStageDataElement
     private Boolean renderOptionsAsRadio = false;
 
     /**
-     * The renderType defines how the ProgramStageSection should be rendered on
-     * the client
+     * The renderType defines how the ProgramStageSection should be rendered on the client
      */
     private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
 

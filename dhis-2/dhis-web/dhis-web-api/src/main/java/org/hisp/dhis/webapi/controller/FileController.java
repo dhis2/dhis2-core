@@ -110,8 +110,7 @@ public class FileController
     // -------------------------------------------------------------------------
 
     /**
-     * The style/external mapping enables style to be reached from login page /
-     * before authentication.
+     * The style/external mapping enables style to be reached from login page / before authentication.
      */
     @RequestMapping( value = { "/style", "/style/external" }, method = RequestMethod.GET )
     public void getCustomStyle( HttpServletResponse response, Writer writer )

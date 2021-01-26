@@ -42,9 +42,8 @@ import org.hisp.dhis.dxf2.events.importer.mapper.ProgramStageInstanceMapper;
 import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
- * This is the base implementation for AuditProcessor. Insert, Update and Delete
- * EventAuditProcessors (which are implementation of this class) will provide a
- * value for AuditType and will inherit shared process logic.
+ * This is the base implementation for AuditProcessor. Insert, Update and Delete EventAuditProcessors (which are
+ * implementation of this class) will provide a value for AuditType and will inherit shared process logic.
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */

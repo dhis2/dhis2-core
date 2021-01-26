@@ -59,8 +59,7 @@ public class ContinuousAnalyticsJobParameters
     private Integer fullUpdateHourOfDay = 0;
 
     /**
-     * The number of last years of data to include in the full analytics table
-     * update.
+     * The number of last years of data to include in the full analytics table update.
      */
     private Integer lastYears;
 

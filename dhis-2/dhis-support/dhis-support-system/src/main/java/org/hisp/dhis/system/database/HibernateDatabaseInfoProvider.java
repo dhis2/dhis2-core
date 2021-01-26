@@ -180,8 +180,7 @@ public class HibernateDatabaseInfoProvider
     }
 
     /**
-     * Attempts to create a spatial database extension. Checks if spatial
-     * operations are supported.
+     * Attempts to create a spatial database extension. Checks if spatial operations are supported.
      */
     private boolean isSpatialSupport()
     {

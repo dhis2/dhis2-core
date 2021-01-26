@@ -42,8 +42,7 @@ public interface MessageConversationStore
     /**
      * Returns a list of MessageConversations.
      *
-     * @param user the User for which the MessageConversations are sent to, or
-     *        all if null.
+     * @param user the User for which the MessageConversations are sent to, or all if null.
      * @param first the first record number to return, or all if null.
      * @param max the max number of records to return, or all if null.
      * @return a list of MessageConversations.
@@ -54,8 +53,7 @@ public interface MessageConversationStore
     /**
      * Returns the MessageConversations given by the supplied UIDs.
      *
-     * @param messageConversationUids the UIDs of the MessageConversations to
-     *        get.
+     * @param messageConversationUids the UIDs of the MessageConversations to get.
      * @return a collection of MessageConversations.
      */
     List<MessageConversation> getMessageConversations( Collection<String> messageConversationUids );

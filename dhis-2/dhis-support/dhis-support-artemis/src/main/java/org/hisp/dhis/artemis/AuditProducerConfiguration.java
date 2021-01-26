@@ -38,8 +38,7 @@ import lombok.Value;
 public class AuditProducerConfiguration
 {
     /**
-     * if true, every Audit message is placed into an in-memory queue before
-     * being dispatched to the Message Broker
+     * if true, every Audit message is placed into an in-memory queue before being dispatched to the Message Broker
      */
     private boolean useQueue;
 }

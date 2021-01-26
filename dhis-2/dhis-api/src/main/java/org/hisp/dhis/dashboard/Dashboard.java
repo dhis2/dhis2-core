@@ -70,16 +70,13 @@ public class Dashboard
     // -------------------------------------------------------------------------
 
     /**
-     * Moves an item in the list. Returns true if the operation lead to a
-     * modification of the list order. Returns false if there are no items, the
-     * given position is out of bounds, the item is not present, if position is
-     * equal to current item index or if attempting to move an item one position
-     * to the right (pointless operation).
+     * Moves an item in the list. Returns true if the operation lead to a modification of the list order. Returns false
+     * if there are no items, the given position is out of bounds, the item is not present, if position is equal to
+     * current item index or if attempting to move an item one position to the right (pointless operation).
      *
      * @param uid the uid of the item to move.
      * @param position the new index position of the item.
-     * @return true if the operation lead to a modification of order, false
-     *         otherwise.
+     * @return true if the operation lead to a modification of order, false otherwise.
      */
     public boolean moveItem( String uid, int position )
     {
@@ -106,8 +103,7 @@ public class Dashboard
     }
 
     /**
-     * Returns the item with the given uid, or null if no item with the given
-     * uid is present for this dashboard.
+     * Returns the item with the given uid, or null if no item with the given uid is present for this dashboard.
      *
      * @param uid the item identifier.
      * @return an item.
@@ -120,8 +116,8 @@ public class Dashboard
     }
 
     /**
-     * Returns an item from this dashboard of the given type which number of
-     * content is less than max. Returns null if no item matches the criteria.
+     * Returns an item from this dashboard of the given type which number of content is less than max. Returns null if
+     * no item matches the criteria.
      *
      * @param type the type of content to return.
      * @return an item.

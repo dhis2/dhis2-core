@@ -35,8 +35,7 @@ public interface TrackedEntityTypeAttributeStore
     extends IdentifiableObjectStore<TrackedEntityTypeAttribute>
 {
     /**
-     * Get all TrackedEntityAttribute filtered by given List of
-     * TrackedEntityType
+     * Get all TrackedEntityAttribute filtered by given List of TrackedEntityType
      *
      * @param trackedEntityTypes
      * @return List of TrackedEntityAttribute

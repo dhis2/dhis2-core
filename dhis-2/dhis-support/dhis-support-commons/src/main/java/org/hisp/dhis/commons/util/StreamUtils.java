@@ -56,17 +56,13 @@ public class StreamUtils
     public static final String ENCODING_UTF8 = "UTF-8";
 
     /**
-     * Reads the content of the file to a StringBuffer. Each line is compared to
-     * the keys of the argument map. If a line is matched, the line is replaced
-     * with the keys corresponding value. Passing null as replace map argument
-     * skips value replacement. The reading will stop at the first match for a
-     * single line.
+     * Reads the content of the file to a StringBuffer. Each line is compared to the keys of the argument map. If a line
+     * is matched, the line is replaced with the keys corresponding value. Passing null as replace map argument skips
+     * value replacement. The reading will stop at the first match for a single line.
      *
      * @param file the file to read from.
-     * @param replaceMap a map containing keys to be matched and values with
-     *        replacements.
-     * @return a StringBuffer with the content of the file replaced according to
-     *         the Map.
+     * @param replaceMap a map containing keys to be matched and values with replacements.
+     * @return a StringBuffer with the content of the file replaced according to the Map.
      * @throws IOException if operation failed.
      */
     public static StringBuffer readContent( File file, Map<String[], String> replaceMap )
@@ -130,9 +126,8 @@ public class StreamUtils
     }
 
     /**
-     * Test for ZIP/GZIP stream signature. Wraps the input stream in a
-     * BufferedInputStream. If ZIP/GZIP test is true wraps again in
-     * ZipInputStream/GZIPInputStream.
+     * Test for ZIP/GZIP stream signature. Wraps the input stream in a BufferedInputStream. If ZIP/GZIP test is true
+     * wraps again in ZipInputStream/GZIPInputStream.
      *
      * @param in the InputStream.
      * @return the wrapped InputStream.
@@ -227,8 +222,8 @@ public class StreamUtils
     }
 
     /**
-     * Reads the next ZIP file entry from the ZipInputStream and positions the
-     * stream at the beginning of the entry data.
+     * Reads the next ZIP file entry from the ZipInputStream and positions the stream at the beginning of the entry
+     * data.
      *
      * @param in the ZipInputStream to read from.
      * @return a ZipEntry.
@@ -246,8 +241,7 @@ public class StreamUtils
     }
 
     /**
-     * Closes the current ZipEntry and positions the stream for writing the next
-     * entry.
+     * Closes the current ZipEntry and positions the stream for writing the next entry.
      *
      * @param out the ZipOutputStream.
      */
@@ -264,8 +258,7 @@ public class StreamUtils
     }
 
     /**
-     * Finishes writing the contents of the ZIP output stream without closing
-     * the underlying stream.
+     * Finishes writing the contents of the ZIP output stream without closing the underlying stream.
      *
      * @param out the ZipOutputStream.
      */
@@ -282,8 +275,7 @@ public class StreamUtils
     }
 
     /**
-     * Closes an {@link InputStream} unconditionally without throwing
-     * exceptions.
+     * Closes an {@link InputStream} unconditionally without throwing exceptions.
      *
      * @param input the input stream.
      */
@@ -303,8 +295,7 @@ public class StreamUtils
     }
 
     /**
-     * Copies the input stream into the output stream, then finally closes the
-     * input stream only.
+     * Copies the input stream into the output stream, then finally closes the input stream only.
      *
      * @param in stream to copy from
      * @param out stream to copy to

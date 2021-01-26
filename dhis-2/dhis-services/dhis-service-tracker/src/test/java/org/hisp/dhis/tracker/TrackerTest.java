@@ -153,8 +153,8 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
     }
 
     /**
-     * Makes sure that the Tracker entities in the provided TrackerBundle have
-     * the 'uid' attribute identical to the json identifier.
+     * Makes sure that the Tracker entities in the provided TrackerBundle have the 'uid' attribute identical to the json
+     * identifier.
      */
     protected TrackerImportParams syncIdentifiers( TrackerImportParams trackerImportParams )
     {

@@ -144,8 +144,7 @@ public interface DataApprovalService
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**
-     * Returns a map showing each data approval status for a list of data
-     * approval objects.
+     * Returns a map showing each data approval status for a list of data approval objects.
      *
      * @param dataApprovalList the data approvals to check.
      * @return the data approvals with status.
@@ -153,10 +152,9 @@ public interface DataApprovalService
     Map<DataApproval, DataApprovalStatus> getDataApprovalStatuses( List<DataApproval> dataApprovalList );
 
     /**
-     * Returns the data approval status and permissions for a given data set,
-     * period, organisation unit and attribute category combination. If
-     * attributeOptionCombo is null, the default option combo will be used. If
-     * data is approved at multiple levels, the lowest level is returned.
+     * Returns the data approval status and permissions for a given data set, period, organisation unit and attribute
+     * category combination. If attributeOptionCombo is null, the default option combo will be used. If data is approved
+     * at multiple levels, the lowest level is returned.
      *
      * @param workflow workflow to check for approval.
      * @param period Period to check for approval.
@@ -168,8 +166,8 @@ public interface DataApprovalService
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**
-     * Returns a list of approval status and permissions for all of the category
-     * option combos that the user is allowed to see.
+     * Returns a list of approval status and permissions for all of the category option combos that the user is allowed
+     * to see.
      *
      * @param workflow workflow to check for approval.
      * @param period Period we are getting the status for

@@ -48,8 +48,7 @@ public interface EventStore
      *
      * @param enrollmentsId a List of Program Instance Primary Keys
      * @param ctx the {@see AggregateContext}
-     * @return A Map, where the key is a Program Instance Primary Key, and the
-     *         value is a List of {@see Event}
+     * @return A Map, where the key is a Program Instance Primary Key, and the value is a List of {@see Event}
      */
     Multimap<String, Event> getEventsByEnrollmentIds( List<Long> enrollmentsId, AggregateContext ctx );
 
@@ -57,20 +56,17 @@ public interface EventStore
      *
      * Key: event uid -> Value: List<DataValue>
      *
-     * @param programStageInstanceId a List of Program Stage Instance Primary
-     *        Keys
-     * @return A Map, where the key is a Program Stage Instance Primary Key, and
-     *         the value is a List of {@see DataValue}
+     * @param programStageInstanceId a List of Program Stage Instance Primary Keys
+     * @return A Map, where the key is a Program Stage Instance Primary Key, and the value is a List of {@see DataValue}
      */
     Map<String, List<DataValue>> getDataValues( List<Long> programStageInstanceId );
 
     /**
-     * Fetches all the relationships having the Program Stage Instance id
-     * specified in the arg as "left" or "right" relationship
+     * Fetches all the relationships having the Program Stage Instance id specified in the arg as "left" or "right"
+     * relationship
      *
      * @param ids a list of {@see Enrollment} Primary Keys
-     * @return a MultiMap where key is a {@see Enrollment} uid and the key a
-     *         List of {@see Relationship} objects
+     * @return a MultiMap where key is a {@see Enrollment} uid and the key a List of {@see Relationship} objects
      */
     Multimap<String, Relationship> getRelationships( List<Long> ids );
 

@@ -39,9 +39,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * A factory for constructing {@see org.hisp.dhis.audit.Audit} data payloads.
- * This can be the object itself (as is the case for metadata), or it can be a
- * wrapper object collecting the parts wanted.
+ * A factory for constructing {@see org.hisp.dhis.audit.Audit} data payloads. This can be the object itself (as is the
+ * case for metadata), or it can be a wrapper object collecting the parts wanted.
  *
  * @author Luciano Fiandesio
  */

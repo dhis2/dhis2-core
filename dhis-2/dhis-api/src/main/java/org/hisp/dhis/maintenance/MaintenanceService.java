@@ -39,41 +39,40 @@ public interface MaintenanceService
     String ID = MaintenanceService.class.getName();
 
     /**
-     * Deletes data values registered with 0 as value and associated with data
-     * elements with sum as aggregation operator.
+     * Deletes data values registered with 0 as value and associated with data elements with sum as aggregation
+     * operator.
      *
      * @return the number of deleted data values.
      */
     int deleteZeroDataValues();
 
     /**
-     * Permanently deletes data values which have been soft deleted, i.e. data
-     * values where the deleted property is true.
+     * Permanently deletes data values which have been soft deleted, i.e. data values where the deleted property is
+     * true.
      *
      * @return the number of deleted data values.
      */
     int deleteSoftDeletedDataValues();
 
     /**
-     * Permanently deletes program stage instances which have been soft deleted,
-     * i.e. program stage instances where the deleted property is true.
+     * Permanently deletes program stage instances which have been soft deleted, i.e. program stage instances where the
+     * deleted property is true.
      *
      * @return the number of deleted program stage instances.
      */
     int deleteSoftDeletedProgramStageInstances();
 
     /**
-     * Permanently deletes program instances which have been soft deleted, i.e.
-     * program instances where the deleted property is true.
+     * Permanently deletes program instances which have been soft deleted, i.e. program instances where the deleted
+     * property is true.
      *
      * @return the number of deleted program instances.
      */
     int deleteSoftDeletedProgramInstances();
 
     /**
-     * Permanently deletes tracked entity instances which have been soft
-     * deleted, i.e. tracked entity instances where the deleted property is
-     * true.
+     * Permanently deletes tracked entity instances which have been soft deleted, i.e. tracked entity instances where
+     * the deleted property is true.
      *
      * @return the number of deleted tracked entity instances.
      */
@@ -85,8 +84,8 @@ public interface MaintenanceService
     void prunePeriods();
 
     /**
-     * Prunes complete data set registrations, data approvals, data value audits
-     * and data values for the given organisation unit.
+     * Prunes complete data set registrations, data approvals, data value audits and data values for the given
+     * organisation unit.
      *
      * @param organisationUnit the organisation unit.
      * @return true if the data pruning took place, false if not permitted.
@@ -104,14 +103,12 @@ public interface MaintenanceService
     /**
      * Deletes user accounts representing expired account invitations.
      *
-     * @return the number of removed user invitations as a result of this
-     *         operation.
+     * @return the number of removed user invitations as a result of this operation.
      */
     int removeExpiredInvitations();
 
     /**
-     * Emits an {@link ApplicationCacheClearedEvent} which relevant caches can
-     * listen and react to.
+     * Emits an {@link ApplicationCacheClearedEvent} which relevant caches can listen and react to.
      */
     void clearApplicationCaches();
 }

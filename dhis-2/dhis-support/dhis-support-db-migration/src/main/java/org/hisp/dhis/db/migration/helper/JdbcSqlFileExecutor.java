@@ -37,10 +37,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.api.FlywayException;
 
 /**
- * Reads sql commands from an external/internal file (provided as buffered
- * reader) and executes them onto the given jdbc connection. This is used to
- * create the base schema (if db is empy) by reading from the sql script
- * packaged as classpath resource.
+ * Reads sql commands from an external/internal file (provided as buffered reader) and executes them onto the given jdbc
+ * connection. This is used to create the base schema (if db is empy) by reading from the sql script packaged as
+ * classpath resource.
  *
  * @author Ameen Mohamed
  *
@@ -51,8 +50,7 @@ public class JdbcSqlFileExecutor
     private static final String DEFAULT_DELIMITER = ";";
 
     /**
-     * regex to detect delimiter. ignores spaces, allows delimiter in comment,
-     * allows an equals-sign
+     * regex to detect delimiter. ignores spaces, allows delimiter in comment, allows an equals-sign
      */
     public static final Pattern delimP = Pattern.compile( "^\\s*(--)?\\s*delimiter\\s*=?\\s*([^\\s]+)+\\s*.*$",
         Pattern.CASE_INSENSITIVE );
@@ -119,8 +117,7 @@ public class JdbcSqlFileExecutor
     }
 
     /**
-     * Runs an SQL script (read in using the Reader parameter) using the
-     * connection passed in
+     * Runs an SQL script (read in using the Reader parameter) using the connection passed in
      *
      * @param conn - the connection to use for the script
      * @param reader - the source of the script

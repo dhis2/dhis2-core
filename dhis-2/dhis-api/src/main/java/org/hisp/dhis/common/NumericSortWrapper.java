@@ -31,8 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Class which wraps an object to make it easy to sort. This class provides a
- * numeric for sorting and implements the Comparable interface.
+ * Class which wraps an object to make it easy to sort. This class provides a numeric for sorting and implements the
+ * Comparable interface.
  *
  * @author Lars Helge Overland
  */

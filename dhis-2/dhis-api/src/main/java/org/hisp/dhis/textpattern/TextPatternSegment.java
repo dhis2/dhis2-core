@@ -82,8 +82,7 @@ public class TextPatternSegment
     /* Helper methods */
 
     /**
-     * Recreates the original segment text from the method name and segment
-     * parameter.
+     * Recreates the original segment text from the method name and segment parameter.
      *
      * @return The original segment based on method and parameter
      */

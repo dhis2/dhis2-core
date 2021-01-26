@@ -37,8 +37,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 
 /**
- * Class for Audit message persistence, meant to be a complete replacement for
- * our existing audit hibernate classes.
+ * Class for Audit message persistence, meant to be a complete replacement for our existing audit hibernate classes.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -61,8 +60,8 @@ public class Audit implements Serializable
     private final AuditScope auditScope;
 
     /**
-     * When audit was done. Necessary since there might be delayed from when the
-     * Audit is put on the queue, to when its actually persisted.
+     * When audit was done. Necessary since there might be delayed from when the Audit is put on the queue, to when its
+     * actually persisted.
      */
     @JsonProperty
     private final LocalDateTime createdAt;
@@ -74,8 +73,7 @@ public class Audit implements Serializable
     private final String createdBy;
 
     /**
-     * Name of klass being audited. Only required if linked directly to an
-     * object.
+     * Name of klass being audited. Only required if linked directly to an object.
      */
     @JsonProperty
     private String klass;
@@ -100,8 +98,7 @@ public class Audit implements Serializable
     private AuditAttributes attributes = new AuditAttributes();
 
     /**
-     * GZipped payload. Exposed as raw json, make sure that the payload is
-     * decompressed first.
+     * GZipped payload. Exposed as raw json, make sure that the payload is decompressed first.
      */
     @JsonRawValue
     private final String data;

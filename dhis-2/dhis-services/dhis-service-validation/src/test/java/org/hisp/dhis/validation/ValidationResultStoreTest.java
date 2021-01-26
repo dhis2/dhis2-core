@@ -727,9 +727,8 @@ public class ValidationResultStoreTest
     }
 
     /**
-     * The exact logic of the filters is tested in depth for the query method
-     * which shares the filter logic with count. This test should just make sure
-     * that the count method used with filters has no general issues.
+     * The exact logic of the filters is tested in depth for the query method which shares the filter logic with count.
+     * This test should just make sure that the count method used with filters has no general issues.
      */
     @Test
     public void testCountWithFilters()

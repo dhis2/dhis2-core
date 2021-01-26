@@ -149,8 +149,7 @@ public class TrackedEntityInstanceAggregate
         .build();
 
     /**
-     * Fetches a List of {@see TrackedEntityInstance} based on the list of
-     * primary keys and search parameters
+     * Fetches a List of {@see TrackedEntityInstance} based on the list of primary keys and search parameters
      *
      * @param ids a List of {@see TrackedEntityInstance} Primary Keys
      * @param params an instance of {@see TrackedEntityInstanceParams}
@@ -169,8 +168,7 @@ public class TrackedEntityInstanceAggregate
         }
 
         /*
-         * Create a context with information which will be used to fetch the
-         * entities
+         * Create a context with information which will be used to fetch the entities
          */
         AggregateContext ctx = securityCache.get( user.getUid() )
             .toBuilder()
@@ -181,16 +179,14 @@ public class TrackedEntityInstanceAggregate
             .build();
 
         /*
-         * Async fetch Relationships for the given TrackedEntityInstance id
-         * (only if isIncludeRelationships = true)
+         * Async fetch Relationships for the given TrackedEntityInstance id (only if isIncludeRelationships = true)
          */
         final CompletableFuture<Multimap<String, Relationship>> relationshipsAsync = conditionalAsyncFetch(
             ctx.getParams().isIncludeRelationships(), () -> trackedEntityInstanceStore.getRelationships( ids ),
             getPool() );
 
         /*
-         * Async fetch Enrollments for the given TrackedEntityInstance id (only
-         * if isIncludeEnrollments = true)
+         * Async fetch Enrollments for the given TrackedEntityInstance id (only if isIncludeEnrollments = true)
          */
         final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync = conditionalAsyncFetch(
             ctx.getParams().isIncludeEnrollments(),
@@ -210,15 +206,13 @@ public class TrackedEntityInstanceAggregate
             () -> trackedEntityInstanceStore.getTrackedEntityInstances( ids, ctx ), getPool() );
 
         /*
-         * Async fetch TrackedEntityInstance Attributes by TrackedEntityInstance
-         * id
+         * Async fetch TrackedEntityInstance Attributes by TrackedEntityInstance id
          */
         final CompletableFuture<Multimap<String, Attribute>> attributesAsync = supplyAsync(
             () -> trackedEntityInstanceStore.getAttributes( ids ), getPool() );
 
         /*
-         * Async fetch Owned Tei mapped to the provided program attributes by
-         * TrackedEntityInstance id
+         * Async fetch Owned Tei mapped to the provided program attributes by TrackedEntityInstance id
          */
         final CompletableFuture<Multimap<String, String>> ownedTeiAsync = supplyAsync(
             () -> trackedEntityInstanceStore.getOwnedTeis( ids, ctx ), getPool() );
@@ -326,8 +320,7 @@ public class TrackedEntityInstanceAggregate
     }
 
     /**
-     * Fetch security related information and add them to the
-     * {@see AggregateContext}
+     * Fetch security related information and add them to the {@see AggregateContext}
      *
      * - all Tracked Entity Instance Types this user has READ access to
      *
@@ -339,8 +332,7 @@ public class TrackedEntityInstanceAggregate
      *
      * @param userUID the user uid of a {@see User}
      *
-     * @return an instance of {@see AggregateContext} populated with ACL-related
-     *         info
+     * @return an instance of {@see AggregateContext} populated with ACL-related info
      */
     private AggregateContext getSecurityContext( String userUID, List<String> userGroupUIDs )
     {
@@ -369,11 +361,9 @@ public class TrackedEntityInstanceAggregate
     }
 
     /**
-     * This method is required to be able to skip the caches during the tests.
-     * Since cache2k can't really be disabled (see
-     * https://github.com/cache2k/cache2k/issues/74), this method generates a
-     * new key for every call, effectively forcing the cache to fetch the data
-     * every time
+     * This method is required to be able to skip the caches during the tests. Since cache2k can't really be disabled
+     * (see https://github.com/cache2k/cache2k/issues/74), this method generates a new key for every call, effectively
+     * forcing the cache to fetch the data every time
      *
      */
     private String getCacheKey( String key )

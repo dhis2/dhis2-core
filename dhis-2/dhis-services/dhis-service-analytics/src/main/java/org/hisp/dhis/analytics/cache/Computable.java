@@ -28,8 +28,7 @@
 package org.hisp.dhis.analytics.cache;
 
 /**
- * Responsible for exposing methods responsible for computing a value based on
- * the rules defined by the implementer.
+ * Responsible for exposing methods responsible for computing a value based on the rules defined by the implementer.
  */
 public interface Computable
 {

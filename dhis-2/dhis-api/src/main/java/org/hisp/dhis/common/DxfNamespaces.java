@@ -28,8 +28,7 @@
 package org.hisp.dhis.common;
 
 /**
- * We should probably rename this class at some point, but using it for now. It
- * can be refactored later on.
+ * We should probably rename this class at some point, but using it for now. It can be refactored later on.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

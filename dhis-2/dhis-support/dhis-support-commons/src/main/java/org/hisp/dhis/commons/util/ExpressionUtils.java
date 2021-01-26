@@ -78,8 +78,7 @@ public class ExpressionUtils
     }
 
     /**
-     * Evaluates the given expression. The given variables will be substituted
-     * in the expression.
+     * Evaluates the given expression. The given variables will be substituted in the expression.
      *
      * @param expression the expression.
      * @param vars the variables, can be null.
@@ -110,10 +109,8 @@ public class ExpressionUtils
     }
 
     /**
-     * Evaluates the given expression. The given variables will be substituted
-     * in the expression. Converts the result of the evaluation to a Double.
-     * Throws an IllegalStateException if the result could not be converted to a
-     * Double
+     * Evaluates the given expression. The given variables will be substituted in the expression. Converts the result of
+     * the evaluation to a Double. Throws an IllegalStateException if the result could not be converted to a Double
      *
      * @param expression the expression.
      * @param vars the variables, can be null.
@@ -137,8 +134,7 @@ public class ExpressionUtils
     }
 
     /**
-     * Evaluates the given expression to true or false. The given variables will
-     * be substituted in the expression.
+     * Evaluates the given expression to true or false. The given variables will be substituted in the expression.
      *
      * @param expression the expression.
      * @param vars the variables, can be null.
@@ -152,8 +148,7 @@ public class ExpressionUtils
     }
 
     /**
-     * Indicates whether the given expression is valid and evaluates to true or
-     * false.
+     * Indicates whether the given expression is valid and evaluates to true or false.
      *
      * @param expression the expression.
      * @param vars the variables, can be null.
@@ -174,8 +169,7 @@ public class ExpressionUtils
     }
 
     /**
-     * Indicates whether the given expression is valid, i.e. can be successfully
-     * evaluated.
+     * Indicates whether the given expression is valid, i.e. can be successfully evaluated.
      *
      * @param expression the expression.
      * @param vars the variables, can be null.

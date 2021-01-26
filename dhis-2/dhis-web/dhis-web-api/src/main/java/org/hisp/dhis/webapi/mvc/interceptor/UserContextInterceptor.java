@@ -47,10 +47,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 /**
- * This interceptor is ONLY responsible for setting the current user and its
- * related settings into the current request cycle/thread. The intention is to
- * leave it as simple as possible. Any business rules, if needed, should be
- * evaluated outside (in another interceptor or filter).
+ * This interceptor is ONLY responsible for setting the current user and its related settings into the current request
+ * cycle/thread. The intention is to leave it as simple as possible. Any business rules, if needed, should be evaluated
+ * outside (in another interceptor or filter).
  *
  * @author maikel arabori
  */

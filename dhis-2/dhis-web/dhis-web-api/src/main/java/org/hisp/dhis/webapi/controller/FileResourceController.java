@@ -202,9 +202,8 @@ public class FileResourceController
         User currentUser = currentUserService.getCurrentUser();
 
         /*
-         * Serving DATA_VALUE and PUSH_ANALYSIS fileResources from this endpoint
-         * doesn't make sense So we will return false if the fileResource have
-         * either of these domains.
+         * Serving DATA_VALUE and PUSH_ANALYSIS fileResources from this endpoint doesn't make sense So we will return
+         * false if the fileResource have either of these domains.
          */
 
         if ( fileResource.getDomain().equals( FileResourceDomain.USER_AVATAR ) )

@@ -202,8 +202,8 @@ public class DefaultResourceBundleManager
     }
 
     /**
-     * Retrieves a {@link Locale} from the given resource bundle name. The
-     * resource bundle naming follows the Java locale format:
+     * Retrieves a {@link Locale} from the given resource bundle name. The resource bundle naming follows the Java
+     * locale format:
      *
      * <pre>
      * [2-3 letter language]_[2 letter country/region]_[variant]

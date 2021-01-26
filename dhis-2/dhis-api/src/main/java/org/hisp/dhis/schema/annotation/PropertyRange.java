@@ -51,9 +51,8 @@ import java.lang.annotation.Target;
  * </ol>
  * </ul>
  * <p>
- * Be aware that this annotation overrides anything set in the schema, so it's
- * possible to have values here that goes beyond what the schema allows, and
- * would result in error when trying to save the object.
+ * Be aware that this annotation overrides anything set in the schema, so it's possible to have values here that goes
+ * beyond what the schema allows, and would result in error when trying to save the object.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

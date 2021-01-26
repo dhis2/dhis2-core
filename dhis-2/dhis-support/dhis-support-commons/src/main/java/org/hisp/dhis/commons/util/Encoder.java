@@ -83,8 +83,7 @@ public class Encoder
     /**
      * Escaped the given JSON content using Java String rules.
      *
-     * Assumes " is used as quote char and not used inside values and does not
-     * escape '.
+     * Assumes " is used as quote char and not used inside values and does not escape '.
      *
      * @param object the String.
      * @return the escaped representation.

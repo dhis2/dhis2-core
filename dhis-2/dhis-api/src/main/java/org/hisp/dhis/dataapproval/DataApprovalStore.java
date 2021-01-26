@@ -80,16 +80,15 @@ public interface DataApprovalStore
     void deleteDataApprovals( OrganisationUnit organisationUnit );
 
     /**
-     * Returns the DataApproval object (if any) matching the properties of a
-     * (non-Hibernate) DataApproval object.
+     * Returns the DataApproval object (if any) matching the properties of a (non-Hibernate) DataApproval object.
      *
      * @param dataApproval the DataApproval object properties to look for
      */
     DataApproval getDataApproval( DataApproval dataApproval );
 
     /**
-     * Returns the DataApproval object (if any) for a given approval level,
-     * workflow, period, organisation unit, and attribute option combo.
+     * Returns the DataApproval object (if any) for a given approval level, workflow, period, organisation unit, and
+     * attribute option combo.
      *
      * @param dataApprovalLevel Level for approval
      * @param workflow DataApprovalWorkflow for approval
@@ -102,8 +101,7 @@ public interface DataApprovalStore
         Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**
-     * Indicates whether a persisted instance of the given data approval object
-     * exists.
+     * Indicates whether a persisted instance of the given data approval object exists.
      *
      * @param dataApproval the data approval to check.
      * @return true if persisted data approval exists.
@@ -111,8 +109,8 @@ public interface DataApprovalStore
     boolean dataApprovalExists( DataApproval dataApproval );
 
     /**
-     * Returns DataApproval objects (if any) for given collections of approval
-     * level, workflow, period, organisation unit, and attribute option combo.
+     * Returns DataApproval objects (if any) for given collections of approval level, workflow, period, organisation
+     * unit, and attribute option combo.
      *
      * @param dataApprovalLevels Levels for approval
      * @param workflows DataApprovalWorkflows for approval
@@ -127,21 +125,17 @@ public interface DataApprovalStore
         Collection<CategoryOptionCombo> attributeOptionCombos );
 
     /**
-     * Returns a list of data approval results and corresponding states for a
-     * collection of workflows and a given period. The list may be constrained
-     * to a given organisation unit, or it may be all the organisation units the
-     * user is allowed to see. The list may also be constrained to a given
-     * attribute category combination, or it may be all the attribute category
-     * combos the user is allowed to see. If the list is constrained to a given
-     * attribute category combination, then only a single value is returned.
+     * Returns a list of data approval results and corresponding states for a collection of workflows and a given
+     * period. The list may be constrained to a given organisation unit, or it may be all the organisation units the
+     * user is allowed to see. The list may also be constrained to a given attribute category combination, or it may be
+     * all the attribute category combos the user is allowed to see. If the list is constrained to a given attribute
+     * category combination, then only a single value is returned.
      *
-     * Note that a user may not see approvals above their level, so for example
-     * a user whose highest approval level access is level 3 will see approvals
-     * no higher than level 3. If data is approved at levels 1 or 2, it will
-     * look to a level 3 user only as if it was approved at level 3.
+     * Note that a user may not see approvals above their level, so for example a user whose highest approval level
+     * access is level 3 will see approvals no higher than level 3. If data is approved at levels 1 or 2, it will look
+     * to a level 3 user only as if it was approved at level 3.
      *
-     * If a list of organisation units is specified, they must all be at the
-     * same hierarchy level.
+     * If a list of organisation units is specified, they must all be at the same hierarchy level.
      *
      * @param workflow Data approval workflow to check
      * @param period Period to look within

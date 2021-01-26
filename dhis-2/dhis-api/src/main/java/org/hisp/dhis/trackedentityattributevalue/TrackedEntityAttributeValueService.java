@@ -73,8 +73,8 @@ public interface TrackedEntityAttributeValueService
     void deleteTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue );
 
     /**
-     * Retrieve a {@link TrackedEntityAttributeValue} on a
-     * {@link TrackedEntityInstance} and {@link TrackedEntityAttribute}
+     * Retrieve a {@link TrackedEntityAttributeValue} on a {@link TrackedEntityInstance} and
+     * {@link TrackedEntityAttribute}
      *
      * @param attribute {@link TrackedEntityAttribute}
      * @return TrackedEntityAttributeValue
@@ -83,8 +83,7 @@ public interface TrackedEntityAttributeValueService
         TrackedEntityAttribute attribute );
 
     /**
-     * Retrieve {@link TrackedEntityAttributeValue} of a
-     * {@link TrackedEntityInstance}
+     * Retrieve {@link TrackedEntityAttributeValue} of a {@link TrackedEntityInstance}
      *
      * @param instance TrackedEntityAttributeValue
      * @return TrackedEntityAttributeValue list
@@ -92,8 +91,7 @@ public interface TrackedEntityAttributeValueService
     List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityInstance instance );
 
     /**
-     * Retrieve {@link TrackedEntityAttributeValue} of a
-     * {@link TrackedEntityAttribute}
+     * Retrieve {@link TrackedEntityAttributeValue} of a {@link TrackedEntityAttribute}
      *
      * @param attribute {@link TrackedEntityAttribute}
      * @return TrackedEntityAttributeValue list
@@ -101,8 +99,7 @@ public interface TrackedEntityAttributeValueService
     List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityAttribute attribute );
 
     /**
-     * Returns the number of assigned {@link TrackedEntityAttributeValue}s to
-     * the given {@link TrackedEntityAttribute}
+     * Returns the number of assigned {@link TrackedEntityAttributeValue}s to the given {@link TrackedEntityAttribute}
      *
      * @param attribute {@link TrackedEntityAttribute}
      * @return Number of assigned TrackedEntityAttributeValues
@@ -119,8 +116,8 @@ public interface TrackedEntityAttributeValueService
     List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( Collection<TrackedEntityInstance> instances );
 
     /**
-     * Retrieve a list of {@link TrackedEntityAttributeValue} that matches the
-     * values and the tea present in uniqueAttributes
+     * Retrieve a list of {@link TrackedEntityAttributeValue} that matches the values and the tea present in
+     * uniqueAttributes
      *
      * @param uniqueAttributes A map that links a list of values to a TEA
      * @return TrackedEntityAttributeValue list

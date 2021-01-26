@@ -64,9 +64,8 @@ public class ObjectBundle implements ObjectIndexProvider
     private final User user;
 
     /**
-     * How should the user property be handled, by default it is left as is. You
-     * can override this to use current user, or a selected user instead (not
-     * yet supported).
+     * How should the user property be handled, by default it is left as is. You can override this to use current user,
+     * or a selected user instead (not yet supported).
      */
     private final UserOverrideMode userOverrideMode;
 
@@ -156,15 +155,13 @@ public class ObjectBundle implements ObjectIndexProvider
     private final TypedIndexedObjectContainer typedIndexedObjectContainer = new TypedIndexedObjectContainer();
 
     /**
-     * Pre-scanned map of all object references (mainly used for object book
-     * hundle).
+     * Pre-scanned map of all object references (mainly used for object book hundle).
      */
     private Map<Class<?>, Map<String, Map<String, Object>>> objectReferences = new HashMap<>();
 
     /**
-     * Simple class => uid => object map to store extra info about an object.
-     * Especially useful for object hooks as they can be working on more than
-     * one object at a time, and needs to be stateless.
+     * Simple class => uid => object map to store extra info about an object. Especially useful for object hooks as they
+     * can be working on more than one object at a time, and needs to be stateless.
      */
     private Map<Class<?>, Map<String, Map<String, Object>>> extras = new HashMap<>();
 
@@ -312,8 +309,7 @@ public class ObjectBundle implements ObjectIndexProvider
      * Returns if the object bundle container contains the specified object.
      *
      * @param object the object that should be checked.
-     * @return <code>true</code> if this object container contains the specified
-     *         object, <code>false</code> otherwise.
+     * @return <code>true</code> if this object container contains the specified object, <code>false</code> otherwise.
      */
     public boolean containsObject( @Nullable IdentifiableObject object )
     {

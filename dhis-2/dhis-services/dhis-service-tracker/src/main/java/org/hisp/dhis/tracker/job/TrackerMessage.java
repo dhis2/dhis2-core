@@ -39,8 +39,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
- * Used by Apache Artemis to pass tracker import jobs from the /api/tracker
- * endpoint to the tracker import services.
+ * Used by Apache Artemis to pass tracker import jobs from the /api/tracker endpoint to the tracker import services.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

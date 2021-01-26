@@ -193,8 +193,8 @@ public enum SettingKey
     RULE_ENGINE_ASSIGN_OVERWRITE( "ruleEngineAssignOverwrite", Boolean.FALSE, Boolean.class ),
 
     /**
-     * Progressive caching factor definition for Analytics. In order to enable
-     * it, the {@link #ANALYTICS_CACHE_TTL_MODE} has to be set to PROGRESSIVE.
+     * Progressive caching factor definition for Analytics. In order to enable it, the {@link #ANALYTICS_CACHE_TTL_MODE}
+     * has to be set to PROGRESSIVE.
      *
      * @see AnalyticsCacheTtlMode
      */

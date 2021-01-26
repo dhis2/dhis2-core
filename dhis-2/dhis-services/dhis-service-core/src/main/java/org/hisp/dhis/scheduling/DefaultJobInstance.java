@@ -131,9 +131,8 @@ public class DefaultJobInstance
     }
 
     /**
-     * Set status properties of job after finish. If the job was executed
-     * manually and the job is disabled we want to set the status back to
-     * DISABLED.
+     * Set status properties of job after finish. If the job was executed manually and the job is disabled we want to
+     * set the status back to DISABLED.
      *
      * @param clock Clock for keeping track of time usage.
      * @param jobConfiguration the job configuration.
@@ -162,8 +161,8 @@ public class DefaultJobInstance
     }
 
     /**
-     * Method which calls the execute method in the job. The job will run in
-     * this thread and finish, either with success or with an exception.
+     * Method which calls the execute method in the job. The job will run in this thread and finish, either with success
+     * or with an exception.
      *
      * @param jobConfiguration the configuration to execute.
      * @param clock refers to start time.

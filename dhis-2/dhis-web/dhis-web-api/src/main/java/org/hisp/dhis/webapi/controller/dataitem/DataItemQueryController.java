@@ -64,8 +64,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * This class is responsible for providing methods responsible for retrieving
- * dimensional items based on the provided URL params and filters.
+ * This class is responsible for providing methods responsible for retrieving dimensional items based on the provided
+ * URL params and filters.
  *
  * It should expose only query methods.
  */
@@ -132,8 +132,8 @@ public class DataItemQueryController
     }
 
     /**
-     * Based on the informed arguments, this method will read the URL and based
-     * on the give params will retrieve the respective data items.
+     * Based on the informed arguments, this method will read the URL and based on the give params will retrieve the
+     * respective data items.
      *
      * @param currentUser the logged user
      * @param urlParameters the request url params

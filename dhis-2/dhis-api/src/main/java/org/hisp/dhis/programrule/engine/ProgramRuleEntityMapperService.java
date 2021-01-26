@@ -40,8 +40,8 @@ import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 /**
- * RuleEngine has its own domain model. This service is responsible for
- * converting DHIS domain objects to RuleEngine domain objects and vice versa.
+ * RuleEngine has its own domain model. This service is responsible for converting DHIS domain objects to RuleEngine
+ * domain objects and vice versa.
  *
  * Created by zubair@dhis2.org on 19.10.17.
  */
@@ -91,8 +91,7 @@ public interface ProgramRuleEntityMapperService
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues );
 
     /**
-     * Fetch display name for {@link ProgramRuleVariable},
-     * {@link org.hisp.dhis.constant.Constant}
+     * Fetch display name for {@link ProgramRuleVariable}, {@link org.hisp.dhis.constant.Constant}
      *
      * @return map containing item description
      */

@@ -45,8 +45,7 @@ import org.hisp.dhis.tracker.programrule.*;
 import com.google.api.client.util.Lists;
 
 /**
- * This implementer check if there are errors or warnings the
- * {@link TrackerBundle}
+ * This implementer check if there are errors or warnings the {@link TrackerBundle}
  *
  * @Author Enrico Colasante
  */

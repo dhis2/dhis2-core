@@ -64,8 +64,7 @@ public class TrackedEntityAttributeValueAudit
     private AuditType auditType;
 
     /**
-     * This value is only used to store values from setValue when we don't know
-     * if attribute is set or not.
+     * This value is only used to store values from setValue when we don't know if attribute is set or not.
      */
     private String value;
 
@@ -188,9 +187,8 @@ public class TrackedEntityAttributeValueAudit
     }
 
     /**
-     * Property which temporarily stores the attribute value. The
-     * {@link #getEncryptedValue} and {@link #getPlainValue} methods handle the
-     * value when requested.
+     * Property which temporarily stores the attribute value. The {@link #getEncryptedValue} and {@link #getPlainValue}
+     * methods handle the value when requested.
      *
      * @param value the value to be stored.
      */

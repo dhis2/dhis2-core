@@ -324,14 +324,11 @@ public class DefaultDataSetReportService
     // -------------------------------------------------------------------------
 
     /**
-     * Puts in aggregated datavalues in the custom dataentry form and returns
-     * whole report text.
+     * Puts in aggregated datavalues in the custom dataentry form and returns whole report text.
      *
      * @param dataEntryForm the data entry form.
-     * @param dataValues map with aggregated data values mapped to data element
-     *        operands.
-     * @return data entry form HTML code populated with aggregated data in the
-     *         input fields.
+     * @param dataValues map with aggregated data values mapped to data element operands.
+     * @return data entry form HTML code populated with aggregated data in the input fields.
      */
     private String prepareReportContent( DataEntryForm dataEntryForm, Map<String, Object> dataValues,
         Map<String, Object> indicatorValues )

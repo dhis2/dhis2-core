@@ -39,9 +39,8 @@ import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
 
 /**
- * This class is responsible for creating an associative map where the key is
- * the name of a Strategy class and the key is the name of the domain object
- * class to cache (based on the {@see StrategyFor} annotation)
+ * This class is responsible for creating an associative map where the key is the name of a Strategy class and the key
+ * is the name of the domain object class to cache (based on the {@see StrategyFor} annotation)
  *
  * @author Luciano Fiandesio
  */

@@ -92,8 +92,7 @@ public class ImportConflict
     }
 
     /**
-     * Class check uses isAssignableFrom and get-methods to handle proxied
-     * objects.
+     * Class check uses isAssignableFrom and get-methods to handle proxied objects.
      */
     @Override
     public boolean equals( Object o )

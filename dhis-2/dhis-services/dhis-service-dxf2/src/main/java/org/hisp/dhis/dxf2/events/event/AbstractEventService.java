@@ -918,8 +918,7 @@ public abstract class AbstractEventService implements EventService
     }
 
     /**
-     * TODO this method duplicates the functionality of
-     * AttributeOptionComboDateCheck Remove when refactoring
+     * TODO this method duplicates the functionality of AttributeOptionComboDateCheck Remove when refactoring
      * AbstractEventService
      */
     private void validateAttributeOptionComboDate( CategoryOptionCombo attributeOptionCombo, Date date )

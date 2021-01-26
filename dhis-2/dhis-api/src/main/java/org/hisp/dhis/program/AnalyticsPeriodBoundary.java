@@ -136,16 +136,14 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     // -------------------------------------------------------------------------
 
     /**
-     * Get the date representing this boundary. For end-type boundaries
-     * BEFORE_START_OF_REPORTING_PERIOD and BEFORE_END_OF_REPORTING_PERIOD, one
-     * day is added to the date. This to allow SQL and comparisons using a less
-     * than operator to find anything before the end of the reporting period.
+     * Get the date representing this boundary. For end-type boundaries BEFORE_START_OF_REPORTING_PERIOD and
+     * BEFORE_END_OF_REPORTING_PERIOD, one day is added to the date. This to allow SQL and comparisons using a less than
+     * operator to find anything before the end of the reporting period.
      *
      * @param reportingStartDate the reporting period start date
      * @param reportingEndDate the reporting period end date
-     * @return the reporting start or end date is returned based on the boundary
-     *         settings, potentially incremented by one day if the boundary is
-     *         one of the end-type boundaries.
+     * @return the reporting start or end date is returned based on the boundary settings, potentially incremented by
+     *         one day if the boundary is one of the end-type boundaries.
      */
     public Date getBoundaryDate( Date reportingStartDate, Date reportingEndDate )
     {

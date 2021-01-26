@@ -34,8 +34,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 /**
  * @author Chau Thu Tran
  *
- * @version $ TrackedEntityAttributeSortOrderInListNoProgramComparator.java Jan
- *          8, 2014 9:24:20 PM $
+ * @version $ TrackedEntityAttributeSortOrderInListNoProgramComparator.java Jan 8, 2014 9:24:20 PM $
  */
 public class TrackedEntityAttributeSortOrderInListNoProgramComparator
     implements Comparator<TrackedEntityAttribute>

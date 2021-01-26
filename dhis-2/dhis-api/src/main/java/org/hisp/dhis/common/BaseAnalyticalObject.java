@@ -71,12 +71,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
 /**
- * This class contains associations to dimensional meta-data. Should typically
- * be sub-classed by analytical objects like tables, maps and charts.
+ * This class contains associations to dimensional meta-data. Should typically be sub-classed by analytical objects like
+ * tables, maps and charts.
  * <p>
- * Implementation note: Objects currently managing this class are
- * AnalyticsService, DefaultDimensionService and the getDimensionalObject and
- * getDimensionalObjectList methods of this class.
+ * Implementation note: Objects currently managing this class are AnalyticsService, DefaultDimensionService and the
+ * getDimensionalObject and getDimensionalObjectList methods of this class.
  *
  * @author Lars Helge Overland
  */
@@ -370,8 +369,7 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Returns all data elements in the data dimensions. The returned list is
-     * immutable.
+     * Returns all data elements in the data dimensions. The returned list is immutable.
      */
     @JsonIgnore
     public List<DataElement> getDataElements()
@@ -381,8 +379,7 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Returns all indicators in the data dimensions. The returned list is
-     * immutable.
+     * Returns all indicators in the data dimensions. The returned list is immutable.
      */
     @JsonIgnore
     public List<Indicator> getIndicators()
@@ -392,12 +389,11 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Assembles a DimensionalObject based on the persisted properties of this
-     * AnalyticalObject. Collapses indicators, data elements, data element
-     * operands and data sets into the dx dimension.
+     * Assembles a DimensionalObject based on the persisted properties of this AnalyticalObject. Collapses indicators,
+     * data elements, data element operands and data sets into the dx dimension.
      * <p>
-     * Collapses fixed and relative periods into the pe dimension. Collapses
-     * fixed and user organisation units into the ou dimension.
+     * Collapses fixed and relative periods into the pe dimension. Collapses fixed and user organisation units into the
+     * ou dimension.
      *
      * @param dimension the dimension identifier.
      * @param date the date used for generating relative periods.
@@ -559,14 +555,11 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Assembles a list of DimensionalObjects based on the concrete objects in
-     * this BaseAnalyticalObject.
+     * Assembles a list of DimensionalObjects based on the concrete objects in this BaseAnalyticalObject.
      * <p>
-     * Merges fixed and relative periods into the pe dimension, where the
-     * RelativePeriods object is represented by enums (e.g. LAST_MONTH). Merges
-     * fixed and user organisation units into the ou dimension, where user
-     * organisation units properties are represented by enums (e.g.
-     * USER_ORG_UNIT).
+     * Merges fixed and relative periods into the pe dimension, where the RelativePeriods object is represented by enums
+     * (e.g. LAST_MONTH). Merges fixed and user organisation units into the ou dimension, where user organisation units
+     * properties are represented by enums (e.g. USER_ORG_UNIT).
      * <p>
      * This method is useful when serializing the AnalyticalObject.
      *
@@ -724,14 +717,13 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Searches for a {@link DimensionalObject} with the given dimension
-     * identifier in the given list of {@link DimensionalEmbeddedObject} items.
+     * Searches for a {@link DimensionalObject} with the given dimension identifier in the given list of
+     * {@link DimensionalEmbeddedObject} items.
      *
      * @param dimension the dimension identifier.
      * @param dimensionType the dimension type.
      * @param embeddedObjects the list of embedded dimension objects.
-     * @return a {@link DimensionalObject} optional, or an empty optional if not
-     *         found.
+     * @return a {@link DimensionalObject} optional, or an empty optional if not found.
      */
     private <T extends DimensionalEmbeddedObject> Optional<DimensionalObject> getDimensionFromEmbeddedObjects(
         String dimension, DimensionType dimensionType, List<T> embeddedObjects )
@@ -758,8 +750,8 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Returns meta-data mapping for this analytical object. Includes a
-     * identifier to name mapping for dynamic dimensions.
+     * Returns meta-data mapping for this analytical object. Includes a identifier to name mapping for dynamic
+     * dimensions.
      */
     public Map<String, String> getMetaData()
     {
@@ -777,8 +769,7 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Clear or set to false all persistent dimensional (not property)
-     * properties for this object.
+     * Clear or set to false all persistent dimensional (not property) properties for this object.
      */
     public void clear()
     {

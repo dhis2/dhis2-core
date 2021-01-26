@@ -37,8 +37,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
 /**
- * Simple AccessDecisionVoter which grants access if a specified required
- * authority is among the configAttributes.
+ * Simple AccessDecisionVoter which grants access if a specified required authority is among the configAttributes.
  *
  * @author Torgeir Lorange Ostby
  * @version $Id: SimpleAccessVoter.java 6352 2008-11-20 15:49:52Z larshelg $

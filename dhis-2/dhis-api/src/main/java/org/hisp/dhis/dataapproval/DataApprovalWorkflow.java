@@ -53,12 +53,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * Identifies types of data to be approved, and the set of approval levels by
- * which it is approved.
+ * Identifies types of data to be approved, and the set of approval levels by which it is approved.
  * <p>
- * The types of data to be approved are identified by data sets (for aggregate
- * data) and or programs (for event/tracker data) that are related to a
- * workflow.
+ * The types of data to be approved are identified by data sets (for aggregate data) and or programs (for event/tracker
+ * data) that are related to a workflow.
  *
  * @author Jim Grace
  */
@@ -137,13 +135,10 @@ public class DataApprovalWorkflow
     }
 
     /**
-     * Returns the SQL fragment to extend the category option end dates for this
-     * data approval workflow. This will be based on the dataset belonging to
-     * this workflow with the longest category option end date extension (if
-     * any).
+     * Returns the SQL fragment to extend the category option end dates for this data approval workflow. This will be
+     * based on the dataset belonging to this workflow with the longest category option end date extension (if any).
      *
-     * @return the SQL to extend the category option end dates, or an empty
-     *         string if there is no such extension.
+     * @return the SQL to extend the category option end dates, or an empty string if there is no such extension.
      */
     public String getSqlCoEndDateExtension()
     {

@@ -70,8 +70,7 @@ public class PartitionUtils
     }
 
     /**
-     * Returns the end date for the given year, exclusive, i.e. the start date
-     * of the year after the given year.
+     * Returns the end date for the given year, exclusive, i.e. the start date of the year after the given year.
      *
      * @param calendar the calendar to base the date on.
      * @param year the year.
@@ -141,9 +140,8 @@ public class PartitionUtils
     }
 
     /**
-     * Returns partitions for the given {@link DataQueryParams} and
-     * {@link AnalyticsTableType}. Includes a "latest" partition depending on
-     * the given table type.
+     * Returns partitions for the given {@link DataQueryParams} and {@link AnalyticsTableType}. Includes a "latest"
+     * partition depending on the given table type.
      *
      * @param params the {@link DataQueryParams}.
      * @param tableType the {@link AnalyticsTableType}.
@@ -185,8 +183,7 @@ public class PartitionUtils
     }
 
     /**
-     * Creates a mapping between period type name and period for the given
-     * periods.
+     * Creates a mapping between period type name and period for the given periods.
      */
     public static ListMap<String, DimensionalItemObject> getPeriodTypePeriodMap(
         Collection<DimensionalItemObject> periods )
@@ -204,9 +201,8 @@ public class PartitionUtils
     }
 
     /**
-     * Returns a list of table partitions based on the given analytics tables.
-     * For master tables with no partitions, a fake partition representing the
-     * master table is used.
+     * Returns a list of table partitions based on the given analytics tables. For master tables with no partitions, a
+     * fake partition representing the master table is used.
      *
      * @param tables the list of {@link AnalyticsTable}.
      * @return a list of {@link AnalyticsTablePartition}.
@@ -233,13 +229,11 @@ public class PartitionUtils
     }
 
     /**
-     * Returns the latest table partition based on the given list. Expects a
-     * single analytics table in the given list.
+     * Returns the latest table partition based on the given list. Expects a single analytics table in the given list.
      *
      * @param tables list of {@link AnalyticsTable}.
      * @return the {@link AnalyticsTablePartition}.
-     * @throws IllegalArgumentException if the given list does not contain
-     *         exactly one item.
+     * @throws IllegalArgumentException if the given list does not contain exactly one item.
      */
     public static AnalyticsTablePartition getLatestTablePartition( List<AnalyticsTable> tables )
     {

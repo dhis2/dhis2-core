@@ -69,9 +69,8 @@ public class UserControllerUtils
     private SystemSettingManager systemSettingManager;
 
     /**
-     * Gets the data approval workflows a user can see, including the workflow
-     * levels accessible to the user and the actions (if any) they can take at
-     * those levels to approve (and accept if configured) data.
+     * Gets the data approval workflows a user can see, including the workflow levels accessible to the user and the
+     * actions (if any) they can take at those levels to approve (and accept if configured) data.
      *
      * @param user the user
      * @throws Exception if an error occurs
@@ -111,9 +110,8 @@ public class UserControllerUtils
     // -------------------------------------------------------------------------
 
     /**
-     * For a user and workflow, returns a list of levels accessible to the user
-     * user and the actions (if any) they can take at those levels to approve
-     * (and accept if configured) data.
+     * For a user and workflow, returns a list of levels accessible to the user user and the actions (if any) they can
+     * take at those levels to approve (and accept if configured) data.
      *
      * @param user the user
      * @param workflow the approval workflow for which to fetch the levels

@@ -312,8 +312,7 @@ public class DefaultQueryPlanner implements QueryPlanner
     }
 
     /**
-     * Check if all the criteria for the given query are associated to
-     * "persisted" properties
+     * Check if all the criteria for the given query are associated to "persisted" properties
      *
      * @param query a {@see Query} object
      * @return true, if all criteria are on persisted properties
@@ -338,13 +337,12 @@ public class DefaultQueryPlanner implements QueryPlanner
     }
 
     /**
-     * Recursive function that checks if any of the criterions or subcriterions
-     * are associated with fields that are not persisted.
+     * Recursive function that checks if any of the criterions or subcriterions are associated with fields that are not
+     * persisted.
      *
      * @param persistedFields The set of persistedFields in the schema
      * @param criterions List of criterions
-     * @return true if there is any non persisted field in any of the criteria
-     *         at any level. false otherwise.
+     * @return true if there is any non persisted field in any of the criteria at any level. false otherwise.
      */
     private boolean nonPersistedFieldExistsInCriterions( Set<String> persistedFields, List<Criterion> criterions )
     {

@@ -43,8 +43,8 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.ImmutableMap;
 
 /**
- * Class represents a thread which will be triggered as soon as tracker
- * notification consumer consumes a message from tracker notification queue.
+ * Class represents a thread which will be triggered as soon as tracker notification consumer consumes a message from
+ * tracker notification queue.
  *
  * @author Zubair Asghar
  */

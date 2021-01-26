@@ -31,8 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * List implementation that will only add items which are not already present in
- * the list.
+ * List implementation that will only add items which are not already present in the list.
  *
  * @author Lars Helge Overland
  */

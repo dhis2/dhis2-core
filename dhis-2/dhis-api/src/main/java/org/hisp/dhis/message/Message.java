@@ -64,8 +64,7 @@ public class Message
     private User sender;
 
     /**
-     * Internal message flag. Can only be seen by users in "FeedbackRecipients"
-     * group.
+     * Internal message flag. Can only be seen by users in "FeedbackRecipients" group.
      */
     private Boolean internal;
 

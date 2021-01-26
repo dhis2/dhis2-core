@@ -181,8 +181,7 @@ public class HibernateDataStatisticsStore
     }
 
     /**
-     * Creating a SQL for retrieving aggregated data with group by YEAR, WEEK.
-     * Ignoring week 53.
+     * Creating a SQL for retrieving aggregated data with group by YEAR, WEEK. Ignoring week 53.
      *
      * @param start start date
      * @param end end date
@@ -214,8 +213,7 @@ public class HibernateDataStatisticsStore
     }
 
     /**
-     * Part of SQL witch is always the same in the different intervals YEAR,
-     * MONTH, WEEK and DAY.
+     * Part of SQL witch is always the same in the different intervals YEAR, MONTH, WEEK and DAY.
      *
      * @param start start date
      * @param end end date

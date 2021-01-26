@@ -95,11 +95,9 @@ public class DhisWebApiWebSecurityConfig
     public DataSource dataSource;
 
     /**
-     * This configuration class is responsible for setting up the OAuth2 /token
-     * endpoint and /authorize endpoint. This config is a modification of the
-     * config that is automatically enabled by using
-     * the @EnableAuthorizationServer annotation. The spring-security-oauth2
-     * project is deprecated, but as of August 19, 2020; there is still no other
+     * This configuration class is responsible for setting up the OAuth2 /token endpoint and /authorize endpoint. This
+     * config is a modification of the config that is automatically enabled by using the @EnableAuthorizationServer
+     * annotation. The spring-security-oauth2 project is deprecated, but as of August 19, 2020; there is still no other
      * viable alternative available.
      */
     @Configuration
@@ -321,10 +319,8 @@ public class DhisWebApiWebSecurityConfig
         }
 
         /**
-         * This AuthenticationManager is responsible for authorizing access,
-         * refresh and code OAuth2 tokens from the /token and /authorize
-         * endpoints. It is used only by the
-         * OAuth2AuthenticationProcessingFilter.
+         * This AuthenticationManager is responsible for authorizing access, refresh and code OAuth2 tokens from the
+         * /token and /authorize endpoints. It is used only by the OAuth2AuthenticationProcessingFilter.
          */
         private AuthenticationManager oauthAuthenticationManager( HttpSecurity http )
         {

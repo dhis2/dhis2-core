@@ -47,12 +47,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * This object can act both as a hydrated persisted object and as a wrapper
- * object (but not both at the same time).
+ * This object can act both as a hydrated persisted object and as a wrapper object (but not both at the same time).
  * <p>
- * This object implements IdentifiableObject but does not have any UID. Instead
- * the UID is generated based on the data element and category option combo
- * which this object is based on.
+ * This object implements IdentifiableObject but does not have any UID. Instead the UID is generated based on the data
+ * element and category option combo which this object is based on.
  *
  * @author Abyot Asalefew
  */
@@ -310,8 +308,7 @@ public class DataElementOperand
     }
 
     /**
-     * Indicates whether this operand specifies a data element only with no
-     * option combinations.
+     * Indicates whether this operand specifies a data element only with no option combinations.
      *
      * @return true if operand specifies a data element only.
      */
@@ -321,8 +318,7 @@ public class DataElementOperand
     }
 
     /**
-     * Indicates whether a category option combination exists which is different
-     * from default.
+     * Indicates whether a category option combination exists which is different from default.
      */
     public boolean hasNonDefaultCategoryOptionCombo()
     {
@@ -330,8 +326,7 @@ public class DataElementOperand
     }
 
     /**
-     * Indicates whether an attribute option combination exists which is
-     * different from default.
+     * Indicates whether an attribute option combination exists which is different from default.
      */
     public boolean hasNonDefaultAttributeOptionCombo()
     {

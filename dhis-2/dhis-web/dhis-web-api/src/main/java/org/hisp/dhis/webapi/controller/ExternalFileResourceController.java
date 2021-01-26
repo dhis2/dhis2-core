@@ -67,15 +67,12 @@ public class ExternalFileResourceController
     private FileResourceService fileResourceService;
 
     /**
-     * Returns a file associated with the externalFileResource resolved from the
-     * accessToken.
+     * Returns a file associated with the externalFileResource resolved from the accessToken.
      * <p>
-     * Only files contained in externalFileResources with a valid accessToken,
-     * expiration date null or in the future are files allowed to be served
-     * trough this endpoint.
+     * Only files contained in externalFileResources with a valid accessToken, expiration date null or in the future are
+     * files allowed to be served trough this endpoint.
      *
-     * @param accessToken a unique string that resolves to a given
-     *        externalFileResource
+     * @param accessToken a unique string that resolves to a given externalFileResource
      * @param response
      * @throws WebMessageException
      */

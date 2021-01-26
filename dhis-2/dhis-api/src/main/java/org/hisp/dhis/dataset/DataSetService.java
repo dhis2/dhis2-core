@@ -120,14 +120,14 @@ public interface DataSetService
     List<DataSet> getDataSetsByPeriodType( PeriodType periodType );
 
     /**
-     * Returns the data sets which current user have READ access. If the current
-     * user has the ALL authority then all data sets are returned.
+     * Returns the data sets which current user have READ access. If the current user has the ALL authority then all
+     * data sets are returned.
      */
     List<DataSet> getAllDataRead();
 
     /**
-     * Returns the data sets which given user have READ access. If the current
-     * user has the ALL authority then all data sets are returned.
+     * Returns the data sets which given user have READ access. If the current user has the ALL authority then all data
+     * sets are returned.
      *
      * @param user the user to query for data set list.
      * @return a list of data sets which the given user has data read access to.
@@ -135,14 +135,14 @@ public interface DataSetService
     List<DataSet> getUserDataRead( User user );
 
     /**
-     * Returns the data sets which current user have WRITE access. If the
-     * current user has the ALL authority then all data sets are returned.
+     * Returns the data sets which current user have WRITE access. If the current user has the ALL authority then all
+     * data sets are returned.
      */
     List<DataSet> getAllDataWrite();
 
     /**
-     * Returns the data sets which current user have WRITE access. If the
-     * current user has the ALL authority then all data sets are returned.
+     * Returns the data sets which current user have WRITE access. If the current user has the ALL authority then all
+     * data sets are returned.
      *
      * @param user the user to query for data set list.
      * @return a list of data sets which given user has data write access to.
@@ -207,18 +207,15 @@ public interface DataSetService
     List<LockException> getLockExceptionsBetween( int first, int max );
 
     /**
-     * Find all unique dataSet + period combinations (mainly used for batch
-     * removal)
+     * Find all unique dataSet + period combinations (mainly used for batch removal)
      *
-     * @return A list of all unique combinations (only dataSet and period is
-     *         set)
+     * @return A list of all unique combinations (only dataSet and period is set)
      */
     List<LockException> getLockExceptionCombinations();
 
     /**
-     * Delete a dataSet + period combination, used for batch removal, e.g. when
-     * you have a lock exception set on 100 OUs with the same dataSet + period
-     * combination.
+     * Delete a dataSet + period combination, used for batch removal, e.g. when you have a lock exception set on 100 OUs
+     * with the same dataSet + period combination.
      *
      * @param dataSet DataSet part of the combination
      * @param period Period part of the combination
@@ -235,8 +232,8 @@ public interface DataSetService
     void deleteLockExceptionCombination( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
 
     /**
-     * Checks whether the period is locked for data entry for the given input,
-     * checking the dataset's expiryDays and lockExceptions.
+     * Checks whether the period is locked for data entry for the given input, checking the dataset's expiryDays and
+     * lockExceptions.
      *
      * @param dataSet the data set
      * @param period the period.
@@ -247,8 +244,8 @@ public interface DataSetService
     boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now );
 
     /**
-     * Checks whether the system is locked for data entry for the given input,
-     * checking expiryDays, lockExceptions and approvals.
+     * Checks whether the system is locked for data entry for the given input, checking expiryDays, lockExceptions and
+     * approvals.
      *
      * @param dataSet the data set
      * @param period the period.
@@ -261,24 +258,23 @@ public interface DataSetService
         CategoryOptionCombo attributeOptionCombo, Date now );
 
     /**
-     * Checks whether the system is locked for data entry for the given input,
-     * checking expiryDays, lockExceptions and approvals.
+     * Checks whether the system is locked for data entry for the given input, checking expiryDays, lockExceptions and
+     * approvals.
      *
      * @param dataSet the data set
      * @param period the period.
      * @param organisationUnit the organisation unit.
      * @param attributeOptionCombo the attribute option combo.
      * @param now the base date for deciding locked date, current date if null.
-     * @param useOrgUnitChildren whether to check children of the given org unit
-     *        or the org unit only.
+     * @param useOrgUnitChildren whether to check children of the given org unit or the org unit only.
      * @return true or false indicating whether the system is locked or not.
      */
     boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
         CategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren );
 
     /**
-     * Checks whether the system is locked for data entry for the given input,
-     * checking expiryDays, lockExceptions and approvals.
+     * Checks whether the system is locked for data entry for the given input, checking expiryDays, lockExceptions and
+     * approvals.
      *
      * @param dataElement the data element.
      * @param period the period.

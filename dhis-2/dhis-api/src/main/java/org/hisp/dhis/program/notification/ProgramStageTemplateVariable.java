@@ -34,8 +34,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.notification.TemplateVariable;
 
 /**
- * Defines the variable expression names for a
- * {@link ProgramNotificationTemplate} on a
+ * Defines the variable expression names for a {@link ProgramNotificationTemplate} on a
  * {@link org.hisp.dhis.program.ProgramStage ProgramStage}.
  *
  * The supported variable names are:

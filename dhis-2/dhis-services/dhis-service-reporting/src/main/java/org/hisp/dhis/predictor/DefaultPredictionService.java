@@ -174,9 +174,8 @@ public class DefaultPredictionService
     // -------------------------------------------------------------------------
 
     /**
-     * String that is not an Attribute Option Combo UID. This is used for
-     * holding analytics data that is not stored by AOC, and therefore is used
-     * in expressions for every AOC value.
+     * String that is not an Attribute Option Combo UID. This is used for holding analytics data that is not stored by
+     * AOC, and therefore is used in expressions for every AOC value.
      */
     private final static String NON_AOC = "x";
 
@@ -432,8 +431,8 @@ public class DefaultPredictionService
     // -------------------------------------------------------------------------
 
     /**
-     * For a predictor and orgUnit, determines the set of attribute option
-     * combos for which predictions will be generated.
+     * For a predictor and orgUnit, determines the set of attribute option combos for which predictions will be
+     * generated.
      *
      * @param sampleMap3 other-period sample data for an orgUnit
      * @param valueMap3 current-period sample data for an orgUnit
@@ -459,8 +458,7 @@ public class DefaultPredictionService
     }
 
     /**
-     * Checks to see if a dimensional item object has values stored in the
-     * database by attribute option combo.
+     * Checks to see if a dimensional item object has values stored in the database by attribute option combo.
      *
      * @param o dimensional item object
      * @return true if values are stored by attribuete option combo.
@@ -472,10 +470,9 @@ public class DefaultPredictionService
     }
 
     /**
-     * Evaluates the skip test expression for any sample periods in which skip
-     * test data occurs. For any combination of period and attribute option
-     * combo where the skip test is true, removes all sample data with that
-     * combination of period and attribute option combo.
+     * Evaluates the skip test expression for any sample periods in which skip test data occurs. For any combination of
+     * period and attribute option combo where the skip test is true, removes all sample data with that combination of
+     * period and attribute option combo.
      *
      * @param sampleMap2 data values from sampled periods.
      * @param skipTest the skip test expression.
@@ -509,18 +506,16 @@ public class DefaultPredictionService
     }
 
     /**
-     * Returns all Periods of the specified PeriodType with start date after or
-     * equal the specified start date and end date before or equal the specified
-     * end date. Periods are returned in ascending date order.
+     * Returns all Periods of the specified PeriodType with start date after or equal the specified start date and end
+     * date before or equal the specified end date. Periods are returned in ascending date order.
      *
      * The periods returned do not need to be in the database.
      *
      * @param periodType the PeriodType.
      * @param startDate the ultimate start date.
      * @param endDate the ultimate end date.
-     * @return a list of all Periods with start date after or equal the
-     *         specified start date and end date before or equal the specified
-     *         end date, or an empty list if no Periods match.
+     * @return a list of all Periods with start date after or equal the specified start date and end date before or
+     *         equal the specified end date, or an empty list if no Periods match.
      */
     private List<Period> getPeriodsBetweenDates( PeriodType periodType, Date startDate, Date endDate )
     {
@@ -545,8 +540,7 @@ public class DefaultPredictionService
     }
 
     /**
-     * Creates a map relating each output period to a list of sample periods
-     * from which the sample data is to be drawn.
+     * Creates a map relating each output period to a list of sample periods from which the sample data is to be drawn.
      *
      * @param outputPeriods the output periods
      * @param predictor the predictor
@@ -597,9 +591,8 @@ public class DefaultPredictionService
     /**
      * Finds the set of periods that exist, from a list of periods.
      *
-     * Only adds the period if it is found in the database, because: (a) We will
-     * need the period id, and (b) If the period does not exist in the database,
-     * then there is no data in the database to look for.
+     * Only adds the period if it is found in the database, because: (a) We will need the period id, and (b) If the
+     * period does not exist in the database, then there is no data in the database to look for.
      *
      * @param periods the periods to look for
      * @return the set of periods that exist, with ids.
@@ -622,15 +615,12 @@ public class DefaultPredictionService
     }
 
     /**
-     * Checks to see if the output predicted value should be used as input to
-     * subsequent (later period) predictions. If so, returns the
-     * DimensionalItemObject that should be updated with the predicted value.
+     * Checks to see if the output predicted value should be used as input to subsequent (later period) predictions. If
+     * so, returns the DimensionalItemObject that should be updated with the predicted value.
      *
-     * Note that we make the simplifying assumption that if the output data
-     * element is sampled in an expression without a catOptionCombo, the
-     * predicted data value will be used. This is usually what the user wants,
-     * but would break if the expression assumes a sum of catOptionCombos
-     * including the predicted value and other catOptionCombos.
+     * Note that we make the simplifying assumption that if the output data element is sampled in an expression without
+     * a catOptionCombo, the predicted data value will be used. This is usually what the user wants, but would break if
+     * the expression assumes a sum of catOptionCombos including the predicted value and other catOptionCombos.
      *
      * @param outputDataElement the data element to output predicted value to.
      * @param outputOptionCombo the option combo to output predicted value to.
@@ -659,8 +649,7 @@ public class DefaultPredictionService
     }
 
     /**
-     * If the predicted value might be used in a future period prediction,
-     * insert it into the period value map.
+     * If the predicted value might be used in a future period prediction, insert it into the period value map.
      *
      * @param value the predicted value.
      * @param outputPeriod the period the value is predicted for.
@@ -678,9 +667,8 @@ public class DefaultPredictionService
     }
 
     /**
-     * Returns true if there is no data for this period and no sample data to be
-     * used for a prediction in this period. This allows us to save time by not
-     * evaluating an expression where there is no data.
+     * Returns true if there is no data for this period and no sample data to be used for a prediction in this period.
+     * This allows us to save time by not evaluating an expression where there is no data.
      *
      * @param outputPeriod the current output period.
      * @param valueMap the current output period value map.
@@ -710,14 +698,12 @@ public class DefaultPredictionService
     }
 
     /**
-     * Gets data values for a set of DimensionalItemObjects over a set of
-     * Periods for an organisation unit and/or any of the organisation unit's
-     * descendants.
+     * Gets data values for a set of DimensionalItemObjects over a set of Periods for an organisation unit and/or any of
+     * the organisation unit's descendants.
      *
      * DimensionalItemObjects may reference aggregate and/or event data.
      *
-     * Returns the values mapped by attribute option combo UID, then Period,
-     * then DimensionalItemObject.
+     * Returns the values mapped by attribute option combo UID, then Period, then DimensionalItemObject.
      *
      * @param dimensionItems the dimensionItems.
      * @param allPeriods all data Periods (to fetch event data).
@@ -861,12 +847,10 @@ public class DefaultPredictionService
     }
 
     /**
-     * Gets data values for a set of Event dimensionItems over a set of Periods
-     * for a list of organisation units and/or any of the organisation units'
-     * descendants.
+     * Gets data values for a set of Event dimensionItems over a set of Periods for a list of organisation units and/or
+     * any of the organisation units' descendants.
      *
-     * Returns the values mapped by OrganisationUnit, Period, attribute option
-     * combo UID, and DimensionalItemObject.
+     * Returns the values mapped by OrganisationUnit, Period, attribute option combo UID, and DimensionalItemObject.
      *
      * @param dimensionItems the dimensionItems.
      * @param periods the Periods of the DataValues.
@@ -922,8 +906,7 @@ public class DefaultPredictionService
     }
 
     /**
-     * Writes the predicted values to the database. Also updates the prediction
-     * summmary per-record counts.
+     * Writes the predicted values to the database. Also updates the prediction summmary per-record counts.
      *
      * @param predictions Predictions to write to the database.
      * @param outputDataElement Predictor output data elmeent.
@@ -972,10 +955,9 @@ public class DefaultPredictionService
                 summary.incrementInserted();
 
                 /*
-                 * Note: BatchHandler can be used for inserts only when the
-                 * period previously existed. To insert values into new periods
-                 * (just added to the database within this transaction), the
-                 * dataValueService must be used.
+                 * Note: BatchHandler can be used for inserts only when the period previously existed. To insert values
+                 * into new periods (just added to the database within this transaction), the dataValueService must be
+                 * used.
                  */
                 if ( existingPeriods.contains( newValue.getPeriod() ) )
                 {

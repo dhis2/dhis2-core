@@ -45,8 +45,7 @@ public interface DataBrowserGridService
     // -------------------------------------------------------------------------
 
     /**
-     * Method that retrieves - all DataSets with DataElement quantity - in a
-     * given period and type (DataSet | Count)
+     * Method that retrieves - all DataSets with DataElement quantity - in a given period and type (DataSet | Count)
      *
      * @param startDate the start date
      * @param endDate the end date
@@ -57,8 +56,8 @@ public interface DataBrowserGridService
         boolean isZeroAdded );
 
     /**
-     * Method that retrieves - all DataElementGroups with DataElement quantity -
-     * in a given period and type (DataElementGroup | Count)
+     * Method that retrieves - all DataElementGroups with DataElement quantity - in a given period and type
+     * (DataElementGroup | Count)
      *
      * @param startDate the start date
      * @param endDate the end date
@@ -69,8 +68,8 @@ public interface DataBrowserGridService
         I18nFormat format, boolean isZeroAdded );
 
     /**
-     * Method that retrieves - all OrganisationUnitGroups with DataElement
-     * quantity - in a given period and type (OrgUnitGroup | Count)
+     * Method that retrieves - all OrganisationUnitGroups with DataElement quantity - in a given period and type
+     * (OrgUnitGroup | Count)
      *
      * @param startDate the start date
      * @param endDate the end date
@@ -81,8 +80,8 @@ public interface DataBrowserGridService
         I18nFormat format, boolean isZeroAdded );
 
     /**
-     * Method that retrieves - all OrganisationUnits with DataElement quantity -
-     * in a given period - that is child of a given OrganisationUnit parent.
+     * Method that retrieves - all OrganisationUnits with DataElement quantity - in a given period - that is child of a
+     * given OrganisationUnit parent.
      *
      * @param orgUnitParent the OrganisationUnit parent
      * @param startDate the start date
@@ -95,8 +94,8 @@ public interface DataBrowserGridService
         PeriodType periodType, Integer maxLevel, I18nFormat format, boolean isZeroAdded );
 
     /**
-     * Method that retrieves - all the DataElements count - in a given period -
-     * for a given DataSet and returns a Grid with the data.
+     * Method that retrieves - all the DataElements count - in a given period - for a given DataSet and returns a Grid
+     * with the data.
      *
      * @param dataSetId the DataSet id
      * @param startDate the start date
@@ -108,8 +107,8 @@ public interface DataBrowserGridService
         PeriodType periodType, I18nFormat format, boolean isZeroAdded );
 
     /**
-     * Method that retrieves - all the DataElements count - in a given period -
-     * for a given DataElementGroup and returns a Grid with the data.
+     * Method that retrieves - all the DataElements count - in a given period - for a given DataElementGroup and returns
+     * a Grid with the data.
      *
      * @param dataElementGroupId the DataElementGroup id
      * @param startDate the start date
@@ -121,8 +120,8 @@ public interface DataBrowserGridService
         String endDate, PeriodType periodType, I18nFormat format, boolean isZeroAdded );
 
     /**
-     * Method retrieves - all the DataElementGroups count - in a given period -
-     * for a given OrganisationUnitGroup and returns a Grid with the data.
+     * Method retrieves - all the DataElementGroups count - in a given period - for a given OrganisationUnitGroup and
+     * returns a Grid with the data.
      *
      * @param orgUnitGroupId the OrganisationUnitGroup id
      * @param startDate the start date
@@ -134,8 +133,8 @@ public interface DataBrowserGridService
         String endDate, PeriodType periodType, I18nFormat format, boolean isZeroAdded );
 
     /**
-     * Method that retrieves - all the DataElements count - in a given period -
-     * for a given OrganisationUnit and returns a Grid with the data.
+     * Method that retrieves - all the DataElements count - in a given period - for a given OrganisationUnit and returns
+     * a Grid with the data.
      *
      * @param orgUnitId the OrganisationUnit id
      * @param startDate the start date
@@ -147,28 +146,24 @@ public interface DataBrowserGridService
         PeriodType periodType, I18nFormat format, boolean isZeroAdded );
 
     /**
-     * This method converts a string from the date format "yyyy-MM-dd" to "MMMM
-     * yyyy", for instance.
+     * This method converts a string from the date format "yyyy-MM-dd" to "MMMM yyyy", for instance.
      *
      * @param periodType the period type.
      * @param dateString the date string.
      * @param i18n the i18n object.
      * @param format the i18n format.
-     * @return converted string if the date is valid, else the original string
-     *         is returned
+     * @return converted string if the date is valid, else the original string is returned
      */
     String convertDate( PeriodType periodType, String dateString, I18n i18n, I18nFormat format );
 
     /**
-     * This method returns the string of name of periods in the list which
-     * between fromDate and toDate input params
+     * This method returns the string of name of periods in the list which between fromDate and toDate input params
      *
      * @param periodType is the type of period
      * @param fromDate the beginning date
      * @param toDate the end date
      * @param format is i18n format object
-     * @return The name of periods in the list which between fromDate and toDate
-     *         input params will be returned.
+     * @return The name of periods in the list which between fromDate and toDate input params will be returned.
      */
     String getFromToDateFormat( PeriodType periodType, String fromDate, String toDate, I18nFormat format );
 

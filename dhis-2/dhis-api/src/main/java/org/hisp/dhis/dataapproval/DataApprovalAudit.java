@@ -40,8 +40,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * Records the approval of DataSet values for a given OrganisationUnit and
- * Period.
+ * Records the approval of DataSet values for a given OrganisationUnit and Period.
  *
  * @author Jim Grace
  */

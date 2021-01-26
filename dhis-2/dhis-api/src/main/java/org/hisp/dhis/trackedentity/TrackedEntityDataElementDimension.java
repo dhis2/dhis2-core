@@ -62,8 +62,7 @@ public class TrackedEntityDataElementDimension
     private ProgramStage programStage;
 
     /**
-     * Operator and filter on this format:
-     * <operator>:<filter>;<operator>:<filter> Operator and filter pairs can be
+     * Operator and filter on this format: <operator>:<filter>;<operator>:<filter> Operator and filter pairs can be
      * repeated any number of times.
      */
     private String filter;

@@ -40,10 +40,9 @@ import org.springframework.security.core.GrantedAuthority;
 import com.opensymphony.xwork2.config.entities.ActionConfig;
 
 /**
- * AccessDecisionVoter which grants access if one of the granted authorities
- * matches attribute prefix + module name. The module name is taken from an
- * <code>com.opensymphony.xwork.config.entities.ActionConfig</code> object,
- * which is the only type of object this voter supports.
+ * AccessDecisionVoter which grants access if one of the granted authorities matches attribute prefix + module name. The
+ * module name is taken from an <code>com.opensymphony.xwork.config.entities.ActionConfig</code> object, which is the
+ * only type of object this voter supports.
  *
  * @author Torgeir Lorange Ostby
  * @version $Id: ModuleAccessVoter.java 6352 2008-11-20 15:49:52Z larshelg $
@@ -71,8 +70,7 @@ public class ModuleAccessVoter
     // -------------------------------------------------------------------------
 
     /**
-     * Returns true if the class equals
-     * <code>com.opensymphony.xwork.config.entities.ActionConfig</code>. False
+     * Returns true if the class equals <code>com.opensymphony.xwork.config.entities.ActionConfig</code>. False
      * otherwise.
      */
     @Override
@@ -86,9 +84,8 @@ public class ModuleAccessVoter
     }
 
     /**
-     * Votes. Votes ACCESS_ABSTAIN if the object class is not supported. Votes
-     * ACCESS_GRANTED if there is a granted authority which equals attribute
-     * prefix + module name, or the module name is in the always accessible set.
+     * Votes. Votes ACCESS_ABSTAIN if the object class is not supported. Votes ACCESS_GRANTED if there is a granted
+     * authority which equals attribute prefix + module name, or the module name is in the always accessible set.
      * Otherwise votes ACCESS_DENIED.
      */
     @Override

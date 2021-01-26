@@ -120,8 +120,7 @@ public class JdbcMaintenanceStore
             + piSelect + " )";
 
         /*
-         * Delete event values, event value audits, event comments, events,
-         * enrollment comments, enrollments
+         * Delete event values, event value audits, event comments, events, enrollment comments, enrollments
          *
          */
         String[] sqlStmts = new String[] {
@@ -173,9 +172,8 @@ public class JdbcMaintenanceStore
             + piSelect + " )";
 
         /*
-         * Delete event values, event audits, event comments, events, enrollment
-         * comments, enrollments, tei attribtue values, tei attribtue value
-         * audits, teis
+         * Delete event values, event audits, event comments, events, enrollment comments, enrollments, tei attribtue
+         * values, tei attribtue value audits, teis
          *
          */
         String[] sqlStmts = new String[] {

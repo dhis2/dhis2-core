@@ -47,8 +47,8 @@ public class InternalMap
     // -------------------------------------------------------------------------
 
     /**
-     * Returns the first data layer of the list of layers for this map. Returns
-     * null of none of the layers are data layers.
+     * Returns the first data layer of the list of layers for this map. Returns null of none of the layers are data
+     * layers.
      */
     public InternalMapLayer getFirstDataLayer()
     {

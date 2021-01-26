@@ -148,8 +148,8 @@ public class JdbcEventAnalyticsTableManager
     }
 
     /**
-     * Creates a list of {@link AnalyticsTable} for each program. The tables
-     * contain a partition for each year for which events exist.
+     * Creates a list of {@link AnalyticsTable} for each program. The tables contain a partition for each year for which
+     * events exist.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @return a list of {@link AnalyticsTableUpdateParams}.
@@ -187,10 +187,9 @@ public class JdbcEventAnalyticsTableManager
     }
 
     /**
-     * Creates a list of {@link AnalyticsTable} with a partition each or the
-     * "latest" data. The start date of the partition is the time of the last
-     * successful full analytics table update. The end date of the partition is
-     * the start time of this analytics table update process.
+     * Creates a list of {@link AnalyticsTable} with a partition each or the "latest" data. The start date of the
+     * partition is the time of the last successful full analytics table update. The end date of the partition is the
+     * start time of this analytics table update process.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @return a list of {@link AnalyticsTableUpdateParams}.
@@ -240,8 +239,7 @@ public class JdbcEventAnalyticsTableManager
     }
 
     /**
-     * Indicates whether event data stored between the given start and end date
-     * and for the given program exists.
+     * Indicates whether event data stored between the given start and end date and for the given program exists.
      *
      * @param startDate the start date.
      * @param endDate the end date.

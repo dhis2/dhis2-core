@@ -34,8 +34,7 @@ import org.springframework.security.access.ConfigAttribute;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: AbstractPrefixedAccessDecisionVoter.java 3160 2007-03-24
- *          20:15:06Z torgeilo $
+ * @version $Id: AbstractPrefixedAccessDecisionVoter.java 3160 2007-03-24 20:15:06Z torgeilo $
  */
 @Slf4j
 public abstract class AbstractPrefixedAccessDecisionVoter

@@ -33,8 +33,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 public enum ObjectBundleMode
 {
     /**
-     * If bundle is valid, commit the bundle to the database. Commits at
-     * intervals.
+     * If bundle is valid, commit the bundle to the database. Commits at intervals.
      */
     COMMIT,
 

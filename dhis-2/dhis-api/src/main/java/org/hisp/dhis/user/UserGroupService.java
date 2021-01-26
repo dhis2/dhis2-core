@@ -45,14 +45,12 @@ public interface UserGroupService
     UserGroup getUserGroup( String uid );
 
     /**
-     * Indicates whether the current user can add or remove members for the user
-     * group with the given UID. To to so the current user must have write
-     * access to the group or have read access as well as the
+     * Indicates whether the current user can add or remove members for the user group with the given UID. To to so the
+     * current user must have write access to the group or have read access as well as the
      * F_USER_GROUPS_READ_ONLY_ADD_MEMBERS authority.
      *
      * @param uid the user group UID.
-     * @return true if the current user can add or remove members of the user
-     *         group.
+     * @return true if the current user can add or remove members of the user group.
      */
     boolean canAddOrRemoveMember( String uid );
 

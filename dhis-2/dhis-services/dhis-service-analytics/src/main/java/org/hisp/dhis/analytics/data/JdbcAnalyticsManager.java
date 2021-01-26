@@ -101,8 +101,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
- * This class is responsible for producing aggregated data values. It reads data
- * from the analytics table.
+ * This class is responsible for producing aggregated data values. It reads data from the analytics table.
  *
  * @author Lars Helge Overland
  */
@@ -372,8 +371,7 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Returns the query from source clause. Can be any of table name, partition
-     * name or inner select union all query.
+     * Returns the query from source clause. Can be any of table name, partition name or inner select union all query.
      */
     private String getFromSourceClause( DataQueryParams params )
     {
@@ -546,12 +544,10 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Generates a sub query which provides a view of the data where each row is
-     * ranked by the start date, then end date of the data value period, latest
-     * first. The data is partitioned by data element, org unit, category option
-     * combo and attribute option combo. A column {@code pe_rank} defines the
-     * rank. Only data for the last 10 years relative to the period end date is
-     * included.
+     * Generates a sub query which provides a view of the data where each row is ranked by the start date, then end date
+     * of the data value period, latest first. The data is partitioned by data element, org unit, category option combo
+     * and attribute option combo. A column {@code pe_rank} defines the rank. Only data for the last 10 years relative
+     * to the period end date is included.
      */
     private String getFirstOrLastValueSubquerySql( DataQueryParams params, Date earliest )
     {
@@ -580,10 +576,9 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Returns quoted names of columns for the {@link AggregationType#LAST} sub
-     * query. It is assumed that {@link AggregationType#LAST} type only applies
-     * to aggregate data analytics. The period dimension is replaced by the name
-     * of the single period in the given query.
+     * Returns quoted names of columns for the {@link AggregationType#LAST} sub query. It is assumed that
+     * {@link AggregationType#LAST} type only applies to aggregate data analytics. The period dimension is replaced by
+     * the name of the single period in the given query.
      */
     private List<String> getFirstOrLastValueSubqueryQuotedColumns( DataQueryParams params )
     {
@@ -622,9 +617,8 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Generates a sub query which provides a filtered view of the data
-     * according to the criteria. If not, returns the full view of the
-     * partition.
+     * Generates a sub query which provides a filtered view of the data according to the criteria. If not, returns the
+     * full view of the partition.
      */
     private String getPreMeasureCriteriaSubquerySql( DataQueryParams params )
     {
@@ -647,8 +641,7 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Returns a having clause restricting the result based on the measure
-     * criteria.
+     * Returns a having clause restricting the result based on the measure criteria.
      */
     private String getMeasureCriteriaSql( DataQueryParams params )
     {
@@ -668,8 +661,7 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Retrieves data from the database based on the given query and SQL and
-     * puts into a value key and value mapping.
+     * Retrieves data from the database based on the given query and SQL and puts into a value key and value mapping.
      */
     private Map<String, Object> getKeyValueMap( DataQueryParams params, String sql, int maxLimit )
     {
@@ -719,8 +711,8 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Generates a comma-delimited string based on the dimension names of the
-     * given dimensions where each dimension name is quoted.
+     * Generates a comma-delimited string based on the dimension names of the given dimensions where each dimension name
+     * is quoted.
      */
     private String getCommaDelimitedQuotedColumns( Collection<DimensionalObject> dimensions )
     {

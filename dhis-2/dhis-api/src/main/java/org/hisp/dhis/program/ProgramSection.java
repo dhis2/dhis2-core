@@ -63,8 +63,7 @@ public class ProgramSection
     private String formName;
 
     /**
-     * The renderType defines how the ProgramStageSection should be rendered on
-     * the client
+     * The renderType defines how the ProgramStageSection should be rendered on the client
      */
     private DeviceRenderTypeMap<SectionRenderingObject> renderType;
 

@@ -40,8 +40,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * Records the approval of DataSet values for a given OrganisationUnit and
- * Period.
+ * Records the approval of DataSet values for a given OrganisationUnit and Period.
  *
  * @author Jim Grace
  */
@@ -99,8 +98,8 @@ public class DataApprovalLevel
     // -------------------------------------------------------------------------
 
     /**
-     * Returns the name of the category option group set for this data approval
-     * level, or an empty string if there is no category option group set.
+     * Returns the name of the category option group set for this data approval level, or an empty string if there is no
+     * category option group set.
      *
      * @return name of this approval level's category option group set.
      */
@@ -110,8 +109,7 @@ public class DataApprovalLevel
     }
 
     /**
-     * Indicates whether this approval level specified a category option group
-     * set.
+     * Indicates whether this approval level specified a category option group set.
      */
     public boolean hasCategoryOptionGroupSet()
     {
@@ -119,8 +117,7 @@ public class DataApprovalLevel
     }
 
     /**
-     * Indicates whether the given approval level represents the same level as
-     * this.
+     * Indicates whether the given approval level represents the same level as this.
      */
     public boolean levelEquals( DataApprovalLevel other )
     {

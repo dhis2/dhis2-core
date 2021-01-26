@@ -47,18 +47,16 @@ import com.google.common.collect.ImmutableMap;
 /**
  * Configures the Audit Matrix based on configuration properties from dhis.conf
  * <p>
- * This configurator uses properties with prefix "audit.". Each property
- * prefixed with "audit." must match the (lowercase) name of an
- * {@see AuditScope} and must contain a semi-colon list of valid
- * {@see AuditType} names: (READ;UPDATE;...).
+ * This configurator uses properties with prefix "audit.". Each property prefixed with "audit." must match the
+ * (lowercase) name of an {@see AuditScope} and must contain a semi-colon list of valid {@see AuditType} names:
+ * (READ;UPDATE;...).
  * <p>
  * Example:
  * <p>
  * audit.tracker=CREATE;READ;UPDATE;DELETE
  * <p>
- * Misspelled entries are ignored, and the specific type is set to false.
- * Missing {@see AuditScope} are replaced with all-false types. To disable
- * Auditing completely, simply do not declare any audit.* property in dhis.conf
+ * Misspelled entries are ignored, and the specific type is set to false. Missing {@see AuditScope} are replaced with
+ * all-false types. To disable Auditing completely, simply do not declare any audit.* property in dhis.conf
  *
  * @author Luciano Fiandesio
  */
@@ -73,9 +71,8 @@ public class AuditMatrixConfigurer
     private final static String AUDIT_TYPE_STRING_SEPAR = ";";
 
     /**
-     * Default Audit configuration: CREATE, UPDATE and DELETE operations are
-     * audited by default. Other Audit types have to be explicitly enabled by
-     * the user
+     * Default Audit configuration: CREATE, UPDATE and DELETE operations are audited by default. Other Audit types have
+     * to be explicitly enabled by the user
      */
     private static final Map<AuditType, Boolean> DEFAULT_AUDIT_CONFIGURATION = ImmutableMap
         .<AuditType, Boolean> builder()

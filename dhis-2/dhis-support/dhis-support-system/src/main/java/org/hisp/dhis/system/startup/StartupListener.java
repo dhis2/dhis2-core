@@ -42,9 +42,8 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 /**
- * Implementation of {@link javax.servlet.ServletContextListener} which hooks
- * into the context initialization and executes the configured
- * {@link StartupRoutineExecutor}.
+ * Implementation of {@link javax.servlet.ServletContextListener} which hooks into the context initialization and
+ * executes the configured {@link StartupRoutineExecutor}.
  *
  * @author <a href="mailto:torgeilo@gmail.com">Torgeir Lorange Ostby</a>
  */

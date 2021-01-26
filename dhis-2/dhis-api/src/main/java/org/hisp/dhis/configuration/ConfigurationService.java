@@ -59,8 +59,7 @@ public interface ConfigurationService
     boolean isCorsWhitelisted( String origin );
 
     /**
-     * Indicates whether the current user is part of the feedback Recipients
-     * group
+     * Indicates whether the current user is part of the feedback Recipients group
      */
     boolean isUserInFeedbackRecipientUserGroup( User user );
 }

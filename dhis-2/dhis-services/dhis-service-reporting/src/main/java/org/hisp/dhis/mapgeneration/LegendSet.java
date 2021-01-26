@@ -74,11 +74,9 @@ public class LegendSet
     }
 
     /**
-     * Render the legends contained in this set onto a image. The width of the
-     * image returned may vary, depending on how many columns of legends that is
-     * added. The image height can be decided by the user, but if the biggest
-     * legend is higher than imageMaxHeight, the height will automatically be
-     * set to the height of this legend.
+     * Render the legends contained in this set onto a image. The width of the image returned may vary, depending on how
+     * many columns of legends that is added. The image height can be decided by the user, but if the biggest legend is
+     * higher than imageMaxHeight, the height will automatically be set to the height of this legend.
      *
      * @param format the i18n format.
      * @return a buffered image.

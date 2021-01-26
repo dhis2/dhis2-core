@@ -44,9 +44,8 @@ import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
 
 /**
- * Job will fetch all the image FileResources with flag hasMultiple set to
- * false. It will process those image FileResources create three images files
- * for each of them. Once created, images will be stored at EWS and flag
+ * Job will fetch all the image FileResources with flag hasMultiple set to false. It will process those image
+ * FileResources create three images files for each of them. Once created, images will be stored at EWS and flag
  * hasMultiple is set to true.
  *
  * @Author Zubair Asghar.

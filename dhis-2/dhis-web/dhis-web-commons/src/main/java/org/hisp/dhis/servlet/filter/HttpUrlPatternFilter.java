@@ -43,20 +43,17 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * <p>
- * Generic abstract HTTP filter class which allows for matching request URLs
- * using regular expressions. This filter class could be sub-classed by concrete
- * HTTP filters.
+ * Generic abstract HTTP filter class which allows for matching request URLs using regular expressions. This filter
+ * class could be sub-classed by concrete HTTP filters.
  *
  * <p>
- * The filter requires an <code>init-param</code> with a <code>param-name</code>
- * called <code>urlPattern</code> and a regular expression as the
- * <code>param-value</code>.
+ * The filter requires an <code>init-param</code> with a <code>param-name</code> called <code>urlPattern</code> and a
+ * regular expression as the <code>param-value</code>.
  *
  * <p>
- * The filter will compile the <code>urlPattern</code> parameter value and match
- * it against the HTTP request URI using the <code>find</code> function of the
- * {@link Matcher}. This implies that the regular expression only need to match
- * a subsequence of the request URI, not the entire URI.
+ * The filter will compile the <code>urlPattern</code> parameter value and match it against the HTTP request URI using
+ * the <code>find</code> function of the {@link Matcher}. This implies that the regular expression only need to match a
+ * subsequence of the request URI, not the entire URI.
  *
  * <p>
  * Example configuration:
@@ -135,10 +132,9 @@ public abstract class HttpUrlPatternFilter
     }
 
     /**
-     * Perform work on the HTTP request / response chain assuming that the
-     * pattern matched the request URL. The <code>FilterChain.doFilter</code>
-     * method must be invoked to pass on the request and response to the next
-     * entity in the chain.
+     * Perform work on the HTTP request / response chain assuming that the pattern matched the request URL. The
+     * <code>FilterChain.doFilter</code> method must be invoked to pass on the request and response to the next entity
+     * in the chain.
      *
      * @param request the HTTP request.
      * @param response the HTTP response.

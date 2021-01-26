@@ -51,8 +51,7 @@ public class CronUtils
     }
 
     /**
-     * Generates a cron pattern that will execute every day at the given
-     * hour:minute
+     * Generates a cron pattern that will execute every day at the given hour:minute
      *
      * @param minutes
      * @param hours
@@ -70,8 +69,7 @@ public class CronUtils
     }
 
     /**
-     * Generates a cron pattern that will execute every week at the dayOfWeek at
-     * hour:minute
+     * Generates a cron pattern that will execute every week at the dayOfWeek at hour:minute
      *
      * @param minutes
      * @param hours
@@ -92,8 +90,7 @@ public class CronUtils
     }
 
     /**
-     * Generates a cron pattern that will execute every month at the dayOfMonth
-     * at hour:minute
+     * Generates a cron pattern that will execute every month at the dayOfMonth at hour:minute
      *
      * @param minutes
      * @param hours
@@ -112,8 +109,7 @@ public class CronUtils
     }
 
     /**
-     * Joins together each segment of a cron pattern into a complete cron
-     * pattern.
+     * Joins together each segment of a cron pattern into a complete cron pattern.
      *
      * @param seconds a valid cron segment
      * @param minutes a valid cron segment
