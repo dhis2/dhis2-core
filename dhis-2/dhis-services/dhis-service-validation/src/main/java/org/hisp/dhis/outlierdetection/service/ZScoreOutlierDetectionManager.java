@@ -195,7 +195,7 @@ public class ZScoreOutlierDetectionManager
             outlier.setZScore( rs.getDouble( "z_score" ) );
             outlier.setLowerBound( rs.getDouble( "lower_bound" ) );
             outlier.setUpperBound( rs.getDouble( "upper_bound" ) );
-            outlier.setFollowUp( rs.getBoolean( "follow_up" ) );
+            outlier.setFollowup( rs.getBoolean( "follow_up" ) );
 
             return outlier;
         };

@@ -30,28 +30,28 @@ package org.hisp.dhis.webapi.controller.datavalue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.Date;
-import java.util.Locale;
-import java.util.ResourceBundle;
 
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.dxf2.util.InputUtils;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -82,9 +82,6 @@ public class DataValidatorTest
 
     @Mock
     private FileResourceService fileResourceService;
-
-    @Mock
-    private I18nManager i18nManager;
 
     @Mock
     private CalendarService calendarService;
@@ -119,14 +116,8 @@ public class DataValidatorTest
     @Before
     public void setUp()
     {
-        ResourceBundle globalResourceBundleName = ResourceBundle.getBundle( "i18n_global", Locale.ENGLISH );
-        I18nFormat i18nFormat = new I18nFormat( globalResourceBundleName );
-        i18nFormat.init();
-
-        when( i18nManager.getI18nFormat() ).thenReturn( i18nFormat );
-
-        dataValidator = new DataValidator( categoryService, organisationUnitService, dataSetService, idObjectManager,
-            inputUtils, fileResourceService, i18nManager, calendarService, accessManager );
+        dataValidator = new DataValidator( categoryService, organisationUnitService, dataSetService,
+            idObjectManager, inputUtils, fileResourceService, calendarService, accessManager );
 
         periodJan = createPeriod( "202001" );
         periodFeb = createPeriod( "202002" );
@@ -170,7 +161,6 @@ public class DataValidatorTest
 
     @Test
     public void testValidateAttributeOptionComboWithValidData()
-        throws WebMessageException
     {
         // Initially
         dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, dataElementA );
@@ -208,9 +198,21 @@ public class DataValidatorTest
         dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, null, dataElementA );
     }
 
-    @Test( expected = WebMessageException.class )
+    @Test
+    public void testGetMissingDataElement()
+    {
+        final String uid = CodeGenerator.generateUid();
+
+        when( idObjectManager.get( DataElement.class, uid ) ).thenReturn( null );
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> dataValidator.getAndValidateDataElement( uid ) );
+
+        assertEquals( ErrorCode.E1100, ex.getErrorCode() );
+    }
+
+    @Test( expected = IllegalQueryException.class )
     public void testValidateAttributeOptionComboWithEarlyData()
-        throws WebMessageException
     {
         // Given
         categoryOptionA.setStartDate( feb15 );
@@ -219,9 +221,8 @@ public class DataValidatorTest
         dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, dataElementA );
     }
 
-    @Test( expected = WebMessageException.class )
+    @Test( expected = IllegalQueryException.class )
     public void testValidateAttributeOptionComboWithLateData()
-        throws WebMessageException
     {
         // Given
         categoryOptionA.setEndDate( jan15 );
@@ -230,9 +231,8 @@ public class DataValidatorTest
         dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, null, dataElementA );
     }
 
-    @Test( expected = WebMessageException.class )
+    @Test( expected = IllegalQueryException.class )
     public void testValidateAttributeOptionComboWithLateAdjustedData()
-        throws WebMessageException
     {
         // Given
         categoryOptionA.setEndDate( jan15 );
@@ -244,7 +244,6 @@ public class DataValidatorTest
 
     @Test
     public void validateBooleanDataValueWhenValuesAreAcceptableTrue()
-        throws WebMessageException
     {
         // Given
         final DataElement aBooleanTypeDataElement = new DataElement();
@@ -275,7 +274,6 @@ public class DataValidatorTest
 
     @Test
     public void validateBooleanDataValueWhenValuesAreAcceptableFalse()
-        throws WebMessageException
     {
         // Given
         final DataElement aBooleanTypeDataElement = new DataElement();
@@ -304,9 +302,8 @@ public class DataValidatorTest
         assertThat( aBooleanDataValue, is( normalizedBooleanValue ) );
     }
 
-    @Test( expected = WebMessageException.class )
+    @Test( expected = IllegalQueryException.class )
     public void validateBooleanDataValueWhenValueIsNotValid()
-        throws WebMessageException
     {
         // Given
         String anInvalidBooleanValue = "InvalidValue";
@@ -316,6 +313,6 @@ public class DataValidatorTest
         // When
         dataValidator.validateAndNormalizeDataValue( anInvalidBooleanValue, aBooleanTypeDataElement );
 
-        fail( "Should not reach here. It was expected WebMessageException." );
+        fail( "Should not reach here. It was expected IllegalQueryException." );
     }
 }
