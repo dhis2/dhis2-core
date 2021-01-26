@@ -163,7 +163,7 @@ public class DataValueController
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = dataValueValidation.getAndValidateDataElementAccess( de );
+        DataElement dataElement = dataValueValidation.getAndValidateDataElement( de );
 
         CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo( co,
             requireCategoryOptionCombo );
@@ -358,7 +358,7 @@ public class DataValueController
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = dataValueValidation.getAndValidateDataElementAccess( de );
+        DataElement dataElement = dataValueValidation.getAndValidateDataElement( de );
 
         CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo( co, false );
 
@@ -428,7 +428,7 @@ public class DataValueController
 
         User currentUser = currentUserService.getCurrentUser();
 
-        DataElement dataElement = dataValueValidation.getAndValidateDataElementAccess( de );
+        DataElement dataElement = dataValueValidation.getAndValidateDataElement( de );
 
         CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo( co, false );
 
@@ -483,7 +483,7 @@ public class DataValueController
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = dataValueValidation.getAndValidateDataElementAccess( de );
+        DataElement dataElement = dataValueValidation.getAndValidateDataElement( de );
 
         if ( !dataElement.isFileType() )
         {

@@ -32,12 +32,16 @@ import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.junit.Assert.fail;
 import static org.mockito.junit.MockitoJUnit.rule;
+import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Date;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
@@ -45,6 +49,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.dxf2.util.InputUtils;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -190,6 +195,19 @@ public class DataValidatorTest
         dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, dataSetA, dataElementA );
         dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, dataSetA, null );
         dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, null, dataElementA );
+    }
+
+    @Test
+    public void testGetMissingDataElement()
+    {
+        final String uid = CodeGenerator.generateUid();
+
+        when( idObjectManager.get( DataElement.class, uid ) ).thenReturn( null );
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class, () ->
+            dataValidator.getAndValidateDataElement( uid ) );
+
+        assertEquals( ErrorCode.E1100, ex.getErrorCode() );
     }
 
     @Test( expected = IllegalQueryException.class )

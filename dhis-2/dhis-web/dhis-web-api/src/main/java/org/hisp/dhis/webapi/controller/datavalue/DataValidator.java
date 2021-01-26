@@ -124,7 +124,7 @@ public class DataValidator
      * @return the {@link DataElement}.
      * @throws IllegalQueryException if the validation fails.
      */
-    public DataElement getAndValidateDataElementAccess( final String uid )
+    public DataElement getAndValidateDataElement( final String uid )
     {
         final DataElement dataElement = idObjectManager.get( DataElement.class, uid );
 
