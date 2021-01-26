@@ -49,6 +49,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
+import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -76,6 +77,9 @@ public class DataValidatorTest
 
     @Mock
     private IdentifiableObjectManager idObjectManager;
+
+    @Mock
+    private DataValueService dataValueService;
 
     @Mock
     private InputUtils inputUtils;
@@ -117,7 +121,7 @@ public class DataValidatorTest
     public void setUp()
     {
         dataValidator = new DataValidator( categoryService, organisationUnitService, dataSetService,
-            idObjectManager, inputUtils, fileResourceService, calendarService, accessManager );
+            idObjectManager, dataValueService, inputUtils, fileResourceService, calendarService, accessManager );
 
         periodJan = createPeriod( "202001" );
         periodFeb = createPeriod( "202002" );
