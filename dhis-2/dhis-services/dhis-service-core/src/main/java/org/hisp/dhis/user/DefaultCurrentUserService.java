@@ -158,13 +158,12 @@ public class DefaultCurrentUserService
     @Override
     @Transactional( readOnly = true )
     public User getCurrentUserInTransaction()
-        throws Exception
     {
         String username = getCurrentUsername();
 
         if ( username == null )
         {
-            throw new Exception( "Could not retrieve current username!" );
+            return null;
         }
 
         User user = null;
@@ -190,13 +189,13 @@ public class DefaultCurrentUserService
 
             if ( user == null )
             {
-                throw new Exception( "Could not retrieve current user!" );
+                throw new RuntimeException( "Could not retrieve current user!" );
             }
         }
 
         if ( user.getUserCredentials() == null )
         {
-            throw new Exception( "Could not retrieve current user credentials!" );
+            throw new RuntimeException( "Could not retrieve current user credentials!" );
         }
 
         user.getUserCredentials().getAllAuthorities();
