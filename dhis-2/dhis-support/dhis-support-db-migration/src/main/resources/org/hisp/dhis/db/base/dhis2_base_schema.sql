@@ -1513,7 +1513,6 @@ CREATE TABLE dataset (
     notifycompletinguser boolean,
     workflowid integer,
     openfutureperiods integer,
-    openperiodsaftercoenddate integer,
     fieldcombinationrequired boolean,
     validcompleteonly boolean,
     novaluerequirescomment boolean,
