@@ -310,7 +310,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
 
         incomingSms.setCreatedBy( user );
-        when( dataSetService.isLocked( any(), any(DataSet.class ), any(), any(), any(), any() ) ).thenReturn( true );
+        when( dataSetService.isLocked( any(), any( DataSet.class ), any(), any(), any(), any() ) ).thenReturn( true );
         subject.receive( incomingSms );
 
         verify( smsCommandService, times( 1 ) ).getSMSCommand( anyString(), any() );

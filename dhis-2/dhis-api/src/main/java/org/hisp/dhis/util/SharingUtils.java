@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.util;
 
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.user.UserGroupAccess;
-import org.hisp.dhis.user.sharing.Sharing;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.sharing.Sharing;
 
 public class SharingUtils
 {

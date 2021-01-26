@@ -87,8 +87,8 @@ public interface IdentifiableObject
     User getCreatedBy();
 
     /**
-     * This method is replaced by {@link #getCreatedBy()}
-     * Currently it is only used for web api backward compatibility
+     * This method is replaced by {@link #getCreatedBy()} Currently it is only
+     * used for web api backward compatibility
      */
     @Deprecated
     User getUser();
@@ -96,16 +96,15 @@ public interface IdentifiableObject
     void setCreatedBy( User createdBy );
 
     /**
-     * @deprecated
-     * This method is replaced by {@link #setCreatedBy(User)} ()}
-     * Currently it is only used for web api backward compatibility
+     * @deprecated This method is replaced by {@link #setCreatedBy(User)} ()}
+     *             Currently it is only used for web api backward compatibility
      */
     @Deprecated
     void setUser( User user );
 
     /**
-     * @deprecated
-     * PublicAccess property is replaced by {@link Sharing#getPublicAccess()}
+     * @deprecated PublicAccess property is replaced by
+     *             {@link Sharing#getPublicAccess()}
      */
     @Deprecated
     String getPublicAccess();
@@ -123,6 +122,7 @@ public interface IdentifiableObject
 
     /**
      * Return all sharing settings of current object
+     *
      * @return
      */
     Sharing getSharing();

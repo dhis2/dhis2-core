@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.userkeyjsonvalue.hibernate;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -38,10 +43,6 @@ import org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Stian Sandvold
@@ -75,7 +76,7 @@ public class HibernateUserKeyJsonValueStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( BaseIdentifiableObject_.CREATED_BY ), user ) ) )
-            .stream().map( UserKeyJsonValue::getNamespace  ).distinct().collect( Collectors.toList() );
+                .stream().map( UserKeyJsonValue::getNamespace ).distinct().collect( Collectors.toList() );
     }
 
     @Override

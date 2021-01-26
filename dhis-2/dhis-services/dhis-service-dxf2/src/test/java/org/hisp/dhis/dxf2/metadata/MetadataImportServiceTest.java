@@ -712,7 +712,6 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         UserGroup userGroup = manager.get( UserGroup.class, "OPVIvvXzNTw" );
         assertEquals( userA.getUid(), userGroup.getCreatedBy().getUid() );
 
-
         User userB = createUser( "B", "ALL" );
         userB.setUid( "userabcdefB" );
         userService.addUser( userB );

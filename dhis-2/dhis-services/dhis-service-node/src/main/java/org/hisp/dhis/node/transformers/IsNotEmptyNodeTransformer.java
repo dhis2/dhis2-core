@@ -65,7 +65,8 @@ public class IsNotEmptyNodeTransformer implements NodeTransformer
         }
         else if ( property.isSimple() )
         {
-            return new SimpleNode( property.getName(), !ObjectUtils.isEmpty( ((SimpleNode) node).getValue() ), property.isAttribute() );
+            return new SimpleNode( property.getName(), !ObjectUtils.isEmpty( ((SimpleNode) node).getValue() ),
+                property.isAttribute() );
         }
 
         return node;
