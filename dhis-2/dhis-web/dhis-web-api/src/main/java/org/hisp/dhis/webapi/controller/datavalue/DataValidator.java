@@ -52,6 +52,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -65,13 +66,14 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValueDto;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.Preconditions;
 
 /**
  * This a simple component responsible for extracting and encapsulating
- * validation rules from the controller layer. This can be seen as an extension
+ * objects from the controller layer. This can be seen as an extension
  * of the controller.
  */
 @Component
@@ -85,6 +87,8 @@ public class DataValidator
 
     private final IdentifiableObjectManager idObjectManager;
 
+    private final DataValueService dataValueService;
+
     private final InputUtils inputUtils;
 
     private final FileResourceService fileResourceService;
@@ -95,6 +99,7 @@ public class DataValidator
 
     public DataValidator( final CategoryService categoryService, final OrganisationUnitService organisationUnitService,
         final DataSetService dataSetService, final IdentifiableObjectManager idObjectManager,
+        final DataValueService dataValueService,
         final InputUtils inputUtils, final FileResourceService fileResourceService,
         final CalendarService calendarService, final AggregateAccessManager accessManager )
     {
@@ -102,6 +107,7 @@ public class DataValidator
         checkNotNull( organisationUnitService );
         checkNotNull( dataSetService );
         checkNotNull( idObjectManager );
+        checkNotNull( dataValueService );
         checkNotNull( inputUtils );
         checkNotNull( fileResourceService );
         checkNotNull( calendarService );
@@ -111,6 +117,7 @@ public class DataValidator
         this.organisationUnitService = organisationUnitService;
         this.dataSetService = dataSetService;
         this.idObjectManager = idObjectManager;
+        this.dataValueService = dataValueService;
         this.inputUtils = inputUtils;
         this.fileResourceService = fileResourceService;
         this.calendarService = calendarService;
@@ -234,8 +241,7 @@ public class DataValidator
     }
 
     /**
-     * Validates if the given DataSet uid exists and is accessible and if the
-     * DataSet contains the informed DataElement.
+     * Retrieves and verifies a data set.
      *
      * @param uid the DataSet uid.
      * @param dataElement the data element to be checked in the DataSet.
@@ -262,6 +268,30 @@ public class DataValidator
         }
 
         return dataSet;
+    }
+
+    /**
+     * Validates and retrieves a data value.
+     *
+     * @param dataValueDto the {@link DataValueDto}.
+     * @return a data value.
+     * @throws IllegalQueryException if the validation fails.
+     */
+    public DataValue getAndValidateDataValue( DataValueDto dataValueDto )
+    {
+        DataElement dataElement = getAndValidateDataElement( dataValueDto.getDataElement() );
+        Period period = PeriodType.getPeriodFromIsoString( dataValueDto.getPeriod() );
+        OrganisationUnit orgUnit = getAndValidateOrganisationUnit( dataValueDto.getOrgUnit() );
+        CategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo( dataValueDto.getCategoryOptionCombo(), false );
+        CategoryOptionCombo attributeOptionCombo = getAndValidateCategoryOptionCombo( dataValueDto.getAttributeOptionCombo(), false );
+        DataValue dataValue = dataValueService.getDataValue( dataElement, period, orgUnit, categoryOptionCombo, attributeOptionCombo );
+
+        if ( dataValue == null )
+        {
+            throw new IllegalQueryException( ErrorCode.E2032 );
+        }
+
+        return dataValue;
     }
 
     /**
