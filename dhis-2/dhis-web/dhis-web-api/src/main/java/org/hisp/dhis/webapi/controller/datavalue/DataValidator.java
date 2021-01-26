@@ -370,7 +370,8 @@ public class DataValidator
         if ( !(dataSet == null ? dataElement.isDataInputAllowedForPeriodAndDate( period, new Date() )
             : dataSet.isDataInputPeriodAndDateAllowed( period, new Date() )) )
         {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2025, period.getIsoDate(), dataSet.getUid() ) );
+            throw new IllegalQueryException(
+                new ErrorMessage( ErrorCode.E2025, period.getIsoDate(), dataSet.getUid() ) );
         }
     }
 

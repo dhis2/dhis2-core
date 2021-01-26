@@ -30,13 +30,14 @@ package org.hisp.dhis.webapi.controller.datavalue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
-import static org.junit.Assert.fail;
-import static org.mockito.junit.MockitoJUnit.rule;
-import static org.mockito.Mockito.when;
-import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
+import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.Date;
+
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -204,8 +205,8 @@ public class DataValidatorTest
 
         when( idObjectManager.get( DataElement.class, uid ) ).thenReturn( null );
 
-        IllegalQueryException ex = assertThrows( IllegalQueryException.class, () ->
-            dataValidator.getAndValidateDataElement( uid ) );
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> dataValidator.getAndValidateDataElement( uid ) );
 
         assertEquals( ErrorCode.E1100, ex.getErrorCode() );
     }
