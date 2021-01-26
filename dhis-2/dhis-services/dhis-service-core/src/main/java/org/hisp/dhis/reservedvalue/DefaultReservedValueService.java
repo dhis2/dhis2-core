@@ -108,7 +108,7 @@ public class DefaultReservedValueService
             valueKey,
             expires );
 
-        if ( TextPatternMethod.RANDOM.equals( generatedSegment.getMethod() ) && !hasEnoughValuesLeft( reservedValue,
+        if ( (generatedSegment == null || !TextPatternMethod.SEQUENTIAL.equals( generatedSegment.getMethod() )) && !hasEnoughValuesLeft( reservedValue,
             TextPatternValidationUtils.getTotalValuesPotential( generatedSegment ),
             numberOfReservations ) )
         {
