@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.sqlview;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.sqlview.SqlView.CURRENT_USERNAME_VARIABLE;
 import static org.hisp.dhis.sqlview.SqlView.CURRENT_USER_ID_VARIABLE;
 import static org.hisp.dhis.sqlview.SqlView.STANDARD_VARIABLES;
@@ -35,8 +34,6 @@ import static org.hisp.dhis.sqlview.SqlView.STANDARD_VARIABLES;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.Grid;
@@ -54,16 +51,19 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Dang Duy Hieu
  */
 @Slf4j
+@AllArgsConstructor
 @Transactional
 @Service( "org.hisp.dhis.sqlview.SqlViewService" )
 public class DefaultSqlViewService
@@ -81,28 +81,7 @@ public class DefaultSqlViewService
 
     private final AclService aclService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    @Override
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
-
-    public DefaultSqlViewService( SqlViewStore sqlViewStore, StatementBuilder statementBuilder,
-        DhisConfigurationProvider config, AclService aclService )
-    {
-        checkNotNull( sqlViewStore );
-        checkNotNull( statementBuilder );
-        checkNotNull( config );
-        checkNotNull( aclService );
-
-        this.sqlViewStore = sqlViewStore;
-        this.statementBuilder = statementBuilder;
-        this.config = config;
-        this.aclService = aclService;
-    }
+    private final CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
     // CRUD methods
@@ -213,8 +192,7 @@ public class DefaultSqlViewService
         User currentUser = currentUserService.getCurrentUser();
         if ( !aclService.canDataRead( currentUser, sqlView ) )
         {
-            throw new IllegalQueryException(
-                "Current user is not authorised to read data from sql view: " + sqlView.getUid() );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E4312, sqlView.getUid() ) );
         }
     }
 
