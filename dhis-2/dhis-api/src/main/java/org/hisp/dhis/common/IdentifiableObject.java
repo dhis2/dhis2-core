@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.common;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Set;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
@@ -40,7 +37,9 @@ import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.sharing.Sharing;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -84,10 +83,14 @@ public interface IdentifiableObject
     // Sharing
     // -----------------------------------------------------------------------------
 
+    /**
+     * Return User who created this object
+     * This field is immutable and must not be updated
+     */
     User getCreatedBy();
 
     /**
-     * This method is replaced by {@link #getCreatedBy()} Currently it is only
+     * @deprecated This method is replaced by {@link #getCreatedBy()} Currently it is only
      * used for web api backward compatibility
      */
     @Deprecated
