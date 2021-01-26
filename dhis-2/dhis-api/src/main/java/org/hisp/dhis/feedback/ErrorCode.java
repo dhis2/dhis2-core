@@ -38,12 +38,12 @@ public enum ErrorCode
     E1002( "API version is invalid" ),
 
     /* Basic metadata */
-    E1100( "Data element not found or not accessible: `{1}`" ),
-    E1101( "Period is invalid: `{1}`" ),
-    E1102( "Organisation unit not found or not accessible: `{1}`" ),
-    E1103( "Category option combo not found or not accessible: `{1}`" ),
-    E1104( "Attribute option combo not found or not accessible: `{1}`" ),
-    E1105( "Data set not found or not accessible: `{1}`" ),
+    E1100( "Data element not found or not accessible: `{0}`" ),
+    E1101( "Period is invalid: `{0}`" ),
+    E1102( "Organisation unit not found or not accessible: `{0}`" ),
+    E1103( "Category option combo not found or not accessible: `{0}`" ),
+    E1104( "Attribute option combo not found or not accessible: `{0}`" ),
+    E1105( "Data set not found or not accessible: `{0}`" ),
 
     /* Data */
     E2000( "Query parameters cannot be null" ),

@@ -294,7 +294,7 @@ public class DataValidator
      */
     public void validateInvalidFuturePeriod( final Period period, final DataElement dataElement )
     {
-        Period latestFuturePeriod = dataElement.getLatestOpenFuturePeriod();
+        final Period latestFuturePeriod = dataElement.getLatestOpenFuturePeriod();
 
         if ( period.isAfter( latestFuturePeriod ) && calendarService.getSystemCalendar().isIso8601() )
         {
@@ -390,7 +390,7 @@ public class DataValidator
     {
         Preconditions.checkNotNull( fileResourceUid );
 
-        FileResource fileResource = fileResourceService.getFileResource( fileResourceUid );
+        final FileResource fileResource = fileResourceService.getFileResource( fileResourceUid );
 
         if ( fileResource == null || fileResource.getDomain() != DATA_VALUE )
         {
