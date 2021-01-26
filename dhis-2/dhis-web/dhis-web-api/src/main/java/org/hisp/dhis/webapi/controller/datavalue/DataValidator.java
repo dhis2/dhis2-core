@@ -72,9 +72,9 @@ import org.springframework.stereotype.Component;
 import com.google.common.base.Preconditions;
 
 /**
- * This a simple component responsible for extracting and encapsulating
- * objects from the controller layer. This can be seen as an extension
- * of the controller.
+ * This a simple component responsible for extracting and encapsulating objects
+ * from the controller layer. This can be seen as an extension of the
+ * controller.
  */
 @Component
 public class DataValidator
@@ -282,9 +282,12 @@ public class DataValidator
         DataElement dataElement = getAndValidateDataElement( dataValueDto.getDataElement() );
         Period period = PeriodType.getPeriodFromIsoString( dataValueDto.getPeriod() );
         OrganisationUnit orgUnit = getAndValidateOrganisationUnit( dataValueDto.getOrgUnit() );
-        CategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo( dataValueDto.getCategoryOptionCombo(), false );
-        CategoryOptionCombo attributeOptionCombo = getAndValidateCategoryOptionCombo( dataValueDto.getAttributeOptionCombo(), false );
-        DataValue dataValue = dataValueService.getDataValue( dataElement, period, orgUnit, categoryOptionCombo, attributeOptionCombo );
+        CategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo(
+            dataValueDto.getCategoryOptionCombo(), false );
+        CategoryOptionCombo attributeOptionCombo = getAndValidateCategoryOptionCombo(
+            dataValueDto.getAttributeOptionCombo(), false );
+        DataValue dataValue = dataValueService.getDataValue( dataElement, period, orgUnit, categoryOptionCombo,
+            attributeOptionCombo );
 
         if ( dataValue == null )
         {
