@@ -65,7 +65,7 @@ public class FollowUpController
     }
 
     @DeleteMapping( value = "/followup/dataValues" )
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    @ResponseStatus( value = HttpStatus.OK )
     public void removeDataValueFollowUp( @RequestBody DataValueDto dataValueDto )
     {
         DataValue dataValue = dataValidator.getAndValidateDataValue( dataValueDto );
