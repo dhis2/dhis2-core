@@ -190,7 +190,7 @@ public class DataValueController
 
         dataValueValidation.checkCategoryOptionComboAccess( currentUser, categoryOptionCombo );
 
-        dataValueValidation.checkAttributeOptionComboAccess( currentUser, attributeOptionCombo );
+        dataValueValidation.checkCategoryOptionComboAccess( currentUser, attributeOptionCombo );
 
         // ---------------------------------------------------------------------
         // Optional constraints
