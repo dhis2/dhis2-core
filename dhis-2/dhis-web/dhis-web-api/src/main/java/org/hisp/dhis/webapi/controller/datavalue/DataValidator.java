@@ -271,6 +271,7 @@ public class DataValidator
     }
 
     /**
+<<<<<<< HEAD
      * Validates and retrieves a data value.
      *
      * @param dataValueDto the {@link DataValueDto}.
@@ -295,6 +296,8 @@ public class DataValidator
     }
 
     /**
+=======
+>>>>>>> master
      * Validates the OrganisationUnit dates against the given period.
      *
      * @param organisationUnit the OrganisationUnit and its dates.
