@@ -111,9 +111,9 @@ public class TrackedEntityTrackerConverterService
             tei = new TrackedEntityInstance();
             tei.setUid( te.getTrackedEntity() );
             tei.setCreated( now );
-            tei.setCreatedAtClient( now );
             tei.setLastUpdated( now );
-            tei.setLastUpdatedAtClient( now );
+            tei.setCreatedAtClient( Date.from( te.getCreatedAtClient() ) );
+            tei.setLastUpdatedAtClient( Date.from( te.getUpdatedAtClient() ) );
             tei.setStoredBy( te.getStoredBy() );
         }
 

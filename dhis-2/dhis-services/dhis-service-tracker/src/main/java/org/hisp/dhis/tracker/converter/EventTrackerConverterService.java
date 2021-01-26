@@ -214,9 +214,9 @@ public class EventTrackerConverterService
             programStageInstance = new ProgramStageInstance();
             programStageInstance.setUid( !StringUtils.isEmpty( event.getEvent() ) ? event.getEvent() : event.getUid() );
             programStageInstance.setCreated( now );
-            programStageInstance.setCreatedAtClient( now );
             programStageInstance.setLastUpdated( now );
-            programStageInstance.setLastUpdatedAtClient( now );
+            programStageInstance.setCreatedAtClient( Date.from( event.getCreatedAtClient() ) );
+            programStageInstance.setLastUpdatedAtClient( Date.from( event.getUpdatedAtClient() ) );
             programStageInstance.setProgramInstance(
                 getProgramInstance( preheat, TrackerIdScheme.UID, event.getEnrollment(), program ) );
 
