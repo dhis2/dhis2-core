@@ -141,7 +141,6 @@ public class HibernateTrackedEntityAttributeStore
         }
 
         Query<String> query = getTypedQuery( hql );
-        query.setMaxResults( 1 );
 
         Iterator<String> it = query.iterate();
 
