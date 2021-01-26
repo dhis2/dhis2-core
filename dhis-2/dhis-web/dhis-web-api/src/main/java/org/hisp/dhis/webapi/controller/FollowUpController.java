@@ -52,7 +52,7 @@ public class FollowUpController
     private final DataValueService dataValueService;
 
     @PostMapping( value = "/followup/dataValues" )
-    @ResponseStatus( value = HttpStatus.CREATED )
+    @ResponseStatus( value = HttpStatus.OK )
     public void setDataValueFollowUp( @RequestBody DataValueDto dataValueDto )
     {
         DataValue dataValue = dataValidator.getAndValidateDataValue( dataValueDto );
