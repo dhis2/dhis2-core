@@ -169,8 +169,7 @@ public class DefaultPreheatService implements PreheatService
 
         boolean hasOnlyUIDClasses = uidMap.keySet().stream().anyMatch( this::isOnlyUID );
 
-        if ( PreheatIdentifier.UID == params.getPreheatIdentifier()
-            || PreheatIdentifier.AUTO == params.getPreheatIdentifier() || hasOnlyUIDClasses )
+        if ( PreheatIdentifier.UID == params.getPreheatIdentifier() || hasOnlyUIDClasses )
         {
             for ( Class<? extends IdentifiableObject> klass : uidMap.keySet() )
             {
@@ -191,8 +190,7 @@ public class DefaultPreheatService implements PreheatService
             }
         }
 
-        if ( codeMap != null && (PreheatIdentifier.CODE == params.getPreheatIdentifier()
-            || PreheatIdentifier.AUTO == params.getPreheatIdentifier()) )
+        if ( codeMap != null && (PreheatIdentifier.CODE == params.getPreheatIdentifier()) )
         {
             for ( Class<? extends IdentifiableObject> klass : codeMap.keySet() )
             {

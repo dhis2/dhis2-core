@@ -57,7 +57,6 @@ package org.hisp.dhis.preheat;
 
 import static org.junit.Assert.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -78,14 +77,11 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 
 import com.google.common.collect.Lists;
 
@@ -455,67 +451,6 @@ public class PreheatServiceTest
         assertEquals( "FirstNameA", dataElementGroup.getUser().getFirstName() );
         assertEquals( "SurnameA", dataElementGroup.getUser().getSurname() );
         assertEquals( "UserCodeA", dataElementGroup.getUser().getCode() );
-    }
-
-    @Test
-    public void testPreheatReferenceConnectAUTO()
-    {
-        DataElementGroup dataElementGroup = fromJson( "preheat/degAAutoRef.json", DataElementGroup.class );
-        defaultSetup();
-
-        PreheatParams params = new PreheatParams();
-        params.setPreheatIdentifier( PreheatIdentifier.AUTO );
-        params.setPreheatMode( PreheatMode.REFERENCE );
-        params.getObjects().put( DataElementGroup.class, Lists.newArrayList( dataElementGroup ) );
-
-        preheatService.validate( params );
-        Preheat preheat = preheatService.preheat( params );
-        preheatService.connectReferences( dataElementGroup, preheat, PreheatIdentifier.AUTO );
-
-        List<DataElement> members = new ArrayList<>( dataElementGroup.getMembers() );
-
-        assertContains( members, "DataElementA", "DataElementCodeA" );
-        assertContains( members, "DataElementB", "DataElementCodeB" );
-        assertContains( members, "DataElementC", "DataElementCodeC" );
-
-        // TODO Fix this
-        // assertEquals( "FirstNameA", dataElementGroup.getUser().getFirstName()
-        // );
-        // assertEquals( "SurnameA", dataElementGroup.getUser().getSurname() );
-        // assertEquals( "UserCodeA", dataElementGroup.getUser().getCode() );
-    }
-
-    /**
-     * Fails with: java.lang.ClassCastException: java.util.HashMap cannot be
-     * cast to java.util.Set at
-     * org.hisp.dhis.preheat.PreheatServiceTest.testPreheatWithAttributeValues(PreheatServiceTest.java:597)
-     *
-     * @throws IOException
-     */
-    @Ignore
-    @Test
-    public void testPreheatWithAttributeValues()
-        throws IOException
-    {
-        defaultSetupWithAttributes();
-
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "preheat/dataset_with_sections.json" ).getInputStream(), RenderFormat.JSON );
-
-        PreheatParams params = new PreheatParams();
-        params.setPreheatIdentifier( PreheatIdentifier.AUTO );
-        params.setPreheatMode( PreheatMode.REFERENCE );
-        params.setObjects( metadata );
-
-        preheatService.validate( params );
-        Preheat preheat = preheatService.preheat( params );
-
-        assertEquals( 1, preheat.getUniqueAttributeValues().get( DataElement.class ).size() );
-        List<String> keys = new ArrayList<>( preheat.getUniqueAttributeValues().get( DataElement.class ).keySet() );
-        assertEquals( 3, preheat.getUniqueAttributeValues().get( DataElement.class ).get( keys.get( 0 ) ).size() );
-
-        assertFalse( preheat.getMandatoryAttributes().isEmpty() );
-        assertEquals( 1, preheat.getMandatoryAttributes().get( DataElement.class ).size() );
     }
 
     @Test

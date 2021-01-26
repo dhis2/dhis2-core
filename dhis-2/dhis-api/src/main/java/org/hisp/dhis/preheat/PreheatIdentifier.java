@@ -48,12 +48,7 @@ public enum PreheatIdentifier
     /**
      * Preheat using CODE identifiers.
      */
-    CODE,
-
-    /**
-     * Find first non-null identifier in order: UID, CODE
-     */
-    AUTO;
+    CODE;
 
     public <T extends IdentifiableObject> String getIdentifier( T object )
     {
@@ -79,10 +74,6 @@ public enum PreheatIdentifier
         case CODE:
         {
             return Lists.newArrayList( object.getCode() );
-        }
-        case AUTO:
-        {
-            return Lists.newArrayList( object.getUid(), object.getCode() );
         }
         }
 
