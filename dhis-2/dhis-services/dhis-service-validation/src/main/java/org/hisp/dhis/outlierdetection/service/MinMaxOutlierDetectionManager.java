@@ -157,7 +157,7 @@ public class MinMaxOutlierDetectionManager
             outlier.setAbsDev( rs.getDouble( "bound_abs_dev" ) );
             outlier.setLowerBound( rs.getDouble( "lower_bound" ) );
             outlier.setUpperBound( rs.getDouble( "upper_bound" ) );
-            outlier.setFollowUp( rs.getBoolean( "follow_up" ) );
+            outlier.setFollowup( rs.getBoolean( "follow_up" ) );
 
             return outlier;
         };

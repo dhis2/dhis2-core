@@ -29,12 +29,12 @@ package org.hisp.dhis.webapi.controller.datavalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.fileresource.FileResourceDomain.DATA_VALUE;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.Date;
 import java.util.List;
@@ -44,6 +44,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypeOptions;
 import org.hisp.dhis.dataelement.DataElement;
@@ -53,9 +54,10 @@ import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -65,15 +67,16 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
+import com.google.common.base.Preconditions;
+
 /**
  * This a simple component responsible for extracting and encapsulating
  * validation rules from the controller layer. This can be seen as an extension
  * of the controller.
  */
 @Component
-class DataValidator
+public class DataValidator
 {
-
     private final CategoryService categoryService;
 
     private final OrganisationUnitService organisationUnitService;
@@ -86,15 +89,13 @@ class DataValidator
 
     private final FileResourceService fileResourceService;
 
-    private final I18nManager i18nManager;
-
     private final CalendarService calendarService;
 
     private final AggregateAccessManager accessManager;
 
     public DataValidator( final CategoryService categoryService, final OrganisationUnitService organisationUnitService,
         final DataSetService dataSetService, final IdentifiableObjectManager idObjectManager,
-        final InputUtils inputUtils, final FileResourceService fileResourceService, final I18nManager i18nManager,
+        final InputUtils inputUtils, final FileResourceService fileResourceService,
         final CalendarService calendarService, final AggregateAccessManager accessManager )
     {
         checkNotNull( categoryService );
@@ -103,7 +104,6 @@ class DataValidator
         checkNotNull( idObjectManager );
         checkNotNull( inputUtils );
         checkNotNull( fileResourceService );
-        checkNotNull( i18nManager );
         checkNotNull( calendarService );
         checkNotNull( accessManager );
 
@@ -113,55 +113,51 @@ class DataValidator
         this.idObjectManager = idObjectManager;
         this.inputUtils = inputUtils;
         this.fileResourceService = fileResourceService;
-        this.i18nManager = i18nManager;
         this.calendarService = calendarService;
         this.accessManager = accessManager;
     }
 
     /**
-     * Retrieve the respective DataElement and validates if it's accessible.
+     * Retrieves and verifies a data element.
      *
-     * @param deUid the data element uid.
-     * @return the DataElement object respective.
-     * @throws WebMessageException if the validation fails.
+     * @param uid the data element identifier.
+     * @return the {@link DataElement}.
+     * @throws IllegalQueryException if the validation fails.
      */
-    DataElement getAndValidateDataElementAccess( final String deUid )
-        throws WebMessageException
+    public DataElement getAndValidateDataElement( final String uid )
     {
-        final DataElement dataElement = idObjectManager.get( DataElement.class, deUid );
+        final DataElement dataElement = idObjectManager.get( DataElement.class, uid );
 
         if ( dataElement == null )
         {
-            throw new WebMessageException( conflict( "Data element not found or not accessible: " + deUid ) );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1100, uid ) );
         }
 
         return dataElement;
     }
 
     /**
-     * Retrieve and validate a CategoryOptionCombo based on the given coUid.
+     * Retrieves and verifies a category option combo.
      *
-     * @param coUid the category option uid.
+     * @param uid the category option combo identifier.
      * @param requireCategoryOptionCombo flag used as part of the validation.
-     * @return the respective and valid CategoryOptionCombo.
-     * @throws WebMessageException if the validation fails.
+     * @return the {@link CategoryOtionComb}.
+     * @throws IllegalQueryException if the validation fails.
      */
-    CategoryOptionCombo getAndValidateCategoryOptionCombo( final String coUid,
+    public CategoryOptionCombo getAndValidateCategoryOptionCombo( final String uid,
         final boolean requireCategoryOptionCombo )
-        throws WebMessageException
     {
-        CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( coUid );
+        CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( uid );
 
         if ( categoryOptionCombo == null )
         {
             if ( requireCategoryOptionCombo )
             {
-                throw new WebMessageException( conflict( "Category option combo is required but is not specified" ) );
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2018 ) );
             }
-            else if ( coUid != null )
+            else if ( uid != null )
             {
-                throw new WebMessageException(
-                    conflict( "Category option combo not found or not accessible: " + coUid ) );
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1103, uid ) );
             }
             else
             {
@@ -173,92 +169,65 @@ class DataValidator
     }
 
     /**
-     * Retrieves and validate the respective CategoryOptionCombo (attribute
-     * option combo) based on the given arguments.
+     * Retrieves and verifies a category (attribute) option combo.
      *
      * @param ccUid the category combo identifier.
      * @param cp the category and option query string.
-     * @return the valid CategoryOptionCombo (attribute option combo).
-     * @throws WebMessageException if the validation fails.
+     * @return the {@link CategoryOptionCombo}.
+     * @throws IllegalQueryException if the validation fails.
      */
-    CategoryOptionCombo getAndValidateAttributeOptionCombo( final String ccUid, final String cp )
-        throws WebMessageException
+    public CategoryOptionCombo getAndValidateAttributeOptionCombo( final String ccUid, final String cp )
     {
         final CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( ccUid, cp, false );
 
         if ( attributeOptionCombo == null )
         {
-            throw new WebMessageException(
-                conflict( "Attribute option combo not found or not accessible: " + ccUid + " " + cp ) );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1104, String.format( "%s %s", ccUid, cp ) ) );
         }
 
         return attributeOptionCombo;
     }
 
     /**
-     * Reads and validate the given period.
+     * Retrieves and verifies a period.
      *
-     * @param pe the period.
-     * @return the validated Period.
-     * @throws WebMessageException if the validation fails.
+     * @param pe the period ISO identifier.
+     * @return the {@link Period}.
+     * @throws IllegalQueryException if the validation fails.
      */
-    Period getAndValidatePeriod( final String pe )
-        throws WebMessageException
+    public Period getAndValidatePeriod( final String pe )
     {
         final Period period = PeriodType.getPeriodFromIsoString( pe );
 
         if ( period == null )
         {
-            throw new WebMessageException( conflict( "Illegal period identifier: " + pe ) );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1101, pe ) );
         }
 
         return period;
     }
 
     /**
-     * Validates the OrganisationUnit dates against the given period.
+     * Retrieves and verifies an organisation unit.
      *
-     * @param organisationUnit the OrganisationUnit and its dates.
-     * @param period the period to be checked.
-     * @throws WebMessageException if the validation fails.
+     * @param uid the organisation unit identifier.
+     * @return the {@link OrganisationUnit}.
+     * @throws IllegalQueryException if the validation fails.
      */
-    void validateOrganisationUnitPeriod( final OrganisationUnit organisationUnit, final Period period )
-        throws WebMessageException
+    public OrganisationUnit getAndValidateOrganisationUnit( final String uid )
     {
-        final Date openingDate = organisationUnit.getOpeningDate();
-        final Date closedDate = organisationUnit.getClosedDate();
-        final Date startDate = period.getStartDate();
-        final Date endDate = period.getEndDate();
-
-        if ( (closedDate != null && closedDate.before( startDate )) || openingDate.after( endDate ) )
-        {
-            throw new WebMessageException( conflict( "Organisation unit is closed for the selected period. " ) );
-        }
-    }
-
-    /**
-     * Retrieves and validate an OrganisationUnit.
-     *
-     * @param ouUid the organisation unit uid.
-     * @return the valid OrganisationUnit.
-     * @throws WebMessageException if the validation fails.
-     */
-    OrganisationUnit getAndValidateOrganisationUnit( final String ouUid )
-        throws WebMessageException
-    {
-        final OrganisationUnit organisationUnit = idObjectManager.get( OrganisationUnit.class, ouUid );
+        final OrganisationUnit organisationUnit = idObjectManager.get( OrganisationUnit.class, uid );
 
         if ( organisationUnit == null )
         {
-            throw new WebMessageException( conflict( "Organisation unit not found or not accessible: " + ouUid ) );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1102, uid ) );
         }
 
         final boolean isInHierarchy = organisationUnitService.isInUserHierarchyCached( organisationUnit );
 
         if ( !isInHierarchy )
         {
-            throw new WebMessageException(
-                conflict( "Organisation unit is not in the hierarchy of the current user: " + ouUid ) );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2020, uid ) );
         }
 
         return organisationUnit;
@@ -268,33 +237,51 @@ class DataValidator
      * Validates if the given DataSet uid exists and is accessible and if the
      * DataSet contains the informed DataElement.
      *
-     * @param dsUid the DataSet uid.
+     * @param uid the DataSet uid.
      * @param dataElement the data element to be checked in the DataSet.
      * @return the valid DataSet.
-     * @throws WebMessageException if the validation fails.
+     * @throws IllegalQueryException if the validation fails.
      */
-    DataSet getAndValidateOptionalDataSet( final String dsUid, final DataElement dataElement )
-        throws WebMessageException
+    public DataSet getAndValidateOptionalDataSet( final String uid, final DataElement dataElement )
     {
-        if ( dsUid == null )
+        if ( uid == null )
         {
             return null;
         }
 
-        final DataSet dataSet = dataSetService.getDataSet( dsUid );
+        final DataSet dataSet = dataSetService.getDataSet( uid );
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( conflict( "Data set not found or not accessible: " + dsUid ) );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1105, uid ) );
         }
 
         if ( !dataSet.getDataElements().contains( dataElement ) )
         {
-            throw new WebMessageException(
-                conflict( "Data set: " + dsUid + " does not contain data element: " + dataElement.getUid() ) );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2021, uid, dataElement.getUid() ) );
         }
 
         return dataSet;
+    }
+
+    /**
+     * Validates the OrganisationUnit dates against the given period.
+     *
+     * @param organisationUnit the OrganisationUnit and its dates.
+     * @param period the period to be checked.
+     * @throws IllegalQueryException if the validation fails.
+     */
+    public void validateOrganisationUnitPeriod( final OrganisationUnit organisationUnit, final Period period )
+    {
+        final Date openingDate = organisationUnit.getOpeningDate();
+        final Date closedDate = organisationUnit.getClosedDate();
+        final Date startDate = period.getStartDate();
+        final Date endDate = period.getEndDate();
+
+        if ( (closedDate != null && closedDate.before( startDate )) || openingDate.after( endDate ) )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2019, organisationUnit.getUid() ) );
+        }
     }
 
     /**
@@ -303,18 +290,16 @@ class DataValidator
      *
      * @param period the period to be validated.
      * @param dataElement the base DataElement.
-     * @throws WebMessageException if the validation fails.
+     * @throws IllegalQueryException if the validation fails.
      */
-    void validateInvalidFuturePeriod( final Period period, final DataElement dataElement )
-        throws WebMessageException
+    public void validateInvalidFuturePeriod( final Period period, final DataElement dataElement )
     {
-        Period latestFuturePeriod = dataElement.getLatestOpenFuturePeriod();
+        final Period latestFuturePeriod = dataElement.getLatestOpenFuturePeriod();
 
         if ( period.isAfter( latestFuturePeriod ) && calendarService.getSystemCalendar().isIso8601() )
         {
-            throw new WebMessageException(
-                conflict( "Period: " + period.getIsoDate() + " is after latest open future period: "
-                    + latestFuturePeriod.getIsoDate() + " for data element: " + dataElement.getUid() ) );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2022, period.getIsoDate(),
+                latestFuturePeriod.getIsoDate(), dataElement.getUid() ) );
         }
     }
 
@@ -326,27 +311,24 @@ class DataValidator
      * @param period the period to be checked.
      * @param dataSet the data set (if present) to be checked.
      * @param dataElement the data element to be checked.
-     * @throws WebMessageException if the validation fails.
+     * @throws IllegalQueryException if the validation fails.
      */
-    void validateAttributeOptionCombo( final CategoryOptionCombo attributeOptionCombo,
+    public void validateAttributeOptionCombo( final CategoryOptionCombo attributeOptionCombo,
         final Period period, final DataSet dataSet, final DataElement dataElement )
-        throws WebMessageException
     {
         for ( CategoryOption option : attributeOptionCombo.getCategoryOptions() )
         {
             if ( option.getStartDate() != null && period.getEndDate().before( option.getStartDate() ) )
             {
-                throw new WebMessageException( conflict( "Period " + period.getIsoDate() + " is before start date "
-                    + i18nManager.getI18nFormat().formatDate( option.getStartDate() )
-                    + " for attributeOption '" + option.getName() + "'" ) );
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2023, period.getIsoDate(),
+                    getMediumDateString( option.getStartDate() ), option.getUid() ) );
             }
 
             if ( option.getEndDate() != null
                 && period.getStartDate().after( option.getAdjustedEndDate( dataSet, dataElement ) ) )
             {
-                throw new WebMessageException( conflict( "Period " + period.getIsoDate() + " is after end date "
-                    + i18nManager.getI18nFormat().formatDate( option.getAdjustedEndDate( dataSet, dataElement ) )
-                    + " for attributeOption '" + option.getName() + "'" ) );
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2024, period.getIsoDate(),
+                    getMediumDateString( option.getAdjustedEndDate( dataSet, dataElement ) ), option.getUid() ) );
             }
         }
     }
@@ -361,17 +343,16 @@ class DataValidator
      * @param dataSet the DataSet.
      * @param organisationUnit the OrganisationUnit.
      * @param attributeOptionCombo the CategoryOptionCombo.
-     * @throws WebMessageException if the validation fails.
+     * @throws IllegalQueryException if the validation fails.
      */
-    void validateDataSetNotLocked( final User user, final DataElement dataElement, final Period period,
+    public void validateDataSetNotLocked( final User user, final DataElement dataElement, final Period period,
         final DataSet dataSet, final OrganisationUnit organisationUnit, final CategoryOptionCombo attributeOptionCombo )
-        throws WebMessageException
     {
         if ( dataSet == null
             ? dataSetService.isLocked( user, dataElement, period, organisationUnit, attributeOptionCombo, null )
             : dataSetService.isLocked( user, dataSet, period, organisationUnit, attributeOptionCombo, null ) )
         {
-            throw new WebMessageException( conflict( "Data set is locked" ) );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2017 ) );
         }
     }
 
@@ -381,16 +362,16 @@ class DataValidator
      * @param dataElement the DataElement.
      * @param dataSet the DataSet.
      * @param period the Period.
-     * @throws WebMessageException if the validation fails.
+     * @throws IllegalQueryException if the validation fails.
      */
-    void validateDataInputPeriodForDataElementAndPeriod( final DataElement dataElement, final DataSet dataSet,
+    public void validateDataInputPeriodForDataElementAndPeriod( final DataElement dataElement, final DataSet dataSet,
         final Period period )
-        throws WebMessageException
     {
         if ( !(dataSet == null ? dataElement.isDataInputAllowedForPeriodAndDate( period, new Date() )
             : dataSet.isDataInputPeriodAndDateAllowed( period, new Date() )) )
         {
-            throw new WebMessageException( conflict( "Period reported is not open in data set" ) );
+            throw new IllegalQueryException(
+                new ErrorMessage( ErrorCode.E2025, period.getIsoDate(), dataSet.getUid() ) );
         }
     }
 
@@ -404,16 +385,13 @@ class DataValidator
      * @return a valid FileResource.
      * @throws WebMessageException if any validation fails.
      */
-    FileResource validateAndSetAssigned( final String fileResourceUid, ValueType valueType,
+    public FileResource validateAndSetAssigned( final String fileResourceUid, ValueType valueType,
         ValueTypeOptions valueTypeOptions )
         throws WebMessageException
     {
-        if ( fileResourceUid == null )
-        {
-            throw new WebMessageException( conflict( "Missing parameter" ) );
-        }
+        Preconditions.checkNotNull( fileResourceUid );
 
-        FileResource fileResource = fileResourceService.getFileResource( fileResourceUid );
+        final FileResource fileResource = fileResourceService.getFileResource( fileResourceUid );
 
         if ( fileResource == null || fileResource.getDomain() != DATA_VALUE )
         {
@@ -422,8 +400,7 @@ class DataValidator
 
         if ( fileResource.isAssigned() )
         {
-            throw new WebMessageException(
-                conflict( "File resource already assigned or linked to another data value" ) );
+            throw new IllegalQueryException( ErrorCode.E2026 );
         }
 
         if ( valueType != null && valueTypeOptions != null )
@@ -434,9 +411,7 @@ class DataValidator
             {
                 fileResourceService.deleteFileResource( fileResource );
 
-                throw new WebMessageException( conflict(
-                    String.format( "File resource failed value type option validation, " +
-                        "result was: '%s'", validationResult ) ) );
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2027, validationResult ) );
             }
         }
 
@@ -449,35 +424,32 @@ class DataValidator
      * Validates a comment.
      *
      * @param comment the comment to be validated.
-     * @throws WebMessageException if the validation fails.
+     * @throws IllegalQueryException if the validation fails.
      */
-    void validateComment( final String comment )
-        throws WebMessageException
+    public void validateComment( final String comment )
     {
         final String commentValid = ValidationUtils.commentIsValid( comment );
 
         if ( commentValid != null )
         {
-            throw new WebMessageException( conflict( "Invalid comment: " + comment ) );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2028, commentValid ) );
         }
     }
 
     /**
      * Checks if the given data value is a valid association with the OptionSet.
      *
-     * @param dataValue
-     * @param optionSet
-     * @param dataElement
-     * @throws WebMessageException if the validation fails.
+     * @param dataValue the data value.
+     * @param optionSet the option set.
+     * @param dataElement the data element.
+     * @throws IllegalQueryException if the validation fails.
      */
-    void validateOptionSet( final String dataValue, final OptionSet optionSet, final DataElement dataElement )
-        throws WebMessageException
+    public void validateOptionSet( final String dataValue, final OptionSet optionSet, final DataElement dataElement )
     {
         if ( !isNullOrEmpty( dataValue ) && optionSet != null
             && !optionSet.getOptionCodesAsSet().contains( dataValue ) )
         {
-            throw new WebMessageException( conflict(
-                "Data value is not a valid option of the data element option set: " + dataElement.getUid() ) );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2029, dataElement.getUid() ) );
         }
     }
 
@@ -485,13 +457,12 @@ class DataValidator
      * Validates if the given dataValue is valid for the given DataElement, and
      * normalize it if the dataValue is a boolean type.
      *
-     * @param dataValue
-     * @param dataElement
-     * @return the normalized boolean or the same dataValue provided
-     * @throws WebMessageException if the validation fails.
+     * @param dataValue the data value.
+     * @param dataElement the data element.
+     * @return the normalized boolean or the same dataValue provided.
+     * @throws IllegalQueryException if the validation fails.
      */
-    String validateAndNormalizeDataValue( final String dataValue, final DataElement dataElement )
-        throws WebMessageException
+    public String validateAndNormalizeDataValue( final String dataValue, final DataElement dataElement )
     {
         final String normalizedBoolean = normalizeBoolean( dataValue, dataElement.getValueType() );
 
@@ -499,9 +470,9 @@ class DataValidator
 
         if ( valueValid != null )
         {
-            throw new WebMessageException( conflict(
-                "Invalid value: " + dataValue + ", must match data element type: " + dataElement.getValueType() ) );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2030, dataElement.getValueType() ) );
         }
+
         return normalizedBoolean;
     }
 
@@ -510,37 +481,17 @@ class DataValidator
      *
      * @param user the User.
      * @param categoryOptionCombo the CategoryOptionCombo.
-     * @throws WebMessageException if the validation fails.
+     * @throws IllegalQueryException if the validation fails.
      */
-    void checkCategoryOptionComboAccess( final User user, final CategoryOptionCombo categoryOptionCombo )
-        throws WebMessageException
+    public void checkCategoryOptionComboAccess( final User user, final CategoryOptionCombo categoryOptionCombo )
     {
         final List<String> categoryOptionComboErrors = accessManager.canWriteCached( user, categoryOptionCombo );
 
         if ( !categoryOptionComboErrors.isEmpty() )
         {
-            throw new WebMessageException( conflict( "User does not have write access to category option combo: "
-                + categoryOptionCombo.getUid() + ", errors: " + categoryOptionComboErrors ) );
-        }
-    }
+            String arg = String.format( "%s %s", categoryOptionCombo.getUid(), categoryOptionComboErrors );
 
-    /**
-     * Checks if the User has write access to the given CategoryOptionCombo
-     * (attribute option combo).
-     *
-     * @param user the User.
-     * @param attributeOptionCombo the CategoryOptionCombo.
-     * @throws WebMessageException if the validation fails.
-     */
-    void checkAttributeOptionComboAccess( final User user, final CategoryOptionCombo attributeOptionCombo )
-        throws WebMessageException
-    {
-        final List<String> attributeOptionComboErrors = accessManager.canWriteCached( user, attributeOptionCombo );
-
-        if ( !attributeOptionComboErrors.isEmpty() )
-        {
-            throw new WebMessageException( conflict( "User does not have write access to attribute option combo: "
-                + attributeOptionCombo.getUid() + ", errors: " + attributeOptionComboErrors ) );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2031, arg ) );
         }
     }
 
@@ -551,7 +502,7 @@ class DataValidator
      * @param dataValue the DataValue.
      * @throws WebMessageException if the validation fails.
      */
-    void checkDataValueSharing( final User user, final DataValue dataValue )
+    public void checkDataValueSharing( final User user, final DataValue dataValue )
         throws WebMessageException
     {
         final List<String> errors = accessManager.canRead( user, dataValue );

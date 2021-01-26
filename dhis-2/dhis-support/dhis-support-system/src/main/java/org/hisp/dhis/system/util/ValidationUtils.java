@@ -441,11 +441,6 @@ public class ValidationUtils
         return options.getClass().equals( valueType.getValueTypeOptionsClass() );
     }
 
-    private static boolean isValidValueTypeClass( Object value, ValueType valueType )
-    {
-        return value.getClass().equals( valueType.getJavaClass() );
-    }
-
     /**
      * Checks if the given data value is valid according to the value type of
      * the given data element. Considers the value to be valid if null or empty.
