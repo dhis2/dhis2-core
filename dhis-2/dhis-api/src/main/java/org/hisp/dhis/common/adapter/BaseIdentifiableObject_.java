@@ -1,5 +1,3 @@
-
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -32,8 +30,8 @@ package org.hisp.dhis.common.adapter;
 /**
  * This class defines metadata model property's names of
  * {@link org.hisp.dhis.common.BaseIdentifiableObject} Those constants will help
- * supporting type-safe queries with JPA Criteria API.
- * TODO: This should be replaced with JPAMetaModelEntityProcessor's auto generated class
+ * supporting type-safe queries with JPA Criteria API. TODO: This should be
+ * replaced with JPAMetaModelEntityProcessor's auto generated class
  */
 public class BaseIdentifiableObject_
 {
