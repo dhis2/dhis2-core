@@ -35,6 +35,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collections;
 import java.util.HashSet;
 
 import org.apache.commons.lang.time.DateUtils;
@@ -59,7 +60,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.controller.event.TrackedEntityInstanceCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -167,7 +169,7 @@ public class TrackedEntityCriteriaMapperTest
         criteria.setSkipPaging( false );
         criteria.setIncludeDeleted( true );
         criteria.setIncludeAllAttributes( true );
-        criteria.setOrder( "created:asc" );
+        criteria.setOrder( Collections.singletonList( OrderCriteria.of( "created", OrderParam.SortDirection.ASC ) ) );
 
         final TrackedEntityInstanceQueryParams queryParams = trackedEntityCriteriaMapper.map( criteria );
 
@@ -217,7 +219,12 @@ public class TrackedEntityCriteriaMapperTest
         assertThat( queryParams.isIncludeDeleted(), is( true ) );
         assertThat( queryParams.isIncludeAllAttributes(), is( true ) );
 
-        assertTrue( queryParams.getOrders().stream().anyMatch( o -> o.equals( "created:asc" ) ) );
+        assertTrue( queryParams.getOrders().stream().anyMatch(
+            orderParam -> orderParam.equals(
+                OrderParam.builder()
+                    .field( "created" )
+                    .direction( OrderParam.SortDirection.ASC )
+                    .build() ) ) );
     }
 
     @Test

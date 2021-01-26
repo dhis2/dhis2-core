@@ -70,6 +70,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.tracker.domain.mapper.EventMapper;
 import org.hisp.dhis.tracker.domain.web.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.mapper.RequestToSearchParamsMapper;
+import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.mapstruct.factory.Mappers;
@@ -117,40 +118,7 @@ public class TrackerEventsExportController
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     public PagingWrapper<org.hisp.dhis.tracker.domain.Event> getEvents(
-        @RequestParam( required = false ) String program,
-        @RequestParam( required = false ) String programStage,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) Boolean followUp,
-        @RequestParam( required = false ) String trackedEntityInstance,
-        @RequestParam( required = false ) String orgUnit,
-        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
-        @RequestParam( required = false ) String assignedUser,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) Date dueDateStart,
-        @RequestParam( required = false ) Date dueDateEnd,
-        @RequestParam( required = false ) Date lastUpdated,
-        @RequestParam( required = false ) Date lastUpdatedStartDate,
-        @RequestParam( required = false ) Date lastUpdatedEndDate,
-        @RequestParam( required = false ) String lastUpdatedDuration,
-        @RequestParam( required = false ) EventStatus status,
-        @RequestParam( required = false ) String attributeCc,
-        @RequestParam( required = false ) String attributeCos,
-        @RequestParam( required = false ) boolean skipMeta,
-        @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize,
-        @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) Boolean skipPaging,
-        @RequestParam( required = false ) Boolean paging,
-        @RequestParam( required = false ) String order,
-        @RequestParam( required = false ) String attachment,
-        @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
-        @RequestParam( required = false ) String event,
-        @RequestParam( required = false ) Boolean skipEventId,
-        @RequestParam( required = false ) Set<String> filter,
-        @RequestParam Map<String, String> parameters, IdSchemes idSchemes,
-        HttpServletRequest request )
+        EventCriteria eventCriteria, @RequestParam Map<String, String> parameters, HttpServletRequest request )
         throws WebMessageException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -160,29 +128,11 @@ public class TrackerEventsExportController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos,
-            true );
+        EventSearchParams eventSearchParams = requestToSearchParamsMapper.map( eventCriteria );
 
-        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+        Events events = eventService.getEvents( eventSearchParams );
 
-        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
-
-        Map<String, String> dataElementOrders = getDataElementsFromOrder( order );
-
-        lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
-
-        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
-
-        EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
-            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
-            lastUpdatedEndDate, lastUpdatedDuration, status, attributeOptionCombo, idSchemes, page, pageSize,
-            totalPages, skipPaging, getOrderParams( order ), getGridOrderParams( order, dataElementOrders ),
-            false, eventIds, skipEventId, assignedUserMode, assignedUserIds, filter, dataElementOrders.keySet(),
-            false, includeDeleted );
-
-        Events events = eventService.getEvents( params );
-
-        if ( hasHref( fields, skipEventId ) )
+        if ( hasHref( fields, eventCriteria.getSkipEventId() ) )
         {
             events.getEvents().forEach( e -> e.setHref( getUri( e.getEvent(), request ) ) );
         }
