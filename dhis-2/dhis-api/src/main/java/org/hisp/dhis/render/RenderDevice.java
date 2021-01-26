@@ -1,5 +1,3 @@
-package org.hisp.dhis.render;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,10 +25,12 @@ package org.hisp.dhis.render;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.render;
 
 /**
- * This enum represents different devices that might have different ways to render objects like ProgramStageSection,
- * DataElement and TrackedEntityAttribute
+ * This enum represents different devices that might have different ways to
+ * render objects like ProgramStageSection, DataElement and
+ * TrackedEntityAttribute
  */
 public enum RenderDevice
 {

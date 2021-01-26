@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -50,8 +49,8 @@ public enum TrackerImportStrategy
     PATCH,
 
     /**
-     * Create/import objects that don't match any existing identifiers, update/import objects that
-     * matches existing identifiers.
+     * Create/import objects that don't match any existing identifiers,
+     * update/import objects that matches existing identifiers.
      */
     CREATE_AND_UPDATE,
 

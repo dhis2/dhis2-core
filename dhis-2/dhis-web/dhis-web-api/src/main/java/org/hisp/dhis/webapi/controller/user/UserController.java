@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller.user;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,9 +25,22 @@ package org.hisp.dhis.webapi.controller.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.user;
 
-import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
@@ -86,16 +97,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -107,9 +109,11 @@ public class UserController
     extends AbstractCrudController<User>
 {
     public static final String INVITE_PATH = "/invite";
+
     public static final String BULK_INVITE_PATH = "/invites";
 
     private static final String KEY_USERNAME = "username";
+
     private static final String KEY_PASSWORD = "password";
 
     @Autowired
@@ -137,7 +141,8 @@ public class UserController
     @Override
     @SuppressWarnings( "unchecked" )
     protected List<User> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
-        List<Order> orders ) throws QueryParserException
+        List<Order> orders )
+        throws QueryParserException
     {
         UserQueryParams params = new UserQueryParams();
         params.setQuery( StringUtils.trimToNull( options.get( "query" ) ) );
@@ -177,8 +182,8 @@ public class UserController
             params.setMax( pager.getPageSize() );
         }
 
-        List<String> ordersAsString = orders == null ? null :
-            orders.stream().map( Order::toOrderString ).collect( Collectors.toList() );
+        List<String> ordersAsString = orders == null ? null
+            : orders.stream().map( Order::toOrderString ).collect( Collectors.toList() );
 
         List<User> users = userService.getUsers( params, ordersAsString );
 
@@ -212,12 +217,12 @@ public class UserController
 
     @Override
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.GET )
-    public @ResponseBody
-    RootNode getObjectProperty(
+    public @ResponseBody RootNode getObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         TranslateParams translateParams,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         if ( !"dataApprovalWorkflows".equals( pvProperty ) )
         {
@@ -247,7 +252,8 @@ public class UserController
 
     @Override
     @RequestMapping( method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
-    public void postXmlObject( HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void postXmlObject( HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         User user = renderService.fromXml( request.getInputStream(), getEntityClass() );
 
@@ -265,7 +271,8 @@ public class UserController
 
     @Override
     @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
-    public void postJsonObject( HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         User user = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
@@ -282,7 +289,8 @@ public class UserController
     }
 
     @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
-    public void postJsonInvite( HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void postJsonInvite( HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         User user = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
@@ -300,7 +308,8 @@ public class UserController
 
     @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void postJsonInvites( HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void postJsonInvites( HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         Users users = renderService.fromJson( request.getInputStream(), Users.class );
 
@@ -321,7 +330,8 @@ public class UserController
     }
 
     @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
-    public void postXmlInvite( HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void postXmlInvite( HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         User user = renderService.fromXml( request.getInputStream(), getEntityClass() );
 
@@ -337,9 +347,11 @@ public class UserController
         renderService.toXml( response.getOutputStream(), inviteUser( user, currentUser, request ) );
     }
 
-    @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
+    @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml",
+        "text/xml" } )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void postXmlInvites( HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void postXmlInvites( HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         Users users = renderService.fromXml( request.getInputStream(), Users.class );
 
@@ -361,7 +373,8 @@ public class UserController
 
     @RequestMapping( value = "/{id}" + INVITE_PATH, method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void resendInvite( @PathVariable String id, HttpServletRequest request ) throws Exception
+    public void resendInvite( @PathVariable String id, HttpServletRequest request )
+        throws Exception
     {
         User user = userService.getUser( id );
 
@@ -384,10 +397,12 @@ public class UserController
 
         boolean isInviteUsername = securityService.isInviteUsername( user.getUsername() );
 
-        RestoreOptions restoreOptions = isInviteUsername ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
+        RestoreOptions restoreOptions = isInviteUsername ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE
+            : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
 
         if ( !securityService
-            .sendRestoreOrInviteMessage( user.getUserCredentials(), ContextUtils.getContextPath( request ), restoreOptions ) )
+            .sendRestoreOrInviteMessage( user.getUserCredentials(), ContextUtils.getContextPath( request ),
+                restoreOptions ) )
         {
             throw new WebMessageException( WebMessageUtils.error( "Failed to send invite message" ) );
         }
@@ -397,7 +412,9 @@ public class UserController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_REPLICATE_USER')" )
     @RequestMapping( value = "/{uid}/replica", method = RequestMethod.POST )
     public void replicateUser( @PathVariable String uid,
-        HttpServletRequest request, HttpServletResponse response ) throws IOException, WebMessageException
+        HttpServletRequest request, HttpServletResponse response )
+        throws IOException,
+        WebMessageException
     {
         User existingUser = userService.getUser( uid );
 
@@ -435,7 +452,8 @@ public class UserController
 
         if ( !ValidationUtils.passwordIsValid( password ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Password must have at least 8 characters, one digit, one uppercase" ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Password must have at least 8 characters, one digit, one uppercase" ) );
         }
 
         User userReplica = new User();
@@ -463,7 +481,8 @@ public class UserController
 
         userService.addUser( userReplica );
         userService.addUserCredentials( credentialsReplica );
-        userGroupService.addUserToGroups( userReplica, IdentifiableObjectUtils.getUids( existingUser.getGroups() ), currentUser );
+        userGroupService.addUserToGroups( userReplica, IdentifiableObjectUtils.getUids( existingUser.getGroups() ),
+            currentUser );
 
         // ---------------------------------------------------------------------
         // Replicate user settings
@@ -474,27 +493,44 @@ public class UserController
         for ( UserSetting setting : settings )
         {
             Optional<UserSettingKey> key = UserSettingKey.getByName( setting.getName() );
-            key.ifPresent( userSettingKey -> userSettingService.saveUserSetting( userSettingKey, setting.getValue(), userReplica ) );
+            key.ifPresent( userSettingKey -> userSettingService.saveUserSetting( userSettingKey, setting.getValue(),
+                userReplica ) );
         }
 
         response.addHeader( "Location", UserSchemaDescriptor.API_ENDPOINT + "/" + userReplica.getUid() );
         webMessageService.send( WebMessageUtils.created( "User replica created" ), response, request );
     }
 
-    @RequestMapping(value = "/{uid}/enabled", method = RequestMethod.POST)
-    @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public void enableUser( @PathVariable("uid") String uid )
+    @RequestMapping( value = "/{uid}/enabled", method = RequestMethod.POST )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    public void enableUser( @PathVariable( "uid" ) String uid )
         throws Exception
     {
         setDisabled( uid, false );
     }
 
-    @RequestMapping(value = "/{uid}/disabled", method = RequestMethod.POST)
-    @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public void disableUser( @PathVariable("uid") String uid )
+    @RequestMapping( value = "/{uid}/disabled", method = RequestMethod.POST )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    public void disableUser( @PathVariable( "uid" ) String uid )
         throws Exception
     {
         setDisabled( uid, true );
+    }
+
+    @RequestMapping( value = "/{uid}/expired", method = RequestMethod.POST )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    public void expireUser( @PathVariable( "uid" ) String uid, @RequestParam( "date" ) Date accountExpiry )
+        throws Exception
+    {
+        setExpires( uid, accountExpiry );
+    }
+
+    @RequestMapping( value = "/{uid}/unexpired", method = RequestMethod.POST )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    public void unexpireUser( @PathVariable( "uid" ) String uid )
+        throws Exception
+    {
+        setExpires( uid, null );
     }
 
     // -------------------------------------------------------------------------
@@ -503,7 +539,9 @@ public class UserController
 
     @Override
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = { "application/xml", "text/xml" } )
-    public void putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+        HttpServletResponse response )
+        throws Exception
     {
         User parsed = renderService.fromXml( request.getInputStream(), getEntityClass() );
 
@@ -515,7 +553,9 @@ public class UserController
 
     @Override
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = "application/json" )
-    public void putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+        HttpServletResponse response )
+        throws Exception
     {
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
@@ -543,7 +583,8 @@ public class UserController
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
         }
 
-        // force initialization of all authorities of current user in order to prevent cases where user must be reloaded later
+        // force initialization of all authorities of current user in order to
+        // prevent cases where user must be reloaded later
         // (in case it gets detached)
         if ( currentUser != null )
         {
@@ -553,9 +594,8 @@ public class UserController
         parsedUserObject.setUid( userUid );
         parsedUserObject = mergeLastLoginAttribute( users.get( 0 ), parsedUserObject );
 
-        boolean isPasswordChangeAttempt =
-            parsedUserObject.getUserCredentials() != null &&
-                parsedUserObject.getUserCredentials().getPassword() != null;
+        boolean isPasswordChangeAttempt = parsedUserObject.getUserCredentials() != null &&
+            parsedUserObject.getUserCredentials().getPassword() != null;
 
         List<String> groupsUids = IdentifiableObjectUtils.getUids( parsedUserObject.getGroups() );
 
@@ -578,8 +618,10 @@ public class UserController
         {
             updateUserGroups( userUid, parsedUserObject, currentUser );
 
-            // If it was a pw change attempt (input.pw != null) and update was success we assume password has changed...
-            // We chose to expire the special case if password is set to the same. i.e. no before & after equals pw check
+            // If it was a pw change attempt (input.pw != null) and update was
+            // success we assume password has changed...
+            // We chose to expire the special case if password is set to the
+            // same. i.e. no before & after equals pw check
             if ( isPasswordChangeAttempt )
             {
                 userService.expireActiveSessions( parsedUserObject.getUserCredentials() );
@@ -593,7 +635,8 @@ public class UserController
     {
         User user = userService.getUser( pvUid );
 
-        // current user may have been changed and detached and must become managed again
+        // current user may have been changed and detached and must become
+        // managed again
         // TODO: what is this doing? I don't understand how this is possible.
         if ( currentUser != null && currentUser.getId() == user.getId() )
         {
@@ -608,14 +651,16 @@ public class UserController
     // -------------------------------------------------------------------------
 
     @Override
-    protected void prePatchEntity( User entity ) throws Exception
+    protected void prePatchEntity( User entity )
+        throws Exception
     {
         User currentUser = currentUserService.getCurrentUser();
 
         if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( entity.getGroups() ), currentUser )
             || !currentUser.getUserCredentials().canModifyUser( entity.getUserCredentials() ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
+            throw new WebMessageException( WebMessageUtils.conflict(
+                "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
     }
 
@@ -624,7 +669,8 @@ public class UserController
     {
         UserCredentials credentials = entity.getUserCredentials();
 
-        // Make sure we always expire all of the user's active sessions if we have disabled the user.
+        // Make sure we always expire all of the user's active sessions if we
+        // have disabled the user.
         if ( credentials != null && credentials.isDisabled() )
         {
             userService.expireActiveSessions( credentials );
@@ -636,14 +682,16 @@ public class UserController
     // -------------------------------------------------------------------------
 
     @Override
-    protected void preDeleteEntity( User entity ) throws Exception
+    protected void preDeleteEntity( User entity )
+        throws Exception
     {
         User currentUser = currentUserService.getCurrentUser();
 
         if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( entity.getGroups() ), currentUser )
             || !currentUser.getUserCredentials().canModifyUser( entity.getUserCredentials() ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
+            throw new WebMessageException( WebMessageUtils.conflict(
+                "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
 
         if ( userService.isLastSuperUser( entity.getUserCredentials() ) )
@@ -661,7 +709,8 @@ public class UserController
      *
      * @param user the user.
      */
-    private boolean validateCreateUser( User user, User currentUser ) throws WebMessageException
+    private boolean validateCreateUser( User user, User currentUser )
+        throws WebMessageException
     {
         if ( !aclService.canCreate( currentUser, getEntityClass() ) )
         {
@@ -670,7 +719,8 @@ public class UserController
 
         if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( user.getGroups() ), currentUser ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
+            throw new WebMessageException( WebMessageUtils.conflict(
+                "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
 
         List<String> uids = IdentifiableObjectUtils.getUids( user.getGroups() );
@@ -679,7 +729,8 @@ public class UserController
         {
             if ( !userGroupService.canAddOrRemoveMember( uid, currentUser ) )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "You don't have permissions to add user to user group: " + uid ) );
+                throw new WebMessageException(
+                    WebMessageUtils.conflict( "You don't have permissions to add user to user group: " + uid ) );
             }
         }
 
@@ -713,7 +764,8 @@ public class UserController
      *
      * @param user the user.
      */
-    private boolean validateInviteUser( User user, User currentUser ) throws WebMessageException
+    private boolean validateInviteUser( User user, User currentUser )
+        throws WebMessageException
     {
         if ( !validateCreateUser( user, currentUser ) )
         {
@@ -746,8 +798,9 @@ public class UserController
      */
     private ObjectReport inviteUser( User user, User currentUser, HttpServletRequest request )
     {
-        RestoreOptions restoreOptions = user.getUsername() == null || user.getUsername().isEmpty() ?
-            RestoreOptions.INVITE_WITH_USERNAME_CHOICE : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
+        RestoreOptions restoreOptions = user.getUsername() == null || user.getUsername().isEmpty()
+            ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE
+            : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
 
         securityService.prepareUserForInvite( user );
 
@@ -784,8 +837,8 @@ public class UserController
     }
 
     /**
-     * Make a copy of any existing attribute values so they can be saved
-     * as new attribute values. Don't copy unique values.
+     * Make a copy of any existing attribute values so they can be saved as new
+     * attribute values. Don't copy unique values.
      *
      * @param userReplica user for which to copy attribute values.
      */
@@ -841,25 +894,14 @@ public class UserController
      *
      * @param uid the unique id of the user to enable or disable
      * @param disable boolean value, true for disable, false for enable
-     * @throws WebMessageException thrown if "current" user is not allowed to modify the user
+     * @throws WebMessageException thrown if "current" user is not allowed to
+     *         modify the user
      */
     private void setDisabled( String uid, boolean disable )
         throws WebMessageException
     {
-        User currentUser = currentUserService.getCurrentUser();
-
         User userToModify = userService.getUser( uid );
-
-        if ( !aclService.canUpdate( currentUser, userToModify ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
-        }
-
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( userToModify.getGroups() ), currentUser )
-            || !currentUser.getUserCredentials().canModifyUser( userToModify.getUserCredentials() ) )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
-        }
+        checkCurrentUserCanModify( userToModify );
 
         UserCredentials credentials = userToModify.getUserCredentials();
         if ( credentials.isDisabled() != disable )
@@ -869,6 +911,40 @@ public class UserController
         }
 
         if ( disable )
+        {
+            userService.expireActiveSessions( credentials );
+        }
+    }
+
+    private void checkCurrentUserCanModify( User userToModify )
+        throws WebMessageException
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !aclService.canUpdate( currentUser, userToModify ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+        }
+
+        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( userToModify.getGroups() ), currentUser )
+            || !currentUser.getUserCredentials().canModifyUser( userToModify.getUserCredentials() ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict(
+                "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
+        }
+    }
+
+    private void setExpires( String uid, Date accountExpiry )
+        throws WebMessageException
+    {
+        User userToModify = userService.getUser( uid );
+        checkCurrentUserCanModify( userToModify );
+
+        UserCredentials credentials = userToModify.getUserCredentials();
+        credentials.setAccountExpiry( accountExpiry );
+        userService.updateUserCredentials( credentials );
+
+        if ( userService.isAccountExpired( credentials ) )
         {
             userService.expireActiveSessions( credentials );
         }

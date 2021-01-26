@@ -1,5 +1,3 @@
-package org.hisp.dhis.program.notification;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,12 +25,13 @@ package org.hisp.dhis.program.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.notification;
+
+import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-
-import java.util.List;
 
 /**
  * @author Zubair Asghar

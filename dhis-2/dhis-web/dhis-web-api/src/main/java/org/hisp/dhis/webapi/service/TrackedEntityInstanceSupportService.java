@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.service;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,9 +25,13 @@ package org.hisp.dhis.webapi.service;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
@@ -51,9 +53,6 @@ import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Joiner;
-
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 
 @Service
 @RequiredArgsConstructor

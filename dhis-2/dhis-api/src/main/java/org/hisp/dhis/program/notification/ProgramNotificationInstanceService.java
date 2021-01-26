@@ -1,5 +1,3 @@
-package org.hisp.dhis.program.notification;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,12 @@ package org.hisp.dhis.program.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.notification;
+
+import java.util.List;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-
-import java.util.List;
 
 /**
  * @author Zubair Asghar
@@ -40,19 +39,21 @@ public interface ProgramNotificationInstanceService
 {
     void save( ProgramNotificationInstance programNotificationInstance );
 
-    void update ( ProgramNotificationInstance programNotificationInstance );
+    void update( ProgramNotificationInstance programNotificationInstance );
 
     void delete( ProgramNotificationInstance programNotificationInstance );
 
     ProgramNotificationInstance get( long programNotificationInstance );
 
     /**
-     * return ProgramNotificationInstances associated with this enrollment (ProgramInstance)
+     * return ProgramNotificationInstances associated with this enrollment
+     * (ProgramInstance)
      */
     List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramInstance programInstance );
 
     /**
-     * return ProgramNotificationInstances associated with this event (ProgramStageInstance)
+     * return ProgramNotificationInstances associated with this event
+     * (ProgramStageInstance)
      */
     List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramStageInstance programStageInstance );
 }

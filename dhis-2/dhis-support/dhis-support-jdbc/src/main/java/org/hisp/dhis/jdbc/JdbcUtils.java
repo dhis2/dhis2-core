@@ -1,5 +1,3 @@
-package org.hisp.dhis.jdbc;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,15 @@ package org.hisp.dhis.jdbc;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.jdbc;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.InterruptibleBatchPreparedStatementSetter;
@@ -36,14 +43,6 @@ import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.core.RowMapperResultSetExtractor;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * JDBC Utility methods
@@ -55,7 +54,8 @@ public class JdbcUtils
      *
      * @param jdbcTemplate a JdbcTemplate
      * @param sql the SQL string to be executed
-     * @param pss a {@see BatchPreparedStatementSetterWithKeyHolder} containing the binding information
+     * @param pss a {@see BatchPreparedStatementSetterWithKeyHolder} containing
+     *        the binding information
      *
      * @return a int, where each element corresponds to an executed statement
      */
@@ -67,9 +67,9 @@ public class JdbcUtils
                 try
                 {
                     int batchSize = pss.getBatchSize();
-                    InterruptibleBatchPreparedStatementSetter ipss = ( pss instanceof InterruptibleBatchPreparedStatementSetter
+                    InterruptibleBatchPreparedStatementSetter ipss = (pss instanceof InterruptibleBatchPreparedStatementSetter
                         ? (InterruptibleBatchPreparedStatementSetter) pss
-                        : null );
+                        : null);
                     int[] result;
                     KeyHolder keyHolder = new GeneratedKeyHolder();
 

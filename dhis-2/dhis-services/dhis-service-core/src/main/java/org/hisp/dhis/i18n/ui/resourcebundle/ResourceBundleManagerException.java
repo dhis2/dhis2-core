@@ -1,5 +1,3 @@
-package org.hisp.dhis.i18n.ui.resourcebundle;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,10 +25,12 @@ package org.hisp.dhis.i18n.ui.resourcebundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.i18n.ui.resourcebundle;
 
 /**
  * @author Nguyen Dang Quang
- * @version $Id: ResourceBundleManagerException.java 2869 2007-02-20 14:26:09Z andegje $
+ * @version $Id: ResourceBundleManagerException.java 2869 2007-02-20 14:26:09Z
+ *          andegje $
  */
 public class ResourceBundleManagerException
     extends Exception

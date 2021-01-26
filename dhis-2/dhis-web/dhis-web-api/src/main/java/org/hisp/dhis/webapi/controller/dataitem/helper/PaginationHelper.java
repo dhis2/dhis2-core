@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller.dataitem.helper;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.dataitem.helper;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.dataitem.helper;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.springframework.util.Assert.state;
@@ -44,9 +43,9 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 public class PaginationHelper
 {
     /**
-     * This method will slice the given list based on the given option and return
-     * only the elements present in the pagination window.
-     * 
+     * This method will slice the given list based on the given option and
+     * return only the elements present in the pagination window.
+     *
      * @param options
      * @param dimensionalItems
      * @return the list of "sliced" items

@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.report;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,17 +25,18 @@ package org.hisp.dhis.tracker.report;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.report;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -60,9 +59,9 @@ public class TrackerValidationReport
     @Builder.Default
     private List<TrackerValidationHookTimerReport> performanceReport = new ArrayList<>();
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Utility Methods
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     public void add( TrackerValidationReport validationReport )
     {

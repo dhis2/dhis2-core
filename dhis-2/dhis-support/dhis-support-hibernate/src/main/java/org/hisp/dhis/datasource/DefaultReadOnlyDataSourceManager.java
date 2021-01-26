@@ -1,5 +1,3 @@
-package org.hisp.dhis.datasource;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,26 +25,29 @@ package org.hisp.dhis.datasource;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datasource;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
-import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.beans.factory.InitializingBean;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_PASSWORD;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
 
-import javax.sql.DataSource;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_PASSWORD;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
+import javax.sql.DataSource;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * @author Lars Helge Overland
@@ -123,7 +124,8 @@ public class DefaultReadOnlyDataSourceManager
         String mainUser = config.getProperty( ConfigurationKey.CONNECTION_USERNAME );
         String mainPassword = config.getProperty( ConfigurationKey.CONNECTION_PASSWORD );
         String driverClass = config.getProperty( ConfigurationKey.CONNECTION_DRIVER_CLASS );
-        String maxPoolSize = config.getPropertyOrDefault( ConfigurationKey.CONNECTION_POOL_MAX_SIZE, DEFAULT_POOL_SIZE );
+        String maxPoolSize = config.getPropertyOrDefault( ConfigurationKey.CONNECTION_POOL_MAX_SIZE,
+            DEFAULT_POOL_SIZE );
         String dbPoolType = config.getProperty( ConfigurationKey.DB_POOL_TYPE );
 
         Properties props = config.getProperties();
@@ -170,7 +172,8 @@ public class DefaultReadOnlyDataSourceManager
 
         log.info( "Read only configuration initialized, read replicas found: " + dataSources.size() );
 
-        config.getProperties().setProperty( ConfigurationKey.ACTIVE_READ_REPLICAS.getKey(), String.valueOf( dataSources.size() ) );
+        config.getProperties().setProperty( ConfigurationKey.ACTIVE_READ_REPLICAS.getKey(),
+            String.valueOf( dataSources.size() ) );
 
         return dataSources;
     }

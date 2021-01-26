@@ -1,5 +1,3 @@
-package org.hisp.dhis.relationship;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.relationship;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.relationship;
 
 import java.util.Collection;
 
@@ -78,7 +77,7 @@ public class RelationshipDeletionHandler
             }
         }
     }
-    
+
     @Override
     public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
@@ -93,7 +92,7 @@ public class RelationshipDeletionHandler
             }
         }
     }
-    
+
     @Override
     public void deleteProgramInstance( ProgramInstance programInstance )
     {
@@ -109,11 +108,11 @@ public class RelationshipDeletionHandler
         }
     }
 
-
     @Override
     public String allowDeleteRelationshipType( RelationshipType relationshipType )
     {
-        Collection<Relationship> relationships = relationshipService.getRelationshipsByRelationshipType( relationshipType );
+        Collection<Relationship> relationships = relationshipService
+            .getRelationshipsByRelationshipType( relationshipType );
 
         return relationships.isEmpty() ? null : ERROR;
     }

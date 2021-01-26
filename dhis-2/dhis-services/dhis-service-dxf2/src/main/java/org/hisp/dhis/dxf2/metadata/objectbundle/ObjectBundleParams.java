@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,13 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle;
 
-import com.google.common.base.MoreObjects;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
@@ -43,10 +46,7 @@ import org.hisp.dhis.preheat.PreheatParams;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -246,11 +246,13 @@ public class ObjectBundleParams
         return this;
     }
 
-    public boolean isMetadataSyncImport() {
+    public boolean isMetadataSyncImport()
+    {
         return metadataSyncImport;
     }
 
-    public void setMetadataSyncImport(boolean metadataSyncImport) {
+    public void setMetadataSyncImport( boolean metadataSyncImport )
+    {
         this.metadataSyncImport = metadataSyncImport;
     }
 

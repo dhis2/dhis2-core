@@ -1,5 +1,3 @@
-package org.hisp.dhis.dashboard;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,12 +25,13 @@ package org.hisp.dhis.dashboard;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dashboard;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -72,14 +71,19 @@ public class DashboardServiceTest
     private IdentifiableObjectManager objectManager;
 
     private Dashboard dbA;
+
     private Dashboard dbB;
 
     private DashboardItem diA;
+
     private DashboardItem diB;
+
     private DashboardItem diC;
+
     private DashboardItem diD;
 
     private Visualization vzA;
+
     private Visualization vzB;
 
     private Document dcA;
@@ -215,7 +219,8 @@ public class DashboardServiceTest
         dashboardService.saveDashboard( dbA );
         dashboardService.saveDashboard( dbB );
 
-        DashboardItem itemA = dashboardService.addItemContent( dbA.getUid(), DashboardItemType.VISUALIZATION, vzA.getUid() );
+        DashboardItem itemA = dashboardService.addItemContent( dbA.getUid(), DashboardItemType.VISUALIZATION,
+            vzA.getUid() );
 
         assertNotNull( itemA );
         assertNotNull( itemA.getUid() );

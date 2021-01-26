@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
@@ -63,7 +62,8 @@ public class EventDataValuesValidationHook
 
         for ( DataValue dataValue : event.getDataValues() )
         {
-            // event dates (createdAt, updatedAt) are ignored and set by the system
+            // event dates (createdAt, updatedAt) are ignored and set by the
+            // system
             validateDataElement( reporter, context, dataValue );
         }
         validateMandatoryDataValues( event, context, reporter );
@@ -76,12 +76,11 @@ public class EventDataValuesValidationHook
         if ( StringUtils.isNotEmpty( event.getProgramStage() ) )
         {
             ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-            final List<String> mandatoryDataElements =
-                programStage.getProgramStageDataElements()
-                    .stream()
-                    .filter( ProgramStageDataElement::isCompulsory )
-                    .map( de -> de.getDataElement().getUid() )
-                    .collect( Collectors.toList() );
+            final List<String> mandatoryDataElements = programStage.getProgramStageDataElements()
+                .stream()
+                .filter( ProgramStageDataElement::isCompulsory )
+                .map( de -> de.getDataElement().getUid() )
+                .collect( Collectors.toList() );
             List<String> wrongMandatoryDataValue = validateMandatoryDataValue( programStage, event,
                 mandatoryDataElements );
             wrongMandatoryDataValue.forEach( de -> addError( reporter, TrackerErrorCode.E1303, de ) );
@@ -120,11 +119,10 @@ public class EventDataValuesValidationHook
 
         ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
 
-        final Set<String> dataElements =
-            programStage.getProgramStageDataElements()
-                .stream()
-                .map( de -> de.getDataElement().getUid() )
-                .collect( Collectors.toSet() );
+        final Set<String> dataElements = programStage.getProgramStageDataElements()
+            .stream()
+            .map( de -> de.getDataElement().getUid() )
+            .collect( Collectors.toSet() );
 
         Set<String> payloadDataElements = event.getDataValues().stream()
             .map( DataValue::getDataElement )

@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,12 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.Category;
@@ -36,11 +40,6 @@ import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Unit tests for {@link ObjectBundle}.

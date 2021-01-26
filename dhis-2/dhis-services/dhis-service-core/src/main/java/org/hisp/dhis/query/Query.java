@@ -1,5 +1,3 @@
-package org.hisp.dhis.query;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,17 +25,19 @@ package org.hisp.dhis.query;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.fieldfilter.Defaults;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.user.User;
-import org.springframework.util.StringUtils;
+package org.hisp.dhis.query;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.user.User;
+
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

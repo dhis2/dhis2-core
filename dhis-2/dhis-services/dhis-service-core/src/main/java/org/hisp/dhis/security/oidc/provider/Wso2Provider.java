@@ -1,5 +1,3 @@
-package org.hisp.dhis.security.oidc.provider;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,17 @@ package org.hisp.dhis.security.oidc.provider;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.oidc.provider;
 
-import com.google.common.collect.ImmutableMap;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_CLIENT_ID;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_CLIENT_SECRET;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_DISPLAY_ALIAS;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_ENABLE_LOGOUT;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_MAPPING_CLAIM;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_SERVER_URL;
+
+import java.util.Objects;
+
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -37,14 +44,7 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
-import java.util.Objects;
-
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_CLIENT_ID;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_CLIENT_SECRET;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_DISPLAY_ALIAS;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_ENABLE_LOGOUT;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_MAPPING_CLAIM;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_SERVER_URL;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

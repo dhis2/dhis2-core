@@ -1,5 +1,3 @@
-package org.hisp.dhis.schema.descriptors;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,13 +25,15 @@ package org.hisp.dhis.schema.descriptors;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.schema.descriptors;
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -55,7 +55,8 @@ public class DashboardItemSchemaDescriptor implements SchemaDescriptor
         schema.setDefaultPrivate( true );
         schema.setImplicitPrivateAuthority( true );
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_DASHBOARD_PUBLIC_ADD" ) ) );
+        schema.getAuthorities()
+            .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_DASHBOARD_PUBLIC_ADD" ) ) );
 
         return schema;
     }

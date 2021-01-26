@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller.dataelement;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,9 +25,26 @@ package org.hisp.dhis.webapi.controller.dataelement;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.dataelement;
 
-import com.google.common.collect.Lists;
-import com.jayway.jsonpath.JsonPath;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.commons.config.JacksonObjectMapperConfig.staticJsonMapper;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.io.UnsupportedEncodingException;
+import java.util.List;
+import java.util.Map;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.Compression;
@@ -74,23 +89,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.io.UnsupportedEncodingException;
-import java.util.List;
-import java.util.Map;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.commons.config.JacksonObjectMapperConfig.staticJsonMapper;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.google.common.collect.Lists;
+import com.jayway.jsonpath.JsonPath;
 
 /**
  * @author Luciano Fiandesio
@@ -137,7 +137,8 @@ public class DataElementOperandControllerTest
             new DefaultJpaQueryParser( schemaService, currentUserService, mock( OrganisationUnitService.class ) ),
             new DefaultQueryPlanner( schemaService ), mock( JpaCriteriaQueryEngine.class ),
             new InMemoryQueryEngine<>( schemaService, mock( AclService.class ), currentUserService ) );
-        // Use "spy" on queryService, because we want a partial mock: we only want to
+        // Use "spy" on queryService, because we want a partial mock: we only
+        // want to
         // mock the method "count"
         queryService = spy( _queryService );
 
@@ -207,7 +208,8 @@ public class DataElementOperandControllerTest
         assertThat( fieldFilterParams.getObjects(), hasSize( pageSize ) );
         assertThat( fieldFilterParams.getFields(), Matchers.is( Lists.newArrayList( "*" ) ) );
 
-        // Make sure that the first and last element in the page matches with the
+        // Make sure that the first and last element in the page matches with
+        // the
         // original list
         List<Map<String, Object>> jsonDataElementOperands = convertResponse( resultActions );
 
@@ -261,14 +263,15 @@ public class DataElementOperandControllerTest
         assertThat( fieldFilterParams.getObjects(), hasSize( pageSize ) );
         assertThat( fieldFilterParams.getFields(), Matchers.is( Lists.newArrayList( "*" ) ) );
 
-        // Make sure that the first and last element in the page matches with the
+        // Make sure that the first and last element in the page matches with
+        // the
         // original list
         List<Map<String, Object>> jsonDataElementOperands = convertResponse( resultActions );
 
         assertThat( jsonDataElementOperands.get( 0 ).get( "id" ),
             Matchers.is( dataElementOperands.get( 50 ).getDimensionItem() ) );
         assertThat( jsonDataElementOperands.get( pageSize - 1 ).get( "id" ),
-            Matchers.is( dataElementOperands.get( 74  ).getDimensionItem() ) );
+            Matchers.is( dataElementOperands.get( 74 ).getDimensionItem() ) );
     }
 
     @SuppressWarnings( "unchecked" )

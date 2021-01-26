@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller.event.mapper;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.event.mapper;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.event.mapper;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static org.hamcrest.CoreMatchers.is;
@@ -168,7 +167,7 @@ public class TrackedEntityCriteriaMapperTest
         criteria.setSkipPaging( false );
         criteria.setIncludeDeleted( true );
         criteria.setIncludeAllAttributes( true );
-        criteria.setOrder( "order-1" );
+        criteria.setOrder( "created:asc" );
 
         final TrackedEntityInstanceQueryParams queryParams = trackedEntityCriteriaMapper.map( criteria );
 
@@ -218,7 +217,7 @@ public class TrackedEntityCriteriaMapperTest
         assertThat( queryParams.isIncludeDeleted(), is( true ) );
         assertThat( queryParams.isIncludeAllAttributes(), is( true ) );
 
-        assertTrue( queryParams.getOrders().stream().anyMatch( o -> o.equals( "order-1" ) ) );
+        assertTrue( queryParams.getOrders().stream().anyMatch( o -> o.equals( "created:asc" ) ) );
     }
 
     @Test

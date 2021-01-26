@@ -1,5 +1,3 @@
-package org.hisp.dhis.maintenance;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,14 @@ package org.hisp.dhis.maintenance;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.maintenance;
 
-import com.google.common.collect.Sets;
+import static org.awaitility.Awaitility.await;
+import static org.junit.Assert.assertEquals;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.audit.Audit;
 import org.hisp.dhis.audit.AuditQuery;
@@ -44,11 +48,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.Sets;
 
 @ActiveProfiles( profiles = { "test-audit" } )
 public class HardDeleteAuditTest
@@ -75,8 +75,7 @@ public class HardDeleteAuditTest
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
         TrackedEntityInstance tei = createTrackedEntityInstance( 'A', ou, attribute );
 
-        transactionTemplate.execute( status ->
-        {
+        transactionTemplate.execute( status -> {
             manager.save( ou );
             manager.save( attribute );
 
@@ -96,8 +95,7 @@ public class HardDeleteAuditTest
         List<Audit> audits = auditService.getAudits( query );
         assertEquals( 2, audits.size() );
 
-        transactionTemplate.execute( status ->
-        {
+        transactionTemplate.execute( status -> {
             jdbcMaintenanceStore.deleteSoftDeletedTrackedEntityInstances();
 
             dbmsManager.clearSession();

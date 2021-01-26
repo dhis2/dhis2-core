@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preheat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,6 +38,10 @@ import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -59,14 +62,10 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
-import org.springframework.util.StringUtils;
 
 import com.google.api.client.util.Lists;
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
-
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -81,8 +80,9 @@ public class TrackerPreheat
     private User user;
 
     /**
-     * Internal map of all metadata objects mapped by class type => [id] The value
-     * of each id can be either the metadata object's uid, code, name or attribute value
+     * Internal map of all metadata objects mapped by class type => [id] The
+     * value of each id can be either the metadata object's uid, code, name or
+     * attribute value
      */
     @Getter
     private Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>> map = new HashMap<>();
@@ -90,8 +90,8 @@ public class TrackerPreheat
     /**
      * Internal tree of all payload references which are not present in the
      * database. This map is required to allow the validation stage to reference
-     * root objects (TEI, PS, PSI) which are present in the payload but not stored
-     * in the pre-heat object (since they do not exist in the db yet).
+     * root objects (TEI, PS, PSI) which are present in the payload but not
+     * stored in the pre-heat object (since they do not exist in the db yet).
      */
     private TreeNode<String> referenceTree = new ArrayMultiTreeNode<>( "ROOT" );
 
@@ -115,40 +115,40 @@ public class TrackerPreheat
     private Map<String, PeriodType> periodTypeMap = new HashMap<>();
 
     /**
-     * Internal map of all preheated tracked entities, mainly used for confirming existence for updates, and used
-     * for object merging.
+     * Internal map of all preheated tracked entities, mainly used for
+     * confirming existence for updates, and used for object merging.
      */
     @Getter
     @Setter
     private Map<TrackerIdScheme, Map<String, TrackedEntityInstance>> trackedEntities = new HashMap<>();
 
     /**
-     * Internal map of all preheated tracked entity attributes, mainly used for confirming existence for updates, and used
-     * for object merging.
+     * Internal map of all preheated tracked entity attributes, mainly used for
+     * confirming existence for updates, and used for object merging.
      */
     @Getter
     @Setter
     private Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes = new HashMap<>();
 
     /**
-     * Internal map of all preheated enrollments, mainly used for confirming existence for updates, and used
-     * for object merging.
+     * Internal map of all preheated enrollments, mainly used for confirming
+     * existence for updates, and used for object merging.
      */
     @Getter
     @Setter
     private Map<TrackerIdScheme, Map<String, ProgramInstance>> enrollments = new HashMap<>();
 
     /**
-     * Internal map of all preheated events, mainly used for confirming existence for updates, and used
-     * for object merging.
+     * Internal map of all preheated events, mainly used for confirming
+     * existence for updates, and used for object merging.
      */
     @Getter
     @Setter
     private Map<TrackerIdScheme, Map<String, ProgramStageInstance>> events = new HashMap<>();
 
     /**
-     * Internal map of all preheated relationships, mainly used for confirming existence for updates, and used
-     * for object merging.
+     * Internal map of all preheated relationships, mainly used for confirming
+     * existence for updates, and used for object merging.
      */
     @Getter
     @Setter
@@ -160,9 +160,9 @@ public class TrackerPreheat
     private Map<TrackerIdScheme, Map<String, TrackedEntityComment>> notes = new EnumMap<>( TrackerIdScheme.class );
 
     /**
-     * A Map of event uid and preheated {@see ProgramInstance}. The value is a List,
-     * because the system may return multiple ProgramInstance, which will be
-     * detected by validation
+     * A Map of event uid and preheated {@see ProgramInstance}. The value is a
+     * List, because the system may return multiple ProgramInstance, which will
+     * be detected by validation
      */
     @Getter
     @Setter
@@ -175,18 +175,18 @@ public class TrackerPreheat
 
     /**
      * A list of valid usernames that are present in the payload. A username not
-     * available in this cache means, payload's username is invalid.
-     * These users are primarily used to represent the ValueType.USERNAME of
-     * tracked entity attributes, used in validation and persisting TEIs.
+     * available in this cache means, payload's username is invalid. These users
+     * are primarily used to represent the ValueType.USERNAME of tracked entity
+     * attributes, used in validation and persisting TEIs.
      */
     @Getter
     @Setter
     private List<String> usernames = Lists.newArrayList();
 
     /**
-     * A list of all unique attribute values that are both present in the payload
-     * and in the database. This is going to be used to validate the uniqueness of
-     * attribute values in the Validation phase.
+     * A list of all unique attribute values that are both present in the
+     * payload and in the database. This is going to be used to validate the
+     * uniqueness of attribute values in the Validation phase.
      */
     @Getter
     @Setter
@@ -206,7 +206,7 @@ public class TrackerPreheat
     @Getter
     @Setter
     private List<Pair<String, String>> programStageWithEvents = Lists.newArrayList();
-    
+
     /**
      * Identifier map
      */
@@ -215,14 +215,14 @@ public class TrackerPreheat
     private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
 
     /**
-     * Map of Program ID (primary key) and List of Org Unit ID associated to each
-     * program. Note that the List only contains the Org Unit ID of the Org Units
-     * that are specified in the import payload.
+     * Map of Program ID (primary key) and List of Org Unit ID associated to
+     * each program. Note that the List only contains the Org Unit ID of the Org
+     * Units that are specified in the import payload.
      */
     @Getter
     @Setter
-    private  Map<Long, List<Long>> programWithOrgUnitsMap;
-    
+    private Map<Long, List<Long>> programWithOrgUnitsMap;
+
     public TrackerPreheat()
     {
     }
@@ -245,11 +245,11 @@ public class TrackerPreheat
     }
 
     /**
-     * Fetch a metadata object from the pre-heat, based on the type of the object
-     * and the cached identifier.
+     * Fetch a metadata object from the pre-heat, based on the type of the
+     * object and the cached identifier.
      *
      * @param klass The metadata class to fetch
-     * @param key   The key used during the pre-heat creation
+     * @param key The key used during the pre-heat creation
      * @return A metadata object or null
      */
     @SuppressWarnings( "unchecked" )
@@ -261,7 +261,7 @@ public class TrackerPreheat
 
     /**
      * Fetch all the metadata objects from the pre-heat, by object type
-     * 
+     *
      * @param klass The metadata class to fetch
      *
      * @return a List of pre-heated object or empty list
@@ -270,7 +270,7 @@ public class TrackerPreheat
     public <T extends IdentifiableObject> List<T> getAll( Class<T> klass )
     {
         return new ArrayList<>( (Collection<? extends T>) map.getOrDefault( klass, new HashMap<>() ).values() );
-    }    
+    }
 
     public boolean isEmpty()
     {
@@ -285,8 +285,7 @@ public class TrackerPreheat
             return this;
         }
 
-        Class<? extends IdentifiableObject> klass =
-            (Class<? extends IdentifiableObject>) HibernateProxyUtils.getRealClass( object );
+        Class<? extends IdentifiableObject> klass = HibernateProxyUtils.getRealClass( object );
 
         if ( !map.containsKey( klass ) )
         {
@@ -418,7 +417,8 @@ public class TrackerPreheat
         return events.get( identifier ).get( event );
     }
 
-    public void putEvents( TrackerIdScheme identifier, List<ProgramStageInstance> programStageInstances, List<Event> allEntities)
+    public void putEvents( TrackerIdScheme identifier, List<ProgramStageInstance> programStageInstances,
+        List<Event> allEntities )
     {
         putEvents( identifier, programStageInstances );
 
@@ -432,7 +432,7 @@ public class TrackerPreheat
             .forEach( psi -> this.addReference( TrackerType.EVENT, psi ) );
     }
 
-    public void putEvents( TrackerIdScheme identifier, List<ProgramStageInstance> programStageInstances)
+    public void putEvents( TrackerIdScheme identifier, List<ProgramStageInstance> programStageInstances )
     {
         programStageInstances.forEach( psi -> putEvent( identifier, psi.getUid(), psi ) );
     }

@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -34,7 +33,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-import java.util.Date;
+import java.time.Duration;
+import java.time.Instant;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.Program;
@@ -43,7 +43,6 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.hisp.dhis.util.DateUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -79,7 +78,7 @@ public class EnrollmentDateValidationHookTest
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setProgram( CodeGenerator.generateUid() );
-        enrollment.setOccurredAt( DateUtils.getIso8601( new Date() ) );
+        enrollment.setOccurredAt( Instant.now() );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
 
@@ -96,10 +95,10 @@ public class EnrollmentDateValidationHookTest
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setProgram( CodeGenerator.generateUid() );
-        final Date dateInTheFuture = org.apache.commons.lang.time.DateUtils.addDays( new Date(), 2 );
+        final Instant dateInTheFuture = Instant.now().plus( Duration.ofDays( 2 ) );
 
-        enrollment.setOccurredAt( DateUtils.getIso8601( dateInTheFuture ) );
-        enrollment.setEnrolledAt( DateUtils.getIso8601( dateInTheFuture ) );
+        enrollment.setOccurredAt( dateInTheFuture );
+        enrollment.setEnrolledAt( dateInTheFuture );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
 
@@ -117,10 +116,10 @@ public class EnrollmentDateValidationHookTest
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setProgram( CodeGenerator.generateUid() );
-        final Date dateInTheFuture = org.apache.commons.lang.time.DateUtils.addDays( new Date(), 2 );
+        final Instant dateInTheFuture = Instant.now().plus( Duration.ofDays( 2 ) );
 
-        enrollment.setOccurredAt( DateUtils.getIso8601( dateInTheFuture ) );
-        enrollment.setEnrolledAt( DateUtils.getIso8601( dateInTheFuture ) );
+        enrollment.setOccurredAt( dateInTheFuture );
+        enrollment.setEnrolledAt( dateInTheFuture );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
 
@@ -140,7 +139,7 @@ public class EnrollmentDateValidationHookTest
         Enrollment enrollment = new Enrollment();
         enrollment.setProgram( CodeGenerator.generateUid() );
 
-        enrollment.setEnrolledAt( DateUtils.getIso8601( new Date() ) );
+        enrollment.setEnrolledAt( Instant.now() );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
 

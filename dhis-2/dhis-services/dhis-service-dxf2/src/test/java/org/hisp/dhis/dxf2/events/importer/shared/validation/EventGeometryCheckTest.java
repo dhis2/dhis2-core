@@ -1,22 +1,3 @@
-package org.hisp.dhis.dxf2.events.importer.shared.validation;
-
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.mockito.Mockito.when;
-
-import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
-import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.junit.Before;
-import org.junit.Test;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
-
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -44,6 +25,23 @@ import org.locationtech.jts.geom.Point;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.shared.validation;
+
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.mockito.Mockito.when;
+
+import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
+import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.junit.Before;
+import org.junit.Test;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 
 /**
  * @author Luciano Fiandesio

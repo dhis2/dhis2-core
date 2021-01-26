@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.importer;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,9 +25,10 @@ package org.hisp.dhis.dxf2.events.importer;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 
 import java.util.ArrayList;
 import java.util.HashMap;

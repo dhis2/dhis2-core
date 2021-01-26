@@ -1,5 +1,3 @@
-package org.hisp.dhis.reservedvalue;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,32 +25,24 @@ package org.hisp.dhis.reservedvalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.reservedvalue;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.nimbusds.jose.util.BigIntegerUtils;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.textpattern.TextPattern;
-import org.hisp.dhis.textpattern.TextPatternGenerationException;
-import org.hisp.dhis.textpattern.TextPatternMethod;
-import org.hisp.dhis.textpattern.TextPatternMethodUtils;
-import org.hisp.dhis.textpattern.TextPatternSegment;
-import org.hisp.dhis.textpattern.TextPatternService;
-import org.hisp.dhis.textpattern.TextPatternValidationUtils;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.stereotype.Service;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.textpattern.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 
 /**
  * @author Stian Sandvold
@@ -108,9 +98,10 @@ public class DefaultReservedValueService
             valueKey,
             expires );
 
-        if ( (generatedSegment == null || !TextPatternMethod.SEQUENTIAL.equals( generatedSegment.getMethod() )) && !hasEnoughValuesLeft( reservedValue,
-            TextPatternValidationUtils.getTotalValuesPotential( generatedSegment ),
-            numberOfReservations ) )
+        if ( (generatedSegment == null || !TextPatternMethod.SEQUENTIAL.equals( generatedSegment.getMethod() ))
+            && !hasEnoughValuesLeft( reservedValue,
+                TextPatternValidationUtils.getTotalValuesPotential( generatedSegment ),
+                numberOfReservations ) )
         {
             throw new ReserveValueException( "Not enough values left to reserve " + numberOfReservations + " values." );
         }
@@ -228,7 +219,7 @@ public class DefaultReservedValueService
                 .getNextValues( textPattern.getOwnerUid(), key, numberOfValues );
 
             boolean outOfValues = generatedNumbers.stream()
-                .anyMatch(n -> maxValue.intValue() <= n);
+                .anyMatch( n -> maxValue.intValue() <= n );
 
             if ( outOfValues )
             {

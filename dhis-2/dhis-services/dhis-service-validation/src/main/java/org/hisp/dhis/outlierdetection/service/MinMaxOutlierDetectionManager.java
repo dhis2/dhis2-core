@@ -1,5 +1,3 @@
-package org.hisp.dhis.outlierdetection.service;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,14 @@ package org.hisp.dhis.outlierdetection.service;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.outlierdetection.service;
 
 import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.getOrgUnitPathClause;
 import static org.hisp.dhis.period.PeriodType.getIsoPeriod;
 
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -46,11 +47,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
- * Manager for database queries related to outlier data detection
- * based on min-max values.
+ * Manager for database queries related to outlier data detection based on
+ * min-max values.
  *
  * @author Lars Helge Overland
  */
@@ -66,7 +65,8 @@ public class MinMaxOutlierDetectionManager
     }
 
     /**
-     * Returns a list of outlier data values based on min-max values for the given request.
+     * Returns a list of outlier data values based on min-max values for the
+     * given request.
      *
      * @param request the {@link OutlierDetectionRequest}.
      * @return a list of {@link OutlierValue}.
@@ -75,12 +75,14 @@ public class MinMaxOutlierDetectionManager
     {
         final String ouPathClause = getOrgUnitPathClause( request.getOrgUnits() );
 
+        // @formatter:off
         final String sql =
             "select de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, " +
                 "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, " +
                 "pe.startdate as pe_start_date, pt.name as pt_name, " +
-                "dv.value::double precision, " +
-                "least(abs(dv.value::double precision - mm.minimumvalue), abs(dv.value::double precision - mm.maximumvalue)) as bound_abs_dev, " +
+                "dv.value::double precision as value, dv.followup as follow_up, " +
+                "least(abs(dv.value::double precision - mm.minimumvalue), " +
+                "abs(dv.value::double precision - mm.maximumvalue)) as bound_abs_dev, " +
                 "mm.minimumvalue as lower_bound, " +
                 "mm.maximumvalue as upper_bound " +
             "from datavalue dv " +
@@ -90,9 +92,9 @@ public class MinMaxOutlierDetectionManager
             "inner join period pe on dv.periodid = pe.periodid " +
             "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
             "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
-            // Min-max data element join
+            // Min-max value join
             "inner join minmaxdataelement mm on (dv.dataelementid = mm.dataelementid " +
-                "and dv.sourceid = mm.sourceid and dv.categoryoptioncomboid = mm.categoryoptioncomboid) " +
+            "and dv.sourceid = mm.sourceid and dv.categoryoptioncomboid = mm.categoryoptioncomboid) " +
             "where dv.dataelementid in (:data_element_ids) " +
             "and pe.startdate >= :start_date " +
             "and pe.enddate <= :end_date " +
@@ -103,6 +105,7 @@ public class MinMaxOutlierDetectionManager
             // Order and limit
             "order by bound_abs_dev desc " +
             "limit :max_results;";
+        // @formatter:on
 
         final SqlParameterSource params = new MapSqlParameterSource()
             .addValue( "data_element_ids", request.getDataElementIds() )
@@ -118,11 +121,12 @@ public class MinMaxOutlierDetectionManager
         }
         catch ( DataIntegrityViolationException ex )
         {
-            // Casting non-numeric data to double, catching exception is faster than filtering
+            // Casting non-numeric data to double, catching exception is faster
+            // than filtering
 
-            log.error( ErrorCode.E2207.getMessage(), ex );
+            log.error( ErrorCode.E2208.getMessage(), ex );
 
-            throw new IllegalQueryException( ErrorCode.E2207 );
+            throw new IllegalQueryException( ErrorCode.E2208 );
         }
     }
 
@@ -153,6 +157,7 @@ public class MinMaxOutlierDetectionManager
             outlier.setAbsDev( rs.getDouble( "bound_abs_dev" ) );
             outlier.setLowerBound( rs.getDouble( "lower_bound" ) );
             outlier.setUpperBound( rs.getDouble( "upper_bound" ) );
+            outlier.setFollowUp( rs.getBoolean( "follow_up" ) );
 
             return outlier;
         };

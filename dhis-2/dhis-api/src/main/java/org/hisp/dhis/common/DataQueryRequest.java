@@ -1,5 +1,3 @@
-package org.hisp.dhis.common;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 import java.util.Date;
 import java.util.Set;
@@ -86,6 +85,10 @@ public class DataQueryRequest
     protected DisplayProperty displayProperty;
 
     protected IdScheme outputIdScheme;
+
+    protected IdScheme outputDataElementIdScheme;
+
+    protected IdScheme outputOrgUnitIdScheme;
 
     protected IdScheme inputIdScheme;
 
@@ -212,6 +215,16 @@ public class DataQueryRequest
     public IdScheme getOutputIdScheme()
     {
         return outputIdScheme;
+    }
+
+    public IdScheme getOutputDataElementIdScheme()
+    {
+        return outputDataElementIdScheme;
+    }
+
+    public IdScheme getOutputOrgUnitIdScheme()
+    {
+        return outputOrgUnitIdScheme;
     }
 
     public IdScheme getInputIdScheme()
@@ -410,6 +423,18 @@ public class DataQueryRequest
             return this;
         }
 
+        public DataQueryRequestBuilder outputDataElementIdScheme( IdScheme outputDataElementIdScheme )
+        {
+            this.request.outputDataElementIdScheme = outputDataElementIdScheme;
+            return this;
+        }
+
+        public DataQueryRequestBuilder outputOrgUnitIdScheme( IdScheme outputOrgUnitIdScheme )
+        {
+            this.request.outputOrgUnitIdScheme = outputOrgUnitIdScheme;
+            return this;
+        }
+
         public DataQueryRequestBuilder inputIdScheme( IdScheme inputIdScheme )
         {
             this.request.inputIdScheme = inputIdScheme;
@@ -439,6 +464,7 @@ public class DataQueryRequest
             this.request.userOrgUnitType = userOrgUnitType;
             return this;
         }
+
         public DataQueryRequestBuilder apiVersion( DhisApiVersion apiVersion )
         {
             this.request.apiVersion = apiVersion;
@@ -482,6 +508,8 @@ public class DataQueryRequest
             this.request.order = criteria.getOrder();
             this.request.orgUnitField = criteria.getOrgUnitField();
             this.request.outputIdScheme = criteria.getOutputIdScheme();
+            this.request.outputOrgUnitIdScheme = criteria.getOutputOrgUnitIdScheme();
+            this.request.outputDataElementIdScheme = criteria.getOutputDataElementIdScheme();
             this.request.preAggregationMeasureCriteria = criteria.getPreAggregationMeasureCriteria();
             this.request.relativePeriodDate = criteria.getRelativePeriodDate();
             this.request.showHierarchy = criteria.isShowHierarchy();

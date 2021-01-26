@@ -1,5 +1,3 @@
-package org.hisp.dhis.period;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,14 +25,15 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
 
-import com.google.common.collect.Lists;
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * PeriodType for yearly Periods. A valid yearly Period has startDate set to
@@ -104,7 +103,7 @@ public class YearlyPeriodType
     // -------------------------------------------------------------------------
     // CalendarPeriodType functionality
     // -------------------------------------------------------------------------
-    
+
     @Override
     public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
     {

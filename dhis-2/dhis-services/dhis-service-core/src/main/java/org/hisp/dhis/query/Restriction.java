@@ -1,5 +1,3 @@
-package org.hisp.dhis.query;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,12 @@ package org.hisp.dhis.query;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query;
+
+import javax.persistence.criteria.Predicate;
 
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.QueryPath;
-
-import javax.persistence.criteria.Predicate;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -39,7 +38,8 @@ import javax.persistence.criteria.Predicate;
 public class Restriction implements Criterion
 {
     /**
-     * Path to property you want to restrict only, one first-level properties are currently supported.
+     * Path to property you want to restrict only, one first-level properties
+     * are currently supported.
      */
     private String path;
 

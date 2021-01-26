@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
@@ -77,7 +76,8 @@ public class SharingControllerTest
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Test( expected = AccessDeniedException.class )
-    public void notSystemDefaultMetadataNoAccess() throws Exception
+    public void notSystemDefaultMetadataNoAccess()
+        throws Exception
     {
         final OrganisationUnit organisationUnit = new OrganisationUnit();
 
@@ -89,7 +89,8 @@ public class SharingControllerTest
     }
 
     @Test( expected = AccessDeniedException.class )
-    public void systemDefaultMetadataNoAccess() throws Exception
+    public void systemDefaultMetadataNoAccess()
+        throws Exception
     {
         final Category category = new Category();
         category.setName( Category.DEFAULT_NAME + "x" );
@@ -102,7 +103,8 @@ public class SharingControllerTest
     }
 
     @Test( expected = WebMessageException.class )
-    public void systemDefaultMetadata() throws Exception
+    public void systemDefaultMetadata()
+        throws Exception
     {
         final Category category = new Category();
         category.setName( Category.DEFAULT_NAME );
@@ -117,7 +119,8 @@ public class SharingControllerTest
         }
         catch ( WebMessageException e )
         {
-            assertThat( e.getWebMessage().getMessage(), containsString( "Sharing settings of system default metadata object" ) );
+            assertThat( e.getWebMessage().getMessage(),
+                containsString( "Sharing settings of system default metadata object" ) );
             throw e;
         }
     }

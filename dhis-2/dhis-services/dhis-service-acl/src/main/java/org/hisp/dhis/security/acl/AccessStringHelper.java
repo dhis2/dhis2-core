@@ -1,5 +1,3 @@
-package org.hisp.dhis.security.acl;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.security.acl;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.acl;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.springframework.util.Assert;
@@ -40,8 +39,10 @@ public class AccessStringHelper
 {
     public enum Permission
     {
-        READ( 'r', 0 ), WRITE( 'w', 1 ),
-        DATA_READ( 'r', 2 ), DATA_WRITE( 'w', 3 );
+        READ( 'r', 0 ),
+        WRITE( 'w', 1 ),
+        DATA_READ( 'r', 2 ),
+        DATA_WRITE( 'w', 3 );
 
         private char value;
 
@@ -68,9 +69,11 @@ public class AccessStringHelper
 
     public static final String DEFAULT = "--------";
 
-    //This should be used only when creating a default CategoryOption
+    // This should be used only when creating a default CategoryOption
     public static final String CATEGORY_OPTION_DEFAULT = "rwrw----";
-    //This should be used only when creating a default Category, CategoryCombo and CategoryOptionCombo
+
+    // This should be used only when creating a default Category, CategoryCombo
+    // and CategoryOptionCombo
     public static final String CATEGORY_NO_DATA_SHARING_DEFAULT = "rw------";
 
     public static final String READ = AccessStringHelper.newInstance()
@@ -196,7 +199,8 @@ public class AccessStringHelper
 
     public static boolean isEnabled( String access, Permission permission )
     {
-        return access == null || (validateAccessString( access ) && access.charAt( permission.getPosition() ) == permission.getValue());
+        return access == null
+            || (validateAccessString( access ) && access.charAt( permission.getPosition() ) == permission.getValue());
     }
 
     public static boolean isValid( String access )
@@ -234,6 +238,7 @@ public class AccessStringHelper
 
     public static String disableDataSharing( String access )
     {
-       return AccessStringHelper.newInstance( access.toCharArray() ).disable( Permission.DATA_READ ).disable( Permission.DATA_WRITE ).toString();
+        return AccessStringHelper.newInstance( access.toCharArray() ).disable( Permission.DATA_READ )
+            .disable( Permission.DATA_WRITE ).toString();
     }
 }

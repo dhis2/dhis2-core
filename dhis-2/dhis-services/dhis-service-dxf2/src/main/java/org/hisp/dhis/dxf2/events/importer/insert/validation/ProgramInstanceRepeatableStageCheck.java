@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.importer.insert.validation;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.insert.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
@@ -48,28 +47,28 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class ProgramInstanceRepeatableStageCheck implements Checker
 {
     @Override
-    public ImportSummary check(ImmutableEvent event, WorkContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
         ProgramStage programStage = ctx.getProgramStage( scheme, event.getProgramStage() );
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
         Program program = ctx.getProgramsMap().get( event.getProgram() );
         TrackedEntityInstance tei = null;
-        
+
         if ( program.isRegistration() )
         {
             tei = ctx.getTrackedEntityInstanceMap().get( event.getUid() ).getLeft();
         }
 
         /*
-         * ProgramInstance should never be null. If it's null, the ProgramInstanceCheck
-         * should report this anomaly.
+         * ProgramInstance should never be null. If it's null, the
+         * ProgramInstanceCheck should report this anomaly.
          */
         // @formatter:off
-        if ( programInstance != null && 
+        if ( programInstance != null &&
              tei != null &&
-             program.isRegistration() && 
-             !programStage.getRepeatable() && 
+             program.isRegistration() &&
+             !programStage.getRepeatable() &&
              hasProgramStageInstance( ctx.getServiceDelegator().getJdbcTemplate(), programStage.getId(), tei.getId() ) )
         {
             return new ImportSummary( ImportStatus.ERROR,
@@ -81,7 +80,8 @@ public class ProgramInstanceRepeatableStageCheck implements Checker
         return success();
     }
 
-    private boolean hasProgramStageInstance( JdbcTemplate jdbcTemplate, long programStageId, long trackedEntityInstanceId )
+    private boolean hasProgramStageInstance( JdbcTemplate jdbcTemplate, long programStageId,
+        long trackedEntityInstanceId )
     {
         // @formatter:off
         final String sql = "select exists( " +

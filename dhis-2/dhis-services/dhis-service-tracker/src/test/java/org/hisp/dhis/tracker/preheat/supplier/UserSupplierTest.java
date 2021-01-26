@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat.supplier;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat.supplier;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -78,17 +77,17 @@ public class UserSupplierTest
         events.forEach( e -> e.setAssignedUser( CodeGenerator.generateUid() ) );
         final List<User> users = rnd.randomObjects( User.class, 5 );
         final List<String> userIds = events.stream().map( Event::getAssignedUser )
-                .collect( Collectors.toList() );
+            .collect( Collectors.toList() );
 
         IntStream.range( 0, 5 )
-                .forEach( i -> users.get( i ).setUid( events.get( i ).getAssignedUser() ) );
+            .forEach( i -> users.get( i ).setUid( events.get( i ).getAssignedUser() ) );
 
         when( manager.getByUid( eq( User.class ),
-                argThat( t -> t.containsAll( userIds ) ) ) ).thenReturn( users );
+            argThat( t -> t.containsAll( userIds ) ) ) ).thenReturn( users );
 
         final TrackerImportParams params = TrackerImportParams.builder()
-                .events( events )
-                .build();
+            .events( events )
+            .build();
 
         TrackerPreheat preheat = new TrackerPreheat();
         this.supplier.preheatAdd( params, preheat );

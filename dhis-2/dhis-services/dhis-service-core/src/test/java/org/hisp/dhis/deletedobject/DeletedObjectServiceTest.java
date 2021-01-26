@@ -1,5 +1,3 @@
-package org.hisp.dhis.deletedobject;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,16 @@ package org.hisp.dhis.deletedobject;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.deletedobject;
+
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -34,15 +42,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static org.awaitility.Awaitility.await;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

@@ -1,5 +1,3 @@
-package org.hisp.dhis.analytics.data;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.data;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.singletonList;
@@ -195,7 +194,9 @@ public class AnalyticsServiceReportingRateTest
 
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
             eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( null ) ); // NO TARGET RETURNED
+                .thenReturn( CompletableFuture.completedFuture( null ) ); // NO
+                                                                          // TARGET
+                                                                          // RETURNED
 
         Grid grid = target.getAggregatedDataValueGrid( params );
 
@@ -233,7 +234,8 @@ public class AnalyticsServiceReportingRateTest
         Map<String, Object> targets = new HashMap<>();
         targets.put( dataSetA.getUid() + "-" + "201902", 1D );
 
-        // Response for COMPLETENESS - set the completeness value to the same number of
+        // Response for COMPLETENESS - set the completeness value to the same
+        // number of
         // days of the selected month
         Map<String, Object> actuals = new HashMap<>();
         actuals.put( dataSetA.getUid() + "-" + "201902", 28D );
@@ -280,7 +282,8 @@ public class AnalyticsServiceReportingRateTest
         Map<String, Object> targets = new HashMap<>();
         targets.put( dataSetA.getUid() + "-" + "201901", 1D );
 
-        // Response for COMPLETENESS - set the completeness value to the same number of
+        // Response for COMPLETENESS - set the completeness value to the same
+        // number of
         // days of the selected month
         Map<String, Object> actuals = new HashMap<>();
         actuals.put( dataSetA.getUid() + "-" + "201901", 31D );

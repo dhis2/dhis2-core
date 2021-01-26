@@ -1,5 +1,3 @@
-package org.hisp.dhis.analytics.orgunit;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.orgunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.orgunit;
 
 import java.util.Map;
 
@@ -36,8 +35,8 @@ import java.util.Map;
 public interface OrgUnitAnalyticsManager
 {
     /**
-     * Returns a data map with a composite metadata key and an org unit count
-     * as value for the given parameters.
+     * Returns a data map with a composite metadata key and an org unit count as
+     * value for the given parameters.
      *
      * @param params the {@link OrgUnitQueryParams}.
      */

@@ -1,5 +1,3 @@
-package org.hisp.dhis.organisationunit;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.organisationunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.organisationunit;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -61,6 +60,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.user.User;
+import org.locationtech.jts.geom.Geometry;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -70,7 +70,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Kristian Nordal
@@ -78,7 +77,7 @@ import org.locationtech.jts.geom.Geometry;
 @JacksonXmlRootElement( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnit
     extends BaseDimensionalItemObject
-        implements MetadataObject, CoordinateObject
+    implements MetadataObject, CoordinateObject
 {
     private static final String PATH_SEP = "/";
 
@@ -150,7 +149,8 @@ public class OrganisationUnit
 
     public OrganisationUnit()
     {
-        setAutoFields(); // Must be set to get UID and have getPath work properly
+        setAutoFields(); // Must be set to get UID and have getPath work
+                         // properly
     }
 
     public OrganisationUnit( String name )
@@ -502,10 +502,11 @@ public class OrganisationUnit
     }
 
     /**
-     * Returns the list of ancestor organisation units for this organisation unit.
-     * Does not include itself. The list is ordered by root first.
+     * Returns the list of ancestor organisation units for this organisation
+     * unit. Does not include itself. The list is ordered by root first.
      *
-     * @throws IllegalStateException if circular parent relationships is detected.
+     * @throws IllegalStateException if circular parent relationships is
+     *         detected.
      */
     @JsonProperty( "ancestors" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
@@ -535,9 +536,9 @@ public class OrganisationUnit
     }
 
     /**
-     * Returns the list of ancestor organisation units up to any of the given roots
-     * for this organisation unit. Does not include itself. The list is ordered by
-     * root first.
+     * Returns the list of ancestor organisation units up to any of the given
+     * roots for this organisation unit. Does not include itself. The list is
+     * ordered by root first.
      *
      * @param roots the root organisation units, if null using real roots.
      */
@@ -563,8 +564,9 @@ public class OrganisationUnit
     }
 
     /**
-     * Returns the list of ancestor organisation unit names up to any of the given
-     * roots for this organisation unit. The list is ordered by root first.
+     * Returns the list of ancestor organisation unit names up to any of the
+     * given roots for this organisation unit. The list is ordered by root
+     * first.
      *
      * @param roots the root organisation units, if null using real roots.
      */
@@ -596,9 +598,9 @@ public class OrganisationUnit
     }
 
     /**
-     * Returns the list of ancestor organisation unit UIDs up to any of the given
-     * roots for this organisation unit. Does not include itself. The list is
-     * ordered by root first.
+     * Returns the list of ancestor organisation unit UIDs up to any of the
+     * given roots for this organisation unit. Does not include itself. The list
+     * is ordered by root first.
      *
      * @param rootUids the root organisation units, if null using real roots.
      */
@@ -609,7 +611,11 @@ public class OrganisationUnit
             return Lists.newArrayList();
         }
 
-        String[] ancestors = path.substring( 1 ).split( PATH_SEP ); // Skip first delimiter, root unit first
+        String[] ancestors = path.substring( 1 ).split( PATH_SEP ); // Skip
+                                                                    // first
+                                                                    // delimiter,
+                                                                    // root unit
+                                                                    // first
         int lastIndex = ancestors.length - 2; // Skip this unit
         List<String> uids = Lists.newArrayList();
 
@@ -668,8 +674,9 @@ public class OrganisationUnit
     }
 
     /**
-     * Returns a string representing the graph of ancestors. The string is delimited
-     * by "/". The ancestors are ordered by root first and represented by UIDs.
+     * Returns a string representing the graph of ancestors. The string is
+     * delimited by "/". The ancestors are ordered by root first and represented
+     * by UIDs.
      *
      * @param roots the root organisation units, if null using real roots.
      */
@@ -681,11 +688,13 @@ public class OrganisationUnit
     }
 
     /**
-     * Returns a string representing the graph of ancestors. The string is delimited
-     * by "/". The ancestors are ordered by root first and represented by names.
+     * Returns a string representing the graph of ancestors. The string is
+     * delimited by "/". The ancestors are ordered by root first and represented
+     * by names.
      *
      * @param roots the root organisation units, if null using real roots.
-     * @param includeThis whether to include this organisation unit in the graph.
+     * @param includeThis whether to include this organisation unit in the
+     *        graph.
      */
     public String getParentNameGraph( Collection<OrganisationUnit> roots, boolean includeThis )
     {
@@ -747,8 +756,8 @@ public class OrganisationUnit
     }
 
     /**
-     * Indicates whether this organisation unit is associated with the given data
-     * element through its data set associations.
+     * Indicates whether this organisation unit is associated with the given
+     * data element through its data set associations.
      */
     public boolean hasDataElement( DataElement dataElement )
     {
@@ -764,8 +773,8 @@ public class OrganisationUnit
     }
 
     /**
-     * Indicates whether this organisation unit has at least one associated category
-     * option.
+     * Indicates whether this organisation unit has at least one associated
+     * category option.
      */
     public boolean hasCategoryOptions()
     {
@@ -834,9 +843,9 @@ public class OrganisationUnit
     }
 
     /**
-     * Used by persistence layer. Purpose is to have a column for use in database
-     * queries. For application use see {@link OrganisationUnit#getLevel()} which
-     * has better performance.
+     * Used by persistence layer. Purpose is to have a column for use in
+     * database queries. For application use see
+     * {@link OrganisationUnit#getLevel()} which has better performance.
      */
     public Integer getHierarchyLevel()
     {

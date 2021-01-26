@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.report;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,18 +25,19 @@ package org.hisp.dhis.tracker.report;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.report;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Data;
+
 import org.hisp.dhis.tracker.TrackerType;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.Data;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -77,9 +76,10 @@ public class TrackerObjectReport
         this.uid = uid;
         this.index = index;
     }
-    
+
     @JsonCreator
-    public TrackerObjectReport( @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid, @JsonProperty( "index" ) Integer index,
+    public TrackerObjectReport( @JsonProperty( "trackerType" ) TrackerType trackerType,
+        @JsonProperty( "uid" ) String uid, @JsonProperty( "index" ) Integer index,
         @JsonProperty( "errorReports" ) List<TrackerErrorReport> errorReports )
     {
         this.trackerType = trackerType;
@@ -102,7 +102,6 @@ public class TrackerObjectReport
         }
     }
 
-
     @JsonProperty
     public List<TrackerErrorReport> getErrorReports()
     {
@@ -112,9 +111,9 @@ public class TrackerObjectReport
         return errorReports;
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Utility Methods
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     public boolean isEmpty()
     {

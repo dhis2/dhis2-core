@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat.supplier;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat.supplier;
 
 import java.beans.Introspector;
 import java.util.ArrayList;
@@ -37,6 +36,7 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -69,8 +69,8 @@ public class ClassBasedSupplier
     private final TrackerIdentifierCollector identifierCollector;
 
     /**
-     * A Map correlating a Tracker class name to the Preheat strategy class name to
-     * use to load the data
+     * A Map correlating a Tracker class name to the Preheat strategy class name
+     * to use to load the data
      */
     private Map<String, String> classStrategies;
 
@@ -87,9 +87,9 @@ public class ClassBasedSupplier
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
         /*
-         * Collects all references from the payload and create a Map where key is the
-         * reference type (e.g. Enrollment) and the value is a Set of identifiers (e.g.
-         * a list of all Enrollment UIDs found in the payload)
+         * Collects all references from the payload and create a Map where key
+         * is the reference type (e.g. Enrollment) and the value is a Set of
+         * identifiers (e.g. a list of all Enrollment UIDs found in the payload)
          */
         Map<Class<?>, Set<String>> identifierMap = identifierCollector.collect( params, preheat.getDefaults() );
 

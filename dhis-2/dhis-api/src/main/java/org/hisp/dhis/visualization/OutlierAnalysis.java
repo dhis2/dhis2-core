@@ -1,5 +1,3 @@
-package org.hisp.dhis.visualization;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,18 +25,20 @@ package org.hisp.dhis.visualization;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.visualization;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import java.io.Serializable;
 
+import lombok.Data;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-import lombok.Data;
-
 /**
- * Class responsible for keeping the settings related to outlier analysis in Visualization.
+ * Class responsible for keeping the settings related to outlier analysis in
+ * Visualization.
  */
 @Data
 public class OutlierAnalysis implements Serializable

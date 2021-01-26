@@ -1,5 +1,3 @@
-package org.hisp.dhis.dataset;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.dataset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataset;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -99,8 +98,8 @@ public class DataSetTest
 
         Indicator indicatorA = new Indicator();
         Indicator indicatorB = new Indicator();
-        indicatorA.setName( "Indicator A");
-        indicatorB.setName( "Indicator B");
+        indicatorA.setName( "Indicator A" );
+        indicatorB.setName( "Indicator B" );
 
         dsA.addIndicator( indicatorA );
 
