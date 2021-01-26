@@ -135,7 +135,7 @@ public class EnrollmentTrackerConverterService
             programInstance.setLastUpdated( now );
             programInstance.setCreatedAtClient( Date.from( enrollment.getCreatedAtClient() ) );
             programInstance.setLastUpdatedAtClient( Date.from( enrollment.getUpdatedAtClient() ) );
-           
+
             Date enrollmentDate = DateUtils.fromInstant( enrollment.getEnrolledAt() );
             Date incidentDate = DateUtils.fromInstant( enrollment.getOccurredAt() );
 
