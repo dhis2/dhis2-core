@@ -220,7 +220,7 @@ public class DataValidatorTest
     public void testInvalidPeriod()
     {
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
-            () -> dataValidator.getAndValidatePeriod( "05020213" ) );
+            () -> dataValidator.getAndValidatePeriod( "502" ) );
 
         assertEquals( ErrorCode.E1101, ex.getErrorCode() );
     }
