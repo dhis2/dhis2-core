@@ -27,13 +27,10 @@
  */
 package org.hisp.dhis.patch;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collection;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -49,10 +46,12 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -194,7 +193,7 @@ public class PatchServiceTest
 
         Patch patch = new Patch()
             .addMutation( new Mutation( "name", "Updated Name" ) )
-            .addMutation( new Mutation( "user", user.getUid() ) )
+            .addMutation( new Mutation( "createdBy", user.getUid() ) )
             .addMutation( new Mutation( "domainType", "TRACKER" ) )
             .addMutation( new Mutation( "valueType", "BOOLEAN" ) );
 
