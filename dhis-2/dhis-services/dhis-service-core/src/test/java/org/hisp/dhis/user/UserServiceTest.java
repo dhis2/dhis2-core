@@ -211,6 +211,62 @@ public class UserServiceTest
     }
 
     @Test
+    public void testUserByQuery()
+    {
+        systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
+
+        User userA = createUser( 'A' );
+        User userB = createUser( 'B' );
+
+        userA.setFirstName( "Chris" );
+        userB.setFirstName( "Chris" );
+
+        userService.addUser( userA );
+        userService.addUser( userB );
+
+        userService.addUserCredentials( userA.getUserCredentials() );
+        userService.addUserCredentials( userB.getUserCredentials() );
+
+        List<User> users = userService.getUsers( new UserQueryParams().setQuery( "Chris" ) );
+
+        assertEquals( 2, users.size() );
+        assertTrue( users.contains( userA ) );
+        assertTrue( users.contains( userB ) );
+
+        users = userService.getUsers( new UserQueryParams().setQuery( "hris SURNAM" ) );
+
+        assertEquals( 2, users.size() );
+        assertTrue( users.contains( userA ) );
+        assertTrue( users.contains( userB ) );
+
+        users = userService.getUsers( new UserQueryParams().setQuery( "hris SurnameA" ) );
+
+        assertEquals( 1, users.size() );
+        assertTrue( users.contains( userA ) );
+
+        users = userService.getUsers( new UserQueryParams().setQuery( "urnameB" ) );
+
+        assertEquals( 1, users.size() );
+        assertTrue( users.contains( userB ) );
+
+        users = userService.getUsers( new UserQueryParams().setQuery( "MAilA" ) );
+
+        assertEquals( 1, users.size() );
+        assertTrue( users.contains( userA ) );
+
+        users = userService.getUsers( new UserQueryParams().setQuery( "userNAME" ) );
+
+        assertEquals( 2, users.size() );
+        assertTrue( users.contains( userA ) );
+        assertTrue( users.contains( userB ) );
+
+        users = userService.getUsers( new UserQueryParams().setQuery( "ernameA" ) );
+
+        assertEquals( 1, users.size() );
+        assertTrue( users.contains( userA ) );
+    }
+
+    @Test
     public void testUserByOrgUnits()
     {
         // Set to avoid the "disjoint" user role constraint internally

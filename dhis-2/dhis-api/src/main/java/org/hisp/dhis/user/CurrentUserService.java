@@ -55,8 +55,7 @@ public interface CurrentUserService
      */
     User getCurrentUser();
 
-    User getCurrentUserInTransaction()
-        throws Exception;
+    User getCurrentUserInTransaction();
 
     /**
      * @return the user info for the currently logged in user. If no user is

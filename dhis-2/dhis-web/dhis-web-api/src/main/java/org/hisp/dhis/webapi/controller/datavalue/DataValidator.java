@@ -27,6 +27,18 @@
  */
 package org.hisp.dhis.webapi.controller.datavalue;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.fileresource.FileResourceDomain.DATA_VALUE;
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
+
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -52,18 +64,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import java.util.Date;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
-import static org.hisp.dhis.fileresource.FileResourceDomain.DATA_VALUE;
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
-import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
 
 /**
  * This a simple component responsible for extracting and encapsulating
@@ -439,7 +439,6 @@ class DataValidator
                         "result was: '%s'", validationResult ) ) );
             }
         }
-
 
         fileResource.setAssigned( true );
 
