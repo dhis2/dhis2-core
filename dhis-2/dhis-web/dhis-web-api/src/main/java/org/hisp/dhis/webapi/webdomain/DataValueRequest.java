@@ -25,14 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.datavalue;
+package org.hisp.dhis.webapi.webdomain;
 
 import lombok.Data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Class representing the unique properties of a data value.
+ *
+ * @author Lars Helge Overland
+ */
 @Data
-public class DataValueDto
+public class DataValueRequest
 {
     @JsonProperty
     private String dataElement;
@@ -48,25 +53,4 @@ public class DataValueDto
 
     @JsonProperty
     private String attributeOptionCombo;
-
-    @JsonProperty
-    private String value;
-
-    @JsonProperty
-    private String storedBy;
-
-    @JsonProperty
-    private String created;
-
-    @JsonProperty
-    private String lastUpdated;
-
-    @JsonProperty
-    private String comment;
-
-    @JsonProperty
-    private Boolean followup;
-
-    @JsonProperty
-    private Boolean deleted;
 }

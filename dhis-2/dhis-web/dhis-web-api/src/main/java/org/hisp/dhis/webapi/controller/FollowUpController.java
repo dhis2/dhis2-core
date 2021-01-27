@@ -34,7 +34,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.webdomain.datavalue.DataValueDto;
+import org.hisp.dhis.webapi.webdomain.DataValueRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,9 +53,9 @@ public class FollowUpController
 
     @PostMapping( value = "/followup/dataValues" )
     @ResponseStatus( value = HttpStatus.OK )
-    public void setDataValueFollowUp( @RequestBody DataValueDto dataValueDto )
+    public void setDataValueFollowUp( @RequestBody DataValueRequest dataValueRequest )
     {
-        DataValue dataValue = dataValidator.getAndValidateDataValue( dataValueDto );
+        DataValue dataValue = dataValidator.getAndValidateDataValue( dataValueRequest );
 
         if ( !dataValue.isFollowup() )
         {
@@ -66,9 +66,9 @@ public class FollowUpController
 
     @DeleteMapping( value = "/followup/dataValues" )
     @ResponseStatus( value = HttpStatus.OK )
-    public void removeDataValueFollowUp( @RequestBody DataValueDto dataValueDto )
+    public void removeDataValueFollowUp( @RequestBody DataValueRequest dataValueRequest )
     {
-        DataValue dataValue = dataValidator.getAndValidateDataValue( dataValueDto );
+        DataValue dataValue = dataValidator.getAndValidateDataValue( dataValueRequest );
 
         if ( dataValue.isFollowup() )
         {
