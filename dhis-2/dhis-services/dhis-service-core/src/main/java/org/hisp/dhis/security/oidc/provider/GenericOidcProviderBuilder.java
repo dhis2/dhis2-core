@@ -34,15 +34,15 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
-
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.AuthenticationMethod;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -86,7 +86,7 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
             .redirectUri( Optional.ofNullable( config.get( REDIRECT_URL ) ).orElse( DEFAULT_REDIRECT_TEMPLATE_URL ) );
         builder.userInfoAuthenticationMethod( AuthenticationMethod.HEADER );
         builder.userNameAttributeName( IdTokenClaimNames.SUB );
-        builder.scope( ImmutableList.<String>builder().add( DEFAULT_SCOPE )
+        builder.scope( ImmutableList.<String> builder().add( DEFAULT_SCOPE )
             .add( Optional.ofNullable( config.get( SCOPES ) ).orElse( "" ).split( " " ) ).build() );
         builder.providerConfigurationMetadata( parseMetaData( config ) );
 
@@ -105,10 +105,12 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
 
         String extraReqParams = Optional.ofNullable( config.get( EXTRA_REQUEST_PARAMETERS ) ).orElse( "" );
 
-        // Extra req. params has to be in this form: acr_value 4,test_param five (PARAM1_NAME VALUE1,PARAM2_NAME VALUE2)
+        // Extra req. params has to be in this form: acr_value 4,test_param five
+        // (PARAM1_NAME VALUE1,PARAM2_NAME VALUE2)
         Map<String, String> extraReqParamMap = Arrays
             .stream( extraReqParams.split( "," ) )
-            .filter( s -> s.trim().split( " " ).length == 2 ) // must be in pairs (2)...
+            .filter( s -> s.trim().split( " " ).length == 2 ) // must be in
+                                                              // pairs (2)...
             .map( s -> Pair.of(
                 s.trim().split( " " )[0],
                 s.trim().split( " " )[1] ) )

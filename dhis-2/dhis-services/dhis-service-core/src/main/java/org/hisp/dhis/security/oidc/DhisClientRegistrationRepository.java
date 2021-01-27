@@ -28,7 +28,6 @@
 package org.hisp.dhis.security.oidc;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,7 +38,6 @@ import org.hisp.dhis.security.oidc.provider.AzureAdProvider;
 import org.hisp.dhis.security.oidc.provider.GenericOidcProviderBuilder;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
 import org.hisp.dhis.security.oidc.provider.Wso2Provider;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -61,12 +59,10 @@ public class DhisClientRegistrationRepository
     @PostConstruct
     public void init()
     {
-        List<Map<String, String>> genericOidcProviderConfigs = GenericOidcProviderConfigParser
-            .parse( config.getProperties() );
-
-        genericOidcProviderConfigs.forEach(
-            genericOidcProviderConfig -> addRegistration( GenericOidcProviderBuilder.build( genericOidcProviderConfig ) ) );
-
+        // Parses the DHIS.conf file for OIDC provider configurations
+        GenericOidcProviderConfigParser.parse( config.getProperties() ).forEach(
+            genericOidcProviderConfig -> addRegistration(
+                GenericOidcProviderBuilder.build( genericOidcProviderConfig ) ) );
         addRegistration( GoogleProvider.build( config ) );
         AzureAdProvider.buildList( config ).forEach( this::addRegistration );
         addRegistration( Wso2Provider.build( config ) );

@@ -55,13 +55,15 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.validator.routines.UrlValidator;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * Parses the DHIS.conf file for valid generic OIDC provider configuration(s).
@@ -74,8 +76,10 @@ public final class GenericOidcProviderConfigParser
 {
     public static final String OIDC_PROVIDER_PREFIX = "oidc.provider.";
 
-    // OIDC provider config properties lines starting with these client names will be ignored by this parser,
-    // these clients/providers have their own respective provider classes and config parsers.
+    // OIDC provider config properties lines starting with these client names
+    // will be ignored by this parser,
+    // these clients/providers have their own respective provider classes and
+    // config parsers.
     private static final Set<String> RESERVED_PROVIDER_IDS = ImmutableSet.of(
         "azure",
         "google",
@@ -111,13 +115,15 @@ public final class GenericOidcProviderConfigParser
     private static final Set<String> VALID_KEY_NAMES = KEY_REQUIRED_MAP.keySet();
 
     /**
-     * Parses the DHIS.conf file for valid OIDC provider configuration(s). See the DHIS2 manual for how to configure a
-     * OIDC provider correctly.
+     * Parses the DHIS.conf file for valid OIDC provider configuration(s). See
+     * the DHIS2 manual for how to configure a OIDC provider correctly.
      *
      * @param properties The config file Properties object
      *
-     * @return A List of maps for each successfully parsed provider with corresponding key/values, the valid
-     * configuration property keys are defined in {@link org.hisp.dhis.security.oidc.provider.AbstractOidcProvider}
+     * @return A List of maps for each successfully parsed provider with
+     *         corresponding key/values, the valid configuration property keys
+     *         are defined in
+     *         {@link org.hisp.dhis.security.oidc.provider.AbstractOidcProvider}
      */
     public static List<Map<String, String>> parse( Properties properties )
     {
@@ -173,7 +179,8 @@ public final class GenericOidcProviderConfigParser
     }
 
     /**
-     * Makes sure that all required properties are present in the providerConfig map
+     * Makes sure that all required properties are present in the providerConfig
+     * map
      *
      * @param providerConfig map of config
      *
