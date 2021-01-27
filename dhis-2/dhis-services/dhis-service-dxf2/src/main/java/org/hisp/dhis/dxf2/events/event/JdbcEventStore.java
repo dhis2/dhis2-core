@@ -1500,7 +1500,7 @@ public class JdbcEventStore implements EventStore
                 if ( QUERY_PARAM_COL_MAP.containsKey( order.getField() ) )
                 {
                     String orderText = QUERY_PARAM_COL_MAP.get( order.getField() );
-                    orderText += " " + order.getDirection().getValue();
+                    orderText += " " + (order.getDirection().isAscending() ? "asc" : "desc");
                     orderFields.add( orderText );
                 }
             }

@@ -74,5 +74,10 @@ public class OrderParam
                 .findFirst()
                 .orElse( defaultSortingDirection );
         }
+
+        public boolean isAscending()
+        {
+            return this.equals( ASC ) || this.equals( IASC );
+        }
     }
 }

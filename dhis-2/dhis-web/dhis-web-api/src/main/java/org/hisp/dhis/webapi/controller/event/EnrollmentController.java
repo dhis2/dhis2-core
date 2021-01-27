@@ -67,6 +67,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.webapi.controller.event.mapper.EnrollmentCriteriaMapper;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -117,6 +118,9 @@ public class EnrollmentController
     @Autowired
     private WebMessageService webMessageService;
 
+    @Autowired
+    private EnrollmentCriteriaMapper enrollmentCriteriaMapper;
+
     // -------------------------------------------------------------------------
     // READ
     // -------------------------------------------------------------------------
@@ -160,7 +164,7 @@ public class EnrollmentController
 
         if ( enrollment == null )
         {
-            ProgramInstanceQueryParams params = programInstanceService.getFromUrl( orgUnits, ouMode, lastUpdated,
+            ProgramInstanceQueryParams params = enrollmentCriteriaMapper.getFromUrl( orgUnits, ouMode, lastUpdated,
                 lastUpdatedDuration, program, programStatus, programStartDate, programEndDate, trackedEntityType,
                 trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging, includeDeleted );
 

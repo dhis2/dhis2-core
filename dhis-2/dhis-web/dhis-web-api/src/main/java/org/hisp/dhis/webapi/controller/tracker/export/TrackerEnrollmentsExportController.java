@@ -50,6 +50,8 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.mapper.EnrollmentMapper;
 import org.hisp.dhis.tracker.domain.web.PagingWrapper;
+import org.hisp.dhis.webapi.controller.event.mapper.EnrollmentCriteriaMapper;
+import org.hisp.dhis.webapi.controller.event.webrequest.EnrollmentCriteria;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.mapstruct.factory.Mappers;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -65,46 +67,22 @@ public class TrackerEnrollmentsExportController
 {
     protected final static String ENROLLMENTS = "enrollments";
 
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentCriteriaMapper enrollmentCriteriaMapper;
 
     private final EnrollmentService enrollmentService;
 
     private static final EnrollmentMapper ENROLLMENT_MAPPER = Mappers.getMapper( EnrollmentMapper.class );
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
-    PagingWrapper<Enrollment> getInstances(
-        @RequestParam( required = false ) String ou,
-        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) String program,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) Boolean followUp,
-        @RequestParam( required = false ) Date lastUpdated,
-        @RequestParam( required = false ) String lastUpdatedDuration,
-        @RequestParam( required = false ) Date programStartDate,
-        @RequestParam( required = false ) Date programEndDate,
-        @RequestParam( required = false ) String trackedEntityType,
-        @RequestParam( required = false ) String trackedEntityInstance,
-        @RequestParam( required = false ) String enrollment,
-        @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize,
-        @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) Boolean skipPaging,
-        @RequestParam( required = false ) Boolean paging,
-        @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted )
+    PagingWrapper<Enrollment> getInstances( EnrollmentCriteria enrollmentCriteria )
     {
-        Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
-
-        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
-
         PagingWrapper<Enrollment> enrollmentPagingWrapper = new PagingWrapper<>();
 
         List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollmentList;
 
-        if ( enrollment == null )
+        if ( enrollmentCriteria.getEnrollment() == null )
         {
-            ProgramInstanceQueryParams params = programInstanceService.getFromUrl( orgUnits, ouMode, lastUpdated,
-                lastUpdatedDuration, program, programStatus, programStartDate, programEndDate, trackedEntityType,
-                trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging, includeDeleted );
+            ProgramInstanceQueryParams params = enrollmentCriteriaMapper.getFromUrl( enrollmentCriteria );
 
             Enrollments enrollments = enrollmentService.getEnrollments( params );
 
@@ -118,7 +96,8 @@ public class TrackerEnrollmentsExportController
         }
         else
         {
-            Set<String> enrollmentIds = TextUtils.splitToArray( enrollment, TextUtils.SEMICOLON );
+            Set<String> enrollmentIds = TextUtils.splitToArray( enrollmentCriteria.getEnrollment(),
+                TextUtils.SEMICOLON );
             enrollmentList = enrollmentIds != null
                 ? enrollmentIds.stream().map( enrollmentService::getEnrollment ).collect( Collectors.toList() )
                 : Collections.emptyList();
