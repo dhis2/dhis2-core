@@ -34,6 +34,9 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
+
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -51,9 +54,6 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import lombok.AllArgsConstructor;
-import lombok.NonNull;
 
 /**
  * @author Lars Helge Overland
