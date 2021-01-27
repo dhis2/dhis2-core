@@ -75,8 +75,9 @@ import com.google.api.client.util.Lists;
 import com.google.common.collect.ImmutableMap;
 
 /**
- * Note that it is required for nameable object stores to have concrete implementation classes, not rely on the
- * HibernateIdentifiableObjectStore class, in order to be injected as nameable object stores.
+ * Note that it is required for nameable object stores to have concrete
+ * implementation classes, not rely on the HibernateIdentifiableObjectStore
+ * class, in order to be injected as nameable object stores.
  *
  * @author Lars Helge Overland
  */

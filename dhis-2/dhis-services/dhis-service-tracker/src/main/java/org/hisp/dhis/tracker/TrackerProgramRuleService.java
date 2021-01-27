@@ -43,8 +43,9 @@ import org.hisp.dhis.tracker.domain.Event;
 public interface TrackerProgramRuleService
 {
     /**
-     * It feeds in enrollments given in {@link TrackerBundle} into rule engine and return a map of provided enrollments
-     * and their associated rule effects which are returned by rule engine.
+     * It feeds in enrollments given in {@link TrackerBundle} into rule engine and
+     * return a map of provided enrollments and their associated rule effects which
+     * are returned by rule engine.
      *
      * @param enrollments Enrollments present in the payload
      * @param bundle The bundle is needed to build the context for rule engine
@@ -53,8 +54,8 @@ public interface TrackerProgramRuleService
     Map<String, List<RuleEffect>> calculateEnrollmentRuleEffects( List<Enrollment> enrollments, TrackerBundle bundle );
 
     /**
-     * It feeds in events given in {@link TrackerBundle} into rule engine and return a map of events and their
-     * associated rule effects.
+     * It feeds in events given in {@link TrackerBundle} into rule engine and return
+     * a map of events and their associated rule effects.
      *
      * @param events Events present in the payload
      * @param bundle The bundle is needed to build the context for rule engine

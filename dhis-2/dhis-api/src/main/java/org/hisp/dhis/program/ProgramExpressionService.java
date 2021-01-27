@@ -32,12 +32,15 @@ import java.util.Collection;
 import org.hisp.dhis.dataelement.DataElement;
 
 /**
- * An Expression is the expression of e.g. a validation rule of a program. It consist of a String representation of the
- * rule as well as references to the data elements and program stages included in the expression.
+ * An Expression is the expression of e.g. a validation rule of a program. It
+ * consist of a String representation of the rule as well as references to the
+ * data elements and program stages included in the expression.
  * <p/>
- * The expression contains references to data elements and program stages on the form:
+ * The expression contains references to data elements and program stages on the
+ * form:
  * <p/>
- * i) [DE:1.2] where 1 refers to the program stage identifier and 2 refers to the data element identifier.
+ * i) [DE:1.2] where 1 refers to the program stage identifier and 2 refers to
+ * the data element identifier.
  * <p/>
  *
  * @author Chau Thu Tran

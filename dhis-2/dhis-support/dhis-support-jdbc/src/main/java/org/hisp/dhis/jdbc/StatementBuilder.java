@@ -98,7 +98,8 @@ public interface StatementBuilder
     String getAutoIncrementValue();
 
     /**
-     * Returns statement for vacuum operation for a table. Returns null if such statement is not relevant.
+     * Returns statement for vacuum operation for a table. Returns null if such
+     * statement is not relevant.
      *
      * @param table the table to vacuum.
      * @return vacuum and analyze operations for a table.
@@ -106,7 +107,8 @@ public interface StatementBuilder
     String getVacuum( String table );
 
     /**
-     * Returns statement for analytics operation for a table. Returns null if such statement is not relevant.
+     * Returns statement for analytics operation for a table. Returns null if such
+     * statement is not relevant.
      *
      * @param table the table to analyze.
      * @return statement for analytics operation for a table.
@@ -114,8 +116,9 @@ public interface StatementBuilder
     String getAnalyze( String table );
 
     /**
-     * Returns an SQL statement to include in create table statements with applies options to the table. Returns an
-     * empty string if all options are set to the default value.
+     * Returns an SQL statement to include in create table statements with applies
+     * options to the table. Returns an empty string if all options are set to the
+     * default value.
      *
      * @param autoVacuum whether to enable automatic vacuum, default is true.
      * @return statement part with applies options to the table.
@@ -133,7 +136,8 @@ public interface StatementBuilder
     String getLongVarBinaryType();
 
     /**
-     * Returns the value used to match a column to a regular expression. Matching is case insensitive.
+     * Returns the value used to match a column to a regular expression. Matching is
+     * case insensitive.
      */
     String getRegexpMatch();
 
@@ -182,8 +186,9 @@ public interface StatementBuilder
     String getCharAt( String str, String n );
 
     /**
-     * Generates a random 11-character UID where the first character is an upper/lower case letter and the remaining 10
-     * characters are a digit or an upper/lower case letter.
+     * Generates a random 11-character UID where the first character is an
+     * upper/lower case letter and the remaining 10 characters are a digit or an
+     * upper/lower case letter.
      *
      * @return randomly-generated UID.
      */
@@ -203,11 +208,13 @@ public interface StatementBuilder
     String getCastToDate( String column );
 
     /**
-     * Returns a statement which calculates the number of days between the two given dates or columns of type date.
+     * Returns a statement which calculates the number of days between the two given
+     * dates or columns of type date.
      *
      * @param fromColumn the from date column.
      * @param toColumn the to date column.
-     * @return statement which calculates the number of days between the given dates.
+     * @return statement which calculates the number of days between the given
+     *         dates.
      */
     String getDaysBetweenDates( String fromColumn, String toColumn );
 
@@ -230,7 +237,8 @@ public interface StatementBuilder
     String literalStringTable( Collection<String> values, String table, String column );
 
     /**
-     * Generates a derived table containing literals in two columns: integer and string.
+     * Generates a derived table containing literals in two columns: integer and
+     * string.
      *
      * @param longValue (non-empty) Integer values for the derived table
      * @param strValues (same size) String values for the derived table
@@ -243,7 +251,8 @@ public interface StatementBuilder
         List<String> strValues, String table, String longColumn, String strColumn );
 
     /**
-     * Generates a derived table containing literals in two columns: integer and integer.
+     * Generates a derived table containing literals in two columns: integer and
+     * integer.
      *
      * @param long1Values (non-empty) 1st integer column values for the table
      * @param long2Values (same size) 2nd integer column values for the table
@@ -256,26 +265,30 @@ public interface StatementBuilder
         List<Long> long2Values, String table, String long1Column, String long2Column );
 
     /**
-     * Indicates whether the DBMS supports partial indexes (index statements with {@code where} clauses).
+     * Indicates whether the DBMS supports partial indexes (index statements with
+     * {@code where} clauses).
      *
      * @return true if partial indexes aer supported.
      */
     boolean supportsPartialIndexes();
 
     /**
-     * Get SQL where-condition for all analyticsPeriodBoundaries in a program indicator.
+     * Get SQL where-condition for all analyticsPeriodBoundaries in a program
+     * indicator.
      *
      * @param programIndicator the program indicator context
      * @param reportingStartDate the date of the start of the reporting period
      * @param reportingEndDate the date of the end of the reporting period
-     * @param sqlHelper a SQL helper that makes sure the where/and is correctly assigned in the where clause
+     * @param sqlHelper a SQL helper that makes sure the where/and is correctly
+     *        assigned in the where clause
      * @return SQL to use in where clause.
      */
     String getBoundaryCondition( ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate,
         SqlHelper sqlHelper );
 
     /**
-     * Get SQL where-condition for a single analyticsPeriodBoundary in a program indicator.
+     * Get SQL where-condition for a single analyticsPeriodBoundary in a program
+     * indicator.
      *
      * @param boundary the boundary to get where-condition for
      * @param programIndicator the program indicator context
@@ -287,8 +300,9 @@ public interface StatementBuilder
         Date reportingStartDate, Date reportingEndDate );
 
     /**
-     * Get a SQL for selecting a single data value in a program indicator expression, abiding to boundaries. Internally
-     * adds quotes to the param dataElementUid and calls the
+     * Get a SQL for selecting a single data value in a program indicator
+     * expression, abiding to boundaries. Internally adds quotes to the param
+     * dataElementUid and calls the
      * {@link StatementBuilder#getProgramIndicatorEventColumnSql(String, String, Date, Date, ProgramIndicator)}
      * function.
      *
@@ -304,7 +318,8 @@ public interface StatementBuilder
         Date reportingEndDate, ProgramIndicator programIndicator );
 
     /**
-     * Get a SQL for selecting a single column from events in a program indicators, abiding to boundaries.
+     * Get a SQL for selecting a single column from events in a program indicators,
+     * abiding to boundaries.
      *
      * @param programStageUid the program stage to get data for
      * @param columnName the column to get data for

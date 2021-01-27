@@ -38,14 +38,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This Java migration changes the data type of the 'value' column in trackedentityattributevalue table to
- * varchar(1200). Additionally we put a btree index on the same table, to improve performance of lookup. This upograde
- * will fail is any value in the table exceeds 1200 characters. Due to this, we catch any SQLException and write a
- * custom message, including a link to a community.dhis2.org post explaining this upgrade, and how to deal with any
- * upgrade failures.
+ * This Java migration changes the data type of the 'value' column in
+ * trackedentityattributevalue table to varchar(1200). Additionally we put a
+ * btree index on the same table, to improve performance of lookup. This
+ * upograde will fail is any value in the table exceeds 1200 characters. Due to
+ * this, we catch any SQLException and write a custom message, including a link
+ * to a community.dhis2.org post explaining this upgrade, and how to deal with
+ * any upgrade failures.
  * <p>
- * By setting canExecuteInTransaction to false, we let this upgrade run outside the main flow of flyway, allowing us to
- * ignore that the upgrade potentially fails.
+ * By setting canExecuteInTransaction to false, we let this upgrade run outside
+ * the main flow of flyway, allowing us to ignore that the upgrade potentially
+ * fails.
  *
  * @author Stian
  */

@@ -33,8 +33,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The main interface for working with user settings. Implementation need to get the current user from
- * {@link CurrentUserService}.
+ * The main interface for working with user settings. Implementation need to get
+ * the current user from {@link CurrentUserService}.
  *
  * @author Torgeir Lorange Ostby
  */
@@ -47,7 +47,8 @@ public interface UserSettingService
     // -------------------------------------------------------------------------
 
     /**
-     * Saves the key/value pair as a user setting connected to the currently logged in user.
+     * Saves the key/value pair as a user setting connected to the currently logged
+     * in user.
      *
      * @param key the user setting key.
      * @param value the setting value.
@@ -55,7 +56,8 @@ public interface UserSettingService
     void saveUserSetting( UserSettingKey key, Serializable value );
 
     /**
-     * Saves the key/value pair as a user setting connected to user identified by username.
+     * Saves the key/value pair as a user setting connected to user identified by
+     * username.
      *
      * @param key the user setting key.
      * @param value the setting value.
@@ -98,7 +100,8 @@ public interface UserSettingService
      * Returns the value of the user setting specified by the given name.
      *
      * @param key the user setting key.
-     * @return the value corresponding to the named user setting, or null if there is no match.
+     * @return the value corresponding to the named user setting, or null if there
+     *         is no match.
      */
     Serializable getUserSetting( UserSettingKey key );
 
@@ -107,7 +110,8 @@ public interface UserSettingService
      *
      * @param key the user setting key.
      * @param user the user.
-     * @return the value corresponding to the named user setting, or null if there is no match.
+     * @return the value corresponding to the named user setting, or null if there
+     *         is no match.
      */
     Serializable getUserSetting( UserSettingKey key, User user );
 
@@ -127,8 +131,8 @@ public interface UserSettingService
     List<UserSetting> getAllUserSettings();
 
     /**
-     * Returns all specified user settings. If any user settings have not been set, system settings will be used as a
-     * fallback.
+     * Returns all specified user settings. If any user settings have not been set,
+     * system settings will be used as a fallback.
      *
      * @param userSettingKeys the set of user settings to retrieve
      * @return a map of setting names and their values
@@ -142,7 +146,8 @@ public interface UserSettingService
     void invalidateCache();
 
     /**
-     * Returns all user settings for currently logged in user. Setting will not be included in map if its value is null.
+     * Returns all user settings for currently logged in user. Setting will not be
+     * included in map if its value is null.
      *
      * @return a map of setting names and their values
      */

@@ -42,13 +42,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 /**
- * AccessDecisionManager which delegates to other AccessDecisionManagers in a logical or fashion. Delegation is stopped
- * at the first positive answer from the delegates, where the order of execution is defined by the list of
- * AccessDecisionManagers. So if the first AccessDecisionManager grants access for a specific target, no other
- * AccessDecisionManager is questioned.
+ * AccessDecisionManager which delegates to other AccessDecisionManagers in a
+ * logical or fashion. Delegation is stopped at the first positive answer from
+ * the delegates, where the order of execution is defined by the list of
+ * AccessDecisionManagers. So if the first AccessDecisionManager grants access
+ * for a specific target, no other AccessDecisionManager is questioned.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: LogicalOrAccessDecisionManager.java 6335 2008-11-20 11:11:26Z larshelg $
+ * @version $Id: LogicalOrAccessDecisionManager.java 6335 2008-11-20 11:11:26Z
+ *          larshelg $
  */
 @Primary
 @Component

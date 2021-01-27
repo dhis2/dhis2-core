@@ -42,8 +42,9 @@ import org.hisp.dhis.common.IdentifiableObject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Flattened, easily serializable object derivable from the more complex DataIntegrityReport. Use an instance of this
- * object to serialize and deliver a DataIntegrityReport.
+ * Flattened, easily serializable object derivable from the more complex
+ * DataIntegrityReport. Use an instance of this object to serialize and deliver
+ * a DataIntegrityReport.
  *
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */

@@ -36,8 +36,9 @@ import java.util.function.Function;
 import com.google.common.collect.Sets;
 
 /**
- * A No operation implementation of {@link Cache}. The implementation will not cache anything and can be used during
- * system testing when caching has to be disabled.
+ * A No operation implementation of {@link Cache}. The implementation will not
+ * cache anything and can be used during system testing when caching has to be
+ * disabled.
  *
  * @author Ameen Mohamed
  */

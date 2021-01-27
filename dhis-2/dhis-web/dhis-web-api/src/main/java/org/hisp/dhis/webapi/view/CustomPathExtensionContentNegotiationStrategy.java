@@ -39,8 +39,10 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.util.UrlPathHelper;
 
 /**
- * Custom PathExtensionContentNegotiationStrategy that handles multiple dots in filename. Based on:
- * org.springframework.web.accept.PathExtensionContentNegotiationStrategy org.springframework.util.StringUtils
+ * Custom PathExtensionContentNegotiationStrategy that handles multiple dots in
+ * filename. Based on:
+ * org.springframework.web.accept.PathExtensionContentNegotiationStrategy
+ * org.springframework.util.StringUtils
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

@@ -37,13 +37,14 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 
 /**
- * Helper class responsible for providing pagination capabilities on top of data item objects.
+ * Helper class responsible for providing pagination capabilities on top of data
+ * item objects.
  */
 public class PaginationHelper
 {
     /**
-     * This method will slice the given list based on the given option and return only the elements present in the
-     * pagination window.
+     * This method will slice the given list based on the given option and return
+     * only the elements present in the pagination window.
      *
      * @param options
      * @param dimensionalItems

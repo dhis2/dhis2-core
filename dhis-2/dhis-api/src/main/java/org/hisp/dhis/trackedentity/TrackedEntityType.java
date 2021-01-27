@@ -60,7 +60,8 @@ public class TrackedEntityType
     private String formName;
 
     /**
-     * Property indicating minimum number of attributes required to fill before search is triggered
+     * Property indicating minimum number of attributes required to fill before
+     * search is triggered
      */
     private int minAttributesRequiredToSearch = 1;
 

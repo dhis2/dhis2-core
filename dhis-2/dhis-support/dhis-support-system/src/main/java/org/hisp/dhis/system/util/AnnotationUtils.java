@@ -44,7 +44,8 @@ import org.hisp.dhis.audit.AuditAttribute;
 public class AnnotationUtils
 {
     /**
-     * Returns methods on the given target object which are annotated with the annotation of the given class.
+     * Returns methods on the given target object which are annotated with the
+     * annotation of the given class.
      *
      * @param target the target object.
      * @param annotationType the annotation class type.
@@ -74,8 +75,10 @@ public class AnnotationUtils
     }
 
     /**
-     * Returns Map of fields and their getter methods on the given class and its parents (if any) which are annotated
-     * with the annotation of the given annotationType. The annotation can be applied to either field or getter method.
+     * Returns Map of fields and their getter methods on the given class and its
+     * parents (if any) which are annotated with the annotation of the given
+     * annotationType. The annotation can be applied to either field or getter
+     * method.
      *
      * @param klass
      * @param annotationType
@@ -110,7 +113,8 @@ public class AnnotationUtils
     }
 
     /**
-     * Check to see if annotation is present on a given Class, take into account class hierarchy.
+     * Check to see if annotation is present on a given Class, take into account
+     * class hierarchy.
      *
      * @param klass Class
      * @param annotationType Annotation
@@ -122,7 +126,8 @@ public class AnnotationUtils
     }
 
     /**
-     * Check to see if annotation is present on a given Method, take into account class hierarchy.
+     * Check to see if annotation is present on a given Method, take into account
+     * class hierarchy.
      *
      * @param method Method
      * @param annotationType Annotation

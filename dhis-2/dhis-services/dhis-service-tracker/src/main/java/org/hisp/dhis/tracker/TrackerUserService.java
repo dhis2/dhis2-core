@@ -36,7 +36,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 /**
- * Specialized User Service for Tracker that executes User look-up in a read-only transaction
+ * Specialized User Service for Tracker that executes User look-up in a
+ * read-only transaction
  *
  * @author Luciano Fiandesio
  */

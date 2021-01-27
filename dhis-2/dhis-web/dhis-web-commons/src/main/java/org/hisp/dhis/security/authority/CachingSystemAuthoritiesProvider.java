@@ -31,7 +31,8 @@ import java.util.Collection;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: CachingSystemAuthoritiesProvider.java 3160 2007-03-24 20:15:06Z torgeilo $
+ * @version $Id: CachingSystemAuthoritiesProvider.java 3160 2007-03-24 20:15:06Z
+ *          torgeilo $
  */
 public class CachingSystemAuthoritiesProvider
     implements SystemAuthoritiesProvider

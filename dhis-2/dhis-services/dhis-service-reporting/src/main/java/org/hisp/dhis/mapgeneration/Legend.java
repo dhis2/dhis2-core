@@ -36,9 +36,10 @@ import java.util.List;
 import org.hisp.dhis.i18n.I18nFormat;
 
 /**
- * A legend is a graphical presentation of data contained in a map layer. This class works as helper for LegendSet when
- * it comes to drawing the actual legend using java graphics. A legend has a height, but the actual width is not
- * defined.
+ * A legend is a graphical presentation of data contained in a map layer. This
+ * class works as helper for LegendSet when it comes to drawing the actual
+ * legend using java graphics. A legend has a height, but the actual width is
+ * not defined.
  *
  * @author Kristin Simonsen <krissimo@ifi.uio.no>
  * @author Kjetil Andresen <kjetil.andrese@gmail.com>

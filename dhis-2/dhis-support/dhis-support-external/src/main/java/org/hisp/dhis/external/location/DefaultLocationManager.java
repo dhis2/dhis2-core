@@ -319,9 +319,11 @@ public class DefaultLocationManager extends LogOnceLogger
     }
 
     /**
-     * Tests whether the directory is writable by the application if the directory exists. Tries to create the directory
-     * including necessary parent directories if the directory does not exists, and tests whether the directory
-     * construction was successful and not prevented by a SecurityManager in any way.
+     * Tests whether the directory is writable by the application if the directory
+     * exists. Tries to create the directory including necessary parent directories
+     * if the directory does not exists, and tests whether the directory
+     * construction was successful and not prevented by a SecurityManager in any
+     * way.
      */
     private boolean directoryIsValid( File directory )
     {

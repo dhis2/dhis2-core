@@ -48,7 +48,8 @@ import org.springframework.http.CacheControl;
 import org.springframework.stereotype.Component;
 
 /**
- * This component encapsulates the caching settings and object definitions related to the caching at the HTTP level.
+ * This component encapsulates the caching settings and object definitions
+ * related to the caching at the HTTP level.
  */
 @Component
 public class WebCache
@@ -68,8 +69,9 @@ public class WebCache
     }
 
     /**
-     * Defines and return a CacheControl object with the correct expiration time and cacheability based on the internal
-     * system settings defined by the user. The expiration time is defined through the Enum {@link CacheStrategy}
+     * Defines and return a CacheControl object with the correct expiration time and
+     * cacheability based on the internal system settings defined by the user. The
+     * expiration time is defined through the Enum {@link CacheStrategy}
      *
      * @param cacheStrategy
      *
@@ -101,12 +103,13 @@ public class WebCache
     }
 
     /**
-     * Defines and return a CacheControl object with the correct expiration time and cacheability, based on a provided
-     * date, in SECONDS.
+     * Defines and return a CacheControl object with the correct expiration time and
+     * cacheability, based on a provided date, in SECONDS.
      *
      * @param latestEndDate
      *
-     * @return a CacheControl object configured based on current cacheability settings and the provided time to live.
+     * @return a CacheControl object configured based on current cacheability
+     *         settings and the provided time to live.
      */
     public CacheControl getCacheControlFor( final Date latestEndDate )
     {
@@ -139,7 +142,8 @@ public class WebCache
     }
 
     /**
-     * Sets the cacheability (defined as system setting) into the given CacheControl.
+     * Sets the cacheability (defined as system setting) into the given
+     * CacheControl.
      *
      * @see org.hisp.dhis.setting.SettingKey#CACHEABILITY
      *

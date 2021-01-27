@@ -54,7 +54,8 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.springframework.stereotype.Service;
 
 /**
- * Default ACL implementation that uses SchemaDescriptors to get authorities / sharing flags.
+ * Default ACL implementation that uses SchemaDescriptors to get authorities /
+ * sharing flags.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -655,11 +656,13 @@ public class DefaultAclService implements AclService
     }
 
     /**
-     * Is the current user allowed to create/update the object given based on its sharing settings.
+     * Is the current user allowed to create/update the object given based on its
+     * sharing settings.
      *
      * @param user User to check against
      * @param object Object to check against
-     * @return true/false depending on if sharing settings are allowed for given user
+     * @return true/false depending on if sharing settings are allowed for given
+     *         user
      */
     private boolean checkSharingAccess( User user, IdentifiableObject object )
     {
@@ -691,7 +694,8 @@ public class DefaultAclService implements AclService
     }
 
     /**
-     * If the given user allowed to access the given object using the permissions given.
+     * If the given user allowed to access the given object using the permissions
+     * given.
      *
      * @param user User to check against
      * @param object Object to check against

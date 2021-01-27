@@ -78,7 +78,8 @@ public class TrackedEntityInstanceFilter
     private ProgramStatus enrollmentStatus;
 
     /**
-     * Property indicating whether to filter tracked entity instances whose enrollments are marked for followup or not
+     * Property indicating whether to filter tracked entity instances whose
+     * enrollments are marked for followup or not
      */
     private Boolean followup = false;
 

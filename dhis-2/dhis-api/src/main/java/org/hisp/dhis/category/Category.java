@@ -47,9 +47,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
 
 /**
- * A Category is a dimension of a data element. DataElements can have sets of dimensions (known as CategoryCombos). An
- * Example of a Category might be "Sex". The Category could have two (or more) CategoryOptions such as "Male" and
- * "Female".
+ * A Category is a dimension of a data element. DataElements can have sets of
+ * dimensions (known as CategoryCombos). An Example of a Category might be
+ * "Sex". The Category could have two (or more) CategoryOptions such as "Male"
+ * and "Female".
  *
  * @author Abyot Asalefew
  */

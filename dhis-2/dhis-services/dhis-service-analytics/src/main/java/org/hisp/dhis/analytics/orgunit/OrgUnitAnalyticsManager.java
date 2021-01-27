@@ -35,7 +35,8 @@ import java.util.Map;
 public interface OrgUnitAnalyticsManager
 {
     /**
-     * Returns a data map with a composite metadata key and an org unit count as value for the given parameters.
+     * Returns a data map with a composite metadata key and an org unit count as
+     * value for the given parameters.
      *
      * @param params the {@link OrgUnitQueryParams}.
      */

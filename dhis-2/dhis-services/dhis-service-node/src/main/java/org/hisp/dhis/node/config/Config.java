@@ -39,15 +39,16 @@ import com.google.common.collect.Maps;
 public class Config
 {
     /**
-     * Inclusion strategy to use. There are a few already defined inclusions in the Inclusions enum.
+     * Inclusion strategy to use. There are a few already defined inclusions in the
+     * Inclusions enum.
      *
      * @see org.hisp.dhis.node.config.InclusionStrategy.Include
      */
     private InclusionStrategy inclusionStrategy = InclusionStrategy.Include.NON_NULL;
 
     /**
-     * Property map that can hold any key=value pair, can be used to set custom properties that only certain serializers
-     * know about.
+     * Property map that can hold any key=value pair, can be used to set custom
+     * properties that only certain serializers know about.
      */
     private final Map<String, Object> properties = Maps.newHashMap();
 

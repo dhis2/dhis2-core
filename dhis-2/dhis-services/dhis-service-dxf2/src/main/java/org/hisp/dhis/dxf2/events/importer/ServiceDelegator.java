@@ -40,7 +40,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Centralizes a collection of services and components that can be accessed by the consumer.
+ * Centralizes a collection of services and components that can be accessed by
+ * the consumer.
  *
  * @author maikel arabori
  */

@@ -120,10 +120,12 @@ public abstract class AbstractHibernateListener
     abstract AuditType getAuditType();
 
     /**
-     * Create serializable Map<String, Object> for delete event Because the entity has already been deleted and
-     * transaction is committed all lazy collections or properties that haven't been loaded will be ignored.
+     * Create serializable Map<String, Object> for delete event Because the entity
+     * has already been deleted and transaction is committed all lazy collections or
+     * properties that haven't been loaded will be ignored.
      *
-     * @return Map<String, Object> with key is property name and value is property value.
+     * @return Map<String, Object> with key is property name and value is property
+     *         value.
      */
     protected Object createAuditEntry( PostDeleteEvent event )
     {
@@ -164,13 +166,17 @@ public abstract class AbstractHibernateListener
     }
 
     /**
-     * Create serializable Map<String, Object> based on given Audit Entity and related objects that are produced by
-     * {@link PostUpdateEvent} or {@link PostInsertEvent} The returned object must comply with below rules: 1. Only
-     * includes referenced properties that are owned by the current Audit Entity. Means that the property's schema has
-     * attribute "owner = true" 2. Do not include any lazy HibernateProxy or PersistentCollection that is not loaded. 3.
-     * All referenced properties that extend BaseIdentifiableObject should be mapped to only UID string
+     * Create serializable Map<String, Object> based on given Audit Entity and
+     * related objects that are produced by {@link PostUpdateEvent} or
+     * {@link PostInsertEvent} The returned object must comply with below rules: 1.
+     * Only includes referenced properties that are owned by the current Audit
+     * Entity. Means that the property's schema has attribute "owner = true" 2. Do
+     * not include any lazy HibernateProxy or PersistentCollection that is not
+     * loaded. 3. All referenced properties that extend BaseIdentifiableObject
+     * should be mapped to only UID string
      *
-     * @return Map<String, Object> with key is property name and value is property value.
+     * @return Map<String, Object> with key is property name and value is property
+     *         value.
      */
     protected Object createAuditEntry( Object entity, Object[] state, EventSource session, Serializable id,
         EntityPersister persister )

@@ -334,7 +334,8 @@ public class DataValueSet
     }
 
     /**
-     * Returns the general identifier scheme. IdScheme.NULL is returned if scheme has not been set.
+     * Returns the general identifier scheme. IdScheme.NULL is returned if scheme
+     * has not been set.
      */
     public IdScheme getIdSchemeProperty()
     {
@@ -343,8 +344,9 @@ public class DataValueSet
     }
 
     /**
-     * Returns the data element identifier scheme. Falls back to the general identifier scheme if not set. IdScheme.NULL
-     * is returned if no scheme has been set.
+     * Returns the data element identifier scheme. Falls back to the general
+     * identifier scheme if not set. IdScheme.NULL is returned if no scheme has been
+     * set.
      */
     public IdScheme getDataElementIdSchemeProperty()
     {
@@ -352,8 +354,9 @@ public class DataValueSet
     }
 
     /**
-     * Returns the organisation unit identifier scheme. Falls back to the general identifier scheme if not set.
-     * IdScheme.NULL is returned if no scheme has been set.
+     * Returns the organisation unit identifier scheme. Falls back to the general
+     * identifier scheme if not set. IdScheme.NULL is returned if no scheme has been
+     * set.
      */
     public IdScheme getOrgUnitIdSchemeProperty()
     {
@@ -361,8 +364,9 @@ public class DataValueSet
     }
 
     /**
-     * Returns the category option combo identifier scheme. Falls back to the general identifier scheme if not set.
-     * IdScheme.NULL is returned if no scheme has been set.
+     * Returns the category option combo identifier scheme. Falls back to the
+     * general identifier scheme if not set. IdScheme.NULL is returned if no scheme
+     * has been set.
      */
     public IdScheme getCategoryOptionComboIdSchemeProperty()
     {
@@ -370,8 +374,8 @@ public class DataValueSet
     }
 
     /**
-     * Returns the data set identifier scheme. Falls back to the general identifier scheme if not set. IdScheme.NULL is
-     * returned if no scheme has been set.
+     * Returns the data set identifier scheme. Falls back to the general identifier
+     * scheme if not set. IdScheme.NULL is returned if no scheme has been set.
      */
     public IdScheme getDataSetIdSchemeProperty()
     {

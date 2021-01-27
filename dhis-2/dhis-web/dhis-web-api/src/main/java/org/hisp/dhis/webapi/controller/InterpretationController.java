@@ -290,8 +290,9 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     }
 
     /**
-     * Returns the organisation unit with the given identifier. If not existing, returns the user organisation unit if
-     * the analytical object specifies a user organisation unit. If not, returns null.
+     * Returns the organisation unit with the given identifier. If not existing,
+     * returns the user organisation unit if the analytical object specifies a user
+     * organisation unit. If not, returns null.
      */
     private OrganisationUnit getUserOrganisationUnit( String uid, AnalyticalObject analyticalObject, User user )
         throws WebMessageException
@@ -319,7 +320,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     }
 
     /**
-     * Saves the given interpretation, adds location header and returns a web message response.
+     * Saves the given interpretation, adds location header and returns a web
+     * message response.
      */
     private void createIntepretation( Interpretation interpretation, HttpServletRequest request,
         HttpServletResponse response )
@@ -539,11 +541,13 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     }
 
     /**
-     * Logic required to keep the backward compatibility with Chart and ReporTable. Otherwise it would always return
-     * VISUALIZATION type for any Chart or ReportTable.
+     * Logic required to keep the backward compatibility with Chart and ReporTable.
+     * Otherwise it would always return VISUALIZATION type for any Chart or
+     * ReportTable.
      *
-     * Only needed during the transition from Chart/ReportTable APIs to Visualization API. Once the Visualization API is
-     * fully enabled this logic should be removed.
+     * Only needed during the transition from Chart/ReportTable APIs to
+     * Visualization API. Once the Visualization API is fully enabled this logic
+     * should be removed.
      *
      * @param interpretations
      * @param options
@@ -564,11 +568,13 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     }
 
     /**
-     * Logic required to keep the backward compatibility with Chart and ReporTable. Otherwise it would always return
-     * VISUALIZATION type for any Chart or ReportTable.
+     * Logic required to keep the backward compatibility with Chart and ReporTable.
+     * Otherwise it would always return VISUALIZATION type for any Chart or
+     * ReportTable.
      *
-     * Only needed during the transition from Chart/ReportTable APIs to Visualization API. Once the Visualization API is
-     * fully enabled this logic should be removed.
+     * Only needed during the transition from Chart/ReportTable APIs to
+     * Visualization API. Once the Visualization API is fully enabled this logic
+     * should be removed.
      *
      * @param interpretation
      * @param options

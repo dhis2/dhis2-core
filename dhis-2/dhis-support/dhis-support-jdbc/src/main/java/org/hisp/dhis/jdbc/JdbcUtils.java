@@ -54,7 +54,8 @@ public class JdbcUtils
      *
      * @param jdbcTemplate a JdbcTemplate
      * @param sql the SQL string to be executed
-     * @param pss a {@see BatchPreparedStatementSetterWithKeyHolder} containing the binding information
+     * @param pss a {@see BatchPreparedStatementSetterWithKeyHolder} containing the
+     *        binding information
      *
      * @return a int, where each element corresponds to an executed statement
      */

@@ -55,7 +55,8 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
 /**
- * This class has the utility methods to invoke REST endpoints for various HTTP methods.
+ * This class has the utility methods to invoke REST endpoints for various HTTP
+ * methods.
  *
  * @author vanyas
  */
@@ -202,7 +203,8 @@ public class HttpUtils
     }
 
     /**
-     * Method to make an HTTP DELETE call to a given URL with/without authentication.
+     * Method to make an HTTP DELETE call to a given URL with/without
+     * authentication.
      *
      * @throws Exception
      *         </pre>

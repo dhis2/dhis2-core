@@ -33,8 +33,9 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
 /**
- * Sorts periods ascending based on the start date, then the end date, i.e. the earliest period comes first. The start
- * date and end date properties cannot be null.
+ * Sorts periods ascending based on the start date, then the end date, i.e. the
+ * earliest period comes first. The start date and end date properties cannot be
+ * null.
  *
  * @author Lars Helge Overland
  */

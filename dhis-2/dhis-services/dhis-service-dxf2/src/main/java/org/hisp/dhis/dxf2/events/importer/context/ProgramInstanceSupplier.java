@@ -109,8 +109,9 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
     }
 
     /**
-     * Loop through the events and check if there is any event left without a Program Instance: for each Event without a
-     * PI, try to fetch the Program Instance by Program and Tracked Entity Instance
+     * Loop through the events and check if there is any event left without a
+     * Program Instance: for each Event without a PI, try to fetch the Program
+     * Instance by Program and Tracked Entity Instance
      */
     private void mapEventsToProgramInstanceByTei( ImportOptions importOptions, List<Event> events,
         Map<String, ProgramInstance> programInstances, Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap )
@@ -138,9 +139,9 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
     }
 
     /**
-     * This method is only used if the Event already exist in the db (update) If the Event does not have the
-     * "enrollment" property set OR enrollment is pointing to an invalid UID, use the Program Instance already connected
-     * to the Event.
+     * This method is only used if the Event already exist in the db (update) If the
+     * Event does not have the "enrollment" property set OR enrollment is pointing
+     * to an invalid UID, use the Program Instance already connected to the Event.
      *
      */
     private void mapExistingEventsToProgramInstances( ImportOptions importOptions, List<Event> events,

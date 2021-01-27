@@ -48,7 +48,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Service for retrieving information about the currently authenticated user.
  * <p>
- * Note that most methods are transactional, except for retrieving current UserInfo.
+ * Note that most methods are transactional, except for retrieving current
+ * UserInfo.
  *
  * @author Torgeir Lorange Ostby
  */
@@ -57,13 +58,14 @@ public class DefaultCurrentUserService
     extends AbstractSpringSecurityCurrentUserService
 {
     /**
-     * Cache for user IDs. Key is username. Disabled during test phase. Take care not to cache user info which might
-     * change during runtime.
+     * Cache for user IDs. Key is username. Disabled during test phase. Take care
+     * not to cache user info which might change during runtime.
      */
     private static Cache<Long> USERNAME_ID_CACHE;
 
     /**
-     * Cache contains Set of UserGroup UID for each user. Key is username. This will be used for ACL check in
+     * Cache contains Set of UserGroup UID for each user. Key is username. This will
+     * be used for ACL check in
      * {@link org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore}
      */
     private static Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;

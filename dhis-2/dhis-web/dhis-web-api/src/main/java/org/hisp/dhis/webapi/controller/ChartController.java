@@ -79,10 +79,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- * This controller is being deprecated. Please use the Visualization controller instead. Only compatibility changes
- * should be done at this stage.
+ * This controller is being deprecated. Please use the Visualization controller
+ * instead. Only compatibility changes should be done at this stage.
  * <p>
- * TODO when this class gets removed, also update {@link org.hisp.dhis.security.vote.ExternalAccessVoter}
+ * TODO when this class gets removed, also update
+ * {@link org.hisp.dhis.security.vote.ExternalAccessVoter}
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -315,9 +316,10 @@ public class ChartController
     }
 
     /**
-     * This method converts a Visualization into a Chart. It's required only during the merging process of
-     * Visualization. Even though this method could be broken down into smaller ones is preferable to leave it
-     * self-contained as this is just a temporary mapping.
+     * This method converts a Visualization into a Chart. It's required only during
+     * the merging process of Visualization. Even though this method could be broken
+     * down into smaller ones is preferable to leave it self-contained as this is
+     * just a temporary mapping.
      *
      * @param visualization
      * @return a Chart object from the given Visualization

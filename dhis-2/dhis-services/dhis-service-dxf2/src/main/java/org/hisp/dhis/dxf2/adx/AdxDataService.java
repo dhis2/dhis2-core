@@ -86,7 +86,8 @@ public interface AdxDataService
         IdSchemes outputIdSchemes );
 
     /**
-     * Post data. Takes ADX Data from input stream and saves a series of DXF2 DataValueSets.
+     * Post data. Takes ADX Data from input stream and saves a series of DXF2
+     * DataValueSets.
      *
      * @param in the InputStream.
      * @param importOptions the importOptions.

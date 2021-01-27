@@ -41,8 +41,9 @@ import java.util.stream.IntStream;
 public class TextPatternMethodUtils
 {
     /**
-     * Returns a random String based on the format. The format (As specified in TextPatternMethod) can contain '#'
-     * digits, 'X' capital letters and 'x' lower case letters.
+     * Returns a random String based on the format. The format (As specified in
+     * TextPatternMethod) can contain '#' digits, 'X' capital letters and 'x' lower
+     * case letters.
      *
      * @param random a Random object to generate random numbers
      * @param format the format (as specified in TextPatternMethod)
@@ -86,10 +87,11 @@ public class TextPatternMethodUtils
     }
 
     /**
-     * Takes a format (as specified in TextPatternMethod) and attempts to apply it to the text. If there is no match,
-     * the method returns null. This can happen if the text don't fit the format: There are more '.' characters than
-     * there are characters in the text Both '^' (start) and '$' end characters is present, but there is not an equal
-     * amount of '.' as characters in the text
+     * Takes a format (as specified in TextPatternMethod) and attempts to apply it
+     * to the text. If there is no match, the method returns null. This can happen
+     * if the text don't fit the format: There are more '.' characters than there
+     * are characters in the text Both '^' (start) and '$' end characters is
+     * present, but there is not an equal amount of '.' as characters in the text
      *
      * @param format the format defined (As specified in TextPatternMethod)
      * @param text the text to perform the format on.

@@ -56,8 +56,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Data value service implementation. Note that data values are softly deleted, which implies having the deleted
- * property set to true and updated.
+ * Data value service implementation. Note that data values are softly deleted,
+ * which implies having the deleted property set to true and updated.
  *
  * @author Kristian Nordal
  * @author Halvdan Hoem Grelland

@@ -70,8 +70,8 @@ public class SetMap<T, V>
     }
 
     /**
-     * Produces a SetMap based on the given set of values. The key for each entry is produced by applying the given
-     * keyMapper function.
+     * Produces a SetMap based on the given set of values. The key for each entry is
+     * produced by applying the given keyMapper function.
      *
      * @param values the values of the map.
      * @param keyMapper the function producing the key for each entry.

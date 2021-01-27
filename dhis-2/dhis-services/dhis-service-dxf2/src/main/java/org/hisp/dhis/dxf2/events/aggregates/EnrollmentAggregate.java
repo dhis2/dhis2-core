@@ -68,8 +68,8 @@ public class EnrollmentAggregate
      *
      * @param ids a List of {@see TrackedEntityInstance} Primary Keys
      *
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the key a List of {@see Enrollment}
-     *         objects
+     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the
+     *         key a List of {@see Enrollment} objects
      */
     Multimap<String, Enrollment> findByTrackedEntityInstanceIds( List<Long> ids, AggregateContext ctx )
     {

@@ -73,7 +73,8 @@ public class DimensionalObjectUtils
     public static final String COL_SEP = " ";
 
     /**
-     * Matching data element operand, program data element, program attribute, data set reporting rate metric.
+     * Matching data element operand, program data element, program attribute, data
+     * set reporting rate metric.
      */
     private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN = Pattern
         .compile( "(?<id1>\\w+)\\.(?<id2>\\w+|\\*)(\\.(?<id3>\\w+|\\*))?" );
@@ -95,7 +96,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Creates a list of dimension identifiers based on the given list of DimensionalObjects.
+     * Creates a list of dimension identifiers based on the given list of
+     * DimensionalObjects.
      *
      * @param dimensions the list of DimensionalObjects.
      * @return collection of dimension identifiers.
@@ -116,8 +118,9 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Creates a two-dimensional array of dimension items based on the list of DimensionalObjects. I.e. the list of
-     * items of each DimensionalObject is converted to an array and inserted into the outer array in the same order.
+     * Creates a two-dimensional array of dimension items based on the list of
+     * DimensionalObjects. I.e. the list of items of each DimensionalObject is
+     * converted to an array and inserted into the outer array in the same order.
      *
      * @param dimensions the list of DimensionalObjects.
      * @return a two-dimensional array of NameableObjects.
@@ -135,8 +138,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Creates a map based on the given array of elements, where each pair of elements are put on them map as a
-     * key-value pair.
+     * Creates a map based on the given array of elements, where each pair of
+     * elements are put on them map as a key-value pair.
      *
      * @param elements the elements to put on the map.
      * @return a map.
@@ -158,8 +161,9 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Retrieves the dimension name from the given string. Returns the part of the string preceding the dimension name
-     * separator, or the whole string if the separator is not present.
+     * Retrieves the dimension name from the given string. Returns the part of the
+     * string preceding the dimension name separator, or the whole string if the
+     * separator is not present.
      */
     public static String getDimensionFromParam( String param )
     {
@@ -172,10 +176,11 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Retrieves the dimension options from the given string. Looks for the part succeeding the dimension name
-     * separator, if exists, splits the string part on the option separator and returns the resulting values. If the
-     * dimension name separator does not exist an empty list is returned, indicating that all dimension options should
-     * be used.
+     * Retrieves the dimension options from the given string. Looks for the part
+     * succeeding the dimension name separator, if exists, splits the string part on
+     * the option separator and returns the resulting values. If the dimension name
+     * separator does not exist an empty list is returned, indicating that all
+     * dimension options should be used.
      */
     public static List<String> getDimensionItemsFromParam( String param )
     {
@@ -193,8 +198,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Splits the given string on the ; character and returns the items in a list. Returns null if the given string is
-     * null.
+     * Splits the given string on the ; character and returns the items in a list.
+     * Returns null if the given string is null.
      */
     public static List<String> getItemsFromParam( String param )
     {
@@ -228,8 +233,9 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Retrieves the value from a keyword parameter string, which is on the format {@code <KEYWORD>-<VALUE>}. Returns
-     * null of parameter string is not on the correct format.
+     * Retrieves the value from a keyword parameter string, which is on the format
+     * {@code <KEYWORD>-<VALUE>}. Returns null of parameter string is not on the
+     * correct format.
      *
      * @param param the string parameter.
      */
@@ -251,7 +257,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Retrieves the uid from an org unit group parameter string, which is on the format OU_GROUP-<uid> .
+     * Retrieves the uid from an org unit group parameter string, which is on the
+     * format OU_GROUP-<uid> .
      */
     public static String getUidFromGroupParam( String param )
     {
@@ -259,12 +266,14 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Sets items on the given dimension based on the unique values of the matching column in the given grid. Items are
-     * BaseNameableObjects where the name, code and short name properties are set to the column value. The dimension
+     * Sets items on the given dimension based on the unique values of the matching
+     * column in the given grid. Items are BaseNameableObjects where the name, code
+     * and short name properties are set to the column value. The dimension
      * analytics type must be equal to EVENT.
      *
      * @param dimension the dimension.
-     * @param naForNull indicates whether a [n/a] string should be used as replacement for null values.
+     * @param naForNull indicates whether a [n/a] string should be used as
+     *        replacement for null values.
      * @param grid the grid with data values.
      */
     public static void setDimensionItemsForFilters( DimensionalObject dimension, Grid grid, boolean naForNull )
@@ -333,7 +342,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Indicates whether the given string is a composite dimensional object expression.
+     * Indicates whether the given string is a composite dimensional object
+     * expression.
      *
      * @param expression the expression.
      * @return true if composite dimensional object expression, false if not.
@@ -347,7 +357,8 @@ public class DimensionalObjectUtils
      * Returns the first identifier in a composite dimension object identifier.
      *
      * @param compositeItem the composite dimension object identifier.
-     * @return the first identifier, or null if not a valid composite identifier or no match.
+     * @return the first identifier, or null if not a valid composite identifier or
+     *         no match.
      */
     public static String getFirstIdentifer( String compositeItem )
     {
@@ -359,7 +370,8 @@ public class DimensionalObjectUtils
      * Returns the second identifier in a composite dimension object identifier.
      *
      * @param compositeItem the composite dimension object identifier.
-     * @return the second identifier, or null if not a valid composite identifier or no match.
+     * @return the second identifier, or null if not a valid composite identifier or
+     *         no match.
      */
     public static String getSecondIdentifer( String compositeItem )
     {
@@ -397,7 +409,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Returns a list with erasure DimensionalItemObject based on the given collection.
+     * Returns a list with erasure DimensionalItemObject based on the given
+     * collection.
      *
      * @param collection the collection.
      * @return a list of DimensionalItemObjects.
@@ -419,8 +432,9 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Returns a list typed with the desired erasure based on the given collection. This operation implies an unchecked
-     * cast and it is the responsibility of the caller to make sure the cast is valid. A copy of the given list will be
+     * Returns a list typed with the desired erasure based on the given collection.
+     * This operation implies an unchecked cast and it is the responsibility of the
+     * caller to make sure the cast is valid. A copy of the given list will be
      * returned.
      *
      * @param collection the collection.
@@ -443,11 +457,13 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Returns a list of BaseNameableObjects based on the given list of values, where the name, code and short name of
-     * each BaseNameableObject is set to the value of each list item.
+     * Returns a list of BaseNameableObjects based on the given list of values,
+     * where the name, code and short name of each BaseNameableObject is set to the
+     * value of each list item.
      *
      * @param values the list of object values.
-     * @param naForNull indicates whether a [n/a] string should be used as replacement for null values.
+     * @param naForNull indicates whether a [n/a] string should be used as
+     *        replacement for null values.
      * @return a list of BaseNameableObejcts.
      */
     public static List<DimensionalItemObject> getDimensionalItemObjects( Collection<?> values, boolean naForNull )
@@ -475,7 +491,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Returns dimension item identifiers for the given collection of DimensionalItemObject.
+     * Returns dimension item identifiers for the given collection of
+     * DimensionalItemObject.
      *
      * @param objects the DimensionalItemObjects.
      * @return a list of dimension item identifiers.
@@ -503,7 +520,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Gets a set of unique category option combinations based on the given collection of operands.
+     * Gets a set of unique category option combinations based on the given
+     * collection of operands.
      *
      * @param operands the collection of operands.
      * @return a set of category option combinations.
@@ -523,7 +541,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Gets a set of unique attribute option combinations based on the given collection of operands.
+     * Gets a set of unique attribute option combinations based on the given
+     * collection of operands.
      *
      * @param operands the collection of operands.
      * @return a set of category option combinations.
@@ -543,8 +562,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Returns a mapping between the base dimension item identifier and the dimension item identifier defined by the
-     * given identifier scheme.
+     * Returns a mapping between the base dimension item identifier and the
+     * dimension item identifier defined by the given identifier scheme.
      *
      * @param objects the dimensional item objects.
      * @param idScheme the identifier scheme.
@@ -561,9 +580,10 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Returns a mapping between the base dimension item identifier and the dimension item identifier defined by the
-     * given identifier scheme. For each operand, the data element and category option combo identifiers are included in
-     * the mapping, not the operand itself.
+     * Returns a mapping between the base dimension item identifier and the
+     * dimension item identifier defined by the given identifier scheme. For each
+     * operand, the data element and category option combo identifiers are included
+     * in the mapping, not the operand itself.
      *
      * @param dataElementOperands the data element operands.
      * @param idScheme the identifier scheme.
@@ -586,7 +606,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Returns a dimension item identifier for the given data set identifier and reporting date metric.
+     * Returns a dimension item identifier for the given data set identifier and
+     * reporting date metric.
      *
      * @param uid data set identifier.
      * @param metric reporting rate metric.
@@ -598,7 +619,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Replaces total {@link DataElementOperand} items with {@link DataElement} items in the given list of items.
+     * Replaces total {@link DataElementOperand} items with {@link DataElement}
+     * items in the given list of items.
      *
      * @param items the list of items.
      * @return a list of dimensional item objects.
@@ -620,8 +642,9 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Generates a key based on the given lists of {@link NameableObject}. Uses the identifiers for each nameable
-     * object, sorts them and writes them out as a key.
+     * Generates a key based on the given lists of {@link NameableObject}. Uses the
+     * identifiers for each nameable object, sorts them and writes them out as a
+     * key.
      *
      * @param column list of dimension items representing a column, cannot be null.
      * @param row list of dimension items representing a row, cannot be null.
@@ -646,8 +669,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Returns a map with sorted keys. Keys are sorted by splitting on the '-' character and sorting the components
-     * alphabetically.
+     * Returns a map with sorted keys. Keys are sorted by splitting on the '-'
+     * character and sorting the components alphabetically.
      *
      * @param valueMap the mapping of keys and values.
      * @return a map with sorted keys.
@@ -670,7 +693,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Sorts the given key by splitting on the '-' character and sorting the components alphabetically.
+     * Sorts the given key by splitting on the '-' character and sorting the
+     * components alphabetically.
      *
      * @param key the mapping of keys and values.
      */
@@ -715,7 +739,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Transforms a List of {@see DimensionItemObjectValue} into a Map of {@see DimensionalItemObject} and value
+     * Transforms a List of {@see DimensionItemObjectValue} into a Map of
+     * {@see DimensionalItemObject} and value
      */
     public static Map<DimensionalItemObject, Double> convertToDimItemValueMap(
         List<DimensionItemObjectValue> dimensionItemObjectValues )

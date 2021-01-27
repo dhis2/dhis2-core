@@ -36,9 +36,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * The ReportingParams object represents the reporting parameters for a Visualization. The reporting parameters are
- * meant to make the Visualization more generic, as it can avoid having dynamic, selectable parameters rather than
- * static. The ReportingParams is mainly used to assist during the Report generation.
+ * The ReportingParams object represents the reporting parameters for a
+ * Visualization. The reporting parameters are meant to make the Visualization
+ * more generic, as it can avoid having dynamic, selectable parameters rather
+ * than static. The ReportingParams is mainly used to assist during the Report
+ * generation.
  */
 @JacksonXmlRootElement( localName = "reportingParams", namespace = DXF_2_0 )
 public class ReportingParams

@@ -44,7 +44,8 @@ public interface TrackerOwnershipManager
      * @param entityInstance The tracked entity instance object
      * @param program The program object
      * @param orgUnit The org unit that has to become the owner
-     * @param skipAccessValidation whether ownership access validation has to be skipped or not.
+     * @param skipAccessValidation whether ownership access validation has to be
+     *        skipped or not.
      */
     void transferOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit orgUnit,
         boolean skipAccessValidation, boolean createIfNotExists );
@@ -58,8 +59,8 @@ public interface TrackerOwnershipManager
         boolean skipAccessValidation, boolean overwriteIfExists );
 
     /**
-     * Check whether the user has access (as owner or has temporarily broken the glass) for the tracked entity instance
-     * - program combination.
+     * Check whether the user has access (as owner or has temporarily broken the
+     * glass) for the tracked entity instance - program combination.
      *
      * @param user The user with which access has to be checked for.
      * @param entityInstance The tracked entity instance.

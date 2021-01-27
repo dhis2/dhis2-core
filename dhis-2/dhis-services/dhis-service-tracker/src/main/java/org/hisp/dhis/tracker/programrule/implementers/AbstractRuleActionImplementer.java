@@ -122,8 +122,9 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
     }
 
     /**
-     * Filter the actions by - the action class of the implementer - events linked to data values that are part of a
-     * different Program Stage - events linked to data values that do not need to be validated
+     * Filter the actions by - the action class of the implementer - events linked
+     * to data values that are part of a different Program Stage - events linked to
+     * data values that do not need to be validated
      *
      * @param effects a map of event and effects
      * @param bundle

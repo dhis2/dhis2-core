@@ -137,8 +137,8 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
 /**
- * Temporary class, in deprecation process. Avoid making changes here. This class is just supporting the deprecation
- * process of the ChartController.
+ * Temporary class, in deprecation process. Avoid making changes here. This
+ * class is just supporting the deprecation process of the ChartController.
  * <p>
  * It's just a Façade to keep it compatible with the new Visualization model.
  */
@@ -1124,8 +1124,8 @@ public abstract class ChartFacadeController
     }
 
     /**
-     * Override to process a single entity after it has been retrieved from storage and before it is returned to the
-     * view. Entity is null-safe.
+     * Override to process a single entity after it has been retrieved from storage
+     * and before it is returned to the view. Entity is null-safe.
      */
     protected void postProcessResponseEntity( Chart entity, WebOptions options, Map<String, String> parameters )
         throws Exception

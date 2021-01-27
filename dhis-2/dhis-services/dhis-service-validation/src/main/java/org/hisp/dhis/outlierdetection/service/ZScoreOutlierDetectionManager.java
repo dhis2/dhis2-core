@@ -50,7 +50,8 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 /**
- * Manager for database queries related to outlier data detection based on z-score.
+ * Manager for database queries related to outlier data detection based on
+ * z-score.
  *
  * @author Lars Helge Overland
  */

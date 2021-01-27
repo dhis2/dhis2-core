@@ -56,8 +56,8 @@ public class TrackedEntityProgramIndicatorDimension
     private LegendSet legendSet;
 
     /**
-     * Operator and filter on this format: <operator>:<filter>;<operator>:<filter> Operator and filter pairs can be
-     * repeated any number of times.
+     * Operator and filter on this format: <operator>:<filter>;<operator>:<filter>
+     * Operator and filter pairs can be repeated any number of times.
      */
     private String filter;
 

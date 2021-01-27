@@ -30,8 +30,8 @@ package org.hisp.dhis.databrowser;
 /**
  * @author joakibj
  *
- *         Class to hold Metadata for DataBrowserTable. All fields are optional but name should not be null for proper
- *         behavior.
+ *         Class to hold Metadata for DataBrowserTable. All fields are optional
+ *         but name should not be null for proper behavior.
  */
 public class MetaValue
 {

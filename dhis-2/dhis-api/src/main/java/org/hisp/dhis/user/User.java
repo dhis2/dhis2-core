@@ -113,7 +113,8 @@ public class User
     private FileResource avatar;
 
     /**
-     * Organisation units for data input and data capture / write operations. TODO move to UserCredentials.
+     * Organisation units for data input and data capture / write operations. TODO
+     * move to UserCredentials.
      */
     private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
@@ -174,8 +175,8 @@ public class User
     }
 
     /**
-     * Checks whether the profile has been filled, which is defined as three not-null properties out of all optional
-     * properties.
+     * Checks whether the profile has been filled, which is defined as three
+     * not-null properties out of all optional properties.
      */
     public boolean isProfileFilled()
     {
@@ -193,8 +194,9 @@ public class User
     }
 
     /**
-     * Returns the first of the organisation units associated with the user. Null is returned if the user has no
-     * organisation units. Which organisation unit to return is undefined if the user has multiple organisation units.
+     * Returns the first of the organisation units associated with the user. Null is
+     * returned if the user has no organisation units. Which organisation unit to
+     * return is undefined if the user has multiple organisation units.
      */
     public OrganisationUnit getOrganisationUnit()
     {
@@ -227,8 +229,9 @@ public class User
     }
 
     /**
-     * Returns the first of the data view organisation units associated with the user. If none, returns the first of the
-     * data capture organisation units. If none, return nulls.
+     * Returns the first of the data view organisation units associated with the
+     * user. If none, returns the first of the data capture organisation units. If
+     * none, return nulls.
      */
     public OrganisationUnit getDataViewOrganisationUnitWithFallback()
     {
@@ -264,8 +267,9 @@ public class User
     }
 
     /**
-     * Returns the first of the tei search organisation units associated with the user. If none, returns the first of
-     * the data capture organisation units. If none, return nulls.
+     * Returns the first of the tei search organisation units associated with the
+     * user. If none, returns the first of the data capture organisation units. If
+     * none, return nulls.
      */
     public OrganisationUnit getTeiSearchOrganisationUnitWithFallback()
     {
@@ -301,7 +305,8 @@ public class User
     }
 
     /**
-     * Tests whether the user has the given authority. Returns true in any case if the user has the ALL authority.
+     * Tests whether the user has the given authority. Returns true in any case if
+     * the user has the ALL authority.
      *
      * @param auth the authority.
      */
@@ -311,7 +316,8 @@ public class User
     }
 
     /**
-     * Tests whether the user has the given authority. Returns true in any case if the user has the ALL authority.
+     * Tests whether the user has the given authority. Returns true in any case if
+     * the user has the ALL authority.
      *
      * @param auth the {@link Authorities}.
      */
@@ -349,7 +355,8 @@ public class User
      * Indicates whether this user can manage the given user group.
      *
      * @param userGroup the user group to test.
-     * @return true if the given user group can be managed by this user, false if not.
+     * @return true if the given user group can be managed by this user, false if
+     *         not.
      */
     public boolean canManage( UserGroup userGroup )
     {

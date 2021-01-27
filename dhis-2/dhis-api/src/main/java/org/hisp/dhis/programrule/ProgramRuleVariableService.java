@@ -71,7 +71,8 @@ public interface ProgramRuleVariableService
     /**
      * Returns all {@link ProgramRuleVariable}.
      *
-     * @return a List of all ProgramRuleVariable, or an empty List if there are no ProgramRuleVariables.
+     * @return a List of all ProgramRuleVariable, or an empty List if there are no
+     *         ProgramRuleVariables.
      */
     List<ProgramRuleVariable> getAllProgramRuleVariable();
 
@@ -87,7 +88,8 @@ public interface ProgramRuleVariableService
      *
      * @param program program.
      * @param dataElement to find association with.
-     * @return true if dataElement is associated with any ProgramRuleVariable, false otherwise.
+     * @return true if dataElement is associated with any ProgramRuleVariable, false
+     *         otherwise.
      */
     boolean isLinkedToProgramRuleVariable( Program program, DataElement dataElement );
 
@@ -99,7 +101,8 @@ public interface ProgramRuleVariableService
 
     /**
      *
-     * @return all ProgramRuleVariables which are linked to {@link org.hisp.dhis.trackedentity.TrackedEntityAttribute}
+     * @return all ProgramRuleVariables which are linked to
+     *         {@link org.hisp.dhis.trackedentity.TrackedEntityAttribute}
      */
     List<ProgramRuleVariable> getVariablesWithNoAttribute();
 }

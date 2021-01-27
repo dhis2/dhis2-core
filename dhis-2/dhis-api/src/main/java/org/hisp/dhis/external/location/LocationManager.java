@@ -38,10 +38,11 @@ import java.io.OutputStream;
 public interface LocationManager
 {
     /**
-     * Gets an inputstream from a file relative to the external configuration directory location, which is set through
-     * an environment variable. A LocationManagerException is thrown if the external directory location is not set, if
-     * the file does not exists, or cannot be read by the application. The inputstream should be closed by the client
-     * code after use.
+     * Gets an inputstream from a file relative to the external configuration
+     * directory location, which is set through an environment variable. A
+     * LocationManagerException is thrown if the external directory location is not
+     * set, if the file does not exists, or cannot be read by the application. The
+     * inputstream should be closed by the client code after use.
      *
      * @param fileName the name of the file to be read.
      */
@@ -49,10 +50,11 @@ public interface LocationManager
         throws LocationManagerException;
 
     /**
-     * Gets an inputstream from a file relative to the external configuration directory location, which is set through
-     * an environment variable. A LocationManagerException is thrown if the external directory location is not set, if
-     * the file does not exists, or cannot be read by the application. The inputstream should be closed by the client
-     * code after use.
+     * Gets an inputstream from a file relative to the external configuration
+     * directory location, which is set through an environment variable. A
+     * LocationManagerException is thrown if the external directory location is not
+     * set, if the file does not exists, or cannot be read by the application. The
+     * inputstream should be closed by the client code after use.
      *
      * @param fileName the name of the file to be read.
      */
@@ -60,9 +62,10 @@ public interface LocationManager
         throws LocationManagerException;
 
     /**
-     * Gets a file relative to the external configuration directory location, which is set through an environment
-     * variable. A LocationManagerException is thrown if the external directory location is not set, if the file does
-     * not exists, or cannot be read by the application.
+     * Gets a file relative to the external configuration directory location, which
+     * is set through an environment variable. A LocationManagerException is thrown
+     * if the external directory location is not set, if the file does not exists,
+     * or cannot be read by the application.
      *
      * @param fileName the name of the file to be read.
      */
@@ -70,22 +73,24 @@ public interface LocationManager
         throws LocationManagerException;
 
     /**
-     * Gets a file relative to the external configuration directory location, which is set through an environment
-     * variable. A LocationManagerException is thrown if the external directory location is not set, if the file does
-     * not exists, or cannot be read by the application.
+     * Gets a file relative to the external configuration directory location, which
+     * is set through an environment variable. A LocationManagerException is thrown
+     * if the external directory location is not set, if the file does not exists,
+     * or cannot be read by the application.
      *
      * @param fileName the name of the file to be read.
-     * @param directories the directories in the path relative to the external configuration directory in descending
-     *        order.
+     * @param directories the directories in the path relative to the external
+     *        configuration directory in descending order.
      */
     File getFileForReading( String fileName, String... directories )
         throws LocationManagerException;
 
     /**
-     * Gets a file relative to the external configuration directory location, which is set through an environment
-     * variable. A LocationManagerException is thrown if the external directory location is not set. The method tries to
-     * construct the directories passed as arguments if they do not already exist, and trows a LocationManagerException
-     * if the process was unsuccessful.
+     * Gets a file relative to the external configuration directory location, which
+     * is set through an environment variable. A LocationManagerException is thrown
+     * if the external directory location is not set. The method tries to construct
+     * the directories passed as arguments if they do not already exist, and trows a
+     * LocationManagerException if the process was unsuccessful.
      *
      * @param fileName the name of the file to be written.
      */
@@ -93,20 +98,23 @@ public interface LocationManager
         throws LocationManagerException;
 
     /**
-     * Gets a file relative to the external configuration directory location, which is set through an environment
-     * variable. A LocationManagerException is thrown if the external directory location is not set. The method tries to
-     * construct the directories passed as arguments if they do not already exist, and trows a LocationManagerException
-     * if the process was unsuccessful.
+     * Gets a file relative to the external configuration directory location, which
+     * is set through an environment variable. A LocationManagerException is thrown
+     * if the external directory location is not set. The method tries to construct
+     * the directories passed as arguments if they do not already exist, and trows a
+     * LocationManagerException if the process was unsuccessful.
      *
      * @param fileName the name of the file to be written.
-     * @param directories the directories in the path relative to the external configuration directory.
+     * @param directories the directories in the path relative to the external
+     *        configuration directory.
      */
     File getFileForWriting( String fileName, String... directories )
         throws LocationManagerException;
 
     /**
-     * Builds the directory structure defined by the given array of directories relative to external configuration
-     * directory location. For instance calling this method with "reporting", "excel", "temp" will create the directory
+     * Builds the directory structure defined by the given array of directories
+     * relative to external configuration directory location. For instance calling
+     * this method with "reporting", "excel", "temp" will create the directory
      * <external_config_dir>/reporting/excel/temp.
      *
      * @param directories The directories to create.
@@ -116,9 +124,10 @@ public interface LocationManager
         throws LocationManagerException;
 
     /**
-     * Gets an outputstream from a file relative to the external configuration directory location, which is set through
-     * an environment variable. A LocationManagerException is thrown if the external directory location is not set. The
-     * outputstream should be closed by the client code after use.
+     * Gets an outputstream from a file relative to the external configuration
+     * directory location, which is set through an environment variable. A
+     * LocationManagerException is thrown if the external directory location is not
+     * set. The outputstream should be closed by the client code after use.
      *
      * @param fileName the name of the file to be written.
      */
@@ -126,39 +135,44 @@ public interface LocationManager
         throws LocationManagerException;
 
     /**
-     * Gets an outputstream from a file relative to the external configuration directory location, which is set through
-     * an environment variable. A LocationManagerException is thrown if the external directory location is not set. The
-     * method tries to construct the directories passed as arguments if they do not already exist, and trows a
-     * LocationManagerException if the process was unsuccessful. The outputstream should be closed by the client code
-     * after use.
+     * Gets an outputstream from a file relative to the external configuration
+     * directory location, which is set through an environment variable. A
+     * LocationManagerException is thrown if the external directory location is not
+     * set. The method tries to construct the directories passed as arguments if
+     * they do not already exist, and trows a LocationManagerException if the
+     * process was unsuccessful. The outputstream should be closed by the client
+     * code after use.
      *
      * @param fileName the name of the file to be written.
-     * @param directories the directories in the path relative to the external configuration directory.
+     * @param directories the directories in the path relative to the external
+     *        configuration directory.
      */
     OutputStream getOutputStream( String fileName, String... directories )
         throws LocationManagerException;
 
     /**
-     * Gets the external configuration directory. A LocationManagerException is thrown if the external directory
-     * location is not set.
+     * Gets the external configuration directory. A LocationManagerException is
+     * thrown if the external directory location is not set.
      */
     File getExternalDirectory()
         throws LocationManagerException;
 
     /**
-     * Gets the external configuration directory. A LocationManagerException is thrown if the external directory
-     * location is not set.
+     * Gets the external configuration directory. A LocationManagerException is
+     * thrown if the external directory location is not set.
      */
     String getExternalDirectoryPath()
         throws LocationManagerException;
 
     /**
-     * Indicates whether the external configuration directory is set, valid, and writable.
+     * Indicates whether the external configuration directory is set, valid, and
+     * writable.
      */
     boolean externalDirectorySet();
 
     /**
-     * Gets the name of the environment variable used for defining the external configuration directory.
+     * Gets the name of the environment variable used for defining the external
+     * configuration directory.
      */
     String getEnvironmentVariable();
 }

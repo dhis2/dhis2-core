@@ -38,8 +38,8 @@ import org.hisp.dhis.schema.Schema;
 public interface LinkService
 {
     /**
-     * Generate next/prev links for Pager class. Needs to know which class we are generating the pager for, so it can
-     * fetch the endpoint.
+     * Generate next/prev links for Pager class. Needs to know which class we are
+     * generating the pager for, so it can fetch the endpoint.
      *
      * @param pager Pager instance to update with prev/next links
      * @param klass Class type which is paged
@@ -57,7 +57,8 @@ public interface LinkService
     void generatePagerLinks( Pager pager, String relativeApiEndpoint );
 
     /**
-     * Generate HREF and set it using reflection, required a setHref(String) method in your class.
+     * Generate HREF and set it using reflection, required a setHref(String) method
+     * in your class.
      * <p/>
      * Uses hrefBase from ContextService.getServletPath().
      *
@@ -69,7 +70,8 @@ public interface LinkService
     <T> void generateLinks( T object, boolean deepScan );
 
     /**
-     * Generate HREF and set it using reflection, required a setHref(String) method in your class.
+     * Generate HREF and set it using reflection, required a setHref(String) method
+     * in your class.
      *
      * @param object Object (can be collection) to set HREFs on
      * @param hrefBase Used as starting point of HREF

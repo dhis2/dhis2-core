@@ -46,8 +46,9 @@ public interface SecurityService
     void registerRecoveryAttempt( String username );
 
     /**
-     * Indicates whether the recovery of the user account is locked due to too many recovery attempts within a specific
-     * time span. The max number of attempts is 5 and the time span is 15 minutes.
+     * Indicates whether the recovery of the user account is locked due to too many
+     * recovery attempts within a specific time span. The max number of attempts is
+     * 5 and the time span is 15 minutes.
      *
      * @param username the username of the user account.
      */
@@ -68,22 +69,25 @@ public interface SecurityService
     void registerSuccessfulLogin( String username );
 
     /**
-     * Indicates whether the given user account is locked out due to too many successive failed login attempts within a
-     * specific time span. The max number of attempts is 5 and the time span is 15 minutes.
+     * Indicates whether the given user account is locked out due to too many
+     * successive failed login attempts within a specific time span. The max number
+     * of attempts is 5 and the time span is 15 minutes.
      *
      * @param username the username of the user account.
      */
     boolean isLocked( String username );
 
     /**
-     * Sets information for a user who will be invited by email to finish setting up their user account.
+     * Sets information for a user who will be invited by email to finish setting up
+     * their user account.
      *
      * @param user the user to invite.
      */
     void prepareUserForInvite( User user );
 
     /**
-     * Indicates whether a restore/invite is allowed for the given user. The requirements are:
+     * Indicates whether a restore/invite is allowed for the given user. The
+     * requirements are:
      * <p>
      * <ul>
      * <li>email_not_configured_for_system</li>
@@ -98,8 +102,8 @@ public interface SecurityService
     String validateRestore( UserCredentials credentials );
 
     /**
-     * Indicates whether an invite is allowed for the given user. Delegates to validateRestore( UserCredentials ). The
-     * requirements are.
+     * Indicates whether an invite is allowed for the given user. Delegates to
+     * validateRestore( UserCredentials ). The requirements are.
      * <p>
      * <ul>
      * <li>no_user_credentials</li>
@@ -112,32 +116,35 @@ public interface SecurityService
     String validateInvite( UserCredentials credentials );
 
     /**
-     * Invokes the initRestore method and dispatches email messages with restore information to the user, or sends an
-     * invite email.
+     * Invokes the initRestore method and dispatches email messages with restore
+     * information to the user, or sends an invite email.
      *
      * @param credentials the credentials for the user to send restore message.
      * @param rootPath the root path of the request.
      * @param restoreOptions restore options, including type of restore.
-     * @return false if any of the arguments are null or if the user credentials identified by the user name does not
-     *         exist, true otherwise.
+     * @return false if any of the arguments are null or if the user credentials
+     *         identified by the user name does not exist, true otherwise.
      */
     boolean sendRestoreOrInviteMessage( UserCredentials credentials, String rootPath, RestoreOptions restoreOptions );
 
     /**
-     * Populates the restoreToken property and idToken of the given credentials with a hashed version of auto-generated
-     * values. Sets the restoreExpiry property with a date time some interval from now depending on the restore type.
+     * Populates the restoreToken property and idToken of the given credentials with
+     * a hashed version of auto-generated values. Sets the restoreExpiry property
+     * with a date time some interval from now depending on the restore type.
      * Changes are persisted.
      *
      * @param credentials the user credentials.
      * @param restoreOptions restore options, including type of restore.
-     * @return an encoded string containing both id token and hashed/restoreToken, delimited with : clear-text code.
+     * @return an encoded string containing both id token and hashed/restoreToken,
+     *         delimited with : clear-text code.
      */
     String generateAndPersistTokens( UserCredentials credentials, RestoreOptions restoreOptions );
 
     /**
      * Decodes the id and hashed/restore token used for restore or invite.
      *
-     * @param encodedTokens a Base64 encoded string containing the id token and hashed/restoreToken, delimited with :
+     * @param encodedTokens a Base64 encoded string containing the id token and
+     *        hashed/restoreToken, delimited with :
      * @return an array containing the decoded tokens
      */
     String[] decodeEncodedTokens( String encodedTokens );
@@ -151,9 +158,11 @@ public interface SecurityService
     RestoreOptions getRestoreOptions( String token );
 
     /**
-     * Tests whether the given token is valid for the given user name. If true, it will update the user credentials
-     * identified by the given user name with the new password. In order to succeed, the given token must match the ones
-     * on the credentials, and the current date must be before the expiry date time of the credentials.
+     * Tests whether the given token is valid for the given user name. If true, it
+     * will update the user credentials identified by the given user name with the
+     * new password. In order to succeed, the given token must match the ones on the
+     * credentials, and the current date must be before the expiry date time of the
+     * credentials.
      *
      * @param credentials the user credentials.
      * @param token the token.
@@ -164,8 +173,9 @@ public interface SecurityService
     boolean restore( UserCredentials credentials, String token, String newPassword, RestoreType restoreType );
 
     /**
-     * Tests whether the given token and code are valid for the given user name. In order to succeed, the given token
-     * and code must match the ones on the credentials, and the current date must be before the expiry date time of the
+     * Tests whether the given token and code are valid for the given user name. In
+     * order to succeed, the given token and code must match the ones on the
+     * credentials, and the current date must be before the expiry date time of the
      * credentials.
      *
      * @param credentials the user credentials.
@@ -176,19 +186,22 @@ public interface SecurityService
     boolean canRestore( UserCredentials credentials, String token, RestoreType restoreType );
 
     /**
-     * Tests whether the given token in combination with the given user name is valid, i.e. whether the hashed version
-     * of the token matches the one on the user credentials identified by the given user name.
+     * Tests whether the given token in combination with the given user name is
+     * valid, i.e. whether the hashed version of the token matches the one on the
+     * user credentials identified by the given user name.
      *
      * @param credentials the user credentials.
      * @param token the token.
-     * @return error message if any of the arguments are null or if the user credentials identified by the user name
-     *         does not exist, null if the arguments are valid.
+     * @return error message if any of the arguments are null or if the user
+     *         credentials identified by the user name does not exist, null if the
+     *         arguments are valid.
      */
     String verifyRestoreToken( UserCredentials credentials, String token, RestoreType restoreType );
 
     /**
-     * Indicates whether the given username is an invite. The username is considered an invite if it is null or matches
-     * the invite username pattern of invite-<email>-<uid>.
+     * Indicates whether the given username is an invite. The username is considered
+     * an invite if it is null or matches the invite username pattern of
+     * invite-<email>-<uid>.
      *
      * @param username the username.
      * @return true if the username represents an account invitation.
@@ -244,8 +257,8 @@ public interface SecurityService
     boolean canCreatePrivate( String type );
 
     /**
-     * Checks whether current user can view instances of the object. Depends on system setting for require add to view
-     * objects.
+     * Checks whether current user can view instances of the object. Depends on
+     * system setting for require add to view objects.
      *
      * @param type Type to check for view access.
      * @return true of false depending on outcome of check
@@ -277,7 +290,8 @@ public interface SecurityService
     boolean canManage( IdentifiableObject identifiableObject );
 
     /**
-     * Indicates whether the current user has been granted any of the given authorities.
+     * Indicates whether the current user has been granted any of the given
+     * authorities.
      *
      * @param authorities the authorities.
      * @return true if the current user has any of the given authorities.

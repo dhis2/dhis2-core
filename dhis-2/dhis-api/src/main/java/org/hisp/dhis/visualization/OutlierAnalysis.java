@@ -37,7 +37,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * Class responsible for keeping the settings related to outlier analysis in Visualization.
+ * Class responsible for keeping the settings related to outlier analysis in
+ * Visualization.
  */
 @Data
 public class OutlierAnalysis implements Serializable

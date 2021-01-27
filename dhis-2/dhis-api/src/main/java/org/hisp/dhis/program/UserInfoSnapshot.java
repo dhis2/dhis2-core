@@ -40,7 +40,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * Data structure to hold user information during save/update of events, enrollments and comments
+ * Data structure to hold user information during save/update of events,
+ * enrollments and comments
  *
  * @author Giuseppe Nespolino
  */

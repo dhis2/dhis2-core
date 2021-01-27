@@ -60,7 +60,8 @@ public class BaseDimensionalItemObject
     protected AggregationType aggregationType;
 
     /**
-     * A value representing a period offset that can be applied to Dimensional Item Object within a Indicator formula
+     * A value representing a period offset that can be applied to Dimensional Item
+     * Object within a Indicator formula
      */
     protected transient int periodOffset = 0;
 

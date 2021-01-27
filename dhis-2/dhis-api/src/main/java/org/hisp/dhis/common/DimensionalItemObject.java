@@ -84,13 +84,15 @@ public interface DimensionalItemObject
     boolean hasAggregationType();
 
     /**
-     * Gets the total aggregation type, meaning how total values should be aggregated across multiple values.
+     * Gets the total aggregation type, meaning how total values should be
+     * aggregated across multiple values.
      */
     TotalAggregationType getTotalAggregationType();
 
     /**
-     * Gets a Period Offset: the offset can be applied within an Indicator formula in order to "shift" the query period
-     * by the offset value (e.g. Jan 2020 with offset 1 becomes Feb 2020). An offset with value 0 means no offset.
+     * Gets a Period Offset: the offset can be applied within an Indicator formula
+     * in order to "shift" the query period by the offset value (e.g. Jan 2020 with
+     * offset 1 becomes Feb 2020). An offset with value 0 means no offset.
      *
      * @return an int.
      */

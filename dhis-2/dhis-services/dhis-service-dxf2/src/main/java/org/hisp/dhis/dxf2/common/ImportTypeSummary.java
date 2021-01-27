@@ -53,9 +53,10 @@ public class ImportTypeSummary extends ImportSummary
     private List<ImportConflict> importConflicts = new ArrayList<>();
 
     /**
-     * This will always have the UID of the latest imported object. This is used for cases where you are only importing
-     * a single object, and want to return the Location header etc to the user. We might extend this in the future, so
-     * that we can get all UIDs of imported objects.
+     * This will always have the UID of the latest imported object. This is used for
+     * cases where you are only importing a single object, and want to return the
+     * Location header etc to the user. We might extend this in the future, so that
+     * we can get all UIDs of imported objects.
      */
     private String lastImported;
 

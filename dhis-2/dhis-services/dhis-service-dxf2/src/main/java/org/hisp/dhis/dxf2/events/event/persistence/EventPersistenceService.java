@@ -33,8 +33,8 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 
 /**
- * Wrapper service for Event-related operations. This service acts as a transactional wrapper for insert/update/delete
- * operations on Events.
+ * Wrapper service for Event-related operations. This service acts as a
+ * transactional wrapper for insert/update/delete operations on Events.
  *
  * @author Luciano Fiandesio
  */

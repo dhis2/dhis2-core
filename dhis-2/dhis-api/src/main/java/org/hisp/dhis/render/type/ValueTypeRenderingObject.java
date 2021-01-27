@@ -34,10 +34,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * This class represents the DataElement/TrackedEntityAttribute ValueType based rendering type
+ * This class represents the DataElement/TrackedEntityAttribute ValueType based
+ * rendering type
  *
- * The min, max, step and decimal properties in this class does not represent the data validation, it only serves as a
- * guideline on how form elements should be defined (IE: Sliders, spinners, etc)
+ * The min, max, step and decimal properties in this class does not represent
+ * the data validation, it only serves as a guideline on how form elements
+ * should be defined (IE: Sliders, spinners, etc)
  */
 public class ValueTypeRenderingObject implements RenderingObject<ValueTypeRenderingType>
 {

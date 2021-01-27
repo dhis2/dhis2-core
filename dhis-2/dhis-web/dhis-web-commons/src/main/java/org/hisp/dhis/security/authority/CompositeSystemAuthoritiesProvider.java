@@ -33,7 +33,8 @@ import java.util.Set;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: CompositeSystemAuthoritiesProvider.java 3160 2007-03-24 20:15:06Z torgeilo $
+ * @version $Id: CompositeSystemAuthoritiesProvider.java 3160 2007-03-24
+ *          20:15:06Z torgeilo $
  */
 public class CompositeSystemAuthoritiesProvider
     implements SystemAuthoritiesProvider

@@ -87,8 +87,8 @@ public class KeyJsonValueController
     private WebMessageService messageService;
 
     /**
-     * Returns a JSON array of strings representing the different namespaces used. If no namespaces exist, an empty
-     * array is returned.
+     * Returns a JSON array of strings representing the different namespaces used.
+     * If no namespaces exist, an empty array is returned.
      */
     @RequestMapping( value = "", method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody List<String> getNamespaces( HttpServletResponse response )
@@ -146,7 +146,8 @@ public class KeyJsonValueController
     }
 
     /**
-     * Retrieves the value of the KeyJsonValue represented by the given key from the given namespace.
+     * Retrieves the value of the KeyJsonValue represented by the given key from the
+     * given namespace.
      */
     @RequestMapping( value = "/{namespace}/{key}", method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody String getKeyJsonValue( @PathVariable String namespace, @PathVariable String key,
@@ -168,7 +169,8 @@ public class KeyJsonValueController
     }
 
     /**
-     * Retrieves the KeyJsonValue represented by the given key from the given namespace.
+     * Retrieves the KeyJsonValue represented by the given key from the given
+     * namespace.
      */
     @RequestMapping( value = "/{namespace}/{key}/metaData", method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody KeyJsonValue getKeyJsonValueMetaData( @PathVariable String namespace, @PathVariable String key,
@@ -193,7 +195,8 @@ public class KeyJsonValueController
     }
 
     /**
-     * Creates a new KeyJsonValue Object on the given namespace with the key and value supplied.
+     * Creates a new KeyJsonValue Object on the given namespace with the key and
+     * value supplied.
      */
     @RequestMapping( value = "/{namespace}/{key}", method = RequestMethod.POST, produces = "application/json", consumes = "application/json" )
     public void addKeyJsonValue( @PathVariable String namespace, @PathVariable String key, @RequestBody String body,
@@ -284,8 +287,8 @@ public class KeyJsonValueController
     }
 
     /**
-     * Validates access and looks up the value, thrown an exception if there is no such key/value pair in the given
-     * namespace
+     * Validates access and looks up the value, thrown an exception if there is no
+     * such key/value pair in the given namespace
      *
      * @param namespace Namespace to use when looking up the value
      * @param key Key of the key/value pair
@@ -308,7 +311,8 @@ public class KeyJsonValueController
     }
 
     /**
-     * Validates access and throws an exception if the current user does not have proper access
+     * Validates access and throws an exception if the current user does not have
+     * proper access
      *
      * @param namespace The namespace to validate
      * @throws WebMessageException

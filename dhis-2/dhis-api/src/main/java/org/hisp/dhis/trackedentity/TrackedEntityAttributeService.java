@@ -44,8 +44,8 @@ public interface TrackedEntityAttributeService
     String ID = TrackedEntityAttributeService.class.getName();
 
     /**
-     * The max length of a value. This is also naturally constrained by the database table, due to the data type:
-     * varchar(1200).
+     * The max length of a value. This is also naturally constrained by the database
+     * table, due to the data type: varchar(1200).
      */
     int TEA_VALUE_MAX_LENGTH = 1200;
 
@@ -98,7 +98,8 @@ public interface TrackedEntityAttributeService
     /**
      * Returns all {@link TrackedEntityAttribute}
      *
-     * @return a list of all TrackedEntityAttribute, or an empty List if there are no TrackedEntityAttributes.
+     * @return a list of all TrackedEntityAttribute, or an empty List if there are
+     *         no TrackedEntityAttributes.
      */
     List<TrackedEntityAttribute> getAllTrackedEntityAttributes();
 
@@ -110,8 +111,8 @@ public interface TrackedEntityAttributeService
     /**
      * Returns all {@link TrackedEntityAttribute}
      *
-     * @return a List of all system wide uniqe TrackedEntityAttribute, or an empty List if there are no
-     *         TrackedEntityAttributes.
+     * @return a List of all system wide uniqe TrackedEntityAttribute, or an empty
+     *         List if there are no TrackedEntityAttributes.
      */
     List<TrackedEntityAttribute> getAllSystemWideUniqueTrackedEntityAttributes();
 
@@ -132,15 +133,16 @@ public interface TrackedEntityAttributeService
     List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInListNoProgram();
 
     /**
-     * Get all attributes that user is allowed to read (through program and tracked entity type)
+     * Get all attributes that user is allowed to read (through program and tracked
+     * entity type)
      *
      * @return a list of attributes
      */
     Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes();
 
     /**
-     * Validate uniqueness of the tracked entity attribute value within its scope. Will return non-empty error message
-     * if attribute is non-unique.
+     * Validate uniqueness of the tracked entity attribute value within its scope.
+     * Will return non-empty error message if attribute is non-unique.
      *
      * @param trackedEntityAttribute TrackedEntityAttribute
      * @param value Value
@@ -164,7 +166,8 @@ public interface TrackedEntityAttributeService
     List<TrackedEntityAttribute> getAllUniqueTrackedEntityAttributes();
 
     /**
-     * Get all {@link TrackedEntityAttribute} linked to all {@link TrackedEntityType} present in the system
+     * Get all {@link TrackedEntityAttribute} linked to all
+     * {@link TrackedEntityType} present in the system
      *
      * @return a Set of {@link TrackedEntityAttribute}
      */
@@ -173,8 +176,9 @@ public interface TrackedEntityAttributeService
     /**
      * Get all {@link TrackedEntityAttribute} grouped by {@link Program}
      *
-     * @return a Map, where the key is the {@link Program} and the values is a Set of {@link TrackedEntityAttribute}
-     *         associated to the {@link Program} in the key
+     * @return a Map, where the key is the {@link Program} and the values is a Set
+     *         of {@link TrackedEntityAttribute} associated to the {@link Program}
+     *         in the key
      */
     Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram();
 }

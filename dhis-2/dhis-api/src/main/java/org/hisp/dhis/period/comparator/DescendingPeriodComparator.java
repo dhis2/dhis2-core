@@ -32,8 +32,9 @@ import java.util.Comparator;
 import org.hisp.dhis.period.Period;
 
 /**
- * Sorts periods descending based on the end date, then the start date, i.e. the latest period comes first. The start
- * date and end date properties cannot be null.
+ * Sorts periods descending based on the end date, then the start date, i.e. the
+ * latest period comes first. The start date and end date properties cannot be
+ * null.
  *
  * @author Lars Helge Overland
  */

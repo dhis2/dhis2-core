@@ -33,7 +33,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation signal the system that the object annotated with it can be processed by the auditing sub-system.
+ * This annotation signal the system that the object annotated with it can be
+ * processed by the auditing sub-system.
  *
  * @author Luciano Fiandesio
  */
@@ -48,7 +49,8 @@ public @interface Auditable
     String[] eventType() default "all";
 
     /**
-     * The scope of the annotated class. The scope is used to group logically adjacent objects (e.g. METADATA)
+     * The scope of the annotated class. The scope is used to group logically
+     * adjacent objects (e.g. METADATA)
      *
      * @return an {@see AuditScope}
      */

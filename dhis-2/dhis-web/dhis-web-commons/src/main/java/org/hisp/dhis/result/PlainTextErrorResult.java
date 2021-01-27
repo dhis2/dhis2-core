@@ -111,7 +111,8 @@ public class PlainTextErrorResult
     }
 
     /**
-     * Remove the first colon character ( : ) if the class name does not present in the message
+     * Remove the first colon character ( : ) if the class name does not present in
+     * the message
      *
      * @param message with format ${exception.class.name}: ${exception.message}
      * @return formated message

@@ -36,8 +36,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Default implementation of StartupRoutineExecutor. The execute method will execute the added StartupRoutines ordered
- * by their run levels. Startup routines can be ignored from the command line by appending the below.
+ * Default implementation of StartupRoutineExecutor. The execute method will
+ * execute the added StartupRoutines ordered by their run levels. Startup
+ * routines can be ignored from the command line by appending the below.
  *
  * <code>-Ddhis.skip.startup=true</code>
  *

@@ -78,7 +78,8 @@ public class HibernateMetricsConfig
     }
 
     /**
-     * Get the name of an {@link EntityManagerFactory} based on its {@code beanName}.
+     * Get the name of an {@link EntityManagerFactory} based on its
+     * {@code beanName}.
      *
      * @param beanName the name of the {@link EntityManagerFactory} bean
      * @return a name for the given entity manager factory

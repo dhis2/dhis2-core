@@ -41,8 +41,8 @@ import org.hisp.dhis.tracker.validation.hooks.*;
 import com.google.common.collect.ImmutableList;
 
 /**
- * Configuration class for the tracker importer validation hook ordering. The Hooks will be run in the same order they
- * apear in this class.
+ * Configuration class for the tracker importer validation hook ordering. The
+ * Hooks will be run in the same order they apear in this class.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -94,8 +94,9 @@ public class TrackerImportValidationConfig
     );
 
     /**
-     * Map structure to hold the index (int) of each element in the VALIDATION_ORDER as the value and the class as key.
-     * This map is used for sorting a list of TrackerValidationHooks classes.
+     * Map structure to hold the index (int) of each element in the VALIDATION_ORDER
+     * as the value and the class as key. This map is used for sorting a list of
+     * TrackerValidationHooks classes.
      */
     protected static final Map<Class<? extends TrackerValidationHook>, Integer> VALIDATION_ORDER_MAP = IntStream
         .range( 0, VALIDATION_ORDER.size() )
@@ -103,7 +104,8 @@ public class TrackerImportValidationConfig
         .collect( toMap( VALIDATION_ORDER::get, Function.identity() ) );
 
     /**
-     * Sort the hooks in the order they are represented in the above VALIDATION_ORDER list.
+     * Sort the hooks in the order they are represented in the above
+     * VALIDATION_ORDER list.
      *
      * @param hooks list to sort
      */

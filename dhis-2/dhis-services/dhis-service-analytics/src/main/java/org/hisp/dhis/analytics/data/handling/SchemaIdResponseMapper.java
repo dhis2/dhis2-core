@@ -66,8 +66,8 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.springframework.stereotype.Component;
 
 /**
- * This component is responsible for encapsulating the id schema mapping for the response elements based on the given
- * URL id schema params.
+ * This component is responsible for encapsulating the id schema mapping for the
+ * response elements based on the given URL id schema params.
  *
  * @author maikel arabori
  */
@@ -76,15 +76,18 @@ public class SchemaIdResponseMapper
 {
 
     /**
-     * This method will map the respective element UID's with their respective id schema set. The 'outputIdScheme' is
-     * considered the most general id schema parameter. If set, it will map the schema id set to all dimension items.
+     * This method will map the respective element UID's with their respective id
+     * schema set. The 'outputIdScheme' is considered the most general id schema
+     * parameter. If set, it will map the schema id set to all dimension items.
      *
-     * The other two id schema parameters supported ('outputDataElementIdScheme' and 'outputOrgUnitIdScheme') will allow
-     * fine-grained id schema definitions on top of the general 'outputIdScheme'. If they are set, they will override
-     * the 'outputIdScheme' definition.
+     * The other two id schema parameters supported ('outputDataElementIdScheme' and
+     * 'outputOrgUnitIdScheme') will allow fine-grained id schema definitions on top
+     * of the general 'outputIdScheme'. If they are set, they will override the
+     * 'outputIdScheme' definition.
      *
-     * @param params the params where the id schema options are defined. The current URL params supported are:
-     *        outputIdScheme, outputDataElementIdScheme and outputOrgUnitIdScheme.
+     * @param params the params where the id schema options are defined. The current
+     *        URL params supported are: outputIdScheme, outputDataElementIdScheme
+     *        and outputOrgUnitIdScheme.
      * @return a Map of <uid, mapping value>
      */
     Map<String, String> getSchemeIdResponseMap( final DataQueryParams params )

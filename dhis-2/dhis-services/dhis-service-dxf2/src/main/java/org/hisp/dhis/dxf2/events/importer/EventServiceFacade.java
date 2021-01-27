@@ -50,7 +50,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Service responsible for wrapping the event importing process, pre-processing the input data.
+ * Service responsible for wrapping the event importing process, pre-processing
+ * the input data.
  *
  * @author maikel arabori
  */

@@ -63,7 +63,8 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject implement
     private String description;
 
     /**
-     * Criteria object representing selected projections, filtering and sorting criteria in events
+     * Criteria object representing selected projections, filtering and sorting
+     * criteria in events
      */
     private EventQueryCriteria eventQueryCriteria;
 

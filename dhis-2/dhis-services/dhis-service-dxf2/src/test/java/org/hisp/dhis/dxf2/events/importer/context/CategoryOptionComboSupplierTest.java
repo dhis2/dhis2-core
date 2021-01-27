@@ -101,7 +101,8 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
         case1( ImportOptions.getDefaultImportOptions() );
 
         /*
-         * Case 2: Event has 'attributeOptionCombo' value set, but it's not found -> fetch default coc
+         * Case 2: Event has 'attributeOptionCombo' value set, but it's not found ->
+         * fetch default coc
          */
         case2( ImportOptions.getDefaultImportOptions() );
 
@@ -111,13 +112,14 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
         case3( ImportOptions.getDefaultImportOptions() );
 
         /*
-         * Case 4: Event has no 'attributeCategoryOptions' or 'attributeOptionCombo' values set -> fetch default coc
+         * Case 4: Event has no 'attributeCategoryOptions' or 'attributeOptionCombo'
+         * values set -> fetch default coc
          */
         case4( ImportOptions.getDefaultImportOptions() );
 
         /*
-         * Case 5: Event has both 'attributeCategoryOptions' and 'attributeOptionCombo' values set attributeOptionCombo
-         * is used to fetch the coc
+         * Case 5: Event has both 'attributeCategoryOptions' and 'attributeOptionCombo'
+         * values set attributeOptionCombo is used to fetch the coc
          */
         case5( ImportOptions.getDefaultImportOptions() );
     }

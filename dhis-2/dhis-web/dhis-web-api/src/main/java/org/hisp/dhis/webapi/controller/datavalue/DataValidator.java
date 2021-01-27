@@ -70,8 +70,9 @@ import org.springframework.stereotype.Component;
 import com.google.common.base.Preconditions;
 
 /**
- * This a simple component responsible for extracting and encapsulating validation rules from the controller layer. This
- * can be seen as an extension of the controller.
+ * This a simple component responsible for extracting and encapsulating
+ * validation rules from the controller layer. This can be seen as an extension
+ * of the controller.
  */
 @Component
 public class DataValidator
@@ -233,7 +234,8 @@ public class DataValidator
     }
 
     /**
-     * Validates if the given DataSet uid exists and is accessible and if the DataSet contains the informed DataElement.
+     * Validates if the given DataSet uid exists and is accessible and if the
+     * DataSet contains the informed DataElement.
      *
      * @param uid the DataSet uid.
      * @param dataElement the data element to be checked in the DataSet.
@@ -301,7 +303,8 @@ public class DataValidator
     }
 
     /**
-     * Check for an invalid period withing the given CategoryOptionCombo (attribute option combo).
+     * Check for an invalid period withing the given CategoryOptionCombo (attribute
+     * option combo).
      *
      * @param attributeOptionCombo is the CategoryOptionCombo.
      * @param period the period to be checked.
@@ -330,7 +333,8 @@ public class DataValidator
     }
 
     /**
-     * Validate if the DataSet or DataElement is locked based on the input arguments.
+     * Validate if the DataSet or DataElement is locked based on the input
+     * arguments.
      *
      * @param user the current User.
      * @param dataElement the DataElement.
@@ -371,7 +375,8 @@ public class DataValidator
     }
 
     /**
-     * Validates if the given file resource uid has a valid FileResource associated with.
+     * Validates if the given file resource uid has a valid FileResource associated
+     * with.
      *
      * @param fileResourceUid the uid of the FileResource.
      * @param valueType
@@ -448,8 +453,8 @@ public class DataValidator
     }
 
     /**
-     * Validates if the given dataValue is valid for the given DataElement, and normalize it if the dataValue is a
-     * boolean type.
+     * Validates if the given dataValue is valid for the given DataElement, and
+     * normalize it if the dataValue is a boolean type.
      *
      * @param dataValue the data value.
      * @param dataElement the data element.

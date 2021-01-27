@@ -93,7 +93,8 @@ public class Translation
      *
      * @param locale the locale string, i.e. Locale.toString().
      * @param property the translation property.
-     * @return a unique cache key valid for a given translated objects, or null if either locale or property is null.
+     * @return a unique cache key valid for a given translated objects, or null if
+     *         either locale or property is null.
      */
     public static String getCacheKey( String locale, TranslationProperty property )
     {

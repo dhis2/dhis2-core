@@ -39,7 +39,8 @@ public interface VisualizationStore
 {
 
     /**
-     * Query the Visualization collection and retrieve only the Visualizations of type Chart.
+     * Query the Visualization collection and retrieve only the Visualizations of
+     * type Chart.
      *
      * @param first the first result row
      * @param max the maximum result row
@@ -48,7 +49,8 @@ public interface VisualizationStore
     List<Visualization> getCharts( int first, int max );
 
     /**
-     * Query the Visualization collection and retrieve only the Visualizations of type Pivot Table.
+     * Query the Visualization collection and retrieve only the Visualizations of
+     * type Pivot Table.
      *
      * @param first the first result row
      * @param max the maximum result row
@@ -57,8 +59,8 @@ public interface VisualizationStore
     List<Visualization> getPivotTables( int first, int max );
 
     /**
-     * Query the Visualization collection and retrieve only the Visualizations of type Chart comparing the name using
-     * the given "chars".
+     * Query the Visualization collection and retrieve only the Visualizations of
+     * type Chart comparing the name using the given "chars".
      *
      * @param words the characters describing the Visualization's name
      * @param first the first result row
@@ -68,8 +70,8 @@ public interface VisualizationStore
     List<Visualization> getChartsLikeName( Set<String> words, int first, int max );
 
     /**
-     * Query the Visualization collection and retrieve only the Visualizations of type Pivot Table comparing the name
-     * using the given "chars".
+     * Query the Visualization collection and retrieve only the Visualizations of
+     * type Pivot Table comparing the name using the given "chars".
      *
      * @param words the characters describing the Visualization's name
      * @param first the first result row

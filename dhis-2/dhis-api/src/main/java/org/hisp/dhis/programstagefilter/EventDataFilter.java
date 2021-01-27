@@ -86,7 +86,8 @@ public class EventDataFilter implements Serializable
     private String like;
 
     /**
-     * If the dataItem is of type date, then date filtering parameters are specified using this.
+     * If the dataItem is of type date, then date filtering parameters are specified
+     * using this.
      */
     private DateFilterPeriod dateFilter;
 

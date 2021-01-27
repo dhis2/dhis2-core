@@ -45,7 +45,8 @@ public interface AttributeValueStore
     List<AttributeValue> getAllByAttributeAndValue( Attribute attribute, String value );
 
     /**
-     * Is attribute value unique, the value must either not exist, or just exist in given object.
+     * Is attribute value unique, the value must either not exist, or just exist in
+     * given object.
      *
      * @param object Object
      * @param attributeValue AV to check for

@@ -820,7 +820,8 @@ public class DefaultOrganisationUnitService
     }
 
     /**
-     * Get lowest level/target level Organisation Units that includes the coordinates.
+     * Get lowest level/target level Organisation Units that includes the
+     * coordinates.
      */
     @Override
     @Transactional( readOnly = true )

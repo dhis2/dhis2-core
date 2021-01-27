@@ -30,8 +30,9 @@ package org.hisp.dhis.commons.collection;
 import java.util.Map;
 
 /**
- * Class that wraps a map with Enum as the value type. Offers a getValue-method that retrieves a value from the map by
- * providing a key of type String. This is convenient when rendering such a map in a view which cannot handle Java 5
+ * Class that wraps a map with Enum as the value type. Offers a getValue-method
+ * that retrieves a value from the map by providing a key of type String. This
+ * is convenient when rendering such a map in a view which cannot handle Java 5
  * enums.
  *
  * @author Lars Helge Overland

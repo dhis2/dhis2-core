@@ -57,13 +57,16 @@ public class FilteringHelper
     private static final String DIMENSION_TYPE_EQUAL_FILTER_PREFIX = "dimensionItemType:eq:";
 
     /**
-     * This method will return the respective BaseDimensionalItemObject class from the filter provided.
+     * This method will return the respective BaseDimensionalItemObject class from
+     * the filter provided.
      *
-     * @param filter should have the format of "dimensionItemType:in:[INDICATOR,DATA_SET,...]", where INDICATOR and
-     *        DATA_SET represents the BaseDimensionalItemObject. The valid types are found at
-     *        {@link org.hisp.dhis.common.DataDimensionItemType}
+     * @param filter should have the format of
+     *        "dimensionItemType:in:[INDICATOR,DATA_SET,...]", where INDICATOR and
+     *        DATA_SET represents the BaseDimensionalItemObject. The valid types are
+     *        found at {@link org.hisp.dhis.common.DataDimensionItemType}
      * @return the respective classes associated with the given IN filter
-     * @throws IllegalQueryException if the filter points to a non supported class/entity.
+     * @throws IllegalQueryException if the filter points to a non supported
+     *         class/entity.
      */
     public static Set<Class<? extends BaseDimensionalItemObject>> extractEntitiesFromInFilter( final String filter )
     {
@@ -91,13 +94,16 @@ public class FilteringHelper
     }
 
     /**
-     * This method will return the respective BaseDimensionalItemObject class from the filter provided.
+     * This method will return the respective BaseDimensionalItemObject class from
+     * the filter provided.
      *
-     * @param filter should have the format of "dimensionItemType:eq:INDICATOR", where INDICATOR represents the
-     *        BaseDimensionalItemObject. It could be any value represented by
+     * @param filter should have the format of "dimensionItemType:eq:INDICATOR",
+     *        where INDICATOR represents the BaseDimensionalItemObject. It could be
+     *        any value represented by
      *        {@link org.hisp.dhis.common.DataDimensionItemType}
      * @return the respective class associated with the given filter
-     * @throws IllegalQueryException if the filter points to a non supported class/entity.
+     * @throws IllegalQueryException if the filter points to a non supported
+     *         class/entity.
      */
     public static Class<? extends BaseDimensionalItemObject> extractEntityFromEqualFilter( final String filter )
     {

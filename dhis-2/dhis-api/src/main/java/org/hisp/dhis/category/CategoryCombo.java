@@ -60,14 +60,14 @@ public class CategoryCombo
     private List<Category> categories = new ArrayList<>();
 
     /**
-     * A set of category option combinations. Use getSortedOptionCombos() to get a sorted list of category option
-     * combinations.
+     * A set of category option combinations. Use getSortedOptionCombos() to get a
+     * sorted list of category option combinations.
      */
     private Set<CategoryOptionCombo> optionCombos = new HashSet<>();
 
     /**
-     * Type of data dimension. Category combinations of type DISAGGREGATION can be linked to data elements, whereas type
-     * ATTRIBUTE can be linked to data sets.
+     * Type of data dimension. Category combinations of type DISAGGREGATION can be
+     * linked to data elements, whereas type ATTRIBUTE can be linked to data sets.
      */
     private DataDimensionType dataDimensionType;
 
@@ -108,8 +108,9 @@ public class CategoryCombo
     }
 
     /**
-     * Indicates whether this category combo has at least one category, has at least one category option combo and that
-     * all categories have at least one category option.
+     * Indicates whether this category combo has at least one category, has at least
+     * one category option combo and that all categories have at least one category
+     * option.
      */
     public boolean isValid()
     {

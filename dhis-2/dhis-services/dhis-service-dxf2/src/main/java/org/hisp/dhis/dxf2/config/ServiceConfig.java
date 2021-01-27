@@ -290,9 +290,10 @@ public class ServiceConfig
     {
         return ImmutableMap.of( DELETE, newArrayList(
         /*
-         * Intentionally left empty since we don't have pre-delete processors at the moment, so at the moment this is a
-         * placeholder where to add pre-delete processors when we will need it (if ever). Remove this comment if you add
-         * a pre-delete processor.
+         * Intentionally left empty since we don't have pre-delete processors at the
+         * moment, so at the moment this is a placeholder where to add pre-delete
+         * processors when we will need it (if ever). Remove this comment if you add a
+         * pre-delete processor.
          */
         ) );
     }

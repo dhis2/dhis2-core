@@ -49,8 +49,9 @@ import com.opensymphony.xwork2.Result;
 
 /**
  * A custom Result type for chart data. Built on top of
- * <a href="http://www.jfree.org/jfreechart/" target="_blank">JFreeChart</a>. When executed this Result will write the
- * given chart as a PNG to the servlet output stream.
+ * <a href="http://www.jfree.org/jfreechart/" target="_blank">JFreeChart</a>.
+ * When executed this Result will write the given chart as a PNG to the servlet
+ * output stream.
  *
  * @author Bernard Choi
  * @author Lars Helge Overland
@@ -114,10 +115,12 @@ public class ChartResult
     }
 
     /**
-     * Executes the result. Writes the given chart as a PNG to the servlet output stream.
+     * Executes the result. Writes the given chart as a PNG to the servlet output
+     * stream.
      *
      * @param invocation an encapsulation of the action execution state.
-     * @throws Exception if an error occurs when creating or writing the chart to the servlet output stream.
+     * @throws Exception if an error occurs when creating or writing the chart to
+     *         the servlet output stream.
      */
     @Override
     public void execute( ActionInvocation invocation )

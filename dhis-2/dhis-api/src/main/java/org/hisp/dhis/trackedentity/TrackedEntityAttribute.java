@@ -85,13 +85,14 @@ public class TrackedEntityAttribute
     private TextPattern textPattern;
 
     /**
-     * Field mask represent how the value should be formatted during input. This string will be validated as a
-     * TextPatternSegment of type TEXT.
+     * Field mask represent how the value should be formatted during input. This
+     * string will be validated as a TextPatternSegment of type TEXT.
      */
     private String fieldMask;
 
     /**
-     * The style representing how TrackedEntityAttributes should be presented on the client
+     * The style representing how TrackedEntityAttributes should be presented on the
+     * client
      */
     private ObjectStyle style;
 
@@ -164,8 +165,8 @@ public class TrackedEntityAttribute
     }
 
     /**
-     * Checks whether the given value is present among the options in the option set of this attribute, matching on
-     * code.
+     * Checks whether the given value is present among the options in the option set
+     * of this attribute, matching on code.
      */
     public Boolean isValidOptionValue( String value )
     {

@@ -182,10 +182,11 @@ public class PostgreSQLStatementBuilder
     }
 
     /**
-     * Generates a derived table containing literals in two columns: long and string.
+     * Generates a derived table containing literals in two columns: long and
+     * string.
      *
-     * The generic implementation, which works in all supported database types, returns a subquery in the following
-     * form: <code>
+     * The generic implementation, which works in all supported database types,
+     * returns a subquery in the following form: <code>
      *     (values (i1, 's1'),(i2, 's2'),(i3, 's3')) table (intColumn, strColumn)
      * </code>
      *
@@ -225,8 +226,8 @@ public class PostgreSQLStatementBuilder
      * @param long2Column the desired 2nd long column name
      * @return the derived literal table
      *
-     *         The generic implementation, which works in all supported database types, returns a subquery in the
-     *         following form: <code>
+     *         The generic implementation, which works in all supported database
+     *         types, returns a subquery in the following form: <code>
      *     (values (i1_1, i2_1),(i1_2, i2_2),(i1_3, i2_3)) table (int1Column, int2Column)
      * </code>
      */

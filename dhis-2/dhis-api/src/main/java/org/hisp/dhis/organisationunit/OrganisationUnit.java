@@ -502,8 +502,8 @@ public class OrganisationUnit
     }
 
     /**
-     * Returns the list of ancestor organisation units for this organisation unit. Does not include itself. The list is
-     * ordered by root first.
+     * Returns the list of ancestor organisation units for this organisation unit.
+     * Does not include itself. The list is ordered by root first.
      *
      * @throws IllegalStateException if circular parent relationships is detected.
      */
@@ -535,8 +535,9 @@ public class OrganisationUnit
     }
 
     /**
-     * Returns the list of ancestor organisation units up to any of the given roots for this organisation unit. Does not
-     * include itself. The list is ordered by root first.
+     * Returns the list of ancestor organisation units up to any of the given roots
+     * for this organisation unit. Does not include itself. The list is ordered by
+     * root first.
      *
      * @param roots the root organisation units, if null using real roots.
      */
@@ -562,8 +563,8 @@ public class OrganisationUnit
     }
 
     /**
-     * Returns the list of ancestor organisation unit names up to any of the given roots for this organisation unit. The
-     * list is ordered by root first.
+     * Returns the list of ancestor organisation unit names up to any of the given
+     * roots for this organisation unit. The list is ordered by root first.
      *
      * @param roots the root organisation units, if null using real roots.
      */
@@ -595,8 +596,9 @@ public class OrganisationUnit
     }
 
     /**
-     * Returns the list of ancestor organisation unit UIDs up to any of the given roots for this organisation unit. Does
-     * not include itself. The list is ordered by root first.
+     * Returns the list of ancestor organisation unit UIDs up to any of the given
+     * roots for this organisation unit. Does not include itself. The list is
+     * ordered by root first.
      *
      * @param rootUids the root organisation units, if null using real roots.
      */
@@ -670,8 +672,8 @@ public class OrganisationUnit
     }
 
     /**
-     * Returns a string representing the graph of ancestors. The string is delimited by "/". The ancestors are ordered
-     * by root first and represented by UIDs.
+     * Returns a string representing the graph of ancestors. The string is delimited
+     * by "/". The ancestors are ordered by root first and represented by UIDs.
      *
      * @param roots the root organisation units, if null using real roots.
      */
@@ -683,8 +685,8 @@ public class OrganisationUnit
     }
 
     /**
-     * Returns a string representing the graph of ancestors. The string is delimited by "/". The ancestors are ordered
-     * by root first and represented by names.
+     * Returns a string representing the graph of ancestors. The string is delimited
+     * by "/". The ancestors are ordered by root first and represented by names.
      *
      * @param roots the root organisation units, if null using real roots.
      * @param includeThis whether to include this organisation unit in the graph.
@@ -709,7 +711,8 @@ public class OrganisationUnit
     }
 
     /**
-     * Returns a mapping between the uid and the uid parent graph of the given organisation units.
+     * Returns a mapping between the uid and the uid parent graph of the given
+     * organisation units.
      */
     public static Map<String, String> getParentGraphMap( List<OrganisationUnit> organisationUnits,
         Collection<OrganisationUnit> roots )
@@ -728,7 +731,8 @@ public class OrganisationUnit
     }
 
     /**
-     * Returns a mapping between the uid and the name parent graph of the given organisation units.
+     * Returns a mapping between the uid and the name parent graph of the given
+     * organisation units.
      */
     public static Map<String, String> getParentNameGraphMap( List<OrganisationUnit> organisationUnits,
         Collection<OrganisationUnit> roots, boolean includeThis )
@@ -747,8 +751,8 @@ public class OrganisationUnit
     }
 
     /**
-     * Indicates whether this organisation unit is associated with the given data element through its data set
-     * associations.
+     * Indicates whether this organisation unit is associated with the given data
+     * element through its data set associations.
      */
     public boolean hasDataElement( DataElement dataElement )
     {
@@ -764,7 +768,8 @@ public class OrganisationUnit
     }
 
     /**
-     * Indicates whether this organisation unit has at least one associated category option.
+     * Indicates whether this organisation unit has at least one associated category
+     * option.
      */
     public boolean hasCategoryOptions()
     {
@@ -833,8 +838,9 @@ public class OrganisationUnit
     }
 
     /**
-     * Used by persistence layer. Purpose is to have a column for use in database queries. For application use see
-     * {@link OrganisationUnit#getLevel()} which has better performance.
+     * Used by persistence layer. Purpose is to have a column for use in database
+     * queries. For application use see {@link OrganisationUnit#getLevel()} which
+     * has better performance.
      */
     public Integer getHierarchyLevel()
     {
@@ -1151,7 +1157,8 @@ public class OrganisationUnit
     }
 
     /**
-     * Set the Geometry field using a GeoJSON (https://en.wikipedia.org/wiki/GeoJSON) String, like {"type":"Point",
+     * Set the Geometry field using a GeoJSON
+     * (https://en.wikipedia.org/wiki/GeoJSON) String, like {"type":"Point",
      * "coordinates":[....]}
      *
      * @param geometryAsJsonString String containing a GeoJSON JSON payload

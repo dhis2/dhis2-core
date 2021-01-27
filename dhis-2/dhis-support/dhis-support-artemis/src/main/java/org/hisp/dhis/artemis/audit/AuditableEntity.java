@@ -44,11 +44,13 @@ public class AuditableEntity
     Class entityClass;
 
     /**
-     * An object that is ready for serialized by Jackson. Means that this object should: 1. Only includes referenced
-     * properties that are owned by the current Audit Entity. Means that the property's schema has attribute "owner =
-     * true" 2. Do not include any lazy HibernateProxy or PersistentCollection that is not loaded. 3. All referenced
-     * properties that extend BaseIdentifiableObject should be mapped to only UID string This object could be a
-     * Map<String, Object> with key is property name and value is the property value
+     * An object that is ready for serialized by Jackson. Means that this object
+     * should: 1. Only includes referenced properties that are owned by the current
+     * Audit Entity. Means that the property's schema has attribute "owner = true"
+     * 2. Do not include any lazy HibernateProxy or PersistentCollection that is not
+     * loaded. 3. All referenced properties that extend BaseIdentifiableObject
+     * should be mapped to only UID string This object could be a Map<String,
+     * Object> with key is property name and value is the property value
      */
     Object entity;
 }

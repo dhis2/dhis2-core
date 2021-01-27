@@ -45,7 +45,8 @@ public interface AppStorageService
     String APPS_DIR = "apps";
 
     /**
-     * Looks trough the appropriate directory of apps to find all installed apps using the AppStorageService
+     * Looks trough the appropriate directory of apps to find all installed apps
+     * using the AppStorageService
      *
      * @return A map of all app names and apps found
      */
@@ -77,8 +78,8 @@ public interface AppStorageService
     boolean deleteApp( App app );
 
     /**
-     * Looks up and returns a resource representing the page for the app requested. If the resource is not found, return
-     * null.
+     * Looks up and returns a resource representing the page for the app requested.
+     * If the resource is not found, return null.
      *
      * @param app the app to look up
      * @param pageName the name of the page to look up

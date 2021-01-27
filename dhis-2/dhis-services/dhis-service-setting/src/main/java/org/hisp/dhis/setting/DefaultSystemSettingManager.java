@@ -53,8 +53,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Lists;
 
 /**
- * Declare transactions on individual methods. The get-methods do not have transactions declared, instead a programmatic
- * transaction is initiated on cache miss in order to reduce the number of transactions to improve performance.
+ * Declare transactions on individual methods. The get-methods do not have
+ * transactions declared, instead a programmatic transaction is initiated on
+ * cache miss in order to reduce the number of transactions to improve
+ * performance.
  *
  * @author Stian Strandli
  * @author Lars Helge Overland
@@ -190,8 +192,9 @@ public class DefaultSystemSettingManager
     }
 
     /**
-     * Note: No transaction for this method, transaction is instead initiated at the store level behind the cache to
-     * avoid the transaction overhead for cache hits.
+     * Note: No transaction for this method, transaction is instead initiated at the
+     * store level behind the cache to avoid the transaction overhead for cache
+     * hits.
      */
     @Override
     public Serializable getSystemSetting( SettingKey key )
@@ -203,8 +206,9 @@ public class DefaultSystemSettingManager
     }
 
     /**
-     * Note: No transaction for this method, transaction is instead initiated at the store level behind the cache to
-     * avoid the transaction overhead for cache hits.
+     * Note: No transaction for this method, transaction is instead initiated at the
+     * store level behind the cache to avoid the transaction overhead for cache
+     * hits.
      */
     @Override
     public Serializable getSystemSetting( SettingKey key, Serializable defaultValue )
@@ -216,8 +220,9 @@ public class DefaultSystemSettingManager
     }
 
     /**
-     * Get system setting {@link SerializableOptional}. The return object is never null in order to cache requests for
-     * system settings which have no value or default value.
+     * Get system setting {@link SerializableOptional}. The return object is never
+     * null in order to cache requests for system settings which have no value or
+     * default value.
      *
      * @param name the system setting name.
      * @param defaultValue the default value for the system setting.

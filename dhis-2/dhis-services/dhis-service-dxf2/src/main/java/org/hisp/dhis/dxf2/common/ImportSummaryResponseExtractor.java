@@ -38,7 +38,8 @@ import org.springframework.web.client.ResponseExtractor;
  * Converts a response into an ImportSummary instance.
  *
  * @author Lars Helge Overland
- * @throws HttpServerErrorException if the response status code is different from 200 OK or 201 Created.
+ * @throws HttpServerErrorException if the response status code is different
+ *         from 200 OK or 201 Created.
  * @throws IOException if converting the response into an ImportSummary failed.
  */
 public class ImportSummaryResponseExtractor

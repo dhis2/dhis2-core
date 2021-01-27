@@ -38,7 +38,8 @@ import net.sf.jasperreports.engine.JRDataSource;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 /**
- * Represents a two-dimensional grid of Object-typed values organized in rows and columns.
+ * Represents a two-dimensional grid of Object-typed values organized in rows
+ * and columns.
  *
  * @author Lars Helge Overland
  */
@@ -199,7 +200,8 @@ public interface Grid
     Grid addValue( Object value );
 
     /**
-     * Adds values in the given array to the end of the current row in the specified order.
+     * Adds values in the given array to the end of the current row in the specified
+     * order.
      *
      * @param values the values to add.
      */
@@ -213,7 +215,8 @@ public interface Grid
     Grid addValuesVar( Object... values );
 
     /**
-     * Adds values in the given array to the end of the current row in the specified order.
+     * Adds values in the given array to the end of the current row in the specified
+     * order.
      *
      * @param values the values to add.
      */
@@ -251,7 +254,8 @@ public interface Grid
     List<List<Object>> getRows();
 
     /**
-     * Returns all visible rows, ie. rows with a corresponding header that is not hidden.
+     * Returns all visible rows, ie. rows with a corresponding header that is not
+     * hidden.
      */
     List<List<Object>> getVisibleRows();
 
@@ -268,7 +272,8 @@ public interface Grid
      * @param rowIndex the row index.
      * @param columnIndex the column index.
      * @return the column value.
-     * @throws IllegalArgumentException if the grid does not contain the requested row / column.
+     * @throws IllegalArgumentException if the grid does not contain the requested
+     *         row / column.
      */
     Object getValue( int rowIndex, int columnIndex );
 
@@ -276,8 +281,8 @@ public interface Grid
      * Adds a new column at the end of the grid.
      *
      * @param columnValues the column values to add.
-     * @throws IllegalStateException if the columnValues has different length than the rows in grid, or if the grid rows
-     *         are not of the same length.
+     * @throws IllegalStateException if the columnValues has different length than
+     *         the rows in grid, or if the grid rows are not of the same length.
      */
     Grid addColumn( List<Object> columnValues );
 
@@ -286,15 +291,17 @@ public interface Grid
      *
      * @param columnIndex the index at where to insert the column.
      * @param columnValues the column values to add.
-     * @throws IllegalStateException if the columnValues has different length than the rows in grid, or if the grid rows
-     *         are not of the same length.
+     * @throws IllegalStateException if the columnValues has different length than
+     *         the rows in grid, or if the grid rows are not of the same length.
      */
     Grid addColumn( int columnIndex, List<Object> columnValues );
 
     /**
-     * Adds and populates the given number of columns before the given reference column index. The given value map is to
-     * populate each row, where they key is matched against the values in the reference column, and the list of values
-     * is used to populate the row values left to right. Where there is no match, null values are inserted.
+     * Adds and populates the given number of columns before the given reference
+     * column index. The given value map is to populate each row, where they key is
+     * matched against the values in the reference column, and the list of values is
+     * used to populate the row values left to right. Where there is no match, null
+     * values are inserted.
      *
      * @param referenceColumnIndex the reference column index.
      * @param valueMap the map of values to list of values.
@@ -310,7 +317,8 @@ public interface Grid
     Grid removeColumn( int columnIndex );
 
     /**
-     * Removes from the grid columns with corresponding headers which only contain null values.
+     * Removes from the grid columns with corresponding headers which only contain
+     * null values.
      */
     Grid removeEmptyColumns();
 
@@ -322,7 +330,8 @@ public interface Grid
     boolean columnIsEmpty( int columnIndex );
 
     /**
-     * Removes the header and the column at the index of the given header if it exists.
+     * Removes the header and the column at the index of the given header if it
+     * exists.
      *
      * @param header the grid header.
      */
@@ -366,8 +375,8 @@ public interface Grid
      * Sorts the grid ascending on the column at the given columnIndex.
      *
      * @param columnIndex the column index, starting on 1.
-     * @param order a negative value indicates ascending order, a positive value indicates descending order, zero value
-     *        indicates no sorting.
+     * @param order a negative value indicates ascending order, a positive value
+     *        indicates descending order, zero value indicates no sorting.
      */
     Grid sortGrid( int columnIndex, int order );
 
@@ -375,7 +384,8 @@ public interface Grid
      * Adds a regression column to the grid. Column must hold numeric data.
      *
      * @param columnIndex the index of the base column.
-     * @param addHeader indicates whether to add a grid header for the regression column.
+     * @param addHeader indicates whether to add a grid header for the regression
+     *        column.
      */
     Grid addRegressionColumn( int columnIndex, boolean addHeader );
 
@@ -391,7 +401,8 @@ public interface Grid
      * Adds a cumulative column to the grid. Column must hold numeric data.
      *
      * @param columnIndex the index of the base column.
-     * @param addHeader indicates whether to add a grid header for the regression column.
+     * @param addHeader indicates whether to add a grid header for the regression
+     *        column.
      */
     Grid addCumulativeColumn( int columnIndex, boolean addHeader );
 
@@ -404,17 +415,18 @@ public interface Grid
     Grid addCumulativesToGrid( int startColumnIndex, int numberOfColumns );
 
     /**
-     * Substitutes the grid header names and the grid values for meta type columns based on the given mapping. Values
-     * are left unchanged when there is not match in the given meta data map.
+     * Substitutes the grid header names and the grid values for meta type columns
+     * based on the given mapping. Values are left unchanged when there is not match
+     * in the given meta data map.
      *
      * @param metaDataMap meta data map of keys and value substitutions.
      */
     Grid substituteMetaData( Map<?, ?> metaDataMap );
 
     /**
-     * Substitutes the grid values based on the given mapping. Substitutes values per row based on the given source
-     * column index and target column index. Values are left unchanged when there is not match in the given meta data
-     * map.
+     * Substitutes the grid values based on the given mapping. Substitutes values
+     * per row based on the given source column index and target column index.
+     * Values are left unchanged when there is not match in the given meta data map.
      *
      * @param sourceColumnIndex the index of the column to read values.
      * @param targetColumnIndex the index of the column to substitute values.
@@ -428,8 +440,8 @@ public interface Grid
     List<Integer> getMetaColumnIndexes();
 
     /**
-     * Returns the unique set of values from the grid column with the given name. The name refers to the name of the
-     * grid header of the column.
+     * Returns the unique set of values from the grid column with the given name.
+     * The name refers to the name of the grid header of the column.
      *
      * @param columnName name of the column grid header.
      */
@@ -458,24 +470,28 @@ public interface Grid
     Grid addHeaders( SqlRowSet rs );
 
     /**
-     * Moves the cursor the next row and adds values for each column of the given SQL result set.
+     * Moves the cursor the next row and adds values for each column of the given
+     * SQL result set.
      *
      * @param rs the result set.
      */
     Grid addRows( ResultSet rs );
 
     /**
-     * Moves the cursor the next row and adds values for each column of the given SQL row set.
+     * Moves the cursor the next row and adds values for each column of the given
+     * SQL row set.
      *
      * @param rs the row set.
      */
     Grid addRows( SqlRowSet rs );
 
     /**
-     * Moves the cursor the next row and adds values for each column of the given SQL row set.
+     * Moves the cursor the next row and adds values for each column of the given
+     * SQL row set.
      *
      * @param rs the row set.
-     * @param maxLimit the max number of records to return, use {@code -1} for no limit.
+     * @param maxLimit the max number of records to return, use {@code -1} for no
+     *        limit.
      */
     Grid addRows( SqlRowSet rs, int maxLimit );
 }

@@ -36,8 +36,9 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.support.KeyHolder;
 
 /**
- * A {@see BatchPreparedStatementSetter} with support for a {@see KeyHolder} This class allows to execute a JDBC batch
- * update operation using a {@see JdbcTemplate} and retrieve the generated primary keys
+ * A {@see BatchPreparedStatementSetter} with support for a {@see KeyHolder}
+ * This class allows to execute a JDBC batch update operation using a
+ * {@see JdbcTemplate} and retrieve the generated primary keys
  *
  * @author Luciano Fiandesio
  */

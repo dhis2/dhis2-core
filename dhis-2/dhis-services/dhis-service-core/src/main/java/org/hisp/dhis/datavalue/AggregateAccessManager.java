@@ -76,7 +76,8 @@ public interface AggregateAccessManager
     List<String> canWrite( User user, CategoryOptionCombo categoryOption );
 
     /**
-     * Check if given User has DATA_WRITE access for given CategoryOptionCombo, result is cached.
+     * Check if given User has DATA_WRITE access for given CategoryOptionCombo,
+     * result is cached.
      *
      * @param user a {@link User} to check permission for
      * @param categoryOptionCombo a {@link CategoryOptionCombo} object

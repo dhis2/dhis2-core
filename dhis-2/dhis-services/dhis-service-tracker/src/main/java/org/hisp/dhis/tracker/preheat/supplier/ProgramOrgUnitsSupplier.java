@@ -42,11 +42,14 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
 /**
- * This supplier adds to the pre-heat object a Map-like data structure, where the key is a Program ID (primary key) and
- * the value is a List of Org Units ID (primary keys). The scope of this data structure is to allow the validation to
- * check if the entity or enrollment declared org unit is part of the declared program's org units.
+ * This supplier adds to the pre-heat object a Map-like data structure, where
+ * the key is a Program ID (primary key) and the value is a List of Org Units ID
+ * (primary keys). The scope of this data structure is to allow the validation
+ * to check if the entity or enrollment declared org unit is part of the
+ * declared program's org units.
  *
- * This supplier is efficient because it only loads the data that are strictly necessary for this check.
+ * This supplier is efficient because it only loads the data that are strictly
+ * necessary for this check.
  *
  * @author Luciano Fiandesio
  */

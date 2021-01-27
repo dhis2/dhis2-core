@@ -733,8 +733,9 @@ public class DefaultDataValueSetService
     }
 
     /**
-     * There are specific id schemes for data elements and organisation units and a generic id scheme for all objects.
-     * The specific id schemes will take precedence over the generic id scheme. The generic id scheme also applies to
+     * There are specific id schemes for data elements and organisation units and a
+     * generic id scheme for all objects. The specific id schemes will take
+     * precedence over the generic id scheme. The generic id scheme also applies to
      * data set and category option combo.
      * <p>
      * The id schemes uses the following order of precedence:
@@ -745,7 +746,8 @@ public class DefaultDataValueSetService
      * <li>Default id scheme which is UID</li>
      * <ul>
      * <p>
-     * If id scheme is specific in the data value set, any id schemes in the import options will be ignored.
+     * If id scheme is specific in the data value set, any id schemes in the import
+     * options will be ignored.
      */
     private ImportSummary saveDataValueSet( ImportOptions importOptions, JobConfiguration id,
         DataValueSet dataValueSet )

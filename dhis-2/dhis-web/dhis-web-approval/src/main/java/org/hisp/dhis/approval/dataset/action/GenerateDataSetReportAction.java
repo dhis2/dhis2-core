@@ -136,7 +136,8 @@ public class GenerateDataSetReportAction
     }
 
     /**
-     * Dimensional parameters, follows the standard analytics format, e.g. <dim-id>:<dim-item>;<dim-item>
+     * Dimensional parameters, follows the standard analytics format, e.g.
+     * <dim-id>:<dim-item>;<dim-item>
      */
     private Set<String> dimension;
 

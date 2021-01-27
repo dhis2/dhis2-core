@@ -47,7 +47,8 @@ public interface ValidationRuleStore
     List<ValidationRule> getAllFormValidationRules();
 
     /**
-     * Returns all ValidationRules which have associated ValidationNotificationTemplates.
+     * Returns all ValidationRules which have associated
+     * ValidationNotificationTemplates.
      *
      * @return a List of ValidationRules.
      */

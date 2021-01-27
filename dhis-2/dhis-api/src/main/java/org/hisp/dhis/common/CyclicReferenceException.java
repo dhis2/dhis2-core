@@ -28,7 +28,8 @@
 package org.hisp.dhis.common;
 
 /**
- * Exception thrown when a dependency loop is found between dimensional item objects.
+ * Exception thrown when a dependency loop is found between dimensional item
+ * objects.
  *
  * @author Luciano Fiandesio
  */

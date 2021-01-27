@@ -138,8 +138,9 @@ public class GetSystemAuthoritiesAction
     }
 
     /**
-     * This checking is required in order to "temporally" remove the deprecated schemas. Created and used during the
-     * transition from Chart/ReportTable to Visualization.
+     * This checking is required in order to "temporally" remove the deprecated
+     * schemas. Created and used during the transition from Chart/ReportTable to
+     * Visualization.
      *
      * @param authId to be filtered out if the same is deprecated.
      * @return true if the authId is NOT deprecated, false otherwise.

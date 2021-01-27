@@ -95,9 +95,10 @@ public interface AclService
     /**
      * Can user read this object
      * <p/>
-     * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Is the user for the object null? 3. Is the user of the
-     * object equal to current user? 4. Is the object public read? 5. Does any of the userGroupAccesses contain public
-     * read and the current user is in that group
+     * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Is the user for the
+     * object null? 3. Is the user of the object equal to current user? 4. Is the
+     * object public read? 5. Does any of the userGroupAccesses contain public read
+     * and the current user is in that group
      *
      * @param user User to check against
      * @param object Object to check
@@ -117,8 +118,8 @@ public interface AclService
     /**
      * Check if the given user has data or metadata permission over the given object
      *
-     * Data-read permission is only considered if the given object's schema is 'DataShareable'. If not 'DataShareable',
-     * only metadata-read ACL is considered
+     * Data-read permission is only considered if the given object's schema is
+     * 'DataShareable'. If not 'DataShareable', only metadata-read ACL is considered
      *
      * @param user User to check against
      * @param object Object to check permission
@@ -129,8 +130,9 @@ public interface AclService
     /**
      * Can user write to this object (create)
      * <p/>
-     * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Is the user for the object null? 3. Is the user of the
-     * object equal to current user? 4. Is the object public write? 5. Does any of the userGroupAccesses contain public
+     * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Is the user for the
+     * object null? 3. Is the user of the object equal to current user? 4. Is the
+     * object public write? 5. Does any of the userGroupAccesses contain public
      * write and the current user is in that group
      *
      * @param user User to check against
@@ -151,7 +153,8 @@ public interface AclService
     /**
      * Can user update this object
      * <p/>
-     * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Can user write to this object?
+     * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Can user write to
+     * this object?
      *
      * @param user User to check against
      * @param object Object to check
@@ -162,7 +165,8 @@ public interface AclService
     /**
      * Can user delete this object
      * <p/>
-     * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Can user write to this object?
+     * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Can user write to
+     * this object?
      *
      * @param user User to check against
      * @param object Object to check
@@ -173,7 +177,8 @@ public interface AclService
     /**
      * Can user manage (make public) this object
      * <p/>
-     * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Can user write to this object?
+     * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Can user write to
+     * this object?
      *
      * @param user User to check against
      * @param object Object to check
@@ -202,8 +207,8 @@ public interface AclService
     /**
      * Checks if a user can create a public instance of a certain object.
      * <p/>
-     * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Does user have the authority to create public instances
-     * of that object
+     * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Does user have the
+     * authority to create public instances of that object
      *
      * @param user User to check against
      * @param object Object to check
@@ -216,8 +221,8 @@ public interface AclService
     /**
      * Checks if a user can create a private instance of a certain object.
      * <p/>
-     * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Does user have the authority to create private instances
-     * of that object
+     * 1. Does user have ACL_OVERRIDE_AUTHORITIES authority? 2. Does user have the
+     * authority to create private instances of that object
      *
      * @param user User to check against
      * @param object Object to check
@@ -280,7 +285,8 @@ public interface AclService
     <T extends IdentifiableObject> void resetSharing( T object, User user );
 
     /**
-     * Clears all sharing information on the given object, and sets the owner to the given user.
+     * Clears all sharing information on the given object, and sets the owner to the
+     * given user.
      *
      * @param object the object.
      * @param user the user.

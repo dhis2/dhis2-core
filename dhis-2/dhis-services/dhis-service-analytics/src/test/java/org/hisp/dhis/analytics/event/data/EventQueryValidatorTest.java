@@ -347,7 +347,8 @@ public class EventQueryValidatorTest
     }
 
     /**
-     * Asserts whether the given error code is thrown by the query validator for the given query.
+     * Asserts whether the given error code is thrown by the query validator for the
+     * given query.
      *
      * @param errorCode the {@link ErrorCode}.
      * @param params the {@link DataQueryParams}.

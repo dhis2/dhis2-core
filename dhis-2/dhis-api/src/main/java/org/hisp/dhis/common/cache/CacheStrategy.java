@@ -33,8 +33,9 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.hisp.dhis.util.DateUtils.getSecondsUntilTomorrow;
 
 /**
- * CacheStrategies express web request caching settings. Note that {@link #RESPECT_SYSTEM_SETTING} should only be used
- * on a per-object-basis (i.e. never as a system wide setting).
+ * CacheStrategies express web request caching settings. Note that
+ * {@link #RESPECT_SYSTEM_SETTING} should only be used on a per-object-basis
+ * (i.e. never as a system wide setting).
  *
  * @author Halvdan Hoem Grelland
  */

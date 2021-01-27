@@ -63,8 +63,8 @@ public class SqlViewUtils
     }
 
     /**
-     * Substitutes the given SQL query string with the given user-supplied variables. SQL variables are of the format
-     * ${key}.
+     * Substitutes the given SQL query string with the given user-supplied
+     * variables. SQL variables are of the format ${key}.
      *
      * @param sql the SQL string.
      * @param variables the variables.
@@ -89,7 +89,8 @@ public class SqlViewUtils
     }
 
     /**
-     * Substitutes the given SQL query string with the given, single variable. SQL variables are of the format ${key}.
+     * Substitutes the given SQL query string with the given, single variable. SQL
+     * variables are of the format ${key}.
      *
      * @param sql the SQL string.
      * @param name the variable name.

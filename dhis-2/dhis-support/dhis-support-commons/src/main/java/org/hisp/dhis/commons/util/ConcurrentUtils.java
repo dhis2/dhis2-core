@@ -69,7 +69,8 @@ public class ConcurrentUtils
     }
 
     /**
-     * Returns a {@link Future} which is immediately completed and has its value set to an empty string.
+     * Returns a {@link Future} which is immediately completed and has its value set
+     * to an empty string.
      *
      * @return a future which is immediately completed.
      */

@@ -37,7 +37,8 @@ public interface UserAuthorityGroupStore
     extends IdentifiableObjectStore<UserAuthorityGroup>
 {
     /**
-     * Returns the number of UserAuthorityGroups which are associated with the given DataSet.
+     * Returns the number of UserAuthorityGroups which are associated with the given
+     * DataSet.
      *
      * @param dataSet the DataSet.
      * @return number of UserAuthorityGroups.

@@ -51,8 +51,8 @@ import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 
 /**
- * Upgrades indicator formulas, expressions (for validation rules) and custom data entry forms from using identifiers to
- * using uids.
+ * Upgrades indicator formulas, expressions (for validation rules) and custom
+ * data entry forms from using identifiers to using uids.
  *
  * @author Lars Helge Overland
  */

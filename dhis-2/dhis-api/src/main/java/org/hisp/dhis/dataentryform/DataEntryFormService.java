@@ -104,15 +104,16 @@ public interface DataEntryFormService
     List<DataEntryForm> getAllDataEntryForms();
 
     /**
-     * Prepare DataEntryForm code for save by reversing the effects of prepareDataEntryFormForEdit().
+     * Prepare DataEntryForm code for save by reversing the effects of
+     * prepareDataEntryFormForEdit().
      *
      * @return htmlCode the HTML code of the data entry form.
      */
     String prepareDataEntryFormForSave( String htmlCode );
 
     /**
-     * Prepares the data entry form code by injecting the data element operand name as value and title for each entry
-     * field.
+     * Prepares the data entry form code by injecting the data element operand name
+     * as value and title for each entry field.
      *
      * @param dataEntryForm the data entry form.
      * @param dataSet the data set associated with this form.
@@ -122,7 +123,8 @@ public interface DataEntryFormService
     String prepareDataEntryFormForEdit( DataEntryForm dataEntryForm, DataSet dataSet, I18n i18n );
 
     /**
-     * Prepares the data entry form for data entry by injecting required javascripts and drop down lists.
+     * Prepares the data entry form for data entry by injecting required javascripts
+     * and drop down lists.
      *
      * @param dataEntryForm the data entry form.
      * @param dataSet the data set associated with this form.

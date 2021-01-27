@@ -524,12 +524,14 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     /**
      * Gets a list of DataElementOperands to use for SQL query.
      *
-     * If there are data elements to query, these are combined with the data element operands (DEOs) into one list.
+     * If there are data elements to query, these are combined with the data element
+     * operands (DEOs) into one list.
      *
-     * If, in the resulting set of DEOs, there are DEOs for the same data element both with and without non-null
-     * category option combos (COCs), then the DEOs with non-null COCs are removed for that data element. This is
-     * because the DEO with the null COC will already match all COCs for that data element. We do not want to match them
-     * again, or the same data value rows will be duplicated.
+     * If, in the resulting set of DEOs, there are DEOs for the same data element
+     * both with and without non-null category option combos (COCs), then the DEOs
+     * with non-null COCs are removed for that data element. This is because the DEO
+     * with the null COC will already match all COCs for that data element. We do
+     * not want to match them again, or the same data value rows will be duplicated.
      *
      * @param params the data export parameters
      * @return data element operands to use for query

@@ -117,8 +117,8 @@ public class BaseIdentifiableObject
     protected Set<Translation> translations = new HashSet<>();
 
     /**
-     * Cache for object translations, where the cache key is a combination of locale and translation property, and value
-     * is the translated value.
+     * Cache for object translations, where the cache key is a combination of locale
+     * and translation property, and value is the translated value.
      */
     protected Map<String, String> translationCache = new HashMap<>();
 
@@ -203,7 +203,8 @@ public class BaseIdentifiableObject
     // -------------------------------------------------------------------------
 
     /**
-     * Compares objects based on display name. A null display name is ordered after a non-null display name.
+     * Compares objects based on display name. A null display name is ordered after
+     * a non-null display name.
      */
     @Override
     public int compareTo( IdentifiableObject object )
@@ -380,8 +381,8 @@ public class BaseIdentifiableObject
     }
 
     /**
-     * Returns a translated value for this object for the given property. The current locale is read from the user
-     * context.
+     * Returns a translated value for this object for the given property. The
+     * current locale is read from the user context.
      *
      * @param property the translation property.
      * @param defaultValue the value to use if there are no translations.
@@ -651,8 +652,9 @@ public class BaseIdentifiableObject
     }
 
     /**
-     * Equality check against typed identifiable object. This method is not vulnerable to proxy issues, where an
-     * uninitialized object class type fails comparison to a real class.
+     * Equality check against typed identifiable object. This method is not
+     * vulnerable to proxy issues, where an uninitialized object class type fails
+     * comparison to a real class.
      *
      * @param other the identifiable object to compare this object against.
      * @return true if equal.

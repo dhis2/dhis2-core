@@ -36,7 +36,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * This is simple class to represent the list of possible static image resources.
+ * This is simple class to represent the list of possible static image
+ * resources.
  */
 @XmlRootElement
 public class SimpleImageResource

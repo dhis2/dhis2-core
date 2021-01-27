@@ -28,8 +28,9 @@
 package org.hisp.dhis.system.startup;
 
 /**
- * Defines a startup routine which should be executed when the system is started. The runlevel can be used to group
- * startup routines that are dependent on other startup routines, without too much detail and knowledge.
+ * Defines a startup routine which should be executed when the system is
+ * started. The runlevel can be used to group startup routines that are
+ * dependent on other startup routines, without too much detail and knowledge.
  *
  * @author <a href="mailto:torgeilo@gmail.com">Torgeir Lorange Ostby</a>
  * @version $Id: StartupRoutine.java 5781 2008-10-01 12:12:48Z larshelg $
@@ -37,8 +38,8 @@ package org.hisp.dhis.system.startup;
 public interface StartupRoutine
 {
     /**
-     * Executes the startup routine. It should fail hard if it is required to be executed successfully, or if any other
-     * unexpected errors occur.
+     * Executes the startup routine. It should fail hard if it is required to be
+     * executed successfully, or if any other unexpected errors occur.
      *
      * @throws Exception if anything goes wrong.
      */
@@ -53,7 +54,8 @@ public interface StartupRoutine
     String getName();
 
     /**
-     * StartupRoutines with lower runlevels will be executed before StartupRoutines with higher runlevel.
+     * StartupRoutines with lower runlevels will be executed before StartupRoutines
+     * with higher runlevel.
      *
      * @return the runlevel for the StartupRoutine.
      */

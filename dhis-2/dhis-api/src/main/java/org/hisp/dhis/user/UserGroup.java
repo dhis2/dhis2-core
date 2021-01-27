@@ -72,7 +72,8 @@ public class UserGroup
     private Set<User> members = new HashSet<>();
 
     /**
-     * User groups (if any) that members of this user group can manage the members within.
+     * User groups (if any) that members of this user group can manage the members
+     * within.
      */
     private Set<UserGroup> managedGroups = new HashSet<>();
 

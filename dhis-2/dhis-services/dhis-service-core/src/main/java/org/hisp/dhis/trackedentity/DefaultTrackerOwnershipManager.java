@@ -320,8 +320,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     // -------------------------------------------------------------------------
 
     /**
-     * Get the current owner of this tei-program combination. Fallbacks to the registered OU if no owner explicitly
-     * exists for the program
+     * Get the current owner of this tei-program combination. Fallbacks to the
+     * registered OU if no owner explicitly exists for the program
      *
      * @param entityInstance The tei
      * @param program The program
@@ -408,7 +408,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     }
 
     /**
-     * Ownership check can be skipped if the user is super user or if the program is without registration.
+     * Ownership check can be skipped if the user is super user or if the program is
+     * without registration.
      *
      * @return true if ownership check can be skipped
      */

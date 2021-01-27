@@ -47,7 +47,8 @@ public interface DataSetReportService
      * @param dataSet the data set.
      * @param period the period.
      * @param orgUnit the organisation unit.
-     * @param dimensions mapping between dimension identifiers and dimension option identifiers.
+     * @param dimensions mapping between dimension identifiers and dimension option
+     *        identifiers.
      * @param selectedUnitOnly indicates whether to use captured or aggregated data.
      * @return the HTML code for the custom data set report.
      */
@@ -60,7 +61,8 @@ public interface DataSetReportService
      * @param dataSet the data set.
      * @param period the period.
      * @param orgUnit the organisation unit.
-     * @param dimensions mapping between dimension identifiers and dimension option identifiers.
+     * @param dimensions mapping between dimension identifiers and dimension option
+     *        identifiers.
      * @param selectedUnitOnly indicates whether to use captured or aggregated data.
      * @return a list of Grids.
      */

@@ -43,7 +43,8 @@ import com.opensymphony.xwork2.interceptor.Interceptor;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: WebWorkSecurityInterceptor.java 5797 2008-10-02 15:40:29Z larshelg $
+ * @version $Id: WebWorkSecurityInterceptor.java 5797 2008-10-02 15:40:29Z
+ *          larshelg $
  */
 public class XWorkSecurityInterceptor
     extends AbstractSecurityInterceptor

@@ -95,8 +95,9 @@ public abstract class VectorFunction
     }
 
     /**
-     * By default, if there is a null value, count it as a value found for the purpose of missingValueStrategy. This can
-     * be overridden by a vector function (like count) that returns a non-null value (0) if no actual values are found.
+     * By default, if there is a null value, count it as a value found for the
+     * purpose of missingValueStrategy. This can be overridden by a vector function
+     * (like count) that returns a non-null value (0) if no actual values are found.
      *
      * @param value the value to count (might be null)
      * @param visitor the tree visitor
@@ -123,15 +124,17 @@ public abstract class VectorFunction
      * @param visitor the tree visitor
      * @return the list of sample values
      *
-     *         The missingValueStrategy is handled as follows: for each sample expression inside the aggregation
-     *         function, if there are any sample values missing and the strategy is SKIP_IF_ANY_VALUE_MISSING, then that
-     *         sample is skipped. Also if all the values are missing and the strategy is SKIP_IF_ALL_VALUES_MISSING,
-     *         then that sample is skipped.
+     *         The missingValueStrategy is handled as follows: for each sample
+     *         expression inside the aggregation function, if there are any sample
+     *         values missing and the strategy is SKIP_IF_ANY_VALUE_MISSING, then
+     *         that sample is skipped. Also if all the values are missing and the
+     *         strategy is SKIP_IF_ALL_VALUES_MISSING, then that sample is skipped.
      *
-     *         Finally, if there were any items in the sample expression, the count of items in the main expression is
-     *         incremented. And if there was at least one sample value, the count of item values in the main expression
-     *         is incremented. This means that if the vector is empty, it counts as a missing value in the main
-     *         expression.
+     *         Finally, if there were any items in the sample expression, the count
+     *         of items in the main expression is incremented. And if there was at
+     *         least one sample value, the count of item values in the main
+     *         expression is incremented. This means that if the vector is empty, it
+     *         counts as a missing value in the main expression.
      */
     private List<Double> getSampleValues( ExprContext ctx, CommonExpressionVisitor visitor )
     {

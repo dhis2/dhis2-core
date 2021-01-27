@@ -33,8 +33,8 @@ package org.hisp.dhis.category;
 public interface CategoryManager
 {
     /**
-     * Generates the complete set of category option combos for the given category combo. Removes obsolete category
-     * option combos.
+     * Generates the complete set of category option combos for the given category
+     * combo. Removes obsolete category option combos.
      *
      * @param categoryCombo the CategoryCombo.
      */

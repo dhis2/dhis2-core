@@ -67,7 +67,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * DataApprovalStore tests that no longer work in the H2 database but must be done in the PostgreSQL database.
+ * DataApprovalStore tests that no longer work in the H2 database but must be
+ * done in the PostgreSQL database.
  *
  * @author Jim Grace
  */

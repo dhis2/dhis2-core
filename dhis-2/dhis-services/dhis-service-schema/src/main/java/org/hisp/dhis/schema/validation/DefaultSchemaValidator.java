@@ -191,9 +191,11 @@ public class DefaultSchemaValidator implements SchemaValidator
         }
 
         /*
-         * TODO add proper validation for both Points and Polygons, ValidationUtils only supports points at this time if
-         * ( PropertyType.GEOLOCATION == property.getPropertyType() && !ValidationUtils.coordinateIsValid( value ) ) {
-         * validationViolations.add( new ValidationViolation( "Value is not a valid coordinate pair [lon, lat]." ) ); }
+         * TODO add proper validation for both Points and Polygons, ValidationUtils only
+         * supports points at this time if ( PropertyType.GEOLOCATION ==
+         * property.getPropertyType() && !ValidationUtils.coordinateIsValid( value ) ) {
+         * validationViolations.add( new ValidationViolation(
+         * "Value is not a valid coordinate pair [lon, lat]." ) ); }
          */
 
         return errorReports;

@@ -140,7 +140,8 @@ public class ProgramInstance
     // -------------------------------------------------------------------------
 
     /**
-     * Updated the bi-directional associations between this program instance and the given entity instance and program.
+     * Updated the bi-directional associations between this program instance and the
+     * given entity instance and program.
      *
      * @param entityInstance the entity instance to enroll.
      * @param program the program to enroll the entity instance to.

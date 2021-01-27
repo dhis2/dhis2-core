@@ -38,9 +38,10 @@ import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.interceptor.Interceptor;
 
 /**
- * Interceptor which sets HTTP headers which instructs clients not to cache the response. This is the default behavior
- * for Struts-generated responses. Does not set the cache interceptor if already set, allowing other interceptors to set
- * cache headers for special cases.
+ * Interceptor which sets HTTP headers which instructs clients not to cache the
+ * response. This is the default behavior for Struts-generated responses. Does
+ * not set the cache interceptor if already set, allowing other interceptors to
+ * set cache headers for special cases.
  *
  * @author Lars Helge Overland
  */

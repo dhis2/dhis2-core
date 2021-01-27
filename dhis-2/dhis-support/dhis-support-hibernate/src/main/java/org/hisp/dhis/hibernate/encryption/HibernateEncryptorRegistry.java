@@ -35,8 +35,9 @@ import com.google.common.collect.Maps;
 
 /**
  * Singleton registry for all (named) Hibernate Encryptors.
- * {@link org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType EncryptedStringUserType} depends on this
- * singleton to access the appropriate encryptor(s).
+ * {@link org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType
+ * EncryptedStringUserType} depends on this singleton to access the appropriate
+ * encryptor(s).
  *
  * @author Halvdan Hoem Grelland
  */

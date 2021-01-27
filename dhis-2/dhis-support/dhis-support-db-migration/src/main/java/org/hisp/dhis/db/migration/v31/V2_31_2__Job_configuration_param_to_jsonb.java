@@ -51,8 +51,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 /**
- * 1.Creates new jsonb column for jobparameters in jobconfiguration 2. Fetches jobparameters from existing bytearray
- * column and moves them into new jsonb column 3. Deletes old jobparameter column
+ * 1.Creates new jsonb column for jobparameters in jobconfiguration 2. Fetches
+ * jobparameters from existing bytearray column and moves them into new jsonb
+ * column 3. Deletes old jobparameter column
  *
  * @author Ameen Mohamed <ameen@dhis2.org>
  *

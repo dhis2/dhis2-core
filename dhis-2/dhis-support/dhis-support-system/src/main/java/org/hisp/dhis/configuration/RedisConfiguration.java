@@ -42,8 +42,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
- * Configuration registered if {@link RedisEnabledCondition} matches to true. This class deals with the configuration
- * properties for establishing connection to a redis server.
+ * Configuration registered if {@link RedisEnabledCondition} matches to true.
+ * This class deals with the configuration properties for establishing
+ * connection to a redis server.
  *
  * @author Ameen Mohamed
  *

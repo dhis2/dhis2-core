@@ -127,7 +127,8 @@ public class ValidationFactory
     /**
      *
      * @param klass the class of the objects to remove from bundle
-     * @param ctx the {@see ValidationContext} containing the list of objects to remove
+     * @param ctx the {@see ValidationContext} containing the list of objects to
+     *        remove
      * @param bundle the {@see ObjectBundle}
      */
     private void removeFromBundle( Class<? extends IdentifiableObject> klass, ValidationContext ctx,

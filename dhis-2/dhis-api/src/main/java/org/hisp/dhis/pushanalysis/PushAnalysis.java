@@ -42,7 +42,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 
 /**
- * PushAnalysis generates reports based on a Dashboard, and sends them to UserGroups at given Intervals.
+ * PushAnalysis generates reports based on a Dashboard, and sends them to
+ * UserGroups at given Intervals.
  *
  * @author Stian Sandvold
  */
@@ -62,7 +63,8 @@ public class PushAnalysis
     private String title;
 
     /**
-     * The message will be written in the report. Used to explain or describe reports to users
+     * The message will be written in the report. Used to explain or describe
+     * reports to users
      */
     private String message;
 

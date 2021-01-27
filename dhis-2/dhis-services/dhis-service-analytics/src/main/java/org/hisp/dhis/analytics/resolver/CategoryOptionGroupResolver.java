@@ -80,29 +80,36 @@ public class CategoryOptionGroupResolver
     }
 
     /**
-     * Resolves a Data Element Operand expression containing one or two Category Option Group UID to an equivalent
-     * expression where the associated Category Option Combos for the given Category Option Group are "exploded" into
-     * the expression.
+     * Resolves a Data Element Operand expression containing one or two Category
+     * Option Group UID to an equivalent expression where the associated Category
+     * Option Combos for the given Category Option Group are "exploded" into the
+     * expression.
      *
      * Resolves one of the expressions below:
      *
-     * 1) #{DEUID.COGUID.AOCUID} 2) #{DEUID.COCUID.COGUID} 3) #{DEUID.COG1UID.COG2UID}
+     * 1) #{DEUID.COGUID.AOCUID} 2) #{DEUID.COCUID.COGUID} 3)
+     * #{DEUID.COG1UID.COG2UID}
      *
      * to:
      *
-     * 1) #{DEUID.COCUID1.AOCUID} + #{DEUID.COCUID2.AOCUID} + #{DEUID.COCUID3.AOCUID} where COCUID1,2,3... are resolved
-     * by fetching all COCUID by COGUID
+     * 1) #{DEUID.COCUID1.AOCUID} + #{DEUID.COCUID2.AOCUID} +
+     * #{DEUID.COCUID3.AOCUID} where COCUID1,2,3... are resolved by fetching all
+     * COCUID by COGUID
      *
-     * 2) #{DEUID.COCUID} + #{DEUID.COCUID1} + #{DEUID.COCUID2} + #{DEUID.COCUID3} + #{DEUID.COCUID4} where
-     * COCUID1,2,3... are resolved by fetching all COCUID by COGUID
+     * 2) #{DEUID.COCUID} + #{DEUID.COCUID1} + #{DEUID.COCUID2} + #{DEUID.COCUID3} +
+     * #{DEUID.COCUID4} where COCUID1,2,3... are resolved by fetching all COCUID by
+     * COGUID
      *
-     * 3) #{DEUID.COCUID1} + #{DEUID.COCUID2} + #{DEUID.COCUID3} + #{DEUID.COCUID4} where COCUID1 and COCUID2 are
-     * resolved from COG1UID and COCUID3 and COCUID4 are resolved from COGUID2
+     * 3) #{DEUID.COCUID1} + #{DEUID.COCUID2} + #{DEUID.COCUID3} + #{DEUID.COCUID4}
+     * where COCUID1 and COCUID2 are resolved from COG1UID and COCUID3 and COCUID4
+     * are resolved from COGUID2
      *
-     * DEUID = Data Element UID COCUID = Category Option Combo UID COGUID = Category Option Group UID
+     * DEUID = Data Element UID COCUID = Category Option Combo UID COGUID = Category
+     * Option Group UID
      *
      * @param expression a Data Element Expression
-     * @return an expression containing additional CategoryOptionCombos based on the given Category Option Group
+     * @return an expression containing additional CategoryOptionCombos based on the
+     *         given Category Option Group
      */
     @Override
     @Transactional( readOnly = true )

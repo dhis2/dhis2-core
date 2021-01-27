@@ -91,7 +91,8 @@ public interface TrackedEntityTypeService
     /**
      * Returns all {@link TrackedEntityType}
      *
-     * @return a List of all TrackedEntityType, or an empty List if there are no TrackedEntitys.
+     * @return a List of all TrackedEntityType, or an empty List if there are no
+     *         TrackedEntitys.
      */
     List<TrackedEntityType> getAllTrackedEntityType();
 }

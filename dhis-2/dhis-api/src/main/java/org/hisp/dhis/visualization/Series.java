@@ -53,12 +53,14 @@ public class Series
     private String dimensionItem;
 
     /**
-     * The series axis. 0 represents the primary axis, 1 represents the secondary axis.
+     * The series axis. 0 represents the primary axis, 1 represents the secondary
+     * axis.
      */
     private Integer axis;
 
     /**
-     * Visualization type for the series. Will override the type specified by {@link Visualization#getType()}.
+     * Visualization type for the series. Will override the type specified by
+     * {@link Visualization#getType()}.
      */
     private VisualizationType type;
 

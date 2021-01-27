@@ -93,7 +93,8 @@ public interface ValidationRuleService
     /**
      * Get all validation rules for form validation.
      *
-     * @return a List of ValidationRule or null if there are none for form validation.
+     * @return a List of ValidationRule or null if there are none for form
+     *         validation.
      */
     List<ValidationRule> getAllFormValidationRules();
 
@@ -105,7 +106,8 @@ public interface ValidationRuleService
     ValidationRule getValidationRuleByName( String name );
 
     /**
-     * Get data elements part of the left side and right side expressions of the given validation rule.
+     * Get data elements part of the left side and right side expressions of the
+     * given validation rule.
      *
      * @param validationRule the validation rule.
      * @return a set of data elements.
@@ -121,7 +123,8 @@ public interface ValidationRuleService
     Collection<ValidationRule> getValidationRulesForDataSet( DataSet dataSet );
 
     /**
-     * Returns all ValidationRules which have associated ValidationNotificationTemplates.
+     * Returns all ValidationRules which have associated
+     * ValidationNotificationTemplates.
      *
      * @return a List of ValidationRule.
      */
@@ -172,7 +175,8 @@ public interface ValidationRuleService
     /**
      * Get all ValidationRuleGroups.
      *
-     * @return a List of ValidationRuleGroup or null if it there are no ValidationRuleGroups.
+     * @return a List of ValidationRuleGroup or null if it there are no
+     *         ValidationRuleGroups.
      */
     List<ValidationRuleGroup> getAllValidationRuleGroups();
 

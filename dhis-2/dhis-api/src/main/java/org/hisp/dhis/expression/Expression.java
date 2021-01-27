@@ -37,16 +37,19 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * An Expression is the expression of e.g. a validation rule. It consist of a String representation of the rule as well
- * as references to the data elements and category option combos included in the expression.
+ * An Expression is the expression of e.g. a validation rule. It consist of a
+ * String representation of the rule as well as references to the data elements
+ * and category option combos included in the expression.
  * <p/>
- * The expression can contain numbers and mathematical operators and contain references to data elements and category
- * option combos on the form:
+ * The expression can contain numbers and mathematical operators and contain
+ * references to data elements and category option combos on the form:
  * <p/>
- * i) [1.2] where 1 refers to the data element identifier and 2 refers to the category option combo identifier.
+ * i) [1.2] where 1 refers to the data element identifier and 2 refers to the
+ * category option combo identifier.
  * <p/>
- * ii) [1] where 1 refers to the data element identifier, in this case the formula represents the total value for all
- * category option combos for that data element.
+ * ii) [1] where 1 refers to the data element identifier, in this case the
+ * formula represents the total value for all category option combos for that
+ * data element.
  *
  * @author Margrethe Store
  * @version $Id: Expression.java 5011 2008-04-24 20:41:28Z larshelg $
@@ -87,7 +90,8 @@ public class Expression
     private Boolean slidingWindow = false;
 
     /**
-     * Indicates whether the expression should evaluate to null if all or any data values are missing in the expression.
+     * Indicates whether the expression should evaluate to null if all or any data
+     * values are missing in the expression.
      */
     private MissingValueStrategy missingValueStrategy = MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
 

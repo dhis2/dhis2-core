@@ -37,7 +37,8 @@ import com.opensymphony.xwork2.Action;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: RemoveSelectedOrganisationUnitAction.java 2869 2007-02-20 14:26:09Z andegje $
+ * @version $Id: RemoveSelectedOrganisationUnitAction.java 2869 2007-02-20
+ *          14:26:09Z andegje $
  */
 public class RemoveSelectedOrganisationUnitAction
     implements Action

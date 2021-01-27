@@ -91,8 +91,8 @@ public class BaseNameableObject
     // -------------------------------------------------------------------------
 
     /**
-     * Returns the display property indicated by the given display property. Falls back to display name if display short
-     * name is null.
+     * Returns the display property indicated by the given display property. Falls
+     * back to display name if display short name is null.
      *
      * @param displayProperty the display property.
      * @return the display property.

@@ -67,7 +67,8 @@ public class SyncUtils
     }
 
     /**
-     * Sends a synchronization request to the {@code syncUrl} and analyzes the returned summary
+     * Sends a synchronization request to the {@code syncUrl} and analyzes the
+     * returned summary
      *
      * @param systemSettingManager Reference to SystemSettingManager
      * @param restTemplate Spring Rest Template instance
@@ -173,12 +174,14 @@ public class SyncUtils
     }
 
     /**
-     * Analyzes results in ImportSummaries. Returns true if everything is OK, false otherwise.
+     * Analyzes results in ImportSummaries. Returns true if everything is OK, false
+     * otherwise.
      * <p>
      * THIS METHOD USES RECURSION!!!
      *
      * @param summaries ImportSummaries that should be analyzed
-     * @param originalTopSummaries The top level ImportSummaries. Used only for logging purposes.
+     * @param originalTopSummaries The top level ImportSummaries. Used only for
+     *        logging purposes.
      * @param endpoint Specifies against which endpoint the request was run
      * @return true if everything is OK, false otherwise
      */
@@ -226,9 +229,10 @@ public class SyncUtils
      * Checks the ImportSummary. Returns true if everything is OK, false otherwise
      *
      * @param summary ImportSummary that are checked for error/warning
-     * @param topSummaries References to the ImportSummaries from top level of the graph (Used to create proper log
-     *        message)
-     * @param summaries References to the ImportSummaries 1 level above (Used to create proper log message)
+     * @param topSummaries References to the ImportSummaries from top level of the
+     *        graph (Used to create proper log message)
+     * @param summaries References to the ImportSummaries 1 level above (Used to
+     *        create proper log message)
      * @param endpoint Specifies against which endpoint the request was run
      * @return true if everything is OK, false otherwise
      */
@@ -268,8 +272,9 @@ public class SyncUtils
     }
 
     /**
-     * Checks the availability of remote server. In case of error it tries {@code maxAttempts} of time with a
-     * {@code delaybetweenAttempts} delay between retries before giving up.
+     * Checks the availability of remote server. In case of error it tries
+     * {@code maxAttempts} of time with a {@code delaybetweenAttempts} delay between
+     * retries before giving up.
      *
      * @param systemSettingManager Reference to SystemSettingManager
      * @param restTemplate Reference to RestTemplate
@@ -403,7 +408,8 @@ public class SyncUtils
     }
 
     /**
-     * Creates an HTTP entity for requests with appropriate header for basic authentication.
+     * Creates an HTTP entity for requests with appropriate header for basic
+     * authentication.
      */
     private static <T> HttpEntity<T> getBasicAuthRequestEntity( String username, String password )
     {
@@ -413,10 +419,12 @@ public class SyncUtils
     }
 
     /**
-     * Sets the time of the last successful synchronization operation for given settingKey.
+     * Sets the time of the last successful synchronization operation for given
+     * settingKey.
      *
      * @param systemSettingManager SystemSettingManager
-     * @param settingKey SettingKey specifying the sync operation that was successfully done
+     * @param settingKey SettingKey specifying the sync operation that was
+     *        successfully done
      * @param time The date and time of last successful sync
      */
     public static void setLastSyncSuccess( SystemSettingManager systemSettingManager, SettingKey settingKey, Date time )
@@ -425,10 +433,12 @@ public class SyncUtils
     }
 
     /**
-     * Return the time of last successful synchronization operation for given settingKey.
+     * Return the time of last successful synchronization operation for given
+     * settingKey.
      *
      * @param systemSettingManager Reference to SystemSettingManager
-     * @param settingKey SettingKey specifying the sync operation that was successfully done
+     * @param settingKey SettingKey specifying the sync operation that was
+     *        successfully done
      * @return The date and time of last successful sync
      */
     public static Date getLastSyncSuccess( SystemSettingManager systemSettingManager, SettingKey settingKey )
@@ -437,7 +447,8 @@ public class SyncUtils
     }
 
     /**
-     * Checks the status of given importSummary and returns true if fine. False otherwise.
+     * Checks the status of given importSummary and returns true if fine. False
+     * otherwise.
      *
      * @param summary ImportSummary to check
      * @param endpoint Endpoint against which the sync was run

@@ -65,7 +65,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableList;
 
 /**
- * For analytical data, organisation units and indicators/data elements are dimensions, and period is filter.
+ * For analytical data, organisation units and indicators/data elements are
+ * dimensions, and period is filter.
  *
  * @author Jan Henrik Overland
  */
@@ -146,7 +147,8 @@ public class MapView
     private LegendSet legendSet;
 
     /**
-     * Color in hex format to use for features with no corresponding data. Must be exactly 7 characters.
+     * Color in hex format to use for features with no corresponding data. Must be
+     * exactly 7 characters.
      */
     private String noDataColor;
 
@@ -187,8 +189,8 @@ public class MapView
     private EventStatus eventStatus;
 
     /**
-     * General configuration property for JSON values used to store information for layers with arbitrary configuration
-     * needs.
+     * General configuration property for JSON values used to store information for
+     * layers with arbitrary configuration needs.
      */
     private String config;
 
@@ -236,7 +238,8 @@ public class MapView
     }
 
     /**
-     * Populates analytical properties. Organisation unit dimension is fixed to "rows" currently.
+     * Populates analytical properties. Organisation unit dimension is fixed to
+     * "rows" currently.
      */
     @Override
     public void populateAnalyticalProperties()

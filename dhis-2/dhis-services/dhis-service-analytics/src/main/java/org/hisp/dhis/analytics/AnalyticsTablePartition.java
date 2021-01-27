@@ -47,8 +47,8 @@ public class AnalyticsTablePartition
     private AnalyticsTable masterTable;
 
     /**
-     * The year for which this partition may contain data. A zero value indicates the "latest" data stored since last
-     * full analytics table generation.
+     * The year for which this partition may contain data. A zero value indicates
+     * the "latest" data stored since last full analytics table generation.
      */
     private Integer year;
 

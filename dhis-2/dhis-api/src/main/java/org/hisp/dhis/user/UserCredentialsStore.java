@@ -58,7 +58,8 @@ public interface UserCredentialsStore
     List<UserCredentials> getUserCredentialsByUsernames( Collection<String> usernames );
 
     /**
-     * Retrieves the UserCredentials associated with the User with the given open ID.
+     * Retrieves the UserCredentials associated with the User with the given open
+     * ID.
      *
      * @param openId open ID.
      * @return the UserCredentials.
@@ -66,7 +67,8 @@ public interface UserCredentialsStore
     UserCredentials getUserCredentialsByOpenId( String openId );
 
     /**
-     * Retrieves the UserCredentials associated with the User with the given LDAP ID.
+     * Retrieves the UserCredentials associated with the User with the given LDAP
+     * ID.
      *
      * @param ldapId LDAP ID.
      * @return the UserCredentials.
@@ -74,7 +76,8 @@ public interface UserCredentialsStore
     UserCredentials getUserCredentialsByLdapId( String ldapId );
 
     /**
-     * Retrieves the UserCredentials associated with the User with the given id token.
+     * Retrieves the UserCredentials associated with the User with the given id
+     * token.
      *
      * @param token the restore token of the User.
      * @return the UserCredentials.

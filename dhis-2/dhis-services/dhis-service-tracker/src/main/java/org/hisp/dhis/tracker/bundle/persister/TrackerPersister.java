@@ -33,7 +33,8 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 
 /**
- * Interface for classes responsible of persisting Tracker objects to the persistence engine.
+ * Interface for classes responsible of persisting Tracker objects to the
+ * persistence engine.
  *
  * @author Luciano Fiandesio
  */
@@ -41,8 +42,9 @@ public interface TrackerPersister<T extends TrackerDto, V>
 {
 
     /**
-     * Persist one of the collections in the provided Tracker Bundle. Each class implementing this method should be
-     * responsible to persist one collection of the TrackerBundle (e.g. Enrollments)
+     * Persist one of the collections in the provided Tracker Bundle. Each class
+     * implementing this method should be responsible to persist one collection of
+     * the TrackerBundle (e.g. Enrollments)
      *
      * @param session a valid Hibernate Session
      * @param bundle the Bundle to persist

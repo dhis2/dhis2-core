@@ -413,10 +413,12 @@ public class DefaultTrackedEntityInstanceService
     }
 
     /**
-     * Handles injection of attributes. The following combinations of parameters will lead to attributes being injected.
+     * Handles injection of attributes. The following combinations of parameters
+     * will lead to attributes being injected.
      * <p>
-     * - query: add display in list attributes - attributes - program: add program attributes - query + attributes -
-     * query + program: add program attributes - attributes + program - query + attributes + program
+     * - query: add display in list attributes - attributes - program: add program
+     * attributes - query + attributes - query + program: add program attributes -
+     * attributes + program - query + attributes + program
      */
     private void handleAttributes( TrackedEntityInstanceQueryParams params )
     {

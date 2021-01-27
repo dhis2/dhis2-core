@@ -84,7 +84,8 @@ public class FileResourceUtils
     }
 
     /**
-     * Indicates whether the content type represented by the given string is a valid, known content type.
+     * Indicates whether the content type represented by the given string is a
+     * valid, known content type.
      *
      * @param contentType the content type string.
      * @return true if the content is valid, false if not.
@@ -110,7 +111,8 @@ public class FileResourceUtils
      * @param key the key to associate to the {@link FileResource}
      * @param file a {@link MultipartFile}
      * @param domain a {@link FileResourceDomain}
-     * @return a valid {@link FileResource} populated with data from the provided file
+     * @return a valid {@link FileResource} populated with data from the provided
+     *         file
      * @throws IOException if hashing fails
      *
      */

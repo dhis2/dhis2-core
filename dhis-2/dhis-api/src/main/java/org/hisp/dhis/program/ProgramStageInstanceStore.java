@@ -46,8 +46,8 @@ public interface ProgramStageInstanceStore
     String ID = ProgramStageInstanceStore.class.getName();
 
     /**
-     * Retrieve an event on a program instance and a program stage. For repeatable stage, the system returns the last
-     * event
+     * Retrieve an event on a program instance and a program stage. For repeatable
+     * stage, the system returns the last event
      *
      * @param programInstance ProgramInstance
      * @param programStage ProgramStage
@@ -82,7 +82,8 @@ public interface ProgramStageInstanceStore
     long getProgramStageInstanceCountLastUpdatedAfter( Date time );
 
     /**
-     * Checks for the existence of a PSI by UID. The deleted PSIs are not taken into account.
+     * Checks for the existence of a PSI by UID. The deleted PSIs are not taken into
+     * account.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -90,7 +91,8 @@ public interface ProgramStageInstanceStore
     boolean exists( String uid );
 
     /**
-     * Checks for the existence of a PSI by UID. It takes into account also the deleted PSIs.
+     * Checks for the existence of a PSI by UID. It takes into account also the
+     * deleted PSIs.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -98,7 +100,8 @@ public interface ProgramStageInstanceStore
     boolean existsIncludingDeleted( String uid );
 
     /**
-     * Returns UIDs of existing ProgramStageInstances (including deleted) from the provided UIDs
+     * Returns UIDs of existing ProgramStageInstances (including deleted) from the
+     * provided UIDs
      *
      * @param uids PSI UIDs to check
      * @return List containing UIDs of existing PSIs (including deleted)
@@ -109,13 +112,14 @@ public interface ProgramStageInstanceStore
      * Fetches ProgramStageInstance matching the given list of UIDs
      *
      * @param uids a List of UID
-     * @return a List containing the ProgramStageInstance matching the given parameters list
+     * @return a List containing the ProgramStageInstance matching the given
+     *         parameters list
      */
     List<ProgramStageInstance> getIncludingDeleted( List<String> uids );
 
     /**
-     * Get all ProgramStageInstances which have notifications with the given ProgramNotificationTemplate scheduled on
-     * the given date.
+     * Get all ProgramStageInstances which have notifications with the given
+     * ProgramNotificationTemplate scheduled on the given date.
      *
      * @param template the template.
      * @param notificationDate the Date for which the notification is scheduled.
@@ -127,7 +131,8 @@ public interface ProgramStageInstanceStore
     /**
      * Set lastSynchronized timestamp to provided timestamp for provided PSIs
      *
-     * @param programStageInstanceUIDs UIDs of ProgramStageInstances where the lastSynchronized flag should be updated
+     * @param programStageInstanceUIDs UIDs of ProgramStageInstances where the
+     *        lastSynchronized flag should be updated
      * @param lastSynchronized The date of last successful sync
      */
     void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized );

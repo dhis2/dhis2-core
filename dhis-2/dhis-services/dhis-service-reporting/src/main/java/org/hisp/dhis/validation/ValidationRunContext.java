@@ -48,8 +48,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * This class keeps track of a validation analysis. It contains information about the initial params of the analysis,
- * The current state of the analysis and the final results of the analysis.
+ * This class keeps track of a validation analysis. It contains information
+ * about the initial params of the analysis, The current state of the analysis
+ * and the final results of the analysis.
  *
  * @author Stian Sandvold
  */

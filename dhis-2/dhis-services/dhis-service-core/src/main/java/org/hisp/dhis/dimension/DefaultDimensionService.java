@@ -430,8 +430,9 @@ public class DefaultDimensionService
     // --------------------------------------------------------------------------
 
     /**
-     * Breaks down a set of dimensional item ids into the atomic object ids stored in the database. Returns a map from
-     * each class of atomic objects to the set of ids for that object class.
+     * Breaks down a set of dimensional item ids into the atomic object ids stored
+     * in the database. Returns a map from each class of atomic objects to the set
+     * of ids for that object class.
      *
      * @param itemIds a set of dimension item object ids.
      * @return map from atomic object classes to sets of atomic ids.
@@ -497,13 +498,15 @@ public class DefaultDimensionService
     }
 
     /**
-     * Finds the atomic identifiable objects from the database for each object class. This is done for all objects in
-     * each class in a single call, for performance (especially for validation rules which may need to look up hundreds
-     * if not thousands of objects from a class.
+     * Finds the atomic identifiable objects from the database for each object
+     * class. This is done for all objects in each class in a single call, for
+     * performance (especially for validation rules which may need to look up
+     * hundreds if not thousands of objects from a class.
      *
-     * @param atomicIds a map from each class of atomic objects to the set of ids for that identifiable object class.
-     * @return a map from each class of atomic objects to a map that associates each id of that class with an atomic
-     *         object.
+     * @param atomicIds a map from each class of atomic objects to the set of ids
+     *        for that identifiable object class.
+     * @return a map from each class of atomic objects to a map that associates each
+     *         id of that class with an atomic object.
      */
     private MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> getAtomicObjects(
         SetMap<Class<? extends IdentifiableObject>, String> atomicIds )
@@ -539,8 +542,8 @@ public class DefaultDimensionService
      * Gets a map from dimension item ids to their dimension item objects.
      *
      * @param itemIds a set of ids of the dimension item objects to get.
-     * @param atomicObjects a map from each class of atomic objects to a map that associates each id of that class with
-     *        an atomic object.
+     * @param atomicObjects a map from each class of atomic objects to a map that
+     *        associates each id of that class with an atomic object.
      * @return a map from the item ids to the dimension item objects.
      */
     private Map<DimensionalItemId, DimensionalItemObject> getItemObjectMap( Set<DimensionalItemId> itemIds,
@@ -644,8 +647,9 @@ public class DefaultDimensionService
     }
 
     /**
-     * Returns a {@link DataElementOperand}. For identifier wild cards {@link ExpressionService#SYMBOL_WILDCARD}, the
-     * relevant property will be null.
+     * Returns a {@link DataElementOperand}. For identifier wild cards
+     * {@link ExpressionService#SYMBOL_WILDCARD}, the relevant property will be
+     * null.
      *
      * @param idScheme the identifier scheme.
      * @param dataElementId the data element identifier.
@@ -732,11 +736,12 @@ public class DefaultDimensionService
     }
 
     /**
-     * Sets persistent objects for dimensional associations on the given BaseAnalyticalObject based on the given list of
-     * transient DimensionalObjects.
+     * Sets persistent objects for dimensional associations on the given
+     * BaseAnalyticalObject based on the given list of transient DimensionalObjects.
      * <p>
-     * Relative periods represented by enums are converted into a RelativePeriods object. User organisation units
-     * represented by enums are converted and represented by the user organisation unit persisted properties on the
+     * Relative periods represented by enums are converted into a RelativePeriods
+     * object. User organisation units represented by enums are converted and
+     * represented by the user organisation unit persisted properties on the
      * BaseAnalyticalObject.
      *
      * @param object the BaseAnalyticalObject to merge.

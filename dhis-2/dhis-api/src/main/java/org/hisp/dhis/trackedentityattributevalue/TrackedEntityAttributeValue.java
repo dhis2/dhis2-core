@@ -74,7 +74,8 @@ public class TrackedEntityAttributeValue
     private String plainValue;
 
     /**
-     * This value is only used to store values from setValue when we don't know if attribute is set or not.
+     * This value is only used to store values from setValue when we don't know if
+     * attribute is set or not.
      */
     private String value;
 
@@ -245,8 +246,9 @@ public class TrackedEntityAttributeValue
     }
 
     /**
-     * Retrieves the encrypted value if the attribute is confidential. If the value is not confidential, returns old
-     * value. Should be null unless it was confidential at an earlier stage.
+     * Retrieves the encrypted value if the attribute is confidential. If the value
+     * is not confidential, returns old value. Should be null unless it was
+     * confidential at an earlier stage.
      *
      * @return String with decrypted value or null.
      */
@@ -268,8 +270,9 @@ public class TrackedEntityAttributeValue
     }
 
     /**
-     * Retrieves the plain-text value is the attribute isn't confidential. If the value is confidential, this value
-     * should be null, unless it was non-confidential at an earlier stage.
+     * Retrieves the plain-text value is the attribute isn't confidential. If the
+     * value is confidential, this value should be null, unless it was
+     * non-confidential at an earlier stage.
      *
      * @return String with plain-text value or null.
      */
@@ -291,7 +294,8 @@ public class TrackedEntityAttributeValue
     }
 
     /**
-     * Returns the encrypted or the plain-text value based on the confidential state of the attribute.
+     * Returns the encrypted or the plain-text value based on the confidential state
+     * of the attribute.
      *
      * @return String with value, either plain-text or decrypted.
      */
@@ -304,8 +308,9 @@ public class TrackedEntityAttributeValue
     }
 
     /**
-     * Property which temporarily stores the attribute value. The {@link #getEncryptedValue} and {@link #getPlainValue}
-     * methods handle the value when requested.
+     * Property which temporarily stores the attribute value. The
+     * {@link #getEncryptedValue} and {@link #getPlainValue} methods handle the
+     * value when requested.
      *
      * @param value the value to be stored.
      * @return a {@link TrackedEntityAttributeValue}.

@@ -659,7 +659,8 @@ public class DefaultDataQueryService
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a list of category option combinations based on the given item identifiers.
+     * Returns a list of category option combinations based on the given item
+     * identifiers.
      *
      * @param items the item identifiers.
      * @param inputIdScheme the {@link IdScheme}.

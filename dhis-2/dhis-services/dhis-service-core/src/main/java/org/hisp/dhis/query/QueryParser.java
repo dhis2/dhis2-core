@@ -39,11 +39,13 @@ import org.hisp.dhis.schema.Schema;
 public interface QueryParser
 {
     /**
-     * Parses filter expressions, need 2 or 3 components depending on operator. i.e. for null you can use "name:null"
-     * which checks to see if property name is null i.e. for eq you can use "name:eq:ANC" which check to see if property
-     * name is equal to ANC
+     * Parses filter expressions, need 2 or 3 components depending on operator. i.e.
+     * for null you can use "name:null" which checks to see if property name is null
+     * i.e. for eq you can use "name:eq:ANC" which check to see if property name is
+     * equal to ANC
      * <p>
-     * The general syntax is "propertyName:operatorName:<Value to check against if needed>"
+     * The general syntax is "propertyName:operatorName:<Value to check against if
+     * needed>"
      *
      * @param klass Class type to query for
      * @param filters List of filters to add to Query

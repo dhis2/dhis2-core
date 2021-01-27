@@ -100,7 +100,8 @@ public interface ReportTableService
     List<ReportTable> getAllReportTables();
 
     /**
-     * Instantiates and populates a Grid populated with data from the ReportTable with the given identifier.
+     * Instantiates and populates a Grid populated with data from the ReportTable
+     * with the given identifier.
      *
      * @param uid the ReportTable unique identifier.
      * @param reportingPeriod the reporting date.

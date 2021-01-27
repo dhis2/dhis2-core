@@ -65,10 +65,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * This controller is being deprecated. Please use the Visualization controller instead. Only compatibility changes
- * should be done at this stage.
+ * This controller is being deprecated. Please use the Visualization controller
+ * instead. Only compatibility changes should be done at this stage.
  * <p>
- * TODO when this class gets removed, also update {@link org.hisp.dhis.security.vote.ExternalAccessVoter}
+ * TODO when this class gets removed, also update
+ * {@link org.hisp.dhis.security.vote.ExternalAccessVoter}
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Lars Helge Overland

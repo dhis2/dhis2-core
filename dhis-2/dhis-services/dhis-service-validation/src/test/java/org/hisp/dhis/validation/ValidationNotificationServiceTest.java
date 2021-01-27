@@ -73,8 +73,9 @@ import com.google.common.collect.Sets;
 /**
  * Tests for the business logic implemented in ValidationNotificationService.
  * <p>
- * The actual rendering of the messages is not tested here, only the logic responsible for generating and sending the
- * messages/summaries for each recipient.
+ * The actual rendering of the messages is not tested here, only the logic
+ * responsible for generating and sending the messages/summaries for each
+ * recipient.
  * <p>
  *
  * @author Halvdan Hoem Grelland
@@ -130,8 +131,9 @@ public class ValidationNotificationServiceTest
      */
 
     /**
-     * We mock the sending of messages to write to a local List (which we can inspect). Also, the renderer is replaced
-     * with a mock which returns a static subject/message-pair.
+     * We mock the sending of messages to write to a local List (which we can
+     * inspect). Also, the renderer is replaced with a mock which returns a static
+     * subject/message-pair.
      */
     @Before
     public void initTest()

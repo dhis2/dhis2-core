@@ -71,18 +71,20 @@ public interface DataIntegrityService
     List<DataElement> getDataElementsWithoutGroups();
 
     /**
-     * Gets all data elements units which are members of more than one group which enter into an exclusive group set.
+     * Gets all data elements units which are members of more than one group which
+     * enter into an exclusive group set.
      */
     SortedMap<DataElement, Collection<DataElementGroup>> getDataElementsViolatingExclusiveGroupSets();
 
     /**
-     * Returns all data elements which are members of data sets with different period types.
+     * Returns all data elements which are members of data sets with different
+     * period types.
      */
     SortedMap<DataElement, Collection<DataSet>> getDataElementsAssignedToDataSetsWithDifferentPeriodTypes();
 
     /**
-     * Returns all data elements which are member of a data set but not part of either the custom form or sections of
-     * the data set.
+     * Returns all data elements which are member of a data set but not part of
+     * either the custom form or sections of the data set.
      */
     SortedMap<DataSet, Collection<DataElement>> getDataElementsInDataSetNotInForm();
 
@@ -125,7 +127,8 @@ public interface DataIntegrityService
     SortedMap<Indicator, String> getInvalidIndicatorDenominators();
 
     /**
-     * Gets all indicators units which are members of more than one group which enter into an exclusive group set.
+     * Gets all indicators units which are members of more than one group which
+     * enter into an exclusive group set.
      */
     SortedMap<Indicator, Collection<IndicatorGroup>> getIndicatorsViolatingExclusiveGroupSets();
 
@@ -134,7 +137,8 @@ public interface DataIntegrityService
     // -------------------------------------------------------------------------
 
     /**
-     * Gets all organisation units which are related to each other in a cyclic reference.
+     * Gets all organisation units which are related to each other in a cyclic
+     * reference.
      */
     Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences();
 
@@ -149,7 +153,8 @@ public interface DataIntegrityService
     List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
 
     /**
-     * Gets all organisation units which are members of more than one group which enter into an exclusive group set.
+     * Gets all organisation units which are members of more than one group which
+     * enter into an exclusive group set.
      */
     SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> getOrganisationUnitsViolatingExclusiveGroupSets();
 
@@ -158,7 +163,8 @@ public interface DataIntegrityService
     // -------------------------------------------------------------------------
 
     /**
-     * Lists all Periods which are duplicates, based on the period type and start date.
+     * Lists all Periods which are duplicates, based on the period type and start
+     * date.
      */
     List<Period> getDuplicatePeriods();
 
@@ -233,27 +239,29 @@ public interface DataIntegrityService
 
     /**
      *
-     * Get all ProgramRules with no condition expression and grouped them by {@link Program}
+     * Get all ProgramRules with no condition expression and grouped them by
+     * {@link Program}
      */
     Map<Program, Collection<ProgramRule>> getProgramRulesWithNoCondition();
 
     /**
      *
-     * @return all {@link ProgramRuleVariable} which are not linked to any DataElement and grouped them by
-     *         {@link Program}
+     * @return all {@link ProgramRuleVariable} which are not linked to any
+     *         DataElement and grouped them by {@link Program}
      */
     Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoDataElement();
 
     /**
      *
-     * @return all {@link ProgramRuleVariable} which are not linked to any TrackedEntityAttribute and grouped them by
-     *         {@link Program}
+     * @return all {@link ProgramRuleVariable} which are not linked to any
+     *         TrackedEntityAttribute and grouped them by {@link Program}
      */
     Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoAttribute();
 
     /**
      *
-     * @return all {@link ProgramRuleAction} which are not linked to any DataElement/TrackedEntityAttribute
+     * @return all {@link ProgramRuleAction} which are not linked to any
+     *         DataElement/TrackedEntityAttribute
      */
     Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoDataObject();
 
@@ -273,7 +281,8 @@ public interface DataIntegrityService
 
     /**
      *
-     * @return all {@link ProgramRuleAction} which are not linked to any {@link org.hisp.dhis.program.ProgramStage}
+     * @return all {@link ProgramRuleAction} which are not linked to any
+     *         {@link org.hisp.dhis.program.ProgramStage}
      */
     Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoProgramStageId();
 }

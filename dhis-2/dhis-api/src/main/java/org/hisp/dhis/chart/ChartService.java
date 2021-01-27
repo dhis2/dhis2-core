@@ -63,8 +63,8 @@ public interface ChartService
      *
      * @param chart the chart to use as basis for the JFreeChart generation.
      * @param date the date to use as basis for relative periods, can be null.
-     * @param organisationUnit the org unit to use as basis for relative units, will override the current user org unit
-     *        if set, can be null.
+     * @param organisationUnit the org unit to use as basis for relative units, will
+     *        override the current user org unit if set, can be null.
      * @param format the i18n format.
      * @return a JFreeChart object.
      */

@@ -41,8 +41,8 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 
 /**
- * A {@link PreheatSupplier} subclass can implement this abstract class to execute code before and after the supplier
- * has been executed (e.g. timing)
+ * A {@link PreheatSupplier} subclass can implement this abstract class to
+ * execute code before and after the supplier has been executed (e.g. timing)
  *
  * @author Luciano Fiandesio
  */

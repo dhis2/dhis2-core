@@ -32,7 +32,8 @@ import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.FontSize;
 
 /**
- * This is just a support class to hold default values for a few Visualization attributes.
+ * This is just a support class to hold default values for a few Visualization
+ * attributes.
  */
 public final class DefaultValue
 {

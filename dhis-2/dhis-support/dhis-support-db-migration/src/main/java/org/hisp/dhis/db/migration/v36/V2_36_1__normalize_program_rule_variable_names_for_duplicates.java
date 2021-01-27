@@ -186,8 +186,8 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
     }
 
     /**
-     * Utility class which shares commons method with Program Name flyway migration (i.e.
-     * V2_36_2__normalize_program_rule_names_for_duplicates)
+     * Utility class which shares commons method with Program Name flyway migration
+     * (i.e. V2_36_2__normalize_program_rule_names_for_duplicates)
      */
     static class ProgramRuleMigrationUtils
     {

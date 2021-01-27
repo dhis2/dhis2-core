@@ -39,7 +39,8 @@ import org.hisp.dhis.commons.timer.Timer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * This report keeps track of the elapsed time for each stage of the validation process.
+ * This report keeps track of the elapsed time for each stage of the validation
+ * process.
  *
  * @author Luciano Fiandesio
  */

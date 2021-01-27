@@ -28,7 +28,8 @@
 package org.hisp.dhis.dxf2.events.event;
 
 /**
- * This exception should only be thrown when the Import process is unable to recover from an error situation.
+ * This exception should only be thrown when the Import process is unable to
+ * recover from an error situation.
  *
  * @author Luciano Fiandesio
  */

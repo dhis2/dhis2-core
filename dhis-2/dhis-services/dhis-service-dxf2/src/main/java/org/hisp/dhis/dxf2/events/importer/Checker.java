@@ -41,8 +41,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
  *
  * The smaller the validation unit, the better.
  *
- * This interface only accepts {@see ImmutableEvent}, because a validation component is not supposed to modify the
- * object being validated.
+ * This interface only accepts {@see ImmutableEvent}, because a validation
+ * component is not supposed to modify the object being validated.
  *
  * @author Luciano Fiandesio
  */
@@ -52,14 +52,16 @@ public interface Checker
      * Verify that the event satisfies the validation logic
      *
      * @param event an {@see ImmutableEvent}
-     * @param workContext the work context containing the data required for validation
-     * @return an {@see ImportSummary} class. If the validation is successful, the ImportSummary does not contain any
-     *         error
+     * @param workContext the work context containing the data required for
+     *        validation
+     * @return an {@see ImportSummary} class. If the validation is successful, the
+     *         ImportSummary does not contain any error
      */
     ImportSummary check( ImmutableEvent event, WorkContext workContext );
 
     /**
-     * Returns an {@see ImportSummary} object with the specified error description, if the object is null.
+     * Returns an {@see ImportSummary} object with the specified error description,
+     * if the object is null.
      */
     default ImportSummary checkNull( Object object, String description, ImmutableEvent event )
     {

@@ -181,8 +181,9 @@ public class ReportController
     // -------------------------------------------------------------------------
 
     /**
-     * This methods wraps the Jasper image servlet to avoid having a separate servlet mapping around. Note that the path
-     * to images are relative to the reports path in this controller.
+     * This methods wraps the Jasper image servlet to avoid having a separate
+     * servlet mapping around. Note that the path to images are relative to the
+     * reports path in this controller.
      */
     @RequestMapping( value = "/jasperReports/img", method = RequestMethod.GET )
     public void getJasperImage( @RequestParam String image,

@@ -512,8 +512,8 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     /**
-     * From, join and where clause. For attribute params, restriction is set in inner join. For query params,
-     * restriction is set in where clause.
+     * From, join and where clause. For attribute params, restriction is set in
+     * inner join. For query params, restriction is set in where clause.
      */
     private String getFromWhereClause( TrackedEntityInstanceQueryParams params, SqlHelper hlp )
     {

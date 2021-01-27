@@ -265,8 +265,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
     }
 
     /**
-     * If currentUser doesn't have read access to a UserRole and it is included in the payload, then that UserRole
-     * should not be removed from updating User.
+     * If currentUser doesn't have read access to a UserRole and it is included in
+     * the payload, then that UserRole should not be removed from updating User.
      *
      * @param user the updating User.
      * @param bundle the ObjectBundle.

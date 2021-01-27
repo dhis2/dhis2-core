@@ -37,7 +37,8 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.postgresql.util.PGobject;
 
 /**
- * User defined type to handle dynamic json structures to be stored in jsonb. Always deserializes into java Strings.
+ * User defined type to handle dynamic json structures to be stored in jsonb.
+ * Always deserializes into java Strings.
  *
  * @author Ameen Mohamed <ameen@dhis2.org>
  */

@@ -176,7 +176,8 @@ public class JobConfigurationObjectBundleHook
     // -------------------------------------------------------------------------
 
     /*
-     * Validates that there are no other jobs of the same job type which are scheduled with the same cron expression.
+     * Validates that there are no other jobs of the same job type which are
+     * scheduled with the same cron expression.
      */
     private void validateCronExpressionWithinJobType( List<ErrorReport> errorReports,
         JobConfiguration jobConfiguration )

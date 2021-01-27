@@ -370,8 +370,9 @@ public class SpringDataValueSetStore
     }
 
     /**
-     * Returns an attribute option combo filter SQL clause. The filter enforces that only attribute option combinations
-     * which the given user has access to are returned.
+     * Returns an attribute option combo filter SQL clause. The filter enforces that
+     * only attribute option combinations which the given user has access to are
+     * returned.
      *
      * @param user the user.
      * @return an SQL filter clause.

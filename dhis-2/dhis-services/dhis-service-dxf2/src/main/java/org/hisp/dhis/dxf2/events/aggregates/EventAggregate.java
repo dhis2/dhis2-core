@@ -67,7 +67,8 @@ public class EventAggregate
      *
      * @param ids a List of {@see Enrollment} Primary Keys
      * @param ctx the {@see AggregateContext}
-     * @return a Map where the key is a Program Instance Primary Key, and the value is a List of {@see Event}
+     * @return a Map where the key is a Program Instance Primary Key, and the value
+     *         is a List of {@see Event}
      */
     Multimap<String, Event> findByEnrollmentIds( List<Long> ids, AggregateContext ctx )
     {
@@ -83,7 +84,8 @@ public class EventAggregate
         List<Long> eventIds = events.values().stream().map( Event::getId ).collect( Collectors.toList() );
 
         /*
-         * Async fetch Relationships for the given Event ids (only if isIncludeRelationships = true)
+         * Async fetch Relationships for the given Event ids (only if
+         * isIncludeRelationships = true)
          */
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(
             ctx.getParams().isIncludeRelationships(), () -> eventStore.getRelationships( eventIds ), getPool() );

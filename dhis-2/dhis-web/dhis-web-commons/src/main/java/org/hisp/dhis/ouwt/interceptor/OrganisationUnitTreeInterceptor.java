@@ -45,7 +45,8 @@ import com.opensymphony.xwork2.ActionInvocation;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: OrganisationUnitTreeInterceptor.java 1677 2006-06-13 21:58:54Z torgeilo $
+ * @version $Id: OrganisationUnitTreeInterceptor.java 1677 2006-06-13 21:58:54Z
+ *          torgeilo $
  */
 public class OrganisationUnitTreeInterceptor
     extends AbstractPreResultListener

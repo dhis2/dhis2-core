@@ -58,8 +58,8 @@ import org.hisp.dhis.user.User;
 import org.mapstruct.factory.Mappers;
 
 /**
- * Abstract Tracker Preheat strategy that applies to strategies that employ the generic {@link QueryService} to fetch
- * data (mostly for Metadata classes)
+ * Abstract Tracker Preheat strategy that applies to strategies that employ the
+ * generic {@link QueryService} to fetch data (mostly for Metadata classes)
  *
  * @author Luciano Fiandesio
  */

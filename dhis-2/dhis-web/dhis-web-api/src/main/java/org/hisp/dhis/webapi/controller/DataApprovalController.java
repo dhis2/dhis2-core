@@ -684,7 +684,8 @@ public class DataApprovalController
     // -------------------------------------------------------------------------
 
     /**
-     * Validates the data set and workflow parameters and returns a data approval workflow.
+     * Validates the data set and workflow parameters and returns a data approval
+     * workflow.
      *
      * @param ds the data set identifier.
      * @param wf the data approval workflow identifier.
@@ -731,7 +732,8 @@ public class DataApprovalController
     }
 
     /**
-     * Validates the sets of data set and workflow parameters and returns a set of data approval workflows.
+     * Validates the sets of data set and workflow parameters and returns a set of
+     * data approval workflows.
      *
      * @param dss the data set identifiers.
      * @param wfs the data approval workflow identifiers.

@@ -57,7 +57,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 
 /**
- * Cron refers to the cron expression used for scheduling. Key refers to the key identifying the scheduled jobs.
+ * Cron refers to the cron expression used for scheduling. Key refers to the key
+ * identifying the scheduled jobs.
  *
  * @author Henning Håkonsen
  */

@@ -28,7 +28,8 @@
 package org.hisp.dhis.indicator;
 
 /**
- * Non-persisted class for representing the various components of an aggregated indicator value.
+ * Non-persisted class for representing the various components of an aggregated
+ * indicator value.
  *
  * @author Lars Helge Overland
  */

@@ -40,7 +40,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInfo;
 
 /**
- * Interface which extends GenericStore and exposes support methods for retrieving criteria.
+ * Interface which extends GenericStore and exposes support methods for
+ * retrieving criteria.
  *
  * @author Lars Helge Overland
  */

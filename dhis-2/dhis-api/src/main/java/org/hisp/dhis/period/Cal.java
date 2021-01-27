@@ -35,8 +35,9 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 
 /**
- * An abstraction over a calendar implementation, expects input to be in whatever the current system calendar is using,
- * and all output will be in ISO 8601.
+ * An abstraction over a calendar implementation, expects input to be in
+ * whatever the current system calendar is using, and all output will be in ISO
+ * 8601.
  *
  * @author Lars Helge Overland
  * @author Morten Olav Hansen <mortenoh@gmail.com>

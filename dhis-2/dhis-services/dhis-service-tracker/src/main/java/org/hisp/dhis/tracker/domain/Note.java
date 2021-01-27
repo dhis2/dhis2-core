@@ -37,7 +37,8 @@ import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Notes are text-only objects attached to Events and Enrollments. An Event or Enrollment may have multiple notes.
+ * Notes are text-only objects attached to Events and Enrollments. An Event or
+ * Enrollment may have multiple notes.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

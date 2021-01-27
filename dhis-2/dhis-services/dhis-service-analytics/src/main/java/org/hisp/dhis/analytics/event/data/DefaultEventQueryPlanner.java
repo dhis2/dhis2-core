@@ -194,8 +194,8 @@ public class DefaultEventQueryPlanner
     }
 
     /**
-     * Groups by items if query items are to be collapsed in order to aggregate each item individually. Sets program on
-     * the given parameters.
+     * Groups by items if query items are to be collapsed in order to aggregate each
+     * item individually. Sets program on the given parameters.
      *
      * @param params the event query parameters.
      * @return a list of {@link EventQueryParams}.
@@ -258,10 +258,12 @@ public class DefaultEventQueryPlanner
     }
 
     /**
-     * Groups the given query in sub queries for each dimension period. This applies if the aggregation type is
-     * {@link AggregationType#LAST} or {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. It also applies if the query
-     * includes a {@link ProgramIndicator} that does not use default analytics period boundaries:
-     * {@link EventQueryParams#hasNonDefaultBoundaries()}. In this case, each period must be aggregated individually.
+     * Groups the given query in sub queries for each dimension period. This applies
+     * if the aggregation type is {@link AggregationType#LAST} or
+     * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. It also applies if the query
+     * includes a {@link ProgramIndicator} that does not use default analytics
+     * period boundaries: {@link EventQueryParams#hasNonDefaultBoundaries()}. In
+     * this case, each period must be aggregated individually.
      *
      * @param params the data query parameters.
      * @return a list of {@link EventQueryParams}.

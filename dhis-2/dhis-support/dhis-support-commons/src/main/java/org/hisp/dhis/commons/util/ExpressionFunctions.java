@@ -59,7 +59,8 @@ public class ExpressionFunctions
     }
 
     /**
-     * Function which will return one if the argument is zero or a positive number, and zero if not.
+     * Function which will return one if the argument is zero or a positive number,
+     * and zero if not.
      *
      * @param value the value, must be a number.
      * @return a Double.
@@ -75,7 +76,8 @@ public class ExpressionFunctions
     }
 
     /**
-     * Function which will return the count of zero or positive values among the given argument values.
+     * Function which will return the count of zero or positive values among the
+     * given argument values.
      *
      * @param values the arguments.
      * @return an Integer.
@@ -101,7 +103,8 @@ public class ExpressionFunctions
     }
 
     /**
-     * Functions which will return the true value if the condition is true, false value if not.
+     * Functions which will return the true value if the condition is true, false
+     * value if not.
      *
      * @param condititon the condition.
      * @param trueValue the true value.

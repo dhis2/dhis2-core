@@ -64,8 +64,8 @@ public class JpaQueryUtils
     /**
      * Generate a String comparison Predicate base on input parameters.
      *
-     * Example: JpaUtils.stringPredicateCaseSensitive( builder, root.get( "name" ),key ,
-     * JpaUtils.StringSearchMode.ANYWHERE ) )
+     * Example: JpaUtils.stringPredicateCaseSensitive( builder, root.get( "name"
+     * ),key , JpaUtils.StringSearchMode.ANYWHERE ) )
      *
      * @param builder CriteriaBuilder
      * @param expressionPath Property Path for query
@@ -82,8 +82,8 @@ public class JpaQueryUtils
     /**
      * Generate a String comparison Predicate base on input parameters.
      *
-     * Example: JpaUtils.stringPredicateIgnoreCase( builder, root.get( "name" ),key , JpaUtils.StringSearchMode.ANYWHERE
-     * ) )
+     * Example: JpaUtils.stringPredicateIgnoreCase( builder, root.get( "name" ),key
+     * , JpaUtils.StringSearchMode.ANYWHERE ) )
      *
      * @param builder CriteriaBuilder
      * @param expressionPath Property Path for query
@@ -100,8 +100,8 @@ public class JpaQueryUtils
     /**
      * Generate a String comparison Predicate base on input parameters.
      *
-     * Example: JpaUtils.stringPredicate( builder, root.get( "name" ), "%" + key + "%", JpaUtils.StringSearchMode.LIKE,
-     * false ) )
+     * Example: JpaUtils.stringPredicate( builder, root.get( "name" ), "%" + key +
+     * "%", JpaUtils.StringSearchMode.LIKE, false ) )
      *
      * @param builder CriteriaBuilder
      * @param expressionPath Property Path for query
@@ -191,7 +191,8 @@ public class JpaQueryUtils
     }
 
     /**
-     * Use for parsing filter parameter for Object which doesn't extend IdentifiableObject.
+     * Use for parsing filter parameter for Object which doesn't extend
+     * IdentifiableObject.
      */
     public static Predicate getPredicate( CriteriaBuilder builder, Property property, Path<?> path, String operator,
         String value )
@@ -209,11 +210,13 @@ public class JpaQueryUtils
     }
 
     /**
-     * Creates the query language order expression without the leading <code>ORDER BY</code>.
+     * Creates the query language order expression without the leading
+     * <code>ORDER BY</code>.
      *
      * @param orders the orders that should be created to a string.
      * @param alias the entity alias that will be used for prefixing.
-     * @return the string order expression or <code>null</code> if none should be used.
+     * @return the string order expression or <code>null</code> if none should be
+     *         used.
      */
     @Nullable
     public static String createOrderExpression( @Nullable List<org.hisp.dhis.query.Order> orders,
@@ -253,12 +256,14 @@ public class JpaQueryUtils
     }
 
     /**
-     * Creates the query language order expression for selects that must be selected in order to be able to order by
-     * these expressions. This is required for ordering on case insensitive expressions since
+     * Creates the query language order expression for selects that must be selected
+     * in order to be able to order by these expressions. This is required for
+     * ordering on case insensitive expressions since
      *
      * @param orders the orders that should be created to a string.
      * @param alias the entity alias that will be used for prefixing.
-     * @return the string order expression selects or <code>null</code> if none should be used.
+     * @return the string order expression selects or <code>null</code> if none
+     *         should be used.
      */
     @Nullable
     public static String createSelectOrderExpression( @Nullable List<org.hisp.dhis.query.Order> orders,
@@ -285,7 +290,8 @@ public class JpaQueryUtils
     }
 
     /**
-     * Generate JPA Predicate for checking User Access for given User Uid and access string
+     * Generate JPA Predicate for checking User Access for given User Uid and access
+     * string
      *
      * @param builder
      * @param userUid User Uid
@@ -313,8 +319,8 @@ public class JpaQueryUtils
     }
 
     /**
-     * Generate Predicate for checking Access for given Set of UserGroup Id and access string Return NULL if given Set
-     * of UserGroup is empty
+     * Generate Predicate for checking Access for given Set of UserGroup Id and
+     * access string Return NULL if given Set of UserGroup is empty
      *
      * @param builder
      * @param userGroupUids List of User Group Uids

@@ -80,9 +80,10 @@ public class EventUtils
     }
 
     /**
-     * Converts a Set of {@see EventDataValue} into a JSON string using the provided Jackson {@see ObjectMapper} This
-     * method, before serializing to JSON, if first transforms the Set into a Map, where the Map key is the
-     * EventDataValue DataElement UID and the Map value is the actual {@see EventDataValue}.
+     * Converts a Set of {@see EventDataValue} into a JSON string using the provided
+     * Jackson {@see ObjectMapper} This method, before serializing to JSON, if first
+     * transforms the Set into a Map, where the Map key is the EventDataValue
+     * DataElement UID and the Map value is the actual {@see EventDataValue}.
      *
      * @param dataValues a Set of {@see EventDataValue}
      * @param mapper a configured Jackson {@see ObjectMapper}
@@ -101,7 +102,8 @@ public class EventUtils
     }
 
     /**
-     * Converts a {@see DataValue} into a JSON string using the provided Jackson {@see ObjectMapper}.
+     * Converts a {@see DataValue} into a JSON string using the provided Jackson
+     * {@see ObjectMapper}.
      *
      * @param dataValue a {@see DataValue}
      * @param mapper a configured Jackson {@see ObjectMapper}
@@ -121,10 +123,11 @@ public class EventUtils
     /**
      * Converts the Event Data Value json payload into a Set of EventDataValue
      *
-     * Note that the EventDataValue payload is stored as a map: {dataelementid:{ ...}, {dataelementid:{ ...} }
+     * Note that the EventDataValue payload is stored as a map: {dataelementid:{
+     * ...}, {dataelementid:{ ...} }
      *
-     * Therefore, the conversion is a bit convoluted, since the payload has to be converted into a Map and then into a
-     * Set
+     * Therefore, the conversion is a bit convoluted, since the payload has to be
+     * converted into a Map and then into a Set
      */
     public static Set<EventDataValue> jsonToEventDataValues( ObjectMapper jsonMapper, Object eventsDataValues )
         throws JsonProcessingException

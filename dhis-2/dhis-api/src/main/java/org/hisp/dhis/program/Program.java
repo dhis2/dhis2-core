@@ -123,45 +123,52 @@ public class Program
     private CategoryCombo categoryCombo;
 
     /**
-     * Property indicating whether offline storage is enabled for this program or not
+     * Property indicating whether offline storage is enabled for this program or
+     * not
      */
     private boolean skipOffline;
 
     /**
-     * Property indicating whether a list of tracked entity instances should be displayed, or whether a query must be
-     * made.
+     * Property indicating whether a list of tracked entity instances should be
+     * displayed, or whether a query must be made.
      */
     private Boolean displayFrontPageList = false;
 
     /**
-     * Property indicating whether first stage can appear for data entry on the same page with registration
+     * Property indicating whether first stage can appear for data entry on the same
+     * page with registration
      */
     private Boolean useFirstStageDuringRegistration = false;
 
     /**
-     * Property indicating type of feature - none, point, symbol, polygon or multipolygon - to capture for program.
+     * Property indicating type of feature - none, point, symbol, polygon or
+     * multipolygon - to capture for program.
      */
     private FeatureType featureType;
 
     /**
-     * How many days after period is over will this program block creation and modification of events
+     * How many days after period is over will this program block creation and
+     * modification of events
      */
     private int expiryDays;
 
     /**
-     * The PeriodType indicating the frequency that this program will use to decide on expiration. This relates to the
-     * {@link Program#expiryDays} property. The end date of the relevant period is used as basis for the number of
-     * expiration days.
+     * The PeriodType indicating the frequency that this program will use to decide
+     * on expiration. This relates to the {@link Program#expiryDays} property. The
+     * end date of the relevant period is used as basis for the number of expiration
+     * days.
      */
     private PeriodType expiryPeriodType;
 
     /**
-     * How many days after an event is completed will this program block modification of the event
+     * How many days after an event is completed will this program block
+     * modification of the event
      */
     private int completeEventsExpiryDays;
 
     /**
-     * Property indicating minimum number of attributes required to fill before search is triggered
+     * Property indicating minimum number of attributes required to fill before
+     * search is triggered
      */
     private int minAttributesRequiredToSearch = 1;
 
@@ -246,7 +253,8 @@ public class Program
     }
 
     /**
-     * Returns the ProgramTrackedEntityAttribute of this Program which contains the given TrackedEntityAttribute.
+     * Returns the ProgramTrackedEntityAttribute of this Program which contains the
+     * given TrackedEntityAttribute.
      */
     public ProgramTrackedEntityAttribute getAttribute( TrackedEntityAttribute attribute )
     {
@@ -272,8 +280,8 @@ public class Program
     }
 
     /**
-     * Returns data elements which are part of the stages of this program which have a legend set and is of numeric
-     * value type.
+     * Returns data elements which are part of the stages of this program which have
+     * a legend set and is of numeric value type.
      */
     public Set<DataElement> getDataElementsWithLegendSet()
     {
@@ -283,8 +291,8 @@ public class Program
     }
 
     /**
-     * Returns TrackedEntityAttributes from ProgramTrackedEntityAttributes. Use getAttributes() to access the persisted
-     * attribute list.
+     * Returns TrackedEntityAttributes from ProgramTrackedEntityAttributes. Use
+     * getAttributes() to access the persisted attribute list.
      */
     public List<TrackedEntityAttribute> getTrackedEntityAttributes()
     {
@@ -294,8 +302,9 @@ public class Program
     }
 
     /**
-     * Returns non-confidential TrackedEntityAttributes from ProgramTrackedEntityAttributes. Use getAttributes() to
-     * access the persisted attribute list.
+     * Returns non-confidential TrackedEntityAttributes from
+     * ProgramTrackedEntityAttributes. Use getAttributes() to access the persisted
+     * attribute list.
      */
     public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributes()
     {
@@ -305,8 +314,8 @@ public class Program
     }
 
     /**
-     * Returns TrackedEntityAttributes from ProgramTrackedEntityAttributes which have a legend set and is of numeric
-     * value type.
+     * Returns TrackedEntityAttributes from ProgramTrackedEntityAttributes which
+     * have a legend set and is of numeric value type.
      */
     public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributesWithLegendSet()
     {
@@ -703,8 +712,8 @@ public class Program
     }
 
     /**
-     * Indicates whether this program has a category combination which is different from the default category
-     * combination.
+     * Indicates whether this program has a category combination which is different
+     * from the default category combination.
      */
     public boolean hasCategoryCombo()
     {

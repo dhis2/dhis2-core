@@ -44,7 +44,8 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import com.fasterxml.jackson.databind.util.StdConverter;
 
 /**
- * Converts a {@see TrackerBundleParams} containing a nested Tracked Entity structure into a "flat" structure
+ * Converts a {@see TrackerBundleParams} containing a nested Tracked Entity
+ * structure into a "flat" structure
  * <p>
  * Assuming a structure like:
  *
@@ -78,7 +79,8 @@ import com.fasterxml.jackson.databind.util.StdConverter;
  *
  * </pre>
  * <p>
- * This converter also assigns UIDs to Tracked Entities, Enrollment and Events if the payload does not contain UIDs
+ * This converter also assigns UIDs to Tracked Entities, Enrollment and Events
+ * if the payload does not contain UIDs
  *
  * @author Luciano Fiandesio
  */
@@ -88,11 +90,13 @@ public class TrackerBundleParamsConverter
 {
 
     /**
-     * Iterates over the collections of a dataBundle. If any objects in those collections have objects nested within
-     * them, they are extracted. For each object we process, we make sure all references are valid as well.
+     * Iterates over the collections of a dataBundle. If any objects in those
+     * collections have objects nested within them, they are extracted. For each
+     * object we process, we make sure all references are valid as well.
      *
      * @param dataBundle containing collections to check and update.
-     * @return a dataBundle with a flattened data structure, and valid uid references.
+     * @return a dataBundle with a flattened data structure, and valid uid
+     *         references.
      */
     @Override
     public TrackerBundleParams convert( TrackerBundleParams dataBundle )
@@ -167,7 +171,8 @@ public class TrackerBundleParamsConverter
     }
 
     /**
-     * Takes a trackedEntity and extracts the relationships, if any, and updates the uid references of the relationships
+     * Takes a trackedEntity and extracts the relationships, if any, and updates the
+     * uid references of the relationships
      *
      * @param trackedEntity the trackedEntity to extract relationships from
      * @return a list of relationships
@@ -184,8 +189,8 @@ public class TrackerBundleParamsConverter
     }
 
     /**
-     * Takes an enrollment and extracts the relationships from, if any, and updates the uid references of the
-     * relationships
+     * Takes an enrollment and extracts the relationships from, if any, and updates
+     * the uid references of the relationships
      *
      * @param enrollment the enrollment to extract relationships from
      * @return a list of relationships
@@ -202,7 +207,8 @@ public class TrackerBundleParamsConverter
     }
 
     /**
-     * Takes an event and extracts the relationships from, if any, and updates the uid references of the relationships
+     * Takes an event and extracts the relationships from, if any, and updates the
+     * uid references of the relationships
      *
      * @param event the event to extract relationships from
      * @return a list of relationships
@@ -219,7 +225,8 @@ public class TrackerBundleParamsConverter
     }
 
     /**
-     * Takes an enrollment and extracts the events from, if any, and updates the uid references of the events
+     * Takes an enrollment and extracts the events from, if any, and updates the uid
+     * references of the events
      *
      * @param enrollment the enrollment to extract events from
      * @return a list of events
@@ -236,7 +243,8 @@ public class TrackerBundleParamsConverter
     }
 
     /**
-     * Takes a trackedEntity and extracts enrollments, if any, and updated the uid references of the enrollments
+     * Takes a trackedEntity and extracts enrollments, if any, and updated the uid
+     * references of the enrollments
      *
      * @param trackedEntity the trackedEntity to extract enrollments from
      * @return a list of enrollments
@@ -253,8 +261,8 @@ public class TrackerBundleParamsConverter
     }
 
     /**
-     * Updates a reference (uid). If the String supplied is null or empty, generates and returns a new uid. Otherwise,
-     * return the uid.
+     * Updates a reference (uid). If the String supplied is null or empty, generates
+     * and returns a new uid. Otherwise, return the uid.
      *
      * @param uid the uid to check and update
      * @return a valid uid

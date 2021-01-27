@@ -35,8 +35,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * This class is just a wrapper class to provide a simplified summary view of the Visualization object. It will only
- * contains the BaseIdentifiableObject attributes plus a minimum amount of attributes from Visualization.
+ * This class is just a wrapper class to provide a simplified summary view of
+ * the Visualization object. It will only contains the BaseIdentifiableObject
+ * attributes plus a minimum amount of attributes from Visualization.
  */
 public class SimpleVisualizationView
     extends

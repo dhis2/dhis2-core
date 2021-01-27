@@ -90,7 +90,8 @@ public class JdbcEnrollmentAnalyticsManager
     }
 
     /**
-     * Adds enrollments to the given grid based on the given parameters and SQL statement.
+     * Adds enrollments to the given grid based on the given parameters and SQL
+     * statement.
      *
      * @param params the {@link EventQueryParams}.
      * @param grid the {@link Grid}.
@@ -167,11 +168,13 @@ public class JdbcEnrollmentAnalyticsManager
     }
 
     /**
-     * Returns a from and where SQL clause. If this is a program indicator with non-default boundaries, the relationship
-     * with the reporting period is specified with where conditions on the enrollment or incident dates. If the default
-     * boundaries is used, or the params does not include program indicators, the periods are joined in from the
-     * analytics tables the normal way. A where clause can never have a mix of indicators with non-default boundaries
-     * and regular analytics table periods.
+     * Returns a from and where SQL clause. If this is a program indicator with
+     * non-default boundaries, the relationship with the reporting period is
+     * specified with where conditions on the enrollment or incident dates. If the
+     * default boundaries is used, or the params does not include program
+     * indicators, the periods are joined in from the analytics tables the normal
+     * way. A where clause can never have a mix of indicators with non-default
+     * boundaries and regular analytics table periods.
      *
      * @param params the {@link EventQueryParams}.
      */
@@ -341,7 +344,8 @@ public class JdbcEnrollmentAnalyticsManager
     }
 
     /**
-     * Returns an encoded column name wrapped in lower directive if not numeric or boolean.
+     * Returns an encoded column name wrapped in lower directive if not numeric or
+     * boolean.
      *
      * @param item the {@link QueryItem}.
      */

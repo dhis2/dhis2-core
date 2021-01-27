@@ -112,7 +112,8 @@ public class AnalyticsUtils
     public static final String ERR_MSG_TABLE_NOT_EXISTING = "Query failed, likely because the requested analytics table does not exist";
 
     /**
-     * Returns an SQL statement for retrieving raw data values for an aggregate query.
+     * Returns an SQL statement for retrieving raw data values for an aggregate
+     * query.
      *
      * @param params the data query parameters.
      * @return an SQL statement.
@@ -177,7 +178,8 @@ public class AnalyticsUtils
     }
 
     /**
-     * Returns a list of data dimension options which match the given data dimension item type.
+     * Returns a list of data dimension options which match the given data dimension
+     * item type.
      *
      * @param itemType the data dimension item type.
      * @param dataDimensionOptions the data dimension options.
@@ -202,10 +204,12 @@ public class AnalyticsUtils
     }
 
     /**
-     * Rounds a value. If the given parameters has skip rounding, the value is rounded to
-     * {@link AnalyticsUtils#DECIMALS_NO_ROUNDING}. decimals. If the given number of decimals is specified, the value is
-     * rounded to the given decimals. Otherwise, default rounding is used. If 0 decimals is explicitly specified, this
-     * method returns a long value. Otherwise, a double value is returned.
+     * Rounds a value. If the given parameters has skip rounding, the value is
+     * rounded to {@link AnalyticsUtils#DECIMALS_NO_ROUNDING}. decimals. If the
+     * given number of decimals is specified, the value is rounded to the given
+     * decimals. Otherwise, default rounding is used. If 0 decimals is explicitly
+     * specified, this method returns a long value. Otherwise, a double value is
+     * returned.
      *
      * @param params the query parameters.
      * @param decimals the number of decimals.
@@ -237,8 +241,9 @@ public class AnalyticsUtils
     }
 
     /**
-     * Rounds a value. If the given parameters has skip rounding, the value is returned unchanged. If the given number
-     * is null or not of class Double, the value is returned unchanged. If skip rounding is specified in the given data
+     * Rounds a value. If the given parameters has skip rounding, the value is
+     * returned unchanged. If the given number is null or not of class Double, the
+     * value is returned unchanged. If skip rounding is specified in the given data
      * query parameters, 10 decimals is used. Otherwise, default rounding is used.
      *
      * @param params the query parameters.
@@ -260,8 +265,8 @@ public class AnalyticsUtils
     }
 
     /**
-     * Returns the database column type based on the given value type. For boolean values, 1 means true, 0 means false
-     * and null means no value.
+     * Returns the database column type based on the given value type. For boolean
+     * values, 1 means true, 0 means false and null means no value.
      *
      * @param valueType the value type to represent as database column type.
      * @param spatialSupport indicates whether spatial data types are enabled.
@@ -295,9 +300,10 @@ public class AnalyticsUtils
     }
 
     /**
-     * Converts the data and option combo identifiers to an operand identifier, i.e. {@code deuid-cocuid} to
-     * {@code deuid.cocuid}. For {@link TotalType#AOC_ONLY} a {@link ExpressionService#SYMBOL_WILDCARD} symbol will be
-     * inserted after the data item.
+     * Converts the data and option combo identifiers to an operand identifier, i.e.
+     * {@code deuid-cocuid} to {@code deuid.cocuid}. For {@link TotalType#AOC_ONLY}
+     * a {@link ExpressionService#SYMBOL_WILDCARD} symbol will be inserted after the
+     * data item.
      *
      * @param valueMap the value map to convert.
      * @param totalType the {@link TotalType}.
@@ -356,9 +362,10 @@ public class AnalyticsUtils
     }
 
     /**
-     * Generates a mapping where the key represents the dimensional item identifiers concatenated by
-     * {@link DimensionalObject#DIMENSION_SEP} and the value is the corresponding aggregated data value based on the
-     * given grid. Assumes that the value column is the last column in the grid.
+     * Generates a mapping where the key represents the dimensional item identifiers
+     * concatenated by {@link DimensionalObject#DIMENSION_SEP} and the value is the
+     * corresponding aggregated data value based on the given grid. Assumes that the
+     * value column is the last column in the grid.
      *
      * @param grid the grid.
      * @return a mapping between item identifiers and aggregated values.
@@ -390,8 +397,8 @@ public class AnalyticsUtils
     }
 
     /**
-     * Generates a data value set based on the given grid with aggregated data. Sets the created and last updated fields
-     * to the current date.
+     * Generates a data value set based on the given grid with aggregated data. Sets
+     * the created and last updated fields to the current date.
      *
      * @param params the data query parameters.
      * @param grid the grid.
@@ -450,11 +457,14 @@ public class AnalyticsUtils
      * Prepares the given grid to be converted to a data value set.
      *
      * <ul>
-     * <li>Converts data values from double to integer based on the associated data item if required.</li>
-     * <li>Adds a category option combo and a attribute option combo column to the grid based on the aggregated export
-     * properties of the associated data item.</li>
-     * <li>For data element operand data items, the operand identifier is split and the data element identifier is used
-     * for the data dimension column and the category option combo identifier is used for the category option combo
+     * <li>Converts data values from double to integer based on the associated data
+     * item if required.</li>
+     * <li>Adds a category option combo and a attribute option combo column to the
+     * grid based on the aggregated export properties of the associated data
+     * item.</li>
+     * <li>For data element operand data items, the operand identifier is split and
+     * the data element identifier is used for the data dimension column and the
+     * category option combo identifier is used for the category option combo
      * column.</li>
      * </ul>
      *
@@ -517,8 +527,9 @@ public class AnalyticsUtils
     }
 
     /**
-     * Handles conversion of double values to integer. A value is converted to integer if it is a double, and if either
-     * the dimensional item object is associated with a data element of value type integer, or associated with an
+     * Handles conversion of double values to integer. A value is converted to
+     * integer if it is a double, and if either the dimensional item object is
+     * associated with a data element of value type integer, or associated with an
      * indicator with zero decimals in aggregated output.
      *
      * @param value the value.
@@ -557,7 +568,8 @@ public class AnalyticsUtils
     }
 
     /**
-     * Returns a mapping between dimension item identifiers and dimensional item object for the given query.
+     * Returns a mapping between dimension item identifiers and dimensional item
+     * object for the given query.
      *
      * @param params the data query parameters.
      * @return a mapping between identifiers and names.
@@ -623,7 +635,8 @@ public class AnalyticsUtils
     }
 
     /**
-     * Returns a mapping between identifiers and meta data items for the given query.
+     * Returns a mapping between identifiers and meta data items for the given
+     * query.
      *
      * @param params the data query parameters.
      * @return a mapping between identifiers and meta data items.
@@ -719,7 +732,8 @@ public class AnalyticsUtils
     }
 
     /**
-     * Returns a mapping between the category option combo identifiers and names for the given query.
+     * Returns a mapping between the category option combo identifiers and names for
+     * the given query.
      *
      * @param params the data query parameters.
      * @return a mapping between identifiers and names.
@@ -747,7 +761,8 @@ public class AnalyticsUtils
     }
 
     /**
-     * Returns a mapping between identifiers and display properties for the given list of query items.
+     * Returns a mapping between identifiers and display properties for the given
+     * list of query items.
      *
      * @param queryItems the list of query items.
      * @param displayProperty the display property to use.
@@ -767,10 +782,12 @@ public class AnalyticsUtils
     }
 
     /**
-     * Returns a mapping between identifiers and display properties for the given list of dimensions.
+     * Returns a mapping between identifiers and display properties for the given
+     * list of dimensions.
      *
      * @param dimensions the dimensions.
-     * @param hierarchyMeta indicates whether to include meta data about the organisation unit hierarchy.
+     * @param hierarchyMeta indicates whether to include meta data about the
+     *        organisation unit hierarchy.
      * @return a mapping between identifiers and display properties.
      */
     public static Map<String, String> getUidDisplayPropertyMap( List<DimensionalObject> dimensions,
@@ -803,11 +820,13 @@ public class AnalyticsUtils
     }
 
     /**
-     * Returns true if the given period occurs less than maxYears before the current date.
+     * Returns true if the given period occurs less than maxYears before the current
+     * date.
      *
      * @param year the year to check.
      * @param maxYears amount of years back to check
-     * @return false if maxYears is 0 or period occurs earlier than maxYears years since now.
+     * @return false if maxYears is 0 or period occurs earlier than maxYears years
+     *         since now.
      */
     public static boolean periodIsOutsideApprovalMaxYears( Integer year, Integer maxYears )
     {
@@ -822,7 +841,8 @@ public class AnalyticsUtils
     }
 
     /**
-     * Returns the level from the given org unit level dimension name. Returns -1 if the level could not be determined.
+     * Returns the level from the given org unit level dimension name. Returns -1 if
+     * the level could not be determined.
      *
      * @param dimensionName the given org unit level dimension name.
      * @return the org unit level, or -1.
@@ -847,7 +867,8 @@ public class AnalyticsUtils
     }
 
     /**
-     * Calculates the weighted arithmetic mean between two yearly values, based on the given factor as the month.
+     * Calculates the weighted arithmetic mean between two yearly values, based on
+     * the given factor as the month.
      *
      * @param year1Value the value for the first year.
      * @param year2Value the value for the second year.
@@ -888,7 +909,8 @@ public class AnalyticsUtils
     }
 
     /**
-     * Checks of the given Period string (iso) matches at least one Periods in the given list
+     * Checks of the given Period string (iso) matches at least one Periods in the
+     * given list
      *
      * @param period a Period as iso date String (e.g. 202001 for Jan 2020)
      * @param periods a List of DimensionalItemObject of type Period
@@ -901,12 +923,13 @@ public class AnalyticsUtils
     }
 
     /**
-     * Filters a List by Dimensional Item Object identifier and returns one ore more {@see DimensionalItemObject}
-     * matching the given identifier
+     * Filters a List by Dimensional Item Object identifier and returns one ore more
+     * {@see DimensionalItemObject} matching the given identifier
      *
      * @param dimensionIdentifier a uid to filter {@see DimensionalItemObject} on
      * @param items the filtered List
-     * @return a List only containing the {@see DimensionalItemObject} matching the uid
+     * @return a List only containing the {@see DimensionalItemObject} matching the
+     *         uid
      */
     public static List<DimensionalItemObject> findDimensionalItems( String dimensionIdentifier,
         List<DimensionalItemObject> items )
@@ -921,7 +944,8 @@ public class AnalyticsUtils
      *
      * @param row the row as List of Object
      * @param periodIndex the index in which the period is located
-     * @return true, if the rows contains a valid period iso string at the given index
+     * @return true, if the rows contains a valid period iso string at the given
+     *         index
      */
     public static boolean hasPeriod( List<Object> row, int periodIndex )
     {

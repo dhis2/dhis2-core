@@ -244,9 +244,11 @@ public class DefaultQueryPlanner
     // -------------------------------------------------------------------------
 
     /**
-     * If periods appear as dimensions in the given query, groups the query into sub queries based on the period type of
-     * the periods. Sets the period type name on each query. If periods appear as filters, replaces the period filter
-     * with one filter for each period type. Sets the dimension names and filter names respectively.
+     * If periods appear as dimensions in the given query, groups the query into sub
+     * queries based on the period type of the periods. Sets the period type name on
+     * each query. If periods appear as filters, replaces the period filter with one
+     * filter for each period type. Sets the dimension names and filter names
+     * respectively.
      *
      * @param params the {@link DataQueryParams} object.
      * @return a list of {@link DataQueryParams}.
@@ -440,19 +442,24 @@ public class DefaultQueryPlanner
     }
 
     /**
-     * Groups the given query in sub queries based on the aggregation type of its data elements. The aggregation type
-     * can be sum, average aggregation or average disaggregation. Sum means that the data elements have sum aggregation
-     * operator. Average aggregation means that the data elements have the average aggregation operator and that the
-     * period type of the data elements have higher or equal frequency than the aggregation period type. Average
-     * disaggregation means that the data elements have the average aggregation operator and that the period type of the
-     * data elements have lower frequency than the aggregation period type. Average bool means that the data elements
+     * Groups the given query in sub queries based on the aggregation type of its
+     * data elements. The aggregation type can be sum, average aggregation or
+     * average disaggregation. Sum means that the data elements have sum aggregation
+     * operator. Average aggregation means that the data elements have the average
+     * aggregation operator and that the period type of the data elements have
+     * higher or equal frequency than the aggregation period type. Average
+     * disaggregation means that the data elements have the average aggregation
+     * operator and that the period type of the data elements have lower frequency
+     * than the aggregation period type. Average bool means that the data elements
      * have the average aggregation operator and the bool value type.
      * <p>
-     * If no data elements are present, the aggregation type will be determined based on the first data element in the
-     * first data element group in the first data element group set in the query.
+     * If no data elements are present, the aggregation type will be determined
+     * based on the first data element in the first data element group in the first
+     * data element group set in the query.
      * <p>
-     * If the aggregation type is already set/overridden in the request, the query will be returned unchanged. If there
-     * are no data elements or data element group sets specified the aggregation type will fall back to sum.
+     * If the aggregation type is already set/overridden in the request, the query
+     * will be returned unchanged. If there are no data elements or data element
+     * group sets specified the aggregation type will fall back to sum.
      *
      * @param params the {@link DataQueryParams}.
      * @return a list of {@link DataQueryParams}.
@@ -531,9 +538,10 @@ public class DefaultQueryPlanner
     }
 
     /**
-     * Check if the filter of this {@link DataQueryParams} contains Data Elements having the same Aggregation Type and
-     * the same Value Type. If the DataQueryParams has the aggregationType set, then the DataQueryParams aggregationType
-     * overrides all the Data Elements' aggregation types.
+     * Check if the filter of this {@link DataQueryParams} contains Data Elements
+     * having the same Aggregation Type and the same Value Type. If the
+     * DataQueryParams has the aggregationType set, then the DataQueryParams
+     * aggregationType overrides all the Data Elements' aggregation types.
      *
      * @param params DataQueryParams object.
      * @return true if filter has data elements of same aggregation type and value.
@@ -558,10 +566,12 @@ public class DefaultQueryPlanner
     }
 
     /**
-     * Groups the given query in sub queries based on the number of days in the aggregation period. This only applies if
-     * the aggregation type is SUM, the period dimension aggregation type is AVERAGE, the data type is NUMERIC and the
-     * query has at least one period as dimension option. This is necessary since the number of days in the aggregation
-     * period is part of the expression for aggregating the value.
+     * Groups the given query in sub queries based on the number of days in the
+     * aggregation period. This only applies if the aggregation type is SUM, the
+     * period dimension aggregation type is AVERAGE, the data type is NUMERIC and
+     * the query has at least one period as dimension option. This is necessary
+     * since the number of days in the aggregation period is part of the expression
+     * for aggregating the value.
      *
      * @param params the {@link DataQueryParams}.
      * @return a list of {@link DataQueryParams}.
@@ -603,8 +613,9 @@ public class DefaultQueryPlanner
     }
 
     /**
-     * Groups the given query in sub queries based on the period type of its data elements. Sets the data period type on
-     * each query. This only applies if the aggregation type of the query involves disaggregation.
+     * Groups the given query in sub queries based on the period type of its data
+     * elements. Sets the data period type on each query. This only applies if the
+     * aggregation type of the query involves disaggregation.
      *
      * @param params the {@link DataQueryParams}.
      * @return a list of {@link DataQueryParams}.
@@ -646,9 +657,10 @@ public class DefaultQueryPlanner
     }
 
     /**
-     * Groups the given query in sub queries for each dimension period. This only applies if the aggregation type is
-     * {@link AggregationType#LAST} or {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. In this case, each period must be
-     * aggregated individually.
+     * Groups the given query in sub queries for each dimension period. This only
+     * applies if the aggregation type is {@link AggregationType#LAST} or
+     * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. In this case, each period must
+     * be aggregated individually.
      *
      * @param params the {@link DataQueryParams}.
      * @return a list of {@link DataQueryParams}.

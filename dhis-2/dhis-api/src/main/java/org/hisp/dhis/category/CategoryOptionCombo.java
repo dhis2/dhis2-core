@@ -203,13 +203,14 @@ public class CategoryOptionCombo
     }
 
     /**
-     * Gets a range of valid dates for this (attribute) cateogry option combo for a data set.
+     * Gets a range of valid dates for this (attribute) cateogry option combo for a
+     * data set.
      * <p>
-     * The earliest valid date is the latest start date (if any) from all the category options associated with this
-     * option combo.
+     * The earliest valid date is the latest start date (if any) from all the
+     * category options associated with this option combo.
      * <p>
-     * The latest valid date is the earliest end date (if any) from all the category options associated with this option
-     * combo.
+     * The latest valid date is the earliest end date (if any) from all the category
+     * options associated with this option combo.
      *
      * @param dataSet the data set for which to check dates.
      * @return valid date range for this (attribute) category option combo.
@@ -220,14 +221,14 @@ public class CategoryOptionCombo
     }
 
     /**
-     * Gets a range of valid dates for this (attribute) cateogry option combo for a data element (for all data sets to
-     * which the data element belongs).
+     * Gets a range of valid dates for this (attribute) cateogry option combo for a
+     * data element (for all data sets to which the data element belongs).
      * <p>
-     * The earliest valid date is the latest start date (if any) from all the category options associated with this
-     * option combo.
+     * The earliest valid date is the latest start date (if any) from all the
+     * category options associated with this option combo.
      * <p>
-     * The latest valid date is the earliest end date (if any) from all the category options associated with this option
-     * combo.
+     * The latest valid date is the earliest end date (if any) from all the category
+     * options associated with this option combo.
      *
      * @param dataElement the data element for which to check dates.
      * @return valid date range for this (attribute) category option combo.
@@ -238,13 +239,16 @@ public class CategoryOptionCombo
     }
 
     /**
-     * Gets a set of valid organisation units (subtrees) for this (attribute) category option combo, if any.
+     * Gets a set of valid organisation units (subtrees) for this (attribute)
+     * category option combo, if any.
      * <p>
-     * The set of valid organisation units (if any) is the intersection of the sets of valid organisation untis for all
-     * the category options associated with this option combo.
+     * The set of valid organisation units (if any) is the intersection of the sets
+     * of valid organisation untis for all the category options associated with this
+     * option combo.
      * <p>
-     * Note: returns null if there are no organisation unit restrictions (no associated option combos have any
-     * organisation unit restrictions), but returns an empty set if associated option combos have organisation unit
+     * Note: returns null if there are no organisation unit restrictions (no
+     * associated option combos have any organisation unit restrictions), but
+     * returns an empty set if associated option combos have organisation unit
      * restrictions and their intersection is empty.
      *
      * @return valid organisation units for this (attribute) category option combo.
@@ -273,8 +277,9 @@ public class CategoryOptionCombo
     }
 
     /**
-     * Gets the latest category option start date for this category option combo. The combo is only valid between the
-     * latest start date of any options and the earliest end date of any options.
+     * Gets the latest category option start date for this category option combo.
+     * The combo is only valid between the latest start date of any options and the
+     * earliest end date of any options.
      *
      * @return the latest option start date for this combo.
      */
@@ -296,11 +301,13 @@ public class CategoryOptionCombo
     }
 
     /**
-     * Gets the earliest category option end date for this category option combo. The combo is only valid between the
-     * latest start date of any options and the earliest end date of any options.
+     * Gets the earliest category option end date for this category option combo.
+     * The combo is only valid between the latest start date of any options and the
+     * earliest end date of any options.
      * <p>
-     * Note that this end date does not take into account any possible extensions to the category end dates for
-     * aggregate data entry in data sets with openPeriodsAfterCoEndDate.
+     * Note that this end date does not take into account any possible extensions to
+     * the category end dates for aggregate data entry in data sets with
+     * openPeriodsAfterCoEndDate.
      *
      * @return the latest option start date for this combo.
      */
@@ -326,8 +333,8 @@ public class CategoryOptionCombo
     // -------------------------------------------------------------------------
 
     /**
-     * Gets a range of valid dates for this (attribute) cateogry option combo for a data set or, if that is not present,
-     * a data element.
+     * Gets a range of valid dates for this (attribute) cateogry option combo for a
+     * data set or, if that is not present, a data element.
      *
      * @param dataSet the data set to get the range for, or
      * @param dataElement the data element to get the range for

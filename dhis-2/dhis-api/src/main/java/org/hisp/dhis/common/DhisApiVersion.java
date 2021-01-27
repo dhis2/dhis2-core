@@ -28,10 +28,12 @@
 package org.hisp.dhis.common;
 
 /**
- * Enum representing web API versions. The API version is exposed through the API URL at
- * <code>/api/{version}/{resource}</code>, where <code>{version}</code> is a numeric value and must match a value of
- * this enum. If omitted, the <code>DEFAULT</code> value will be used. The API resources can also be mapped to all
- * versions using the <code>ALL</code> value.
+ * Enum representing web API versions. The API version is exposed through the
+ * API URL at <code>/api/{version}/{resource}</code>, where
+ * <code>{version}</code> is a numeric value and must match a value of this
+ * enum. If omitted, the <code>DEFAULT</code> value will be used. The API
+ * resources can also be mapped to all versions using the <code>ALL</code>
+ * value.
  * <p>
  * TODO The <code>DEFAULT</code> version must be updated for each release.
  *

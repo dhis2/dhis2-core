@@ -28,9 +28,11 @@
 package org.hisp.dhis.security;
 
 /**
- * Options for user account restore operation. These options are represented in the user account restore email as a
- * prefix to the restore token. This token is hashed, and the hash is stored in the database. This means that the
- * options cannot be hacked to change them, because then the token would no longer match the saved hash in the database.
+ * Options for user account restore operation. These options are represented in
+ * the user account restore email as a prefix to the restore token. This token
+ * is hashed, and the hash is stored in the database. This means that the
+ * options cannot be hacked to change them, because then the token would no
+ * longer match the saved hash in the database.
  *
  * @author Jim Grace
  */
@@ -47,7 +49,8 @@ public enum RestoreOptions
     private final String tokenPrefix;
 
     /**
-     * The type of restore operation to perform (i.e. password recovery or invite to create account.)
+     * The type of restore operation to perform (i.e. password recovery or invite to
+     * create account.)
      */
     private final RestoreType restoreType;
 

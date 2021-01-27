@@ -105,7 +105,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 /**
- * Class representing query parameters for retrieving aggregated data from the analytics service. Example instantiation:
+ * Class representing query parameters for retrieving aggregated data from the
+ * analytics service. Example instantiation:
  *
  * <pre>
  * {
@@ -214,8 +215,8 @@ public class DataQueryParams
     protected Map<MeasureFilter, Double> measureCriteria = new HashMap<>();
 
     /**
-     * The pre aggregate measure criteria, different to measure criteria, as it is handled in the query itself and not
-     * after the query returns.
+     * The pre aggregate measure criteria, different to measure criteria, as it is
+     * handled in the query itself and not after the query returns.
      */
     protected Map<MeasureFilter, Double> preAggregateMeasureCriteria = new HashMap<>();
 
@@ -245,41 +246,46 @@ public class DataQueryParams
     protected boolean completedOnly;
 
     /**
-     * Indicates i) if the names of all ancestors of the organisation units part of the query should be included in the
-     * "names" key and ii) if the hierarchy path of all organisation units part of the query should be included as a
+     * Indicates i) if the names of all ancestors of the organisation units part of
+     * the query should be included in the "names" key and ii) if the hierarchy path
+     * of all organisation units part of the query should be included as a
      * "ouHierarchy" key in the meta-data part of the response.
      */
     protected boolean hierarchyMeta;
 
     /**
-     * Indicates whether the maximum number of records to include the response should be ignored.
+     * Indicates whether the maximum number of records to include the response
+     * should be ignored.
      */
     protected boolean ignoreLimit;
 
     /**
-     * Indicates whether rows with no values should be hidden in the response. Applies to responses with table layout
-     * only.
+     * Indicates whether rows with no values should be hidden in the response.
+     * Applies to responses with table layout only.
      */
     protected boolean hideEmptyRows;
 
     /**
-     * Indicates whether columns with no values should be hidden in the response. Applies to responses with table layout
-     * only.
+     * Indicates whether columns with no values should be hidden in the response.
+     * Applies to responses with table layout only.
      */
     protected boolean hideEmptyColumns;
 
     /**
-     * Indicates whether the org unit hierarchy path should be displayed with the org unit names on rows.
+     * Indicates whether the org unit hierarchy path should be displayed with the
+     * org unit names on rows.
      */
     protected boolean showHierarchy;
 
     /**
-     * Indicates whether to include the numerator, denominator and factor of values where relevant in the response.
+     * Indicates whether to include the numerator, denominator and factor of values
+     * where relevant in the response.
      */
     protected boolean includeNumDen;
 
     /**
-     * Indicates whether to include the start and end dates of the aggregation period in the response.
+     * Indicates whether to include the start and end dates of the aggregation
+     * period in the response.
      */
     protected boolean includePeriodStartEndDates;
 
@@ -297,7 +303,8 @@ public class DataQueryParams
      * The general id scheme, which drives the values in the query response.
      *
      * For implementation details @see
-     * org.hisp.dhis.analytics.data.handling.MetadataHandler#applyIdScheme(DataQueryParams, Grid)
+     * org.hisp.dhis.analytics.data.handling.MetadataHandler#applyIdScheme(DataQueryParams,
+     * Grid)
      */
     protected IdScheme outputIdScheme;
 
@@ -305,7 +312,8 @@ public class DataQueryParams
      * The id schema specific for data elements.
      *
      * For implementation details @see
-     * org.hisp.dhis.analytics.data.handling.MetadataHandler#applyIdScheme(DataQueryParams, Grid)
+     * org.hisp.dhis.analytics.data.handling.MetadataHandler#applyIdScheme(DataQueryParams,
+     * Grid)
      */
     protected IdScheme outputDataElementIdScheme;
 
@@ -313,7 +321,8 @@ public class DataQueryParams
      * The id schema specific for org units.
      *
      * For implementation details @see
-     * org.hisp.dhis.analytics.data.handling.MetadataHandler#applyIdScheme(DataQueryParams, Grid)
+     * org.hisp.dhis.analytics.data.handling.MetadataHandler#applyIdScheme(DataQueryParams,
+     * Grid)
      */
     protected IdScheme outputOrgUnitIdScheme;
 
@@ -323,12 +332,14 @@ public class DataQueryParams
     protected OutputFormat outputFormat;
 
     /**
-     * Indicates whether to return duplicate data values only. Applicable to {@link OutputFormat} DATA_VALUE_SET only.
+     * Indicates whether to return duplicate data values only. Applicable to
+     * {@link OutputFormat} DATA_VALUE_SET only.
      */
     protected boolean duplicatesOnly;
 
     /**
-     * The required approval level identifier for data to be included in query response.
+     * The required approval level identifier for data to be included in query
+     * response.
      */
     protected String approvalLevel;
 
@@ -416,7 +427,8 @@ public class DataQueryParams
     protected transient boolean skipPartitioning;
 
     /**
-     * Applies to reporting rates only. Indicates whether only timely reports should be returned.
+     * Applies to reporting rates only. Indicates whether only timely reports should
+     * be returned.
      */
     protected boolean timely;
 
@@ -426,34 +438,40 @@ public class DataQueryParams
     protected List<OrganisationUnitLevel> orgUnitLevels = new ArrayList<>();
 
     /**
-     * Applies to reporting rates only. Indicates whether only organisation units which opening or closed date spans the
-     * aggregation period should be included as reporting rate targets.
+     * Applies to reporting rates only. Indicates whether only organisation units
+     * which opening or closed date spans the aggregation period should be included
+     * as reporting rate targets.
      */
     protected boolean restrictByOrgUnitOpeningClosedDate;
 
     /**
-     * Applies to reporting rates only. Indicates whether only organisation units which category options which start or
-     * end date spans the aggregation period should be included as reporting rate targets.
+     * Applies to reporting rates only. Indicates whether only organisation units
+     * which category options which start or end date spans the aggregation period
+     * should be included as reporting rate targets.
      */
     protected boolean restrictByCategoryOptionStartEndDate;
 
     /**
-     * Used to set restrictions on start date, e.g. by organisation unit opening date, or category option start date.
+     * Used to set restrictions on start date, e.g. by organisation unit opening
+     * date, or category option start date.
      */
     protected Date startDateRestriction;
 
     /**
-     * Used to set restrictions on end date, e.g. by organisation unit closed date, or category option end date.
+     * Used to set restrictions on end date, e.g. by organisation unit closed date,
+     * or category option end date.
      */
     protected Date endDateRestriction;
 
     /**
-     * Used to set the type of OrgUnit from the current user to the {@see DataQueryParams} object
+     * Used to set the type of OrgUnit from the current user to the
+     * {@see DataQueryParams} object
      */
     protected UserOrgUnitType userOrgUnitType;
 
     /**
-     * Mapping of organisation unit sub-hierarchy roots and lowest available data approval levels.
+     * Mapping of organisation unit sub-hierarchy roots and lowest available data
+     * approval levels.
      */
     protected transient Map<OrganisationUnit, Integer> dataApprovalLevels = new HashMap<>();
 
@@ -463,8 +481,9 @@ public class DataQueryParams
     protected transient Set<ProcessingHint> processingHints = new HashSet<>();
 
     /**
-     * Indicates whether to skip data dimension specific validation checks. Used when the DataQueryParams is built
-     * internally and does not require extensive validation.
+     * Indicates whether to skip data dimension specific validation checks. Used
+     * when the DataQueryParams is built internally and does not require extensive
+     * validation.
      */
     protected transient boolean skipDataDimensionValidation = false;
 
@@ -486,8 +505,8 @@ public class DataQueryParams
     }
 
     /**
-     * Creates a new Builder for DataQueryParams based on the given query. The builder state will be equal to the state
-     * of the given query.
+     * Creates a new Builder for DataQueryParams based on the given query. The
+     * builder state will be equal to the state of the given query.
      *
      * @param params the DataQueryParams to use as starting point for this query.
      * @return a Builder for DataQueryParams.
@@ -569,7 +588,8 @@ public class DataQueryParams
     }
 
     /**
-     * Returns a unique key representing this query. The key is suitable for caching.
+     * Returns a unique key representing this query. The key is suitable for
+     * caching.
      */
     public String getKey()
     {
@@ -618,9 +638,10 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a key representing a group of queries which should be run in sequence. Currently queries with different
-     * {@link AnalyticsAggregationType} are run in sequence. It is not allowed for the implementation to differentiate
-     * on dimensional objects.
+     * Returns a key representing a group of queries which should be run in
+     * sequence. Currently queries with different {@link AnalyticsAggregationType}
+     * are run in sequence. It is not allowed for the implementation to
+     * differentiate on dimensional objects.
      */
     public String getSequentialQueryGroupKey()
     {
@@ -628,8 +649,8 @@ public class DataQueryParams
     }
 
     /**
-     * Creates a mapping between filter dimension identifiers and filter dimensions. Filters are guaranteed not to be
-     * null.
+     * Creates a mapping between filter dimension identifiers and filter dimensions.
+     * Filters are guaranteed not to be null.
      */
     public ListMap<String, DimensionalObject> getDimensionFilterMap()
     {
@@ -655,8 +676,8 @@ public class DataQueryParams
     }
 
     /**
-     * Returns the dimensions which are part of dimensions and filters. If any such dimensions exist this object is in
-     * an illegal state.
+     * Returns the dimensions which are part of dimensions and filters. If any such
+     * dimensions exist this object is in an illegal state.
      */
     public Collection<DimensionalObject> getDimensionsAsFilters()
     {
@@ -664,7 +685,8 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether periods are present as a dimension or as a filter. If not this object is in an illegal state.
+     * Indicates whether periods are present as a dimension or as a filter. If not
+     * this object is in an illegal state.
      */
     public boolean hasPeriods()
     {
@@ -683,8 +705,8 @@ public class DataQueryParams
     }
 
     /**
-     * Finds the latest endDate associated with this DataQueryParams. Checks endDate, period dimensions and period
-     * filters.
+     * Finds the latest endDate associated with this DataQueryParams. Checks
+     * endDate, period dimensions and period filters.
      */
     public Date getLatestEndDate()
     {
@@ -706,8 +728,8 @@ public class DataQueryParams
     }
 
     /**
-     * Finds the earliest startDate associated with this DataQueryParams. Checks startDate, period dimensions and period
-     * filters.
+     * Finds the earliest startDate associated with this DataQueryParams. Checks
+     * startDate, period dimensions and period filters.
      */
     public Date getEarliestStartDate()
     {
@@ -738,7 +760,8 @@ public class DataQueryParams
     }
 
     /**
-     * Returns the period type of the first period specified as filter, or null if there is no period filter.
+     * Returns the period type of the first period specified as filter, or null if
+     * there is no period filter.
      */
     public PeriodType getFilterPeriodType()
     {
@@ -753,7 +776,8 @@ public class DataQueryParams
     }
 
     /**
-     * Returns the first period specified as filter, or null if there is no period filter.
+     * Returns the first period specified as filter, or null if there is no period
+     * filter.
      */
     public Period getFilterPeriod()
     {
@@ -778,7 +802,8 @@ public class DataQueryParams
     }
 
     /**
-     * Returns a list of dimensions which occur more than once, not including the first duplicate.
+     * Returns a list of dimensions which occur more than once, not including the
+     * first duplicate.
      */
     public List<DimensionalObject> getDuplicateDimensions()
     {
@@ -797,7 +822,8 @@ public class DataQueryParams
     }
 
     /**
-     * Returns a mapping between identifier and period type for all data sets in this query.
+     * Returns a mapping between identifier and period type for all data sets in
+     * this query.
      */
     public Map<String, PeriodType> getDataSetPeriodTypeMap()
     {
@@ -852,8 +878,8 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether this query requires aggregation of data. No aggregation takes place if aggregation type is none
-     * or if data type is text.
+     * Indicates whether this query requires aggregation of data. No aggregation
+     * takes place if aggregation type is none or if data type is text.
      */
     public boolean isAggregation()
     {
@@ -877,8 +903,8 @@ public class DataQueryParams
     }
 
     /**
-     * Creates a mapping between the data periods, based on the data period type for this query, and the aggregation
-     * periods for this query.
+     * Creates a mapping between the data periods, based on the data period type for
+     * this query, and the aggregation periods for this query.
      */
     public ListMap<DimensionalItemObject, DimensionalItemObject> getDataPeriodAggregationPeriodMap()
     {
@@ -910,8 +936,8 @@ public class DataQueryParams
     }
 
     /**
-     * Generates all permutations of the dimension options for this query. Ignores the data and category option combo
-     * dimensions.
+     * Generates all permutations of the dimension options for this query. Ignores
+     * the data and category option combo dimensions.
      */
     public List<List<DimensionItem>> getDimensionItemPermutations()
     {
@@ -938,7 +964,8 @@ public class DataQueryParams
     }
 
     /**
-     * Retrieves the options for all data-related (dx) dimensions and filters. Returns an empty list if not present.
+     * Retrieves the options for all data-related (dx) dimensions and filters.
+     * Returns an empty list if not present.
      */
     public List<DimensionalItemObject> getDataDimensionAndFilterOptions()
     {
@@ -949,7 +976,8 @@ public class DataQueryParams
     }
 
     /**
-     * Retrieves the options for the given dimension identifier. Returns an empty list if the dimension is not present.
+     * Retrieves the options for the given dimension identifier. Returns an empty
+     * list if the dimension is not present.
      */
     public List<DimensionalItemObject> getDimensionOptions( String dimension )
     {
@@ -959,7 +987,8 @@ public class DataQueryParams
     }
 
     /**
-     * Retrieves the dimension with the given dimension identifier. Returns null if the dimension is not present.
+     * Retrieves the dimension with the given dimension identifier. Returns null if
+     * the dimension is not present.
      */
     public DimensionalObject getDimension( String dimension )
     {
@@ -969,8 +998,8 @@ public class DataQueryParams
     }
 
     /**
-     * Retrieves the dimension or filter with the given dimension identifier. Returns null if the dimension or filter is
-     * not present.
+     * Retrieves the dimension or filter with the given dimension identifier.
+     * Returns null if the dimension or filter is not present.
      */
     public DimensionalObject getDimensionOrFilter( String dimension )
     {
@@ -980,7 +1009,8 @@ public class DataQueryParams
     }
 
     /**
-     * Retrieves the options for the given filter. Returns an empty list if the filter is not present.
+     * Retrieves the options for the given filter. Returns an empty list if the
+     * filter is not present.
      */
     public List<DimensionalItemObject> getFilterOptions( String filter )
     {
@@ -990,8 +1020,8 @@ public class DataQueryParams
     }
 
     /**
-     * Retrieves the options for the given dimension and dimension type. Returns an empty list if the filtering options
-     * do not match any dimension.
+     * Retrieves the options for the given dimension and dimension type. Returns an
+     * empty list if the filtering options do not match any dimension.
      */
     public List<DimensionalItemObject> getFilterOptions( String filter, DataDimensionItemType dataDimensionItemType )
     {
@@ -1062,7 +1092,8 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether all dimensions and filters have value types among the given set of value types.
+     * Indicates whether all dimensions and filters have value types among the given
+     * set of value types.
      */
     public boolean containsOnlyDimensionsAndFilters( Set<DimensionType> dimensionTypes )
     {
@@ -1078,8 +1109,8 @@ public class DataQueryParams
     }
 
     /**
-     * Retrieves the options for the the dimension or filter with the given identifier. Returns an empty list if the
-     * dimension or filter is not present.
+     * Retrieves the options for the the dimension or filter with the given
+     * identifier. Returns an empty list if the dimension or filter is not present.
      */
     public List<DimensionalItemObject> getDimensionOrFilterItems( String key )
     {
@@ -1100,9 +1131,10 @@ public class DataQueryParams
     }
 
     /**
-     * Retrieves the dimension items for the given dimension. If the given dimension is
-     * {@link DimensionalObject#CATEGORYOPTIONCOMBO_DIM_ID}, the category option combinations associated with all data
-     * elements in this query through their category combinations are retrieved.
+     * Retrieves the dimension items for the given dimension. If the given dimension
+     * is {@link DimensionalObject#CATEGORYOPTIONCOMBO_DIM_ID}, the category option
+     * combinations associated with all data elements in this query through their
+     * category combinations are retrieved.
      */
     private List<DimensionalItemObject> getDimensionItemObjects( String dimension )
     {
@@ -1124,8 +1156,9 @@ public class DataQueryParams
 
     /**
      * Retrieves the options for the given dimension identifier. If the
-     * {@link DimensionalObject#CATEGORYOPTIONCOMBO_DIM_ID} dimension is specified, all category option combinations for
-     * the first data element is returned. Returns an empty list if the dimension is not present.
+     * {@link DimensionalObject#CATEGORYOPTIONCOMBO_DIM_ID} dimension is specified,
+     * all category option combinations for the first data element is returned.
+     * Returns an empty list if the dimension is not present.
      */
     public List<DimensionalItemObject> getDimensionItemsExplodeCoc( String dimension )
     {
@@ -1139,7 +1172,8 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether a dimension or filter with the given dimension / filter identifier exists.
+     * Indicates whether a dimension or filter with the given dimension / filter
+     * identifier exists.
      */
     public boolean hasDimensionOrFilter( String key )
     {
@@ -1148,7 +1182,8 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether a dimension or filter which specifies dimension items with the given identifier exists.
+     * Indicates whether a dimension or filter which specifies dimension items with
+     * the given identifier exists.
      */
     public boolean hasDimensionOrFilterWithItems( String key )
     {
@@ -1172,7 +1207,8 @@ public class DataQueryParams
     }
 
     /**
-     * Retrieves the set of dimension types which are present in dimensions and filters.
+     * Retrieves the set of dimension types which are present in dimensions and
+     * filters.
      */
     public Set<DimensionType> getDimensionTypes()
     {
@@ -1187,10 +1223,12 @@ public class DataQueryParams
     }
 
     /**
-     * Returns the number of days to use as denominator when aggregating "average sum in hierarchy" aggregate values. If
-     * period is dimension, use the number of days in the first period. In these cases, queries should contain periods
-     * with the same number of days only. If period is filter, use the sum of days in all periods. If the period is
-     * defined by "startDate" and "endDate" params, these two will be considered (default option).
+     * Returns the number of days to use as denominator when aggregating "average
+     * sum in hierarchy" aggregate values. If period is dimension, use the number of
+     * days in the first period. In these cases, queries should contain periods with
+     * the same number of days only. If period is filter, use the sum of days in all
+     * periods. If the period is defined by "startDate" and "endDate" params, these
+     * two will be considered (default option).
      */
     public int getDaysForAvgSumIntAggregation()
     {
@@ -1225,7 +1263,8 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether this query defines a master identifier scheme different from UID.
+     * Indicates whether this query defines a master identifier scheme different
+     * from UID.
      */
     public boolean isGeneralOutputIdSchemeSet()
     {
@@ -1233,7 +1272,8 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether this query defines a master identifier scheme different from UID.
+     * Indicates whether this query defines a master identifier scheme different
+     * from UID.
      */
     public boolean isOutputDataElementIdSchemeSet()
     {
@@ -1241,7 +1281,8 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether this query defines a master identifier scheme different from UID.
+     * Indicates whether this query defines a master identifier scheme different
+     * from UID.
      */
     public boolean isOutputOrgUnitIdSchemeSet()
     {
@@ -1309,7 +1350,8 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether start and end date are specified and the start date is after the end date, which is invalid.
+     * Indicates whether start and end date are specified and the start date is
+     * after the end date, which is invalid.
      */
     public boolean startDateAfterEndDate()
     {
@@ -1335,7 +1377,8 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether a non-default time field is specified (default is {@link TimeField#EVENT_DATE}.
+     * Indicates whether a non-default time field is specified (default is
+     * {@link TimeField#EVENT_DATE}.
      */
     public boolean hasTimeField()
     {
@@ -1343,8 +1386,8 @@ public class DataQueryParams
     }
 
     /**
-     * Returns the time field as field (column) value. If the time field is within {@link TimeField} enumeration, the
-     * field (column) value is returned.
+     * Returns the time field as field (column) value. If the time field is within
+     * {@link TimeField} enumeration, the field (column) value is returned.
      */
     public String getTimeFieldAsField()
     {
@@ -1352,8 +1395,9 @@ public class DataQueryParams
     }
 
     /**
-     * Returns the time field as field (column) value using {@link DataQueryParams#getTimeFieldAsField()}. Returns the
-     * default {@link TimeField#EVENT_DATE} if not specified.
+     * Returns the time field as field (column) value using
+     * {@link DataQueryParams#getTimeFieldAsField()}. Returns the default
+     * {@link TimeField#EVENT_DATE} if not specified.
      */
     public String getTimeFieldAsFieldFallback()
     {
@@ -1369,8 +1413,8 @@ public class DataQueryParams
     }
 
     /**
-     * Returns the organisation unit field if specified; if not returns the default field which is
-     * {@link DataQueryParams#DEFAULT_ORG_UNIT_FIELD}.
+     * Returns the organisation unit field if specified; if not returns the default
+     * field which is {@link DataQueryParams#DEFAULT_ORG_UNIT_FIELD}.
      */
     public String getOrgUnitFieldFallback()
     {
@@ -1418,7 +1462,8 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether this query has a single indicator specified as dimension option for the data dimension.
+     * Indicates whether this query has a single indicator specified as dimension
+     * option for the data dimension.
      */
     public boolean hasSingleIndicatorAsDataFilter()
     {
@@ -1426,7 +1471,8 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether this query has a single reporting rate specified as dimension option for the data dimension.
+     * Indicates whether this query has a single reporting rate specified as
+     * dimension option for the data dimension.
      */
     public boolean hasSingleReportingRateAsDataFilter()
     {
@@ -1457,8 +1503,9 @@ public class DataQueryParams
     }
 
     /**
-     * Returns the first data element group in this query, meaning the first group item within the first data element
-     * group set dimension, if any. Returns null if no dimension or item exists.
+     * Returns the first data element group in this query, meaning the first group
+     * item within the first data element group set dimension, if any. Returns null
+     * if no dimension or item exists.
      */
     public DataElementGroup getFirstDataElementGroup()
     {
@@ -1488,8 +1535,9 @@ public class DataQueryParams
     }
 
     /**
-     * Sets the given options for the given dimension. If the dimension exists, replaces the dimension items with the
-     * given items. If not, creates a new dimension with the given items.
+     * Sets the given options for the given dimension. If the dimension exists,
+     * replaces the dimension items with the given items. If not, creates a new
+     * dimension with the given items.
      */
     protected DataQueryParams setDimensionOptions( String dimension, DimensionType type, String dimensionName,
         List<DimensionalItemObject> options )
@@ -1509,8 +1557,9 @@ public class DataQueryParams
     }
 
     /**
-     * Adds the given dimension to the dimensions of this query. The dimensions will be ordered according to the order
-     * property value of the {@link DimensionType} of the dimension.
+     * Adds the given dimension to the dimensions of this query. The dimensions will
+     * be ordered according to the order property value of the {@link DimensionType}
+     * of the dimension.
      */
     protected void addDimension( DimensionalObject dimension )
     {
@@ -1533,9 +1582,11 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
 
     /**
-     * Replaces the periods of this query with the corresponding data periods. Sets the period type to the data period
-     * type. This method is relevant only when then the data period type has lower frequency than the aggregation period
-     * type. This is valid because disaggregation is allowed for data with average aggregation operator.
+     * Replaces the periods of this query with the corresponding data periods. Sets
+     * the period type to the data period type. This method is relevant only when
+     * then the data period type has lower frequency than the aggregation period
+     * type. This is valid because disaggregation is allowed for data with average
+     * aggregation operator.
      */
     private void replaceAggregationPeriodsWithDataPeriods(
         ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap )
@@ -1555,8 +1606,8 @@ public class DataQueryParams
     }
 
     /**
-     * Sets the {@code startDate} property to the earliest start date, and the {@code endDate} property to the latest
-     * end date based on periods.
+     * Sets the {@code startDate} property to the earliest start date, and the
+     * {@code endDate} property to the latest end date based on periods.
      */
     private void setEarliestStartDateLatestEndDate()
     {
@@ -1565,7 +1616,8 @@ public class DataQueryParams
     }
 
     /**
-     * Adds a period dimension or updates an existing one with no period items. Removes period filter if present.
+     * Adds a period dimension or updates an existing one with no period items.
+     * Removes period filter if present.
      */
     private void setPeriodDimensionWithoutOptions()
     {
@@ -1629,7 +1681,8 @@ public class DataQueryParams
     }
 
     /**
-     * Removes all dimensions which are not of the given type from dimensions and filters.
+     * Removes all dimensions which are not of the given type from dimensions and
+     * filters.
      */
     private DataQueryParams pruneToDimensionType( DimensionType type )
     {
@@ -1641,8 +1694,9 @@ public class DataQueryParams
     }
 
     /**
-     * Adds the given dimensions to the dimensions of this query. If the dimension is a data dimension it will be added
-     * to the beginning of the list of dimensions.
+     * Adds the given dimensions to the dimensions of this query. If the dimension
+     * is a data dimension it will be added to the beginning of the list of
+     * dimensions.
      */
     private void addDimensions( List<DimensionalObject> dimensions )
     {
@@ -1694,7 +1748,8 @@ public class DataQueryParams
     }
 
     /**
-     * Retains only dimensions of type reporting rates and the given reporting rate metric.
+     * Retains only dimensions of type reporting rates and the given reporting rate
+     * metric.
      *
      * @param metric the reporting rate metric.
      */
@@ -1736,7 +1791,8 @@ public class DataQueryParams
     }
 
     /**
-     * Sets the given list of data dimension options. Replaces existing options of the given data dimension type.
+     * Sets the given list of data dimension options. Replaces existing options of
+     * the given data dimension type.
      *
      * @param itemType the data dimension type, or all types if null.
      * @param options the data dimension options.
@@ -1771,11 +1827,13 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
 
     /**
-     * Creates a mapping of permutation keys and mappings of data element operands and values based on the given mapping
-     * of dimension option keys and aggregated values. The data element dimension will be at index 0.
+     * Creates a mapping of permutation keys and mappings of data element operands
+     * and values based on the given mapping of dimension option keys and aggregated
+     * values. The data element dimension will be at index 0.
      *
      * @param aggregatedDataMap the aggregated data map.
-     * @return a mapping of permutation keys and mappings of data element operands and values.
+     * @return a mapping of permutation keys and mappings of data element operands
+     *         and values.
      */
     public static Map<String, List<DimensionItemObjectValue>> getPermutationDimensionalItemValueMap(
         MultiValuedMap<String, DimensionItemObjectValue> aggregatedDataMap )
@@ -1810,8 +1868,9 @@ public class DataQueryParams
     }
 
     /**
-     * Returns a mapping of permutations keys (org unit id or null) and mappings of org unit group and counts, based on
-     * the given mapping of dimension option keys and counts.
+     * Returns a mapping of permutations keys (org unit id or null) and mappings of
+     * org unit group and counts, based on the given mapping of dimension option
+     * keys and counts.
      */
     public static Map<String, Map<String, Integer>> getPermutationOrgUnitGroupCountMap(
         Map<String, Double> orgUnitCountMap )
@@ -1842,8 +1901,9 @@ public class DataQueryParams
     }
 
     /**
-     * Retrieves the measure criteria from the given string. Criteria are separated by the option separator, while the
-     * criterion filter and value are separated with the dimension name separator.
+     * Retrieves the measure criteria from the given string. Criteria are separated
+     * by the option separator, while the criterion filter and value are separated
+     * with the dimension name separator.
      */
     public static Map<MeasureFilter, Double> getMeasureCriteriaFromParam( String param )
     {
@@ -2316,7 +2376,8 @@ public class DataQueryParams
     }
 
     /**
-     * Returns all data element groups part of dimensions and filters of type data element group set.
+     * Returns all data element groups part of dimensions and filters of type data
+     * element group set.
      */
     public List<DimensionalItemObject> getAllDataElementGroups()
     {
@@ -2324,7 +2385,8 @@ public class DataQueryParams
     }
 
     /**
-     * Returns all category options parts of categories specified as dimensions or filters.
+     * Returns all category options parts of categories specified as dimensions or
+     * filters.
      */
     public Set<DimensionalItemObject> getCategoryOptions()
     {
@@ -2335,7 +2397,8 @@ public class DataQueryParams
     }
 
     /**
-     * Returns all programs part of program attributes and program data elements part of a dimension or filter.
+     * Returns all programs part of program attributes and program data elements
+     * part of a dimension or filter.
      */
     public Set<IdentifiableObject> getProgramsInAttributesAndDataElements()
     {
@@ -2430,8 +2493,8 @@ public class DataQueryParams
     }
 
     /**
-     * Returns a Period object based on the current "startDate" and "endDate" dates. It will not check if the dates are
-     * null.
+     * Returns a Period object based on the current "startDate" and "endDate" dates.
+     * It will not check if the dates are null.
      *
      * @return the Period
      */
@@ -2445,9 +2508,11 @@ public class DataQueryParams
     }
 
     /**
-     * Returns a single list containing a Period object based on the "startDate" and "endDate" dates.
+     * Returns a single list containing a Period object based on the "startDate" and
+     * "endDate" dates.
      *
-     * @return a single Period list or empty list if "startDate" or "endDate" is null.
+     * @return a single Period list or empty list if "startDate" or "endDate" is
+     *         null.
      */
     public List<Period> getStartEndDatesToSingleList()
     {

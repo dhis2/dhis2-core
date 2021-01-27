@@ -46,7 +46,8 @@ public interface DataApprovalLevelStore
     // -------------------------------------------------------------------------
 
     /**
-     * Gets a list of all data approval levels, ordered by level in ascending order, i.e. from 1 to n.
+     * Gets a list of all data approval levels, ordered by level in ascending order,
+     * i.e. from 1 to n.
      *
      * @return List of all data approval levels, ordered from 1 to n.
      */

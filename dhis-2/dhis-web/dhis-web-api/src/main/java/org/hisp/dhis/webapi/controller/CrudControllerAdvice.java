@@ -312,7 +312,8 @@ public class CrudControllerAdvice
     }
 
     /**
-     * Catches default exception and send back to user, but re-throws internally so it still ends up in server logs.
+     * Catches default exception and send back to user, but re-throws internally so
+     * it still ends up in server logs.
      */
     @ExceptionHandler( Exception.class )
     public void defaultExceptionHandler( Exception ex, HttpServletRequest request, HttpServletResponse response )

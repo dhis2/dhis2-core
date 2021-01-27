@@ -181,7 +181,8 @@ public class JdbcRawAnalyticsManager
     }
 
     /**
-     * Converts the given dimension to a column select statement according to the given identifier scheme.
+     * Converts the given dimension to a column select statement according to the
+     * given identifier scheme.
      *
      * @param dimension the dimensional object.
      * @param idScheme the identifier scheme.

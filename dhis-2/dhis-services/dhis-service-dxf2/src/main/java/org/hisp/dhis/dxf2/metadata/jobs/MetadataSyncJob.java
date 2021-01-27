@@ -52,8 +52,9 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * This is the runnable that takes care of the Metadata Synchronization. Leverages Spring RetryTemplate to exhibit
- * retries. The retries are configurable through the dhis.conf.
+ * This is the runnable that takes care of the Metadata Synchronization.
+ * Leverages Spring RetryTemplate to exhibit retries. The retries are
+ * configurable through the dhis.conf.
  *
  * @author anilkumk
  * @author David Katuscak <katuscak.d@gmail.com>

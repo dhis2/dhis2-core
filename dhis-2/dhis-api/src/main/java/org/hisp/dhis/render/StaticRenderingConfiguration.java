@@ -37,8 +37,8 @@ import org.hisp.dhis.render.type.ValueTypeRenderingType;
 import com.google.common.collect.ImmutableSet;
 
 /**
- * This class represents the constraint rules enforced by the application on DataElement, TrackedEntityAttribute,
- * ValueType, OptionSet and RenderTypes.
+ * This class represents the constraint rules enforced by the application on
+ * DataElement, TrackedEntityAttribute, ValueType, OptionSet and RenderTypes.
  */
 public class StaticRenderingConfiguration
 {

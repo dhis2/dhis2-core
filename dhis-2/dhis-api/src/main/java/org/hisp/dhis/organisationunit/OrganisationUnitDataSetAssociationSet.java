@@ -45,7 +45,8 @@ public class OrganisationUnitDataSetAssociationSet
     private List<Set<String>> dataSetAssociationSets = new ArrayList<>();
 
     /**
-     * Mapping between organisation unit identifier and index of association set in list.
+     * Mapping between organisation unit identifier and index of association set in
+     * list.
      */
     private Map<String, Integer> organisationUnitAssociationSetMap = new HashMap<>();
 

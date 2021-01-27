@@ -74,7 +74,8 @@ public interface RelationshipService
     Relationship getRelationship( long id );
 
     /**
-     * Fetches a {@link Relationship} based on a relationship identifying attributes:
+     * Fetches a {@link Relationship} based on a relationship identifying
+     * attributes:
      *
      * - relationship type - from - to
      *

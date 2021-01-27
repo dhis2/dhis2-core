@@ -47,8 +47,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 /**
- * This is just a wrapper class responsible for keeping and isolating all caching definition related to the analytics
- * caching, decoupling it from the service layer.
+ * This is just a wrapper class responsible for keeping and isolating all
+ * caching definition related to the analytics caching, decoupling it from the
+ * service layer.
  */
 @Component
 public class AnalyticsCache
@@ -84,12 +85,13 @@ public class AnalyticsCache
     }
 
     /**
-     * This method tries to retrieve, from the cache, the Grid related to the given DataQueryParams. If the Grid is not
-     * found in the cache, the Grid will be fetched by the function provided. In this case, the fetched Grid will be
+     * This method tries to retrieve, from the cache, the Grid related to the given
+     * DataQueryParams. If the Grid is not found in the cache, the Grid will be
+     * fetched by the function provided. In this case, the fetched Grid will be
      * cached, so the next consumers can hit the cache only.
      *
-     * The TTL of the cached object will be set accordingly to the cache settings available at
-     * {@link org.hisp.dhis.analytics.cache.AnalyticsCacheSettings}.
+     * The TTL of the cached object will be set accordingly to the cache settings
+     * available at {@link org.hisp.dhis.analytics.cache.AnalyticsCacheSettings}.
      *
      * @param params the current DataQueryParams.
      * @param function that fetches a grid based on the given DataQueryParams.
@@ -114,10 +116,11 @@ public class AnalyticsCache
     }
 
     /**
-     * This method will cache the given Grid associated with the given DataQueryParams.
+     * This method will cache the given Grid associated with the given
+     * DataQueryParams.
      *
-     * The TTL of the cached object will be set accordingly to the cache settings available at
-     * {@link org.hisp.dhis.analytics.cache.AnalyticsCacheSettings}.
+     * The TTL of the cached object will be set accordingly to the cache settings
+     * available at {@link org.hisp.dhis.analytics.cache.AnalyticsCacheSettings}.
      *
      * @param params the DataQueryParams.
      * @param grid the associated Grid.
@@ -138,7 +141,8 @@ public class AnalyticsCache
     }
 
     /**
-     * Will cache the given key/Grid pair respecting the TTL provided through the parameter "ttlInSeconds".
+     * Will cache the given key/Grid pair respecting the TTL provided through the
+     * parameter "ttlInSeconds".
      *
      * @param key the cache key associate with the Grid.
      * @param grid the Grid object to be cached.

@@ -145,8 +145,8 @@ public class DefaultAnalyticsSecurityManager
     }
 
     /**
-     * Checks whether the given user has data read access to all programs, program stages, data sets and category
-     * options in the request.
+     * Checks whether the given user has data read access to all programs, program
+     * stages, data sets and category options in the request.
      *
      * @param params the {@link {@link DataQueryParams}.
      * @param user the user to check.
@@ -188,7 +188,8 @@ public class DefaultAnalyticsSecurityManager
     }
 
     /**
-     * Checks whether the current user has the {@code F_VIEW_EVENT_ANALYTICS} authority.
+     * Checks whether the current user has the {@code F_VIEW_EVENT_ANALYTICS}
+     * authority.
      *
      * @param params the {@link {@link DataQueryParams}.
      */

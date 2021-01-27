@@ -33,7 +33,8 @@ package org.hisp.dhis.tracker;
 public enum AtomicMode
 {
     /**
-     * Import objects only if they all pass the validation phase (including references)
+     * Import objects only if they all pass the validation phase (including
+     * references)
      */
     ALL,
 

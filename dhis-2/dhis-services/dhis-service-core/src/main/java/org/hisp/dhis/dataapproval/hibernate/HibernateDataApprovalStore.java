@@ -686,17 +686,20 @@ public class HibernateDataApprovalStore
     }
 
     /**
-     * Get the id for the workflow period that spans the given end date. The workflow period may or may not be the same
-     * as the period for which we are checking data validity. The workflow period will have a period type that matches
-     * the workflow period type, and it will contain the end date of the period for which we are checking data validity.
+     * Get the id for the workflow period that spans the given end date. The
+     * workflow period may or may not be the same as the period for which we are
+     * checking data validity. The workflow period will have a period type that
+     * matches the workflow period type, and it will contain the end date of the
+     * period for which we are checking data validity.
      *
      * Returns zero if there is no such workflow period.
      *
-     * It turns out that this is much faster done as a separate query in postgresql than imbedding this as a subquery in
-     * the larger query above.
+     * It turns out that this is much faster done as a separate query in postgresql
+     * than imbedding this as a subquery in the larger query above.
      *
      * @param workflow workflow we are checking
-     * @param endDate end date of the period we are checking approval for, formatted as a string for a SQL query.
+     * @param endDate end date of the period we are checking approval for, formatted
+     *        as a string for a SQL query.
      * @return id of the workflow period which overlaps with the endDate
      */
     private int getWorkflowPeriodId( DataApprovalWorkflow workflow, String endDate )
@@ -717,7 +720,8 @@ public class HibernateDataApprovalStore
     // TODO: Should we move these two methods to static methods in
     // OrganisationUnit?
     /**
-     * Returns the position within an orgUnit path at which the orgUnit UID will be found for a given orgUnitLevel.
+     * Returns the position within an orgUnit path at which the orgUnit UID will be
+     * found for a given orgUnitLevel.
      *
      * @param orgUnitLevel organization unit level.
      * @return position within path for this org unit level.
@@ -728,8 +732,8 @@ public class HibernateDataApprovalStore
     }
 
     /**
-     * Returns the position within an orgUnit path at which the orgUnit UID will be found for a given data approval
-     * level.
+     * Returns the position within an orgUnit path at which the orgUnit UID will be
+     * found for a given data approval level.
      *
      * @param level data approval level.
      * @return position within path for this org unit level.

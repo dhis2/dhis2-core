@@ -307,7 +307,8 @@ public class DefaultHibernateConfigurationProvider
     }
 
     /**
-     * Sets system properties to be resolved in the Ehcache cache replication configuration.
+     * Sets system properties to be resolved in the Ehcache cache replication
+     * configuration.
      */
     private void setCacheReplicationConfigSystemProperties()
     {

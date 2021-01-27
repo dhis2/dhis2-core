@@ -44,14 +44,15 @@ public class Document
     extends BaseIdentifiableObject implements MetadataObject
 {
     /**
-     * Can be either a valid URL, or the path (filename) of a file. If the external property is true, this should be an
-     * URL. If the external property is false, this should be the filename
+     * Can be either a valid URL, or the path (filename) of a file. If the external
+     * property is true, this should be an URL. If the external property is false,
+     * this should be the filename
      */
     private String url;
 
     /**
-     * A reference to the file associated with the Document. If document represents an URL or a file uploaded before
-     * this property was added, this will be null.
+     * A reference to the file associated with the Document. If document represents
+     * an URL or a file uploaded before this property was added, this will be null.
      */
     private FileResource fileResource;
 
@@ -61,13 +62,14 @@ public class Document
     private boolean external;
 
     /**
-     * The content type of the file referred to by the document, or null if document refers to an URL
+     * The content type of the file referred to by the document, or null if document
+     * refers to an URL
      */
     private String contentType;
 
     /**
-     * Flags whether the file should be displayed in-browser or downloaded. true should trigger a download of the file
-     * when accessing the document data
+     * Flags whether the file should be displayed in-browser or downloaded. true
+     * should trigger a download of the file when accessing the document data
      */
     private Boolean attachment = false;
 

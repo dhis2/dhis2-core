@@ -112,8 +112,8 @@ public class PDFUtils
      * of the page while the second covers 65 %.
      * </p>
      *
-     * @param keepTogether Indicates whether the table could be broken across multiple pages or should be kept at one
-     *        page.
+     * @param keepTogether Indicates whether the table could be broken across
+     *        multiple pages or should be kept at one page.
      * @param columnWidths The column widths.
      * @return
      */

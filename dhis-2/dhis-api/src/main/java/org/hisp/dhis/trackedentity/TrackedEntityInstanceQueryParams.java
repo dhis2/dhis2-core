@@ -118,8 +118,8 @@ public class TrackedEntityInstanceQueryParams
     private List<QueryItem> filters = new ArrayList<>();
 
     /**
-     * Organisation units for which instances in the response were registered at. Is related to the specified
-     * OrganisationUnitMode.
+     * Organisation units for which instances in the response were registered at. Is
+     * related to the specified OrganisationUnitMode.
      */
     private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
@@ -134,7 +134,8 @@ public class TrackedEntityInstanceQueryParams
     private ProgramStatus programStatus;
 
     /**
-     * Indicates whether tracked entity instance is marked for follow up for the specified program.
+     * Indicates whether tracked entity instance is marked for follow up for the
+     * specified program.
      */
     private Boolean followUp;
 
@@ -239,7 +240,8 @@ public class TrackedEntityInstanceQueryParams
     private Integer pageSize;
 
     /**
-     * Indicates whether to include the total number of pages in the paging response.
+     * Indicates whether to include the total number of pages in the paging
+     * response.
      */
     private boolean totalPages;
 
@@ -259,18 +261,20 @@ public class TrackedEntityInstanceQueryParams
     private boolean includeAllAttributes;
 
     /**
-     * Indicates whether the search is internal triggered by the system. The system should trigger superuser search to
-     * detect duplicates.
+     * Indicates whether the search is internal triggered by the system. The system
+     * should trigger superuser search to detect duplicates.
      */
     private boolean internalSearch;
 
     /**
-     * Indicates whether the search is for synchronization purposes (for Program Data sync job).
+     * Indicates whether the search is for synchronization purposes (for Program
+     * Data sync job).
      */
     private boolean synchronizationQuery;
 
     /**
-     * Indicates a point in the time used to decide the data that should not be synchronized
+     * Indicates a point in the time used to decide the data that should not be
+     * synchronized
      */
     private Date skipChangedBefore;
 
@@ -331,8 +335,9 @@ public class TrackedEntityInstanceQueryParams
      * Performs a set of operations on this params.
      *
      * <ul>
-     * <li>If a query item is specified as an attribute item as well as a filter item, the filter item will be removed.
-     * In that case, if the attribute item does not have any filters and the filter item has one or more filters, these
+     * <li>If a query item is specified as an attribute item as well as a filter
+     * item, the filter item will be removed. In that case, if the attribute item
+     * does not have any filters and the filter item has one or more filters, these
      * will be applied to the attribute item.</li>
      * </ul>
      */
@@ -361,10 +366,11 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Prepares the organisation units of the given parameters to simplify querying. Mode ACCESSIBLE is converted to
-     * DESCENDANTS for organisation units linked to the given user, and mode CHILDREN is converted to CHILDREN for
-     * organisation units including all their children. Mode can be DESCENDANTS, SELECTED, ALL only after invoking this
-     * method.
+     * Prepares the organisation units of the given parameters to simplify querying.
+     * Mode ACCESSIBLE is converted to DESCENDANTS for organisation units linked to
+     * the given user, and mode CHILDREN is converted to CHILDREN for organisation
+     * units including all their children. Mode can be DESCENDANTS, SELECTED, ALL
+     * only after invoking this method.
      */
     public void handleOrganisationUnits()
     {
@@ -393,7 +399,8 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Prepares the assignedUsers list to the current user id, if the selection mode is CURRENT.
+     * Prepares the assignedUsers list to the current user id, if the selection mode
+     * is CURRENT.
      */
     public void handleCurrentUserSelectionMode()
     {
@@ -469,9 +476,10 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Indicates whether this is a logical OR query, meaning that a query string is specified and instances which
-     * matches this query on one or more attributes should be included in the response. The opposite is an item-specific
-     * query, where the instances which matches the specific attributes should be included.
+     * Indicates whether this is a logical OR query, meaning that a query string is
+     * specified and instances which matches this query on one or more attributes
+     * should be included in the response. The opposite is an item-specific query,
+     * where the instances which matches the specific attributes should be included.
      */
     public boolean isOrQuery()
     {
@@ -592,8 +600,8 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Indicates whether this parameters specifies follow up for the given program. Follow up can be specified as true
-     * or false.
+     * Indicates whether this parameters specifies follow up for the given program.
+     * Follow up can be specified as true or false.
      */
     public boolean hasFollowUp()
     {
@@ -689,7 +697,8 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Indicates whether the event status specified for the params is equal to the given event status.
+     * Indicates whether the event status specified for the params is equal to the
+     * given event status.
      */
     public boolean isEventStatus( EventStatus eventStatus )
     {

@@ -38,7 +38,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.JobConfiguration;
 
 /**
- * Import/export service for {@link CompleteDataSetRegistration data set completion registrations}.
+ * Import/export service for {@link CompleteDataSetRegistration data set
+ * completion registrations}.
  *
  * @author Halvdan Hoem Grelland
  */
@@ -48,24 +49,29 @@ public interface CompleteDataSetRegistrationExchangeService
      * Transform query parameters into an {@link ExportParams} instance.
      *
      * @param dataSets list of {@link org.hisp.dhis.dataset.DataSet} UIDs.
-     * @param orgUnits list of {@link org.hisp.dhis.organisationunit.OrganisationUnit} UIDs.
-     * @param orgUnitGroups list of {@link org.hisp.dhis.organisationunit.OrganisationUnitGroup} UIDs.
+     * @param orgUnits list of
+     *        {@link org.hisp.dhis.organisationunit.OrganisationUnit} UIDs.
+     * @param orgUnitGroups list of
+     *        {@link org.hisp.dhis.organisationunit.OrganisationUnitGroup} UIDs.
      * @param periods list of {@link org.hisp.dhis.period.Period} names.
      * @param startDate start of limiting date interval.
      * @param endDate end of interval (inclusive).
-     * @param includeChildren whether to recursively include descendant organisation units.
+     * @param includeChildren whether to recursively include descendant organisation
+     *        units.
      * @param created base created date for query.
      * @param createdDuration duration (relative to {@code created}).
      * @param limit record number limit (minimum 0).
      * @param idSchemes identifier schemes applying to this query.
-     * @return an instance of {@link ExportParams} corresponding to the given query parameters.
+     * @return an instance of {@link ExportParams} corresponding to the given query
+     *         parameters.
      */
     ExportParams paramsFromUrl( Set<String> dataSets, Set<String> orgUnits, Set<String> orgUnitGroups,
         Set<String> periods, Date startDate, Date endDate, boolean includeChildren, Date created,
         String createdDuration, Integer limit, IdSchemes idSchemes );
 
     /**
-     * Queries and writes {@link CompleteDataSetRegistrations} to the given {@link OutputStream} as XML.
+     * Queries and writes {@link CompleteDataSetRegistrations} to the given
+     * {@link OutputStream} as XML.
      *
      * @param params the export query.
      * @param out the stream to write to.
@@ -73,7 +79,8 @@ public interface CompleteDataSetRegistrationExchangeService
     void writeCompleteDataSetRegistrationsXml( ExportParams params, OutputStream out );
 
     /**
-     * Queries and writes {@link CompleteDataSetRegistrations} to the given {@link OutputStream} as JSON.
+     * Queries and writes {@link CompleteDataSetRegistrations} to the given
+     * {@link OutputStream} as JSON.
      *
      * @param params the export query.
      * @param out the stream to write to.
@@ -81,9 +88,11 @@ public interface CompleteDataSetRegistrationExchangeService
     void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream out );
 
     /**
-     * Queries and writes {@link CompleteDataSetRegistrations} to the given {@link OutputStream} as JSON.
+     * Queries and writes {@link CompleteDataSetRegistrations} to the given
+     * {@link OutputStream} as JSON.
      *
-     * @param lastUpdated specifies the date to filter complete data sets last updated after
+     * @param lastUpdated specifies the date to filter complete data sets last
+     *        updated after
      * @param outputStream the stream to write to.
      * @param idSchemes idSchemes
      */

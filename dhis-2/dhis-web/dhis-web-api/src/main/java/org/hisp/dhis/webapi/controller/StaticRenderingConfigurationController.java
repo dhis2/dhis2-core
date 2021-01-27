@@ -44,9 +44,11 @@ public class StaticRenderingConfigurationController
 {
 
     /**
-     * Returns the constraints of ValueType renderingTypes defined in the StaticRenderingConfiguration
+     * Returns the constraints of ValueType renderingTypes defined in the
+     * StaticRenderingConfiguration
      *
-     * @return a Set of rules representing application constraints for ValueType/RenderingType combinations
+     * @return a Set of rules representing application constraints for
+     *         ValueType/RenderingType combinations
      */
     @GetMapping( value = "renderingOptions" )
     public Set<ObjectValueTypeRenderingOption> getMapping()

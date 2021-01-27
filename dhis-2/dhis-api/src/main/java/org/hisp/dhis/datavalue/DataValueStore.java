@@ -86,7 +86,8 @@ public interface DataValueStore
      * @param source the Source of the DataValue.
      * @param categoryOptionCombo the category option combo.
      * @param attributeOptionCombo the attribute option combo.
-     * @return the DataValue which corresponds to the given parameters, or null if no match.
+     * @return the DataValue which corresponds to the given parameters, or null if
+     *         no match.
      */
     DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo );
@@ -95,7 +96,8 @@ public interface DataValueStore
      * Returns a soft deleted DataValue.
      *
      * @param dataValue the DataValue to use as parameters.
-     * @return the DataValue which corresponds to the given parameters, or null if no match.
+     * @return the DataValue which corresponds to the given parameters, or null if
+     *         no match.
      */
     DataValue getSoftDeletedDataValue( DataValue dataValue );
 
@@ -119,14 +121,15 @@ public interface DataValueStore
     List<DataValue> getAllDataValues();
 
     /**
-     * Returns all DataValues for a given Source, Period, collection of DataElements and CategoryOptionCombo.
+     * Returns all DataValues for a given Source, Period, collection of DataElements
+     * and CategoryOptionCombo.
      *
      * @param source the Source of the DataValues.
      * @param period the Period of the DataValues.
      * @param dataElements the DataElements of the DataValues.
      * @param attributeOptionCombo the CategoryCombo.
-     * @return a list of all DataValues which match the given Source, Period, and any of the DataElements, or an empty
-     *         collection if no values match.
+     * @return a list of all DataValues which match the given Source, Period, and
+     *         any of the DataElements, or an empty collection if no values match.
      */
     List<DataValue> getDataValues( OrganisationUnit source, Period period, Collection<DataElement> dataElements,
         CategoryOptionCombo attributeOptionCombo );
@@ -140,7 +143,8 @@ public interface DataValueStore
     List<DeflatedDataValue> getDeflatedDataValues( DataExportParams params );
 
     /**
-     * Gets the number of DataValues which have been updated between the given start and end date. The
+     * Gets the number of DataValues which have been updated between the given start
+     * and end date. The
      *
      * <pre>
      * startDate

@@ -133,8 +133,8 @@ public class ChartImageGenerator
      *
      * @param visualization the chart to use as basis for the JFreeChart generation.
      * @param date the date to use as basis for relative periods, can be null.
-     * @param organisationUnit the org unit to use as basis for relative units, will override the current user org unit
-     *        if set, can be null.
+     * @param organisationUnit the org unit to use as basis for relative units, will
+     *        override the current user org unit if set, can be null.
      * @param format the i18n format.
      * @param currentUser the current logged-in user.
      * @return a JFreeChart object.
@@ -406,7 +406,8 @@ public class ChartImageGenerator
     }
 
     /**
-     * Sets basic configuration including title font, subtitle, background paint and anti-alias on the given JFreeChart.
+     * Sets basic configuration including title font, subtitle, background paint and
+     * anti-alias on the given JFreeChart.
      */
     private void setBasicConfig( JFreeChart jFreeChart, final Visualization visualization )
     {
@@ -506,7 +507,8 @@ public class ChartImageGenerator
     }
 
     /**
-     * Creates a key based on the given input. Sorts the key on its components to remove significance of column order.
+     * Creates a key based on the given input. Sorts the key on its components to
+     * remove significance of column order.
      */
     private String getKey( NameableObject series, NameableObject category, AnalyticsType analyticsType )
     {
@@ -524,7 +526,8 @@ public class ChartImageGenerator
     }
 
     /**
-     * Returns a list of sorted nameable objects. Sorting is defined per the corresponding value in the given value map.
+     * Returns a list of sorted nameable objects. Sorting is defined per the
+     * corresponding value in the given value map.
      */
     private List<NameableObject> getSortedCategories( List<NameableObject> categories,
         final Visualization visualization, Map<String, Object> valueMap )

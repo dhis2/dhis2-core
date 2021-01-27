@@ -289,8 +289,9 @@ public class Interpretation
     }
 
     /**
-     * Attempts to add the given user to the set of users liking this interpretation. If user not already present,
-     * increments the like count with one.
+     * Attempts to add the given user to the set of users liking this
+     * interpretation. If user not already present, increments the like count with
+     * one.
      *
      * @param user the user liking this interpretation.
      * @return true if the given user had not already liked this interpretation.
@@ -308,8 +309,9 @@ public class Interpretation
     }
 
     /**
-     * Attempts to remove the given user from the set of users liking this interpretation. If user not already present,
-     * decrease the like count with one.
+     * Attempts to remove the given user from the set of users liking this
+     * interpretation. If user not already present, decrease the like count with
+     * one.
      *
      * @param user the user removing the like from this interpretation.
      * @return true if the given user had previously liked this interpretation.

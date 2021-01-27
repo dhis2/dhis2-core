@@ -68,7 +68,8 @@ public class JdbcEventCommentStore implements EventCommentStore
         + "sort_order, trackedentitycommentid) values (?, ?, ?)";
 
     /**
-     * Save all the comments ({@see TrackedEntityComment} for the list of {@see ProgramStageInstance}
+     * Save all the comments ({@see TrackedEntityComment} for the list of
+     * {@see ProgramStageInstance}
      *
      * @param batch a List of {@see ProgramStageInstance}
      */

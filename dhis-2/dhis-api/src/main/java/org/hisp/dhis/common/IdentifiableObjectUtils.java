@@ -71,9 +71,9 @@ public class IdentifiableObjectUtils
         .put( "CategoryCombo", CategoryCombo.class.getSimpleName() ).build();
 
     /**
-     * Joins the names of the IdentifiableObjects in the given list and separates them with
-     * {@link IdentifiableObjectUtils#SEPARATOR_JOIN} (a comma and a space). Returns null if the given list is null or
-     * has no elements.
+     * Joins the names of the IdentifiableObjects in the given list and separates
+     * them with {@link IdentifiableObjectUtils#SEPARATOR_JOIN} (a comma and a
+     * space). Returns null if the given list is null or has no elements.
      *
      * @param objects the list of IdentifiableObjects.
      * @return the joined string.
@@ -115,7 +115,8 @@ public class IdentifiableObjectUtils
     }
 
     /**
-     * Returns a list of internal identifiers for the given collection of IdentifiableObjects.
+     * Returns a list of internal identifiers for the given collection of
+     * IdentifiableObjects.
      *
      * @param objects the list of IdentifiableObjects.
      * @return a list of identifiers.
@@ -126,7 +127,8 @@ public class IdentifiableObjectUtils
     }
 
     /**
-     * Returns a map from internal identifiers to IdentifiableObjects, for the given collection of IdentifiableObjects.
+     * Returns a map from internal identifiers to IdentifiableObjects, for the given
+     * collection of IdentifiableObjects.
      *
      * @param objects the collection of IdentifiableObjects
      * @return a map from the object internal identifiers to the objects
@@ -144,7 +146,8 @@ public class IdentifiableObjectUtils
     }
 
     /**
-     * Returns a list of calendar specific period identifiers for the given collection of periods and calendar.
+     * Returns a list of calendar specific period identifiers for the given
+     * collection of periods and calendar.
      *
      * @param periods the list of periods.
      * @param calendar the calendar to use for generation of iso periods.
@@ -183,13 +186,14 @@ public class IdentifiableObjectUtils
     }
 
     /**
-     * Returns the {@link Period} of the argument period type which corresponds to the argument period. The frequency
-     * order of the given period type must greater than or equal to the period type of the given period (represent
-     * "longer" periods). Weeks are converted to "longer" periods by determining which period contains at least 4 days
-     * of the week.
+     * Returns the {@link Period} of the argument period type which corresponds to
+     * the argument period. The frequency order of the given period type must
+     * greater than or equal to the period type of the given period (represent
+     * "longer" periods). Weeks are converted to "longer" periods by determining
+     * which period contains at least 4 days of the week.
      * <p>
-     * As an example, providing {@code Quarter 1, 2017} and {@code Yearly} as arguments will return the yearly period
-     * {@code 2017}.
+     * As an example, providing {@code Quarter 1, 2017} and {@code Yearly} as
+     * arguments will return the yearly period {@code 2017}.
      *
      * @param period the period.
      * @param periodType the period type of the period to return.
@@ -266,8 +270,8 @@ public class IdentifiableObjectUtils
     }
 
     /**
-     * Generates a tag reflecting the date of when the most recently updated IdentifiableObject in the given collection
-     * was modified.
+     * Generates a tag reflecting the date of when the most recently updated
+     * IdentifiableObject in the given collection was modified.
      *
      * @param objects the collection of IdentifiableObjects.
      * @return a string tag.
@@ -305,7 +309,8 @@ public class IdentifiableObjectUtils
     }
 
     /**
-     * Returns a mapping between the uid and the display name of the given identifiable objects.
+     * Returns a mapping between the uid and the display name of the given
+     * identifiable objects.
      *
      * @param objects the identifiable objects.
      * @return mapping between the uid and the display name of the given objects.
@@ -317,8 +322,8 @@ public class IdentifiableObjectUtils
     }
 
     /**
-     * Returns a mapping between the uid and the property defined by the given identifiable property for the given
-     * identifiable objects.
+     * Returns a mapping between the uid and the property defined by the given
+     * identifiable property for the given identifiable objects.
      *
      * @param objects the identifiable objects.
      * @param property the identifiable property.
@@ -335,7 +340,8 @@ public class IdentifiableObjectUtils
     }
 
     /**
-     * Returns a mapping between the uid and the name of the given identifiable objects.
+     * Returns a mapping between the uid and the name of the given identifiable
+     * objects.
      *
      * @param objects the identifiable objects.
      * @return mapping between the uid and the name of the given objects.
@@ -346,7 +352,8 @@ public class IdentifiableObjectUtils
     }
 
     /**
-     * Returns a map of the identifiable property specified by the given id scheme and the corresponding object.
+     * Returns a map of the identifiable property specified by the given id scheme
+     * and the corresponding object.
      *
      * @param objects the objects.
      * @param idScheme the id scheme.
@@ -401,8 +408,9 @@ public class IdentifiableObjectUtils
     }
 
     /**
-     * Returns an ID for given object based on given idScheme. However, does not work for Attribute idScheme. Attribute
-     * idScheme has to have special treatment in the client code.
+     * Returns an ID for given object based on given idScheme. However, does not
+     * work for Attribute idScheme. Attribute idScheme has to have special treatment
+     * in the client code.
      *
      * @param object An identifiable object
      * @param idScheme An idScheme defining what property should be used as an ID

@@ -98,7 +98,8 @@ public interface UserService
     User getUserByUsername( String username );
 
     /**
-     * Retrieves the User by attempting to look up by various identifiers in the following order:
+     * Retrieves the User by attempting to look up by various identifiers in the
+     * following order:
      *
      * <ul>
      * <li>UID</li>
@@ -135,7 +136,8 @@ public interface UserService
     List<User> getAllUsers();
 
     /**
-     * Retrieves all Users with first name, surname or user name like the given name.
+     * Retrieves all Users with first name, surname or user name like the given
+     * name.
      *
      * @param name the name.
      * @param first the first item to return.
@@ -163,13 +165,14 @@ public interface UserService
      * Checks if the given user role represents the last role with ALL authority.
      *
      * @param userAuthorityGroup the user role.
-     * @return true if the given user role represents the last role with ALL authority.
+     * @return true if the given user role represents the last role with ALL
+     *         authority.
      */
     boolean isLastSuperRole( UserAuthorityGroup userAuthorityGroup );
 
     /**
-     * Returns a list of users based on the given query parameters. The default order of last name and first name will
-     * be applied.
+     * Returns a list of users based on the given query parameters. The default
+     * order of last name and first name will be applied.
      *
      * @param params the user query parameters.
      * @return a List of users.
@@ -177,8 +180,9 @@ public interface UserService
     List<User> getUsers( UserQueryParams params );
 
     /**
-     * Returns a list of users based on the given query parameters. If the specified list of orders are empty, default
-     * order of last name and first name will be applied.
+     * Returns a list of users based on the given query parameters. If the specified
+     * list of orders are empty, default order of last name and first name will be
+     * applied.
      *
      * @param params the user query parameters.
      * @param orders the already validated order strings (e.g. email:asc).
@@ -204,9 +208,11 @@ public interface UserService
     List<User> getUsersByPhoneNumber( String phoneNumber );
 
     /**
-     * Tests whether the current user is allowed to create a user associated with the given user group identifiers.
-     * Returns true if current user has the F_USER_ADD authority. Returns true if the current user has the
-     * F_USER_ADD_WITHIN_MANAGED_GROUP authority and can manage any of the given user groups. Returns false otherwise.
+     * Tests whether the current user is allowed to create a user associated with
+     * the given user group identifiers. Returns true if current user has the
+     * F_USER_ADD authority. Returns true if the current user has the
+     * F_USER_ADD_WITHIN_MANAGED_GROUP authority and can manage any of the given
+     * user groups. Returns false otherwise.
      *
      * @param userGroups the user group identifiers.
      * @return true if the current user can create user, false if not.
@@ -235,7 +241,8 @@ public interface UserService
     void updateUserCredentials( UserCredentials userCredentials );
 
     /**
-     * Retrieves the UserCredentials associated with the User with the given id token.
+     * Retrieves the UserCredentials associated with the User with the given id
+     * token.
      *
      * @param token the id token of the User.
      * @return the UserCredentials.
@@ -261,7 +268,8 @@ public interface UserService
     UserCredentials getUserCredentialsByOpenId( String openId );
 
     /**
-     * Retrieves the UserCredentials associated with the User with the given LDAP ID.
+     * Retrieves the UserCredentials associated with the User with the given LDAP
+     * ID.
      *
      * @param ldapId the ldapId of the User.
      * @return the UserCredentials.
@@ -276,8 +284,9 @@ public interface UserService
     List<UserCredentials> getAllUserCredentials();
 
     /**
-     * Encodes and sets the password of the User. Due to business logic required on password updates the password for a
-     * user should only be changed using this method or {@link #encodeAndSetPassword(UserCredentials, String)
+     * Encodes and sets the password of the User. Due to business logic required on
+     * password updates the password for a user should only be changed using this
+     * method or {@link #encodeAndSetPassword(UserCredentials, String)
      * encodeAndSetPassword} and not directly on the User or UserCredentials object.
      * <p>
      * Note that the changes made to the User object are not persisted.
@@ -288,8 +297,9 @@ public interface UserService
     void encodeAndSetPassword( User user, String rawPassword );
 
     /**
-     * Encodes and sets the password of the UserCredentials. Due to business logic required on password updates the
-     * password for a user should only be changed using this method or {@link #encodeAndSetPassword(User, String)
+     * Encodes and sets the password of the UserCredentials. Due to business logic
+     * required on password updates the password for a user should only be changed
+     * using this method or {@link #encodeAndSetPassword(User, String)
      * encodeAndSetPassword} and not directly on the User or UserCredentials object.
      * <p>
      * Note that the changes made to the UserCredentials object are not persisted.
@@ -300,7 +310,8 @@ public interface UserService
     void encodeAndSetPassword( UserCredentials userCredentials, String rawPassword );
 
     /**
-     * Updates the last login date of UserCredentials with the given username with the current date.
+     * Updates the last login date of UserCredentials with the given username with
+     * the current date.
      *
      * @param username the username of the UserCredentials.
      */
@@ -392,7 +403,8 @@ public interface UserService
     List<UserAuthorityGroup> getUserRolesBetweenByName( String name, int first, int max );
 
     /**
-     * Returns the number of UserAuthorityGroups which are associated with the given DataSet.
+     * Returns the number of UserAuthorityGroups which are associated with the given
+     * DataSet.
      *
      * @param dataSet the DataSet.
      * @return number of UserAuthorityGroups.
@@ -400,7 +412,8 @@ public interface UserService
     int countDataSetUserAuthorityGroups( DataSet dataSet );
 
     /**
-     * Filters the given collection of user roles based on whether the current user is allowed to issue it.
+     * Filters the given collection of user roles based on whether the current user
+     * is allowed to issue it.
      *
      * @param userRoles the collection of user roles.
      */

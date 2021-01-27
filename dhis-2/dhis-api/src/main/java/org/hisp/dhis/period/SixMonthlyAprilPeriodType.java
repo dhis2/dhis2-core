@@ -32,8 +32,9 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 import org.joda.time.DateTimeConstants;
 
 /**
- * PeriodType for six-monthly Periods aligned to a financial year starting in April or October. A valid April
- * six-monthly Period has startDate set to either April 1st or October 1st, and endDate set to the last day of the fifth
+ * PeriodType for six-monthly Periods aligned to a financial year starting in
+ * April or October. A valid April six-monthly Period has startDate set to
+ * either April 1st or October 1st, and endDate set to the last day of the fifth
  * month after the startDate.
  *
  * @author Torgeir Lorange Ostby

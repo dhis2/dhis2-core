@@ -101,7 +101,8 @@ public class ValidationRule
     private boolean skipFormValidation;
 
     /**
-     * Validation Rule will only be run for organisation units at these levels (or all levels if set is empty)
+     * Validation Rule will only be run for organisation units at these levels (or
+     * all levels if set is empty)
      */
     private Set<Integer> organisationUnitLevels = new HashSet<>();
 
@@ -140,8 +141,9 @@ public class ValidationRule
     // -------------------------------------------------------------------------
 
     /**
-     * Clears the left-side and right-side expressions. This can be useful, for example, before changing the validation
-     * rule period type, because the data elements allowed in the expressions depend on the period type.
+     * Clears the left-side and right-side expressions. This can be useful, for
+     * example, before changing the validation rule period type, because the data
+     * elements allowed in the expressions depend on the period type.
      */
     public void clearExpressions()
     {
@@ -172,7 +174,8 @@ public class ValidationRule
     }
 
     /**
-     * Gets the validation rule description, but returns the validation rule name if there is no description.
+     * Gets the validation rule description, but returns the validation rule name if
+     * there is no description.
      *
      * @return the description (or name).
      */
@@ -182,8 +185,9 @@ public class ValidationRule
     }
 
     /**
-     * Returns the instruction if it is not null or empty, if not returns the left side description, operator and right
-     * side description if not null or empty, if not returns null.
+     * Returns the instruction if it is not null or empty, if not returns the left
+     * side description, operator and right side description if not null or empty,
+     * if not returns null.
      */
     public String getInstructionFallback()
     {

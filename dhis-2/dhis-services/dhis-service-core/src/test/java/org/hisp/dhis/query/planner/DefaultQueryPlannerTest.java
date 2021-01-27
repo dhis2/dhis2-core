@@ -104,9 +104,10 @@ public class DefaultQueryPlannerTest
     }
 
     /*
-     * Verifies that when adding criteria on non-persisted fields and using OR junction type the planner returns a
-     * "non Persisted Query" containing all the criteria - since it will execute filter on the entire dataset from the
-     * target table
+     * Verifies that when adding criteria on non-persisted fields and using OR
+     * junction type the planner returns a "non Persisted Query" containing all the
+     * criteria - since it will execute filter on the entire dataset from the target
+     * table
      */
     @Test
     public void verifyPlanQueryReturnsNonPersistedQueryWithCriterion()

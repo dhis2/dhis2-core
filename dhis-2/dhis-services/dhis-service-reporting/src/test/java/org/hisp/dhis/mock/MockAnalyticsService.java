@@ -135,8 +135,8 @@ public class MockAnalyticsService
     // -------------------------------------------------------------------------
 
     /**
-     * Find the pre-filled grid matching matching either a date in the the parameters' date range, or a date in a PERIOD
-     * filter
+     * Find the pre-filled grid matching matching either a date in the the
+     * parameters' date range, or a date in a PERIOD filter
      *
      * @param params the parameters
      * @return the grid matching the parameters' date range
@@ -162,8 +162,8 @@ public class MockAnalyticsService
     }
 
     /**
-     * Find the pre-filled grid matching matching either a date in the the parameters' date range, or a date in a PERIOD
-     * filter
+     * Find the pre-filled grid matching matching either a date in the the
+     * parameters' date range, or a date in a PERIOD filter
      *
      * @param params the parameters
      * @return the grid matching the parameters' date range

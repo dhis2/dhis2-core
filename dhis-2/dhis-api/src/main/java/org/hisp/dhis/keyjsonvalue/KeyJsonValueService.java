@@ -51,7 +51,8 @@ public interface KeyJsonValueService
     List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace, boolean isAdmin );
 
     /**
-     * Retrieves a list of keys from a namespace which are updated after lastUpdated time.
+     * Retrieves a list of keys from a namespace which are updated after lastUpdated
+     * time.
      *
      * @param namespace the namespace to retrieve keys from.
      * @param lastUpdated the lastUpdated time to retrieve keys from.

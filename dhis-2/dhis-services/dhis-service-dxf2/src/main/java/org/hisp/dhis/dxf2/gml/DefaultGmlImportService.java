@@ -73,19 +73,21 @@ import com.google.common.collect.Maps;
 /**
  * Import geospatial data from GML documents and merge into OrganisationUnits.
  * <p>
- * The implementation is a pre-processing stage, using the general MetaDataImporter as the import backend.
+ * The implementation is a pre-processing stage, using the general
+ * MetaDataImporter as the import backend.
  * <p>
  * The process of importing GML, in short, entails the following:
  * <ol>
  * <li>Parse the GML payload and transform it into DXF2 format</li>
- * <li>Get the given identifiers (uid, code or name) from the parsed payload and fetch the corresponding entities from
- * the DB</li>
+ * <li>Get the given identifiers (uid, code or name) from the parsed payload and
+ * fetch the corresponding entities from the DB</li>
  * <li>Merge the geospatial data given in the input GML into DB entities</li>
- * <li>Serialize the MetaData payload containing the changes into DXF2, avoiding any magic deletion managers, AOP,
- * Hibernate object cache or transaction scope messing with the payload. It is now essentially a perfect copy of the DB
+ * <li>Serialize the MetaData payload containing the changes into DXF2, avoiding
+ * any magic deletion managers, AOP, Hibernate object cache or transaction scope
+ * messing with the payload. It is now essentially a perfect copy of the DB
  * contents.</li>
- * <li>Deserialize the DXF2 payload into a MetaData object, which is now completely detached, and feed this object into
- * the MetaData importer.</li>
+ * <li>Deserialize the DXF2 payload into a MetaData object, which is now
+ * completely detached, and feed this object into the MetaData importer.</li>
  * </ol>
  * <p>
  * Any failure during this process will be reported using the {@link Notifier}.

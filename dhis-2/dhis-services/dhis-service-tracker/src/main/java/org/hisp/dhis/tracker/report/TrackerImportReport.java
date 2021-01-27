@@ -38,9 +38,11 @@ import org.hisp.dhis.tracker.TrackerType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * This immutable object collects all the relevant information created during a Tracker Import process.
+ * This immutable object collects all the relevant information created during a
+ * Tracker Import process.
  *
- * The TrackerImportReport is created at the beginning of a Tracker Import session and returned to the caller.
+ * The TrackerImportReport is created at the beginning of a Tracker Import
+ * session and returned to the caller.
  *
  * @author Luciano Fiandesio
  */
@@ -66,8 +68,8 @@ public class TrackerImportReport
     private TrackerValidationReport validationReport;
 
     /**
-     * A final summary broken down by operation (Insert, Update, Delete, Ignored) showing how many entities where
-     * processed
+     * A final summary broken down by operation (Insert, Update, Delete, Ignored)
+     * showing how many entities where processed
      */
     @JsonProperty
     private TrackerStats stats;
@@ -79,14 +81,15 @@ public class TrackerImportReport
     private TrackerTimingsStats timingsStats;
 
     /**
-     * A report containing the outcome of the commit stage (e.g. how many entities were persisted)
+     * A report containing the outcome of the commit stage (e.g. how many entities
+     * were persisted)
      */
     @JsonProperty
     private TrackerBundleReport bundleReport;
 
     /**
-     * A message to attach to the report. This message is designed to be used only if a catastrophic error occurs and
-     * the Import Process has to stop abruptly.
+     * A message to attach to the report. This message is designed to be used only
+     * if a catastrophic error occurs and the Import Process has to stop abruptly.
      */
     @JsonProperty
     private String message;
@@ -96,11 +99,12 @@ public class TrackerImportReport
     }
 
     /**
-     * Factory method to use in case one ore more Validation errors are present in the {@link TrackerValidationReport}
-     * and the Import process needs to exit without attempting persistence.
+     * Factory method to use in case one ore more Validation errors are present in
+     * the {@link TrackerValidationReport} and the Import process needs to exit
+     * without attempting persistence.
      *
-     * Import statistics are calculated assuming that the persistence stage was never attempted, therefore all bundle
-     * objects were ignored.
+     * Import statistics are calculated assuming that the persistence stage was
+     * never attempted, therefore all bundle objects were ignored.
      *
      * @param validationReport The validation report
      * @param timingsStats The timing stats
@@ -126,8 +130,8 @@ public class TrackerImportReport
     }
 
     /**
-     * Factory method to use in case of an unrecoverable error during the Tracker Import. This factory method will set
-     * the status to ERROR.
+     * Factory method to use in case of an unrecoverable error during the Tracker
+     * Import. This factory method will set the status to ERROR.
      *
      * This method should only be used when the Import process has to exit.
      *
@@ -155,13 +159,16 @@ public class TrackerImportReport
     /**
      * Factory method to use when a Tracker Import process completes.
      *
-     * Import statistics are calculated based on the {@link TrackerBundleReport} and {@link TrackerValidationReport}.
+     * Import statistics are calculated based on the {@link TrackerBundleReport} and
+     * {@link TrackerValidationReport}.
      *
      * @param status The outcome of the process
-     * @param bundleReport The report containing how many bundle objects were successfully persisted
+     * @param bundleReport The report containing how many bundle objects were
+     *        successfully persisted
      * @param validationReport The validation report if available
      * @param timingsStats The timing stats if available
-     * @param bundleSize a map containing the size of each entity type in the Bundle - before the validation
+     * @param bundleSize a map containing the size of each entity type in the Bundle
+     *        - before the validation
      */
     public static TrackerImportReport withImportCompleted( TrackerStatus status, TrackerBundleReport bundleReport,
         TrackerValidationReport validationReport,
@@ -183,10 +190,12 @@ public class TrackerImportReport
     }
 
     /**
-     * Calculates the 'ignored' value for each type of entity in the {@link TrackerBundleReport}.
+     * Calculates the 'ignored' value for each type of entity in the
+     * {@link TrackerBundleReport}.
      *
-     * The 'ignored' value is calculated by subtracting the sum of all processed entities from the TrackerBundleReport
-     * (by type) from the bundle size specified in the 'bundleSize' map.
+     * The 'ignored' value is calculated by subtracting the sum of all processed
+     * entities from the TrackerBundleReport (by type) from the bundle size
+     * specified in the 'bundleSize' map.
      */
     private static TrackerBundleReport processBundleReport( TrackerBundleReport bundleReport,
         Map<TrackerType, Integer> bundleSize )
@@ -208,7 +217,8 @@ public class TrackerImportReport
     }
 
     /**
-     * Clone the TrackerImportReport and filters out validation data based on the provided {@link TrackerBundleReport}.
+     * Clone the TrackerImportReport and filters out validation data based on the
+     * provided {@link TrackerBundleReport}.
      *
      * @return a copy of the current TrackerImportReport
      */

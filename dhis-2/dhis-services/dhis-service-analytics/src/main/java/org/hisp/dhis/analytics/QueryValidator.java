@@ -41,8 +41,8 @@ import org.hisp.dhis.feedback.ErrorMessage;
 public interface QueryValidator
 {
     /**
-     * Validates the given query. Throws an IllegalQueryException if the query is not valid with a descriptive message.
-     * Returns normally if the query is valid.
+     * Validates the given query. Throws an IllegalQueryException if the query is
+     * not valid with a descriptive message. Returns normally if the query is valid.
      *
      * @param params the data query parameters.
      * @throws IllegalQueryException if the query is invalid.
@@ -51,8 +51,9 @@ public interface QueryValidator
         throws IllegalQueryException;
 
     /**
-     * Validates the given query. Returns null if the query is valid, or an {@link ErrorMessage} describing the
-     * validation violation if the query is invalid.
+     * Validates the given query. Returns null if the query is valid, or an
+     * {@link ErrorMessage} describing the validation violation if the query is
+     * invalid.
      *
      * @param params the data query parameters.
      * @return null if valid or {@link ErrorMessage} if invalid.
@@ -60,8 +61,9 @@ public interface QueryValidator
     ErrorMessage validateForErrorMessage( DataQueryParams params );
 
     /**
-     * Validates whether the given table layout is valid for the given query. Throws an IllegalQueryException if the
-     * query is not valid with a descriptive message. Returns normally if the query is valid.
+     * Validates whether the given table layout is valid for the given query. Throws
+     * an IllegalQueryException if the query is not valid with a descriptive
+     * message. Returns normally if the query is valid.
      *
      * @param params the data query parameters.
      * @param columns the column dimension identifiers.

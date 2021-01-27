@@ -38,8 +38,8 @@ import org.hisp.dhis.relationship.RelationshipType;
 import com.google.common.collect.ImmutableMap;
 
 /**
- * Generates a SQL JOIN to join an enrollment or event with one ore more related entities, based on the specified
- * relationship type
+ * Generates a SQL JOIN to join an enrollment or event with one ore more related
+ * entities, based on the specified relationship type
  *
  * @author Luciano Fiandesio
  */
@@ -48,13 +48,15 @@ public class RelationshipTypeJoinGenerator
     final static String RELATIONSHIP_JOIN = " WHERE rty.relationshiptypeid = ${relationshipid}";
 
     /**
-     * Generate a sub query that joins an incoming Event/Enrollment/TEI UID to one or more related entities, based on
-     * the selected relationship type
+     * Generate a sub query that joins an incoming Event/Enrollment/TEI UID to one
+     * or more related entities, based on the selected relationship type
      *
      * @param alias the table alias to use for the main analytics table
      * @param relationshipType the type of relationship to fetch data for
-     * @param programIndicatorType the type or Program Indicator that is used for this join (Enrollment or Event)
-     * @return a SQL string containing the JOIN between analytics table and relationship
+     * @param programIndicatorType the type or Program Indicator that is used for
+     *        this join (Enrollment or Event)
+     * @return a SQL string containing the JOIN between analytics table and
+     *         relationship
      */
     public static String generate( String alias, RelationshipType relationshipType, AnalyticsType programIndicatorType )
     {

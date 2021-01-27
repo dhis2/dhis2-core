@@ -90,11 +90,11 @@ public class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrati
     }
 
     /**
-     * Test Metadata Read access User and UserGroups mapping User1 | User2 | User3 | User 4 Group1 x | | | Group2 X | |
-     * | X
+     * Test Metadata Read access User and UserGroups mapping User1 | User2 | User3 |
+     * User 4 Group1 x | | | Group2 X | | | X
      *
-     * DataElementA access defined for Users and UserGroups User1 | User2 | User3 | UserGroup1 | UserGroup2 Can access
-     * DEA | X | | X |
+     * DataElementA access defined for Users and UserGroups User1 | User2 | User3 |
+     * UserGroup1 | UserGroup2 Can access DEA | X | | X |
      */
     @Test
     public void testMetadataRead()

@@ -45,8 +45,9 @@ import org.springframework.security.web.authentication.SavedRequestAwareAuthenti
 import org.springframework.util.Assert;
 
 /**
- * Since ActionContext is not available at this point, we set a mark in the session that signals that login has just
- * occurred, and that LoginInterceptor should be run.
+ * Since ActionContext is not available at this point, we set a mark in the
+ * session that signals that login has just occurred, and that LoginInterceptor
+ * should be run.
  *
  * @author mortenoh
  */

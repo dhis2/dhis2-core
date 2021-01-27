@@ -51,8 +51,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Sets;
 
 /**
- * Declare transactions on individual methods. The get-methods do not have transactions declared, instead a programmatic
- * transaction is initiated on cache miss in order to reduce the number of transactions to improve performance.
+ * Declare transactions on individual methods. The get-methods do not have
+ * transactions declared, instead a programmatic transaction is initiated on
+ * cache miss in order to reduce the number of transactions to improve
+ * performance.
  *
  * @author Torgeir Lorange Ostby
  */
@@ -207,8 +209,9 @@ public class DefaultUserSettingService
     }
 
     /**
-     * Note: No transaction for this method, transaction is instead initiated at the store level behind the cache to
-     * avoid the transaction overhead for cache hits.
+     * Note: No transaction for this method, transaction is instead initiated at the
+     * store level behind the cache to avoid the transaction overhead for cache
+     * hits.
      */
     @Override
     public Serializable getUserSetting( UserSettingKey key )
@@ -217,8 +220,9 @@ public class DefaultUserSettingService
     }
 
     /**
-     * Note: No transaction for this method, transaction is instead initiated at the store level behind the cache to
-     * avoid the transaction overhead for cache hits.
+     * Note: No transaction for this method, transaction is instead initiated at the
+     * store level behind the cache to avoid the transaction overhead for cache
+     * hits.
      */
     @Override
     public Serializable getUserSetting( UserSettingKey key, User user )
@@ -302,8 +306,8 @@ public class DefaultUserSettingService
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a user setting optional. If the user settings does not have a value or default value, a corresponding
-     * system setting will be looked up.
+     * Returns a user setting optional. If the user settings does not have a value
+     * or default value, a corresponding system setting will be looked up.
      *
      * @param key the user setting key.
      * @param user an optional {@link User}.
@@ -335,9 +339,11 @@ public class DefaultUserSettingService
     }
 
     /**
-     * Get user setting optional. If the user setting exists and has a value, the value is returned. If not, the default
-     * value for the key is returned, if not present, an empty optional is returned. The return object is never null in
-     * order to cache requests for system settings which have no value or default value.
+     * Get user setting optional. If the user setting exists and has a value, the
+     * value is returned. If not, the default value for the key is returned, if not
+     * present, an empty optional is returned. The return object is never null in
+     * order to cache requests for system settings which have no value or default
+     * value.
      *
      * @param key the user setting key.
      * @param username the username of the user.

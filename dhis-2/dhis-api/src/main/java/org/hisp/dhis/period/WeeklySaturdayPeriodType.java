@@ -28,8 +28,9 @@
 package org.hisp.dhis.period;
 
 /**
- * PeriodType for weekly Periods. A valid weekly Period has startDate set to Saturday and endDate set to Friday the same
- * week, assuming Saturday is the first day and Friday is the last day of the week.
+ * PeriodType for weekly Periods. A valid weekly Period has startDate set to
+ * Saturday and endDate set to Friday the same week, assuming Saturday is the
+ * first day and Friday is the last day of the week.
  *
  * @author Torgeir Lorange Ostby
  */

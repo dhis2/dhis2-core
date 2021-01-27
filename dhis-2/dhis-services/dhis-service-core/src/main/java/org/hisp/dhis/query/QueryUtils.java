@@ -249,7 +249,8 @@ public final class QueryUtils
     }
 
     /**
-     * Converts a String with JSON format [x,y,z] into an SQL query collection format (x,y,z).
+     * Converts a String with JSON format [x,y,z] into an SQL query collection
+     * format (x,y,z).
      *
      * @param value a string contains a collection with JSON format [x,y,z].
      * @return a string contains a collection with SQL query format (x,y,z).
@@ -419,7 +420,8 @@ public final class QueryUtils
     }
 
     /**
-     * Converts the specified string orders (e.g. <code>name:asc</code>) to order objects.
+     * Converts the specified string orders (e.g. <code>name:asc</code>) to order
+     * objects.
      *
      * @param orders the order strings that should be converted.
      * @param schema the schema that should be used to perform the conversion.
@@ -476,8 +478,8 @@ public final class QueryUtils
     }
 
     /**
-     * Returns a single result from the given {@link TypedQuery}. Returns null if no objects could be found (without
-     * throwing an exception).
+     * Returns a single result from the given {@link TypedQuery}. Returns null if no
+     * objects could be found (without throwing an exception).
      *
      * @param query the query.
      * @return an object.

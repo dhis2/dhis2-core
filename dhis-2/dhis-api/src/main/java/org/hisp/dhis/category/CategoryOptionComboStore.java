@@ -45,10 +45,12 @@ public interface CategoryOptionComboStore
     void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
 
     /**
-     * Fetch all {@link CategoryOptionCombo} from a given {@link CategoryOptionGroup} uid.
+     * Fetch all {@link CategoryOptionCombo} from a given
+     * {@link CategoryOptionGroup} uid.
      *
-     * A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}. Therefore, this method finds all
-     * {@link CategoryOptionCombo} for all the members of the given {@link CategoryOptionGroup}
+     * A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}.
+     * Therefore, this method finds all {@link CategoryOptionCombo} for all the
+     * members of the given {@link CategoryOptionGroup}
      *
      * @param groupId a {@link CategoryOptionGroup} uid
      * @return a List of {@link CategoryOptionCombo} or empty List

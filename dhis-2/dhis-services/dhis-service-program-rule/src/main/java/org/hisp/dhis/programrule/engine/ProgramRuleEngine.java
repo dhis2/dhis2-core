@@ -172,7 +172,8 @@ public class ProgramRuleEngine
      *
      * @param condition of program rule
      * @param program {@link Program} which the programRule is associated with.
-     * @return RuleValidationResult contains description of program rule condition or errorMessage
+     * @return RuleValidationResult contains description of program rule condition
+     *         or errorMessage
      */
     public RuleValidationResult getDescription( String condition, Program program )
     {

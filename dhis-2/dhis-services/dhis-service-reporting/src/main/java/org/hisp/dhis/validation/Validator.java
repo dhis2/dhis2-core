@@ -50,11 +50,13 @@ import com.google.common.collect.Lists;
 public class Validator
 {
     /**
-     * Evaluates validation rules for a collection of organisation units. This method breaks the job down by
-     * organisation unit. It assigns the evaluation for each organisation unit to a task that can be evaluated
-     * independently in a multi-threaded environment.
+     * Evaluates validation rules for a collection of organisation units. This
+     * method breaks the job down by organisation unit. It assigns the evaluation
+     * for each organisation unit to a task that can be evaluated independently in a
+     * multi-threaded environment.
      * <p/>
-     * Return early with no results if there are no organisation units or no validation rules.
+     * Return early with no results if there are no organisation units or no
+     * validation rules.
      *
      * @return a collection of any validations that were found
      */

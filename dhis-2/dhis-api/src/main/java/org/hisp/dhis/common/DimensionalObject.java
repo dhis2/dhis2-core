@@ -117,12 +117,14 @@ public interface DimensionalObject
     DimensionType getDimensionType();
 
     /**
-     * Gets the data dimension type. Can be null. Only applicable for {@link DimensionType#CATEGORY}.
+     * Gets the data dimension type. Can be null. Only applicable for
+     * {@link DimensionType#CATEGORY}.
      */
     DataDimensionType getDataDimensionType();
 
     /**
-     * Gets the dimension name, which corresponds to a column in the analytics tables, with fall back to dimension.
+     * Gets the dimension name, which corresponds to a column in the analytics
+     * tables, with fall back to dimension.
      */
     String getDimensionName();
 
@@ -182,13 +184,14 @@ public interface DimensionalObject
     AnalyticsType getAnalyticsType();
 
     /**
-     * Indicates whether this object should be handled as a data dimension. Persistent property.
+     * Indicates whether this object should be handled as a data dimension.
+     * Persistent property.
      */
     boolean isDataDimension();
 
     /**
-     * Indicates whether this dimension is fixed, meaning that the name of the dimension will be returned as is for all
-     * dimension items in the response.
+     * Indicates whether this dimension is fixed, meaning that the name of the
+     * dimension will be returned as is for all dimension items in the response.
      */
     boolean isFixed();
 

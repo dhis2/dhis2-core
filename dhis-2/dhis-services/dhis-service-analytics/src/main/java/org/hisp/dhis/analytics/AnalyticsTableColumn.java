@@ -114,7 +114,8 @@ public class AnalyticsTableColumn
     // -------------------------------------------------------------------------
 
     /**
-     * Indicates whether explicit index columns have been specified, defaults to this column name.
+     * Indicates whether explicit index columns have been specified, defaults to
+     * this column name.
      */
     public boolean hasIndexColumns()
     {

@@ -48,7 +48,8 @@ public class TypedIndexedObjectContainer implements ObjectIndexProvider
      * Get the typed container for the specified object class.
      *
      * @param c the object class for which the container should be returned.
-     * @return the container (if it does not exists, the method creates a container).
+     * @return the container (if it does not exists, the method creates a
+     *         container).
      */
     @Nonnull
     public IndexedObjectContainer getTypedContainer( @Nonnull Class<? extends IdentifiableObject> c )
@@ -66,7 +67,8 @@ public class TypedIndexedObjectContainer implements ObjectIndexProvider
 
     /**
      * @param object the identifiable object that should be checked.
-     * @return <code>true</code> if the object is included in the container, <code>false</code> otherwise.
+     * @return <code>true</code> if the object is included in the container,
+     *         <code>false</code> otherwise.
      */
     public boolean containsObject( @Nonnull IdentifiableObject object )
     {

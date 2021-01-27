@@ -626,8 +626,9 @@ public class DefaultDataApprovalService
     }
 
     /**
-     * Makes sure that for any approval we enter into the database, the attributeOptionCombo appears in the set of
-     * optionCombos for at least one of the data sets in the workflow.
+     * Makes sure that for any approval we enter into the database, the
+     * attributeOptionCombo appears in the set of optionCombos for at least one of
+     * the data sets in the workflow.
      *
      * @param dataApprovalList list of data approvals to test.
      */
@@ -663,7 +664,8 @@ public class DefaultDataApprovalService
     }
 
     /**
-     * Returns a mapping from data approval key to data approval status for the given list of data approvals.
+     * Returns a mapping from data approval key to data approval status for the
+     * given list of data approvals.
      */
     private Map<String, DataApprovalStatus> getStatusMap( List<DataApproval> dataApprovalList )
     {
@@ -701,11 +703,12 @@ public class DefaultDataApprovalService
     }
 
     /**
-     * Returns an indexed map where the key is based on each distinct combination of organisation unit level, period,
-     * and workflow.
+     * Returns an indexed map where the key is based on each distinct combination of
+     * organisation unit level, period, and workflow.
      *
-     * If multiple attributeOptionCombo values are needed for the same combination of organisation unit level, period,
-     * and workflow, then these are fetched at the same time time, for better performance.
+     * If multiple attributeOptionCombo values are needed for the same combination
+     * of organisation unit level, period, and workflow, then these are fetched at
+     * the same time time, for better performance.
      */
     private ListMap<String, DataApproval> getIndexedListMap( List<DataApproval> dataApprovalList )
     {
@@ -720,8 +723,9 @@ public class DefaultDataApprovalService
     }
 
     /**
-     * Returns a key consisting of organisation unit, period, and workflow. Approval status with these three values in
-     * common can be fetched in one call for many values of attributeOptionCombo.
+     * Returns a key consisting of organisation unit, period, and workflow. Approval
+     * status with these three values in common can be fetched in one call for many
+     * values of attributeOptionCombo.
      */
     private String statusKey( DataApproval approval )
     {
@@ -732,13 +736,14 @@ public class DefaultDataApprovalService
     }
 
     /**
-     * Looks up which data approvals are present in the database, and returns a list of database approval objects (with
-     * approval id).
+     * Looks up which data approvals are present in the database, and returns a list
+     * of database approval objects (with approval id).
      *
      * Throws an exception if any approval is not present in the database.
      *
-     * This is done by making a single call to the database level instead of one call per data approval, to speed
-     * performance in the case where there are many data approvals.
+     * This is done by making a single call to the database level instead of one
+     * call per data approval, to speed performance in the case where there are many
+     * data approvals.
      *
      * @param approvals the list of approvals to check.
      * @param operation operation (for error logging).
@@ -789,8 +794,8 @@ public class DefaultDataApprovalService
     }
 
     /**
-     * Returns a key for a data approval object, consisting of the UIDs of all the approval object dimensions that
-     * uniquely define it.
+     * Returns a key for a data approval object, consisting of the UIDs of all the
+     * approval object dimensions that uniquely define it.
      *
      * @param da the data approval object.
      * @return a key for the object.
@@ -805,8 +810,8 @@ public class DefaultDataApprovalService
     }
 
     /**
-     * Returns a key consisting of statusKey + attributeOptionCombo. This can identify a particular DataApproval object
-     * in the return set of statuses.
+     * Returns a key consisting of statusKey + attributeOptionCombo. This can
+     * identify a particular DataApproval object in the return set of statuses.
      */
     private String daKey( DataApproval da )
     {

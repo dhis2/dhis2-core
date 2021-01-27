@@ -95,8 +95,9 @@ public interface JobConfigurationService
     List<JobConfiguration> getAllJobConfigurations();
 
     /**
-     * Get a map of parameter classes with appropriate properties This can be used for a frontend app or for other
-     * appropriate applications which needs information about the jobs in the system.
+     * Get a map of parameter classes with appropriate properties This can be used
+     * for a frontend app or for other appropriate applications which needs
+     * information about the jobs in the system.
      * <p>
      * It uses {@link JobType}.
      *

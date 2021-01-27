@@ -60,7 +60,8 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         .build();
 
     /**
-     * Check if a Program Rule Variable to be added or update has a unique name in the system
+     * Check if a Program Rule Variable to be added or update has a unique name in
+     * the system
      *
      * @param object
      * @param bundle

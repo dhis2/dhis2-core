@@ -98,10 +98,11 @@ public class TrackedEntityAttributeController
     }
 
     /**
-     * This method is legacy and will do the same as generateAndReserveValues, but with only 3 days expiration. The
-     * use-case for this endpoint is to get a single id when filling in the form, so we assume the form is submitted
-     * within 3 days. generateAndReserveValues is designed to account for offline devices that need to reserve ids in
-     * batches for a longer period of time.
+     * This method is legacy and will do the same as generateAndReserveValues, but
+     * with only 3 days expiration. The use-case for this endpoint is to get a
+     * single id when filling in the form, so we assume the form is submitted within
+     * 3 days. generateAndReserveValues is designed to account for offline devices
+     * that need to reserve ids in batches for a longer period of time.
      *
      * @param id
      * @return The id generated

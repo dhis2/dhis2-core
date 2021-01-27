@@ -196,7 +196,8 @@ public class EnrollmentInExistingValidationHook
     }
 
     /**
-     * Get a {@link TrackedEntityInstance} from the pre-heat or from the reference tree.
+     * Get a {@link TrackedEntityInstance} from the pre-heat or from the reference
+     * tree.
      *
      * @param reporter the {@link ValidationErrorReporter} object
      * @param uid the UID of a {@link TrackedEntityInstance} object

@@ -40,8 +40,9 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
 /**
- * This supplier adds to the pre-heat object a List of all Program Stages UIDs that have at least ONE Program Stage
- * Instance that is not logically deleted ('deleted = true') and the status is not 'SKIPPED'
+ * This supplier adds to the pre-heat object a List of all Program Stages UIDs
+ * that have at least ONE Program Stage Instance that is not logically deleted
+ * ('deleted = true') and the status is not 'SKIPPED'
  *
  * @author Luciano Fiandesio
  */

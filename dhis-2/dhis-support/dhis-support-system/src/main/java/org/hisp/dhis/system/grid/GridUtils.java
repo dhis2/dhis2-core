@@ -158,7 +158,8 @@ public class GridUtils
     }
 
     /**
-     * Writes a PDF representation of the given list of Grids to the given OutputStream.
+     * Writes a PDF representation of the given list of Grids to the given
+     * OutputStream.
      */
     public static void toPdf( List<Grid> grids, OutputStream out )
     {
@@ -226,7 +227,8 @@ public class GridUtils
     }
 
     /**
-     * Writes a XLS (Excel workbook) representation of the given list of Grids to the given OutputStream.
+     * Writes a XLS (Excel workbook) representation of the given list of Grids to
+     * the given OutputStream.
      */
     public static void toXls( List<Grid> grids, OutputStream out )
         throws Exception
@@ -251,7 +253,8 @@ public class GridUtils
     }
 
     /**
-     * Writes a XLS (Excel workbook) representation of the given Grid to the given OutputStream.
+     * Writes a XLS (Excel workbook) representation of the given Grid to the given
+     * OutputStream.
      */
     public static void toXls( Grid grid, OutputStream out )
         throws Exception
@@ -378,7 +381,8 @@ public class GridUtils
     }
 
     /**
-     * Writes a Jasper Reports representation of the given Grid to the given OutputStream.
+     * Writes a Jasper Reports representation of the given Grid to the given
+     * OutputStream.
      */
     public static void toJasperReport( Grid grid, Map<String, Object> params, OutputStream out )
         throws Exception
@@ -403,7 +407,8 @@ public class GridUtils
     }
 
     /**
-     * Writes a JRXML (Jasper Reports XML) representation of the given Grid to the given Writer.
+     * Writes a JRXML (Jasper Reports XML) representation of the given Grid to the
+     * given Writer.
      */
     public static void toJrxml( Grid grid, Map<?, ?> params, Writer writer )
     {
@@ -494,12 +499,14 @@ public class GridUtils
     }
 
     /**
-     * Derives the positional index of a Grid's row, based on the {@see DimensionalItemObject} identifiers
+     * Derives the positional index of a Grid's row, based on the
+     * {@see DimensionalItemObject} identifiers
      *
      * @param row a Grid's row
      * @param items a List of {@see DimensionalItemObject}
      * @param defaultIndex the default positional index to return
-     * @return the positional index matching one of the DimensionalItemObject identifiers
+     * @return the positional index matching one of the DimensionalItemObject
+     *         identifiers
      */
     public static int getGridIndexByDimensionItem( List<Object> row, List<DimensionalItemObject> items,
         int defaultIndex )
@@ -521,7 +528,8 @@ public class GridUtils
     }
 
     /**
-     * Creates a list of Grids based on the given HTML string. This works only for table-based HTML documents.
+     * Creates a list of Grids based on the given HTML string. This works only for
+     * table-based HTML documents.
      *
      * @param html the HTML string.
      * @param title the title to use for the grids.
@@ -636,8 +644,8 @@ public class GridUtils
     }
 
     /**
-     * Retrieves the value of a table cell. Appends the text of child nodes of the cell. In case of composite tags like
-     * span or div the inner text is appended.
+     * Retrieves the value of a table cell. Appends the text of child nodes of the
+     * cell. In case of composite tags like span or div the inner text is appended.
      */
     public static String getValue( TagNode cell )
     {
@@ -659,9 +667,11 @@ public class GridUtils
     }
 
     /**
-     * Returns a mapping based on the given grid where the key is a joined string of the string value of each value for
-     * meta columns. The value is the object at the given value index. The map contains at maximum one entry per row in
-     * the given grid, less if the joined key string are duplicates. The object at the value index must be numeric.
+     * Returns a mapping based on the given grid where the key is a joined string of
+     * the string value of each value for meta columns. The value is the object at
+     * the given value index. The map contains at maximum one entry per row in the
+     * given grid, less if the joined key string are duplicates. The object at the
+     * value index must be numeric.
      *
      * @param grid the grid.
      * @param valueIndex the index of the column holding the value, must be numeric.
@@ -712,8 +722,8 @@ public class GridUtils
     }
 
     /**
-     * Indicates whether the given list of grids have at least one grid which is not null and has more than zero visible
-     * columns.
+     * Indicates whether the given list of grids have at least one grid which is not
+     * null and has more than zero visible columns.
      */
     private static boolean hasNonEmptyGrid( List<Grid> grids )
     {

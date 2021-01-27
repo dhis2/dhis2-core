@@ -41,13 +41,16 @@ import org.springframework.util.Assert;
 /**
  * An internal representation of a map layer in a map.
  *
- * It encapsulates all the information of a layer on a map that should contain map objects associated with the same
- * data-set. Thus, a map layer should represent grouped data from a data-set e.g. 'deaths from malaria' is one layer,
- * 'anc coverage' is another layer, etc.
+ * It encapsulates all the information of a layer on a map that should contain
+ * map objects associated with the same data-set. Thus, a map layer should
+ * represent grouped data from a data-set e.g. 'deaths from malaria' is one
+ * layer, 'anc coverage' is another layer, etc.
  *
- * It is typically built using the properties of an external map layer (currently MapView) defined by the user.
+ * It is typically built using the properties of an external map layer
+ * (currently MapView) defined by the user.
  *
- * Finally, one might extend this class with an implementation that uses a specific platform, if needed.
+ * Finally, one might extend this class with an implementation that uses a
+ * specific platform, if needed.
  *
  * @author Olai Solheim <olais@ifi.uio.no>
  */
@@ -107,7 +110,8 @@ public class InternalMapLayer
     }
 
     /**
-     * Interpolates the radii of this map layer's set of map objects according the highest and lowest values among them.
+     * Interpolates the radii of this map layer's set of map objects according the
+     * highest and lowest values among them.
      */
     public void applyInterpolatedRadii()
     {
@@ -159,7 +163,8 @@ public class InternalMapLayer
     }
 
     /**
-     * Creates a map object and adds it to this map layer. Sets this map layer on the map object.
+     * Creates a map object and adds it to this map layer. Sets this map layer on
+     * the map object.
      *
      * @param mapValue the map values to set on the map object.
      * @param unit the organisation unit which name to set on the map object.
@@ -228,7 +233,8 @@ public class InternalMapLayer
     }
 
     /**
-     * Distribute this map layer's map objects into the given interval set and update each map object with its interval.
+     * Distribute this map layer's map objects into the given interval set and
+     * update each map object with its interval.
      */
     public void distributeAndUpdateMapObjectsInIntervalSet()
     {
@@ -255,26 +261,32 @@ public class InternalMapLayer
     /**
      * Creates and applies a fixed length interval set to the given map layer.
      *
-     * How map objects are distributed among intervals depends on the distribution strategy that is used, which may be
-     * either 'equal range' or 'equal size'.
+     * How map objects are distributed among intervals depends on the distribution
+     * strategy that is used, which may be either 'equal range' or 'equal size'.
      *
-     * The 'equal range' strategy is defined by passing DistributionStrategy.STRATEGY_EQUAL_RANGE to this method. It
-     * creates and applies to the given map layer a fixed length interval set distributing map objects into intervals
-     * that has the same range.
+     * The 'equal range' strategy is defined by passing
+     * DistributionStrategy.STRATEGY_EQUAL_RANGE to this method. It creates and
+     * applies to the given map layer a fixed length interval set distributing map
+     * objects into intervals that has the same range.
      *
-     * The 'equal size' strategy is defined by passing DistributionStrategy.STRATEGY_EQUAL_SIZE to this method. It
-     * creates and applies to the given map layer a fixed length interval set distributing map objects into intervals
-     * that has (optimally) the same amount of map objects.
+     * The 'equal size' strategy is defined by passing
+     * DistributionStrategy.STRATEGY_EQUAL_SIZE to this method. It creates and
+     * applies to the given map layer a fixed length interval set distributing map
+     * objects into intervals that has (optimally) the same amount of map objects.
      *
-     * For example, given the map object collection of a map layer [a:3,b:2,c:5,d:18,e:0,f:50,g:22], where the objects
-     * with the lowest and highest values are e:0 and f:50, this collection of map objects will distribute differently
-     * into intervals depending on the distribution strategy chosen.
+     * For example, given the map object collection of a map layer
+     * [a:3,b:2,c:5,d:18,e:0,f:50,g:22], where the objects with the lowest and
+     * highest values are e:0 and f:50, this collection of map objects will
+     * distribute differently into intervals depending on the distribution strategy
+     * chosen.
      *
-     * Strategy 'equal range' with length 5: interval [e:0,b:2,a:3,c:5] range 0-10 size 4 interval [d:18] range 11-20
-     * size 1 interval [g:22] range 21-30 size 1 interval [] range 31-40 size 0 interval [f:50] range 41-50 size 1
+     * Strategy 'equal range' with length 5: interval [e:0,b:2,a:3,c:5] range 0-10
+     * size 4 interval [d:18] range 11-20 size 1 interval [g:22] range 21-30 size 1
+     * interval [] range 31-40 size 0 interval [f:50] range 41-50 size 1
      *
-     * Strategy 'equal size' with length 5: interval [e:0,b:2] range 0-2 size 2 interval [a:3,c:5] range 3-5 size 2
-     * interval [d:18] range 5-18 size 1 interval [g:22] range 18-22 size 1 interval [f:50] range 22-50 size 1
+     * Strategy 'equal size' with length 5: interval [e:0,b:2] range 0-2 size 2
+     * interval [a:3,c:5] range 3-5 size 2 interval [d:18] range 5-18 size 1
+     * interval [g:22] range 18-22 size 1 interval [f:50] range 22-50 size 1
      *
      * @param length the number of intervals in the set.
      */
@@ -295,8 +307,8 @@ public class InternalMapLayer
     }
 
     /**
-     * Creates and applies to the given map layer a fixed length interval set distributing map objects into intervals
-     * that has the same range.
+     * Creates and applies to the given map layer a fixed length interval set
+     * distributing map objects into intervals that has the same range.
      *
      * @param length the number of equal sized intervals.
      */

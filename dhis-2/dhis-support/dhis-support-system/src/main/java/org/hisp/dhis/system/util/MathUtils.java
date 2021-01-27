@@ -72,7 +72,8 @@ public class MathUtils
     private static final Pattern ZERO_PATTERN = Pattern.compile( "^0(\\.0*)?$" );
 
     /**
-     * Indicates whether the given double valid, implying it is not null, not infinite and not NaN.
+     * Indicates whether the given double valid, implying it is not null, not
+     * infinite and not NaN.
      *
      * @param d the double.
      * @return true if the given double is valid.
@@ -112,7 +113,8 @@ public class MathUtils
     }
 
     /**
-     * Returns a rounded off number. If the value class is not Double, the value is returned unchanged.
+     * Returns a rounded off number. If the value class is not Double, the value is
+     * returned unchanged.
      *
      * @param value the value to return and potentially round off.
      */
@@ -126,7 +128,8 @@ public class MathUtils
      * <p>
      * <ul>
      * <li>If value is >= 10 or <= -10 it will have 1 decimal.</li>
-     * <li>If value is between -10 and 10 it will have three significant digits.</li>
+     * <li>If value is between -10 and 10 it will have three significant
+     * digits.</li>
      * </ul>
      *
      * @param value the value to round off.
@@ -145,9 +148,10 @@ public class MathUtils
     }
 
     /**
-     * Rounds a number to a given number of significant decimal digits. Note that the number will be left with *only*
-     * this number of significant digits regardless of magnitude, e.g. 12345 to 3 digits will be 12300, whereas 0.12345
-     * will be 0.123.
+     * Rounds a number to a given number of significant decimal digits. Note that
+     * the number will be left with *only* this number of significant digits
+     * regardless of magnitude, e.g. 12345 to 3 digits will be 12300, whereas
+     * 0.12345 will be 0.123.
      *
      * @param value the value to round off.
      * @param n the number of significant decimal digits desired.
@@ -169,8 +173,9 @@ public class MathUtils
     }
 
     /**
-     * Rounds the fractional part of a number to a given number of significant decimal digits. Digits to the left of the
-     * decimal point will not be rounded. For example, rounding 12345 to 3 digits will be 12345, whereas 12.345 will be
+     * Rounds the fractional part of a number to a given number of significant
+     * decimal digits. Digits to the left of the decimal point will not be rounded.
+     * For example, rounding 12345 to 3 digits will be 12345, whereas 12.345 will be
      * 12.3, and 0.12345 will be 0.123.
      *
      * @param value the value to round off.
@@ -211,7 +216,8 @@ public class MathUtils
      *
      * @param number the number.
      * @param max the maximum.
-     * @return the the given number if smaller or equal to maximum, otherwise maximum.
+     * @return the the given number if smaller or equal to maximum, otherwise
+     *         maximum.
      */
     public static int getMax( int number, int max )
     {
@@ -219,8 +225,8 @@ public class MathUtils
     }
 
     /**
-     * Returns the given value if between the min and max value. If lower than minimum, returns minimum, if higher than
-     * maximum, returns maximum.
+     * Returns the given value if between the min and max value. If lower than
+     * minimum, returns minimum, if higher than maximum, returns maximum.
      *
      * @param value the value.
      * @param min the minimum value.
@@ -247,8 +253,8 @@ public class MathUtils
     }
 
     /**
-     * Returns true if the provided string argument is to be considered numeric. Matches using a lenient pattern where
-     * leading zeros are allowed.
+     * Returns true if the provided string argument is to be considered numeric.
+     * Matches using a lenient pattern where leading zeros are allowed.
      *
      * @param value the value.
      * @return true if the provided string argument is to be considered numeric.
@@ -260,11 +266,13 @@ public class MathUtils
     }
 
     /**
-     * Returns true if the provided string argument is to be considered a unit interval, which implies that the value is
-     * numeric and inclusive between 0 and 1.
+     * Returns true if the provided string argument is to be considered a unit
+     * interval, which implies that the value is numeric and inclusive between 0 and
+     * 1.
      *
      * @param value the value.
-     * @return true if the provided string argument is to be considered a unit interval.
+     * @return true if the provided string argument is to be considered a unit
+     *         interval.
      */
     public static boolean isUnitInterval( String value )
     {
@@ -279,7 +287,8 @@ public class MathUtils
     }
 
     /**
-     * Returns true if the provided string argument is an integer in the inclusive range of 0 to 100.
+     * Returns true if the provided string argument is an integer in the inclusive
+     * range of 0 to 100.
      *
      * @param value the value.
      * @return true if the provided string argument is a percentage.
@@ -308,10 +317,12 @@ public class MathUtils
     }
 
     /**
-     * Returns true if the provided string argument is to be considered a positive integer.
+     * Returns true if the provided string argument is to be considered a positive
+     * integer.
      *
      * @param value the value.
-     * @return true if the provided string argument is to be considered a positive integer.
+     * @return true if the provided string argument is to be considered a positive
+     *         integer.
      */
     public static boolean isPositiveInteger( String value )
     {
@@ -319,10 +330,12 @@ public class MathUtils
     }
 
     /**
-     * Returns true if the provided string argument is to be considered a positive or zero integer.
+     * Returns true if the provided string argument is to be considered a positive
+     * or zero integer.
      *
      * @param value the value.
-     * @return true if the provided string argument is to be considered a positive integer.
+     * @return true if the provided string argument is to be considered a positive
+     *         integer.
      */
     public static boolean isZeroOrPositiveInteger( String value )
     {
@@ -331,10 +344,12 @@ public class MathUtils
     }
 
     /**
-     * Returns true if the provided string argument is to be considered a coordinate.
+     * Returns true if the provided string argument is to be considered a
+     * coordinate.
      *
      * @param value the value.
-     * @return true if the provided string argument is to be considered a coordinate.
+     * @return true if the provided string argument is to be considered a
+     *         coordinate.
      */
     public static boolean isCoordinate( String value )
     {
@@ -363,10 +378,12 @@ public class MathUtils
     }
 
     /**
-     * Returns true if the provided string argument is to be considered a negative integer.
+     * Returns true if the provided string argument is to be considered a negative
+     * integer.
      *
      * @param value the value.
-     * @return true if the provided string argument is to be considered a negative integer.
+     * @return true if the provided string argument is to be considered a negative
+     *         integer.
      */
     public static boolean isNegativeInteger( String value )
     {
@@ -385,8 +402,8 @@ public class MathUtils
     }
 
     /**
-     * Indicates if the provided string argument is to be considered as a boolean, more specifically if it equals "true"
-     * or "false".
+     * Indicates if the provided string argument is to be considered as a boolean,
+     * more specifically if it equals "true" or "false".
      *
      * @param value the value.
      * @return if the provided string argument is to be considered as a boolean.
@@ -397,8 +414,8 @@ public class MathUtils
     }
 
     /**
-     * Tests whether the two decimal numbers are equal with a tolerance of 0.01. If one or both of the numbers are null,
-     * false is returned.
+     * Tests whether the two decimal numbers are equal with a tolerance of 0.01. If
+     * one or both of the numbers are null, false is returned.
      *
      * @param d1 the first value.
      * @param d2 the second value.
@@ -543,8 +560,8 @@ public class MathUtils
     }
 
     /**
-     * Parses the given string and returns a double value. Returns null if the given string is null or cannot be parsed
-     * as a double.
+     * Parses the given string and returns a double value. Returns null if the given
+     * string is null or cannot be parsed as a double.
      *
      * @param value the string value.
      * @return a double value.
@@ -567,8 +584,8 @@ public class MathUtils
     }
 
     /**
-     * Parses an integer silently. Returns the Integer value of the given string. Returns null if the input string is
-     * null, empty or if it cannot be parsed.
+     * Parses an integer silently. Returns the Integer value of the given string.
+     * Returns null if the input string is null, empty or if it cannot be parsed.
      *
      * @param string the string.
      * @return an Integer.
@@ -591,7 +608,8 @@ public class MathUtils
     }
 
     /**
-     * Returns the lower bound for the given standard deviation, number of standard deviations and average.
+     * Returns the lower bound for the given standard deviation, number of standard
+     * deviations and average.
      *
      * @param stdDev the standard deviation.
      * @param stdDevNo the number of standard deviations.
@@ -605,7 +623,8 @@ public class MathUtils
     }
 
     /**
-     * Returns the high bound for the given standard deviation, number of standard deviations and average.
+     * Returns the high bound for the given standard deviation, number of standard
+     * deviations and average.
      *
      * @param stdDev the standard deviation.
      * @param stdDevFactor the number of standard deviations.

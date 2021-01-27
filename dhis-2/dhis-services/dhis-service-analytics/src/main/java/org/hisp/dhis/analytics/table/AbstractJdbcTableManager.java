@@ -169,10 +169,12 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Removes data which was updated or deleted between the last successful analytics table update and the start of
-     * this analytics table update process, excluding data which was created during that time span.
+     * Removes data which was updated or deleted between the last successful
+     * analytics table update and the start of this analytics table update process,
+     * excluding data which was created during that time span.
      *
-     * Override in order to remove updated and deleted data for "latest" partition update.
+     * Override in order to remove updated and deleted data for "latest" partition
+     * update.
      */
     @Override
     public void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
@@ -300,7 +302,8 @@ public abstract class AbstractJdbcTableManager
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a list of table checks (constraints) for the given analytics table partition.
+     * Returns a list of table checks (constraints) for the given analytics table
+     * partition.
      *
      * @param partition the {@link AnalyticsTablePartition}.
      */
@@ -315,8 +318,8 @@ public abstract class AbstractJdbcTableManager
     protected abstract void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition );
 
     /**
-     * Indicates whether data was created or updated for the given time range since last successful "latest" table
-     * partition update.
+     * Indicates whether data was created or updated for the given time range since
+     * last successful "latest" table partition update.
      *
      * @param startDate the start date.
      * @param endDate the end date.
@@ -356,7 +359,8 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Executes a SQL statement. Ignores existing tables/indexes when attempting to create new.
+     * Executes a SQL statement. Ignores existing tables/indexes when attempting to
+     * create new.
      *
      * @param sql the SQL statement.
      */
@@ -441,7 +445,8 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Creates a {@link AnalyticsTable} with partitions based on a list of years with data.
+     * Creates a {@link AnalyticsTable} with partitions based on a list of years
+     * with data.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @param dataYears the list of years with data.
@@ -467,8 +472,9 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Creates a {@link AnalyticsTable} with a partition for the "latest" data. The start date of the partition is the
-     * time of the last successful full analytics table update. The end date of the partition is the start time of this
+     * Creates a {@link AnalyticsTable} with a partition for the "latest" data. The
+     * start date of the partition is the time of the last successful full analytics
+     * table update. The end date of the partition is the start time of this
      * analytics table update process.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
@@ -532,8 +538,9 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Filters out analytics table columns which were created after the time of the last successful resource table
-     * update. This so that the the create table query does not refer to columns not present in resource tables.
+     * Filters out analytics table columns which were created after the time of the
+     * last successful resource table update. This so that the the create table
+     * query does not refer to columns not present in resource tables.
      *
      * @param columns the analytics table columns.
      * @return a list of {@link AnalyticsTableColumn}.
@@ -571,7 +578,8 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Collects all the {@link PeriodType} as a list of {@link AnalyticsTableColumn}.
+     * Collects all the {@link PeriodType} as a list of
+     * {@link AnalyticsTableColumn}.
      *
      * @param prefix the prefix to use for the column name
      * @return a List of {@link AnalyticsTableColumn}
@@ -587,7 +595,8 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Collects all the {@link OrganisationUnitLevel} as a list of {@link AnalyticsTableColumn}.
+     * Collects all the {@link OrganisationUnitLevel} as a list of
+     * {@link AnalyticsTableColumn}.
      *
      * @return a List of {@link AnalyticsTableColumn}
      */
@@ -602,7 +611,8 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Collects all the {@link OrganisationUnitGroupSet} as a list of {@link AnalyticsTableColumn}.
+     * Collects all the {@link OrganisationUnitGroupSet} as a list of
+     * {@link AnalyticsTableColumn}.
      *
      * @return a List of {@link AnalyticsTableColumn}
      */
@@ -622,7 +632,8 @@ public abstract class AbstractJdbcTableManager
     // -------------------------------------------------------------------------
 
     /**
-     * Swaps a database table, meaning drops the real table and renames the temporary table to become the real table.
+     * Swaps a database table, meaning drops the real table and renames the
+     * temporary table to become the real table.
      *
      * @param tempTableName the temporary table name.
      * @param realTableName the real table name.
@@ -636,7 +647,8 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Updates table inheritance of a table partition from the temp master table to the real master table.
+     * Updates table inheritance of a table partition from the temp master table to
+     * the real master table.
      *
      * @param partitionTableName the partition table name.
      * @param tempMasterTableName the temporary master table name.

@@ -71,8 +71,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Implementation of EventService that uses Jackson for serialization and deserialization. This class has the prototype
- * scope and can hence have class scoped variables such as caches.
+ * Implementation of EventService that uses Jackson for serialization and
+ * deserialization. This class has the prototype scope and can hence have class
+ * scoped variables such as caches.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

@@ -136,8 +136,8 @@ public class ListMap<T, V>
     }
 
     /**
-     * Produces a ListMap based on the given list of values. The key for each entry is produced by applying the given
-     * keyMapper function.
+     * Produces a ListMap based on the given list of values. The key for each entry
+     * is produced by applying the given keyMapper function.
      *
      * @param values the values of the map.
      * @param keyMapper the function producing the key for each entry.
@@ -158,8 +158,9 @@ public class ListMap<T, V>
     }
 
     /**
-     * Produces a ListMap based on the given list of values. The key for each entry is produced by applying the given
-     * keyMapper function. The value for each entry is produced by applying the given valueMapper function.
+     * Produces a ListMap based on the given list of values. The key for each entry
+     * is produced by applying the given keyMapper function. The value for each
+     * entry is produced by applying the given valueMapper function.
      *
      * @param values the values of the map.
      * @param keyMapper the function producing the key for each entry.
@@ -183,8 +184,8 @@ public class ListMap<T, V>
     }
 
     /**
-     * Returns a union of two same-type ListMaps. Either or both of the input ListMaps may be null. The returned ListMap
-     * never is.
+     * Returns a union of two same-type ListMaps. Either or both of the input
+     * ListMaps may be null. The returned ListMap never is.
      *
      * @param a one ListMap.
      * @param b the other ListMap.

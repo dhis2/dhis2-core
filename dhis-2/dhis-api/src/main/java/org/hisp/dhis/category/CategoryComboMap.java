@@ -35,8 +35,10 @@ import java.util.Map;
 import org.hisp.dhis.common.IdentifiableProperty;
 
 /**
- * CategoryComboMap is used to lookup categoryoptioncombos by identifiers of the categoryoptions. Identifiers must be
- * trimmed of whitespace and be concatenated in the order given by the categories property in object of this class.
+ * CategoryComboMap is used to lookup categoryoptioncombos by identifiers of the
+ * categoryoptions. Identifiers must be trimmed of whitespace and be
+ * concatenated in the order given by the categories property in object of this
+ * class.
  *
  * @author bobj
  */

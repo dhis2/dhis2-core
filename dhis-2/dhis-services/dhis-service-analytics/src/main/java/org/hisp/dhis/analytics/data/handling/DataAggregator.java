@@ -44,7 +44,8 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.stereotype.Component;
 
 /**
- * Class responsible for aggregating all necessary data, provided by the handlers, into the Grid object
+ * Class responsible for aggregating all necessary data, provided by the
+ * handlers, into the Grid object
  */
 @Component
 public class DataAggregator
@@ -142,8 +143,9 @@ public class DataAggregator
     }
 
     /**
-     * Performs pre-handling of the given query and returns the immutable, handled query. If the query has a single
-     * indicator as item for the data filter, the filter is set as a dimension and removed as a filter.
+     * Performs pre-handling of the given query and returns the immutable, handled
+     * query. If the query has a single indicator as item for the data filter, the
+     * filter is set as a dimension and removed as a filter.
      *
      * @param params the {@link DataQueryParams}.
      * @return a {@link DataQueryParams}.
@@ -164,9 +166,10 @@ public class DataAggregator
     }
 
     /**
-     * Performs post-handling of the given grid. If the query has the single indicator as data filter item, the column
-     * at the data dimension index is removed. If the query has sorting order, then the grid is ordered on the value
-     * column based on the sorting specified.
+     * Performs post-handling of the given grid. If the query has the single
+     * indicator as data filter item, the column at the data dimension index is
+     * removed. If the query has sorting order, then the grid is ordered on the
+     * value column based on the sorting specified.
      *
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.

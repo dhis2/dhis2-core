@@ -549,8 +549,8 @@ public class DefaultDataApprovalLevelService
     // -------------------------------------------------------------------------
 
     /**
-     * Finds the lowest number (highest level) organisaiton unit level from the organisations assigned to the current
-     * user.
+     * Finds the lowest number (highest level) organisaiton unit level from the
+     * organisations assigned to the current user.
      */
     private int getCurrentUsersLowestNumberOrgUnitLevel()
     {
@@ -590,8 +590,9 @@ public class DefaultDataApprovalLevelService
     }
 
     /**
-     * Updates a data approval level object by setting the level to correspond with the list index, setting the updated
-     * date to now, and updating the object on disk.
+     * Updates a data approval level object by setting the level to correspond with
+     * the list index, setting the updated date to now, and updating the object on
+     * disk.
      *
      * @param dataApprovalLevel data approval level to update
      * @param index index of the object (used to set the level.)
@@ -604,12 +605,13 @@ public class DefaultDataApprovalLevelService
     }
 
     /**
-     * Finds the right index at which to insert a new data approval level. Returns -1 if the new data approval level is
-     * a duplicate.
+     * Finds the right index at which to insert a new data approval level. Returns
+     * -1 if the new data approval level is a duplicate.
      *
      * @param dataApprovalLevels list of all levels.
      * @param newLevel new level to find the insertion point for.
-     * @return index where the new approval level should be inserted, or -1 if the new level is a duplicate.
+     * @return index where the new approval level should be inserted, or -1 if the
+     *         new level is a duplicate.
      */
     private int getInsertIndex( List<DataApprovalLevel> dataApprovalLevels, DataApprovalLevel newLevel )
     {
@@ -646,8 +648,9 @@ public class DefaultDataApprovalLevelService
     }
 
     /**
-     * Get the approval level for an organisation unit that is required in order for the user to see the data, assuming
-     * user is limited to seeing approved data only from lower approval levels.
+     * Get the approval level for an organisation unit that is required in order for
+     * the user to see the data, assuming user is limited to seeing approved data
+     * only from lower approval levels.
      *
      * @param orgUnit organisation unit to test.
      * @param user the user.
@@ -665,20 +668,23 @@ public class DefaultDataApprovalLevelService
     }
 
     /**
-     * Get the approval level for a user for a given organisation unit. It is assumed that the user has access to the
-     * organisation unit (must be checked elsewhere, it is not checked here.) If the organisation unit is above all
+     * Get the approval level for a user for a given organisation unit. It is
+     * assumed that the user has access to the organisation unit (must be checked
+     * elsewhere, it is not checked here.) If the organisation unit is above all
      * approval levels, returns null (no approval levels apply.)
      * <p>
-     * If users are restricted to viewing approved data only, users may see data from lower levels *only* if it is
-     * approved *below* this approval level (higher number approval level). Or, if this method returns the lowest
+     * If users are restricted to viewing approved data only, users may see data
+     * from lower levels *only* if it is approved *below* this approval level
+     * (higher number approval level). Or, if this method returns the lowest
      * (highest number) approval level, users may see unapproved data.
      * <p>
-     * If users have approve/unapprove authority (checked elsewhere, not here), the returned level is the level at which
-     * users may approve/unapprove. If users have authority to approve at lower levels, they may approve at levels below
+     * If users have approve/unapprove authority (checked elsewhere, not here), the
+     * returned level is the level at which users may approve/unapprove. If users
+     * have authority to approve at lower levels, they may approve at levels below
      * the returned level.
      * <p>
-     * If users have accept/unaccept authority (checked elsewhere, not here), users may accept/unaccept at the level
-     * just *below* this level.
+     * If users have accept/unaccept authority (checked elsewhere, not here), users
+     * may accept/unaccept at the level just *below* this level.
      *
      * @param orgUnit organisation unit to test.
      * @param user the user.
@@ -709,11 +715,12 @@ public class DefaultDataApprovalLevelService
     /**
      * Can the user read from this CategoryOptionGroupSet (COGS)?
      * <p>
-     * If the COGS is null, then the user must have no dimension constraints. (In other words, the user must be able to
-     * read across all category option groups.)
+     * If the COGS is null, then the user must have no dimension constraints. (In
+     * other words, the user must be able to read across all category option
+     * groups.)
      * <p>
-     * If the COGS is not null, then the user must be able to read at least one category option group from the category
-     * option group set.
+     * If the COGS is not null, then the user must be able to read at least one
+     * category option group from the category option group set.
      *
      * @param cogs The category option group set to test
      * @return true if user can read at least one category option group.

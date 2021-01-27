@@ -36,8 +36,8 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 import com.google.common.collect.Lists;
 
 /**
- * PeriodType for yearly Periods. A valid yearly Period has startDate set to January 1st and endDate set to the last day
- * of the same year.
+ * PeriodType for yearly Periods. A valid yearly Period has startDate set to
+ * January 1st and endDate set to the last day of the same year.
  *
  * @author Torgeir Lorange Ostby
  * @version $Id: YearlyPeriodType.java 2971 2007-03-03 18:54:56Z torgeilo $
@@ -134,7 +134,8 @@ public class YearlyPeriodType
     }
 
     /**
-     * Generates the last 5 years where the last one is the year which the given date is inside.
+     * Generates the last 5 years where the last one is the year which the given
+     * date is inside.
      */
     @Override
     public List<Period> generateRollingPeriods( Date date )
@@ -149,7 +150,8 @@ public class YearlyPeriodType
     }
 
     /**
-     * Generates the last 5 years where the last one is the year which the given date is inside.
+     * Generates the last 5 years where the last one is the year which the given
+     * date is inside.
      */
     @Override
     public List<Period> generateLast5Years( Date date )

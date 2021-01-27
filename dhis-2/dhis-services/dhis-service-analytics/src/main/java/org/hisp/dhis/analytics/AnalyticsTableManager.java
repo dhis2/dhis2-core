@@ -43,14 +43,16 @@ public interface AnalyticsTableManager
     String TABLE_TEMP_SUFFIX = "_temp";
 
     /**
-     * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
+     * Returns the {@link AnalyticsTableType} of analytics table which this manager
+     * handles.
      *
      * @return type of analytics table.
      */
     AnalyticsTableType getAnalyticsTableType();
 
     /**
-     * Returns a {@link AnalyticsTable} with a list of yearly {@link AnalyticsTablePartition}.
+     * Returns a {@link AnalyticsTable} with a list of yearly
+     * {@link AnalyticsTablePartition}.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @return the analytics table with partitions.
@@ -65,7 +67,8 @@ public interface AnalyticsTableManager
     Set<String> getExistingDatabaseTables();
 
     /**
-     * Checks if the database content is in valid state for analytics table generation.
+     * Checks if the database content is in valid state for analytics table
+     * generation.
      *
      * @return null if valid, a descriptive string if invalid.
      */
@@ -94,7 +97,8 @@ public interface AnalyticsTableManager
     void createTable( AnalyticsTable table );
 
     /**
-     * Creates single indexes on the given columns of the analytics table with the given name.
+     * Creates single indexes on the given columns of the analytics table with the
+     * given name.
      *
      * @param indexes the analytics indexes.
      * @return a future representing the asynchronous task.
@@ -102,11 +106,12 @@ public interface AnalyticsTableManager
     Future<?> createIndexesAsync( ConcurrentLinkedQueue<AnalyticsIndex> indexes );
 
     /**
-     * Attempts to drop the analytics table with partitions and rename the temporary table with partitions as
-     * replacement.
+     * Attempts to drop the analytics table with partitions and rename the temporary
+     * table with partitions as replacement.
      * <p>
-     * If this is a partial update and the master table currently exists, the master table is not swapped and instead
-     * the inheritance of the partitions are set to the existing master table.
+     * If this is a partial update and the master table currently exists, the master
+     * table is not swapped and instead the inheritance of the partitions are set to
+     * the existing master table.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @param table the analytics table.
@@ -114,8 +119,8 @@ public interface AnalyticsTableManager
     void swapTable( AnalyticsTableUpdateParams params, AnalyticsTable table );
 
     /**
-     * Copies and denormalizes rows from data value table into analytics table. The data range is based on the start
-     * date of the data value row.
+     * Copies and denormalizes rows from data value table into analytics table. The
+     * data range is based on the start date of the data value row.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @param tablePartitions the analytics table partitions.
@@ -160,11 +165,13 @@ public interface AnalyticsTableManager
     void analyzeTable( String tableName );
 
     /**
-     * Applies aggregation level logic to the analytics table by setting the organisation unit level column values to
-     * null for the levels above the given aggregation level.
+     * Applies aggregation level logic to the analytics table by setting the
+     * organisation unit level column values to null for the levels above the given
+     * aggregation level.
      *
      * @param partitions the analytics table partitions.
-     * @param dataElements the data element identifiers to apply aggregation levels for.
+     * @param dataElements the data element identifiers to apply aggregation levels
+     *        for.
      * @param aggregationLevel the aggregation level.
      * @return a future representing the asynchronous task.
      */
@@ -172,8 +179,8 @@ public interface AnalyticsTableManager
         Collection<String> dataElements, int aggregationLevel );
 
     /**
-     * Performs vacuum or optimization of the given table. The type of operation performed is dependent on the
-     * underlying DBMS.
+     * Performs vacuum or optimization of the given table. The type of operation
+     * performed is dependent on the underlying DBMS.
      *
      * @param partitions the analytics table partitions.
      * @return a future representing the asynchronous task.

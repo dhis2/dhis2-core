@@ -84,7 +84,8 @@ public interface ValidationResultService
     void updateValidationResults( Set<ValidationResult> validationResults );
 
     /**
-     * Returns the ValidationResult with the given id, or null if no validation result exists with that id.
+     * Returns the ValidationResult with the given id, or null if no validation
+     * result exists with that id.
      *
      * @param id the validation result identifier.
      * @return a validation result.

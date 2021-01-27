@@ -71,7 +71,8 @@ public class NameableObjectUtils
     }
 
     /**
-     * Returns a list of BaseNameableObjects based on the given list of NameableObjects.
+     * Returns a list of BaseNameableObjects based on the given list of
+     * NameableObjects.
      *
      * @param objects the list of NameableObjects.
      * @return a list of BaseNameableObejcts.
@@ -113,7 +114,8 @@ public class NameableObjectUtils
     }
 
     /**
-     * Returns a mapping between the UID and the property defined by the given display property.
+     * Returns a mapping between the UID and the property defined by the given
+     * display property.
      *
      * @param objects the objects.
      * @param displayProperty the property to use as value.
@@ -136,7 +138,8 @@ public class NameableObjectUtils
     }
 
     /**
-     * Returns a copy of the given list. Returns an empty list if the argument is null.
+     * Returns a copy of the given list. Returns an empty list if the argument is
+     * null.
      *
      * @param objects a list.
      * @return a list of objects.

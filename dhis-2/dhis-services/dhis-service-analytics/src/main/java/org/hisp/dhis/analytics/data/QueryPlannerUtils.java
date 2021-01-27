@@ -53,7 +53,8 @@ import org.hisp.dhis.util.ObjectUtils;
 public class QueryPlannerUtils
 {
     /**
-     * Creates a mapping between level and organisation units for the given organisation units.
+     * Creates a mapping between level and organisation units for the given
+     * organisation units.
      *
      * @param orgUnits list of organisation units.
      */
@@ -72,7 +73,8 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Creates a mapping between level and organisation units for the given organisation units.
+     * Creates a mapping between level and organisation units for the given
+     * organisation units.
      *
      * @param orgUnits list of organisation units.
      */
@@ -84,7 +86,8 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Creates a mapping between data type and data elements for the given data elements.
+     * Creates a mapping between data type and data elements for the given data
+     * elements.
      *
      * @param dataElements list of data elements.
      */
@@ -110,7 +113,8 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Creates a mapping between the aggregation type and data elements for the given data elements and period type.
+     * Creates a mapping between the aggregation type and data elements for the
+     * given data elements and period type.
      *
      * @param dataElements a List of {@see DimensionalItemObject}
      * @param aggregationType an {@see AnalyticsAggregationType}
@@ -140,7 +144,8 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Creates a mapping between the number of days in the period interval and periods for the given periods.
+     * Creates a mapping between the number of days in the period interval and
+     * periods for the given periods.
      *
      * @param periods
      */
@@ -159,8 +164,9 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Returns the {@link AnalyticsAggregationType} according to the given value type, aggregation type, value type
-     * aggregation period type and data period type.
+     * Returns the {@link AnalyticsAggregationType} according to the given value
+     * type, aggregation type, value type aggregation period type and data period
+     * type.
      *
      * @param aggregationType the aggregation type.
      * @param valueType the value type.
@@ -179,8 +185,9 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Indicates whether disaggregation is allowed for the given input. Disaggregation implies that the frequency order
-     * of the aggregation period type is lower than the data period type.
+     * Indicates whether disaggregation is allowed for the given input.
+     * Disaggregation implies that the frequency order of the aggregation period
+     * type is lower than the data period type.
      *
      * @param aggregationPeriodType the aggregation period type.
      * @param dataPeriodType the data period type.
@@ -213,7 +220,8 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Creates a mapping between the period type and data elements for the given list of data elements.
+     * Creates a mapping between the period type and data elements for the given
+     * list of data elements.
      *
      * @param dataElements the list of data elements.
      */

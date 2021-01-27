@@ -347,7 +347,8 @@ public class DefaultPushAnalysisService
     // --------------------------------------------------------------------------
 
     /**
-     * Finds the dashboardItem's type and calls the associated method for generating the resource (either URL or HTML)
+     * Finds the dashboardItem's type and calls the associated method for generating
+     * the resource (either URL or HTML)
      *
      * @param item to generate resource
      * @param user to generate for
@@ -545,8 +546,9 @@ public class DefaultPushAnalysisService
     }
 
     /**
-     * Helper method for asynchronous file resource saving. Done to force a new session for each file resource. Adding
-     * all the file resources in the same session caused problems with the upload callback.
+     * Helper method for asynchronous file resource saving. Done to force a new
+     * session for each file resource. Adding all the file resources in the same
+     * session caused problems with the upload callback.
      *
      * @param fileResource file resource to save
      * @param bytes file data

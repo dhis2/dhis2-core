@@ -737,7 +737,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
      * Check write permission for {@see DataSet} and {@see CategoryOptionCombo}
      *
      * @param user currently logged-in user
-     * @param metaDataProperties {@see MetaDataProperties} containing the objects to check
+     * @param metaDataProperties {@see MetaDataProperties} containing the objects to
+     *        check
      */
     private List<String> validateDataAccess( User user, MetadataProperties metaDataProperties )
     {

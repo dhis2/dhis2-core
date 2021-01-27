@@ -69,7 +69,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Sets;
 
 /**
- * Note: The remove associations methods must be altered if caching is introduced.
+ * Note: The remove associations methods must be altered if caching is
+ * introduced.
  *
  * @author Lars Helge Overland
  */

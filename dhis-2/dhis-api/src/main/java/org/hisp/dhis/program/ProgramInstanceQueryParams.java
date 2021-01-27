@@ -57,8 +57,8 @@ public class ProgramInstanceQueryParams
     private String lastUpdatedDuration;
 
     /**
-     * Organisation units for which instances in the response were registered at. Is related to the specified
-     * OrganisationUnitMode.
+     * Organisation units for which instances in the response were registered at. Is
+     * related to the specified OrganisationUnitMode.
      */
     private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
@@ -78,7 +78,8 @@ public class ProgramInstanceQueryParams
     private ProgramStatus programStatus;
 
     /**
-     * Indicates whether tracked entity instance is marked for follow up for the specified program.
+     * Indicates whether tracked entity instance is marked for follow up for the
+     * specified program.
      */
     private Boolean followUp;
 
@@ -113,7 +114,8 @@ public class ProgramInstanceQueryParams
     private Integer pageSize;
 
     /**
-     * Indicates whether to include the total number of pages in the paging response.
+     * Indicates whether to include the total number of pages in the paging
+     * response.
      */
     private boolean totalPages;
 
@@ -197,8 +199,8 @@ public class ProgramInstanceQueryParams
     }
 
     /**
-     * Indicates whether this params specifies follow up for the given program. Follow up can be specified as true or
-     * false.
+     * Indicates whether this params specifies follow up for the given program.
+     * Follow up can be specified as true or false.
      */
     public boolean hasFollowUp()
     {

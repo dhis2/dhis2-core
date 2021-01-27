@@ -94,8 +94,8 @@ public class ProgramInstanceByTeiSupplier extends AbstractPreheatSupplier
     }
 
     /**
-     * Fetches Program Instances by Event Program and Event Tei. The resulting Map has the Event UID as key and a List
-     * of Program Instances as value.
+     * Fetches Program Instances by Event Program and Event Tei. The resulting Map
+     * has the Event UID as key and a List of Program Instances as value.
      *
      */
     private Map<String, List<ProgramInstance>> getProgramInstancesByProgramAndTei( TrackerPreheat preheat,

@@ -275,8 +275,8 @@ public class AttributeOptionComboLoader
     /**
      * Fetches a {@see CategoryOptionCombo} by "id" (based on the provided IdScheme)
      *
-     * The {@see CategoryOptionCombo} contains tha associated {@see CategoryCombo} and all the associated
-     * {@see CategoryOption}
+     * The {@see CategoryOptionCombo} contains tha associated {@see CategoryCombo}
+     * and all the associated {@see CategoryOption}
      *
      * @param idScheme a {@see IdScheme}
      * @param id the {@see CategoryOptionCombo} id to use

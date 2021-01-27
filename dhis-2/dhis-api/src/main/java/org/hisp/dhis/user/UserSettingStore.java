@@ -46,7 +46,8 @@ public interface UserSettingStore
     void updateUserSetting( UserSetting userSetting );
 
     /**
-     * Retrieves the UserSetting associated with the given User for the given UserSetting name.
+     * Retrieves the UserSetting associated with the given User for the given
+     * UserSetting name.
      * <p>
      * Note: This method invocation will occur within a transaction.
      *
@@ -57,7 +58,8 @@ public interface UserSettingStore
     UserSetting getUserSettingTx( User user, String name );
 
     /**
-     * Retrieves the UserSetting associated with the given User for the given UserSetting name.
+     * Retrieves the UserSetting associated with the given User for the given
+     * UserSetting name.
      *
      * @param user the User.
      * @param name the name of the UserSetting.

@@ -75,7 +75,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
- * This class is used for defining the standardized DataSets. A DataSet consists of a collection of DataElements.
+ * This class is used for defining the standardized DataSets. A DataSet consists
+ * of a collection of DataElements.
  *
  * @author Kristian Nordal
  */
@@ -94,10 +95,11 @@ public class DataSet
     private PeriodType periodType;
 
     /**
-     * The dataInputPeriods is a set of periods with opening and closing dates, which determines the period of which
-     * data can belong (period) and at which dates (between opening and closing dates) actually registering this data is
-     * allowed. The same period can exist at the same time with different opening and closing dates to allow for
-     * multiple periods for registering data.
+     * The dataInputPeriods is a set of periods with opening and closing dates,
+     * which determines the period of which data can belong (period) and at which
+     * dates (between opening and closing dates) actually registering this data is
+     * allowed. The same period can exist at the same time with different opening
+     * and closing dates to allow for multiple periods for registering data.
      */
     private Set<DataInputPeriod> dataInputPeriods = new HashSet<>();
 
@@ -107,13 +109,14 @@ public class DataSet
     private Set<DataSetElement> dataSetElements = new HashSet<>();
 
     /**
-     * Indicators associated with this data set. Indicators are used for view and output purposes, such as calculated
-     * fields in forms and reports.
+     * Indicators associated with this data set. Indicators are used for view and
+     * output purposes, such as calculated fields in forms and reports.
      */
     private Set<Indicator> indicators = new HashSet<>();
 
     /**
-     * The DataElementOperands for which data must be entered in order for the DataSet to be considered as complete.
+     * The DataElementOperands for which data must be entered in order for the
+     * DataSet to be considered as complete.
      */
     private Set<DataElementOperand> compulsoryDataElementOperands = new HashSet<>();
 
@@ -133,7 +136,8 @@ public class DataSet
     private CategoryCombo categoryCombo;
 
     /**
-     * Property indicating if the dataset could be collected using mobile data entry.
+     * Property indicating if the dataset could be collected using mobile data
+     * entry.
      */
     private boolean mobile; // TODO Remove, mobile service is now removed
 
@@ -158,12 +162,14 @@ public class DataSet
     private int timelyDays;
 
     /**
-     * User group which will receive notifications when data set is marked complete, can be null.
+     * User group which will receive notifications when data set is marked complete,
+     * can be null.
      */
     private UserGroup notificationRecipients;
 
     /**
-     * Indicating whether the user completing this data set should be sent a notification.
+     * Indicating whether the user completing this data set should be sent a
+     * notification.
      */
     private boolean notifyCompletingUser;
 
@@ -182,12 +188,14 @@ public class DataSet
     // -------------------------------------------------------------------------
 
     /**
-     * Number of periods in the future to open for data capture, 0 means capture not allowed for current period.
+     * Number of periods in the future to open for data capture, 0 means capture not
+     * allowed for current period.
      */
     private int openFuturePeriods;
 
     /**
-     * Number of periods to open for data capture that are after the category option's end date.
+     * Number of periods to open for data capture that are after the category
+     * option's end date.
      */
     private int openPeriodsAfterCoEndDate;
 
@@ -197,38 +205,44 @@ public class DataSet
     private boolean fieldCombinationRequired;
 
     /**
-     * Property indicating that all validation rules must pass before the form can be completed.
+     * Property indicating that all validation rules must pass before the form can
+     * be completed.
      */
     private boolean validCompleteOnly;
 
     /**
-     * Property indicating whether a comment is required for all fields in a form which are not entered, including false
-     * for boolean values.
+     * Property indicating whether a comment is required for all fields in a form
+     * which are not entered, including false for boolean values.
      */
     private boolean noValueRequiresComment;
 
     /**
-     * Property indicating whether offline storage is enabled for this dataSet or not
+     * Property indicating whether offline storage is enabled for this dataSet or
+     * not
      */
     private boolean skipOffline;
 
     /**
-     * Property indicating whether it should enable data elements decoration in forms.
+     * Property indicating whether it should enable data elements decoration in
+     * forms.
      */
     private boolean dataElementDecoration;
 
     /**
-     * Render default and section forms with tabs instead of multiple sections in one page
+     * Render default and section forms with tabs instead of multiple sections in
+     * one page
      */
     private boolean renderAsTabs;
 
     /**
-     * Render multi-organisationUnit forms either with OU vertically or horizontally.
+     * Render multi-organisationUnit forms either with OU vertically or
+     * horizontally.
      */
     private boolean renderHorizontally;
 
     /**
-     * Property indicating whether all compulsory fields should be filled before completing data set
+     * Property indicating whether all compulsory fields should be filled before
+     * completing data set
      */
     private boolean compulsoryFieldsCompleteOnly;
 
@@ -320,7 +334,8 @@ public class DataSet
     }
 
     /**
-     * Adds a data set element using this data set, the given data element and no category combo.
+     * Adds a data set element using this data set, the given data element and no
+     * category combo.
      *
      * @param dataElement the data element.
      */
@@ -332,7 +347,8 @@ public class DataSet
     }
 
     /**
-     * Adds a data set element using this data set, the given data element and the given category combo.
+     * Adds a data set element using this data set, the given data element and the
+     * given category combo.
      *
      * @param dataElement the data element.
      * @param categoryCombo the category combination.
@@ -417,8 +433,8 @@ public class DataSet
     }
 
     /**
-     * Indicates whether data should be approved for this data set, i.e. whether this data set is part of a data
-     * approval workflow.
+     * Indicates whether data should be approved for this data set, i.e. whether
+     * this data set is part of a data approval workflow.
      */
     public boolean isApproveData()
     {
@@ -443,8 +459,9 @@ public class DataSet
     }
 
     /**
-     * Note that this method returns an immutable set and can not be used to modify the model. Returns an immutable set
-     * of data sets associated with this data element.
+     * Note that this method returns an immutable set and can not be used to modify
+     * the model. Returns an immutable set of data sets associated with this data
+     * element.
      */
     public Set<DataElement> getDataElements()
     {
@@ -483,7 +500,8 @@ public class DataSet
     }
 
     /**
-     * Returns a set of category option group sets which are linked to this data set through its category combination.
+     * Returns a set of category option group sets which are linked to this data set
+     * through its category combination.
      */
     public Set<CategoryOptionGroupSet> getCategoryOptionGroupSets()
     {
@@ -504,8 +522,8 @@ public class DataSet
     }
 
     /**
-     * Indicates whether this data set has a category combination which is different from the default category
-     * combination.
+     * Indicates whether this data set has a category combination which is different
+     * from the default category combination.
      */
     public boolean hasCategoryCombo()
     {
@@ -513,7 +531,8 @@ public class DataSet
     }
 
     /**
-     * Indicates whether the data set is locked for data entry based on the expiry days.
+     * Indicates whether the data set is locked for data entry based on the expiry
+     * days.
      *
      * @param period the period to compare with.
      * @param now the date indicating now, uses current date if null.
@@ -532,12 +551,14 @@ public class DataSet
     }
 
     /**
-     * Checks if the given period and date combination conforms to any of the dataInputPeriods. Returns true if no
-     * dataInputPeriods exists, or the combination conforms to at least one dataInputPeriod.
+     * Checks if the given period and date combination conforms to any of the
+     * dataInputPeriods. Returns true if no dataInputPeriods exists, or the
+     * combination conforms to at least one dataInputPeriod.
      *
      * @param period
      * @param date
-     * @return true if period and date conforms to a dataInputPeriod, or no dataInputPeriods exists.
+     * @return true if period and date conforms to a dataInputPeriod, or no
+     *         dataInputPeriods exists.
      */
     public boolean isDataInputPeriodAndDateAllowed( Period period, Date date )
     {

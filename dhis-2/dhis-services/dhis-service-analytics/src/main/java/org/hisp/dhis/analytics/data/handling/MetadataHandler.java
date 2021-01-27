@@ -85,7 +85,8 @@ public class MetadataHandler
     }
 
     /**
-     * Adds meta data values to the given grid based on the given data query parameters.
+     * Adds meta data values to the given grid based on the given data query
+     * parameters.
      *
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
@@ -160,8 +161,8 @@ public class MetadataHandler
     }
 
     /**
-     * Prepares the given grid to be converted to a data value set, given that the output format is of type
-     * DATA_VALUE_SET.
+     * Prepares the given grid to be converted to a data value set, given that the
+     * output format is of type DATA_VALUE_SET.
      *
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
@@ -175,7 +176,8 @@ public class MetadataHandler
     }
 
     /**
-     * Substitutes the meta data of the grid with the identifier scheme meta data property indicated in the query.
+     * Substitutes the meta data of the grid with the identifier scheme meta data
+     * property indicated in the query.
      *
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.

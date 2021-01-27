@@ -36,7 +36,8 @@ import java.util.Set;
 import org.hisp.dhis.parser.expression.antlr.ExpressionBaseListener;
 
 /**
- * Traverse the ANTLR4 parse tree for a program expression to collect the UIDs for data elements and program attributes.
+ * Traverse the ANTLR4 parse tree for a program expression to collect the UIDs
+ * for data elements and program attributes.
  * <p/>
  * Uses the ANTLR4 listener pattern.
  *

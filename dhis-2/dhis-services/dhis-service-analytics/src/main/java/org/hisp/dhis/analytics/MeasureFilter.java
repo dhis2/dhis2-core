@@ -41,7 +41,8 @@ public enum MeasureFilter
     LE;
 
     /**
-     * Tests whether the measureFilter is valid for x and y as the values for comparison.
+     * Tests whether the measureFilter is valid for x and y as the values for
+     * comparison.
      *
      * @param x The first double value to be compared.
      * @param y The second double value to be compared.

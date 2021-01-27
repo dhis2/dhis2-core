@@ -60,7 +60,8 @@ public class OrganisationUnitQueryParams
     private Set<Integer> levels = new HashSet<>();
 
     /**
-     * The maximum number of organisation unit levels to include, relative to the real root of the hierarchy.
+     * The maximum number of organisation unit levels to include, relative to the
+     * real root of the hierarchy.
      */
     private Integer maxLevels;
 

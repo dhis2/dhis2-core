@@ -46,7 +46,8 @@ import org.hisp.dhis.tracker.preheat.supplier.UserSupplier;
 import com.google.common.collect.ImmutableList;
 
 /**
- * Configuration class for the pre-heat stage. This class holds the list of pre-heat suppliers executed during import
+ * Configuration class for the pre-heat stage. This class holds the list of
+ * pre-heat suppliers executed during import
  */
 @UtilityClass
 public class TrackerImportPreheatConfig

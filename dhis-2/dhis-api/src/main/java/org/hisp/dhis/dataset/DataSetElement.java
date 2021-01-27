@@ -95,8 +95,9 @@ public class DataSetElement implements EmbeddedObject, Serializable
     // -------------------------------------------------------------------------
 
     /**
-     * Returns the category combination of this data set element, if null, then returns the category combination of the
-     * data element of this data set element.
+     * Returns the category combination of this data set element, if null, then
+     * returns the category combination of the data element of this data set
+     * element.
      */
     public CategoryCombo getResolvedCategoryCombo()
     {
@@ -199,8 +200,9 @@ public class DataSetElement implements EmbeddedObject, Serializable
     }
 
     /**
-     * Category combination of this data set element. Can be null, use {@link #getResolvedCategoryCombo} to get fall
-     * back to category combination of data element.
+     * Category combination of this data set element. Can be null, use
+     * {@link #getResolvedCategoryCombo} to get fall back to category combination of
+     * data element.
      */
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )

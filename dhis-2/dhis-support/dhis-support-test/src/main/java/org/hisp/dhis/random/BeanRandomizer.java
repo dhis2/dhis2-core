@@ -60,7 +60,8 @@ public class BeanRandomizer
     }
 
     /**
-     * Generates an instance of the specified type and fill the instance's properties with random data
+     * Generates an instance of the specified type and fill the instance's
+     * properties with random data
      *
      * @param type The bean type
      * @param excludedFields a list of fields to exclude from the random population
@@ -72,7 +73,8 @@ public class BeanRandomizer
     }
 
     /**
-     * Generates multiple instances of the specified type and fills each instance's properties with random data
+     * Generates multiple instances of the specified type and fills each instance's
+     * properties with random data
      *
      * @param type The bean type
      * @param amount the amount of beans to generate

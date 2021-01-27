@@ -63,8 +63,8 @@ import com.google.common.collect.Multimap;
 import com.google.common.primitives.Primitives;
 
 /**
- * Default PropertyIntrospectorService implementation that uses Reflection and Jackson annotations for reading in
- * properties.
+ * Default PropertyIntrospectorService implementation that uses Reflection and
+ * Jackson annotations for reading in properties.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

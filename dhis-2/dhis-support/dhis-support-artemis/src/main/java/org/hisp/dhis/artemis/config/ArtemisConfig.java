@@ -240,7 +240,8 @@ public class ArtemisConfig
     }
 
     /**
-     * Holds a Map of AuditScope -> Topic Name so that a Producer can resolve the topic name from the scope
+     * Holds a Map of AuditScope -> Topic Name so that a Producer can resolve the
+     * topic name from the scope
      */
     @Bean
     public Map<AuditScope, String> scopeToDestinationMap()

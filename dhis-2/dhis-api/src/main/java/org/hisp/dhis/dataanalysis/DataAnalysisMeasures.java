@@ -28,8 +28,9 @@
 package org.hisp.dhis.dataanalysis;
 
 /**
- * DataAnalysisMeasures contains the average and standard deviation measures of data for a given combination of
- * organisation unit and category option combo. (The data element is fixed.)
+ * DataAnalysisMeasures contains the average and standard deviation measures of
+ * data for a given combination of organisation unit and category option combo.
+ * (The data element is fixed.)
  *
  * @author Jim Grace
  */

@@ -32,8 +32,9 @@ import java.util.Comparator;
 import org.hisp.dhis.dataset.DataSet;
 
 /**
- * Sorts data sets according to the frequency order of their period type, ordered from high to low collection frequency.
- * A lower frequency order value implies higher data set collection frequency. Next, sorts by data set name.
+ * Sorts data sets according to the frequency order of their period type,
+ * ordered from high to low collection frequency. A lower frequency order value
+ * implies higher data set collection frequency. Next, sorts by data set name.
  *
  * @author Lars Helge Overland
  */

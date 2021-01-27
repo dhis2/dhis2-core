@@ -112,11 +112,13 @@ public class DashboardController
     }
 
     /**
-     * Logic required to keep the backward compatibility with Chart and ReporTable. Otherwise it would always return
-     * VISUALIZATION type for any Chart or ReportTable.
+     * Logic required to keep the backward compatibility with Chart and ReporTable.
+     * Otherwise it would always return VISUALIZATION type for any Chart or
+     * ReportTable.
      * <p>
-     * Only needed during the transition from Chart/ReportTable APIs to Visualization API. Once the Visualization API is
-     * fully enabled this logic should be removed.
+     * Only needed during the transition from Chart/ReportTable APIs to
+     * Visualization API. Once the Visualization API is fully enabled this logic
+     * should be removed.
      *
      * @param dashboards
      * @param options
@@ -137,11 +139,13 @@ public class DashboardController
     }
 
     /**
-     * Logic required to keep the backward compatibility with Chart and ReportTable. Otherwise it would always return
-     * VISUALIZATION type for any Chart or ReportTable.
+     * Logic required to keep the backward compatibility with Chart and ReportTable.
+     * Otherwise it would always return VISUALIZATION type for any Chart or
+     * ReportTable.
      * <p>
-     * Only needed during the transition from Chart/ReportTable APIs to Visualization API. Once the Visualization API is
-     * fully enabled this logic should be removed.
+     * Only needed during the transition from Chart/ReportTable APIs to
+     * Visualization API. Once the Visualization API is fully enabled this logic
+     * should be removed.
      *
      * @param dashboard
      * @param options

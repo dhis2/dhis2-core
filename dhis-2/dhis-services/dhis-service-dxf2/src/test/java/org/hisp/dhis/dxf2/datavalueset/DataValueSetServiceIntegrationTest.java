@@ -255,8 +255,8 @@ public class DataValueSetServiceIntegrationTest
     }
 
     /**
-     * Import 12 data values where 4 are marked as deleted. Deleted values should count as imports when there are no
-     * existing non-deleted matching values.
+     * Import 12 data values where 4 are marked as deleted. Deleted values should
+     * count as imports when there are no existing non-deleted matching values.
      */
     @Test
     public void testImportDeletedValuesXml()
@@ -278,8 +278,8 @@ public class DataValueSetServiceIntegrationTest
     }
 
     /**
-     * Import 12 data values where 4 are marked as deleted. Then import 12 data values which reverse deletion of the 4
-     * values and update the other 8 values.
+     * Import 12 data values where 4 are marked as deleted. Then import 12 data
+     * values which reverse deletion of the 4 values and update the other 8 values.
      */
     @Test
     public void testImportReverseDeletedValuesXml()
@@ -311,8 +311,9 @@ public class DataValueSetServiceIntegrationTest
     }
 
     /**
-     * Import 12 data values where 4 are marked as deleted. Then import 12 data values which reverse deletion of the 4
-     * values, update 4 values and add 4 values.
+     * Import 12 data values where 4 are marked as deleted. Then import 12 data
+     * values which reverse deletion of the 4 values, update 4 values and add 4
+     * values.
      */
     @Test
     public void testImportAddAndReverseDeletedValuesXml()
@@ -376,7 +377,8 @@ public class DataValueSetServiceIntegrationTest
     }
 
     /**
-     * Import 12 data values. Then import 12 values where 4 are marked as deleted, 6 are updates and 2 are new.
+     * Import 12 data values. Then import 12 values where 4 are marked as deleted, 6
+     * are updates and 2 are new.
      */
     @Test
     public void testImportAndDeleteValuesXml()
@@ -408,7 +410,8 @@ public class DataValueSetServiceIntegrationTest
     }
 
     /**
-     * Import 12 data values. Then import the same 12 data values with import strategy delete.
+     * Import 12 data values. Then import the same 12 data values with import
+     * strategy delete.
      */
     @Test
     public void testImportValuesDeleteStrategyXml()

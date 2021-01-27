@@ -663,7 +663,8 @@ public class DefaultPreheatService implements PreheatService
     /**
      * Collect references for {@link AnalyticalObject}.
      *
-     * @param map the mapping between {@link PreheatIdentifier} and object identifiers.
+     * @param map the mapping between {@link PreheatIdentifier} and object
+     *        identifiers.
      * @param object the object.
      */
     private void collectAnalyticalObjectReferences(

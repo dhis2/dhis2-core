@@ -43,7 +43,8 @@ public interface NotificationLoggingService
 
     /**
      *
-     * @param templateUid is the uid for the notification template which this log entry is associated to.
+     * @param templateUid is the uid for the notification template which this log
+     *        entry is associated to.
      * @return log entry if exists otherwise null.
      */
     ExternalNotificationLogEntry getByTemplateUid( String templateUid );
@@ -73,8 +74,8 @@ public interface NotificationLoggingService
     /**
      *
      * @param templateUid Uid of the template which needs to be sent.
-     * @return true in case there is no log entry for this template uid or template is eligible for sending more then
-     *         once. Otherwise false.
+     * @return true in case there is no log entry for this template uid or template
+     *         is eligible for sending more then once. Otherwise false.
      */
     boolean isValidForSending( String templateUid );
 

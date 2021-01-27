@@ -42,7 +42,8 @@ public interface UserKeyJsonValueService
      *
      * @param user the user where the key is associated
      * @param namespace the namespace associated with the key
-     * @param key the key referencing the value @return the UserKeyJsonValue matching the key and namespace
+     * @param key the key referencing the value @return the UserKeyJsonValue
+     *        matching the key and namespace
      */
     UserKeyJsonValue getUserKeyJsonValue( User user, String namespace, String key );
 
@@ -72,7 +73,8 @@ public interface UserKeyJsonValueService
      * Returns a list of namespaces connected to the given user
      *
      * @param user the user connected to the namespaces
-     * @return List of strings representing namespaces or an empty list if no namespaces are found
+     * @return List of strings representing namespaces or an empty list if no
+     *         namespaces are found
      */
     List<String> getNamespacesByUser( User user );
 

@@ -68,8 +68,9 @@ public class AuditManager
     private final AuditObjectFactory objectFactory;
 
     /**
-     * Cache for Fields of {@link org.hisp.dhis.audit.Auditable} classes Key is class name. Value is Map of
-     * {@link AuditAttribute} Fields and its getter Method
+     * Cache for Fields of {@link org.hisp.dhis.audit.Auditable} classes Key is
+     * class name. Value is Map of {@link AuditAttribute} Fields and its getter
+     * Method
      */
     private static final Map<String, Map<Field, Method>> cachedAuditAttributeFields = new ConcurrentHashMap<>();
 

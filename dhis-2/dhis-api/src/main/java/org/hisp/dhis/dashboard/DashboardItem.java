@@ -69,7 +69,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * Represents an item in the dashboard. An item can represent an embedded object or represent links to other objects.
+ * Represents an item in the dashboard. An item can represent an embedded object
+ * or represent links to other objects.
  *
  * @author Lars Helge Overland
  */
@@ -188,7 +189,8 @@ public class DashboardItem
     }
 
     /**
-     * Returns the actual item object if this dashboard item represents an embedded item and not links to items.
+     * Returns the actual item object if this dashboard item represents an embedded
+     * item and not links to items.
      */
     public InterpretableObject getEmbeddedItem()
     {
@@ -239,8 +241,8 @@ public class DashboardItem
     }
 
     /**
-     * Returns a list of the actual item objects if this dashboard item represents a list of objects and not an embedded
-     * item.
+     * Returns a list of the actual item objects if this dashboard item represents a
+     * list of objects and not an embedded item.
      */
     public List<? extends IdentifiableObject> getLinkItems()
     {
@@ -281,7 +283,8 @@ public class DashboardItem
     }
 
     /**
-     * Removes the content with the given uid. Returns true if a content with the given uid existed and was removed.
+     * Removes the content with the given uid. Returns true if a content with the
+     * given uid existed and was removed.
      *
      * @param uid the identifier of the content.
      * @return true if a content was removed.

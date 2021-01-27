@@ -399,8 +399,9 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     }
 
     /**
-     * Resolve the key to place in the Program Map, based on the Scheme specified in the request If the scheme is of
-     * type Attribute, use the attribute value from the JSONB column
+     * Resolve the key to place in the Program Map, based on the Scheme specified in
+     * the request If the scheme is of type Attribute, use the attribute value from
+     * the JSONB column
      */
     private String getProgramKey( IdScheme programIdScheme, ResultSet rs )
         throws SQLException
@@ -493,8 +494,9 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     }
 
     /**
-     * Check if the list of incoming Events contains one or more Program uid which is not in cache. Reload the entire
-     * program cache if a Program UID is not found
+     * Check if the list of incoming Events contains one or more Program uid which
+     * is not in cache. Reload the entire program cache if a Program UID is not
+     * found
      */
     private boolean requiresCacheReload( List<Event> events, Map<String, Program> programMap )
     {

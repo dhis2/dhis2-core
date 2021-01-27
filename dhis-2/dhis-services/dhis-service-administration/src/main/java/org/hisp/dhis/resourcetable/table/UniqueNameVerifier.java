@@ -43,8 +43,9 @@ public class UniqueNameVerifier
     protected List<String> columnNames = new ArrayList<>();
 
     /**
-     * Returns the short name in quotes for the given {@see BaseDimensionalObject}, ensuring that the short name is
-     * unique across the list of BaseDimensionalObject this class operates on
+     * Returns the short name in quotes for the given {@see BaseDimensionalObject},
+     * ensuring that the short name is unique across the list of
+     * BaseDimensionalObject this class operates on
      *
      * @param baseDimensionalObject a {@see BaseDimensionalObject}
      * @return a unique, quoted short name
@@ -60,7 +61,8 @@ public class UniqueNameVerifier
     }
 
     /**
-     * Returns the name in quotes, ensuring that the name is unique across the list of objects this class operates on
+     * Returns the name in quotes, ensuring that the name is unique across the list
+     * of objects this class operates on
      *
      * @param name a String
      * @return a unique, quoted name

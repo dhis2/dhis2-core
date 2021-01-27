@@ -66,10 +66,12 @@ public class WebOptions
     }
 
     /**
-     * This method will return a boolean flag depending on the current paging value and the given default return value.
-     * The input param will be used to force the return of this method in the cases where the PAGING is not set.
+     * This method will return a boolean flag depending on the current paging value
+     * and the given default return value. The input param will be used to force the
+     * return of this method in the cases where the PAGING is not set.
      *
-     * @param defaultReturnValue is the value to be returned if the paging is not set.
+     * @param defaultReturnValue is the value to be returned if the paging is not
+     *        set.
      * @return the boolean flag.
      */
     public boolean hasPaging( boolean defaultReturnValue )

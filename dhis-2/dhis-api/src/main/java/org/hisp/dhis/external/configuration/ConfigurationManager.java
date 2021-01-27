@@ -37,7 +37,8 @@ import java.io.OutputStream;
 public interface ConfigurationManager<T>
 {
     /**
-     * Writes a configuration object to an XML file. The outputstream will be closed after use.
+     * Writes a configuration object to an XML file. The outputstream will be closed
+     * after use.
      *
      * @param configuration the configuration object.
      * @param out the outputstream to write to.
@@ -45,7 +46,8 @@ public interface ConfigurationManager<T>
     void setConfiguration( T configuration, OutputStream out, Class<?>... clazzes );
 
     /**
-     * Reads a configuration object from an XML file. The inputstream will be closed after use.
+     * Reads a configuration object from an XML file. The inputstream will be closed
+     * after use.
      *
      * @param in the inputstream to read from.
      * @param clazz the Class of the configuration object.

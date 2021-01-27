@@ -32,8 +32,8 @@ import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * A Builder class that helps in building Cache instances. Sensible defaults are in place which can be modified with a
- * fluent builder api.
+ * A Builder class that helps in building Cache instances. Sensible defaults are
+ * in place which can be modified with a fluent builder api.
  *
  * @author Ameen Mohamed
  *
@@ -138,10 +138,12 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
     }
 
     /**
-     * Creates and returns a {@link LocalCache}. If {@code maximumSize} is 0 or {@code disabled} is true then a
-     * NoOpCache instance will be returned which does not cache anything.
+     * Creates and returns a {@link LocalCache}. If {@code maximumSize} is 0 or
+     * {@code disabled} is true then a NoOpCache instance will be returned which
+     * does not cache anything.
      *
-     * @return A cache instance based on the input parameters. Returns one of {@link LocalCache} or {@link NoOpCache}
+     * @return A cache instance based on the input parameters. Returns one of
+     *         {@link LocalCache} or {@link NoOpCache}
      */
     public Cache<V> build()
     {

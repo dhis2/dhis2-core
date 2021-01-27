@@ -44,8 +44,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * An IndicatorGroupSet is a set of IndicatorGroups. It is by default exclusive, in the sense that an Indicator can only
- * be a member of one or zero of the IndicatorGroups in a IndicatorGroupSet.
+ * An IndicatorGroupSet is a set of IndicatorGroups. It is by default exclusive,
+ * in the sense that an Indicator can only be a member of one or zero of the
+ * IndicatorGroups in a IndicatorGroupSet.
  *
  * @author Lars Helge Overland
  */

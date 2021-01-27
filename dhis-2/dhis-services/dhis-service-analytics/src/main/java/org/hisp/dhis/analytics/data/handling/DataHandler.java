@@ -155,8 +155,9 @@ import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Component;
 
 /**
- * This component is responsible for handling and retrieving data based on the input provided to the public methods. The
- * main goal is to correctly populate the data into the Grid object.
+ * This component is responsible for handling and retrieving data based on the
+ * input provided to the public methods. The main goal is to correctly populate
+ * the data into the Grid object.
  */
 @Slf4j
 @Component
@@ -217,7 +218,8 @@ public class DataHandler
     }
 
     /**
-     * Adds indicator values to the given grid based on the given data query parameters.
+     * Adds indicator values to the given grid based on the given data query
+     * parameters.
      *
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
@@ -269,14 +271,16 @@ public class DataHandler
     }
 
     /**
-     * Based on the given Indicator plus additional parameters, this method will find the respective IndicatorValue.
+     * Based on the given Indicator plus additional parameters, this method will
+     * find the respective IndicatorValue.
      *
      * @param filterPeriods the filter periods.
-     * @param constantMap the current constants map. See @{{@link ConstantService#getConstantMap()}}.
+     * @param constantMap the current constants map.
+     *        See @{{@link ConstantService#getConstantMap()}}.
      * @param permutationOrgUnitTargetMap the org unit permutation map. See
      *        {@link #getOrgUnitTargetMap(DataQueryParams, Collection)}.
-     * @param permutationDimensionItemValueMap the dimension item permutation map. See
-     *        {@link #getPermutationDimensionItemValueMap(DataQueryParams)}.
+     * @param permutationDimensionItemValueMap the dimension item permutation map.
+     *        See {@link #getPermutationDimensionItemValueMap(DataQueryParams)}.
      * @param indicator the input Indicator where the IndicatorValue will be based.
      * @param dimensionItems the dimensional items permutation map. See
      *        {@link DataQueryParams#getDimensionItemPermutations()}.
@@ -308,7 +312,8 @@ public class DataHandler
     }
 
     /**
-     * Adds data element values to the given grid based on the given data query parameters.
+     * Adds data element values to the given grid based on the given data query
+     * parameters.
      *
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
@@ -340,7 +345,8 @@ public class DataHandler
     }
 
     /**
-     * Adds program data element values to the given grid based on the given data query parameters.
+     * Adds program data element values to the given grid based on the given data
+     * query parameters.
      *
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
@@ -365,8 +371,9 @@ public class DataHandler
     }
 
     /**
-     * This method will replace the headers in the current grid by the event grid IF, and only IF, there is a mismatch
-     * between the current grid and the event grid headers.
+     * This method will replace the headers in the current grid by the event grid
+     * IF, and only IF, there is a mismatch between the current grid and the event
+     * grid headers.
      *
      * @param grid the current/actual grid
      * @param eventGrid the event grid
@@ -384,7 +391,8 @@ public class DataHandler
     }
 
     /**
-     * Adds reporting rates to the given grid based on the given data query parameters.
+     * Adds reporting rates to the given grid based on the given data query
+     * parameters.
      *
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
@@ -407,7 +415,8 @@ public class DataHandler
     }
 
     /**
-     * Adds data element operand values to the given grid based on the given data query parameters.
+     * Adds data element operand values to the given grid based on the given data
+     * query parameters.
      *
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
@@ -427,8 +436,9 @@ public class DataHandler
     }
 
     /**
-     * Adds values to the given grid based on dynamic dimensions from the given data query parameters. This assumes that
-     * no fixed dimensions are part of the query.
+     * Adds values to the given grid based on dynamic dimensions from the given data
+     * query parameters. This assumes that no fixed dimensions are part of the
+     * query.
      *
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
@@ -445,7 +455,8 @@ public class DataHandler
     }
 
     /**
-     * Adds validation results to the given grid based on the given data query parameters.
+     * Adds validation results to the given grid based on the given data query
+     * parameters.
      *
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
@@ -541,7 +552,8 @@ public class DataHandler
     }
 
     /**
-     * Adds reporting rates to the given grid based on the given data query parameters and reporting rate metric.
+     * Adds reporting rates to the given grid based on the given data query
+     * parameters and reporting rate metric.
      *
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
@@ -608,7 +620,8 @@ public class DataHandler
     }
 
     /**
-     * Calculate reporting rate and replace data set with rate and add the rate to the Grid.
+     * Calculate reporting rate and replace data set with rate and add the rate to
+     * the Grid.
      *
      * @param params the {@link DataQueryParams}.
      * @param grid the current Grid to be manipulated.
@@ -616,7 +629,8 @@ public class DataHandler
      * @param dataRow the current dataRow, based on the key map built by
      *        {@link #getAggregatedCompletenessTargetMap(DataQueryParams)).
      * @param target the current value of the respective key ("dataRow"). See
-     * @param actual the current actual value from {@link #getAggregatedCompletenessValueMap(DataQueryParams)} or zero
+     * @param actual the current actual value from
+     *        {@link #getAggregatedCompletenessValueMap(DataQueryParams)} or zero
      *        (default)
      */
     private void addReportRateToGrid( DataQueryParams params, Grid grid, ReportingRateMetric metric,
@@ -641,8 +655,8 @@ public class DataHandler
     }
 
     /**
-     * Use number of days for daily data sets as target, as query periods might often span/contain different numbers of
-     * days.
+     * Use number of days for daily data sets as target, as query periods might
+     * often span/contain different numbers of days.
      *
      * @param periodIndex the index of the period in the "dataRow".
      * @param timeUnits the time unit size found in the current DataQueryParams. See
@@ -651,7 +665,8 @@ public class DataHandler
      *        {@link #getAggregatedCompletenessTargetMap(DataQueryParams)).
      * @param target the current value of the respective key ("dataRow"). See
      *        {@link #getAggregatedCompletenessTargetMap(DataQueryParams).
-     * @param queryPt the filter period in the current "dataRow". See {@link PeriodType#getPeriodTypeFromIsoString}.
+     * @param queryPt the filter period in the current "dataRow". See
+     *        {@link PeriodType#getPeriodTypeFromIsoString}.
      * @param dataSetPt the dataset period.
      * @param filterPeriods the filter "pe" in the params.
      *
@@ -722,8 +737,9 @@ public class DataHandler
     }
 
     /**
-     * Generates aggregated values for the given query. Creates a mapping between a dimension key and the aggregated
-     * value. The dimension key is a concatenation of the identifiers of the dimension items separated by "-".
+     * Generates aggregated values for the given query. Creates a mapping between a
+     * dimension key and the aggregated value. The dimension key is a concatenation
+     * of the identifiers of the dimension items separated by "-".
      *
      * @param params the {@link DataQueryParams}.
      * @return a mapping between a dimension key and the aggregated value.
@@ -734,10 +750,12 @@ public class DataHandler
     }
 
     /**
-     * Generates a mapping between the data set dimension key and the count of expected data sets to report.
+     * Generates a mapping between the data set dimension key and the count of
+     * expected data sets to report.
      *
      * @param params the {@link DataQueryParams}.
-     * @return a mapping between the data set dimension key and the count of expected data sets to report.
+     * @return a mapping between the data set dimension key and the count of
+     *         expected data sets to report.
      */
     private Map<String, Double> getAggregatedCompletenessTargetMap( DataQueryParams params )
     {
@@ -808,8 +826,9 @@ public class DataHandler
     }
 
     /**
-     * Generates aggregated values for the given query. Creates a mapping between a dimension key and the aggregated
-     * value. The dimension key is a concatenation of the identifiers of the dimension items separated by "-".
+     * Generates aggregated values for the given query. Creates a mapping between a
+     * dimension key and the aggregated value. The dimension key is a concatenation
+     * of the identifiers of the dimension items separated by "-".
      *
      * @param params the {@link DataQueryParams}.
      * @return a mapping between a dimension key and the aggregated value.
@@ -820,7 +839,8 @@ public class DataHandler
     }
 
     /**
-     * Returns a mapping of permutation keys and mappings of data element operands and values based on the given query.
+     * Returns a mapping of permutation keys and mappings of data element operands
+     * and values based on the given query.
      *
      * @param params the {@link DataQueryParams}.
      */
@@ -832,12 +852,14 @@ public class DataHandler
     }
 
     /**
-     * Checks whether the measure criteria in query parameters is satisfied for the given indicator value.
+     * Checks whether the measure criteria in query parameters is satisfied for the
+     * given indicator value.
      *
      * @param params the query parameters.
      * @param value the indicator value.
      * @param indicator the indicator.
-     * @return true if all the measure criteria are satisfied for this indicator value, false otherwise.
+     * @return true if all the measure criteria are satisfied for this indicator
+     *         value, false otherwise.
      */
     private boolean satisfiesMeasureCriteria( DataQueryParams params, IndicatorValue value, Indicator indicator )
     {
@@ -855,8 +877,9 @@ public class DataHandler
     }
 
     /**
-     * Handles the case where there are no dimension item permutations by adding an empty dimension item list to the
-     * permutations list. This state occurs where there are only data or category option combo dimensions specified.
+     * Handles the case where there are no dimension item permutations by adding an
+     * empty dimension item list to the permutations list. This state occurs where
+     * there are only data or category option combo dimensions specified.
      *
      * @param dimensionItemPermutations list of dimension item permutations.
      */
@@ -869,11 +892,12 @@ public class DataHandler
     }
 
     /**
-     * Generates a mapping of permutations keys (organisation unit id or null) and mappings of organisation unit group
-     * and counts.
+     * Generates a mapping of permutations keys (organisation unit id or null) and
+     * mappings of organisation unit group and counts.
      *
      * @param params the {@link DataQueryParams}.
-     * @param indicators the indicators for which formulas to scan for organisation unit groups.
+     * @param indicators the indicators for which formulas to scan for organisation
+     *        unit groups.
      * @return a map of maps.
      */
     private Map<String, Map<String, Integer>> getOrgUnitTargetMap( DataQueryParams params,
@@ -901,11 +925,13 @@ public class DataHandler
     }
 
     /**
-     * Generates a mapping between the the organisation unit dimension key and the count of organisation units inside
-     * the subtree of the given organisation units and members of the given organisation unit groups.
+     * Generates a mapping between the the organisation unit dimension key and the
+     * count of organisation units inside the subtree of the given organisation
+     * units and members of the given organisation unit groups.
      *
      * @param params the {@link DataQueryParams}.
-     * @return a mapping between the the data set dimension key and the count of expected data sets to report.
+     * @return a mapping between the the data set dimension key and the count of
+     *         expected data sets to report.
      */
     private Map<String, Double> getAggregatedOrganisationUnitTargetMap( DataQueryParams params )
     {
@@ -930,9 +956,11 @@ public class DataHandler
     }
 
     /**
-     * Returns a mapping between dimension items and values for the given data query and list of indicators. The
-     * dimensional items part of the indicator numerators and denominators are used as dimensional item for the
-     * aggregated values being retrieved. In case of circular references between Indicators, an exception is thrown.
+     * Returns a mapping between dimension items and values for the given data query
+     * and list of indicators. The dimensional items part of the indicator
+     * numerators and denominators are used as dimensional item for the aggregated
+     * values being retrieved. In case of circular references between Indicators, an
+     * exception is thrown.
      *
      * @param params the {@link DataQueryParams}.
      * @param indicators the list of indicators.
@@ -1015,7 +1043,8 @@ public class DataHandler
      * @param params the current DataQueryParams.
      * @param grid the current Grid.
      * @param dataSourceParams the DataQueryParams built for Indicators.
-     * @param indicator the Indicator which the values will be extracted from, and added to be added to the Grid.
+     * @param indicator the Indicator which the values will be extracted from, and
+     *        added to be added to the Grid.
      * @param dimensionItems the dimensional items permutation. See @{link
      *        {@link DataQueryParams#getDimensionItemPermutations()}}.
      * @param value the IndicatorValue which the values will be extracted from.
@@ -1094,12 +1123,14 @@ public class DataHandler
     }
 
     /**
-     * Generates a mapping between a dimension key and the aggregated value. The dimension key is a concatenation of the
-     * identifiers of the dimension items separated by "-".
+     * Generates a mapping between a dimension key and the aggregated value. The
+     * dimension key is a concatenation of the identifiers of the dimension items
+     * separated by "-".
      *
      * @param params the {@link DataQueryParams}.
      * @param tableType the {@link AnalyticsTableType}.
-     * @param queryGroupers the list of additional query groupers to use for query planning, use empty list for none.
+     * @param queryGroupers the list of additional query groupers to use for query
+     *        planning, use empty list for none.
      * @return a mapping between a dimension key and aggregated values.
      */
     private Map<String, Object> getAggregatedValueMap( DataQueryParams params, AnalyticsTableType tableType,
@@ -1178,8 +1209,8 @@ public class DataHandler
     }
 
     /**
-     * Gets the number of available cores. Uses explicit number from system setting if available. Detects number of
-     * cores from current server runtime if not.
+     * Gets the number of available cores. Uses explicit number from system setting
+     * if available. Detects number of cores from current server runtime if not.
      *
      * @return the number of available cores.
      */
@@ -1191,8 +1222,9 @@ public class DataHandler
     }
 
     /**
-     * Generates aggregated values for the given query. Creates a mapping between a dimension key and the aggregated
-     * value. The dimension key is a concatenation of the identifiers of the dimension items separated by "-".
+     * Generates aggregated values for the given query. Creates a mapping between a
+     * dimension key and the aggregated value. The dimension key is a concatenation
+     * of the identifiers of the dimension items separated by "-".
      *
      * @param params the {@link DataQueryParams}.
      * @return a mapping between a dimension key and the aggregated value.

@@ -35,7 +35,8 @@ import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Wrapper object to handle identifier-related parameters for tracker import/export
+ * Wrapper object to handle identifier-related parameters for tracker
+ * import/export
  *
  * @author Stian Sandvold
  */
@@ -74,7 +75,8 @@ public class TrackerIdentifierParams
     private TrackerIdentifier programStageIdScheme = TrackerIdentifier.UID;
 
     /**
-     * Specific identifier to match all metadata on. Will be overridden by metadata-specific idSchemes.
+     * Specific identifier to match all metadata on. Will be overridden by
+     * metadata-specific idSchemes.
      */
     @JsonProperty
     @Builder.Default

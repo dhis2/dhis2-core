@@ -138,9 +138,9 @@ public class ImportSummaries extends AbstractWebMessageResponse
     }
 
     /**
-     * Returns the {@link ImportStatus} with the highest order from the list of import summaries, where
-     * {@link ImportStatus#ERROR} is the highest. If no import summaries are present, {@link ImportStatus#SUCCESS} is
-     * returned.
+     * Returns the {@link ImportStatus} with the highest order from the list of
+     * import summaries, where {@link ImportStatus#ERROR} is the highest. If no
+     * import summaries are present, {@link ImportStatus#SUCCESS} is returned.
      *
      * @return import status with highest order.
      */

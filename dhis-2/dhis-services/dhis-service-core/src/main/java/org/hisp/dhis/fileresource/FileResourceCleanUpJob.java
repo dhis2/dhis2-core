@@ -44,8 +44,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Deletes any orphaned FileResources. Queries for non-assigned or failed-upload FileResources and deletes them from the
- * database and/or file store.
+ * Deletes any orphaned FileResources. Queries for non-assigned or failed-upload
+ * FileResources and deletes them from the database and/or file store.
  *
  * @author Halvdan Hoem Grelland
  */
@@ -133,7 +133,8 @@ public class FileResourceCleanUpJob
     }
 
     /**
-     * Attempts to delete a fileresource. Fixes the isAssigned status if it turns out to be referenced by something else
+     * Attempts to delete a fileresource. Fixes the isAssigned status if it turns
+     * out to be referenced by something else
      *
      * @param fileResource the fileresource to delete
      * @return true if the delete was successful

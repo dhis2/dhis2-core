@@ -37,16 +37,19 @@ public interface ProgramTrackedEntityAttributeGroupService
     /**
      * Adds an {@link ProgramTrackedEntityAttributeGroup}
      *
-     * @param programTrackedEntityAttributeGroup The to ProgramTrackedEntityAttributeGroup add.
+     * @param programTrackedEntityAttributeGroup The to
+     *        ProgramTrackedEntityAttributeGroup add.
      *
-     * @return A generated unique id of the added {@link ProgramTrackedEntityAttributeGroup}.
+     * @return A generated unique id of the added
+     *         {@link ProgramTrackedEntityAttributeGroup}.
      */
     long addProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup programTrackedEntityAttributeGroup );
 
     /**
      * Deletes a {@link ProgramTrackedEntityAttributeGroup}.
      *
-     * @param programTrackedEntityAttributeGroup the ProgramTrackedEntityAttributeGroup to delete.
+     * @param programTrackedEntityAttributeGroup the
+     *        ProgramTrackedEntityAttributeGroup to delete.
      */
     void deleteProgramTrackedEntityAttributeGroup(
         ProgramTrackedEntityAttributeGroup programTrackedEntityAttributeGroup );
@@ -54,7 +57,8 @@ public interface ProgramTrackedEntityAttributeGroupService
     /**
      * Updates a {@link ProgramTrackedEntityAttributeGroup}.
      *
-     * @param programTrackedEntityAttributeGroup the ProgramTrackedEntityAttributeGroup to update.
+     * @param programTrackedEntityAttributeGroup the
+     *        ProgramTrackedEntityAttributeGroup to update.
      */
     void updateProgramTrackedEntityAttributeGroup(
         ProgramTrackedEntityAttributeGroup programTrackedEntityAttributeGroup );
@@ -80,8 +84,8 @@ public interface ProgramTrackedEntityAttributeGroupService
     /**
      * Returns all {@link ProgramTrackedEntityAttributeGroup}
      *
-     * @return a List of all ProgramTrackedEntityAttributeGroup, or an empty List if there are no
-     *         ProgramTrackedEntityAttributeGroups.
+     * @return a List of all ProgramTrackedEntityAttributeGroup, or an empty List if
+     *         there are no ProgramTrackedEntityAttributeGroups.
      */
     List<ProgramTrackedEntityAttributeGroup> getAllProgramTrackedEntityAttributeGroups();
 }

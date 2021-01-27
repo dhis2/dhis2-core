@@ -53,8 +53,9 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 
 /**
- * Abstract deserializer for {@link JobParameters} that overcomes the limitations of Jackson for XML processing of
- * nested lists when handling inheritance.
+ * Abstract deserializer for {@link JobParameters} that overcomes the
+ * limitations of Jackson for XML processing of nested lists when handling
+ * inheritance.
  *
  * @param <T> the concrete job type class.
  * @author Volker Schmidt

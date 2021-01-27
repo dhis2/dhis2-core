@@ -88,7 +88,8 @@ public interface ProgramRuleService
     /**
      * Returns all {@link ProgramRule}.
      *
-     * @return a collection of all ProgramRule, or an empty collection if there are no ProgramRules.
+     * @return a collection of all ProgramRule, or an empty collection if there are
+     *         no ProgramRules.
      */
     List<ProgramRule> getAllProgramRule();
 

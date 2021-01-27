@@ -38,15 +38,16 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Buffers Audit messages prior to sending them to the Audit queue. This scheduler is disabled by default (config key:
- * audit.inmemory-queue.enabled) and should be used only in very high-traffic environments. Note that upon a JVM crash,
- * the Audit messages in this queue will be lost.
+ * Buffers Audit messages prior to sending them to the Audit queue. This
+ * scheduler is disabled by default (config key: audit.inmemory-queue.enabled)
+ * and should be used only in very high-traffic environments. Note that upon a
+ * JVM crash, the Audit messages in this queue will be lost.
  *
- * The buffer is based on a {@link DelayQueue} where messages are buffered for 5 seconds, before being de-queued to the
- * Artemis broker.
+ * The buffer is based on a {@link DelayQueue} where messages are buffered for 5
+ * seconds, before being de-queued to the Artemis broker.
  *
- * To avoid excessive memory pressure, max 200 messages can stay in the queue: in-excess messages are processed
- * immediately.
+ * To avoid excessive memory pressure, max 200 messages can stay in the queue:
+ * in-excess messages are processed immediately.
  *
  * @author Luciano Fiandesio
  */

@@ -52,11 +52,12 @@ import org.hisp.dhis.period.PeriodType;
 public class PeriodOffsetUtils
 {
     /**
-     * Creates an associative Map between Period Types (e.g. Month, Quarter) and Periods extracted from a
-     * {@link DataQueryParams} object.
+     * Creates an associative Map between Period Types (e.g. Month, Quarter) and
+     * Periods extracted from a {@link DataQueryParams} object.
      * <p>
-     * Each map value may also contain periods that are derived from Period offsets applied to elements from the "data"
-     * dimension of the {@link DataQueryParams} The periods add because of the "periodOffset" directive, will have the
+     * Each map value may also contain periods that are derived from Period offsets
+     * applied to elements from the "data" dimension of the {@link DataQueryParams}
+     * The periods add because of the "periodOffset" directive, will have the
      * "shifted" property set to "true".
      *
      * @param params a DataQueryParams object.
@@ -109,7 +110,8 @@ public class PeriodOffsetUtils
      * <p>
      * Example:
      * <p>
-     * Period: 202001 , Offset: 1 -> Period: 202002 Period: 2020 , Offset: -1 -> Period: 2019
+     * Period: 202001 , Offset: 1 -> Period: 202002 Period: 2020 , Offset: -1 ->
+     * Period: 2019
      *
      * @param period a Period.
      * @param periodOffset a positive or negative integer.
@@ -139,9 +141,10 @@ public class PeriodOffsetUtils
     }
 
     /**
-     * Remove Periods from a {@link DataQueryParams} object if these periods have been added because of an
-     * "periodOffset" directive and the DataElement have no offset specified. This can happen in case of an Indicator,
-     * where a numerator formula is using an offset, and the denominator formula is not.
+     * Remove Periods from a {@link DataQueryParams} object if these periods have
+     * been added because of an "periodOffset" directive and the DataElement have no
+     * offset specified. This can happen in case of an Indicator, where a numerator
+     * formula is using an offset, and the denominator formula is not.
      *
      * @param params a {@link DataQueryParams} object
      * @return a {@link DataQueryParams} object
@@ -168,8 +171,9 @@ public class PeriodOffsetUtils
     }
 
     /**
-     * Given a Analytics {@link Grid}, this methods tries to extract the row from the Grid that matches the given
-     * {@link DimensionalItemObject} and offset period. If there is no match, null is returned.
+     * Given a Analytics {@link Grid}, this methods tries to extract the row from
+     * the Grid that matches the given {@link DimensionalItemObject} and offset
+     * period. If there is no match, null is returned.
      *
      * @param grid a {@link Grid} object
      * @param dimItem a DimensionalItemObject object

@@ -87,8 +87,9 @@ public class DataInputPeriod implements EmbeddedObject
     }
 
     /**
-     * Returns true if the given date is after the openingDate and before the closing date If opening date is null, all
-     * dates before closing date is valid. If closing date is null, all dates after opening date is valid. If both
+     * Returns true if the given date is after the openingDate and before the
+     * closing date If opening date is null, all dates before closing date is valid.
+     * If closing date is null, all dates after opening date is valid. If both
      * opening and closing dates are null, all dates are valid
      *
      * @param date to check
@@ -101,8 +102,9 @@ public class DataInputPeriod implements EmbeddedObject
     }
 
     /**
-     * Checks whether a combination of Period and Date is valid for this DataInputPeriod. Returns true if period is
-     * equal to this period, and date is between opening and closing dates if set.
+     * Checks whether a combination of Period and Date is valid for this
+     * DataInputPeriod. Returns true if period is equal to this period, and date is
+     * between opening and closing dates if set.
      *
      * @param period
      * @param date

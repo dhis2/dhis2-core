@@ -107,7 +107,8 @@ public class ValidationUtils
         "escape", "insert", "select", "rename", "replace", "restore", "return", "update", "when", "write" );
 
     /**
-     * Validates whether a filter expression contains malicious code such as SQL injection attempts.
+     * Validates whether a filter expression contains malicious code such as SQL
+     * injection attempts.
      *
      * @param filter the filter string.
      * @return true if the filter string is valid, false otherwise.
@@ -321,8 +322,9 @@ public class ValidationUtils
     }
 
     /**
-     * Returns the longitude from the given coordinate. Returns null if the coordinate string is not valid. The
-     * coordinate is on the form longitude / latitude.
+     * Returns the longitude from the given coordinate. Returns null if the
+     * coordinate string is not valid. The coordinate is on the form longitude /
+     * latitude.
      *
      * @param coordinate the coordinate string.
      * @return the longitude.
@@ -340,8 +342,9 @@ public class ValidationUtils
     }
 
     /**
-     * Returns the latitude from the given coordinate. Returns null if the coordinate string is not valid. The
-     * coordinate is on the form longitude / latitude.
+     * Returns the latitude from the given coordinate. Returns null if the
+     * coordinate string is not valid. The coordinate is on the form longitude /
+     * latitude.
      *
      * @param coordinate the coordinate string.
      * @return the latitude.
@@ -383,8 +386,8 @@ public class ValidationUtils
     }
 
     /**
-     * Returns a coordinate string based on the given latitude and longitude. The coordinate is on the form longitude /
-     * latitude.
+     * Returns a coordinate string based on the given latitude and longitude. The
+     * coordinate is on the form longitude / latitude.
      *
      * @param longitude the longitude string.
      * @param latitude the latitude string.
@@ -439,8 +442,9 @@ public class ValidationUtils
     }
 
     /**
-     * Checks if the given data value is valid according to the value type of the given data element. Considers the
-     * value to be valid if null or empty. Returns a string if the valid is invalid, possible values are:
+     * Checks if the given data value is valid according to the value type of the
+     * given data element. Considers the value to be valid if null or empty. Returns
+     * a string if the valid is invalid, possible values are:
      * <p/>
      * <ul>
      * <li>data_element_or_type_null_or_empty</li>
@@ -471,7 +475,8 @@ public class ValidationUtils
     }
 
     /**
-     * Indicates whether the given data value is valid according to the given value type.
+     * Indicates whether the given data value is valid according to the given value
+     * type.
      *
      * @param value the data value.
      * @param valueType the {@link ValueType}.
@@ -557,7 +562,8 @@ public class ValidationUtils
     }
 
     /**
-     * Indicates whether the given value is zero and not zero significant according to its data element.
+     * Indicates whether the given value is zero and not zero significant according
+     * to its data element.
      *
      * @param value the data value.
      * @param dataElement the data element.
@@ -572,7 +578,8 @@ public class ValidationUtils
     }
 
     /**
-     * Checks if the given comment is valid. Returns null if valid and a string if invalid, possible values are:
+     * Checks if the given comment is valid. Returns null if valid and a string if
+     * invalid, possible values are:
      * </p>
      * <ul>
      * <li>comment_length_greater_than_max_length</li>
@@ -597,7 +604,8 @@ public class ValidationUtils
     }
 
     /**
-     * Checks if the given stored by value is valid. Returns null if valid and a string if invalid, possible values are:
+     * Checks if the given stored by value is valid. Returns null if valid and a
+     * string if invalid, possible values are:
      * </p>
      * <ul>
      * <li>stored_by_length_greater_than_max_length</li>
@@ -622,7 +630,8 @@ public class ValidationUtils
     }
 
     /**
-     * Checks to see if given parameter is a valid hex color string (#xxx and #xxxxxx, xxx, xxxxxx).
+     * Checks to see if given parameter is a valid hex color string (#xxx and
+     * #xxxxxx, xxx, xxxxxx).
      *
      * @param value Value to check against
      * @return true if value is a hex color string, false otherwise
@@ -655,8 +664,8 @@ public class ValidationUtils
     }
 
     /**
-     * Returns normalized boolean value. Supports a set of true and false values, indicated in BOOL_FALSE_VARIANTS and
-     * BOOL_TRUE_VARIANTS sets.
+     * Returns normalized boolean value. Supports a set of true and false values,
+     * indicated in BOOL_FALSE_VARIANTS and BOOL_TRUE_VARIANTS sets.
      *
      * @param bool input value
      * @param valueType type of value. Return boolean value if type is boolean.
@@ -680,7 +689,8 @@ public class ValidationUtils
     }
 
     /**
-     * Validates that the clazz and valueType or optionSet combination supports the given RenderingType set.
+     * Validates that the clazz and valueType or optionSet combination supports the
+     * given RenderingType set.
      *
      * @param clazz the class to validate
      * @param valueType the valuetype to validate

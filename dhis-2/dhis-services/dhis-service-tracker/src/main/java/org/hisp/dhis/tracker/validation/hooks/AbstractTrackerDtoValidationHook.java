@@ -85,7 +85,8 @@ public abstract class AbstractTrackerDtoValidationHook
     }
 
     /**
-     * Template method Must be implemented if dtoTypeClass == Event or dtoTypeClass == null
+     * Template method Must be implemented if dtoTypeClass == Event or dtoTypeClass
+     * == null
      *
      * @param reporter ValidationErrorReporter instance
      * @param event entity to validate
@@ -95,7 +96,8 @@ public abstract class AbstractTrackerDtoValidationHook
     }
 
     /**
-     * Template method Must be implemented if dtoTypeClass == Enrollment or dtoTypeClass == null
+     * Template method Must be implemented if dtoTypeClass == Enrollment or
+     * dtoTypeClass == null
      *
      * @param reporter ValidationErrorReporter instance
      * @param enrollment entity to validate
@@ -105,7 +107,8 @@ public abstract class AbstractTrackerDtoValidationHook
     }
 
     /**
-     * Template method Must be implemented if dtoTypeClass == Relationship or dtoTypeClass == null
+     * Template method Must be implemented if dtoTypeClass == Relationship or
+     * dtoTypeClass == null
      *
      * @param reporter ValidationErrorReporter instance
      * @param relationship entity to validate
@@ -115,7 +118,8 @@ public abstract class AbstractTrackerDtoValidationHook
     }
 
     /**
-     * Template method Must be implemented if dtoTypeClass == TrackedEntity or dtoTypeClass == null
+     * Template method Must be implemented if dtoTypeClass == TrackedEntity or
+     * dtoTypeClass == null
      *
      * @param reporter ValidationErrorReporter instance
      * @param tei entity to validate
@@ -161,7 +165,8 @@ public abstract class AbstractTrackerDtoValidationHook
     }
 
     /**
-     * Delegating validate method, this delegates validation to the different implementing hooks.
+     * Delegating validate method, this delegates validation to the different
+     * implementing hooks.
      *
      * @param context validation context
      * @return list of error reports
@@ -189,9 +194,10 @@ public abstract class AbstractTrackerDtoValidationHook
         }
 
         /*
-         * Validate the bundle, by passing each Tracker entities collection to the validation hooks. If a validation
-         * hook reports errors and has 'removeOnError=true' the Tracker entity under validation will be removed from the
-         * bundle.
+         * Validate the bundle, by passing each Tracker entities collection to the
+         * validation hooks. If a validation hook reports errors and has
+         * 'removeOnError=true' the Tracker entity under validation will be removed from
+         * the bundle.
          */
 
         validateTrackedEntities( bundle, context );
@@ -302,8 +308,8 @@ public abstract class AbstractTrackerDtoValidationHook
     }
 
     /**
-     * Signal the implementing Validator hook that, upon validation error, the Tracker entity under validation must be
-     * removed from the payload.
+     * Signal the implementing Validator hook that, upon validation error, the
+     * Tracker entity under validation must be removed from the payload.
      *
      */
     public boolean removeOnError()

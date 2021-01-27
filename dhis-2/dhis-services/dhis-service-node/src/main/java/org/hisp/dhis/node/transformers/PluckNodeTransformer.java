@@ -40,8 +40,8 @@ import org.hisp.dhis.schema.Property;
 import org.springframework.stereotype.Component;
 
 /**
- * Transforms a collection node with complex nodes to a list with the the first field values of the includes simple
- * nodes.
+ * Transforms a collection node with complex nodes to a list with the the first
+ * field values of the includes simple nodes.
  *
  * @author Volker Schmidt
  */

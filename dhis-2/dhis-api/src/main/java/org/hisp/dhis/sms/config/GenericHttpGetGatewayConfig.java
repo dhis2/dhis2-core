@@ -33,7 +33,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
 
 /**
- * @deprecated This is added for backward compatibility. Use {@link #GenericHttpGatewayConfig} instead.
+ * @deprecated This is added for backward compatibility. Use
+ *             {@link #GenericHttpGatewayConfig} instead.
  *
  * @author Ameen Mohamed <ameen@dhis2.org>
  */

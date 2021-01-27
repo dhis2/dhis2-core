@@ -80,7 +80,8 @@ public class I18nFormat
     }
 
     /**
-     * Constructor should only be used for testing purposes. Use I18nManager.getI18nFormat for normal use.
+     * Constructor should only be used for testing purposes. Use
+     * I18nManager.getI18nFormat for normal use.
      */
     public I18nFormat()
     {
@@ -222,7 +223,8 @@ public class I18nFormat
     }
 
     /**
-     * Formats a period. Returns null if value is null. Returns INVALID_DATE if formatting string is invalid.
+     * Formats a period. Returns null if value is null. Returns INVALID_DATE if
+     * formatting string is invalid.
      *
      * @param period the value to format.
      */
@@ -335,8 +337,9 @@ public class I18nFormat
     }
 
     /**
-     * Formats value. Returns empty string if value is null. Returns NaN if value is not a number. Return a formatted
-     * string if value is an instance of Number, if not returns the value as a string.
+     * Formats value. Returns empty string if value is null. Returns NaN if value is
+     * not a number. Return a formatted string if value is an instance of Number, if
+     * not returns the value as a string.
      *
      * @param value the value to format.
      */

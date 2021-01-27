@@ -46,13 +46,15 @@ public interface DataAnalysisStore
     String ID = DataAnalysisStore.class.getName();
 
     /**
-     * Calculates the average and standard deviation measures of the DataValues registered for a given data element, set
-     * of category option combos, and organisation unit parents.
+     * Calculates the average and standard deviation measures of the DataValues
+     * registered for a given data element, set of category option combos, and
+     * organisation unit parents.
      *
      * @param dataElement the DataElement.
      * @param parentPaths the parent OrganisationUnits' paths.
      * @param from the from date for which to include data values.
-     * @return a mapping between OrganisationUnit identifier and its standard deviation.
+     * @return a mapping between OrganisationUnit identifier and its standard
+     *         deviation.
      */
     List<DataAnalysisMeasures> getDataAnalysisMeasures( DataElement dataElement,
         Collection<CategoryOptionCombo> categoryOptionCombos,
@@ -86,8 +88,9 @@ public interface DataAnalysisStore
         Collection<Period> periods, Map<Long, Integer> lowerBoundMap, Map<Long, Integer> upperBoundMap );
 
     /**
-     * Returns a collection of DeflatedDataValues which are marked for followup and whose source OrganisationUnit is
-     * equal or subordinate to the given OrganisationUnit.
+     * Returns a collection of DeflatedDataValues which are marked for followup and
+     * whose source OrganisationUnit is equal or subordinate to the given
+     * OrganisationUnit.
      *
      * @param dataElements the data elements.
      * @param categoryOptionCombos the category option combos.

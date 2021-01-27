@@ -34,8 +34,8 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
 
 /**
- * Retrieves the category option combination with the given identifier and id scheme. Checks that the current user has
- * {@code data write} access.
+ * Retrieves the category option combination with the given identifier and id
+ * scheme. Checks that the current user has {@code data write} access.
  *
  * @author Luciano Fiandesio
  */

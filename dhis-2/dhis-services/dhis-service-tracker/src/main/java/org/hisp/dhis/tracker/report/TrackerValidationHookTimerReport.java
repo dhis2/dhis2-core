@@ -33,7 +33,8 @@ import lombok.Data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * This class is used for timing (performance) reports of the individual validation hook.
+ * This class is used for timing (performance) reports of the individual
+ * validation hook.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */

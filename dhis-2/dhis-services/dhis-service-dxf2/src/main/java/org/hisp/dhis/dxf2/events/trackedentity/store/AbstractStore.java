@@ -128,10 +128,12 @@ public abstract class AbstractStore
 
     /**
      *
-     * @param sql an sql statement to which we want to "attach" the ACL sharing condition
-     * @param ctx the {@see AAggregateContext} object containing information about the current user
-     * @param aclSql the sql statement as WHERE condition to filter out elements for which the user has no sharing
-     *        access
+     * @param sql an sql statement to which we want to "attach" the ACL sharing
+     *        condition
+     * @param ctx the {@see AAggregateContext} object containing information about
+     *        the current user
+     * @param aclSql the sql statement as WHERE condition to filter out elements for
+     *        which the user has no sharing access
      *
      * @return a merge between the sql and the aclSql
      */
@@ -159,10 +161,12 @@ public abstract class AbstractStore
      * Execute a SELECT statement and maps the results to the specified Mapper
      *
      * @param sql The SELECT statement to execute
-     * @param handler the {@see RowCallbackHandler} to use for mapping a Resultset to an object
+     * @param handler the {@see RowCallbackHandler} to use for mapping a Resultset
+     *        to an object
      * @param ids the list of primary keys mapped to the :ids parameter
      *
-     * @return a Multimap where the keys are of the same type as the specified {@see RowCallbackHandler}
+     * @return a Multimap where the keys are of the same type as the specified
+     *         {@see RowCallbackHandler}
      */
     protected <T> Multimap<String, T> fetch( String sql, AbstractMapper<T> handler, List<Long> ids )
     {

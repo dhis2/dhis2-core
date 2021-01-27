@@ -58,11 +58,14 @@ public interface TrackedEntityInstanceService
         throws IOException;
 
     /**
-     * Fetches a List of {@see TrackedEntityInstance} based on the specified parameters. This methods beh
+     * Fetches a List of {@see TrackedEntityInstance} based on the specified
+     * parameters. This methods beh
      *
-     * @param queryParams a {@see TrackedEntityInstanceQueryParams} instance with the query parameters
-     * @param params a {@see TrackedEntityInstanceParams} instance containing the directives for how much data should be
-     *        fetched (e.g. Enrollments, Events, Relationships)
+     * @param queryParams a {@see TrackedEntityInstanceQueryParams} instance with
+     *        the query parameters
+     * @param params a {@see TrackedEntityInstanceParams} instance containing the
+     *        directives for how much data should be fetched (e.g. Enrollments,
+     *        Events, Relationships)
      * @param skipAccessValidation whether access validation should be ignored
      *
      * @return a List of {@see TrackedEntityInstance}

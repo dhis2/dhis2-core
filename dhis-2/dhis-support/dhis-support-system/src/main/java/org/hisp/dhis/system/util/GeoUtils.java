@@ -55,9 +55,11 @@ public class GeoUtils
     public static final int SRID = 4326;
 
     /**
-     * Returns boundaries of a box shape which centre is the point defined by the given longitude and latitude. The
-     * distance between the center point and the edges of the box is defined in meters by the given distance. Based on
-     * standard EPSG:4326 long/lat projection. The result is an array of length 4 where the values at each index are:
+     * Returns boundaries of a box shape which centre is the point defined by the
+     * given longitude and latitude. The distance between the center point and the
+     * edges of the box is defined in meters by the given distance. Based on
+     * standard EPSG:4326 long/lat projection. The result is an array of length 4
+     * where the values at each index are:
      *
      * <ul>
      * <li>Index 0: Maximum latitude (north edge of box shape).</li>

@@ -66,8 +66,9 @@ public interface DataElementService
     void updateDataElement( DataElement dataElement );
 
     /**
-     * Deletes a DataElement. The DataElement is also removed from any DataElementGroups it is a member of. It is not
-     * possible to delete a DataElement with children.
+     * Deletes a DataElement. The DataElement is also removed from any
+     * DataElementGroups it is a member of. It is not possible to delete a
+     * DataElement with children.
      *
      * @param dataElement the DataElement to delete.
      * @throws HierarchyViolationException if the DataElement has children.
@@ -101,7 +102,8 @@ public interface DataElementService
     /**
      * Returns all DataElements.
      *
-     * @return a list of all DataElements, or an empty list if there are no DataElements.
+     * @return a list of all DataElements, or an empty list if there are no
+     *         DataElements.
      */
     List<DataElement> getAllDataElements();
 
@@ -109,7 +111,8 @@ public interface DataElementService
      * Returns all DataElements of a given type.
      *
      * @param valueType the value type restriction
-     * @return a list of all DataElements with the given value type, or an empty list if there are no DataElements.
+     * @return a list of all DataElements with the given value type, or an empty
+     *         list if there are no DataElements.
      */
     List<DataElement> getAllDataElementsByValueType( ValueType valueType );
 
@@ -227,7 +230,8 @@ public interface DataElementService
     /**
      * Returns all DataElementGroups.
      *
-     * @return a collection of all DataElementGroups, or an empty collection if no DataElementGroups exist.
+     * @return a collection of all DataElementGroups, or an empty collection if no
+     *         DataElementGroups exist.
      */
     List<DataElementGroup> getAllDataElementGroups();
 

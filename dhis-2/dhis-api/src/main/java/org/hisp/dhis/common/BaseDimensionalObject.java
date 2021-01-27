@@ -58,7 +58,8 @@ public class BaseDimensionalObject
     private DimensionType dimensionType;
 
     /**
-     * The data dimension type of this dimension. Can be null. Only applicable for {@link DimensionType#CATEGORY}.
+     * The data dimension type of this dimension. Can be null. Only applicable for
+     * {@link DimensionType#CATEGORY}.
      */
     protected DataDimensionType dataDimensionType;
 
@@ -68,8 +69,9 @@ public class BaseDimensionalObject
     protected boolean dataDimension = true;
 
     /**
-     * The name of this dimension. For the dynamic dimensions this will be equal to dimension identifier. For the period
-     * dimension, this will reflect the period type. For the org unit dimension, this will reflect the level.
+     * The name of this dimension. For the dynamic dimensions this will be equal to
+     * dimension identifier. For the period dimension, this will reflect the period
+     * type. For the org unit dimension, this will reflect the level.
      */
     private transient String dimensionName;
 
@@ -105,18 +107,20 @@ public class BaseDimensionalObject
 
     /**
      * Filter. Applicable for events. Contains operator and filter on this format:
-     * <operator>:<filter>;<operator>:<filter> Operator and filter pairs can be repeated any number of times.
+     * <operator>:<filter>;<operator>:<filter> Operator and filter pairs can be
+     * repeated any number of times.
      */
     private String filter;
 
     /**
-     * A {@link DimensionalKeywords} defines a pre-defined group of items. For instance, all the OU withing a district
+     * A {@link DimensionalKeywords} defines a pre-defined group of items. For
+     * instance, all the OU withing a district
      */
     private DimensionalKeywords dimensionalKeywords;
 
     /**
-     * Indicates whether this dimension is fixed, meaning that the name of the dimension will be returned as is for all
-     * dimension items in the response.
+     * Indicates whether this dimension is fixed, meaning that the name of the
+     * dimension will be returned as is for all dimension items in the response.
      */
     private boolean fixed;
 
@@ -250,8 +254,9 @@ public class BaseDimensionalObject
     }
 
     /**
-     * Returns the items in the filter as a list. Order of items are preserved. Requires that the filter has the IN
-     * operator and that at least one item is specified in the filter, returns null if not.
+     * Returns the items in the filter as a list. Order of items are preserved.
+     * Requires that the filter has the IN operator and that at least one item is
+     * specified in the filter, returns null if not.
      */
     public List<String> getFilterItemsAsList()
     {

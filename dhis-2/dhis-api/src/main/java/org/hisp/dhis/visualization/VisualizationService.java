@@ -34,7 +34,8 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.user.User;
 
 /**
- * Interface responsible for providing CRUD and business methods related to a Visualization object.
+ * Interface responsible for providing CRUD and business methods related to a
+ * Visualization object.
  */
 public interface VisualizationService
     extends
@@ -72,7 +73,8 @@ public interface VisualizationService
     void delete( Visualization visualization );
 
     /**
-     * Instantiates and populates a Grid populated with data from the given Visualization.
+     * Instantiates and populates a Grid populated with data from the given
+     * Visualization.
      *
      * @param uid of the Visualization.
      * @param relativePeriodDate the visualization date.
@@ -82,7 +84,8 @@ public interface VisualizationService
     Grid getVisualizationGrid( String uid, Date relativePeriodDate, String organisationUnitUid );
 
     /**
-     * Instantiates and populates a Grid populated with data from the given Visualization.
+     * Instantiates and populates a Grid populated with data from the given
+     * Visualization.
      *
      * @param uid of the Visualization.
      * @param relativePeriodDate the visualization date.

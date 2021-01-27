@@ -36,7 +36,8 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 import com.google.common.collect.Lists;
 
 /**
- * PeriodType for daily Periods. A valid daily Period has equal startDate and endDate.
+ * PeriodType for daily Periods. A valid daily Period has equal startDate and
+ * endDate.
  *
  * @author Torgeir Lorange Ostby
  */
@@ -100,7 +101,8 @@ public class DailyPeriodType
     }
 
     /**
-     * Generates daily Periods for the whole year in which the given Period's startDate exists.
+     * Generates daily Periods for the whole year in which the given Period's
+     * startDate exists.
      */
     @Override
     public List<Period> generatePeriods( DateTimeUnit dateTimeUnit )

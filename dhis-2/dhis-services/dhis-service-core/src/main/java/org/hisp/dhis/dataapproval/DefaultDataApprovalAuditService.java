@@ -136,7 +136,8 @@ public class DefaultDataApprovalAuditService
     // -------------------------------------------------------------------------
 
     /**
-     * Retain the DataApprovalAudits that the user can read despite any dimension constraints that the user my have.
+     * Retain the DataApprovalAudits that the user can read despite any dimension
+     * constraints that the user my have.
      *
      * @param audits the list of audit records.
      */
@@ -179,13 +180,16 @@ public class DefaultDataApprovalAuditService
     }
 
     /**
-     * Returns whether a user can read a data element attribute option combo given the user's dimension constraints.
+     * Returns whether a user can read a data element attribute option combo given
+     * the user's dimension constraints.
      * <p>
-     * In order to read an option combo, the user must be able to read *every* option in the option combo.
+     * In order to read an option combo, the user must be able to read *every*
+     * option in the option combo.
      *
      * @param user the user.
      * @param optionCombo the record to test.
-     * @param cogDimensionConstraints category option combo group constraints, if any.
+     * @param cogDimensionConstraints category option combo group constraints, if
+     *        any.
      * @param catDimensionConstraints category constraints, if any.
      * @return whether the user can read the DataApprovalAudit.
      */
@@ -205,15 +209,17 @@ public class DefaultDataApprovalAuditService
     }
 
     /**
-     * Returns whether a user can read a data element category option given the user's category option group
-     * constraints, if any.
+     * Returns whether a user can read a data element category option given the
+     * user's category option group constraints, if any.
      * <p>
-     * If the option belongs to *any* option group that is readable by the user which belongs to a constrained option
-     * group set, then the user may see the option.
+     * If the option belongs to *any* option group that is readable by the user
+     * which belongs to a constrained option group set, then the user may see the
+     * option.
      *
      * @param user the user.
      * @param option the data element category option to test.
-     * @param cogDimensionConstraints category option combo group constraints, if any.
+     * @param cogDimensionConstraints category option combo group constraints, if
+     *        any.
      * @return whether the user can read the data element category option.
      */
     private boolean isOptionCogConstraintReadable( User user, CategoryOption option,
@@ -239,10 +245,11 @@ public class DefaultDataApprovalAuditService
     }
 
     /**
-     * Returns whether a user can read a data element category option given the user's category constraints, if any.
+     * Returns whether a user can read a data element category option given the
+     * user's category constraints, if any.
      * <p>
-     * If the option belongs to *any* category that is constrained for the user, and the option is readable by the user,
-     * return true.
+     * If the option belongs to *any* category that is constrained for the user, and
+     * the option is readable by the user, return true.
      *
      * @param user the user.
      * @param option the data element category option to test.

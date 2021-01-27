@@ -66,7 +66,8 @@ public class MetadataExportParams
     private Map<Class<? extends IdentifiableObject>, Query> queries = new HashMap<>();
 
     /**
-     * Contains a set of field filters that allows the default field filter (:owner) to be overridden.
+     * Contains a set of field filters that allows the default field filter (:owner)
+     * to be overridden.
      */
     private Map<Class<? extends IdentifiableObject>, List<String>> fields = new HashMap<>();
 
@@ -91,7 +92,8 @@ public class MetadataExportParams
     private Defaults defaults = Defaults.INCLUDE;
 
     /**
-     * Inclusion strategy to use. There are a few already defined inclusions in the Inclusions enum.
+     * Inclusion strategy to use. There are a few already defined inclusions in the
+     * Inclusions enum.
      */
     private InclusionStrategy inclusionStrategy = InclusionStrategy.Include.NON_NULL;
 

@@ -28,7 +28,8 @@
 package org.hisp.dhis.commons.timer;
 
 /**
- * Simple interface that captures time durations and pretty prints it back to you.
+ * Simple interface that captures time durations and pretty prints it back to
+ * you.
  *
  * @author Morten Olav Hansen
  */
@@ -54,7 +55,8 @@ public interface Timer
     Timer stop();
 
     /**
-     * Returns the elapsed time between {@link #start()} and {@link #stop()} was called.
+     * Returns the elapsed time between {@link #start()} and {@link #stop()} was
+     * called.
      *
      * @return the elapsed time in nanoseconds.
      */

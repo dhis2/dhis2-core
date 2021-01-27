@@ -837,8 +837,8 @@ public class UserController
     }
 
     /**
-     * Make a copy of any existing attribute values so they can be saved as new attribute values. Don't copy unique
-     * values.
+     * Make a copy of any existing attribute values so they can be saved as new
+     * attribute values. Don't copy unique values.
      *
      * @param userReplica user for which to copy attribute values.
      */
@@ -894,7 +894,8 @@ public class UserController
      *
      * @param uid the unique id of the user to enable or disable
      * @param disable boolean value, true for disable, false for enable
-     * @throws WebMessageException thrown if "current" user is not allowed to modify the user
+     * @throws WebMessageException thrown if "current" user is not allowed to modify
+     *         the user
      */
     private void setDisabled( String uid, boolean disable )
         throws WebMessageException

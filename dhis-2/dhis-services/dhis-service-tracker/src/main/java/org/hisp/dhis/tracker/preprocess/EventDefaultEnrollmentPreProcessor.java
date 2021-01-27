@@ -42,9 +42,10 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 
 /**
- * This preprocessor is responsible for setting the TrackedEntityInstance UID on an Event, inferring it from the Event's
- * parent enrollment. If the Event already has a TrackedEntityInstance UID set, this preprocessor does not process the
- * Event
+ * This preprocessor is responsible for setting the TrackedEntityInstance UID on
+ * an Event, inferring it from the Event's parent enrollment. If the Event
+ * already has a TrackedEntityInstance UID set, this preprocessor does not
+ * process the Event
  *
  * @author Luciano Fiandesio
  */

@@ -40,14 +40,14 @@ public class PrometheusProperties
 {
 
     /**
-     * Whether to enable publishing descriptions as part of the scrape payload to Prometheus. Turn this off to minimize
-     * the amount of data sent on each scrape.
+     * Whether to enable publishing descriptions as part of the scrape payload to
+     * Prometheus. Turn this off to minimize the amount of data sent on each scrape.
      */
     private boolean descriptions = true;
 
     /**
-     * Configuration options for using Prometheus Pushgateway, allowing metrics to be pushed when they cannot be
-     * scraped.
+     * Configuration options for using Prometheus Pushgateway, allowing metrics to
+     * be pushed when they cannot be scraped.
      */
     private Pushgateway pushgateway = new Pushgateway();
 

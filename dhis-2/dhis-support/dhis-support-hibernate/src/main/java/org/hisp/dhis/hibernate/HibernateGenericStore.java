@@ -143,10 +143,12 @@ public class HibernateGenericStore<T>
     }
 
     /**
-     * Creates a Query for given HQL query string. Return type is casted to generic type T of the Store class.
+     * Creates a Query for given HQL query string. Return type is casted to generic
+     * type T of the Store class.
      *
      * @param hql the HQL query.
-     * @return a Query instance with return type is the object type T of the store class
+     * @return a Query instance with return type is the object type T of the store
+     *         class
      */
     @SuppressWarnings( "unchecked" )
     protected final Query<T> getQuery( String hql )
@@ -157,7 +159,8 @@ public class HibernateGenericStore<T>
     }
 
     /**
-     * Creates a Query for given HQL query string. Must specify the return type of the Query variable.
+     * Creates a Query for given HQL query string. Must specify the return type of
+     * the Query variable.
      *
      * @param hql the HQL query.
      * @return a Query instance with return type specified in the Query<Y>

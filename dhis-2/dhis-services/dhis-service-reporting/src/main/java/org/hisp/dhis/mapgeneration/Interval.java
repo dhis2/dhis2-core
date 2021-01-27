@@ -32,9 +32,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * An interval is a collection of map objects that have been distributed into this interval.
+ * An interval is a collection of map objects that have been distributed into
+ * this interval.
  *
- * It contains all the map objects that have values that lie in the range of values this interval covers.
+ * It contains all the map objects that have values that lie in the range of
+ * values this interval covers.
  *
  * @author Olai Solheim <olais@ifi.uio.no>
  */
@@ -164,7 +166,8 @@ public class Interval
     }
 
     /**
-     * Returns a list of the members that have fallen into this interval category, or null if none.
+     * Returns a list of the members that have fallen into this interval category,
+     * or null if none.
      *
      * @return the list of members
      */

@@ -102,7 +102,8 @@ public interface ProgramInstanceService
     ProgramInstance getProgramInstance( String uid );
 
     /**
-     * Checks for the existence of a PI by UID. Deleted values are not taken into account.
+     * Checks for the existence of a PI by UID. Deleted values are not taken into
+     * account.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -110,7 +111,8 @@ public interface ProgramInstanceService
     boolean programInstanceExists( String uid );
 
     /**
-     * Checks for the existence of a PI by UID. Takes into account also the deleted values.
+     * Checks for the existence of a PI by UID. Takes into account also the deleted
+     * values.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -118,7 +120,8 @@ public interface ProgramInstanceService
     boolean programInstanceExistsIncludingDeleted( String uid );
 
     /**
-     * Returns UIDs of existing ProgramInstances (including deleted) from the provided UIDs
+     * Returns UIDs of existing ProgramInstances (including deleted) from the
+     * provided UIDs
      *
      * @param uids PSI UIDs to check
      * @return Set containing UIDs of existing PSIs (including deleted)
@@ -152,7 +155,8 @@ public interface ProgramInstanceService
         Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted );
 
     /**
-     * Returns a list with program instance values based on the given ProgramInstanceQueryParams.
+     * Returns a list with program instance values based on the given
+     * ProgramInstanceQueryParams.
      *
      * @param params the ProgramInstanceQueryParams.
      * @return List of PIs matching the params
@@ -160,7 +164,8 @@ public interface ProgramInstanceService
     List<ProgramInstance> getProgramInstances( ProgramInstanceQueryParams params );
 
     /**
-     * Returns the number of program instance matches based on the given ProgramInstanceQueryParams.
+     * Returns the number of program instance matches based on the given
+     * ProgramInstanceQueryParams.
      *
      * @param params the ProgramInstanceQueryParams.
      * @return Number of PIs matching the params
@@ -168,15 +173,16 @@ public interface ProgramInstanceService
     int countProgramInstances( ProgramInstanceQueryParams params );
 
     /**
-     * Decides whether current user is authorized to perform the given query. IllegalQueryException is thrown if not.
+     * Decides whether current user is authorized to perform the given query.
+     * IllegalQueryException is thrown if not.
      *
      * @param params the ProgramInstanceQueryParams.
      */
     void decideAccess( ProgramInstanceQueryParams params );
 
     /**
-     * Validates the given ProgramInstanceQueryParams. The params is considered valid if no exception are thrown and the
-     * method returns normally.
+     * Validates the given ProgramInstanceQueryParams. The params is considered
+     * valid if no exception are thrown and the method returns normally.
      *
      * @param params the ProgramInstanceQueryParams.
      * @throws IllegalQueryException if the given params is invalid.
@@ -196,24 +202,28 @@ public interface ProgramInstanceService
      * Retrieve program instances on a program by status
      *
      * @param program Program
-     * @param status Status of program-instance, include STATUS_ACTIVE, STATUS_COMPLETED and STATUS_CANCELLED
+     * @param status Status of program-instance, include STATUS_ACTIVE,
+     *        STATUS_COMPLETED and STATUS_CANCELLED
      * @return ProgramInstance list
      */
     List<ProgramInstance> getProgramInstances( Program program, ProgramStatus status );
 
     /**
-     * Retrieve program instances on a TrackedEntityInstance with a status by a program
+     * Retrieve program instances on a TrackedEntityInstance with a status by a
+     * program
      *
      * @param entityInstance TrackedEntityInstance
      * @param program Program
-     * @param status Status of program-instance, include STATUS_ACTIVE, STATUS_COMPLETED and STATUS_CANCELLED
+     * @param status Status of program-instance, include STATUS_ACTIVE,
+     *        STATUS_COMPLETED and STATUS_CANCELLED
      * @return ProgramInstance list
      */
     List<ProgramInstance> getProgramInstances( TrackedEntityInstance entityInstance, Program program,
         ProgramStatus status );
 
     /**
-     * Enroll a TrackedEntityInstance into a program. Must be run inside a transaction.
+     * Enroll a TrackedEntityInstance into a program. Must be run inside a
+     * transaction.
      *
      * @param trackedEntityInstance TrackedEntityInstance
      * @param program Program
@@ -227,7 +237,8 @@ public interface ProgramInstanceService
         Date enrollmentDate, Date incidentDate, OrganisationUnit orgunit, String uid );
 
     /**
-     * Enroll a TrackedEntityInstance into a program. Must be run inside a transaction.
+     * Enroll a TrackedEntityInstance into a program. Must be run inside a
+     * transaction.
      *
      * @param trackedEntityInstance TrackedEntityInstance
      * @param program Program
@@ -241,8 +252,9 @@ public interface ProgramInstanceService
         OrganisationUnit orgunit );
 
     /**
-     * Check a program instance if it can be completed automatically. If there is some event of this program-isntance
-     * uncompleted or this program has any repeatable stage, then this program cannot be completed automatically
+     * Check a program instance if it can be completed automatically. If there is
+     * some event of this program-isntance uncompleted or this program has any
+     * repeatable stage, then this program cannot be completed automatically
      *
      * @param programInstance ProgramInstance
      * @return True/False value
@@ -250,8 +262,8 @@ public interface ProgramInstanceService
     boolean canAutoCompleteProgramInstanceStatus( ProgramInstance programInstance );
 
     /**
-     * Complete a program instance. Besides, program template messages will be send if it was defined to send when to
-     * complete this program
+     * Complete a program instance. Besides, program template messages will be send
+     * if it was defined to send when to complete this program
      *
      * @param programInstance ProgramInstance
      */
@@ -265,7 +277,8 @@ public interface ProgramInstanceService
     void cancelProgramInstanceStatus( ProgramInstance programInstance );
 
     /**
-     * Incomplete a program instance. This is is possible only if there is no other program instance with active status.
+     * Incomplete a program instance. This is is possible only if there is no other
+     * program instance with active status.
      *
      * @param programInstance ProgramInstance
      */

@@ -35,21 +35,24 @@ import com.opensymphony.xwork2.config.entities.ActionConfig;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: RequiredAuthoritiesProvider.java 3160 2007-03-24 20:15:06Z torgeilo $
+ * @version $Id: RequiredAuthoritiesProvider.java 3160 2007-03-24 20:15:06Z
+ *          torgeilo $
  */
 public interface RequiredAuthoritiesProvider
 {
     /**
-     * Creates an SecurityMetadataSource based on the required authorities for the action config. The specified action
-     * config is set as the secure object. The SecurityMetadataSource may include additional attributes if needed.
+     * Creates an SecurityMetadataSource based on the required authorities for the
+     * action config. The specified action config is set as the secure object. The
+     * SecurityMetadataSource may include additional attributes if needed.
      *
      * @param actionConfig the secure actionConfig to get required authorities from.
      */
     public SecurityMetadataSource createSecurityMetadataSource( ActionConfig actionConfig );
 
     /**
-     * Creates an SecurityMetadataSource for a specified secure object based on the required authorities for the action
-     * config. The SecurityMetadataSource may include additional attributes if needed.
+     * Creates an SecurityMetadataSource for a specified secure object based on the
+     * required authorities for the action config. The SecurityMetadataSource may
+     * include additional attributes if needed.
      *
      * @param actionConfig the actionConfig to get required authorities from.
      * @param object the secure object.

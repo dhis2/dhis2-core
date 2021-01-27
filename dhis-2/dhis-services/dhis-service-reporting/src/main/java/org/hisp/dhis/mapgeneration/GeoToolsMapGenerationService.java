@@ -55,7 +55,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 /**
- * An implementation of MapGenerationService that uses GeoTools to generate maps.
+ * An implementation of MapGenerationService that uses GeoTools to generate
+ * maps.
  *
  * @author Kenneth Solbø Andersen <kennetsa@ifi.uio.no>
  * @author Kristin Simonsen <krissimo@ifi.uio.no>
@@ -329,8 +330,8 @@ public class GeoToolsMapGenerationService
     }
 
     /**
-     * Returns a list of map values for the given map view. If the map view is not a data layer, an empty list is
-     * returned.
+     * Returns a list of map values for the given map view. If the map view is not a
+     * data layer, an empty list is returned.
      */
     private List<MapValue> getAggregatedMapValues( MapView mapView )
     {

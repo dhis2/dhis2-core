@@ -180,8 +180,8 @@ public abstract class AbstractStatementBuilder
     /**
      * Generates a derived table containing one column of literal strings.
      *
-     * The generic implementation, which works in all supported database types, returns a subquery in the following
-     * form: <code>
+     * The generic implementation, which works in all supported database types,
+     * returns a subquery in the following form: <code>
      *     (select 's1' as column
      *      union select 's2'
      *      union select 's3') table
@@ -212,10 +212,11 @@ public abstract class AbstractStatementBuilder
     }
 
     /**
-     * Generates a derived table containing literals in two columns: integer and string.
+     * Generates a derived table containing literals in two columns: integer and
+     * string.
      *
-     * The generic implementation, which works in all supported database types, returns a subquery in the following
-     * form: <code>
+     * The generic implementation, which works in all supported database types,
+     * returns a subquery in the following form: <code>
      *     (select i1 as intColumn, 's1' as stringColumn
      *      union select i2, 's2'
      *      union select i3, 's3') table
@@ -251,7 +252,8 @@ public abstract class AbstractStatementBuilder
     }
 
     /**
-     * Generates a derived table containing literals in two columns: integer and integer.
+     * Generates a derived table containing literals in two columns: integer and
+     * integer.
      *
      * @param long1Values (non-empty) 1st integer column values for the table
      * @param long2Values (same size) 2nd integer column values for the table
@@ -260,8 +262,8 @@ public abstract class AbstractStatementBuilder
      * @param long2Column the desired 2nd integer column name
      * @return the derived literal table
      *
-     *         The generic implementation, which works in all supported database types, returns a subquery in the
-     *         following form: <code>
+     *         The generic implementation, which works in all supported database
+     *         types, returns a subquery in the following form: <code>
      *     (select i1_1 as int1Column, i2_1 as int2Column
      *      union select i1_2, i2_2
      *      union select i1_3, i2_3) table

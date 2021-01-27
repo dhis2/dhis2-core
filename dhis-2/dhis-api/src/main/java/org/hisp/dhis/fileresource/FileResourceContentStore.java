@@ -44,7 +44,8 @@ public interface FileResourceContentStore
      * Get the content bytes of a FileResource from the file store.
      *
      * @param key the key.
-     * @return a ByteSource which provides a stream to the content or null if the content cannot be found or read.
+     * @return a ByteSource which provides a stream to the content or null if the
+     *         content cannot be found or read.
      */
     InputStream getFileResourceContent( String key );
 
@@ -59,8 +60,8 @@ public interface FileResourceContentStore
     /**
      * Save the contents of the byte array to the file store.
      *
-     * @param fileResource the FileResource object. Must be complete and include the storageKey, contentLength,
-     *        contentMd5 and name.
+     * @param fileResource the FileResource object. Must be complete and include the
+     *        storageKey, contentLength, contentMd5 and name.
      * @param bytes the byte array.
      * @return the key on success or null if saving failed.
      */
@@ -103,12 +104,14 @@ public interface FileResourceContentStore
      * Create a signed GET request which gives access to the content.
      *
      * @param key the key.
-     * @return a URI containing the signed GET request or null if signed requests are not supported.
+     * @return a URI containing the signed GET request or null if signed requests
+     *         are not supported.
      */
     URI getSignedGetContentUri( String key );
 
     /**
-     * Copies the content of a stream to the resource stored under key to the output stream.
+     * Copies the content of a stream to the resource stored under key to the output
+     * stream.
      *
      * @param key the key used to store a resource
      * @param output the output stream to copy the stream into

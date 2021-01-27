@@ -41,7 +41,8 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: CurrentModuleDetectorFilter.java 6216 2008-11-06 18:06:42Z eivindwa $
+ * @version $Id: CurrentModuleDetectorFilter.java 6216 2008-11-06 18:06:42Z
+ *          eivindwa $
  */
 @Slf4j
 public class CurrentModuleDetectorFilter

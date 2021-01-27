@@ -36,7 +36,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Contains minimal User info used for ACL check in {@link org.hisp.dhis.common.IdentifiableObjectStore}
+ * Contains minimal User info used for ACL check in
+ * {@link org.hisp.dhis.common.IdentifiableObjectStore}
  */
 @Getter
 @Setter

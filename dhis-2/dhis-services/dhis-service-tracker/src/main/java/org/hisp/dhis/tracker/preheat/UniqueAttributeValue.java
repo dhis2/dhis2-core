@@ -33,7 +33,8 @@ import lombok.Getter;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 /**
- * Simple pojo used to store the data for {@link TrackedEntityAttributeValue} that are needed in the Validation phase
+ * Simple pojo used to store the data for {@link TrackedEntityAttributeValue}
+ * that are needed in the Validation phase
  *
  * @author Enrico Colasante
  */

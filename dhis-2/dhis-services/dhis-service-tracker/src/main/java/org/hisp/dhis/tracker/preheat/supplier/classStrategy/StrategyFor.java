@@ -36,8 +36,8 @@ import java.lang.annotation.Target;
 import org.hisp.dhis.tracker.preheat.mappers.PreheatMapper;
 
 /**
- * Annotation for {@link ClassBasedSupplierStrategy} classes that specifies the Tracker domain object the annotated
- * strategy has to process
+ * Annotation for {@link ClassBasedSupplierStrategy} classes that specifies the
+ * Tracker domain object the annotated strategy has to process
  *
  * @author Luciano Fiandesio
  */
@@ -55,7 +55,8 @@ public @interface StrategyFor
     boolean cache() default false;
 
     /**
-     * The time-to-live for the type of object being cached The value is in **minutes**. Defaults to 5 minutes
+     * The time-to-live for the type of object being cached The value is in
+     * **minutes**. Defaults to 5 minutes
      */
     int ttl() default 5;
 

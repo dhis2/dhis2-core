@@ -76,8 +76,8 @@ public class Period
     private transient String isoPeriod;
 
     /**
-     * Transient boolean. If true, this Period has been created as a consequence of a Dimensional Item Object having an
-     * Offset Period value higher/lower than 0
+     * Transient boolean. If true, this Period has been created as a consequence of
+     * a Dimensional Item Object having an Offset Period value higher/lower than 0
      */
     private transient boolean shifted = false;
 
@@ -169,7 +169,8 @@ public class Period
     }
 
     /**
-     * Copies the transient properties (name) from the argument Period to this Period.
+     * Copies the transient properties (name) from the argument Period to this
+     * Period.
      *
      * @param other Period to copy from.
      * @return this Period.
@@ -229,10 +230,12 @@ public class Period
     }
 
     /**
-     * Returns the potential number of periods of the given period type which is spanned by this period.
+     * Returns the potential number of periods of the given period type which is
+     * spanned by this period.
      *
      * @param type the period type.
-     * @return the potential number of periods of the given period type spanned by this period.
+     * @return the potential number of periods of the given period type spanned by
+     *         this period.
      */
     public int getPeriodSpan( PeriodType type )
     {
@@ -242,7 +245,8 @@ public class Period
     }
 
     /**
-     * Returns the number of days in the period, i.e. the days between the start and end date.
+     * Returns the number of days in the period, i.e. the days between the start and
+     * end date.
      *
      * @return number of days in period.
      */
@@ -281,8 +285,9 @@ public class Period
     }
 
     /**
-     * Indicates whether this period is after the given period. Bases the comparison on the end dates of the periods. If
-     * the given period is null, false is returned.
+     * Indicates whether this period is after the given period. Bases the comparison
+     * on the end dates of the periods. If the given period is null, false is
+     * returned.
      *
      * @param period the period to compare.
      * @return true if this period is after the given period.

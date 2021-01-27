@@ -30,8 +30,8 @@ package org.hisp.dhis.commons.collection;
 import java.util.HashMap;
 
 /**
- * HashMap that appends the content of the value the existing content when inserted, or inserts as usual if no entries
- * match the key.
+ * HashMap that appends the content of the value the existing content when
+ * inserted, or inserts as usual if no entries match the key.
  *
  * @author Lars Helge Overland
  */
@@ -44,8 +44,8 @@ public class AppendingHashMap<K, V>
     private static final long serialVersionUID = 2579976271277075017L;
 
     /**
-     * Appends the content of the value the existing content when inserted, or inserts as usual if no entries match the
-     * key.
+     * Appends the content of the value the existing content when inserted, or
+     * inserts as usual if no entries match the key.
      *
      * @param key the key.
      * @param value the value.

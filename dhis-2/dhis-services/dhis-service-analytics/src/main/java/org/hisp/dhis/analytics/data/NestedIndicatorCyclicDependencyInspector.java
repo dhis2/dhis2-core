@@ -48,8 +48,8 @@ import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
 
 /**
- * Builds a tree structure representing nested Indicators and detects if an Indicator has a cyclic dependency within the
- * same tree.
+ * Builds a tree structure representing nested Indicators and detects if an
+ * Indicator has a cyclic dependency within the same tree.
  *
  * See tests for different sequences of nested Indicators
  *
@@ -77,7 +77,8 @@ public class NestedIndicatorCyclicDependencyInspector
     /**
      * Initiate the inspection, by invoking the recursive 'inspect' function.
      *
-     * @param dimensionalItemObjects a List of root {@link DimensionalItemObject} as Indicators.
+     * @param dimensionalItemObjects a List of root {@link DimensionalItemObject} as
+     *        Indicators.
      */
     public void inspect( List<DimensionalItemObject> dimensionalItemObjects )
     {
@@ -92,7 +93,8 @@ public class NestedIndicatorCyclicDependencyInspector
     }
 
     /**
-     * Recursively add all the given Indicator's nested Indicators (if any) to the tree.
+     * Recursively add all the given Indicator's nested Indicators (if any) to the
+     * tree.
      *
      * @param indicator The Indicator to add to the main Indicators tree.
      * @param tree the complete Indicator tree.
@@ -115,8 +117,8 @@ public class NestedIndicatorCyclicDependencyInspector
     }
 
     /**
-     * Add the List of Indicators as Nodes to the given Tree. Fails if any of the indicator UIDs is already present in
-     * the tree as direct ancestors.
+     * Add the List of Indicators as Nodes to the given Tree. Fails if any of the
+     * indicator UIDs is already present in the tree as direct ancestors.
      *
      * @param indicators list of Indicators to add to the tree.
      * @param tree the full tree built so far.
@@ -164,11 +166,12 @@ public class NestedIndicatorCyclicDependencyInspector
     }
 
     /**
-     * Fetch the indicators referenced in the numerator and denominator expression for the given indicator.
+     * Fetch the indicators referenced in the numerator and denominator expression
+     * for the given indicator.
      *
      * @param indicator an {@link Indicator}.
-     * @return a List of direct descendants indicators of the current indicator, or an empty List if the current
-     *         indicator has no descendants.
+     * @return a List of direct descendants indicators of the current indicator, or
+     *         an empty List if the current indicator has no descendants.
      */
     private List<Indicator> getDescendants( Indicator indicator )
     {

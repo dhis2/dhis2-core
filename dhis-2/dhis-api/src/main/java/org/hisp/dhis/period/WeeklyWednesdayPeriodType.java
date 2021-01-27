@@ -28,8 +28,9 @@
 package org.hisp.dhis.period;
 
 /**
- * PeriodType for weekly Periods. A valid weekly Period has startDate set to Wednesday and endDate set to Tuesday the
- * same week, assuming Wednesday is the first day and Tuesday is the last day of the week.
+ * PeriodType for weekly Periods. A valid weekly Period has startDate set to
+ * Wednesday and endDate set to Tuesday the same week, assuming Wednesday is the
+ * first day and Tuesday is the last day of the week.
  *
  * @author Torgeir Lorange Ostby
  */

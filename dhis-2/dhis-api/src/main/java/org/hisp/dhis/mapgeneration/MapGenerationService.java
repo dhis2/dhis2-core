@@ -38,8 +38,9 @@ import org.hisp.dhis.user.User;
 /**
  * The MapGenerationService interface generates map images from Map objects.
  *
- * Map objects may be built by adding layers to them, and once passed to generateMapImage it will render an image
- * representing the map according to the properties defined by Map and MapView.
+ * Map objects may be built by adding layers to them, and once passed to
+ * generateMapImage it will render an image representing the map according to
+ * the properties defined by Map and MapView.
  *
  * TODO Extend with more configuration options, e.g. width
  *

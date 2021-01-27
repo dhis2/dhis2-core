@@ -35,7 +35,8 @@ import java.util.Set;
 import com.google.common.base.MoreObjects;
 
 /**
- * Simple class for caching of object type. Mainly for usage in speeding up Operator type lookup.
+ * Simple class for caching of object type. Mainly for usage in speeding up
+ * Operator type lookup.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

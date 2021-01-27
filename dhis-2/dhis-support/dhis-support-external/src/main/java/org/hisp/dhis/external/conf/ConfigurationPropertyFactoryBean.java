@@ -32,7 +32,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
 /**
- * Factory bean which allows for DHIS configuration property values to be injected into target beans.
+ * Factory bean which allows for DHIS configuration property values to be
+ * injected into target beans.
  *
  * @param key must reflect a {@link ConfigurationKey}.
  *

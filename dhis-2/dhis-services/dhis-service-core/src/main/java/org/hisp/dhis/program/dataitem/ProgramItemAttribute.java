@@ -88,8 +88,8 @@ public class ProgramItemAttribute
     // -------------------------------------------------------------------------
 
     /**
-     * Makes sure that the parsed A{...} has a syntax that could be used be used in an program expression for
-     * A{attributeUid}
+     * Makes sure that the parsed A{...} has a syntax that could be used be used in
+     * an program expression for A{attributeUid}
      *
      * @param ctx the item context
      * @return the attribute UID.

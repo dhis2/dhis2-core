@@ -35,8 +35,9 @@ import java.util.List;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
 /**
- * PeriodType for two-yearly Periods. A valid two-yearly Period has startDate set to January 1st on an even year (2000,
- * 2002, 2004, etc), and endDate set to the last day of the next year.
+ * PeriodType for two-yearly Periods. A valid two-yearly Period has startDate
+ * set to January 1st on an even year (2000, 2002, 2004, etc), and endDate set
+ * to the last day of the next year.
  *
  * @author Torgeir Lorange Ostby
  * @version $Id: TwoYearlyPeriodType.java 2975 2007-03-03 22:24:36Z torgeilo $

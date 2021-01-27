@@ -80,10 +80,12 @@ public class DataSetOrganisationUnitCategoryResourceTable
     }
 
     /**
-     * Iterate over data sets and associated organisation units. If data set has a category combination and the
-     * organisation unit has category options, find the intersection of the category option combinations linked to the
-     * organisation unit through its category options, and the category option combinations linked to the data set
-     * through its category combination. If not, use the default category option combo.
+     * Iterate over data sets and associated organisation units. If data set has a
+     * category combination and the organisation unit has category options, find the
+     * intersection of the category option combinations linked to the organisation
+     * unit through its category options, and the category option combinations
+     * linked to the data set through its category combination. If not, use the
+     * default category option combo.
      */
     @Override
     public Optional<List<Object[]>> getPopulateTempTableContent()

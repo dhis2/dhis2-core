@@ -129,7 +129,8 @@ public class CachingMapTest
     }
 
     /**
-     * Only first get should create a miss, entry should be cached event if value is null.
+     * Only first get should create a miss, entry should be cached event if value is
+     * null.
      */
     @Test
     public void testGetCacheNullValue()

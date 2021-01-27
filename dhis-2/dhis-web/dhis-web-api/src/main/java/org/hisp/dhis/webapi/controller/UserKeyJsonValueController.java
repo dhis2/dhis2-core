@@ -73,8 +73,8 @@ public class UserKeyJsonValueController
     private CurrentUserService currentUserService;
 
     /**
-     * Returns a JSON array of strings representing the different namespaces used. If no namespaces exist, an empty
-     * array is returned.
+     * Returns a JSON array of strings representing the different namespaces used.
+     * If no namespaces exist, an empty array is returned.
      */
     @RequestMapping( value = "", method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody List<String> getNamespaces( HttpServletResponse response )
@@ -86,8 +86,8 @@ public class UserKeyJsonValueController
     }
 
     /**
-     * Returns a JSON array of strings representing the different keys used in a given namespace. If no namespaces
-     * exist, an empty array is returned.
+     * Returns a JSON array of strings representing the different keys used in a
+     * given namespace. If no namespaces exist, an empty array is returned.
      */
     @RequestMapping( value = "/{namespace}", method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody List<String> getKeys( @PathVariable String namespace, HttpServletResponse response )
@@ -121,7 +121,8 @@ public class UserKeyJsonValueController
     }
 
     /**
-     * Retrieves the value of the KeyJsonValue represented by the given key and namespace from the current user.
+     * Retrieves the value of the KeyJsonValue represented by the given key and
+     * namespace from the current user.
      */
     @RequestMapping( value = "/{namespace}/{key}", method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody String getUserKeyJsonValue(
@@ -145,7 +146,8 @@ public class UserKeyJsonValueController
     }
 
     /**
-     * Creates a new KeyJsonValue Object on the current user with the key, namespace and value supplied.
+     * Creates a new KeyJsonValue Object on the current user with the key, namespace
+     * and value supplied.
      */
     @RequestMapping( value = "/{namespace}/{key}", method = RequestMethod.POST, produces = "application/json", consumes = "application/json" )
     public void addUserKeyJsonValue(

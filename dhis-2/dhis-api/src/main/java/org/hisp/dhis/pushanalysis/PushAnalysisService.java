@@ -54,8 +54,9 @@ public interface PushAnalysisService
     List<PushAnalysis> getAll();
 
     /**
-     * Returns a String, consisting of HTML representing the PushAnalysis report. This report is generated based on the
-     * associated Dashboard, as well as the user supplied
+     * Returns a String, consisting of HTML representing the PushAnalysis report.
+     * This report is generated based on the associated Dashboard, as well as the
+     * user supplied
      *
      * @param pushAnalysis PushAnalysis to generate report from
      * @param user User to base data on
@@ -67,8 +68,9 @@ public interface PushAnalysisService
         throws IOException;
 
     /**
-     * Used to Generate and send reports to all UserGroups assigned to the PushAnalysis, using generateHtmlReport to
-     * generate the reports for each individual user in the UserGroups.
+     * Used to Generate and send reports to all UserGroups assigned to the
+     * PushAnalysis, using generateHtmlReport to generate the reports for each
+     * individual user in the UserGroups.
      *
      * @param uid of the PushAnalysis
      * @param jobId to track process

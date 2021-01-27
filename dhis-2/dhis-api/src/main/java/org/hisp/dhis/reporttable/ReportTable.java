@@ -268,7 +268,8 @@ public class ReportTable
      * @param organisationUnits the organisation units.
      * @param doIndicators indicating whether indicators should be crosstabulated.
      * @param doPeriods indicating whether periods should be crosstabulated.
-     * @param doUnits indicating whether organisation units should be crosstabulated.
+     * @param doUnits indicating whether organisation units should be
+     *        crosstabulated.
      * @param relatives the relative periods.
      * @param reportParams the report parameters.
      * @param reportingPeriodName the reporting period name.
@@ -449,8 +450,8 @@ public class ReportTable
     }
 
     /**
-     * Generates a pretty column name based on the given display property of the argument objects. Null arguments are
-     * ignored in the name.
+     * Generates a pretty column name based on the given display property of the
+     * argument objects. Null arguments are ignored in the name.
      */
     public static String getPrettyColumnName( List<DimensionalItemObject> objects, DisplayProperty displayProperty )
     {
@@ -465,10 +466,12 @@ public class ReportTable
     }
 
     /**
-     * Generates a column name based on short-names of the argument objects. Null arguments are ignored in the name.
+     * Generates a column name based on short-names of the argument objects. Null
+     * arguments are ignored in the name.
      * <p/>
-     * The period column name must be static when on columns so it can be re-used in reports, hence the name property is
-     * used which will be formatted only when the period dimension is on rows.
+     * The period column name must be static when on columns so it can be re-used in
+     * reports, hence the name property is used which will be formatted only when
+     * the period dimension is on rows.
      */
     public static String getColumnName( List<DimensionalItemObject> objects )
     {
@@ -510,8 +513,8 @@ public class ReportTable
     }
 
     /**
-     * Checks whether the given List of IdentifiableObjects contains an object which is an OrganisationUnit and has the
-     * currentParent property set to true.
+     * Checks whether the given List of IdentifiableObjects contains an object which
+     * is an OrganisationUnit and has the currentParent property set to true.
      *
      * @param objects the List of IdentifiableObjects.
      */
@@ -556,7 +559,8 @@ public class ReportTable
     }
 
     /**
-     * Generates a grid for this report table based on the given aggregate value map.
+     * Generates a grid for this report table based on the given aggregate value
+     * map.
      *
      * @param grid the grid, should be empty and not null.
      * @param valueMap the mapping of identifiers to aggregate values.
