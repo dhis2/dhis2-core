@@ -273,19 +273,19 @@ public class DataValidator
     /**
      * Validates and retrieves a data value.
      *
-     * @param dataValueDto the {@link DataValueRequest}.
+     * @param dataValueRequest the {@link DataValueRequest}.
      * @return a data value.
      * @throws IllegalQueryException if the validation fails.
      */
-    public DataValue getAndValidateDataValue( DataValueRequest dataValueDto )
+    public DataValue getAndValidateDataValue( DataValueRequest dataValueRequest )
     {
-        DataElement dataElement = getAndValidateDataElement( dataValueDto.getDataElement() );
-        Period period = PeriodType.getPeriodFromIsoString( dataValueDto.getPeriod() );
-        OrganisationUnit orgUnit = getAndValidateOrganisationUnit( dataValueDto.getOrgUnit() );
+        DataElement dataElement = getAndValidateDataElement( dataValueRequest.getDataElement() );
+        Period period = PeriodType.getPeriodFromIsoString( dataValueRequest.getPeriod() );
+        OrganisationUnit orgUnit = getAndValidateOrganisationUnit( dataValueRequest.getOrgUnit() );
         CategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo(
-            dataValueDto.getCategoryOptionCombo(), false );
+            dataValueRequest.getCategoryOptionCombo(), false );
         CategoryOptionCombo attributeOptionCombo = getAndValidateCategoryOptionCombo(
-            dataValueDto.getAttributeOptionCombo(), false );
+            dataValueRequest.getAttributeOptionCombo(), false );
         DataValue dataValue = dataValueService.getDataValue( dataElement, period, orgUnit, categoryOptionCombo,
             attributeOptionCombo );
 
