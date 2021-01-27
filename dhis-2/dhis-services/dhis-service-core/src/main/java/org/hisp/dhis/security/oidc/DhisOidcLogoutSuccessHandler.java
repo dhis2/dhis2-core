@@ -36,6 +36,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -46,9 +48,9 @@ import org.springframework.stereotype.Component;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Slf4j
 @Component
-public class DhisOidcLogoutSuccessHandler
-    implements LogoutSuccessHandler
+public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler
 {
     private OidcClientInitiatedLogoutSuccessHandler handler;
 
