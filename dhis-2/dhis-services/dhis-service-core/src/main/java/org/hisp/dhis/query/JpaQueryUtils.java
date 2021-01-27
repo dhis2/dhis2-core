@@ -364,7 +364,8 @@ public class JpaQueryUtils
      *
      * @param sharingColumn sharing column reference
      * @param user User for sharing checking
-     * @param access The sharing access string for checking. Refer to {@link org.hisp.dhis.security.acl.AccessStringHelper}
+     * @param access The sharing access string for checking. Refer to
+     *        {@link org.hisp.dhis.security.acl.AccessStringHelper}
      * @return SQL query
      */
     public static final String generateSQlQueryForSharingCheck( String sharingColumn, User user, String access )
@@ -376,16 +377,14 @@ public class JpaQueryUtils
                 .collect( Collectors.toList() ), "," ) + "}";
 
         String sql = " ( %1$s->>'owner' is not null and %1$s->>'owner' = '%2$s') "
-            + " or %1$s->>'public' like '__r%' or %1$s->>'public' is null "
+            + " or %1$s->>'public' like '%4$s' or %1$s->>'public' is null "
             + " or (" + JsonbFunctions.HAS_USER_ID + "( %1$s, '%2$s') = true "
             + " and " + JsonbFunctions.CHECK_USER_ACCESS + "( %1$s, '%2$s', '%4$s' ) = true )  "
             + (StringUtils.isEmpty( groupsIds ) ? ""
-                : " or ( " + JsonbFunctions.HAS_USER_GROUP_IDS + "( %1$s, '{%3$s}') = true "
-                    + " and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( %1$s, '{%3$s}', '%4$s') = true )");
+                : " or ( " + JsonbFunctions.HAS_USER_GROUP_IDS + "( %1$s, '%3$s') = true "
+                    + " and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( %1$s, '%3$s', '%4$s') = true )");
 
-        String.format( sql, sharingColumn, user.getUid(), groupsIds, access );
-
-        return sql;
+        return String.format( sql, sharingColumn, user.getUid(), groupsIds, access );
     }
 
     private static boolean isIgnoreCase( org.hisp.dhis.query.Order o )
