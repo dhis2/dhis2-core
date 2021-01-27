@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.query;
 
-import org.apache.commons.lang.StringUtils;
-import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.user.User;
-import org.springframework.context.i18n.LocaleContextHolder;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -41,13 +42,13 @@ import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.user.User;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
