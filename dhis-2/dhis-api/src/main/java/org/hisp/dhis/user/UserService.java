@@ -446,4 +446,12 @@ public interface UserService
      * @param credentials the user credentials
      */
     void expireActiveSessions( UserCredentials credentials );
+
+    /**
+     * Whether or not the provided account is expired right now.
+     *
+     * @param credentials the user credentials
+     * @return true, if the provided account is already expired, otherwise false
+     */
+    boolean isAccountExpired( UserCredentials credentials );
 }

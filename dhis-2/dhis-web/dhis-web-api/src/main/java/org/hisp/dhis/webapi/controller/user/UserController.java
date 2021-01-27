@@ -517,6 +517,22 @@ public class UserController
         setDisabled( uid, true );
     }
 
+    @RequestMapping( value = "/{uid}/expired", method = RequestMethod.POST )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    public void expireUser( @PathVariable( "uid" ) String uid, @RequestParam( "date" ) Date accountExpiry )
+        throws Exception
+    {
+        setExpires( uid, accountExpiry );
+    }
+
+    @RequestMapping( value = "/{uid}/unexpired", method = RequestMethod.POST )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    public void unexpireUser( @PathVariable( "uid" ) String uid )
+        throws Exception
+    {
+        setExpires( uid, null );
+    }
+
     // -------------------------------------------------------------------------
     // PUT
     // -------------------------------------------------------------------------
@@ -884,9 +900,26 @@ public class UserController
     private void setDisabled( String uid, boolean disable )
         throws WebMessageException
     {
-        User currentUser = currentUserService.getCurrentUser();
-
         User userToModify = userService.getUser( uid );
+        checkCurrentUserCanModify( userToModify );
+
+        UserCredentials credentials = userToModify.getUserCredentials();
+        if ( credentials.isDisabled() != disable )
+        {
+            credentials.setDisabled( disable );
+            userService.updateUserCredentials( credentials );
+        }
+
+        if ( disable )
+        {
+            userService.expireActiveSessions( credentials );
+        }
+    }
+
+    private void checkCurrentUserCanModify( User userToModify )
+        throws WebMessageException
+    {
+        User currentUser = currentUserService.getCurrentUser();
 
         if ( !aclService.canUpdate( currentUser, userToModify ) )
         {
@@ -899,15 +932,19 @@ public class UserController
             throw new WebMessageException( WebMessageUtils.conflict(
                 "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
+    }
+
+    private void setExpires( String uid, Date accountExpiry )
+        throws WebMessageException
+    {
+        User userToModify = userService.getUser( uid );
+        checkCurrentUserCanModify( userToModify );
 
         UserCredentials credentials = userToModify.getUserCredentials();
-        if ( credentials.isDisabled() != disable )
-        {
-            credentials.setDisabled( disable );
-            userService.updateUserCredentials( credentials );
-        }
+        credentials.setAccountExpiry( accountExpiry );
+        userService.updateUserCredentials( credentials );
 
-        if ( disable )
+        if ( userService.isAccountExpired( credentials ) )
         {
             userService.expireActiveSessions( credentials );
         }

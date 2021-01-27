@@ -95,5 +95,5 @@ public class OutlierValue
     private Double upperBound;
 
     @JsonProperty
-    private Boolean followUp;
+    private Boolean followup;
 }
