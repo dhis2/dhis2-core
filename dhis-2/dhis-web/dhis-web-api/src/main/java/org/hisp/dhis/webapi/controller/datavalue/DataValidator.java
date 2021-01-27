@@ -244,7 +244,7 @@ public class DataValidator
      * Retrieves and verifies a data set.
      *
      * @param uid the DataSet uid.
-     * @param dataElement the data element to be checked in the DataSet.
+     * @param dataElement the {@link DataElement} to be checked in the DataSet.
      * @return the valid DataSet.
      * @throws IllegalQueryException if the validation fails.
      */
@@ -300,8 +300,8 @@ public class DataValidator
     /**
      * Validates the OrganisationUnit dates against the given period.
      *
-     * @param organisationUnit the OrganisationUnit and its dates.
-     * @param period the period to be checked.
+     * @param organisationUnit the {@link OrganisationUnit} and its dates.
+     * @param period the {@link Period} to be checked.
      * @throws IllegalQueryException if the validation fails.
      */
     public void validateOrganisationUnitPeriod( final OrganisationUnit organisationUnit, final Period period )
@@ -322,7 +322,7 @@ public class DataValidator
      * DataElement.
      *
      * @param period the period to be validated.
-     * @param dataElement the base DataElement.
+     * @param dataElement the {@link DataElement}.
      * @throws IllegalQueryException if the validation fails.
      */
     public void validateInvalidFuturePeriod( final Period period, final DataElement dataElement )
@@ -337,13 +337,13 @@ public class DataValidator
     }
 
     /**
-     * Check for an invalid period withing the given CategoryOptionCombo
+     * Check for an invalid period within the given CategoryOptionCombo
      * (attribute option combo).
      *
-     * @param attributeOptionCombo is the CategoryOptionCombo.
-     * @param period the period to be checked.
-     * @param dataSet the data set (if present) to be checked.
-     * @param dataElement the data element to be checked.
+     * @param attributeOptionCombo is the {@link CategoryOptionCombo}.
+     * @param period the {@link Period} to be checked.
+     * @param dataSet the {@link DataSet} (if present) to be checked.
+     * @param dataElement the {@link DataElement} to be checked.
      * @throws IllegalQueryException if the validation fails.
      */
     public void validateAttributeOptionCombo( final CategoryOptionCombo attributeOptionCombo,
@@ -371,10 +371,10 @@ public class DataValidator
      * arguments.
      *
      * @param user the current User.
-     * @param dataElement the DataElement.
-     * @param period the Period.
-     * @param dataSet the DataSet.
-     * @param organisationUnit the OrganisationUnit.
+     * @param dataElement the {@link DataElement}.
+     * @param period the {@link Period}.
+     * @param dataSet the {@link DataSet}.
+     * @param organisationUnit the {@link OrganisationUnit}.
      * @param attributeOptionCombo the CategoryOptionCombo.
      * @throws IllegalQueryException if the validation fails.
      */
@@ -392,9 +392,9 @@ public class DataValidator
     /**
      * Validate if the period is open for the given DataSet or DataElement.
      *
-     * @param dataElement the DataElement.
-     * @param dataSet the DataSet.
-     * @param period the Period.
+     * @param dataElement the {@link DataElement}.
+     * @param dataSet the {@link DataSet}.
+     * @param period the {@link Period}.
      * @throws IllegalQueryException if the validation fails.
      */
     public void validateDataInputPeriodForDataElementAndPeriod( final DataElement dataElement, final DataSet dataSet,
@@ -473,8 +473,8 @@ public class DataValidator
      * Checks if the given data value is a valid association with the OptionSet.
      *
      * @param dataValue the data value.
-     * @param optionSet the option set.
-     * @param dataElement the data element.
+     * @param optionSet the {@link OptionSet}.
+     * @param dataElement the {@link DataElement}.
      * @throws IllegalQueryException if the validation fails.
      */
     public void validateOptionSet( final String dataValue, final OptionSet optionSet, final DataElement dataElement )
@@ -487,11 +487,11 @@ public class DataValidator
     }
 
     /**
-     * Validates if the given dataValue is valid for the given DataElement, and
+     * Validates if the given data value is valid for the given DataElement, and
      * normalize it if the dataValue is a boolean type.
      *
      * @param dataValue the data value.
-     * @param dataElement the data element.
+     * @param dataElement the {@link DataElement}.
      * @return the normalized boolean or the same dataValue provided.
      * @throws IllegalQueryException if the validation fails.
      */
@@ -510,10 +510,10 @@ public class DataValidator
     }
 
     /**
-     * Checks if the User has write access to the given CategoryOptionCombo.
+     * Checks if the user has write access to the given category option combo.
      *
-     * @param user the User.
-     * @param categoryOptionCombo the CategoryOptionCombo.
+     * @param user the user.
+     * @param categoryOptionCombo the {@link CategoryOptionCombo}.
      * @throws IllegalQueryException if the validation fails.
      */
     public void checkCategoryOptionComboAccess( final User user, final CategoryOptionCombo categoryOptionCombo )
@@ -532,7 +532,7 @@ public class DataValidator
      * Check if the respective User has read access to the given DataValue.
      *
      * @param user the User.
-     * @param dataValue the DataValue.
+     * @param dataValue the {@link DataValue}.
      * @throws WebMessageException if the validation fails.
      */
     public void checkDataValueSharing( final User user, final DataValue dataValue )
