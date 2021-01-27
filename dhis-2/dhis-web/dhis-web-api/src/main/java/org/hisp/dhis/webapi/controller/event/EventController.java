@@ -49,6 +49,8 @@ import java.util.zip.GZIPOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.SneakyThrows;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
@@ -126,8 +128,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
-
-import lombok.SneakyThrows;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

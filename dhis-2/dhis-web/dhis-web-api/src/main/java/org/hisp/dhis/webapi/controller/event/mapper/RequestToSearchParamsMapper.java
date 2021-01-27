@@ -38,8 +38,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.CodeGenerator;
@@ -78,10 +81,6 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
-
-import lombok.RequiredArgsConstructor;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @author Luciano Fiandesio
