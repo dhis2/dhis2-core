@@ -40,7 +40,6 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -59,9 +58,6 @@ public class SqlViewServiceTest
 {
     @Mock
     private CurrentUserService currentUserService;
-
-    @Mock
-    private AclService aclService;
 
     @Autowired
     private SqlViewService sqlViewService;
@@ -313,13 +309,13 @@ public class SqlViewServiceTest
     @Test
     public void testGetGridRequiresDataReadSharing()
     {
+        createAndInjectAdminUser( "F_SQLVIEW_PUBLIC_ADD" );
+
+        // we have the right to create the view
         SqlView sqlView = getSqlView( "select * from dataelement; delete from dataelement" );
         sqlViewService.saveSqlView( sqlView );
 
-        // OBS! important we first become a user without rights after we created
-        // the view
-        createAndInjectAdminUser( new String[0] ); // no authorities
-
+        // but we lack sharing to view the result grid
         assertIllegalQueryEx(
             assertThrows( IllegalQueryException.class,
                 () -> sqlViewService.getSqlViewGrid( sqlView, null, null, null, null ) ),
