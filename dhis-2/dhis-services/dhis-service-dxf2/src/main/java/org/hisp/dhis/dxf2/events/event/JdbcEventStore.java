@@ -1400,7 +1400,8 @@ public class JdbcEventStore implements EventStore
             + "left join ("
             + "select deco.categoryoptionid as deco_id, deco.uid as deco_uid , "
             + "( select ( " + JpaQueryUtils.generateSQlQueryForSharingCheck( "deco.sharing",
-                user, AccessStringHelper.DATA_READ ) + " ) ) as can_access "
+                user, AccessStringHelper.DATA_READ )
+            + " ) ) as can_access "
             + "from dataelementcategoryoption deco " );
 
         sqlBuilder.append( " ) as decoa on cocco.categoryoptionid = decoa.deco_id " );

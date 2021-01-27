@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.query;
 
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.hisp.dhis.user.User;
 
 import javax.annotation.Nullable;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -46,9 +47,8 @@ import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.user.User;
 import org.springframework.context.i18n.LocaleContextHolder;
-
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -361,7 +361,8 @@ public class JpaQueryUtils
     }
 
     /**
-     *  Return SQL query for checking sharing access for given user
+     * Return SQL query for checking sharing access for given user
+     *
      * @param sharingColumn sharing column reference
      * @param user User for sharing checking
      * @return SQL query
@@ -374,13 +375,13 @@ public class JpaQueryUtils
             : "{" + org.apache.commons.lang3.StringUtils.join( user.getGroups().stream().map( g -> g.getUid() )
                 .collect( Collectors.toList() ), "," ) + "}";
 
-        String sql =  " ( %1$s->>'owner' is not null and %1$s->>'owner' = '%2$s') "
+        String sql = " ( %1$s->>'owner' is not null and %1$s->>'owner' = '%2$s') "
             + " or %1$s->>'public' like '__r%' or %1$s->>'public' is null "
-            + " or (" + JsonbFunctions.HAS_USER_ID +"( %1$s, '%2$s') = true "
-            + " and " + JsonbFunctions.CHECK_USER_ACCESS +"( %1$s, '%2$s', '%4$s' ) = true )  "
-            + ( StringUtils.isEmpty( groupsIds ) ? "" :
-             " or ( " + JsonbFunctions.HAS_USER_GROUP_IDS +"( %1$s, '{%3$s}') = true "
-            + " and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS +"( %1$s, '{%3$s}', '%4$s') = true )" );
+            + " or (" + JsonbFunctions.HAS_USER_ID + "( %1$s, '%2$s') = true "
+            + " and " + JsonbFunctions.CHECK_USER_ACCESS + "( %1$s, '%2$s', '%4$s' ) = true )  "
+            + (StringUtils.isEmpty( groupsIds ) ? ""
+                : " or ( " + JsonbFunctions.HAS_USER_GROUP_IDS + "( %1$s, '{%3$s}') = true "
+                    + " and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( %1$s, '{%3$s}', '%4$s') = true )");
 
         String.format( sql, sharingColumn, user.getUid(), groupsIds, access );
 

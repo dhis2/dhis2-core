@@ -385,23 +385,25 @@ public class SpringDataValueSetStore
         List<String> groupsIds = user.getGroups().stream().map( g -> g.getUid() )
             .collect( Collectors.toList() );
 
-        String groupAccessCheck =  groupsIds.size() > 0 ?
-            " or ( " + JsonbFunctions.HAS_USER_GROUP_IDS + "( co.sharing, '{"+ String.join( ",", groupsIds ) + "}' ) = true " +
-                "and "+ JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( co.sharing, '__r%', '{"+ String.join( ",", groupsIds ) + "}' ) = true ) )"
+        String groupAccessCheck = groupsIds.size() > 0
+            ? " or ( " + JsonbFunctions.HAS_USER_GROUP_IDS + "( co.sharing, '{" + String.join( ",", groupsIds )
+                + "}' ) = true " +
+                "and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( co.sharing, '__r%', '{"
+                + String.join( ",", groupsIds ) + "}' ) = true ) )"
             : "";
 
-        String userAccessCheck =
-            " or ( " + JsonbFunctions.HAS_USER_ID + "( co.sharing, '" + user.getUid() + "' ) = true " +
-            " and " + JsonbFunctions.CHECK_USER_ACCESS + "( co.sharing, '__r%', '"+ user.getUid() +"' ) = true ) )";
+        String userAccessCheck = " or ( " + JsonbFunctions.HAS_USER_ID + "( co.sharing, '" + user.getUid()
+            + "' ) = true " +
+            " and " + JsonbFunctions.CHECK_USER_ACCESS + "( co.sharing, '__r%', '" + user.getUid() + "' ) = true ) )";
 
-        return
-            "and dv.attributeoptioncomboid not in (" +
-                "select distinct(cocco.categoryoptioncomboid) " +
-                "from categoryoptioncombos_categoryoptions as cocco " +
-                // Get inaccessible category options
-                "where cocco.categoryoptionid not in ( " +
-                    "select co.categoryoptionid " +
-                    "from dataelementcategoryoption co  " +
-                " where " + JpaQueryUtils.generateSQlQueryForSharingCheck( "co.sharing", user, AccessStringHelper.DATA_READ ) + ") )";
+        return "and dv.attributeoptioncomboid not in (" +
+            "select distinct(cocco.categoryoptioncomboid) " +
+            "from categoryoptioncombos_categoryoptions as cocco " +
+            // Get inaccessible category options
+            "where cocco.categoryoptionid not in ( " +
+            "select co.categoryoptionid " +
+            "from dataelementcategoryoption co  " +
+            " where "
+            + JpaQueryUtils.generateSQlQueryForSharingCheck( "co.sharing", user, AccessStringHelper.DATA_READ ) + ") )";
     }
 }
