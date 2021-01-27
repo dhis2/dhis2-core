@@ -212,6 +212,7 @@ public class Preheat
     public boolean containsKey( PreheatIdentifier identifier, Class<? extends IdentifiableObject> klass, String key )
     {
         identifier = getIdentifier( klass, identifier );
+
         return !(isEmpty() || isEmpty( identifier ) || isEmpty( identifier, klass ))
             && map.get( identifier ).get( klass ).containsKey( key );
     }

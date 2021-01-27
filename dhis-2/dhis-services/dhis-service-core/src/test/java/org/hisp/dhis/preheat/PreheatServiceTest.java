@@ -509,9 +509,12 @@ public class PreheatServiceTest
 
         Preheat preheat = preheatService.preheat( params );
 
-        assertNotNull( preheat.getMap().get( PreheatIdentifier.UID ) );
-        assertFalse( preheat.getMap().get( PreheatIdentifier.UID ).isEmpty() );
-        assertEquals( 3, preheat.getMap().get( PreheatIdentifier.UID ).size() );
+        Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>> object = preheat.getMap()
+            .get( PreheatIdentifier.UID );
+
+        assertNotNull( object );
+        assertFalse( object.isEmpty() );
+        assertEquals( 3, object.size() );
     }
 
     @Test
