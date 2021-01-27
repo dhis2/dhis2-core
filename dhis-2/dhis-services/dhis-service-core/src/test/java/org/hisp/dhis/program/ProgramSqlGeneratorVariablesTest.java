@@ -199,7 +199,7 @@ public class ProgramSqlGeneratorVariablesTest
     public void testEnrollmentStatus()
     {
         String sql = castString( test( "V{enrollment_status}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "enrollmentstatus" ) );
+        assertThat( sql, is( "pistatus" ) );
     }
 
     @Test

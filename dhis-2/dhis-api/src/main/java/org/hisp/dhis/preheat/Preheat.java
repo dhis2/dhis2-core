@@ -72,6 +72,7 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 
 /**
@@ -195,12 +196,12 @@ public class Preheat
         Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( object );
         identifier = getIdentifier( realClass, identifier );
 
-        if ( PreheatIdentifier.UID == identifier || PreheatIdentifier.AUTO == identifier )
+        if ( PreheatIdentifier.UID == identifier )
         {
             reference = get( PreheatIdentifier.UID, realClass, object.getUid() );
         }
 
-        if ( PreheatIdentifier.CODE == identifier || (reference == null && PreheatIdentifier.AUTO == identifier) )
+        if ( PreheatIdentifier.CODE == identifier )
         {
             reference = get( PreheatIdentifier.CODE, realClass, object.getCode() );
         }
@@ -211,6 +212,7 @@ public class Preheat
     public boolean containsKey( PreheatIdentifier identifier, Class<? extends IdentifiableObject> klass, String key )
     {
         identifier = getIdentifier( klass, identifier );
+
         return !(isEmpty() || isEmpty( identifier ) || isEmpty( identifier, klass ))
             && map.get( identifier ).get( klass ).containsKey( key );
     }
@@ -242,7 +244,7 @@ public class Preheat
         Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( object );
         identifier = getIdentifier( realClass, identifier );
 
-        if ( PreheatIdentifier.UID == identifier || PreheatIdentifier.AUTO == identifier )
+        if ( PreheatIdentifier.UID == identifier )
         {
             if ( !map.containsKey( PreheatIdentifier.UID ) )
             {
@@ -281,7 +283,7 @@ public class Preheat
             }
         }
 
-        if ( PreheatIdentifier.CODE == identifier || PreheatIdentifier.AUTO == identifier )
+        if ( PreheatIdentifier.CODE == identifier )
         {
             if ( !map.containsKey( PreheatIdentifier.CODE ) )
             {
@@ -330,7 +332,7 @@ public class Preheat
         Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( object );
         identifier = getIdentifier( realClass, identifier );
 
-        if ( PreheatIdentifier.UID == identifier || PreheatIdentifier.AUTO == identifier )
+        if ( PreheatIdentifier.UID == identifier )
         {
             if ( !map.containsKey( PreheatIdentifier.UID ) )
             {
@@ -369,7 +371,7 @@ public class Preheat
             }
         }
 
-        if ( PreheatIdentifier.CODE == identifier || PreheatIdentifier.AUTO == identifier )
+        if ( PreheatIdentifier.CODE == identifier )
         {
             if ( !map.containsKey( PreheatIdentifier.CODE ) )
                 map.put( PreheatIdentifier.CODE, new HashMap<>() );
@@ -430,7 +432,7 @@ public class Preheat
     {
         Class<? extends IdentifiableObject> klass = HibernateProxyUtils.getRealClass( object );
 
-        if ( PreheatIdentifier.UID == identifier || PreheatIdentifier.AUTO == identifier )
+        if ( PreheatIdentifier.UID == identifier )
         {
             String key = PreheatIdentifier.UID.getIdentifier( object );
 
@@ -440,7 +442,7 @@ public class Preheat
             }
         }
 
-        if ( PreheatIdentifier.CODE == identifier || PreheatIdentifier.AUTO == identifier )
+        if ( PreheatIdentifier.CODE == identifier )
         {
             String key = PreheatIdentifier.CODE.getIdentifier( object );
 
@@ -566,6 +568,9 @@ public class Preheat
 
     private PreheatIdentifier getIdentifier( Class<? extends IdentifiableObject> klass, PreheatIdentifier identifier )
     {
-        return (klass == User.class || klass == UserCredentials.class) ? PreheatIdentifier.UID : identifier;
+        return (klass == User.class || klass == UserCredentials.class
+            || klass == UserAuthorityGroup.class)
+                ? PreheatIdentifier.UID
+                : identifier;
     }
 }

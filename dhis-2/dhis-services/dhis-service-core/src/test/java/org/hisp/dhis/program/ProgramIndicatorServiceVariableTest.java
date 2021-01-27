@@ -175,7 +175,7 @@ public class ProgramIndicatorServiceVariableTest
     @Test
     public void testEnrollmentStatus()
     {
-        assertEquals( "enrollmentstatus",
+        assertEquals( "pistatus",
             getSql( "V{enrollment_status}" ) );
 
         assertEquals( "enrollmentstatus",

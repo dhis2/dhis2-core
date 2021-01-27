@@ -371,26 +371,6 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testUpdateRequiresValidReferencesAUTO()
-        throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/de_validate6.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.VALIDATE );
-        params.setPreheatIdentifier( PreheatIdentifier.AUTO );
-        params.setImportStrategy( ImportStrategy.UPDATE );
-        params.setObjects( metadata );
-
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-
-        assertFalse( validate.getTypeReportMap( DataElement.class ).getObjectReports().isEmpty() );
-        assertEquals( 3, validate.getErrorReportsByCode( DataElement.class, ErrorCode.E5001 ).size() );
-    }
-
-    @Test
     public void testDeleteRequiresValidReferencesUID()
         throws IOException
     {
@@ -420,26 +400,6 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.VALIDATE );
         params.setPreheatIdentifier( PreheatIdentifier.CODE );
-        params.setImportStrategy( ImportStrategy.DELETE );
-        params.setObjects( metadata );
-
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-
-        assertFalse( validate.getTypeReportMap( DataElement.class ).getObjectReports().isEmpty() );
-        assertEquals( 3, validate.getErrorReportsByCode( DataElement.class, ErrorCode.E5001 ).size() );
-    }
-
-    @Test
-    public void testDeleteRequiresValidReferencesAUTO()
-        throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/de_validate6.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.VALIDATE );
-        params.setPreheatIdentifier( PreheatIdentifier.AUTO );
         params.setImportStrategy( ImportStrategy.DELETE );
         params.setObjects( metadata );
 

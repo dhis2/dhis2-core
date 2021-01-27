@@ -29,6 +29,8 @@ package org.hisp.dhis.preheat;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @deprecated only REFERENCE mode is now allowed, all other modes will use
+ *             REFERENCE, keeping enum for backward compatibility
  */
 public enum PreheatMode
 {
