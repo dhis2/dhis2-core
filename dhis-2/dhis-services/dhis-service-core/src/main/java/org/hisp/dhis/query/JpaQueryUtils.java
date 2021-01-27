@@ -310,7 +310,6 @@ public class JpaQueryUtils
      * @param builder
      * @param userGroupUids List of User Group Uids
      * @param access Access String
-     * @param <T>
      * @return JPA Predicate
      */
     public static <T> Function<Root<T>,Predicate> checkUserGroupsAccess( CriteriaBuilder builder, Set<String> userGroupUids, String access )
@@ -358,13 +357,17 @@ public class JpaQueryUtils
             : "{" + org.apache.commons.lang3.StringUtils.join( user.getGroups().stream().map( g -> g.getUid() )
                 .collect( Collectors.toList() ), "," ) + "}";
 
-        return  " ( " + sharingColumn + "->>'owner' is not null and " + sharingColumn + "->>'owner' = '" + user.getUid() + "') "
-            + " or " + sharingColumn + "->>'public' like '__r%' or " + sharingColumn + "->>'public' is null "
-            + " or (" + JsonbFunctions.HAS_USER_ID +"("+ sharingColumn +", '" + user.getUid() + "') = true "
-            + " and " + JsonbFunctions.CHECK_USER_ACCESS +"( " + sharingColumn + ", '" + user.getUid() + "', '" + access + "' ) = true )  "
+        String sql =  " ( %1$s->>'owner' is not null and %1$s->>'owner' = '%2$s') "
+            + " or %1$s->>'public' like '__r%' or %1$s->>'public' is null "
+            + " or (" + JsonbFunctions.HAS_USER_ID +"( %1$s, '%2$s') = true "
+            + " and " + JsonbFunctions.CHECK_USER_ACCESS +"( %1$s, '%2$s', '%4$s' ) = true )  "
             + ( StringUtils.isEmpty( groupsIds ) ? "" :
-             " or ( " + JsonbFunctions.HAS_USER_GROUP_IDS +"( " + sharingColumn + ", '{" + userGroupIds + "}') = true "
-            + " and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS +"( " + sharingColumn + ", '{" + userGroupIds + "}', '"+access+"') = true )" );
+             " or ( " + JsonbFunctions.HAS_USER_GROUP_IDS +"( %1$s, '{%3$s}') = true "
+            + " and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS +"( %1$s, '{%3$s}', '%4$s') = true )" );
+
+        String.format( sql, sharingColumn, user.getUid(), groupsIds, access );
+
+        return sql;
     }
 
     private static boolean isIgnoreCase( org.hisp.dhis.query.Order o )
