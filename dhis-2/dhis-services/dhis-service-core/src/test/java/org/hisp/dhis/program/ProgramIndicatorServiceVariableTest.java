@@ -183,6 +183,17 @@ public class ProgramIndicatorServiceVariableTest
     }
 
     @Test
+    public void testEventStatus()
+    {
+        assertEquals( "psistatus",
+            getSql( "V{event_status}" ) );
+
+        assertEquals(
+            "(select psistatus from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and psistatus is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date ) order by executiondate desc limit 1 )",
+            getSqlEnrollment( "V{event_status}" ) );
+    }
+
+    @Test
     public void testEventCount()
     {
         assertEquals( "distinct psi",
