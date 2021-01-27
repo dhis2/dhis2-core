@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,14 @@ package org.hisp.dhis.tracker.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -39,10 +43,6 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -88,7 +88,8 @@ public class DefaultTrackerValidationService
             return validationReport;
         }
 
-        // Note that the bundle gets cloned internally, so the original bundle is always available
+        // Note that the bundle gets cloned internally, so the original bundle
+        // is always available
         TrackerImportValidationContext context = new TrackerImportValidationContext( bundle );
 
         try

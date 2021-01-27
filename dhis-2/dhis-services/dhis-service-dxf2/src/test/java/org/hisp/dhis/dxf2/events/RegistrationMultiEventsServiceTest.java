@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,7 +25,7 @@ package org.hisp.dhis.dxf2.events;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+package org.hisp.dhis.dxf2.events;
 
 import com.google.common.collect.Lists;
 import org.hamcrest.CoreMatchers;
@@ -98,17 +96,27 @@ public class RegistrationMultiEventsServiceTest extends TransactionalIntegration
     private UserService _userService;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
+
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
+
     private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleA;
+
     private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB;
 
     private TrackedEntityInstance trackedEntityInstanceMaleA;
+
     private OrganisationUnit organisationUnitA;
+
     private OrganisationUnit organisationUnitB;
+
     private Program programA;
+
     private DataElement dataElementA;
+
     private DataElement dataElementB;
+
     private ProgramStage programStageA;
+
     private ProgramStage programStageB;
 
     @Override
@@ -191,7 +199,8 @@ public class RegistrationMultiEventsServiceTest extends TransactionalIntegration
     @Test
     public void testSaveWithoutProgramStageShouldFail()
     {
-        Event event = createEvent( programA.getUid(), null, organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance(),
+        Event event = createEvent( programA.getUid(), null, organisationUnitA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance(),
             dataElementA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
@@ -212,7 +221,8 @@ public class RegistrationMultiEventsServiceTest extends TransactionalIntegration
     @Test
     public void testSaveRepeatableStageWithoutEventIdShouldCreateNewEvent()
     {
-        Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Enrollment enrollment = createEnrollment( programA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
@@ -280,7 +290,8 @@ public class RegistrationMultiEventsServiceTest extends TransactionalIntegration
         ImportOptions importOptions = new ImportOptions();
         importOptions.setImportStrategy( ImportStrategy.CREATE );
 
-        Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Enrollment enrollment = createEnrollment( programA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
@@ -328,7 +339,8 @@ public class RegistrationMultiEventsServiceTest extends TransactionalIntegration
         params.setOrgUnit( organisationUnitA );
         params.setOrgUnitSelectionMode( OrganisationUnitSelectionMode.SELECTED );
 
-        Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Enrollment enrollment = createEnrollment( programA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         enrollment.setEnrollmentDate( new DateTime( 2019, 1, 1, 0, 0, 0, 0 ).toDate() );
         enrollment.setIncidentDate( new DateTime( 2019, 1, 1, 0, 0, 0, 0 ).toDate() );
 

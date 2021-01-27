@@ -1,5 +1,3 @@
-package org.hisp.dhis.artemis.config;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,12 +25,13 @@ package org.hisp.dhis.artemis.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.artemis.config;
 
 import java.util.Optional;
 import java.util.function.Supplier;
+
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
@@ -40,7 +39,11 @@ import java.util.function.Supplier;
 @Component
 public class UsernameSupplier implements Supplier<String>
 {
-    private final static String DEFAULT_USERNAME = "system-process"; // TODO this may come from configuration
+    private final static String DEFAULT_USERNAME = "system-process"; // TODO
+                                                                     // this may
+                                                                     // come
+                                                                     // from
+                                                                     // configuration
 
     private final CurrentUserService currentUserService;
 

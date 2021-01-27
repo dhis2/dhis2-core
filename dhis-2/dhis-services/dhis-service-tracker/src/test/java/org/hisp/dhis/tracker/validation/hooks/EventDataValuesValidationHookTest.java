@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
@@ -46,6 +45,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -76,7 +76,7 @@ public class EventDataValuesValidationHookTest
     @Before
     public void setUp()
     {
-        hookToTest = new EventDataValuesValidationHook( );
+        hookToTest = new EventDataValuesValidationHook();
 
         DataElement validDataElement = new DataElement();
         validDataElement.setValueType( ValueType.TEXT );
@@ -118,43 +118,11 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void successValidationWhenCreatedAtIsInvalid()
-    {
-        // Given
-        DataValue validDataValue = validDataValue();
-        validDataValue.setCreatedAt( "INVALID_DATE" );
-        when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
-
-        // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
-        hookToTest.validateEvent( reporter, event );
-
-        // Then
-        assertThat( reporter.getReportList(), hasSize( 0 ) );
-    }
-
-    @Test
     public void failValidationWhenUpdatedAtIsNull()
     {
         // Given
         DataValue validDataValue = validDataValue();
         validDataValue.setUpdatedAt( null );
-        when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
-
-        // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
-        hookToTest.validateEvent( reporter, event );
-
-        // Then
-        assertThat( reporter.getReportList(), hasSize( 0 ) );
-    }
-
-    @Test
-    public void successValidationWhenUpdatedAtIsInvalid()
-    {
-        // Given
-        DataValue validDataValue = validDataValue();
-        validDataValue.setUpdatedAt( "INVALID_DATE" );
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
 
         // When
@@ -269,7 +237,8 @@ public class EventDataValuesValidationHookTest
         when( event.getProgramStage() ).thenReturn( "PROGRAM_STAGE" );
         when( event.getStatus() ).thenReturn( EventStatus.ACTIVE );
         when( validationContext.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
-        when( validationContext.getDataElement( "de_not_present_in_progam_stage" ) ).thenReturn( notPresentDataElement );
+        when( validationContext.getDataElement( "de_not_present_in_progam_stage" ) )
+            .thenReturn( notPresentDataElement );
 
         // When
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
@@ -399,8 +368,8 @@ public class EventDataValuesValidationHookTest
     private DataValue validDataValue()
     {
         DataValue dataValue = new DataValue();
-        dataValue.setCreatedAt( "2020-10-10" );
-        dataValue.setUpdatedAt( "2020-10-10" );
+        dataValue.setCreatedAt( DateUtils.instantFromDateAsString( "2020-10-10" ) );
+        dataValue.setUpdatedAt( DateUtils.instantFromDateAsString( "2020-10-10" ) );
         dataValue.setValue( "text" );
         dataValue.setDataElement( "validDataElement" );
         return dataValue;

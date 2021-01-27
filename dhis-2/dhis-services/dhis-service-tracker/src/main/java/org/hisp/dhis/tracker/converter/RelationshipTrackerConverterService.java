@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.converter;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,11 @@ package org.hisp.dhis.tracker.converter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.converter;
 
-import static org.hisp.dhis.relationship.RelationshipEntity.*;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 
 import java.util.Collections;
 import java.util.Date;
@@ -40,6 +41,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -71,10 +73,10 @@ public class RelationshipTrackerConverterService
             Relationship toRelationship = new Relationship();
             toRelationship.setRelationship( fromRelationship.getUid() );
             toRelationship.setBidirectional( fromRelationship.getRelationshipType().isBidirectional() );
-            toRelationship.setCreatedAt( fromRelationship.getCreated().toString() );
+            toRelationship.setCreatedAt( DateUtils.instantFromDate( fromRelationship.getCreated() ) );
             toRelationship.setFrom( convertRelationshipType( fromRelationship.getFrom() ) );
             toRelationship.setTo( convertRelationshipType( fromRelationship.getTo() ) );
-            toRelationship.setUpdatedAt( fromRelationship.getLastUpdated().toString() );
+            toRelationship.setUpdatedAt( DateUtils.instantFromDate( fromRelationship.getLastUpdated() ) );
             toRelationship.setRelationshipType( fromRelationship.getRelationshipType().getUid() );
 
             return toRelationship;
@@ -84,12 +86,11 @@ public class RelationshipTrackerConverterService
     private RelationshipItem convertRelationshipType( org.hisp.dhis.relationship.RelationshipItem from )
     {
         RelationshipItem relationshipItem = new RelationshipItem();
-        relationshipItem.setEnrollment( from.getProgramInstance() != null ?
-            from.getProgramInstance().getUid() : null );
-        relationshipItem.setEvent( from.getProgramStageInstance() != null ?
-            from.getProgramStageInstance().getUid() : null );
-        relationshipItem.setTrackedEntity( from.getTrackedEntityInstance() != null ?
-            from.getTrackedEntityInstance().getUid() : null );
+        relationshipItem.setEnrollment( from.getProgramInstance() != null ? from.getProgramInstance().getUid() : null );
+        relationshipItem
+            .setEvent( from.getProgramStageInstance() != null ? from.getProgramStageInstance().getUid() : null );
+        relationshipItem.setTrackedEntity(
+            from.getTrackedEntityInstance() != null ? from.getTrackedEntityInstance().getUid() : null );
         return relationshipItem;
     }
 

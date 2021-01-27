@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1118;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1120;
@@ -71,7 +70,7 @@ public class AssignedUserValidationHook
             .orElse( false );
     }
 
-    private boolean assignedUserNotPresentInPreheat(ValidationErrorReporter reporter, Event event )
+    private boolean assignedUserNotPresentInPreheat( ValidationErrorReporter reporter, Event event )
     {
         return reporter.getValidationContext().getBundle().getPreheat().get( User.class,
             event.getAssignedUser() ) == null;

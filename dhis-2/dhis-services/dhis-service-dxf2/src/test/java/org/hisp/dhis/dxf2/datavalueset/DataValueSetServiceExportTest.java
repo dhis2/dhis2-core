@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.datavalueset;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,7 +25,7 @@ package org.hisp.dhis.dxf2.datavalueset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+package org.hisp.dhis.dxf2.datavalueset;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -107,29 +105,39 @@ public class DataValueSetServiceExportTest
     private ObjectMapper jsonMapper;
 
     private DataElement deA;
+
     private DataElement deB;
+
     private DataElement deC;
 
     private CategoryCombo ccA;
 
     private CategoryOptionCombo cocA;
+
     private CategoryOptionCombo cocB;
 
     private Attribute atA;
 
     private AttributeValue avA;
+
     private AttributeValue avB;
+
     private AttributeValue avC;
+
     private AttributeValue avD;
 
     private DataSet dsA;
+
     private DataSet dsB;
 
     private Period peA;
+
     private Period peB;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
+
     private OrganisationUnit ouC;
 
     private OrganisationUnitGroup ogA;
@@ -178,8 +186,10 @@ public class DataValueSetServiceExportTest
         dataSetService.addDataSet( dsA );
         dataSetService.addDataSet( dsB );
 
-        peA = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2016, 3, 1 ), getDate( 2016, 3, 31 ) );
-        peB = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2016, 4, 1 ), getDate( 2016, 4, 30 ) );
+        peA = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2016, 3, 1 ),
+            getDate( 2016, 3, 31 ) );
+        peB = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2016, 4, 1 ),
+            getDate( 2016, 4, 30 ) );
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );

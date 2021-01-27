@@ -1,5 +1,3 @@
-package org.hisp.dhis.trackedentity;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentity;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -49,7 +48,7 @@ public interface TrackerOwnershipManager
      *        skipped or not.
      */
     void transferOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit orgUnit,
-                            boolean skipAccessValidation, boolean createIfNotExists );
+        boolean skipAccessValidation, boolean createIfNotExists );
 
     /**
      * @param entityInstance The tracked entity instance object
@@ -57,7 +56,7 @@ public interface TrackerOwnershipManager
      * @param organisationUnit The org unit that has to become the owner
      */
     void assignOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit organisationUnit,
-                          boolean skipAccessValidation, boolean overwriteIfExists );
+        boolean skipAccessValidation, boolean overwriteIfExists );
 
     /**
      * Check whether the user has access (as owner or has temporarily broken the

@@ -1,5 +1,3 @@
-package org.hisp.dhis.hibernate.jsonb.type;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,15 +25,16 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.postgresql.util.PGobject;
+package org.hisp.dhis.hibernate.jsonb.type;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Properties;
+
+import org.hibernate.HibernateException;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.postgresql.util.PGobject;
 
 /**
  * User defined type to handle dynamic json structures to be stored in jsonb.
@@ -52,7 +51,9 @@ public class JsonBinaryPlainStringType extends JsonBinaryType
     }
 
     @Override
-    public Object nullSafeGet( ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner ) throws HibernateException, SQLException
+    public Object nullSafeGet( ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner )
+        throws HibernateException,
+        SQLException
     {
         final Object result = rs.getObject( names[0] );
 
@@ -81,7 +82,9 @@ public class JsonBinaryPlainStringType extends JsonBinaryType
     }
 
     @Override
-    public void nullSafeSet( PreparedStatement ps, Object value, int idx, SharedSessionContractImplementor session ) throws HibernateException, SQLException
+    public void nullSafeSet( PreparedStatement ps, Object value, int idx, SharedSessionContractImplementor session )
+        throws HibernateException,
+        SQLException
     {
         if ( value == null )
         {
@@ -97,7 +100,8 @@ public class JsonBinaryPlainStringType extends JsonBinaryType
     }
 
     @Override
-    public Object deepCopy( Object value ) throws HibernateException
+    public Object deepCopy( Object value )
+        throws HibernateException
     {
         return value == null ? null : value.toString();
     }

@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.filter;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.filter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.filter;
 
 import java.io.IOException;
 
@@ -72,7 +71,8 @@ public class CustomAuthenticationFilter implements InitializingBean, Filter
 
     @Override
     public void doFilter( ServletRequest request, ServletResponse response, FilterChain filterChain )
-        throws IOException, ServletException
+        throws IOException,
+        ServletException
     {
         String mobileVersion = request.getParameter( PARAM_MOBILE_VERSION );
         String authOnly = request.getParameter( PARAM_AUTH_ONLY );
@@ -95,4 +95,3 @@ public class CustomAuthenticationFilter implements InitializingBean, Filter
     {
     }
 }
-

@@ -1,5 +1,3 @@
-package org.hisp.dhis.cache;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,10 @@ package org.hisp.dhis.cache;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.cache;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
@@ -61,7 +61,7 @@ public class DefaultHibernateCacheManager
     {
         sessionFactory.getCache().evictEntityData();
         sessionFactory.getCache().evictCollectionData();
-     }
+    }
 
     @Override
     public void clearQueryCache()

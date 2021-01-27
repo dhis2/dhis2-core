@@ -1,5 +1,3 @@
-package org.hisp.dhis.category.hibernate;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.category.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.category.hibernate;
 
 import java.util.List;
 
@@ -51,7 +50,8 @@ public class HibernateCategoryComboStore
     extends HibernateIdentifiableObjectStore<CategoryCombo>
     implements CategoryComboStore
 {
-    public HibernateCategoryComboStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher,
+    public HibernateCategoryComboStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher,
         CurrentUserService currentUserService, AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, publisher, CategoryCombo.class, currentUserService, aclService, true );
@@ -62,7 +62,7 @@ public class HibernateCategoryComboStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder,  newJpaParameters()
+        return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
             .addPredicate( root -> builder.equal( root.get( "name" ), "default" ) ) );
     }

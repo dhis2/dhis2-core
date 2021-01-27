@@ -4,7 +4,7 @@
       "lastUpdated": "2019-04-09T13:29:20.325",
       "id": "l8oDIfJJhtg",
       "created": "2019-04-09T13:29:20.285",
-      "name": "Program with user assignment",
+      "name": "TA Program with user assignment",
       "allowGenerateNextVisit": false,
       "preGenerateUID": false,
       "publicAccess": "rw------",
@@ -67,16 +67,16 @@
       "translations": [],
       "organisationUnits": [
         {
-          "id": "O6uvpzGd5pu"
-        },
-        {
           "id": "g8upMTyEZGZ"
         },
         {
-          "id": "YuQRtpLP10I"
+          "id": "O6uvpzGd5pu"
         },
         {
-          "id": "ImspTQPwCqd"
+          "id": "DiszpKrYNg8"
+        },
+        {
+          "id": "YuQRtpLP10I"
         }
       ],
       "userGroupAccesses": [

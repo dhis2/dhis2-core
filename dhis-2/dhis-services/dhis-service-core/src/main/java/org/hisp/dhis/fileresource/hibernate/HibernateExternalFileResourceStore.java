@@ -1,5 +1,3 @@
-package org.hisp.dhis.fileresource.hibernate;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.fileresource.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.fileresource.hibernate;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -49,13 +48,14 @@ public class HibernateExternalFileResourceStore
     public HibernateExternalFileResourceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, ExternalFileResource.class, currentUserService, aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, ExternalFileResource.class, currentUserService, aclService,
+            false );
     }
 
     @Override
     public ExternalFileResource getExternalFileResourceByAccessToken( String accessToken )
     {
-        return  getQuery( "from ExternalFileResource where accessToken = :accessToken" )
+        return getQuery( "from ExternalFileResource where accessToken = :accessToken" )
             .setParameter( "accessToken", accessToken ).uniqueResult();
     }
 }

@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,9 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker;
+
+import static org.hisp.dhis.tracker.report.TrackerTimingsStats.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +36,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -52,13 +58,6 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableMap;
 
-import lombok.AllArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import static org.hisp.dhis.tracker.report.TrackerTimingsStats.*;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -68,15 +67,20 @@ import static org.hisp.dhis.tracker.report.TrackerTimingsStats.*;
 public class DefaultTrackerImportService
     implements TrackerImportService
 {
-    @NonNull private final TrackerBundleService trackerBundleService;
+    @NonNull
+    private final TrackerBundleService trackerBundleService;
 
-    @NonNull private final TrackerValidationService trackerValidationService;
+    @NonNull
+    private final TrackerValidationService trackerValidationService;
 
-    @NonNull private final TrackerPreprocessService trackerPreprocessService;
+    @NonNull
+    private final TrackerPreprocessService trackerPreprocessService;
 
-    @NonNull private final TrackerUserService trackerUserService;
+    @NonNull
+    private final TrackerUserService trackerUserService;
 
-    @NonNull private final Notifier notifier;
+    @NonNull
+    private final Notifier notifier;
 
     @Override
     public TrackerImportReport importTracker( TrackerImportParams params )
@@ -213,7 +217,7 @@ public class DefaultTrackerImportService
 
     private Map<TrackerType, Integer> calculatePayloadSize( TrackerBundle bundle )
     {
-        return ImmutableMap.<TrackerType, Integer>builder()
+        return ImmutableMap.<TrackerType, Integer> builder()
             .put( TrackerType.TRACKED_ENTITY, bundle.getTrackedEntities().size() )
             .put( TrackerType.ENROLLMENT, bundle.getEnrollments().size() )
             .put( TrackerType.EVENT, bundle.getEvents().size() )
@@ -239,12 +243,16 @@ public class DefaultTrackerImportService
     {
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
 
-        List<TrackerSideEffectDataBundle> sideEffectDataBundles = Stream.of( TrackerType.ENROLLMENT, TrackerType.EVENT )
-            .map( trackerType -> safelyGetSideEffectsDataBundles( bundleReport, trackerType ) )
-            .flatMap( Collection::stream )
-            .collect( Collectors.toList() );
+        if ( !trackerBundle.isSkipSideEffects() )
+        {
+            List<TrackerSideEffectDataBundle> sideEffectDataBundles = Stream
+                .of( TrackerType.ENROLLMENT, TrackerType.EVENT )
+                .map( trackerType -> safelyGetSideEffectsDataBundles( bundleReport, trackerType ) )
+                .flatMap( Collection::stream )
+                .collect( Collectors.toList() );
 
-        trackerBundleService.handleTrackerSideEffects( sideEffectDataBundles );
+            trackerBundleService.handleTrackerSideEffects( sideEffectDataBundles );
+        }
 
         return bundleReport;
     }
@@ -326,11 +334,13 @@ public class DefaultTrackerImportService
             }
         }
 
-        public void endImportWithError( TrackerImportReport importReport, Exception e) {
+        public void endImportWithError( TrackerImportReport importReport, Exception e )
+        {
 
             if ( params.hasJobConfiguration() )
             {
-                notifier.update( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Failed with exception: " + e.getMessage(), true );
+                notifier.update( params.getJobConfiguration(),
+                    "(" + params.getUsername() + ") Import:Failed with exception: " + e.getMessage(), true );
                 notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
             }
         }

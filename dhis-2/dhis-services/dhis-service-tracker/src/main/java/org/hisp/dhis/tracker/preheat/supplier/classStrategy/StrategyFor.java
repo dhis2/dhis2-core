@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -39,7 +38,7 @@ import org.hisp.dhis.tracker.preheat.mappers.PreheatMapper;
 /**
  * Annotation for {@link ClassBasedSupplierStrategy} classes that specifies the
  * Tracker domain object the annotated strategy has to process
- * 
+ *
  * @author Luciano Fiandesio
  */
 @Retention( RUNTIME )
@@ -62,7 +61,8 @@ public @interface StrategyFor
     int ttl() default 5;
 
     /**
-     * The maximum number of entries hold by the cache. Defaults to Long.MAX_VALUE
+     * The maximum number of entries hold by the cache. Defaults to
+     * Long.MAX_VALUE
      */
     long capacity() default Long.MAX_VALUE;
 }

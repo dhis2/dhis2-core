@@ -1,5 +1,3 @@
-package org.hisp.dhis.outlierdetection;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,17 +25,19 @@ package org.hisp.dhis.outlierdetection;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.outlierdetection;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.Getter;
+
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import com.google.common.base.Preconditions;
 
-import lombok.Getter;
+import com.google.common.base.Preconditions;
 
 /**
  * Encapsulation of an outlier detection request.
@@ -61,6 +61,10 @@ public class OutlierDetectionRequest
 
     private double threshold;
 
+    private Date dataStartDate;
+
+    private Date dataEndDate;
+
     private Order orderBy;
 
     private int maxResults;
@@ -74,6 +78,11 @@ public class OutlierDetectionRequest
 
     private OutlierDetectionRequest()
     {
+    }
+
+    public boolean hasDataStartEndDate()
+    {
+        return dataStartDate != null && dataEndDate != null;
     }
 
     public static class Builder
@@ -125,6 +134,18 @@ public class OutlierDetectionRequest
             return this;
         }
 
+        public Builder withDataStartDate( Date dataStartDate )
+        {
+            this.query.dataStartDate = dataStartDate;
+            return this;
+        }
+
+        public Builder withDataEndDate( Date dataEndDate )
+        {
+            this.query.dataEndDate = dataEndDate;
+            return this;
+        }
+
         public Builder withOrderBy( Order orderBy )
         {
             this.query.orderBy = orderBy;
@@ -146,4 +167,3 @@ public class OutlierDetectionRequest
         }
     }
 }
-

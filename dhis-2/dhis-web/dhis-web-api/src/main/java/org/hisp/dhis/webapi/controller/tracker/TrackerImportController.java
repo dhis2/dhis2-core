@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller.tracker;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.tracker;
 
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
@@ -37,6 +36,9 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.render.RenderService;
@@ -62,9 +64,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -86,7 +85,8 @@ public class TrackerImportController
     private final Notifier notifier;
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE )
-    // @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
+    // @PreAuthorize( "hasRole('ALL') or
+    // hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
     public void asyncPostJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser )
         throws IOException
     {
@@ -107,7 +107,8 @@ public class TrackerImportController
     }
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, params = { "async=false" } )
-    // @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
+    // @PreAuthorize( "hasRole('ALL') or
+    // hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
     public TrackerImportReport syncPostJsonTracker(
         @RequestParam( defaultValue = "full", required = false ) String reportMode,
         HttpServletRequest request, User currentUser )
@@ -141,19 +142,20 @@ public class TrackerImportController
     @SneakyThrows
     private TrackerImportParams buildTrackerImportParams( HttpServletRequest request, User currentUser )
     {
-        TrackerImportParams.TrackerImportParamsBuilder paramsBuilder = TrackerImportParamsBuilder.builder( contextService.getParameterValuesMap() );
+        TrackerImportParams.TrackerImportParamsBuilder paramsBuilder = TrackerImportParamsBuilder
+            .builder( contextService.getParameterValuesMap() );
 
         TrackerBundleParams trackerBundleParams = renderService.fromJson(
-                request.getInputStream(),
-                TrackerBundleParams.class );
+            request.getInputStream(),
+            TrackerBundleParams.class );
 
         return paramsBuilder
-                .userId( currentUser.getUid() )
-                .trackedEntities( trackerBundleParams.getTrackedEntities() )
-                .enrollments( trackerBundleParams.getEnrollments() )
-                .events( trackerBundleParams.getEvents() )
-                .relationships( trackerBundleParams.getRelationships() )
-                .build();
+            .userId( currentUser.getUid() )
+            .trackedEntities( trackerBundleParams.getTrackedEntities() )
+            .enrollments( trackerBundleParams.getEnrollments() )
+            .events( trackerBundleParams.getEvents() )
+            .relationships( trackerBundleParams.getRelationships() )
+            .build();
     }
 
     @GetMapping( value = "/jobs/{uid}", produces = APPLICATION_JSON_VALUE )

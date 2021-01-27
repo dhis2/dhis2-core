@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller.category;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.category;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
@@ -41,5 +40,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping( value = CategoryOptionSchemaDescriptor.API_ENDPOINT )
 public class CategoryOptionController extends AbstractCrudController<CategoryOption>
 {
-    
+
 }

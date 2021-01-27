@@ -1,5 +1,3 @@
-package org.hisp.dhis.trackedentityfilter;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,12 +25,12 @@ package org.hisp.dhis.trackedentityfilter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentityfilter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;

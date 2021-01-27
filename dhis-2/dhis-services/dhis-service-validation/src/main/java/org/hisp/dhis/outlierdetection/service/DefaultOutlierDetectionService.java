@@ -1,5 +1,3 @@
-package org.hisp.dhis.outlierdetection.service;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,12 +25,15 @@ package org.hisp.dhis.outlierdetection.service;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.outlierdetection.service;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -45,13 +46,11 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionMetadata;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
+import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.hisp.dhis.outlierdetection.OutlierDetectionService;
 import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.system.util.JacksonCsvUtils;
-import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.springframework.stereotype.Service;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -127,6 +126,11 @@ public class DefaultOutlierDetectionService
         {
             error = new ErrorMessage( ErrorCode.E2206, MAX_LIMIT );
         }
+        else if ( request.hasDataStartEndDate() &&
+            request.getDataStartDate().after( request.getDataEndDate() ) )
+        {
+            error = new ErrorMessage( ErrorCode.E2207 );
+        }
 
         return error;
     }
@@ -155,7 +159,9 @@ public class DefaultOutlierDetectionService
         request
             .withDataElements( dataElements )
             .withStartEndDate( query.getStartDate(), query.getEndDate() )
-            .withOrgUnits( orgUnits );
+            .withOrgUnits( orgUnits )
+            .withDataStartDate( query.getDataStartDate() )
+            .withDataEndDate( query.getDataEndDate() );
 
         if ( query.getAlgorithm() != null )
         {
@@ -194,7 +200,8 @@ public class DefaultOutlierDetectionService
 
     @Override
     public void getOutlierValuesAsCsv( OutlierDetectionRequest request, OutputStream out )
-        throws IllegalQueryException, IOException
+        throws IllegalQueryException,
+        IOException
     {
         JacksonCsvUtils.toCsv( getOutlierValues( request ).getOutlierValues(), OutlierValue.class, out );
     }
@@ -212,6 +219,8 @@ public class DefaultOutlierDetectionService
         metadata.setCount( outlierValues.size() );
         metadata.setAlgorithm( request.getAlgorithm() );
         metadata.setThreshold( request.getThreshold() );
+        metadata.setDataStartDate( request.getDataStartDate() );
+        metadata.setDataEndDate( request.getDataEndDate() );
         metadata.setOrderBy( request.getOrderBy() );
         metadata.setMaxResults( request.getMaxResults() );
         return metadata;
@@ -240,4 +249,3 @@ public class DefaultOutlierDetectionService
         }
     }
 }
-

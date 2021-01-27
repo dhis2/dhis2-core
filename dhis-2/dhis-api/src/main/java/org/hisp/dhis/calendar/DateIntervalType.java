@@ -1,5 +1,3 @@
-package org.hisp.dhis.calendar;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.calendar;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.calendar;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -34,8 +33,11 @@ package org.hisp.dhis.calendar;
 public enum DateIntervalType
 {
     /**
-      * Gives interval for a year, month, week or day based on ISO 8601.
-      * @see <a href="http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
-      */
-     ISO8601_YEAR, ISO8601_MONTH, ISO8601_WEEK, ISO8601_DAY
+     * Gives interval for a year, month, week or day based on the ISO 8601
+     * standard.
+     */
+    ISO8601_YEAR,
+    ISO8601_MONTH,
+    ISO8601_WEEK,
+    ISO8601_DAY
 }

@@ -1,5 +1,3 @@
-package org.hisp.dhis.system;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,15 +25,17 @@ package org.hisp.dhis.system;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.BeanUtils;
 
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
@@ -326,7 +326,8 @@ public class SystemInfo
         return intervalSinceLastAnalyticsTablePartitionSuccess;
     }
 
-    public void setIntervalSinceLastAnalyticsTablePartitionSuccess( String intervalSinceLastAnalyticsTablePartitionSuccess )
+    public void setIntervalSinceLastAnalyticsTablePartitionSuccess(
+        String intervalSinceLastAnalyticsTablePartitionSuccess )
     {
         this.intervalSinceLastAnalyticsTablePartitionSuccess = intervalSinceLastAnalyticsTablePartitionSuccess;
     }

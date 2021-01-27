@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.csv;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,12 @@ package org.hisp.dhis.dxf2.csv;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.dxf2.metadata.Metadata;
+package org.hisp.dhis.dxf2.csv;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import org.hisp.dhis.dxf2.metadata.Metadata;
 
 /**
  * @author Lars Helge Overland

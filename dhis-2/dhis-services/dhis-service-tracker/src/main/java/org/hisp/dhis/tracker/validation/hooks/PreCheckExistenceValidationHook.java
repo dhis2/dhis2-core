@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1002;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1030;
@@ -185,7 +184,7 @@ public class PreCheckExistenceValidationHook
     @Override
     public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
     {
-       //TODO need to add existence check for relationship
+        // TODO need to add existence check for relationship
     }
 
     @Override

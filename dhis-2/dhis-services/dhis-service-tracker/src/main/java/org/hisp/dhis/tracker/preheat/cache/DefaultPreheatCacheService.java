@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.preheat.cache;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preheat.cache;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat.cache;
 
 import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 
@@ -37,6 +36,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import lombok.RequiredArgsConstructor;
+
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -45,8 +46,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * Pre-heat cache implementation for metadata objects.
@@ -64,13 +63,14 @@ public class DefaultPreheatCacheService implements PreheatCacheService
     /**
      * Data structure to hold the metadata cache:
      *
-     * - the key is the full class name of the metadata class getting cached (e.g.
-     * "org.hisp.dhis.program.Program")
-     * 
+     * - the key is the full class name of the metadata class getting cached
+     * (e.g. "org.hisp.dhis.program.Program")
+     *
      * - the value is a Cache2K cache holding the objects to cache
      *
-     * Caveat: this data structure may reference multiple times the same objects, if
-     * different {@link TrackerIdScheme} are used during different imports.
+     * Caveat: this data structure may reference multiple times the same
+     * objects, if different {@link TrackerIdScheme} are used during different
+     * imports.
      */
     private static Map<String, Cache<String, IdentifiableObject>> cache = new HashMap<>();
 
@@ -126,7 +126,9 @@ public class DefaultPreheatCacheService implements PreheatCacheService
                     .name( cacheKey )
                     .permitNullValues( false )
                     .entryCapacity( capacity == -1 ? Long.MAX_VALUE : capacity )
-                    .resilienceDuration( 30, TimeUnit.SECONDS ) // cope with at most 30 seconds
+                    .resilienceDuration( 30, TimeUnit.SECONDS ) // cope with at
+                                                                // most 30
+                                                                // seconds
                     // outage before propagating exceptions
                     .build();
 

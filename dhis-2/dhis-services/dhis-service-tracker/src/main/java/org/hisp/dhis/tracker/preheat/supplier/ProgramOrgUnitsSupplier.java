@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.preheat.supplier;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat.supplier;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,7 +47,7 @@ import org.springframework.stereotype.Component;
  * (primary keys). The scope of this data structure is to allow the validation
  * to check if the entity or enrollment declared org unit is part of the
  * declared program's org units.
- * 
+ *
  * This supplier is efficient because it only loads the data that are strictly
  * necessary for this check.
  *

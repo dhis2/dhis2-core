@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.events.event.csv;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,20 +25,23 @@ package org.hisp.dhis.dxf2.events.event.csv;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.dxf2.events.event.Events;
+package org.hisp.dhis.dxf2.events.event.csv;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import org.hisp.dhis.dxf2.events.event.Events;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface CsvEventService
 {
-    void writeEvents( OutputStream outputStream, Events events, boolean withHeader ) throws IOException;
+    void writeEvents( OutputStream outputStream, Events events, boolean withHeader )
+        throws IOException;
 
     Events readEvents( InputStream inputStream, boolean skipFirst )
-        throws IOException, org.locationtech.jts.io.ParseException;
+        throws IOException,
+        org.locationtech.jts.io.ParseException;
 }

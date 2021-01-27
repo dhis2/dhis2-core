@@ -1,5 +1,3 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
@@ -92,7 +91,7 @@ public class RelationshipsValidationHookTest
     @Before
     public void setUp()
     {
-        validationHook = new RelationshipsValidationHook( );
+        validationHook = new RelationshipsValidationHook();
 
         when( ctx.getBundle() ).thenReturn( bundle );
         when( ctx.getBundle().getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
@@ -158,7 +157,7 @@ public class RelationshipsValidationHookTest
 
         RelationshipType relationshipType = new RelationshipType();
         relationshipType.setUid( relationship.getRelationshipType() );
-        when( preheat.getAll(  RelationshipType.class ) )
+        when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relationshipType ) );
 
         reporter = new ValidationErrorReporter( ctx, relationship );
@@ -222,7 +221,7 @@ public class RelationshipsValidationHookTest
         constraint.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         relationshipType.setFromConstraint( constraint );
         relationshipType.setToConstraint( constraint );
-        when( preheat.getAll(  RelationshipType.class ) )
+        when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relationshipType ) );
 
         reporter = new ValidationErrorReporter( ctx, relationship );
@@ -256,7 +255,7 @@ public class RelationshipsValidationHookTest
         constraint.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         relationshipType.setFromConstraint( constraint );
         relationshipType.setToConstraint( constraint );
-        when( preheat.getAll(  RelationshipType.class ) )
+        when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relationshipType ) );
 
         reporter = new ValidationErrorReporter( ctx, relationship );
@@ -304,7 +303,7 @@ public class RelationshipsValidationHookTest
             .relationshipType( relType.getUid() )
             .build();
 
-        when( preheat.getAll(  RelationshipType.class ) )
+        when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
         reporter = new ValidationErrorReporter( ctx, relationship );
@@ -332,7 +331,7 @@ public class RelationshipsValidationHookTest
             .relationshipType( relType.getUid() )
             .build();
 
-        when( preheat.getAll(  RelationshipType.class ) )
+        when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
         reporter = new ValidationErrorReporter( ctx, relationship );
@@ -365,7 +364,7 @@ public class RelationshipsValidationHookTest
             .relationshipType( relType.getUid() )
             .build();
 
-        when( preheat.getAll(  RelationshipType.class ) )
+        when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
         TrackedEntityType teiTrackedEntityType = new TrackedEntityType();
@@ -373,9 +372,9 @@ public class RelationshipsValidationHookTest
 
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         trackedEntityInstance.setUid( trackedEntityUid );
-        trackedEntityInstance.setTrackedEntityType( teiTrackedEntityType  );
+        trackedEntityInstance.setTrackedEntityType( teiTrackedEntityType );
 
-        when( ctx.getTrackedEntityInstance( trackedEntityUid) ).thenReturn( trackedEntityInstance );
+        when( ctx.getTrackedEntityInstance( trackedEntityUid ) ).thenReturn( trackedEntityInstance );
 
         reporter = new ValidationErrorReporter( ctx, relationship );
         validationHook.validateRelationship( reporter, relationship );
@@ -408,7 +407,7 @@ public class RelationshipsValidationHookTest
             .relationshipType( relType.getUid() )
             .build();
 
-        when( preheat.getAll(  RelationshipType.class ) )
+        when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
         List<TrackedEntity> trackedEntities = new ArrayList<>();
@@ -448,7 +447,7 @@ public class RelationshipsValidationHookTest
             .relationshipType( relType.getUid() )
             .build();
 
-        when( preheat.getAll(  RelationshipType.class ) )
+        when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
         TrackedEntity tei = new TrackedEntity();
@@ -490,7 +489,7 @@ public class RelationshipsValidationHookTest
             .relationshipType( relType.getUid() )
             .build();
 
-        when( preheat.getAll(  RelationshipType.class ) )
+        when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
         TrackedEntity tei = new TrackedEntity();
@@ -525,7 +524,7 @@ public class RelationshipsValidationHookTest
             .relationshipType( relType.getUid() )
             .build();
 
-        when( preheat.getAll(  RelationshipType.class ) )
+        when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
         reporter = new ValidationErrorReporter( ctx, relationship );

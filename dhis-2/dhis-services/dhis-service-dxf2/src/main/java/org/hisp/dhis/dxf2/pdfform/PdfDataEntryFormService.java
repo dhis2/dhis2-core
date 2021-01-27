@@ -1,5 +1,3 @@
-package org.hisp.dhis.dxf2.pdfform;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,11 +25,13 @@ package org.hisp.dhis.dxf2.pdfform;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.pdfform;
+
+import org.hisp.dhis.i18n.I18nFormat;
 
 import com.lowagie.text.Document;
 import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.PdfWriter;
-import org.hisp.dhis.i18n.I18nFormat;
 
 /**
  * @author James Chang

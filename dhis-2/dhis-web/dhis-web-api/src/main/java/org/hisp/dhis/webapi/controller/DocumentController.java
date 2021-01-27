@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,8 +25,15 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.document.Document;
@@ -46,10 +51,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -113,7 +114,7 @@ public class DocumentController
                 document.getUrl(),
                 document.getAttachment() == null ? false : document.getAttachment() );
 
-            try ( InputStream in = locationManager.getInputStream( document.getUrl(), DocumentService.DIR ) )
+            try (InputStream in = locationManager.getInputStream( document.getUrl(), DocumentService.DIR ))
             {
                 IOUtils.copy( in, response.getOutputStream() );
             }

@@ -1,5 +1,3 @@
-package org.hisp.dhis.external.conf;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,14 +25,16 @@ package org.hisp.dhis.external.conf;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import org.hisp.dhis.encryption.EncryptionStatus;
+package org.hisp.dhis.external.conf;
 
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+
+import org.hisp.dhis.encryption.EncryptionStatus;
+
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 
 /**
  * Interface which provides access to the DHIS 2 configuration specified through
@@ -65,7 +65,7 @@ public interface DhisConfigurationProvider
      * Get the property value for the given key, or the default value if not
      * exists.
      *
-     * @param key          the configuration key.
+     * @param key the configuration key.
      * @param defaultValue the default value.
      * @return the property value.
      */
@@ -92,7 +92,7 @@ public interface DhisConfigurationProvider
      * Returns value as boolean, will return false if value is null.
      *
      * @param key the configuration key.
-     * @return Will  return true if the value is "true" or "TRUE"
+     * @return Will return true if the value is "true" or "TRUE"
      */
     boolean getBoolean( ConfigurationKey key );
 
@@ -105,7 +105,8 @@ public interface DhisConfigurationProvider
     boolean isDisabled( ConfigurationKey key );
 
     /**
-     * Returns a GoogleCredential, if a Google service account has been configured.
+     * Returns a GoogleCredential, if a Google service account has been
+     * configured.
      *
      * @return a GoogleCredential
      */
@@ -116,7 +117,8 @@ public interface DhisConfigurationProvider
      * has been configured, or if no refresh token could be retrieved.
      *
      * @return a GoogleAccessToken.
-     * @throws IllegalStateException if an error occurred while retrieving a token.
+     * @throws IllegalStateException if an error occurred while retrieving a
+     *         token.
      */
     Optional<GoogleAccessToken> getGoogleAccessToken();
 

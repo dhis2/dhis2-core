@@ -1,5 +1,3 @@
-package org.hisp.dhis.feedback;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,12 +25,14 @@ package org.hisp.dhis.feedback;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.feedback;
 
-import org.hisp.dhis.common.IdentifiableObject;
-
-import javax.annotation.Nonnull;
 import java.util.IdentityHashMap;
 import java.util.Map;
+
+import javax.annotation.Nonnull;
+
+import org.hisp.dhis.common.IdentifiableObject;
 
 /**
  * Container with objects where the index of the object can be retrieved by the
@@ -53,7 +53,8 @@ public class IndexedObjectContainer implements ObjectIndexProvider
 
     /**
      * @param object the identifiable object that should be checked.
-     * @return <code>true</code> if the object is included in the container, <code>false</code> otherwise.
+     * @return <code>true</code> if the object is included in the container,
+     *         <code>false</code> otherwise.
      */
     public boolean containsObject( @Nonnull IdentifiableObject object )
     {
@@ -65,13 +66,14 @@ public class IndexedObjectContainer implements ObjectIndexProvider
      * already an index assigned, that will not be changed.
      *
      * @param object the object to which an index should be assigned.
-     * @return the resulting zero based index of the added object in the container.
+     * @return the resulting zero based index of the added object in the
+     *         container.
      */
     @Nonnull
     protected Integer add( @Nonnull IdentifiableObject object )
     {
         final Integer newIndex = objectsIndexMap.size();
         final Integer existingIndex = objectsIndexMap.putIfAbsent( object, newIndex );
-        return ( existingIndex == null ) ? newIndex : existingIndex;
+        return (existingIndex == null) ? newIndex : existingIndex;
     }
 }

@@ -1,5 +1,3 @@
-package org.hisp.dhis.user;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,15 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.PostConstruct;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -38,19 +45,11 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
- * Service for retrieving information about the currently
- * authenticated user.
+ * Service for retrieving information about the currently authenticated user.
  * <p>
- * Note that most methods are transactional, except for
- * retrieving current UserInfo.
+ * Note that most methods are transactional, except for retrieving current
+ * UserInfo.
  *
  * @author Torgeir Lorange Ostby
  */
@@ -59,14 +58,15 @@ public class DefaultCurrentUserService
     extends AbstractSpringSecurityCurrentUserService
 {
     /**
-     * Cache for user IDs. Key is username. Disabled during test phase.
-     * Take care not to cache user info which might change during runtime.
+     * Cache for user IDs. Key is username. Disabled during test phase. Take
+     * care not to cache user info which might change during runtime.
      */
     private static Cache<Long> USERNAME_ID_CACHE;
 
     /**
-     * Cache contains Set of UserGroup UID for each user. Key is username.
-     * This will be used for ACL check in {@link org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore}
+     * Cache contains Set of UserGroup UID for each user. Key is username. This
+     * will be used for ACL check in
+     * {@link org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore}
      */
     private static Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
 
@@ -141,13 +141,13 @@ public class DefaultCurrentUserService
 
             if ( user == null )
             {
-                throw new RuntimeException("Could not retrieve current user!");
+                throw new RuntimeException( "Could not retrieve current user!" );
             }
         }
 
         if ( user.getUserCredentials() == null )
         {
-            throw new RuntimeException("Could not retrieve current user credentials!");
+            throw new RuntimeException( "Could not retrieve current user credentials!" );
         }
 
         // TODO: this is pretty ugly way to retrieve auths
@@ -158,13 +158,12 @@ public class DefaultCurrentUserService
     @Override
     @Transactional( readOnly = true )
     public User getCurrentUserInTransaction()
-        throws Exception
     {
         String username = getCurrentUsername();
 
         if ( username == null )
         {
-            throw new Exception("Could not retrieve current username!");
+            return null;
         }
 
         User user = null;
@@ -173,7 +172,7 @@ public class DefaultCurrentUserService
 
         if ( userId != null )
         {
-            user = userStore.getUser(userId);
+            user = userStore.getUser( userId );
         }
 
         if ( user == null )
@@ -190,13 +189,13 @@ public class DefaultCurrentUserService
 
             if ( user == null )
             {
-                throw new Exception("Could not retrieve current user!");
+                throw new RuntimeException( "Could not retrieve current user!" );
             }
         }
 
         if ( user.getUserCredentials() == null )
         {
-            throw new Exception("Could not retrieve current user credentials!");
+            throw new RuntimeException( "Could not retrieve current user credentials!" );
         }
 
         user.getUserCredentials().getAllAuthorities();
@@ -222,7 +221,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        return new UserInfo( userId,  currentUsername, getCurrentUserAuthorities() );
+        return new UserInfo( userId, currentUsername, getCurrentUserAuthorities() );
     }
 
     @Override

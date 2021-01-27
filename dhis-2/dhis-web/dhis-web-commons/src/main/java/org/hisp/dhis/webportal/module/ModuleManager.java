@@ -1,5 +1,3 @@
-package org.hisp.dhis.webportal.module;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webportal.module;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webportal.module;
 
 import java.util.Collection;
 import java.util.List;
@@ -42,13 +41,13 @@ public interface ModuleManager
     Module getModuleByNamespace( String namespace );
 
     boolean moduleExists( String name );
-    
+
     List<Module> getMenuModules();
-    
+
     List<Module> getAccessibleMenuModules();
-    
+
     List<Module> getAccessibleMenuModulesAndApps( String contextPath );
-    
+
     Collection<Module> getAllModules();
 
     Module getCurrentModule();

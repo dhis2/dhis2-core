@@ -1,0 +1,1316 @@
+{
+  "programNotificationTemplates": [
+    {
+      "created": "2020-12-10T11:35:54.890",
+      "lastUpdated": "2020-12-10T11:35:54.890",
+      "name": "Send message",
+      "id": "IIyHlMh9ORz",
+      "displayName": "Send message",
+      "notificationTrigger": "PROGRAM_RULE",
+      "notificationRecipient": "USER_GROUP",
+      "subjectTemplate": "Program rule triggered",
+      "messageTemplate": "ProgramRuleTriggered",
+      "recipientUserGroup": {
+        "id": "OPVIvvXzNTw"
+      },
+      "deliveryChannels": []
+    }
+  ],
+  "programStageDataElements": [
+    {
+      "created": "2020-12-08T08:54:10.299",
+      "lastUpdated": "2020-12-08T08:54:10.299",
+      "id": "KShmWIvI8k7",
+      "displayInReports": false,
+      "skipSynchronization": false,
+      "renderOptionsAsRadio": false,
+      "compulsory": false,
+      "allowProvidedElsewhere": false,
+      "sortOrder": 3,
+      "allowFutureDate": true,
+      "programStage": {
+        "id": "nH8zfPSUSN1"
+      },
+      "dataElement": {
+        "id": "ILRgzHhzFkg"
+      }
+    },
+    {
+      "lastUpdated": "2021-01-18T13:54:49.882",
+      "id": "nmzZhFLJPGz",
+      "created": "2021-01-18T13:54:49.882",
+      "displayInReports": false,
+      "skipSynchronization": false,
+      "externalAccess": false,
+      "renderOptionsAsRadio": false,
+      "allowFutureDate": false,
+      "compulsory": false,
+      "allowProvidedElsewhere": false,
+      "sortOrder": 1,
+      "favorite": false,
+      "programStage": {
+        "id": "yKg8CY252Yk"
+      },
+      "dataElement": {
+        "id": "inc5BJvr4W5"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": []
+    },
+    {
+      "created": "2020-12-08T08:54:10.298",
+      "lastUpdated": "2020-12-08T08:54:10.298",
+      "id": "edOg8nCfE4b",
+      "displayInReports": false,
+      "skipSynchronization": false,
+      "renderOptionsAsRadio": false,
+      "compulsory": false,
+      "allowProvidedElsewhere": false,
+      "sortOrder": 2,
+      "allowFutureDate": true,
+      "programStage": {
+        "id": "nH8zfPSUSN1"
+      },
+      "dataElement": {
+        "id": "z3Z4TD3oBCP"
+      }
+    },
+    {
+      "created": "2020-12-08T08:54:10.299",
+      "lastUpdated": "2020-12-08T08:54:10.299",
+      "id": "YS000FUshrX",
+      "displayInReports": false,
+      "skipSynchronization": false,
+      "renderOptionsAsRadio": false,
+      "compulsory": false,
+      "allowProvidedElsewhere": false,
+      "sortOrder": 1,
+      "allowFutureDate": true,
+      "programStage": {
+        "id": "nH8zfPSUSN1"
+      },
+      "dataElement": {
+        "id": "inc5BJvr4W5"
+      }
+    },
+    {
+      "lastUpdated": "2020-12-09T10:30:20.666",
+      "id": "PPaOK8hiyWQ",
+      "created": "2020-12-09T10:30:20.666",
+      "displayInReports": false,
+      "skipSynchronization": false,
+      "externalAccess": false,
+      "renderOptionsAsRadio": false,
+      "allowFutureDate": false,
+      "compulsory": false,
+      "allowProvidedElsewhere": false,
+      "favorite": false,
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "programStage": {
+        "id": "jKLB23QZS4I"
+      },
+      "dataElement": {
+        "id": "inc5BJvr4W5"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": []
+    },
+    {
+      "lastUpdated": "2020-12-09T10:30:20.666",
+      "id": "cSc37t1TzTj",
+      "created": "2020-12-09T10:30:20.666",
+      "displayInReports": false,
+      "skipSynchronization": false,
+      "externalAccess": false,
+      "renderOptionsAsRadio": false,
+      "allowFutureDate": false,
+      "compulsory": false,
+      "allowProvidedElsewhere": false,
+      "favorite": false,
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "programStage": {
+        "id": "jKLB23QZS4I"
+      },
+      "dataElement": {
+        "id": "BuZ5LGNfGEU"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": []
+    },
+    {
+      "lastUpdated": "2020-12-09T10:30:20.667",
+      "id": "sMP1n58QvwT",
+      "created": "2020-12-09T10:30:20.667",
+      "displayInReports": false,
+      "skipSynchronization": false,
+      "externalAccess": false,
+      "renderOptionsAsRadio": false,
+      "allowFutureDate": false,
+      "compulsory": false,
+      "allowProvidedElsewhere": false,
+      "favorite": false,
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "programStage": {
+        "id": "jKLB23QZS4I"
+      },
+      "dataElement": {
+        "id": "mB2QHw1tU96"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": []
+    },
+    {
+      "lastUpdated": "2020-12-09T10:30:20.667",
+      "id": "F6AIyOWCnxW",
+      "created": "2020-12-09T10:30:20.667",
+      "displayInReports": false,
+      "skipSynchronization": false,
+      "externalAccess": false,
+      "renderOptionsAsRadio": false,
+      "allowFutureDate": false,
+      "compulsory": false,
+      "allowProvidedElsewhere": false,
+      "favorite": false,
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "programStage": {
+        "id": "jKLB23QZS4I"
+      },
+      "dataElement": {
+        "id": "ZrqtjjveTFc"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": []
+    },
+    {
+      "lastUpdated": "2020-12-09T10:30:20.667",
+      "id": "oMVgmvFAvMq",
+      "created": "2020-12-09T10:30:20.667",
+      "displayInReports": false,
+      "skipSynchronization": false,
+      "externalAccess": false,
+      "renderOptionsAsRadio": false,
+      "allowFutureDate": false,
+      "compulsory": false,
+      "allowProvidedElsewhere": false,
+      "favorite": false,
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "programStage": {
+        "id": "jKLB23QZS4I"
+      },
+      "dataElement": {
+        "id": "ILRgzHhzFkg"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": []
+    },
+    {
+      "lastUpdated": "2020-12-09T10:30:20.667",
+      "id": "RaGDCdCxGSm",
+      "created": "2020-12-09T10:30:20.667",
+      "displayInReports": false,
+      "skipSynchronization": false,
+      "externalAccess": false,
+      "renderOptionsAsRadio": false,
+      "allowFutureDate": false,
+      "compulsory": false,
+      "allowProvidedElsewhere": false,
+      "favorite": false,
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "programStage": {
+        "id": "jKLB23QZS4I"
+      },
+      "dataElement": {
+        "id": "z3Z4TD3oBCP"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": []
+    }
+  ],
+  "programRuleVariables": [
+    {
+      "created": "2020-12-09T11:00:41.884",
+      "lastUpdated": "2020-12-09T11:00:41.884",
+      "name": "TAComment",
+      "id": "qXpTPGjuzuc",
+      "programRuleVariableSourceType": "DATAELEMENT_CURRENT_EVENT",
+      "useCodeForOptionSet": false,
+      "program": {
+        "id": "uHi4GZJOD3n"
+      },
+      "dataElement": {
+        "id": "inc5BJvr4W5"
+      }
+    },
+    {
+      "created": "2020-12-09T10:55:20.470",
+      "lastUpdated": "2020-12-09T10:55:20.470",
+      "name": "TADiabetes",
+      "id": "qByqFfYUSlE",
+      "programRuleVariableSourceType": "DATAELEMENT_CURRENT_EVENT",
+      "useCodeForOptionSet": false,
+      "program": {
+        "id": "uHi4GZJOD3n"
+      },
+      "dataElement": {
+        "id": "ILRgzHhzFkg"
+      }
+    },
+    {
+      "id": "dC6GyznfY7I",
+      "name": "TaPlaceOfBirth",
+      "displayName": "TaPlaceOfBirth",
+      "programRuleVariableSourceType": "DATAELEMENT_CURRENT_EVENT",
+      "externalAccess": false,
+      "useCodeForOptionSet": false,
+      "favorite": false,
+      "program": {
+        "id": "uHi4GZJOD3n"
+      },
+      "dataElement": {
+        "id": "mB2QHw1tU96"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": []
+    }
+  ],
+  "programs": [
+    {
+      "code": "TA_TR_PR_RULES",
+      "lastUpdated": "2020-12-08T08:54:10.320",
+      "id": "U5HE4IRrZ7S",
+      "created": "2020-12-08T08:51:38.020",
+      "name": "TA tracker program with program rules",
+      "shortName": "TA tracker program with program rules",
+      "publicAccess": "rw------",
+      "completeEventsExpiryDays": 0,
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "minAttributesRequiredToSearch": 1,
+      "displayFrontPageList": false,
+      "onlyEnrollOnce": false,
+      "programType": "WITH_REGISTRATION",
+      "accessLevel": "OPEN",
+      "version": 1,
+      "maxTeiCountToReturn": 0,
+      "selectIncidentDatesInFuture": true,
+      "displayIncidentDate": true,
+      "selectEnrollmentDatesInFuture": true,
+      "expiryDays": 0,
+      "useFirstStageDuringRegistration": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "trackedEntityType": {
+        "id": "Q9GufDoplCL"
+      },
+      "programTrackedEntityAttributes": [
+        {
+          "lastUpdated": "2020-12-08T10:09:42.735",
+          "id": "uiYRY0bvbHx",
+          "created": "2020-12-08T10:09:42.674",
+          "name": "TA tracker program with program rules TA First name",
+          "displayName": "TA tracker program with program rules TA First name",
+          "mandatory": false,
+          "displayShortName": "TA tracker program with program rules TA First name",
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "valueType": "TEXT",
+          "searchable": false,
+          "displayInList": false,
+          "sortOrder": 1,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "program": {
+            "id": "U5HE4IRrZ7S"
+          },
+          "trackedEntityAttribute": {
+            "id": "dIVt4l5vIOa"
+          },
+          "favorites": [],
+          "programTrackedEntityAttributeGroups": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2020-12-08T10:09:42.736",
+          "id": "z007tpDnIyv",
+          "created": "2020-12-08T10:09:42.674",
+          "name": "TA tracker program with program rules TA Last name",
+          "displayName": "TA tracker program with program rules TA Last name",
+          "mandatory": false,
+          "displayShortName": "TA tracker program with program rules TA Last name",
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "valueType": "TEXT",
+          "searchable": false,
+          "displayInList": false,
+          "sortOrder": 2,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "program": {
+            "id": "U5HE4IRrZ7S"
+          },
+          "trackedEntityAttribute": {
+            "id": "kZeSYCgaHTk"
+          },
+          "favorites": [],
+          "programTrackedEntityAttributeGroups": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        }
+      ],
+      "notificationTemplates": [],
+      "translations": [],
+      "organisationUnits": [
+        {
+          "id": "g8upMTyEZGZ"
+        },
+        {
+          "id": "O6uvpzGd5pu"
+        },
+        {
+          "id": "DiszpKrYNg8"
+        },
+        {
+          "id": "YuQRtpLP10I"
+        }
+      ],
+      "userGroupAccesses": [],
+      "programSections": [],
+      "attributeValues": [],
+      "programStages": [
+        {
+          "id": "nH8zfPSUSN1"
+        },
+        {
+          "id": "yKg8CY252Yk"
+        }
+      ],
+      "userAccesses": []
+    },
+    {
+      "id": "uHi4GZJOD3n",
+      "name": "TA event program with program rules",
+      "shortName": "TA_EP_PR",
+      "publicAccess": "rw------",
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "onlyEnrollOnce": false,
+      "displayFormName": "TA event program with program rules",
+      "version": 0,
+      "maxTeiCountToReturn": 0,
+      "selectIncidentDatesInFuture": false,
+      "selectEnrollmentDatesInFuture": false,
+      "registration": false,
+      "favorite": false,
+      "useFirstStageDuringRegistration": false,
+      "displayName": "TA event program with program rules",
+      "completeEventsExpiryDays": 0,
+      "displayShortName": "TA_EP_PR",
+      "externalAccess": false,
+      "withoutRegistration": true,
+      "minAttributesRequiredToSearch": 1,
+      "displayFrontPageList": false,
+      "programType": "WITHOUT_REGISTRATION",
+      "accessLevel": "OPEN",
+      "displayIncidentDate": true,
+      "expiryDays": 0,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "programIndicators": [],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
+      "attributeValues": [],
+      "userRoles": [],
+      "userAccesses": [],
+      "favorites": [],
+      "programRuleVariables": [],
+      "programTrackedEntityAttributes": [],
+      "notificationTemplates": [],
+      "organisationUnits": [
+        {
+          "id": "g8upMTyEZGZ"
+        },
+        {
+          "id": "O6uvpzGd5pu"
+        },
+        {
+          "id": "DiszpKrYNg8"
+        },
+        {
+          "id": "YuQRtpLP10I"
+        }
+      ],
+      "programSections": [],
+      "programStages": [
+        {
+          "id": "Mt6Ac5brjoK"
+        }
+      ]
+    }
+  ],
+  "programStages": [
+    {
+      "lastUpdated": "2020-12-08T08:54:10.298",
+      "id": "nH8zfPSUSN1",
+      "created": "2020-12-08T08:54:10.298",
+      "name": "Stage 1",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "publicAccess": "rw------",
+      "openAfterEnrollment": false,
+      "repeatable": true,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_UPDATE_AND_INSERT",
+      "autoGenerateEvent": true,
+      "sortOrder": 1,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "enableUserAssignment": true,
+      "minDaysFromStart": 1,
+      "program": {
+        "id": "U5HE4IRrZ7S"
+      },
+      "notificationTemplates": [],
+      "programStageDataElements": [
+        {
+          "lastUpdated": "2020-12-08T08:54:10.299",
+          "id": "YS000FUshrX",
+          "created": "2020-12-08T08:54:10.299",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": true,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 1,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "nH8zfPSUSN1"
+          },
+          "dataElement": {
+            "id": "inc5BJvr4W5"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [
+            {
+              "id": "OPVIvvXzNTw",
+              "access": "rwrw----"
+            }
+          ],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2020-12-08T08:54:10.298",
+          "id": "edOg8nCfE4b",
+          "created": "2020-12-08T08:54:10.298",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": true,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 2,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "nH8zfPSUSN1"
+          },
+          "dataElement": {
+            "id": "z3Z4TD3oBCP"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [
+            {
+              "id": "OPVIvvXzNTw",
+              "access": "rwrw----"
+            }
+          ],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2020-12-08T08:54:10.299",
+          "id": "KShmWIvI8k7",
+          "created": "2020-12-08T08:54:10.299",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": true,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 3,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "nH8zfPSUSN1"
+          },
+          "dataElement": {
+            "id": "ILRgzHhzFkg"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [
+            {
+              "id": "OPVIvvXzNTw",
+              "access": "rwrw----"
+            }
+          ],
+          "attributeValues": [],
+          "userAccesses": []
+        }
+      ],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "programStageSections": []
+    },
+    {
+      "lastUpdated": "2020-12-08T08:54:10.299",
+      "id": "yKg8CY252Yk",
+      "created": "2020-12-08T08:54:10.299",
+      "name": "Stage 2",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "publicAccess": "rw------",
+      "openAfterEnrollment": false,
+      "repeatable": true,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": true,
+      "sortOrder": 2,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "enableUserAssignment": true,
+      "minDaysFromStart": 1,
+      "program": {
+        "id": "U5HE4IRrZ7S"
+      },
+      "notificationTemplates": [],
+      "programStageDataElements": [ {
+        "lastUpdated": "2021-01-18T13:54:49.882",
+        "id": "nmzZhFLJPGz",
+        "created": "2021-01-18T13:54:49.882",
+        "displayInReports": false,
+        "skipSynchronization": false,
+        "externalAccess": false,
+        "renderOptionsAsRadio": false,
+        "allowFutureDate": false,
+        "compulsory": false,
+        "allowProvidedElsewhere": false,
+        "sortOrder": 1,
+        "favorite": false,
+        "programStage": {
+          "id": "yKg8CY252Yk"
+        },
+        "dataElement": {
+          "id": "inc5BJvr4W5"
+        },
+        "favorites": [],
+        "translations": [],
+        "userGroupAccesses": [],
+        "attributeValues": [],
+        "userAccesses": []
+      }],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
+      "attributeValues": [],
+      "userAccesses": [],
+      "programStageSections": []
+    },
+    {
+      "id": "Mt6Ac5brjoK",
+      "name": "TA event program with program rules",
+      "allowGenerateNextVisit": false,
+      "publicAccess": "rw------",
+      "formType": "DEFAULT",
+      "generatedByEnrollmentDate": false,
+      "displayFormName": "TA event program with program rules",
+      "hideDueDate": false,
+      "enableUserAssignment": true,
+      "minDaysFromStart": 0,
+      "favorite": false,
+      "preGenerateUID": false,
+      "displayName": "TA event program with program rules",
+      "externalAccess": false,
+      "openAfterEnrollment": false,
+      "repeatable": false,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "validationStrategy": "ON_UPDATE_AND_INSERT",
+      "autoGenerateEvent": true,
+      "blockEntryForm": false,
+      "program": {
+        "id": "uHi4GZJOD3n"
+      },
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
+      "programStageDataElements": [
+        {
+          "lastUpdated": "2020-12-09T11:32:42.498",
+          "id": "pEX3HvfAv3y",
+          "created": "2020-12-09T11:32:42.498",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 1,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "Mt6Ac5brjoK"
+          },
+          "dataElement": {
+            "id": "BuZ5LGNfGEU"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2020-12-09T11:32:42.497",
+          "id": "bR11eEj1iPt",
+          "created": "2020-12-09T11:32:42.497",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 2,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "Mt6Ac5brjoK"
+          },
+          "dataElement": {
+            "id": "inc5BJvr4W5"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2020-12-09T11:32:42.498",
+          "id": "iFhLuMIe7DA",
+          "created": "2020-12-09T11:32:42.498",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 3,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "Mt6Ac5brjoK"
+          },
+          "dataElement": {
+            "id": "ILRgzHhzFkg"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2020-12-09T11:32:42.498",
+          "id": "uuFAdMo7ATk",
+          "created": "2020-12-09T11:32:42.498",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 4,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "Mt6Ac5brjoK"
+          },
+          "dataElement": {
+            "id": "ZrqtjjveTFc"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2020-12-09T11:32:42.498",
+          "id": "Yc5VUkfyWLd",
+          "created": "2020-12-09T11:32:42.498",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 5,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "Mt6Ac5brjoK"
+          },
+          "dataElement": {
+            "id": "mB2QHw1tU96"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2020-12-09T11:32:42.498",
+          "id": "pma7e3M73Ps",
+          "created": "2020-12-09T11:32:42.498",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 6,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "Mt6Ac5brjoK"
+          },
+          "dataElement": {
+            "id": "z3Z4TD3oBCP"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        }
+      ],
+      "attributeValues": [],
+      "userAccesses": [],
+      "favorites": [],
+      "notificationTemplates": [
+        {
+          "id": "IIyHlMh9ORz"
+        }
+      ],
+      "programStageSections": []
+    }
+  ],
+  "programRules": [
+    {
+      "id": "Xh9idCUkyaS",
+      "created": "2020-12-08T09:10:20.341",
+      "name": "TA tracker program rule - showerror on stage",
+      "displayName": "TA tracker program rule - showerror",
+      "externalAccess": false,
+      "condition": "V{enrollment_date} > V{current_date}",
+      "favorite": false,
+      "program": {
+        "id": "U5HE4IRrZ7S"
+      },
+      "programStage": {
+        "id": "nH8zfPSUSN1"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
+      "attributeValues": [],
+      "programRuleActions": [
+        {
+          "id": "hyJMNkTi9YG"
+        },
+        {
+          "id": "gYMwXjEMRlS"
+        }
+      ],
+      "userAccesses": []
+    },
+    {
+      "lastUpdated": "2021-01-18T13:36:20.994",
+      "href": "http://localhost:8080/api/programRules/lqESh9rF4LC",
+      "id": "lqESh9rF4LC",
+      "created": "2021-01-18T13:36:20.994",
+      "name": "TA tracker program rule - show error ",
+      "displayName": "TA tracker program rule - show error",
+      "externalAccess": false,
+      "sharing": {
+        "external": false,
+        "users": {},
+        "userGroups": {}
+      },
+      "condition": "V{event_date} < V{current_date}",
+      "program": {
+        "id": "U5HE4IRrZ7S"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "programRuleActions": [
+        {
+          "id": "E4p8zQsczbS"
+        }
+      ],
+      "userAccesses": []
+    },
+    {
+      "id": "Xh9idCUkyaE",
+      "created": "2020-12-08T09:10:20.341",
+      "name": "TA event program rule - showerror",
+      "displayName": "TA event program rule - showerror",
+      "externalAccess": false,
+      "condition": "true",
+      "favorite": false,
+      "program": {
+        "id": "uHi4GZJOD3n"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
+      "attributeValues": [],
+      "programRuleActions": [
+        {
+          "id": "BU1pK9RQLu4"
+        }
+      ],
+      "userAccesses": []
+    },
+    {
+      "id": "Xh9idCUkyaF",
+      "created": "2020-12-08T09:10:20.341",
+      "name": "TA tracker program rule - warnings",
+      "displayName": "TA tracker program rule - warnings",
+      "externalAccess": false,
+      "condition": "V{enrollment_date} < V{current_date}",
+      "favorite": false,
+      "program": {
+        "id": "U5HE4IRrZ7S"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
+      "attributeValues": [],
+      "programRuleActions": [
+        {
+          "id": "hyJMNkTi9YF"
+        }
+      ],
+      "userAccesses": []
+    },
+    {
+      "id": "tZz1oAC5i6P",
+      "name": "TA event program rule - assign value",
+      "displayName": "TA event program rule - assign value",
+      "externalAccess": false,
+      "condition": "!d2:hasValue(#{TAComment})",
+      "favorite": false,
+      "program": {
+        "id": "uHi4GZJOD3n"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
+      "attributeValues": [],
+      "programRuleActions": [
+        {
+          "id": "mbCnp26WeKe"
+        }
+      ],
+      "userAccesses": []
+    },
+    {
+      "id": "R4bFX7Q5oQa",
+      "name": "TA event program - set mandatory DE - if has diabetes",
+      "displayName": "TA event program - set mandatory DE - if has diabetes",
+      "externalAccess": false,
+      "condition": "d2:hasValue( #{TADiabetes})",
+      "favorite": false,
+      "program": {
+        "id": "uHi4GZJOD3n"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
+      "attributeValues": [],
+      "programRuleActions": [
+        {
+          "id": "JFso0S8PMZV"
+        },
+        {
+          "id": "fCvheO89KCl"
+        }
+      ],
+      "userAccesses": []
+    }
+  ],
+  "programRuleActions": [
+    {
+      "id": "hyJMNkTi9YG",
+      "content": "TA on stage error",
+      "externalAccess": false,
+      "displayContent": "TA on stage error",
+      "programRuleActionType": "SHOWERROR",
+      "evaluationTime": "ALWAYS",
+      "favorite": false,
+      "programRule": {
+        "id": "Xh9idCUkyaS"
+      },
+      "dataElement": {
+        "id": "z3Z4TD3oBCP"
+      },
+      "trackedEntityAttribute": {
+        "id": "dIVt4l5vIOa"
+      },
+      "favorites": [],
+      "evaluationEnvironments": [
+        "WEB",
+        "ANDROID"
+      ],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": []
+    },
+    {
+      "id": "E4p8zQsczbS",
+      "content": "event date is earlier than today ",
+      "externalAccess": false,
+      "displayContent": "event date is earlier than today",
+      "programRuleActionType": "SHOWERROR",
+      "evaluationTime": "ALWAYS",
+      "programRule": {
+        "id": "lqESh9rF4LC"
+      },
+      "dataElement": {
+        "id": "inc5BJvr4W5"
+      },
+      "favorites": [],
+      "evaluationEnvironments": [
+        "WEB",
+        "ANDROID"
+      ]
+    },
+    {
+      "content": "ERROR ON COMPLETE",
+      "id": "gYMwXjEMRlS",
+      "programRuleActionType": "ERRORONCOMPLETE",
+      "programRule": {
+        "id": "Xh9idCUkyaE"
+      },
+      "dataElement": {
+        "id": "z3Z4TD3oBCP"
+      }
+    },
+    {
+      "content": "TA ERROR ON COMPLETE",
+      "id": "BU1pK9RQLu4",
+      "programRuleActionType": "ERRORONCOMPLETE",
+      "programRule": {
+        "id": "Xh9idCUkyaE"
+      },
+      "dataElement": {
+        "id": "BuZ5LGNfGEU"
+      }
+    },
+    {
+      "id": "hyJMNkTi9YF",
+      "content": "TA warning",
+      "externalAccess": false,
+      "displayContent": "TA warning",
+      "programRuleActionType": "SHOWWARNING",
+      "evaluationTime": "ALWAYS",
+      "favorite": false,
+      "programRule": {
+        "id": "Xh9idCUkyaF"
+      },
+      "favorites": [],
+      "evaluationEnvironments": [
+        "WEB",
+        "ANDROID"
+      ],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": []
+    },
+    {
+      "id": "mbCnp26WeKe",
+      "data": "\"AUTO_ASSIGNED_COMMENT\"",
+      "externalAccess": false,
+      "programRuleActionType": "ASSIGN",
+      "evaluationTime": "ALWAYS",
+      "favorite": false,
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "programRule": {
+        "id": "tZz1oAC5i6P"
+      },
+      "dataElement": {
+        "id": "inc5BJvr4W5"
+      },
+      "favorites": [],
+      "evaluationEnvironments": [
+        "ANDROID",
+        "WEB"
+      ],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": []
+    },
+    {
+      "id": "JFso0S8PMZV",
+      "externalAccess": false,
+      "programRuleActionType": "SETMANDATORYFIELD",
+      "evaluationTime": "ALWAYS",
+      "favorite": false,
+      "programRule": {
+        "id": "R4bFX7Q5oQa"
+      },
+      "dataElement": {
+        "id": "z3Z4TD3oBCP"
+      },
+      "favorites": [],
+      "evaluationEnvironments": [
+        "ANDROID",
+        "WEB"
+      ],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": []
+    },
+    {
+      "templateUid": "IIyHlMh9ORz",
+      "id": "fCvheO89KCl",
+      "programRuleActionType": "SENDMESSAGE",
+      "programRule": {
+        "id": "R4bFX7Q5oQa"
+      }
+    }
+  ]
+}
