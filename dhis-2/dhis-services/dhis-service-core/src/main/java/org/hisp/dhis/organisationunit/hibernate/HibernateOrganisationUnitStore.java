@@ -108,7 +108,8 @@ public class HibernateOrganisationUnitStore
     @Override
     public List<OrganisationUnit> getOrganisationUnitsWithProgram( Program program )
     {
-        final String jpql = "from OrganisationUnit o inner join o.programs p where p.id = :programId";
+        final String jpql = "select distinct o from OrganisationUnit o " +
+            "join o.programs p where p.id = :programId";
 
         return getQuery( jpql )
             .setParameter( "programId", program.getId() )

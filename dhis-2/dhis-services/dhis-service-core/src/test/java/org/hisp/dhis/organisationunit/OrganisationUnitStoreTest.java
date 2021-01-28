@@ -39,6 +39,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.program.Program;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import com.google.common.collect.Sets;
 
@@ -185,6 +186,11 @@ public class OrganisationUnitStoreTest
         ouE.getPrograms().add( prA );
         ouE.getPrograms().add( prB );
 
+        prA.getOrganisationUnits().addAll(
+            Lists.newArrayList( ouA, ouB, ouC, ouE ) );
+        prB.getOrganisationUnits().addAll(
+            Lists.newArrayList( ouA, ouD, ouE ) );
+
         orgUnitStore.save( ouA );
         orgUnitStore.save( ouB );
         orgUnitStore.save( ouC );
@@ -196,6 +202,7 @@ public class OrganisationUnitStoreTest
         List<OrganisationUnit> orgUnits = orgUnitStore.getOrganisationUnitsWithProgram( prA );
 
         assertEquals( 4, orgUnits.size() );
+
         assertTrue( orgUnits.contains( ouA ) );
         assertTrue( orgUnits.contains( ouB ) );
         assertTrue( orgUnits.contains( ouC ) );
@@ -203,7 +210,7 @@ public class OrganisationUnitStoreTest
 
         orgUnits = orgUnitStore.getOrganisationUnitsWithProgram( prB );
 
-        assertEquals( 4, orgUnits.size() );
+        assertEquals( 3, orgUnits.size() );
         assertTrue( orgUnits.contains( ouA ) );
         assertTrue( orgUnits.contains( ouD ) );
         assertTrue( orgUnits.contains( ouE ) );
