@@ -277,7 +277,7 @@ public class JCloudsAppStorageService
         App app = new App();
         log.info( "Installing new app: " + filename );
 
-        try (ZipFile zip = new ZipFile( file ))
+        try ( ZipFile zip = new ZipFile( file ) )
         {
             // -----------------------------------------------------------------
             // Parse ZIP file and it's manifest.webapp file.

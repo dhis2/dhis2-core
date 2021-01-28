@@ -76,8 +76,8 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
         int dataValuesPageSize = 0;
 
         String sql = "SELECT value FROM systemsetting WHERE name = '" + TRACKER_PROGRAM_SYNC_PAGE_SIZE + "';";
-        try (Statement stmt = context.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery( sql );)
+        try ( Statement stmt = context.getConnection().createStatement();
+            ResultSet rs = stmt.executeQuery( sql ); )
         {
             if ( rs.next() )
             {
@@ -86,8 +86,8 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
         }
 
         sql = "SELECT value FROM systemsetting WHERE name = '" + EVENT_PROGRAM_SYNC_PAGE_SIZE + "';";
-        try (Statement stmt = context.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery( sql );)
+        try ( Statement stmt = context.getConnection().createStatement();
+            ResultSet rs = stmt.executeQuery( sql ); )
         {
             if ( rs.next() )
             {
@@ -96,8 +96,8 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
         }
 
         sql = "SELECT value FROM systemsetting WHERE name = '" + DATA_VALUES_SYNC_PAGE_SIZE + "';";
-        try (Statement stmt = context.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery( sql );)
+        try ( Statement stmt = context.getConnection().createStatement();
+            ResultSet rs = stmt.executeQuery( sql ); )
         {
             if ( rs.next() )
             {
@@ -126,8 +126,8 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
             {
                 sql = "SELECT jobconfigurationid, jsonbjobparameters FROM jobconfiguration " +
                     "WHERE jobtype = '" + JobType.TRACKER_PROGRAMS_DATA_SYNC.name() + "';";
-                try (Statement stmt = context.getConnection().createStatement();
-                    ResultSet rs = stmt.executeQuery( sql );)
+                try ( Statement stmt = context.getConnection().createStatement();
+                    ResultSet rs = stmt.executeQuery( sql ); )
                 {
                     while ( rs.next() )
                     {
@@ -144,8 +144,8 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
             {
                 sql = "SELECT jobconfigurationid, jsonbjobparameters FROM jobconfiguration " +
                     "WHERE jobtype = '" + JobType.EVENT_PROGRAMS_DATA_SYNC.name() + "';";
-                try (Statement stmt = context.getConnection().createStatement();
-                    ResultSet rs = stmt.executeQuery( sql );)
+                try ( Statement stmt = context.getConnection().createStatement();
+                    ResultSet rs = stmt.executeQuery( sql ); )
                 {
                     while ( rs.next() )
                     {
@@ -160,8 +160,8 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
 
             sql = "SELECT jobconfigurationid, jsonbjobparameters FROM jobconfiguration " +
                 "WHERE jobtype = '" + JobType.META_DATA_SYNC.name() + "';";
-            try (Statement stmt = context.getConnection().createStatement();
-                ResultSet rs = stmt.executeQuery( sql );)
+            try ( Statement stmt = context.getConnection().createStatement();
+                ResultSet rs = stmt.executeQuery( sql ); )
             {
                 while ( rs.next() )
                 {
@@ -189,9 +189,9 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
 
             for ( Map.Entry<Integer, JobParameters> jobParams : updatedJobParameters.entrySet() )
             {
-                try (PreparedStatement ps = context.getConnection()
+                try ( PreparedStatement ps = context.getConnection()
                     .prepareStatement(
-                        "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobconfigurationid = ?;" ))
+                        "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobconfigurationid = ?;" ) )
                 {
                     PGobject pg = new PGobject();
                     pg.setType( "jsonb" );
@@ -206,7 +206,7 @@ public class V2_33_5__Update_job_parameters_with_system_setting_values extends B
         }
 
         // 3. Remove entries from systemsetting table
-        try (Statement stmt = context.getConnection().createStatement())
+        try ( Statement stmt = context.getConnection().createStatement() )
         {
             stmt.executeUpdate( "DELETE FROM systemsetting WHERE name IN ('" + TRACKER_PROGRAM_SYNC_PAGE_SIZE +
                 "', '" + EVENT_PROGRAM_SYNC_PAGE_SIZE + "', '" + DATA_VALUES_SYNC_PAGE_SIZE + "');" );

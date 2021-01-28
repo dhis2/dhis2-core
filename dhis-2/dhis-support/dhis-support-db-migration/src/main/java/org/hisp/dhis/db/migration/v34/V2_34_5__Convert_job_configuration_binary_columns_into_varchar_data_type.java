@@ -73,8 +73,8 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
         // applied. -> Achieves that script can be
         // run multiple times without worries
         boolean continueWithMigration = false;
-        try (Statement stmt = context.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery( CHECK_JOB_STATUS_DATA_TYPE_SQL );)
+        try ( Statement stmt = context.getConnection().createStatement();
+            ResultSet rs = stmt.executeQuery( CHECK_JOB_STATUS_DATA_TYPE_SQL ); )
         {
             if ( rs.next() && rs.getString( "data_type" ).equals( "bytea" ) )
             {
@@ -86,7 +86,7 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
         {
             // 2. Create a new JobStatus column of type VARCHAR in
             // jobconfiguration table
-            try (Statement stmt = context.getConnection().createStatement())
+            try ( Statement stmt = context.getConnection().createStatement() )
             {
                 stmt.executeUpdate(
                     "ALTER TABLE jobconfiguration ADD COLUMN IF NOT EXISTS jobstatusvarchar VARCHAR(120)" );
@@ -96,8 +96,8 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
             // column
             Map<Integer, byte[]> jobStatusByteMap = new HashMap<>();
             String sql = "SELECT jobconfigurationid, jobstatus FROM jobconfiguration WHERE jobstatus IS NOT NULL";
-            try (Statement stmt = context.getConnection().createStatement();
-                ResultSet rs = stmt.executeQuery( sql );)
+            try ( Statement stmt = context.getConnection().createStatement();
+                ResultSet rs = stmt.executeQuery( sql ); )
             {
                 while ( rs.next() )
                 {
@@ -114,8 +114,8 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
                     throw new FlywayException( "Parsing JobStatus byte array failed." );
                 }
 
-                try (PreparedStatement ps = context.getConnection().prepareStatement(
-                    "UPDATE jobconfiguration SET jobstatusvarchar = ? WHERE jobconfigurationid = ?" ))
+                try ( PreparedStatement ps = context.getConnection().prepareStatement(
+                    "UPDATE jobconfiguration SET jobstatusvarchar = ? WHERE jobconfigurationid = ?" ) )
                 {
                     ps.setObject( 1, jobStatus.name() );
                     ps.setInt( 2, id );
@@ -132,14 +132,14 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
 
             // 4. Delete old byte array column for JobStatus in jobconfiguration
             // table
-            try (Statement stmt = context.getConnection().createStatement())
+            try ( Statement stmt = context.getConnection().createStatement() )
             {
                 stmt.executeUpdate( "ALTER TABLE jobconfiguration DROP COLUMN jobstatus" );
             }
 
             // 5. Rename new jobstatusvarchar column to the name of the now
             // deleted column
-            try (Statement stmt = context.getConnection().createStatement())
+            try ( Statement stmt = context.getConnection().createStatement() )
             {
                 stmt.executeUpdate( "ALTER TABLE jobconfiguration RENAME COLUMN jobstatusvarchar TO jobstatus" );
             }
@@ -153,8 +153,8 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
         // applied. -> Achieves that script can be
         // run multiple times without worries
         boolean continueWithMigration = false;
-        try (Statement stmt = context.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery( CHECK_LAST_EXECUTED_STATUS_DATA_TYPE_SQL );)
+        try ( Statement stmt = context.getConnection().createStatement();
+            ResultSet rs = stmt.executeQuery( CHECK_LAST_EXECUTED_STATUS_DATA_TYPE_SQL ); )
         {
             if ( rs.next() && rs.getString( "data_type" ).equals( "bytea" ) )
             {
@@ -166,7 +166,7 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
         {
             // 2. Create a new LastExecutedStatus column of type VARCHAR in
             // jobconfiguration table
-            try (Statement stmt = context.getConnection().createStatement())
+            try ( Statement stmt = context.getConnection().createStatement() )
             {
                 stmt.executeUpdate(
                     "ALTER TABLE jobconfiguration ADD COLUMN IF NOT EXISTS lastexecutedstatusvarchar VARCHAR(120)" );
@@ -177,8 +177,8 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
             Map<Integer, byte[]> lastExecutedStatusByteMap = new HashMap<>();
             String sql = "SELECT jobconfigurationid, lastexecutedstatus FROM jobconfiguration " +
                 "WHERE lastexecutedstatus IS NOT NULL";
-            try (Statement stmt = context.getConnection().createStatement();
-                ResultSet rs = stmt.executeQuery( sql );)
+            try ( Statement stmt = context.getConnection().createStatement();
+                ResultSet rs = stmt.executeQuery( sql ); )
             {
                 while ( rs.next() )
                 {
@@ -197,8 +197,8 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
                     throw new FlywayException( "Parsing LastExecutedStatus byte array failed." );
                 }
 
-                try (PreparedStatement ps = context.getConnection().prepareStatement(
-                    "UPDATE jobconfiguration SET lastexecutedstatusvarchar = ? WHERE jobconfigurationid = ?" ))
+                try ( PreparedStatement ps = context.getConnection().prepareStatement(
+                    "UPDATE jobconfiguration SET lastexecutedstatusvarchar = ? WHERE jobconfigurationid = ?" ) )
                 {
                     ps.setObject( 1, lastExecutedStatus.name() );
                     ps.setInt( 2, id );
@@ -215,21 +215,21 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
 
             // 4. Delete old byte array column for LastExecutedStatus in
             // jobconfiguration table
-            try (Statement stmt = context.getConnection().createStatement())
+            try ( Statement stmt = context.getConnection().createStatement() )
             {
                 stmt.executeUpdate( "ALTER TABLE jobconfiguration DROP COLUMN lastexecutedstatus" );
             }
 
             // 5. Rename new lastexecutedstatusvarchar column to the name of the
             // now deleted column
-            try (Statement stmt = context.getConnection().createStatement())
+            try ( Statement stmt = context.getConnection().createStatement() )
             {
                 stmt.executeUpdate(
                     "ALTER TABLE jobconfiguration RENAME COLUMN lastexecutedstatusvarchar TO lastexecutedstatus" );
             }
 
             // 6. Set default values where NULL is present
-            try (Statement stmt = context.getConnection().createStatement())
+            try ( Statement stmt = context.getConnection().createStatement() )
             {
                 stmt.executeUpdate(
                     "UPDATE jobconfiguration SET lastexecutedstatus = 'NOT_STARTED' WHERE lastexecutedstatus IS NULL" );

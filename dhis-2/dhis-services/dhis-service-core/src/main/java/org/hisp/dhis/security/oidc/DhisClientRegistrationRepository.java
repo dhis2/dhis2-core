@@ -35,6 +35,7 @@ import javax.annotation.PostConstruct;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.provider.AzureAdProvider;
+import org.hisp.dhis.security.oidc.provider.GenericOidcProviderBuilder;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
 import org.hisp.dhis.security.oidc.provider.Wso2Provider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,7 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 
-@Component( "dhisClientRegistrationRepository" )
+@Component
 public class DhisClientRegistrationRepository
     implements ClientRegistrationRepository
 {
@@ -58,6 +59,10 @@ public class DhisClientRegistrationRepository
     @PostConstruct
     public void init()
     {
+        // Parses the DHIS.conf file for OIDC provider configurations
+        GenericOidcProviderConfigParser.parse( config.getProperties() ).forEach(
+            genericOidcProviderConfig -> addRegistration(
+                GenericOidcProviderBuilder.build( genericOidcProviderConfig ) ) );
         addRegistration( GoogleProvider.build( config ) );
         AzureAdProvider.buildList( config ).forEach( this::addRegistration );
         addRegistration( Wso2Provider.build( config ) );
@@ -76,7 +81,14 @@ public class DhisClientRegistrationRepository
     @Override
     public ClientRegistration findByRegistrationId( String registrationId )
     {
-        return registrationHashMap.get( registrationId ).getClientRegistration();
+        final DhisOidcClientRegistration dhisOidcClientRegistration = registrationHashMap.get( registrationId );
+
+        if ( dhisOidcClientRegistration == null )
+        {
+            return null;
+        }
+
+        return dhisOidcClientRegistration.getClientRegistration();
     }
 
     public DhisOidcClientRegistration getDhisOidcClientRegistration( String registrationId )
