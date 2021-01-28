@@ -443,13 +443,6 @@ public class DefaultOrganisationUnitService
 
     @Override
     @Transactional( readOnly = true )
-    public List<OrganisationUnit> getOrganisationUnitsBetweenByName( String name, int first, int max )
-    {
-        return organisationUnitStore.getAllLikeName( name, first, max );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public boolean isInUserHierarchy( OrganisationUnit organisationUnit )
     {
         return isInUserHierarchy( currentUserService.getCurrentUser(), organisationUnit );
@@ -528,24 +521,6 @@ public class DefaultOrganisationUnitService
         OrganisationUnit organisationUnit = organisationUnitStore.getByUid( uid );
 
         return organisationUnit != null && organisationUnit.isDescendant( organisationUnits );
-    }
-
-    // -------------------------------------------------------------------------
-    // OrganisationUnitHierarchy
-    // -------------------------------------------------------------------------
-
-    @Override
-    @Transactional( readOnly = true )
-    public OrganisationUnitHierarchy getOrganisationUnitHierarchy()
-    {
-        return organisationUnitStore.getOrganisationUnitHierarchy();
-    }
-
-    @Override
-    @Transactional
-    public void updateOrganisationUnitParent( long organisationUnitId, long parentId )
-    {
-        organisationUnitStore.updateOrganisationUnitParent( organisationUnitId, parentId );
     }
 
     // -------------------------------------------------------------------------
