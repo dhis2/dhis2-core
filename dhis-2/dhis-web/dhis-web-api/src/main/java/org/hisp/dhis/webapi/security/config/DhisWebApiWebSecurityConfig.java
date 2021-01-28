@@ -41,6 +41,7 @@ import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.oprovider.DhisOauthAuthenticationProvider;
 import org.hisp.dhis.webapi.security.DHIS2BasicAuthenticationEntryPoint;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -49,8 +50,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.access.expression.SecurityExpressionHandler;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationManagerResolver;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
@@ -64,6 +69,8 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationManager;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter;
@@ -76,6 +83,12 @@ import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
+import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.FilterInvocation;
@@ -458,21 +471,31 @@ public class DhisWebApiWebSecurityConfig
             resourcesServerFilter.setStateless( false );
 
             // Adds the resource (oath2 token) jwtFilter after http basic filer.
-            http.addFilterAfter( resourcesServerFilter, BasicAuthenticationFilter.class );
+            // http.addFilterAfter( resourcesServerFilter,
+            // BasicAuthenticationFilter.class );
 
-            // BearerTokenAuthenticationFilter jwtFilter = new
-            // BearerTokenAuthenticationFilter(oauthAuthenticationManager( http
-            // ));
-            // jwtFilter.setBearerTokenResolver(new
-            // DefaultBearerTokenResolver());
-            // jwtFilter.setAuthenticationEntryPoint(new
-            // BearerTokenAuthenticationEntryPoint());
+            AuthenticationManagerResolver resolver = new JwtIssuerAuthenticationManagerResolver(
+                "https://accounts.google.com" );
+            BearerTokenAuthenticationFilter jwtFilter = new BearerTokenAuthenticationFilter( resolver );
+            jwtFilter.setBearerTokenResolver( new DefaultBearerTokenResolver() );
+            jwtFilter.setAuthenticationEntryPoint( new BearerTokenAuthenticationEntryPoint() );
             // jwtFilter = postProcess(jwtFilter);
 
-            // http.addFilterAfter( jwtFilter,
-            // OAuth2AuthenticationProcessingFilter.class );
+            http.addFilterAfter( jwtFilter, BasicAuthenticationFilter.class );
+            // http.addFilterAfter( resourcesServerFilter,
+            // BasicAuthenticationFilter.class );
 
             setHttpHeaders( http );
+        }
+
+        public AuthenticationProvider getJwtAuthManager()
+        {
+            JwtDecoder decoder = JwtDecoders.fromOidcIssuerLocation( "https://accounts.google.com" );
+            Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter = new JwtAuthenticationConverter();
+            JwtAuthenticationProvider provider = new JwtAuthenticationProvider( decoder );
+            provider.setJwtAuthenticationConverter( jwtAuthenticationConverter );
+
+            return provider;
         }
 
         @Bean
