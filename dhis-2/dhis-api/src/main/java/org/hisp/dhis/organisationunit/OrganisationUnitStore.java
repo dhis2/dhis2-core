@@ -35,6 +35,7 @@ import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.program.Program;
 
 /**
  * Defines methods for persisting OrganisationUnits.
@@ -77,6 +78,14 @@ public interface OrganisationUnitStore
      *         OrganisationUnitGroups.
      */
     List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
+
+    /**
+     * Returns OrganisationUnits which are associated with the given Program.
+     *
+     * @param program the {@link Program}.
+     * @return
+     */
+    List<OrganisationUnit> getOrganisationUnitsWithProgram( Program program );
 
     /**
      * Returns the count of OrganisationUnits which are part of the

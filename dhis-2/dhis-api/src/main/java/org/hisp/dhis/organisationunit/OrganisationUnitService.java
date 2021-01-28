@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.User;
 
 /**
@@ -240,6 +241,14 @@ public interface OrganisationUnitService
      *         its children, or an empty list if no OrganisationUnits match.
      */
     List<OrganisationUnit> getOrganisationUnitsWithChildren( Collection<String> uids, Integer maxLevels );
+
+    /**
+     * Returns OrganisationUnits which are associated with the given Program.
+     *
+     * @param program the {@link Program}.
+     * @return
+     */
+    List<OrganisationUnit> getOrganisationUnitsWithProgram( Program program );
 
     /**
      * Returns all OrganisationUnits at a given hierarchical level. The root

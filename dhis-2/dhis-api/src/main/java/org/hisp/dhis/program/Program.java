@@ -63,7 +63,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Sets;
 
 /**
  * @author Abyot Asalefew
@@ -209,24 +208,6 @@ public class Program
     {
         organisationUnits.add( organisationUnit );
         organisationUnit.getPrograms().add( this );
-    }
-
-    public void removeOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        organisationUnits.remove( organisationUnit );
-        organisationUnit.getPrograms().remove( this );
-    }
-
-    public void updateOrganisationUnits( Set<OrganisationUnit> updates )
-    {
-        Set<OrganisationUnit> toRemove = Sets.difference( organisationUnits, updates );
-        Set<OrganisationUnit> toAdd = Sets.difference( updates, organisationUnits );
-
-        toRemove.forEach( u -> u.getPrograms().remove( this ) );
-        toAdd.forEach( u -> u.getPrograms().add( this ) );
-
-        organisationUnits.clear();
-        organisationUnits.addAll( updates );
     }
 
     /**
