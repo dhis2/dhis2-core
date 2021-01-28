@@ -29,11 +29,17 @@ package org.hisp.dhis.util;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.sharing.Sharing;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 public class SharingUtils
 {
@@ -58,5 +64,15 @@ public class SharingUtils
         sharing.setDtoUserGroupAccesses( object.getUserGroupAccesses() );
         sharing.setDtoUserAccesses( object.getUserAccesses() );
         return sharing;
+    }
+
+    public static String withAccess( String jsonb, UnaryOperator<String> accessTransformation )
+        throws JsonProcessingException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure( MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true );
+        mapper.configure( SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true );
+        Sharing value = mapper.readValue( jsonb, Sharing.class );
+        return mapper.writeValueAsString( value.withAccess( accessTransformation ) );
     }
 }

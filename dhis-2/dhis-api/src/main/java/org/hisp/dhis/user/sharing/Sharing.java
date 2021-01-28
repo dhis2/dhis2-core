@@ -27,10 +27,14 @@
  */
 package org.hisp.dhis.user.sharing;
 
+import static java.util.stream.Collectors.toMap;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -107,7 +111,12 @@ public class Sharing
         else
             this.users = new HashMap<>();
 
-        userAccesses.forEach( ua -> this.addUserAccess( ua ) );
+        userAccesses.forEach( this::addUserAccess );
+    }
+
+    public boolean isExternal()
+    {
+        return external;
     }
 
     public void setDtoUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )
@@ -145,7 +154,7 @@ public class Sharing
             this.userGroups.clear();
         else
             this.userGroups = new HashMap<>();
-        userGroupAccesses.forEach( uga -> this.addUserGroupAccess( uga ) );
+        userGroupAccesses.forEach( this::addUserGroupAccess );
     }
 
     public void addUserAccess( UserAccess userAccess )
@@ -210,5 +219,38 @@ public class Sharing
             .owner( this.owner )
             .users( new HashMap<>( users ) )
             .userGroups( new HashMap<>( userGroups ) ).build();
+    }
+
+    public Sharing withAccess( UnaryOperator<String> accessTransformation )
+    {
+        return builder()
+            .external( external )
+            .publicAccess( accessTransformation.apply( publicAccess ) )
+            .owner( owner )
+            .users( mapValues( users,
+                user -> new UserAccess( accessTransformation.apply( user.getAccess() ), user.getId() ) ) )
+            .userGroups( mapValues( userGroups,
+                group -> new UserGroupAccess( accessTransformation.apply( group.getAccess() ), group.getId() ) ) )
+            .build();
+    }
+
+    private static <K, V> Map<K, V> mapValues( Map<K, V> map, UnaryOperator<V> mapper )
+    {
+        if ( map == null )
+        {
+            return null;
+        }
+        return map.entrySet().stream()
+            .collect( toMap( Entry::getKey, e -> mapper.apply( e.getValue() ) ) );
+    }
+
+    public static String copyMetadataToData( String access )
+    {
+        if ( access == null )
+        {
+            return null;
+        }
+        String metadata = access.substring( 0, 2 );
+        return metadata + metadata + access.substring( 4 );
     }
 }
