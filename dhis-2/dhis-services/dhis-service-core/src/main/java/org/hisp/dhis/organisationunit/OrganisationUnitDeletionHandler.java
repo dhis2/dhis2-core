@@ -29,7 +29,6 @@ package org.hisp.dhis.organisationunit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -50,15 +49,10 @@ public class OrganisationUnitDeletionHandler
 {
     private final IdentifiableObjectManager idObjectManager;
 
-    private final OrganisationUnitService orgUnitService;
-
-    public OrganisationUnitDeletionHandler( IdentifiableObjectManager idObjectManager,
-        OrganisationUnitService orgUnitService )
+    public OrganisationUnitDeletionHandler( IdentifiableObjectManager idObjectManager )
     {
         checkNotNull( idObjectManager );
-        checkNotNull( orgUnitService );
         this.idObjectManager = idObjectManager;
-        this.orgUnitService = orgUnitService;
     }
 
     // -------------------------------------------------------------------------
@@ -92,9 +86,7 @@ public class OrganisationUnitDeletionHandler
     @Override
     public void deleteProgram( Program program )
     {
-        List<OrganisationUnit> orgUnits = orgUnitService.getOrganisationUnitsWithProgram( program );
-
-        orgUnits.iterator().forEachRemaining( unit -> {
+        program.getOrganisationUnits().iterator().forEachRemaining( unit -> {
             unit.getPrograms().remove( program );
             idObjectManager.updateNoAcl( unit );
         } );
@@ -123,6 +115,8 @@ public class OrganisationUnitDeletionHandler
     public String allowDeleteOrganisationUnit( OrganisationUnit unit )
     {
         return unit.getChildren().isEmpty() ? null
-            : unit.getChildren().stream().map( BaseIdentifiableObject::getName ).collect( Collectors.joining( "," ) );
+            : unit.getChildren().stream()
+                .map( BaseIdentifiableObject::getName )
+                .collect( Collectors.joining( "," ) );
     }
 }
