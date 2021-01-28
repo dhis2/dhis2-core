@@ -112,8 +112,9 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.Order;
-import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -913,7 +914,7 @@ public class JdbcEventStore implements EventStore
             && !isSuper( user ) )
         {
             sqlBuilder.append(
-                "deco.publicaccess AS deco_publicaccess, decoa.uga_access AS uga_access, decoa.ua_access AS ua_access, cocount.option_size AS option_size, " );
+                "decoa.can_access AS decoa_can_access, cocount.option_size AS option_size, " );
         }
 
         for ( QueryItem item : params.getDataElementsAndFilters() )
@@ -1391,29 +1392,17 @@ public class JdbcEventStore implements EventStore
 
     private String getCategoryOptionSharingForUser( User user )
     {
-        List<Long> userGroupIds = getIdentifiers( user.getGroups() );
-
         StringBuilder sqlBuilder = new StringBuilder().append( " left join ( " );
 
-        sqlBuilder.append(
-            "select categoryoptioncomboid, count(categoryoptioncomboid) as option_size from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) "
-                + "as cocount on coc.categoryoptioncomboid = cocount.categoryoptioncomboid "
-                + "left join ("
-                + "select deco.categoryoptionid as deco_id, deco.uid as deco_uid, deco.publicaccess AS deco_publicaccess, "
-                + "couga.usergroupaccessid as uga_id, coua.useraccessid as ua_id, uga.access as uga_access, uga.usergroupid AS usrgrp_id, "
-                + "ua.access as ua_access, ua.userid as usr_id "
-                + "from dataelementcategoryoption deco "
-                + "left join dataelementcategoryoptionusergroupaccesses couga on deco.categoryoptionid = couga.categoryoptionid "
-                + "left join dataelementcategoryoptionuseraccesses coua on deco.categoryoptionid = coua.categoryoptionid "
-                + "left join usergroupaccess uga on couga.usergroupaccessid = uga.usergroupaccessid "
-                + "left join useraccess ua on coua.useraccessid = ua.useraccessid "
-                + "where ua.userid = " + user.getId() );
-
-        if ( userGroupIds != null && !userGroupIds.isEmpty() )
-        {
-            sqlBuilder.append( " or uga.usergroupid in (" ).append( getCommaDelimitedString( userGroupIds ) )
-                .append( ") " );
-        }
+        sqlBuilder.append( "select categoryoptioncomboid, count(categoryoptioncomboid) as option_size "
+            + "from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) "
+            + "as cocount on coc.categoryoptioncomboid = cocount.categoryoptioncomboid "
+            + "left join ("
+            + "select deco.categoryoptionid as deco_id, deco.uid as deco_uid , "
+            + "( select ( " + JpaQueryUtils.generateSQlQueryForSharingCheck( "deco.sharing",
+                user, AclService.LIKE_READ_DATA )
+            + " ) ) as can_access "
+            + "from dataelementcategoryoption deco " );
 
         sqlBuilder.append( " ) as decoa on cocco.categoryoptionid = decoa.deco_id " );
 
@@ -1754,18 +1743,7 @@ public class JdbcEventStore implements EventStore
             return true;
         }
 
-        if ( rowSet.getString( "uga_access" ) == null && rowSet.getString( "ua_access" ) == null
-            && rowSet.getString( "deco_publicaccess" ) == null )
-        {
-            return false;
-        }
-
-        return AccessStringHelper.isEnabled( rowSet.getString( "deco_publicaccess" ),
-            AccessStringHelper.Permission.DATA_READ )
-            || AccessStringHelper.isEnabled( rowSet.getString( "uga_access" ),
-                AccessStringHelper.Permission.DATA_READ )
-            || AccessStringHelper.isEnabled( rowSet.getString( "ua_access" ),
-                AccessStringHelper.Permission.DATA_READ );
+        return rowSet.getBoolean( "decoa_can_access" );
     }
 
     private Set<EventDataValue> convertEventDataValueJsonIntoSet( String jsonString )
