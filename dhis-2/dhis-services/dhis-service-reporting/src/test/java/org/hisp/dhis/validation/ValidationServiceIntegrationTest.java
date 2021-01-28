@@ -159,8 +159,6 @@ public class ValidationServiceIntegrationTest
                 .newParamsBuilder( Lists.newArrayList( validationRule ), orgUnitA, Lists.newArrayList( periodA ) )
                 .build() );
 
-        Collection<ValidationResult> reference = new HashSet<>();
-
         ValidationResult referenceA = new ValidationResult( validationRule, periodA, orgUnitA, defaultCombo, 20.0, 10.0,
             dayInPeriodA );
 
