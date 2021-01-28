@@ -48,7 +48,7 @@ import org.springframework.stereotype.Service;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-@Service( "dhisOidcUserService" )
+@Service
 public class DhisOidcUserService
     extends OidcUserService
 {
@@ -66,11 +66,13 @@ public class DhisOidcUserService
         DhisOidcClientRegistration oidcClientRegistration = clientRegistrationRepository
             .getDhisOidcClientRegistration( clientRegistration.getRegistrationId() );
 
+        String mappingClaimKey = oidcClientRegistration.getMappingClaimKey();
+
         OidcUser oidcUser = super.loadUser( userRequest );
+
+        OidcUserInfo userInfo = oidcUser.getUserInfo();
         Map<String, Object> attributes = oidcUser.getAttributes();
 
-        String mappingClaimKey = oidcClientRegistration.getMappingClaimKey();
-        OidcUserInfo userInfo = oidcUser.getUserInfo();
         Object claimValue = attributes.get( mappingClaimKey );
 
         if ( claimValue == null && userInfo != null )
@@ -80,7 +82,9 @@ public class DhisOidcUserService
 
         if ( log.isDebugEnabled() )
         {
-            log.debug( "Trying to look up DHIS2 user with OidcUser mapping, claim value:" + claimValue );
+            log.debug( String
+                .format( "Trying to look up DHIS2 user with OidcUser mapping mappingClaimKey='%s', claim value='%s'",
+                    mappingClaimKey, claimValue ) );
         }
 
         if ( claimValue != null )
@@ -93,14 +97,18 @@ public class DhisOidcUserService
             }
         }
 
+        String errorMessage = String
+            .format( "Failed to look up DHIS2 user with OidcUser mapping mappingClaimKey='%s', claim value='%s'",
+                mappingClaimKey, claimValue );
+
         if ( log.isDebugEnabled() )
         {
-            log.debug( "Failed to look up DHIS2 user with OidcUser mapping, claim value:" + claimValue );
+            log.debug( errorMessage );
         }
 
         OAuth2Error oauth2Error = new OAuth2Error(
             "could_not_map_oidc_user_to_dhis2_user",
-            "Failed to map OidcUser to a DHIS2 user.",
+            errorMessage,
             null );
 
         throw new OAuth2AuthenticationException( oauth2Error, oauth2Error.toString() );
