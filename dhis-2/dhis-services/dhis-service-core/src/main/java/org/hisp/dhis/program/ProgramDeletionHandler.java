@@ -105,14 +105,10 @@ public class ProgramDeletionHandler
     @Override
     public void deleteOrganisationUnit( OrganisationUnit unit )
     {
-        Collection<Program> programs = idObjectManager.getAllNoAcl( Program.class );
-
-        for ( Program program : programs )
+        for ( Program program : unit.getPrograms() )
         {
-            if ( program.getOrganisationUnits().remove( unit ) )
-            {
-                idObjectManager.updateNoAcl( program );
-            }
+            program.getOrganisationUnits().remove( unit );
+            idObjectManager.updateNoAcl( program );
         }
     }
 
