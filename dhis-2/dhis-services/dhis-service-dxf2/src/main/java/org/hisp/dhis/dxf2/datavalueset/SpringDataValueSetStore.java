@@ -49,8 +49,11 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
+import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.query.JpaQueryUtils;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -382,10 +385,16 @@ public class SpringDataValueSetStore
         List<String> groupsIds = user.getGroups().stream().map( g -> g.getUid() )
             .collect( Collectors.toList() );
 
-        String groupAccessCheck = groupsIds.size() > 0 ? "or ( " +
-            "check_user_group_ids( co.sharing, '{" + String.join( ",", groupsIds ) + "}' ) = true " +
-            "and check_user_groups_access( co.sharing, '__r%', '{" + String.join( ",", groupsIds ) + "}' ) = true ) )"
-            : ") )";
+        String groupAccessCheck = groupsIds.size() > 0
+            ? " or ( " + JsonbFunctions.HAS_USER_GROUP_IDS + "( co.sharing, '{" + String.join( ",", groupsIds )
+                + "}' ) = true " +
+                "and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( co.sharing, '__r%', '{"
+                + String.join( ",", groupsIds ) + "}' ) = true ) )"
+            : "";
+
+        String userAccessCheck = " or ( " + JsonbFunctions.HAS_USER_ID + "( co.sharing, '" + user.getUid()
+            + "' ) = true " +
+            " and " + JsonbFunctions.CHECK_USER_ACCESS + "( co.sharing, '__r%', '" + user.getUid() + "' ) = true ) )";
 
         return "and dv.attributeoptioncomboid not in (" +
             "select distinct(cocco.categoryoptioncomboid) " +
@@ -393,13 +402,8 @@ public class SpringDataValueSetStore
             // Get inaccessible category options
             "where cocco.categoryoptionid not in ( " +
             "select co.categoryoptionid " +
-            "from dataelementcategoryoption co " +
-            // Public access check
-            "where co.sharing->>'public' like '__r%' " +
-            "or co.sharing->>'public' is null " +
-            // User access check
-            " or co.sharing->'users'->'" + user.getUid() + "'->>'access' like '__r%'" +
-            // User group access check
-            groupAccessCheck;
+            "from dataelementcategoryoption co  " +
+            " where "
+            + JpaQueryUtils.generateSQlQueryForSharingCheck( "co.sharing", user, AclService.LIKE_READ_DATA ) + ") )";
     }
 }
