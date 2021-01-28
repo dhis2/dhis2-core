@@ -57,9 +57,9 @@ public class V2_30_0__Populate_dhis2_schema_if_empty_database extends BaseJavaMi
     public void migrate( Context context )
         throws Exception
     {
-        try (Statement select = context.getConnection().createStatement())
+        try ( Statement select = context.getConnection().createStatement() )
         {
-            try (ResultSet rows = select.executeQuery( CHECK_EMPTY_DB_QUERY ))
+            try ( ResultSet rows = select.executeQuery( CHECK_EMPTY_DB_QUERY ) )
             {
                 if ( rows.next() )
                 {

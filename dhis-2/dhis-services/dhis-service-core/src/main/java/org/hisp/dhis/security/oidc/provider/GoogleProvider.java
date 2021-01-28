@@ -41,7 +41,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class GoogleProvider extends DhisOidcProvider
+public class GoogleProvider extends AbstractOidcProvider
 {
     public static final String REGISTRATION_ID = "google";
 

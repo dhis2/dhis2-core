@@ -391,7 +391,7 @@ public class DataValueSetController
 
         tmpFile.deleteOnExit();
 
-        try (FileOutputStream out = new FileOutputStream( tmpFile ))
+        try ( FileOutputStream out = new FileOutputStream( tmpFile ) )
         {
             IOUtils.copy( in, out );
         }

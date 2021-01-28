@@ -25,66 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule;
+package org.hisp.dhis.security.oidc.provider;
 
-import java.util.Optional;
-import java.util.Set;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.rules.models.AttributeType;
-import org.hisp.dhis.tracker.domain.DataValue;
-
-@Getter
-@RequiredArgsConstructor
-@AllArgsConstructor
-public class EventActionRule
-    implements ActionRule
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+public abstract class AbstractOidcProvider
 {
-    private final String event;
+    protected static final String DEFAULT_REDIRECT_TEMPLATE_URL = "{baseUrl}/login/oauth2/code/{registrationId}";
 
-    private final String data;
+    public static final String DEFAULT_MAPPING_CLAIM = "email";
 
-    private final String field;
+    public static final String DEFAULT_SCOPE = "openid";
 
-    private final AttributeType attributeType;
+    public final static String PROVIDER_ID = "provider_id";
 
-    private String content;
+    public final static String CLIENT_ID = "client_id";
 
-    private Set<DataValue> dataValues;
+    public final static String CLIENT_SECRET = "client_secret";
 
-    public String getValue()
-    {
-        StringBuilder stringBuilder = new StringBuilder();
-        if ( !StringUtils.isEmpty( content ) )
-        {
-            stringBuilder.append( data );
-        }
-        if ( !StringUtils.isEmpty( stringBuilder.toString() ) )
-        {
-            stringBuilder.append( " " );
-        }
-        if ( !StringUtils.isEmpty( data ) )
-        {
-            stringBuilder.append( data );
-        }
-        return stringBuilder.toString();
-    }
+    public final static String MAPPING_CLAIM = "mapping_claim";
 
-    public Optional<DataValue> getDataValue()
-    {
-        if ( attributeType.equals( AttributeType.DATA_ELEMENT ) )
-        {
-            return getDataValues()
-                .stream()
-                .filter( dv -> dv.getDataElement().equals( field ) )
-                .findAny();
-        }
+    public final static String REDIRECT_URL = "redirect_url";
 
-        return Optional.empty();
+    public final static String AUTHORIZATION_URI = "authorization_uri";
 
-    }
+    public final static String TOKEN_URI = "token_uri";
+
+    public final static String USERINFO_URI = "user_info_uri";
+
+    public final static String JWK_URI = "jwk_uri";
+
+    public final static String END_SESSION_ENDPOINT = "end_session_endpoint";
+
+    public final static String DISPLAY_ALIAS = "display_alias";
+
+    public final static String ENABLE_LOGOUT = "enable_logout";
+
+    public final static String SCOPES = "scopes";
+
+    public final static String LOGO_IMAGE = "logo_image";
+
+    public final static String LOGO_IMAGE_PADDING = "logo_image_padding";
+
+    public final static String ENABLE_PKCE = "enable_pkce";
+
+    public final static String EXTRA_REQUEST_PARAMETERS = "extra_request_parameters";
 }

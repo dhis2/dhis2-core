@@ -324,8 +324,6 @@ public interface OrganisationUnitService
 
     OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet( Integer maxlevels );
 
-    List<OrganisationUnit> getOrganisationUnitsBetweenByName( String name, int first, int max );
-
     /**
      * Returns the level of the given org unit level. The level parameter string
      * can either represent a numerical level, or a UID referring to an
@@ -440,25 +438,6 @@ public interface OrganisationUnitService
     boolean isInUserSearchHierarchyCached( User user, OrganisationUnit organisationUnit );
 
     boolean isInUserSearchHierarchy( User user, OrganisationUnit organisationUnit );
-
-    // -------------------------------------------------------------------------
-    // OrganisationUnitHierarchy
-    // -------------------------------------------------------------------------
-
-    /**
-     * Get the OrganisationUnit hierarchy.
-     *
-     * @return a Collection with OrganisationUnitRelationship entries.
-     */
-    OrganisationUnitHierarchy getOrganisationUnitHierarchy();
-
-    /**
-     * Updates the parent id of the organisation unit with the given id.
-     *
-     * @param organisationUnitId the child organisation unit identifier.
-     * @param parentId the parent organisation unit identifier.
-     */
-    void updateOrganisationUnitParent( long organisationUnitId, long parentId );
 
     // -------------------------------------------------------------------------
     // OrganisationUnitLevel

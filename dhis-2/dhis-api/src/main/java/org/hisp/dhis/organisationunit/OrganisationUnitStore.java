@@ -123,25 +123,6 @@ public interface OrganisationUnitStore
      */
     List<OrganisationUnit> getWithinCoordinateArea( double[] box );
 
-    // -------------------------------------------------------------------------
-    // OrganisationUnitHierarchy
-    // -------------------------------------------------------------------------
-
-    /**
-     * Get the OrganisationUnit hierarchy.
-     *
-     * @return a with OrganisationUnitRelationship entries.
-     */
-    OrganisationUnitHierarchy getOrganisationUnitHierarchy();
-
-    /**
-     * Updates the parent id of the organisation unit with the given id.
-     *
-     * @param organisationUnitId the child organisation unit identifier.
-     * @param parentId the parent organisation unit identifier.
-     */
-    void updateOrganisationUnitParent( long organisationUnitId, long parentId );
-
     void updatePaths();
 
     void forceUpdatePaths();

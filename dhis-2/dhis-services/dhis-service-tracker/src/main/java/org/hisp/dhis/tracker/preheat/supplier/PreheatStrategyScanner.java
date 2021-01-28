@@ -52,11 +52,11 @@ public class PreheatStrategyScanner
         Map<String, String> classMap = new HashMap<>();
         final String pkg = getCurrentPackage();
         final String annotation = StrategyFor.class.getName();
-        try (ScanResult scanResult = new ClassGraph()
+        try ( ScanResult scanResult = new ClassGraph()
             .enableClassInfo()
             .acceptPackages( pkg )
             .enableAnnotationInfo()
-            .scan())
+            .scan() )
         {
             for ( ClassInfo classInfo : scanResult.getClassesWithAnnotation( annotation ) )
             {

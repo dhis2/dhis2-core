@@ -50,8 +50,8 @@ public class V2_35_17__Visualization_Move_Columns_To_Filters extends BaseJavaMig
             + "WHERE UPPER(COALESCE(v.type, '')) = 'YEAR_OVER_YEAR_COLUMN' "
             + "OR UPPER(COALESCE(v.type, '')) = 'YEAR_OVER_YEAR_LINE') AND LOWER(COALESCE(dimension)) = 'dx'";
 
-        try (final Statement stmt = context.getConnection().createStatement();
-            final ResultSet rs = stmt.executeQuery( sql ))
+        try ( final Statement stmt = context.getConnection().createStatement();
+            final ResultSet rs = stmt.executeQuery( sql ) )
         {
             while ( rs.next() )
             {
@@ -92,11 +92,11 @@ public class V2_35_17__Visualization_Move_Columns_To_Filters extends BaseJavaMig
     {
         final String sql = "SELECT MAX(sort_order) AS greater_sort_order FROM visualization_filters WHERE visualizationid = ?";
 
-        try (final PreparedStatement ps = context.getConnection().prepareStatement( sql ))
+        try ( final PreparedStatement ps = context.getConnection().prepareStatement( sql ) )
         {
             ps.setLong( 1, visualizationId );
 
-            try (final ResultSet rs = ps.executeQuery())
+            try ( final ResultSet rs = ps.executeQuery() )
             {
                 rs.next();
                 return rs.getInt( "greater_sort_order" );
@@ -110,12 +110,12 @@ public class V2_35_17__Visualization_Move_Columns_To_Filters extends BaseJavaMig
         final String sql = "SELECT count(visualizationid) AS vis_counter FROM visualization_filters "
             + "WHERE visualizationid = ? AND LOWER(dimension) = LOWER(?)";
 
-        try (final PreparedStatement ps = context.getConnection().prepareStatement( sql ))
+        try ( final PreparedStatement ps = context.getConnection().prepareStatement( sql ) )
         {
             ps.setLong( 1, visualizationId );
             ps.setString( 2, dimension );
 
-            try (final ResultSet rs = ps.executeQuery())
+            try ( final ResultSet rs = ps.executeQuery() )
             {
                 rs.next();
                 return rs.getInt( "vis_counter" ) > 0;
@@ -130,7 +130,7 @@ public class V2_35_17__Visualization_Move_Columns_To_Filters extends BaseJavaMig
         final String sql = "INSERT INTO visualization_filters (visualizationid, dimension, sort_order) " +
             "VALUES (?, LOWER(?), ? )";
 
-        try (final PreparedStatement ps = context.getConnection().prepareStatement( sql ))
+        try ( final PreparedStatement ps = context.getConnection().prepareStatement( sql ) )
         {
             ps.setLong( 1, visualizationId );
             ps.setString( 2, dimension );
@@ -147,7 +147,7 @@ public class V2_35_17__Visualization_Move_Columns_To_Filters extends BaseJavaMig
         final String sql = "DELETE FROM visualization_columns WHERE visualizationid = ? " +
             "AND LOWER(COALESCE(dimension, '')) = LOWER(?) AND sort_order = ?";
 
-        try (final PreparedStatement ps = context.getConnection().prepareStatement( sql ))
+        try ( final PreparedStatement ps = context.getConnection().prepareStatement( sql ) )
         {
             ps.setLong( 1, visualizationId );
             ps.setString( 2, dimension );

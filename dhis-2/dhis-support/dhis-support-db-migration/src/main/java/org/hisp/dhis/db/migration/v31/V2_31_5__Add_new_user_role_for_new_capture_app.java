@@ -54,9 +54,9 @@ public class V2_31_5__Add_new_user_role_for_new_capture_app extends BaseJavaMigr
         List<Integer> legacyRoleIds = new ArrayList<>();
         List<Integer> newRoleIds = new ArrayList<>();
 
-        try (Statement statement = context.getConnection().createStatement();
+        try ( Statement statement = context.getConnection().createStatement();
             ResultSet legacyUserRole = statement.executeQuery(
-                "select userroleid from userroleauthorities where authority='M_dhis-web-event-capture'" ))
+                "select userroleid from userroleauthorities where authority='M_dhis-web-event-capture'" ) )
         {
             while ( legacyUserRole.next() )
             {
@@ -69,9 +69,9 @@ public class V2_31_5__Add_new_user_role_for_new_capture_app extends BaseJavaMigr
             throw new FlywayException( ex );
         }
 
-        try (Statement statement = context.getConnection().createStatement();
+        try ( Statement statement = context.getConnection().createStatement();
             ResultSet newUserRole = statement
-                .executeQuery( "select userroleid from userroleauthorities where authority='M_dhis-web-capture'" ))
+                .executeQuery( "select userroleid from userroleauthorities where authority='M_dhis-web-capture'" ) )
         {
             while ( newUserRole.next() )
             {
@@ -89,8 +89,8 @@ public class V2_31_5__Add_new_user_role_for_new_capture_app extends BaseJavaMigr
 
         if ( legacyRoleIds.size() > 0 )
         {
-            try (PreparedStatement ps = context.getConnection().prepareStatement(
-                "INSERT INTO userroleauthorities (userroleid, authority) VALUES (?, 'M_dhis-web-capture')" ))
+            try ( PreparedStatement ps = context.getConnection().prepareStatement(
+                "INSERT INTO userroleauthorities (userroleid, authority) VALUES (?, 'M_dhis-web-capture')" ) )
             {
                 for ( Integer id : legacyRoleIds )
                 {
