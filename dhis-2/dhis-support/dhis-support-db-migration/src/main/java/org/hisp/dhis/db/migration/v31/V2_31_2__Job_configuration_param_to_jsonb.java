@@ -73,7 +73,7 @@ public class V2_31_2__Job_configuration_param_to_jsonb extends BaseJavaMigration
         writer = MAPPER.writerFor( JobParameters.class );
 
         // 1. Create new jsonb column for jobparameters in jobconfiguration
-        try (Statement stmt = context.getConnection().createStatement())
+        try ( Statement stmt = context.getConnection().createStatement() )
         {
             stmt.executeUpdate( "ALTER TABLE jobconfiguration ADD COLUMN IF NOT EXISTS jsonbjobparameters jsonb" );
         }
@@ -82,10 +82,10 @@ public class V2_31_2__Job_configuration_param_to_jsonb extends BaseJavaMigration
         // column
         Map<Integer, byte[]> jobParamByteMap = new HashMap<>();
         Map<Integer, byte[]> jobTypeByteMap = new HashMap<>();
-        try (Statement stmt = context.getConnection().createStatement())
+        try ( Statement stmt = context.getConnection().createStatement() )
         {
-            try (ResultSet rows = stmt.executeQuery(
-                "select jobconfigurationid,jobparameters,jobtype from jobconfiguration where jobparameters is not null" ))
+            try ( ResultSet rows = stmt.executeQuery(
+                "select jobconfigurationid,jobparameters,jobtype from jobconfiguration where jobparameters is not null" ) )
             {
                 while ( rows.next() )
                 {
@@ -109,8 +109,8 @@ public class V2_31_2__Job_configuration_param_to_jsonb extends BaseJavaMigration
                 throw new FlywayException( e );
             }
 
-            try (PreparedStatement ps = context.getConnection()
-                .prepareStatement( "Update jobconfiguration set jsonbjobparameters =? where  jobconfigurationid = ?" ))
+            try ( PreparedStatement ps = context.getConnection()
+                .prepareStatement( "Update jobconfiguration set jsonbjobparameters =? where  jobconfigurationid = ?" ) )
             {
                 PGobject pg = new PGobject();
                 pg.setType( "jsonb" );
@@ -128,7 +128,7 @@ public class V2_31_2__Job_configuration_param_to_jsonb extends BaseJavaMigration
         } );
 
         // 3. Delete old byte array column for jobparameters in jobconfiguration
-        try (Statement stmt = context.getConnection().createStatement())
+        try ( Statement stmt = context.getConnection().createStatement() )
         {
             stmt.executeUpdate( "ALTER TABLE jobconfiguration DROP COLUMN IF EXISTS jobparameters" );
         }

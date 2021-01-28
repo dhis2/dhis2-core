@@ -63,7 +63,7 @@ public class V2_35_1__Add_teav_btree_index
     public void migrate( Context context )
     {
 
-        try (Statement statement = context.getConnection().createStatement())
+        try ( Statement statement = context.getConnection().createStatement() )
         {
             statement
                 .execute( "alter table trackedentityattributevalue alter column value set data type varchar(1200)" );

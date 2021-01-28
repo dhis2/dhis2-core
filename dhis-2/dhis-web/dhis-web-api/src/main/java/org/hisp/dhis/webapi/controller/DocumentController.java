@@ -114,7 +114,7 @@ public class DocumentController
                 document.getUrl(),
                 document.getAttachment() == null ? false : document.getAttachment() );
 
-            try (InputStream in = locationManager.getInputStream( document.getUrl(), DocumentService.DIR ))
+            try ( InputStream in = locationManager.getInputStream( document.getUrl(), DocumentService.DIR ) )
             {
                 IOUtils.copy( in, response.getOutputStream() );
             }

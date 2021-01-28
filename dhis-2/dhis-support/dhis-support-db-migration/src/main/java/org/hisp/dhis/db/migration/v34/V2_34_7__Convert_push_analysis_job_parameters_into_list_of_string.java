@@ -61,7 +61,7 @@ public class V2_34_7__Convert_push_analysis_job_parameters_into_list_of_string e
     {
         String pushAnalysisUid = null;
 
-        try (Statement statement = context.getConnection().createStatement())
+        try ( Statement statement = context.getConnection().createStatement() )
         {
             ResultSet resultSet = statement.executeQuery(
                 "select jsonbjobparameters->1->'pushAnalysis' from public.jobconfiguration where jobtype = '" +
@@ -84,8 +84,8 @@ public class V2_34_7__Convert_push_analysis_job_parameters_into_list_of_string e
             JavaType resultingJavaType = mapper.getTypeFactory().constructType( JobParameters.class );
             ObjectWriter writer = mapper.writerFor( resultingJavaType );
 
-            try (PreparedStatement ps = context.getConnection()
-                .prepareStatement( "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobtype = ?;" ))
+            try ( PreparedStatement ps = context.getConnection()
+                .prepareStatement( "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobtype = ?;" ) )
             {
                 PushAnalysisJobParameters jobParameters = new PushAnalysisJobParameters( pushAnalysisUid );
 

@@ -345,7 +345,7 @@ public class CompleteDataSetRegistrationController
         File tmpFile = File.createTempFile( filename, null );
         tmpFile.deleteOnExit();
 
-        try (FileOutputStream out = new FileOutputStream( tmpFile ))
+        try ( FileOutputStream out = new FileOutputStream( tmpFile ) )
         {
             IOUtils.copy( in, out );
         }

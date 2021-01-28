@@ -357,7 +357,7 @@ public class DefaultHibernateConfigurationProvider
      */
     private List<String> getCacheNames()
     {
-        try (InputStream input = new ClassPathResource( FILENAME_CACHE_NAMES ).getInputStream())
+        try ( InputStream input = new ClassPathResource( FILENAME_CACHE_NAMES ).getInputStream() )
         {
             return IOUtils.readLines( input, StandardCharsets.UTF_8 );
         }

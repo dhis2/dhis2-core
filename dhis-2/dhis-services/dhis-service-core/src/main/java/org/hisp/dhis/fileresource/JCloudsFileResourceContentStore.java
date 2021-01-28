@@ -375,7 +375,7 @@ public class JCloudsFileResourceContentStore
 
         Blob blob = getBlob( key );
 
-        try (InputStream in = blob.getPayload().openStream())
+        try ( InputStream in = blob.getPayload().openStream() )
         {
             IOUtils.copy( in, output );
         }

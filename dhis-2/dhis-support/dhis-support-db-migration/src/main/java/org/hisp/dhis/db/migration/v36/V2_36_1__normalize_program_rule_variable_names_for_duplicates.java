@@ -98,8 +98,8 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
 
         List<Pair<Long, String>> candidates = new ArrayList<>();
 
-        try (final Statement stmt = connection.createStatement();
-            final ResultSet rs = stmt.executeQuery( candidateDetectionSql ))
+        try ( final Statement stmt = connection.createStatement();
+            final ResultSet rs = stmt.executeQuery( candidateDetectionSql ) )
         {
             while ( rs.next() )
             {
@@ -131,8 +131,8 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
 
         Map<String, String> uidWithNewNames = new HashMap<>();
 
-        try (final Statement stmt = connection.createStatement();
-            final ResultSet rs = stmt.executeQuery( programRulesVariableToRenameSql ))
+        try ( final Statement stmt = connection.createStatement();
+            final ResultSet rs = stmt.executeQuery( programRulesVariableToRenameSql ) )
         {
             while ( rs.next() )
             {
@@ -162,8 +162,8 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
                 .map( variableName -> "rulecondition LIKE '%{" + variableName + "}%'" )
                 .collect( Collectors.joining( " OR " ) );
 
-            try (final Statement stmt = connection.createStatement();
-                ResultSet resultSet = stmt.executeQuery( affectedRulesSql ))
+            try ( final Statement stmt = connection.createStatement();
+                ResultSet resultSet = stmt.executeQuery( affectedRulesSql ) )
             {
                 Collection<String> rules = new HashSet<>();
 
@@ -219,7 +219,7 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
         @SneakyThrows
         static void executeUpdate( String updateQuery, Connection connection )
         {
-            try (final Statement stmt = connection.createStatement())
+            try ( final Statement stmt = connection.createStatement() )
             {
                 stmt.executeUpdate( updateQuery );
             }
