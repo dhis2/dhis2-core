@@ -28,13 +28,15 @@
 package org.hisp.dhis.validation;
 
 import static junit.framework.TestCase.assertEquals;
-import static org.hisp.dhis.expression.Operator.*;
+import static org.hisp.dhis.expression.Operator.equal_to;
 import static org.junit.Assert.assertTrue;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
 
 import org.hisp.dhis.IntegrationTestBase;
-import org.hisp.dhis.category.*;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -42,7 +44,10 @@ import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.*;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
