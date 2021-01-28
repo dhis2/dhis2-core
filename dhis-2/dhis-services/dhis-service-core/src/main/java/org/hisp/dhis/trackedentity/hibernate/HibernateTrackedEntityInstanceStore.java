@@ -888,18 +888,6 @@ public class HibernateTrackedEntityInstanceStore
         return hql;
     }
 
-    private String[] getOrder( String order )
-    {
-        String[] prop = order.split( ":" );
-
-        if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
-        {
-            return prop;
-        }
-
-        return null;
-    }
-
     @Override
     public boolean exists( String uid )
     {
