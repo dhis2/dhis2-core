@@ -217,7 +217,7 @@ public class OutlierDetectionServiceMinMaxTest
         assertEquals( 60, outlier.getUpperBound().intValue() );
         assertEquals( 8, outlier.getAbsDev().intValue() );
 
-        assertFalse( outlier.getFollowUp() );
+        assertFalse( outlier.getFollowup() );
     }
 
     private void addPeriods( Period... periods )

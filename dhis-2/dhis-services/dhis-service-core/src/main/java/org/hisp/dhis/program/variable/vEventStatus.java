@@ -25,27 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.preheat;
+package org.hisp.dhis.program.variable;
+
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated only REFERENCE mode is now allowed, all other modes will use
- *             REFERENCE, keeping enum for backward compatibility
+ * @author Zubair Asghar
  */
-public enum PreheatMode
+public class vEventStatus implements ProgramVariable
 {
-    /**
-     * Scan objects for references.
-     */
-    REFERENCE,
+    @Override
+    public Object defaultVariableValue()
+    {
+        return "COMPLETED";
+    }
 
-    /**
-     * Load inn all object of given types.
-     */
-    ALL,
-
-    /**
-     * Preheating is disabled.
-     */
-    NONE
+    @Override
+    public Object getSql( CommonExpressionVisitor visitor )
+    {
+        return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
+            null, "psistatus", visitor.getReportingStartDate(), visitor.getReportingEndDate(),
+            visitor.getProgramIndicator() );
+    }
 }

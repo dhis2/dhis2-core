@@ -66,7 +66,9 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
     public void postCommit( ObjectBundle bundle )
     {
         if ( !bundle.getObjectMap().containsKey( OrganisationUnit.class ) )
+        {
             return;
+        }
 
         List<IdentifiableObject> objects = bundle.getObjectMap().get( OrganisationUnit.class );
         Map<String, Map<String, Object>> objectReferences = bundle.getObjectReferences( OrganisationUnit.class );
@@ -76,7 +78,8 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
         for ( IdentifiableObject identifiableObject : objects )
         {
             identifiableObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), identifiableObject );
-            Map<String, Object> objectReferenceMap = objectReferences.get( identifiableObject.getUid() );
+            Map<String, Object> objectReferenceMap = objectReferences
+                .get( bundle.getPreheatIdentifier().getIdentifier( identifiableObject ) );
 
             if ( objectReferenceMap == null || objectReferenceMap.isEmpty()
                 || !objectReferenceMap.containsKey( "parent" ) )
@@ -130,8 +133,10 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
 
     private void setSRID( IdentifiableObject object )
     {
-        if ( !OrganisationUnit.class.isInstance( object ) )
+        if ( !(object instanceof OrganisationUnit) )
+        {
             return;
+        }
 
         OrganisationUnit organisationUnit = (OrganisationUnit) object;
 

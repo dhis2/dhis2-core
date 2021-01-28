@@ -326,7 +326,7 @@ public class OutlierDetectionServiceZScoreTest
         assertEquals( lowerBound, outlier.getLowerBound(), DELTA );
         assertEquals( upperBound, outlier.getUpperBound(), DELTA );
 
-        assertFalse( outlier.getFollowUp() );
+        assertFalse( outlier.getFollowup() );
     }
 
     private void assertContainsOutlierValue( OutlierDetectionResponse response, Double value )

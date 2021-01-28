@@ -701,6 +701,12 @@ public class DefaultUserService
     }
 
     @Override
+    public boolean isAccountExpired( UserCredentials credentials )
+    {
+        return !credentials.isAccountNonExpired();
+    }
+
+    @Override
     @Transactional( readOnly = true )
     public List<ErrorReport> validateUser( User user, User currentUser )
     {

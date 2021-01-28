@@ -25,27 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.preheat;
+package org.hisp.dhis.webapi.webdomain;
+
+import lombok.Data;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated only REFERENCE mode is now allowed, all other modes will use
- *             REFERENCE, keeping enum for backward compatibility
+ * Class representing the unique properties of a data value.
+ *
+ * @author Lars Helge Overland
  */
-public enum PreheatMode
+@Data
+public class DataValueRequest
 {
-    /**
-     * Scan objects for references.
-     */
-    REFERENCE,
+    @JsonProperty
+    private String dataElement;
 
-    /**
-     * Load inn all object of given types.
-     */
-    ALL,
+    @JsonProperty
+    private String period;
 
-    /**
-     * Preheating is disabled.
-     */
-    NONE
+    @JsonProperty
+    private String orgUnit;
+
+    @JsonProperty
+    private String categoryOptionCombo;
+
+    @JsonProperty
+    private String attributeOptionCombo;
 }

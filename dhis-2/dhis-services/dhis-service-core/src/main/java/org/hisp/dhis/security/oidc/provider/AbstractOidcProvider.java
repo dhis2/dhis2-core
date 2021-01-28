@@ -25,27 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.preheat;
+package org.hisp.dhis.security.oidc.provider;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated only REFERENCE mode is now allowed, all other modes will use
- *             REFERENCE, keeping enum for backward compatibility
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public enum PreheatMode
+public abstract class AbstractOidcProvider
 {
-    /**
-     * Scan objects for references.
-     */
-    REFERENCE,
+    protected static final String DEFAULT_REDIRECT_TEMPLATE_URL = "{baseUrl}/login/oauth2/code/{registrationId}";
 
-    /**
-     * Load inn all object of given types.
-     */
-    ALL,
+    public static final String DEFAULT_MAPPING_CLAIM = "email";
 
-    /**
-     * Preheating is disabled.
-     */
-    NONE
+    public static final String DEFAULT_SCOPE = "openid";
+
+    public final static String PROVIDER_ID = "provider_id";
+
+    public final static String CLIENT_ID = "client_id";
+
+    public final static String CLIENT_SECRET = "client_secret";
+
+    public final static String MAPPING_CLAIM = "mapping_claim";
+
+    public final static String REDIRECT_URL = "redirect_url";
+
+    public final static String AUTHORIZATION_URI = "authorization_uri";
+
+    public final static String TOKEN_URI = "token_uri";
+
+    public final static String USERINFO_URI = "user_info_uri";
+
+    public final static String JWK_URI = "jwk_uri";
+
+    public final static String END_SESSION_ENDPOINT = "end_session_endpoint";
+
+    public final static String DISPLAY_ALIAS = "display_alias";
+
+    public final static String ENABLE_LOGOUT = "enable_logout";
+
+    public final static String SCOPES = "scopes";
+
+    public final static String LOGO_IMAGE = "logo_image";
+
+    public final static String LOGO_IMAGE_PADDING = "logo_image_padding";
+
+    public final static String ENABLE_PKCE = "enable_pkce";
+
+    public final static String EXTRA_REQUEST_PARAMETERS = "extra_request_parameters";
 }
