@@ -79,8 +79,8 @@ public class V2_36_2__normalize_program_rule_names_for_duplicates
 
         List<Pair<Long, String>> candidates = new ArrayList<>();
 
-        try (final Statement stmt = connection.createStatement();
-            final ResultSet rs = stmt.executeQuery( candidateDetectionSql ))
+        try ( final Statement stmt = connection.createStatement();
+            final ResultSet rs = stmt.executeQuery( candidateDetectionSql ) )
         {
             while ( rs.next() )
             {
@@ -109,8 +109,8 @@ public class V2_36_2__normalize_program_rule_names_for_duplicates
 
         Map<String, String> uidWithNewNames = new HashMap<>();
 
-        try (final Statement stmt = connection.createStatement();
-            final ResultSet rs = stmt.executeQuery( programRulesToRenameSql ))
+        try ( final Statement stmt = connection.createStatement();
+            final ResultSet rs = stmt.executeQuery( programRulesToRenameSql ) )
         {
             while ( rs.next() )
             {

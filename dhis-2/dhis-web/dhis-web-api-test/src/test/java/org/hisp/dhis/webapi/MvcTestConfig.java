@@ -38,9 +38,11 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
-import org.hisp.dhis.webapi.mvc.interceptor.TranslationInterceptor;
+import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.ExcelMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
@@ -49,6 +51,7 @@ import org.hisp.dhis.webapi.mvc.messageconverter.PdfMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.RenderServiceMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -78,6 +81,12 @@ import com.google.common.collect.ImmutableMap;
 @EnableGlobalMethodSecurity( prePostEnabled = true )
 public class MvcTestConfig implements WebMvcConfigurer
 {
+    @Autowired
+    private CurrentUserService currentUserService;
+
+    @Autowired
+    private UserSettingService userSettingService;
+
     @Bean
     public CustomRequestMappingHandlerMapping requestMappingHandlerMapping()
     {
@@ -137,7 +146,7 @@ public class MvcTestConfig implements WebMvcConfigurer
     @Override
     public void addInterceptors( InterceptorRegistry registry )
     {
-        registry.addInterceptor( TranslationInterceptor.get() );
+        registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
     }
 
     @Override

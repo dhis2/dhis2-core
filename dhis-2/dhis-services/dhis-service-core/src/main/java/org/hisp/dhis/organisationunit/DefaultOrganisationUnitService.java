@@ -50,6 +50,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -344,6 +345,13 @@ public class DefaultOrganisationUnitService
 
     @Override
     @Transactional( readOnly = true )
+    public List<OrganisationUnit> getOrganisationUnitsWithProgram( Program program )
+    {
+        return organisationUnitStore.getOrganisationUnitsWithProgram( program );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitsAtLevel( int level )
     {
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
@@ -443,13 +451,6 @@ public class DefaultOrganisationUnitService
 
     @Override
     @Transactional( readOnly = true )
-    public List<OrganisationUnit> getOrganisationUnitsBetweenByName( String name, int first, int max )
-    {
-        return organisationUnitStore.getAllLikeName( name, first, max );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public boolean isInUserHierarchy( OrganisationUnit organisationUnit )
     {
         return isInUserHierarchy( currentUserService.getCurrentUser(), organisationUnit );
@@ -528,24 +529,6 @@ public class DefaultOrganisationUnitService
         OrganisationUnit organisationUnit = organisationUnitStore.getByUid( uid );
 
         return organisationUnit != null && organisationUnit.isDescendant( organisationUnits );
-    }
-
-    // -------------------------------------------------------------------------
-    // OrganisationUnitHierarchy
-    // -------------------------------------------------------------------------
-
-    @Override
-    @Transactional( readOnly = true )
-    public OrganisationUnitHierarchy getOrganisationUnitHierarchy()
-    {
-        return organisationUnitStore.getOrganisationUnitHierarchy();
-    }
-
-    @Override
-    @Transactional
-    public void updateOrganisationUnitParent( long organisationUnitId, long parentId )
-    {
-        organisationUnitStore.updateOrganisationUnitParent( organisationUnitId, parentId );
     }
 
     // -------------------------------------------------------------------------

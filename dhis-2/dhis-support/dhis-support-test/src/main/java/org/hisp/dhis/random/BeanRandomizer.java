@@ -28,15 +28,18 @@
 package org.hisp.dhis.random;
 
 import static io.github.benas.randombeans.EnhancedRandomBuilder.aNewEnhancedRandomBuilder;
-import static io.github.benas.randombeans.FieldDefinitionBuilder.*;
+import static io.github.benas.randombeans.FieldDefinitionBuilder.field;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.FileTypeValueOptions;
+import org.hisp.dhis.common.ValueTypeOptions;
 import org.hisp.dhis.period.PeriodType;
 import org.locationtech.jts.geom.Geometry;
 
 import io.github.benas.randombeans.api.EnhancedRandom;
+import io.github.benas.randombeans.api.Randomizer;
 
 /**
  * @author Luciano Fiandesio
@@ -48,6 +51,7 @@ public class BeanRandomizer
     public BeanRandomizer()
     {
         rand = aNewEnhancedRandomBuilder()
+            .randomize( ValueTypeOptions.class, (Randomizer<ValueTypeOptions>) FileTypeValueOptions::new )
             .randomize( PeriodType.class, new PeriodTypeRandomizer() )
             .randomize( Geometry.class, new GeometryRandomizer() )
             .randomize( field().named( "uid" ).ofType( String.class ).get(), new UidRandomizer() )
@@ -62,7 +66,6 @@ public class BeanRandomizer
      * @param type The bean type
      * @param excludedFields a list of fields to exclude from the random
      *        population
-     *
      * @return an instance of the specified type
      */
     public <T> T randomObject( final Class<T> type, final String... excludedFields )
@@ -78,7 +81,6 @@ public class BeanRandomizer
      * @param amount the amount of beans to generate
      * @param excludedFields a list of fields to exclude from the random
      *        population
-     *
      * @return an instance of the specified type
      */
     public <T> List<T> randomObjects( final Class<T> type, int amount, final String... excludedFields )

@@ -42,6 +42,7 @@ public class SafeJsonBinaryType extends JsonBinaryType
         ObjectMapper objectMapper = MAPPER.copy();
         objectMapper.configure( SerializationFeature.FAIL_ON_EMPTY_BEANS, false );
         objectMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+        objectMapper.configure( DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false );
         return objectMapper;
     }
 }

@@ -119,7 +119,7 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
         // Load Google JSON authentication file into properties bundle
         // ---------------------------------------------------------------------
 
-        try (InputStream jsonIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ))
+        try ( InputStream jsonIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ) )
         {
             HashMap<String, Object> json = new ObjectMapper().readValue( jsonIn,
                 new TypeReference<HashMap<String, Object>>()
@@ -141,7 +141,7 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
         // Load Google JSON authentication file into GoogleCredential
         // ---------------------------------------------------------------------
 
-        try (InputStream credentialIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ))
+        try ( InputStream credentialIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ) )
         {
             GoogleCredential credential = GoogleCredential
                 .fromStream( credentialIn )
@@ -330,7 +330,7 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
     private Properties loadDhisConf()
         throws IllegalStateException
     {
-        try (InputStream in = locationManager.getInputStream( CONF_FILENAME ))
+        try ( InputStream in = locationManager.getInputStream( CONF_FILENAME ) )
         {
             Properties conf = PropertiesLoaderUtils.loadProperties( new InputStreamResource( in ) );
             substituteEnvironmentVariables( conf );

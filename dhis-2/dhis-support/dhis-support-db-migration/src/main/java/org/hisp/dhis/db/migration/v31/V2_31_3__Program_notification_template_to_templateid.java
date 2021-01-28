@@ -55,7 +55,7 @@ public class V2_31_3__Program_notification_template_to_templateid extends BaseJa
         List<Integer> ids = new ArrayList<>();
         Map<Integer, String> templateIdUidMap = new HashMap<>();
 
-        try (Statement stmt = context.getConnection().createStatement())
+        try ( Statement stmt = context.getConnection().createStatement() )
         {
             ResultSet templateIds = stmt.executeQuery(
                 "SELECT programnotificationtemplateid FROM programruleaction WHERE actiontype IN ('SENDMESSAGE', 'SCHEDULEMESSAGE')" );
@@ -75,9 +75,9 @@ public class V2_31_3__Program_notification_template_to_templateid extends BaseJa
         {
             String sql_IN = StringUtils.join( ids, "," );
 
-            try (PreparedStatement ps = context.getConnection().prepareStatement(
+            try ( PreparedStatement ps = context.getConnection().prepareStatement(
                 "SELECT programnotificationtemplateid, uid FROM programnotificationtemplate WHERE programnotificationtemplateid IN ("
-                    + sql_IN + ")" ))
+                    + sql_IN + ")" ) )
             {
                 ResultSet templates = null;
 
@@ -95,13 +95,13 @@ public class V2_31_3__Program_notification_template_to_templateid extends BaseJa
             }
         }
 
-        try (Statement stmt = context.getConnection().createStatement())
+        try ( Statement stmt = context.getConnection().createStatement() )
         {
             stmt.executeUpdate( "ALTER TABLE programruleaction ADD COLUMN IF NOT EXISTS templateuid text" );
         }
 
-        try (PreparedStatement preparedStmt = context.getConnection()
-            .prepareStatement( "UPDATE programruleaction SET templateuid=? WHERE programnotificationtemplateid=?" ))
+        try ( PreparedStatement preparedStmt = context.getConnection()
+            .prepareStatement( "UPDATE programruleaction SET templateuid=? WHERE programnotificationtemplateid=?" ) )
         {
             for ( Map.Entry<Integer, String> entry : templateIdUidMap.entrySet() )
             {
@@ -116,7 +116,7 @@ public class V2_31_3__Program_notification_template_to_templateid extends BaseJa
             throw new FlywayException( e );
         }
 
-        try (Statement stmt = context.getConnection().createStatement())
+        try ( Statement stmt = context.getConnection().createStatement() )
         {
             stmt.executeUpdate( "ALTER TABLE programruleaction DROP COLUMN IF EXISTS programnotificationtemplateid" );
         }

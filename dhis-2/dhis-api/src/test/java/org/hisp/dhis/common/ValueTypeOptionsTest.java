@@ -25,48 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.common;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Test;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ProgramTest
+public class ValueTypeOptionsTest
 {
     @Test
-    public void testUpdateOrganisationUnits()
+    public void testFileValueTypeOptions()
     {
-        Program prA = new Program();
+        FileTypeValueOptions ftvo = new FileTypeValueOptions();
+        ftvo.setMaxFileSize( 100L );
+        ftvo.setAllowedContentTypes( ImmutableSet.of( "jpg" ) );
 
-        OrganisationUnit ouA = new OrganisationUnit( "ouA" );
-        OrganisationUnit ouB = new OrganisationUnit( "ouB" );
-        OrganisationUnit ouC = new OrganisationUnit( "ouC" );
-        OrganisationUnit ouD = new OrganisationUnit( "ouD" );
-
-        prA.addOrganisationUnit( ouA );
-        prA.addOrganisationUnit( ouB );
-
-        assertEquals( 2, prA.getOrganisationUnits().size() );
-        assertTrue( prA.getOrganisationUnits().containsAll( Sets.newHashSet( ouA, ouB ) ) );
-        assertTrue( ouA.getPrograms().contains( prA ) );
-        assertTrue( ouB.getPrograms().contains( prA ) );
-        assertTrue( ouC.getPrograms().isEmpty() );
-        assertTrue( ouD.getPrograms().isEmpty() );
-
-        prA.updateOrganisationUnits( Sets.newHashSet( ouB, ouC ) );
-
-        assertEquals( 2, prA.getOrganisationUnits().size() );
-        assertTrue( prA.getOrganisationUnits().containsAll( Sets.newHashSet( ouB, ouC ) ) );
-        assertTrue( ouA.getPrograms().isEmpty() );
-        assertTrue( ouB.getPrograms().contains( prA ) );
-        assertTrue( ouC.getPrograms().contains( prA ) );
-        assertTrue( ouD.getPrograms().isEmpty() );
+        assertEquals( 100L, ftvo.getMaxFileSize() );
+        assertTrue( ftvo.getAllowedContentTypes().contains( "jpg" ) );
     }
 }

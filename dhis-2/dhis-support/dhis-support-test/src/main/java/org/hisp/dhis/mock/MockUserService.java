@@ -283,6 +283,12 @@ public class MockUserService
     }
 
     @Override
+    public boolean isAccountExpired( UserCredentials credentials )
+    {
+        return false;
+    }
+
+    @Override
     public long addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
     {
         return 0;
