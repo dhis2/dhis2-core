@@ -217,7 +217,7 @@ public class ContextUtils
         response.setContentType( CONTENT_TYPE_TEXT );
         response.setHeader( HEADER_CACHE_CONTROL, CacheControl.noStore().getHeaderValue() );
 
-        try (PrintWriter writer = response.getWriter())
+        try ( PrintWriter writer = response.getWriter() )
         {
             writer.println( message );
             writer.flush();

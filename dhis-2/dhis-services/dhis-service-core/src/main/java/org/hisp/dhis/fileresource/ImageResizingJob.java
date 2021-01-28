@@ -98,7 +98,7 @@ public class ImageResizingJob extends AbstractJob
                 continue;
             }
 
-            try (FileOutputStream fileOutputStream = new FileOutputStream( tmpFile ))
+            try ( FileOutputStream fileOutputStream = new FileOutputStream( tmpFile ) )
             {
 
                 fileResourceContentStore.copyContent( key, fileOutputStream );

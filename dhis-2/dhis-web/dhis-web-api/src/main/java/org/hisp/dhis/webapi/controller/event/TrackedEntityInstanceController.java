@@ -261,7 +261,7 @@ public class TrackedEntityInstanceController
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
-        try (InputStream inputStream = fileResourceService.getFileResourceContent( fileResource ))
+        try ( InputStream inputStream = fileResourceService.getFileResourceContent( fileResource ) )
         {
             BufferedImage img = ImageIO.read( inputStream );
             height = height == null ? img.getHeight() : height;

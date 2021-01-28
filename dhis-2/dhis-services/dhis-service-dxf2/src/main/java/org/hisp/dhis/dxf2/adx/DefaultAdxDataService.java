@@ -297,7 +297,7 @@ public class DefaultAdxDataService
 
         int groupCount = 0;
 
-        try (PipedOutputStream pipeOut = new PipedOutputStream())
+        try ( PipedOutputStream pipeOut = new PipedOutputStream() )
         {
             Future<ImportSummary> futureImportSummary = executor.submit( new AdxPipedImporter(
                 dataValueSetService, adxImportOptions, dxfJobId, pipeOut, sessionFactory ) );

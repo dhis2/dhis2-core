@@ -50,8 +50,8 @@ public class V2_31_4__Add_defaults_for_validationstrategy extends BaseJavaMigrat
 
         String sql = "SELECT programstageid FROM programstage ps JOIN program p ON p.programid = ps.programid " +
             "WHERE p.type = 'WITHOUT_REGISTRATION'";
-        try (Statement stmt = context.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery( sql );)
+        try ( Statement stmt = context.getConnection().createStatement();
+            ResultSet rs = stmt.executeQuery( sql ); )
         {
             while ( rs.next() )
             {
@@ -65,7 +65,7 @@ public class V2_31_4__Add_defaults_for_validationstrategy extends BaseJavaMigrat
             sql = "UPDATE programstage SET validationstrategy = 'ON_UPDATE_AND_INSERT' " +
                 "WHERE programstageid IN (" + inStatement + ")";
 
-            try (Statement stmt = context.getConnection().createStatement())
+            try ( Statement stmt = context.getConnection().createStatement() )
             {
                 stmt.executeUpdate( sql );
             }
