@@ -50,6 +50,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -340,6 +341,13 @@ public class DefaultOrganisationUnitService
         params.setOrderBy( orderBy );
 
         return organisationUnitStore.getOrganisationUnits( params );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<OrganisationUnit> getOrganisationUnitsWithProgram( Program program )
+    {
+        return organisationUnitStore.getOrganisationUnitsWithProgram( program );
     }
 
     @Override

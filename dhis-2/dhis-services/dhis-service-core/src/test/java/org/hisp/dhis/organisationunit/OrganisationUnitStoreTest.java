@@ -36,6 +36,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.program.Program;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -88,6 +89,10 @@ public class OrganisationUnitStoreTest
 
     private DataSet dsB;
 
+    private Program prA;
+
+    private Program prB;
+
     // -------------------------------------------------------------------------
     // OrganisationUnit
     // -------------------------------------------------------------------------
@@ -114,6 +119,9 @@ public class OrganisationUnitStoreTest
 
         dsA = createDataSet( 'A' );
         dsB = createDataSet( 'B' );
+
+        prA = createProgram( 'A' );
+        prB = createProgram( 'B' );
     }
 
     public void testGetOrganisationUnitsWithoutGroups()
@@ -161,6 +169,44 @@ public class OrganisationUnitStoreTest
         assertEquals( new Long( 2 ), orgUnitStore.getOrganisationUnitHierarchyMemberCount( ouB, dsA, "dataSets" ) );
 
         assertEquals( new Long( 1 ), orgUnitStore.getOrganisationUnitHierarchyMemberCount( ouA, dsB, "dataSets" ) );
+    }
+
+    @Test
+    public void testGetOrganisationUnitsWithProgram()
+    {
+        idObjectManager.save( prA );
+        idObjectManager.save( prB );
+
+        ouA.getPrograms().add( prA );
+        ouA.getPrograms().add( prB );
+        ouB.getPrograms().add( prA );
+        ouC.getPrograms().add( prA );
+        ouD.getPrograms().add( prB );
+        ouE.getPrograms().add( prA );
+        ouE.getPrograms().add( prB );
+
+        orgUnitStore.save( ouA );
+        orgUnitStore.save( ouB );
+        orgUnitStore.save( ouC );
+        orgUnitStore.save( ouD );
+        orgUnitStore.save( ouE );
+        orgUnitStore.save( ouF );
+        orgUnitStore.save( ouG );
+
+        List<OrganisationUnit> orgUnits = orgUnitStore.getOrganisationUnitsWithProgram( prA );
+
+        assertEquals( 4, orgUnits.size() );
+        assertTrue( orgUnits.contains( ouA ) );
+        assertTrue( orgUnits.contains( ouB ) );
+        assertTrue( orgUnits.contains( ouC ) );
+        assertTrue( orgUnits.contains( ouE ) );
+
+        orgUnits = orgUnitStore.getOrganisationUnitsWithProgram( prB );
+
+        assertEquals( 4, orgUnits.size() );
+        assertTrue( orgUnits.contains( ouA ) );
+        assertTrue( orgUnits.contains( ouD ) );
+        assertTrue( orgUnits.contains( ouE ) );
     }
 
     @Test

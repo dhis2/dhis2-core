@@ -192,8 +192,8 @@ public class OrganisationUnitServiceTest
         long userId = userService.addUser( user );
         long dataSetId = dataSetService.addDataSet( dataSet );
 
-        program.addOrganisationUnit( organisationUnit1 );
-        organisationUnit1.setPrograms( Sets.newHashSet( program ) );
+        program.getOrganisationUnits().add( organisationUnit1 );
+        organisationUnit1.getPrograms().add( program );
 
         user.addOrganisationUnit( organisationUnit1 );
         organisationUnit1.addUser( user );

@@ -52,6 +52,7 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserService;
@@ -102,6 +103,16 @@ public class HibernateOrganisationUnitStore
     public List<OrganisationUnit> getOrganisationUnitsWithoutGroups()
     {
         return getQuery( "from OrganisationUnit o where size(o.groups) = 0" ).list();
+    }
+
+    @Override
+    public List<OrganisationUnit> getOrganisationUnitsWithProgram( Program program )
+    {
+        final String jpql = "from OrganisationUnit o inner join o.programs p where p.id = :programId";
+
+        return getQuery( jpql )
+            .setParameter( "programId", program.getId() )
+            .list();
     }
 
     @Override
