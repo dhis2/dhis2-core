@@ -99,16 +99,17 @@ public class DefaultUserDetailsService
         boolean enabled = !credentials.isDisabled();
         boolean credentialsNonExpired = userService.credentialsNonExpired( credentials );
         boolean accountNonLocked = !securityService.isLocked( credentials.getUsername() );
+        boolean accountNonExpired = !userService.isAccountExpired( credentials );
 
-        if ( ObjectUtils.anyIsFalse( enabled, credentialsNonExpired, accountNonLocked ) )
+        if ( ObjectUtils.anyIsFalse( enabled, credentialsNonExpired, accountNonLocked, accountNonExpired ) )
         {
             log.info( String.format(
-                "Login attempt for disabled/locked user: '%s', enabled: %b, credentials non-expired: %b, account non-locked: %b",
-                username, enabled, credentialsNonExpired, accountNonLocked ) );
+                "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b, credentials non-expired: %b, account non-locked: %b",
+                username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked ) );
         }
 
         return new User( credentials.getUsername(), credentials.getPassword(),
-            enabled, true, credentialsNonExpired, accountNonLocked,
+            enabled, accountNonExpired, credentialsNonExpired, accountNonLocked,
             SecurityUtils.getGrantedAuthorities( credentials ) );
     }
 }

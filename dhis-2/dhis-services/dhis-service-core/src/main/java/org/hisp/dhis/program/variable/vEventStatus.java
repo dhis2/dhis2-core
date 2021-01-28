@@ -25,66 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule;
+package org.hisp.dhis.program.variable;
 
-import java.util.Optional;
-import java.util.Set;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.rules.models.AttributeType;
-import org.hisp.dhis.tracker.domain.DataValue;
-
-@Getter
-@RequiredArgsConstructor
-@AllArgsConstructor
-public class EventActionRule
-    implements ActionRule
+/**
+ * @author Zubair Asghar
+ */
+public class vEventStatus implements ProgramVariable
 {
-    private final String event;
-
-    private final String data;
-
-    private final String field;
-
-    private final AttributeType attributeType;
-
-    private String content;
-
-    private Set<DataValue> dataValues;
-
-    public String getValue()
+    @Override
+    public Object defaultVariableValue()
     {
-        StringBuilder stringBuilder = new StringBuilder();
-        if ( !StringUtils.isEmpty( content ) )
-        {
-            stringBuilder.append( data );
-        }
-        if ( !StringUtils.isEmpty( stringBuilder.toString() ) )
-        {
-            stringBuilder.append( " " );
-        }
-        if ( !StringUtils.isEmpty( data ) )
-        {
-            stringBuilder.append( data );
-        }
-        return stringBuilder.toString();
+        return "COMPLETED";
     }
 
-    public Optional<DataValue> getDataValue()
+    @Override
+    public Object getSql( CommonExpressionVisitor visitor )
     {
-        if ( attributeType.equals( AttributeType.DATA_ELEMENT ) )
-        {
-            return getDataValues()
-                .stream()
-                .filter( dv -> dv.getDataElement().equals( field ) )
-                .findAny();
-        }
-
-        return Optional.empty();
-
+        return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
+            null, "psistatus", visitor.getReportingStartDate(), visitor.getReportingEndDate(),
+            visitor.getProgramIndicator() );
     }
 }

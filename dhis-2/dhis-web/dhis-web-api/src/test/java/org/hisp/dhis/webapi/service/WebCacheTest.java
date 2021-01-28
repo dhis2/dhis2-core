@@ -38,7 +38,6 @@ import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_1_HOUR;
 import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_1_MINUTE;
 import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_30_MINUTES;
 import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_5_MINUTES;
-import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_6AM_TOMORROW;
 import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_TWO_WEEKS;
 import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
@@ -277,21 +276,6 @@ public class WebCacheTest
     {
         // Given
         final CacheStrategy theCacheStrategy = CACHE_TWO_WEEKS;
-        final CacheControl expectedCacheControl = stubPublicCacheControl( theCacheStrategy );
-
-        // When
-        when( systemSettingManager.getSystemSetting( CACHEABILITY ) ).thenReturn( PUBLIC );
-        final CacheControl actualCacheControl = webCache.getCacheControlFor( theCacheStrategy );
-
-        // Then
-        assertThat( actualCacheControl.toString(), is( expectedCacheControl.toString() ) );
-    }
-
-    @Test
-    public void testGetCacheControlForWhenCacheStrategyIsCache6AMTomorrow()
-    {
-        // Given
-        final CacheStrategy theCacheStrategy = CACHE_6AM_TOMORROW;
         final CacheControl expectedCacheControl = stubPublicCacheControl( theCacheStrategy );
 
         // When

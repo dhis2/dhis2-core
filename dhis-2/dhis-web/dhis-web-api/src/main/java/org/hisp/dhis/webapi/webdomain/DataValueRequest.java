@@ -25,66 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule;
+package org.hisp.dhis.webapi.webdomain;
 
-import java.util.Optional;
-import java.util.Set;
+import lombok.Data;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.rules.models.AttributeType;
-import org.hisp.dhis.tracker.domain.DataValue;
-
-@Getter
-@RequiredArgsConstructor
-@AllArgsConstructor
-public class EventActionRule
-    implements ActionRule
+/**
+ * Class representing the unique properties of a data value.
+ *
+ * @author Lars Helge Overland
+ */
+@Data
+public class DataValueRequest
 {
-    private final String event;
+    @JsonProperty
+    private String dataElement;
 
-    private final String data;
+    @JsonProperty
+    private String period;
 
-    private final String field;
+    @JsonProperty
+    private String orgUnit;
 
-    private final AttributeType attributeType;
+    @JsonProperty
+    private String categoryOptionCombo;
 
-    private String content;
-
-    private Set<DataValue> dataValues;
-
-    public String getValue()
-    {
-        StringBuilder stringBuilder = new StringBuilder();
-        if ( !StringUtils.isEmpty( content ) )
-        {
-            stringBuilder.append( data );
-        }
-        if ( !StringUtils.isEmpty( stringBuilder.toString() ) )
-        {
-            stringBuilder.append( " " );
-        }
-        if ( !StringUtils.isEmpty( data ) )
-        {
-            stringBuilder.append( data );
-        }
-        return stringBuilder.toString();
-    }
-
-    public Optional<DataValue> getDataValue()
-    {
-        if ( attributeType.equals( AttributeType.DATA_ELEMENT ) )
-        {
-            return getDataValues()
-                .stream()
-                .filter( dv -> dv.getDataElement().equals( field ) )
-                .findAny();
-        }
-
-        return Optional.empty();
-
-    }
+    @JsonProperty
+    private String attributeOptionCombo;
 }

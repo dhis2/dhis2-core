@@ -41,6 +41,7 @@ import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
@@ -323,5 +324,34 @@ public class ObjectBundleServiceUserTest
         assertEquals( 2, userA.getUserCredentials().getUserAuthorityGroups().size() );
         assertEquals( 2, userB.getUserCredentials().getUserAuthorityGroups().size() );
 
+    }
+
+    @Test
+    public void testCreateUserRoleWithCode()
+        throws IOException
+    {
+        createUserAndInjectSecurityContext( true );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/user_userrole_code.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+
+        objectBundleService.commit( bundle );
+
+        User userA = manager.get( User.class, "sPWjoHSY03y" );
+        assertNotNull( userA );
+
+        assertEquals( 1, userA.getUserCredentials().getUserAuthorityGroups().size() );
+        assertEquals( 1, userA.getDataViewOrganisationUnits().size() );
+
+        UserAuthorityGroup userManagerRole = manager.get( UserAuthorityGroup.class, "xJZBzAHI88H" );
+        assertNotNull( userManagerRole );
     }
 }

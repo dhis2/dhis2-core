@@ -34,7 +34,7 @@ import javax.sql.DataSource;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsService;
 import org.hisp.dhis.security.oidc.DhisClientRegistrationRepository;
-import org.hisp.dhis.security.oidc.DhisOAuth2AuthorizationRequestResolver;
+import org.hisp.dhis.security.oidc.DhisCustomAuthorizationRequestResolver;
 import org.hisp.dhis.security.oidc.OidcEnabledCondition;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.webapi.filter.CorsFilter;
@@ -223,7 +223,7 @@ public class DhisWebApiWebSecurityConfig
         private DhisClientRegistrationRepository dhisClientRegistrationRepository;
 
         @Autowired
-        private DhisOAuth2AuthorizationRequestResolver dhisOAuth2AuthorizationRequestResolver;
+        private DhisCustomAuthorizationRequestResolver dhisCustomAuthorizationRequestResolver;
 
         @Autowired
         private DefaultAuthenticationEventPublisher authenticationEventPublisher;
@@ -257,7 +257,7 @@ public class DhisWebApiWebSecurityConfig
                     .clientRegistrationRepository( dhisClientRegistrationRepository )
                     .loginProcessingUrl( "/oauth2/code/*" )
                     .authorizationEndpoint()
-                    .authorizationRequestResolver( dhisOAuth2AuthorizationRequestResolver ) )
+                    .authorizationRequestResolver( dhisCustomAuthorizationRequestResolver ) )
 
                 .csrf().disable();
 
@@ -393,6 +393,7 @@ public class DhisWebApiWebSecurityConfig
      * Customizes various "global" security related headers.
      *
      * @param http http config
+     *
      * @throws Exception
      */
     public static void setHttpHeaders( HttpSecurity http )

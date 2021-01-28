@@ -180,6 +180,12 @@ public class UserCredentials
     private boolean disabled;
 
     /**
+     * The timestamp representing when the user account expires. If not set the
+     * account does never expire.
+     */
+    private Date accountExpiry;
+
+    /**
      * Cached all authorities {@link #getAllAuthorities()}.
      */
     @JsonIgnore
@@ -817,6 +823,18 @@ public class UserCredentials
         this.disabled = disabled;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getAccountExpiry()
+    {
+        return accountExpiry;
+    }
+
+    public void setAccountExpiry( Date accountExpiry )
+    {
+        this.accountExpiry = accountExpiry;
+    }
+
     @Override
     public String toString()
     {
@@ -850,7 +868,7 @@ public class UserCredentials
     @Override
     public boolean isAccountNonExpired()
     {
-        return false;
+        return accountExpiry == null || accountExpiry.after( new Date() );
     }
 
     @Override
@@ -870,4 +888,5 @@ public class UserCredentials
     {
         return !isDisabled();
     }
+
 }

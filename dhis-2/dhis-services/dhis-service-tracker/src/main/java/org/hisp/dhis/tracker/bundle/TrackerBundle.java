@@ -165,4 +165,14 @@ public class TrackerBundle
     {
         return this.trackedEntities.stream().filter( t -> t.getTrackedEntity().equals( id ) ).findFirst();
     }
+
+    public Optional<Event> getEvent( String id )
+    {
+        return this.events.stream().filter( t -> t.getEvent().equals( id ) ).findFirst();
+    }
+
+    public Optional<Enrollment> getEnrollment( String id )
+    {
+        return this.enrollments.stream().filter( t -> t.getEnrollment().equals( id ) ).findFirst();
+    }
 }

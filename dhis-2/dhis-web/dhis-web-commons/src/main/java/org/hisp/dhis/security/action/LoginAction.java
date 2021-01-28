@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.struts2.ServletActionContext;
-import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.security.oidc.DhisClientRegistrationRepository;
@@ -111,7 +110,7 @@ public class LoginAction
     public String execute()
         throws Exception
     {
-        setOidcConfig();
+        addRegisteredProviders();
 
         Device device = deviceResolver.resolveDevice( ServletActionContext.getRequest() );
 
@@ -127,20 +126,7 @@ public class LoginAction
         return "standard";
     }
 
-    private void setOidcConfig()
-    {
-        boolean isOidcEnabled = configurationProvider.getProperty( ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED )
-            .equalsIgnoreCase( "on" );
-
-        if ( !isOidcEnabled )
-        {
-            return;
-        }
-
-        parseRegisteredProviders();
-    }
-
-    private void parseRegisteredProviders()
+    private void addRegisteredProviders()
     {
         List<Map<String, String>> providers = new ArrayList<>();
 
@@ -157,6 +143,9 @@ public class LoginAction
                 "loginText", clientRegistration.getLoginText() ) );
         }
 
-        oidcConfig.put( "providers", providers );
+        if ( !providers.isEmpty() )
+        {
+            oidcConfig.put( "providers", providers );
+        }
     }
 }
