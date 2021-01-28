@@ -115,6 +115,8 @@ public class OrganisationUnitDeletionHandler
     public String allowDeleteOrganisationUnit( OrganisationUnit unit )
     {
         return unit.getChildren().isEmpty() ? null
-            : unit.getChildren().stream().map( BaseIdentifiableObject::getName ).collect( Collectors.joining( "," ) );
+            : unit.getChildren().stream()
+                .map( BaseIdentifiableObject::getName )
+                .collect( Collectors.joining( "," ) );
     }
 }
