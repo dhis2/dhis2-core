@@ -200,7 +200,7 @@ public class ReportSummaryIntegrationTest
         assertEquals( 0, trackerImportEnrollmentReport.getStats().getIgnored() );
         assertEquals( 0, trackerImportEnrollmentReport.getStats().getDeleted() );
     }
-    
+
     @Test
     public void testStatsCountForOneCreatedEnrollmentAndUpdateSameEnrollment()
         throws IOException

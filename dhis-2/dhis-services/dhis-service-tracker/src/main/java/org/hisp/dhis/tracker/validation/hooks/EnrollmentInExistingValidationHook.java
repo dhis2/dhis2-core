@@ -119,7 +119,7 @@ public class EnrollmentInExistingValidationHook
         Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, program, tei.getUid() )
             .stream()
             .filter( e -> !e.getEnrollment().equals( enrollment.getEnrollment() )
-                && ( EnrollmentStatus.ACTIVE == e.getStatus() || EnrollmentStatus.COMPLETED == e.getStatus() ) )
+                && (EnrollmentStatus.ACTIVE == e.getStatus() || EnrollmentStatus.COMPLETED == e.getStatus()) )
             .collect( Collectors.toSet() );
 
         if ( EnrollmentStatus.ACTIVE == enrollment.getStatus() )
