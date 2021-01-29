@@ -224,7 +224,7 @@ public class ReportSummaryIntegrationTest
         assertEquals( 0, trackerImportEnrollmentReport.getStats().getUpdated() );
         assertEquals( 0, trackerImportEnrollmentReport.getStats().getIgnored() );
         assertEquals( 0, trackerImportEnrollmentReport.getStats().getDeleted() );
-        
+
         inputStream = new ClassPathResource( "tracker/single_enrollment.json" ).getInputStream();
         params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
