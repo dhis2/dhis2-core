@@ -100,4 +100,12 @@ public class DhisClientRegistrationRepository
     {
         return registrationHashMap.keySet();
     }
+
+    public DhisOidcClientRegistration findByIssuerUri( String issuerUri )
+    {
+        return registrationHashMap.values().stream()
+            .filter( clientRegistration -> clientRegistration.getClientRegistration().getProviderDetails()
+                .getIssuerUri().equals( issuerUri ) )
+            .findAny().orElse( null );
+    }
 }

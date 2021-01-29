@@ -25,52 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oidc.provider;
+package org.hisp.dhis.security.jwt;
+
+import java.util.Collection;
+
+import org.hisp.dhis.security.oidc.DhisOidcUser;
+import org.hisp.dhis.user.UserCredentials;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public abstract class AbstractOidcProvider
+public class DhisJwtAuthenticationToken extends JwtAuthenticationToken
 {
-    protected static final String DEFAULT_REDIRECT_TEMPLATE_URL = "{baseUrl}/login/oauth2/code/{registrationId}";
+    private final UserCredentials userCredentials;
 
-    public static final String DEFAULT_MAPPING_CLAIM = "email";
+    private final DhisOidcUser dhisOidcUser;
 
-    public static final String DEFAULT_SCOPE = "openid";
+    public DhisJwtAuthenticationToken( Jwt jwt, Collection<? extends GrantedAuthority> authorities, String name,
+        UserCredentials userCredentials )
+    {
+        super( jwt, authorities, name );
+        this.userCredentials = userCredentials;
 
-    public final static String PROVIDER_ID = "provider_id";
+        this.dhisOidcUser = new DhisOidcUser( userCredentials, jwt.getClaims(), IdTokenClaimNames.SUB, null );
+    }
 
-    public final static String CLIENT_ID = "client_id";
-
-    public final static String CLIENT_SECRET = "client_secret";
-
-    public final static String MAPPING_CLAIM = "mapping_claim";
-
-    public final static String REDIRECT_URL = "redirect_url";
-
-    public final static String AUTHORIZATION_URI = "authorization_uri";
-
-    public final static String TOKEN_URI = "token_uri";
-
-    public final static String USERINFO_URI = "user_info_uri";
-
-    public final static String JWK_URI = "jwk_uri";
-
-    public final static String ISSUER_URI = "issuer_uri";
-
-    public final static String END_SESSION_ENDPOINT = "end_session_endpoint";
-
-    public final static String DISPLAY_ALIAS = "display_alias";
-
-    public final static String ENABLE_LOGOUT = "enable_logout";
-
-    public final static String SCOPES = "scopes";
-
-    public final static String LOGO_IMAGE = "logo_image";
-
-    public final static String LOGO_IMAGE_PADDING = "logo_image_padding";
-
-    public final static String ENABLE_PKCE = "enable_pkce";
-
-    public final static String EXTRA_REQUEST_PARAMETERS = "extra_request_parameters";
+    @Override
+    public Object getPrincipal()
+    {
+        return this.dhisOidcUser;
+    }
 }

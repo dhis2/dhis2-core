@@ -27,20 +27,214 @@
  */
 package org.hisp.dhis.security.jwt;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import javax.servlet.http.HttpServletRequest;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.security.oidc.DhisClientRegistrationRepository;
+import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.jwt.BadJwtException;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtDecoders;
+import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
+import org.springframework.stereotype.Component;
+
+import com.nimbusds.jwt.JWTParser;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Slf4j
+@Component
 public class DhisJwtAuthenticationManagerResolver implements AuthenticationManagerResolver<HttpServletRequest>
 {
+    @Autowired
+    public UserService userService;
+
+    @Autowired
+    private DhisClientRegistrationRepository clientRegistrationRepository;
+
+    private final Map<String, AuthenticationManager> authenticationManagers = new ConcurrentHashMap<>();
+
+    private final Converter<HttpServletRequest, String> issuerConverter = new JwtClaimIssuerConverter();
 
     @Override
-    public AuthenticationManager resolve( HttpServletRequest context )
+    public AuthenticationManager resolve( HttpServletRequest request )
     {
-        return null;
+        String issuer = this.issuerConverter.convert( request );
+        if ( issuer == null )
+        {
+            throw new InvalidBearerTokenException( "Missing issuer" );
+        }
+
+        DhisOidcClientRegistration clientRegistration = clientRegistrationRepository.findByIssuerUri( issuer );
+        if ( clientRegistration == null )
+        {
+            throw new InvalidBearerTokenException( "Invalid issuer" );
+        }
+
+        final String mappingClaim = clientRegistration.getMappingClaimKey();
+        final String clientId = clientRegistration.getClientRegistration().getClientId();
+
+        AuthenticationManager authenticationManager = this.authenticationManagers.computeIfAbsent( issuer, ( k ) -> {
+            JwtDecoder jwtDecoder = JwtDecoders.fromIssuerLocation( issuer );
+
+            Converter<Jwt, DhisJwtAuthenticationToken> converter = jwt -> {
+                String name = jwt.getClaim( mappingClaim );
+                List<String> audience = jwt.getAudience();
+                if ( !audience.contains( clientId ) )
+                {
+                    throw new InvalidBearerTokenException( "Invalid audience" );
+                }
+
+                UserCredentials userCredentials = userService.getUserCredentialsByOpenId( name );
+                if ( userCredentials == null )
+                {
+                    String description = String.format(
+                        "Found no matching DHIS2 user for the mapping claim:'%s' with the value:'%s'",
+                        mappingClaim, name );
+
+                    throw new InvalidBearerTokenException( description );
+                }
+
+                Collection<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+
+                return new DhisJwtAuthenticationToken( jwt, grantedAuthorities, name, userCredentials );
+            };
+
+            DhisJwtAuthenticationProvider provider = new DhisJwtAuthenticationProvider( jwtDecoder, converter );
+
+            return provider::authenticate;
+        } );
+
+        log.info( String.format( "Resolved AuthenticationManager for issuer '%s'", issuer ) );
+
+        return authenticationManager;
+    }
+
+    private static class DhisJwtAuthenticationProvider implements AuthenticationProvider
+    {
+        private final JwtDecoder jwtDecoder;
+
+        private final Converter<Jwt, DhisJwtAuthenticationToken> jwtAuthenticationConverter;
+
+        public DhisJwtAuthenticationProvider( JwtDecoder jwtDecoder,
+            Converter<Jwt, DhisJwtAuthenticationToken> jwtAuthenticationConverter )
+        {
+            checkNotNull( jwtDecoder );
+            checkNotNull( jwtAuthenticationConverter );
+
+            this.jwtDecoder = jwtDecoder;
+            this.jwtAuthenticationConverter = jwtAuthenticationConverter;
+        }
+
+        @Override
+        public Authentication authenticate( Authentication authentication )
+            throws AuthenticationException
+        {
+            BearerTokenAuthenticationToken bearer = (BearerTokenAuthenticationToken) authentication;
+            Jwt jwt = getJwt( bearer );
+            DhisJwtAuthenticationToken token = this.jwtAuthenticationConverter.convert( jwt );
+            token.setDetails( bearer.getDetails() );
+
+            log.info( "Authenticated token" );
+
+            return token;
+        }
+
+        private Jwt getJwt( BearerTokenAuthenticationToken bearer )
+        {
+            try
+            {
+                return this.jwtDecoder.decode( bearer.getToken() );
+            }
+            catch ( BadJwtException failed )
+            {
+                log.info( "Failed to authenticate since the JWT was invalid" );
+                throw new InvalidBearerTokenException( failed.getMessage(), failed );
+            }
+            catch ( JwtException failed )
+            {
+                throw new AuthenticationServiceException( failed.getMessage(), failed );
+            }
+        }
+
+        @Override
+        public boolean supports( Class<?> authentication )
+        {
+            return BearerTokenAuthenticationToken.class.isAssignableFrom( authentication );
+        }
+    }
+
+    private static class JwtClaimIssuerConverter implements Converter<HttpServletRequest, String>
+    {
+        private final BearerTokenResolver resolver = new DefaultBearerTokenResolver();
+
+        @Override
+        public String convert( HttpServletRequest request )
+        {
+            String token = this.resolver.resolve( request );
+
+            try
+            {
+                String issuer = JWTParser.parse( token ).getJWTClaimsSet().getIssuer();
+                if ( issuer != null )
+                {
+                    return issuer;
+                }
+            }
+            catch ( Exception ex )
+            {
+                throw new InvalidBearerTokenException( ex.getMessage(), ex );
+            }
+
+            throw new InvalidBearerTokenException( "Missing issuer" );
+        }
+    }
+
+    private static class DhisJwtAuthenticationConverter implements Converter<Jwt, JwtAuthenticationToken>
+    {
+        private final String principalClaimName;
+
+        public DhisJwtAuthenticationConverter( String principalClaimName )
+        {
+            checkNotNull( principalClaimName );
+
+            this.principalClaimName = principalClaimName;
+        }
+
+        @Override
+        public JwtAuthenticationToken convert( Jwt jwt )
+        {
+            String name = jwt.getClaim( this.principalClaimName );
+            Collection<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+
+            return new JwtAuthenticationToken( jwt, grantedAuthorities, name );
+        }
     }
 }

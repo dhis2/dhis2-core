@@ -267,7 +267,7 @@ public interface UserService
      * OpenID.
      *
      * @param openId the openId of the User.
-     * @return the UserCredentials.
+     * @return the UserCredentials or null if there is no match
      */
     UserCredentials getUserCredentialsByOpenId( String openId );
 

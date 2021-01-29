@@ -81,6 +81,7 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
         builder.authorizationUri( config.get( AUTHORIZATION_URI ) );
         builder.tokenUri( config.get( TOKEN_URI ) );
         builder.jwkSetUri( config.get( JWK_URI ) );
+        builder.issuerUri( config.get( ISSUER_URI ) );
         builder.userInfoUri( config.get( USERINFO_URI ) );
         builder
             .redirectUri( Optional.ofNullable( config.get( REDIRECT_URL ) ).orElse( DEFAULT_REDIRECT_TEMPLATE_URL ) );
