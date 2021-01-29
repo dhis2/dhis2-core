@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -59,7 +58,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.stereotype.Component;
@@ -102,37 +100,40 @@ public class DhisJwtAuthenticationManagerResolver implements AuthenticationManag
         final String clientId = clientRegistration.getClientRegistration().getClientId();
 
         AuthenticationManager authenticationManager = this.authenticationManagers.computeIfAbsent( issuer, ( k ) -> {
+
             JwtDecoder jwtDecoder = JwtDecoders.fromIssuerLocation( issuer );
 
             Converter<Jwt, DhisJwtAuthenticationToken> converter = jwt -> {
-                String name = jwt.getClaim( mappingClaim );
-                List<String> audience = jwt.getAudience();
-                if ( !audience.contains( clientId ) )
+
+                // To support multiple clients/i.e. dynamic reg. Android devices
+                // we need indexed db lookup here,
+                // restricted on issuer/provider
+                if ( !jwt.getAudience().contains( clientId ) )
                 {
                     throw new InvalidBearerTokenException( "Invalid audience" );
                 }
 
-                UserCredentials userCredentials = userService.getUserCredentialsByOpenId( name );
+                String mapping = jwt.getClaim( mappingClaim );
+
+                UserCredentials userCredentials = userService.getUserCredentialsByOpenId( mapping );
                 if ( userCredentials == null )
                 {
                     String description = String.format(
                         "Found no matching DHIS2 user for the mapping claim:'%s' with the value:'%s'",
-                        mappingClaim, name );
+                        mappingClaim, mapping );
 
                     throw new InvalidBearerTokenException( description );
                 }
 
                 Collection<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 
-                return new DhisJwtAuthenticationToken( jwt, grantedAuthorities, name, userCredentials );
+                return new DhisJwtAuthenticationToken( jwt, grantedAuthorities, mapping, userCredentials );
             };
 
             DhisJwtAuthenticationProvider provider = new DhisJwtAuthenticationProvider( jwtDecoder, converter );
 
             return provider::authenticate;
         } );
-
-        log.info( String.format( "Resolved AuthenticationManager for issuer '%s'", issuer ) );
 
         return authenticationManager;
     }
@@ -158,11 +159,16 @@ public class DhisJwtAuthenticationManagerResolver implements AuthenticationManag
             throws AuthenticationException
         {
             BearerTokenAuthenticationToken bearer = (BearerTokenAuthenticationToken) authentication;
-            Jwt jwt = getJwt( bearer );
-            DhisJwtAuthenticationToken token = this.jwtAuthenticationConverter.convert( jwt );
-            token.setDetails( bearer.getDetails() );
 
-            log.info( "Authenticated token" );
+            Jwt jwt = getJwt( bearer );
+
+            DhisJwtAuthenticationToken token = this.jwtAuthenticationConverter.convert( jwt );
+            if ( token == null )
+            {
+                throw new InvalidBearerTokenException( "Invalid token, token is null" );
+            }
+
+            token.setDetails( bearer.getDetails() );
 
             return token;
         }
@@ -175,7 +181,6 @@ public class DhisJwtAuthenticationManagerResolver implements AuthenticationManag
             }
             catch ( BadJwtException failed )
             {
-                log.info( "Failed to authenticate since the JWT was invalid" );
                 throw new InvalidBearerTokenException( failed.getMessage(), failed );
             }
             catch ( JwtException failed )
@@ -214,27 +219,6 @@ public class DhisJwtAuthenticationManagerResolver implements AuthenticationManag
             }
 
             throw new InvalidBearerTokenException( "Missing issuer" );
-        }
-    }
-
-    private static class DhisJwtAuthenticationConverter implements Converter<Jwt, JwtAuthenticationToken>
-    {
-        private final String principalClaimName;
-
-        public DhisJwtAuthenticationConverter( String principalClaimName )
-        {
-            checkNotNull( principalClaimName );
-
-            this.principalClaimName = principalClaimName;
-        }
-
-        @Override
-        public JwtAuthenticationToken convert( Jwt jwt )
-        {
-            String name = jwt.getClaim( this.principalClaimName );
-            Collection<GrantedAuthority> grantedAuthorities = new ArrayList<>();
-
-            return new JwtAuthenticationToken( jwt, grantedAuthorities, name );
         }
     }
 }

@@ -41,15 +41,12 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
  */
 public class DhisJwtAuthenticationToken extends JwtAuthenticationToken
 {
-    private final UserCredentials userCredentials;
-
     private final DhisOidcUser dhisOidcUser;
 
     public DhisJwtAuthenticationToken( Jwt jwt, Collection<? extends GrantedAuthority> authorities, String name,
         UserCredentials userCredentials )
     {
         super( jwt, authorities, name );
-        this.userCredentials = userCredentials;
 
         this.dhisOidcUser = new DhisOidcUser( userCredentials, jwt.getClaims(), IdTokenClaimNames.SUB, null );
     }
