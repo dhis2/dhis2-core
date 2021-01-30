@@ -167,7 +167,7 @@ public class MathUtilsTest
 
         assertFalse( MathUtils.isPercentage( "abc" ) );
         assertFalse( MathUtils.isPercentage( "-1" ) );
-        assertFalse( MathUtils.isPercentage( "12.5" ) );
+        assertTrue( MathUtils.isPercentage( "12.5" ) );
         assertFalse( MathUtils.isPercentage( "17,8" ) );
         assertFalse( MathUtils.isPercentage( "101" ) );
     }
