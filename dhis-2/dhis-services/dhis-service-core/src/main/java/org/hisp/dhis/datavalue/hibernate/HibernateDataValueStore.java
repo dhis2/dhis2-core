@@ -62,8 +62,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Torgeir Lorange Ostby
  */
@@ -330,18 +328,29 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     {
         SqlHelper sqlHelper = new SqlHelper( true );
 
-        String orgUnitId = params.isReturnParentForOrganisationUnits() ? "opath.id" : "dv.sourceid";
+        if ( params.isIncludeChildrenForOrganisationUnits() )
+        {
+            throw new RuntimeException(
+                "getDeflatedDataValues doesn't support includChildren and selected organisation units at the same time." );
+        }
 
-        String sql = "select dv.dataelementid, dv.periodid, " + orgUnitId +
+        boolean joinOrgUnit = params.isOrderByOrgUnitPath()
+            || params.hasOrgUnitLevel()
+            || params.hasOrgUnitParents()
+            || params.isIncludeChildren();
+
+        String sql = "select dv.dataelementid, dv.periodid, dv.sourceid" +
             ", dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value" +
             ", dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted" +
+            (joinOrgUnit ? ", ou.path" : "") +
             " from datavalue dv";
 
         String where = "";
 
-        if ( params.hasDataElementOperands() )
+        List<DataElementOperand> queryDeos = getQueryDataElementOperands( params );
+
+        if ( queryDeos != null )
         {
-            List<DataElementOperand> queryDeos = getQueryDataElementOperands( params );
             List<Long> deIdList = queryDeos.stream().map( de -> de.getDataElement().getId() )
                 .collect( Collectors.toList() );
             List<Long> cocIdList = queryDeos.stream()
@@ -392,20 +401,31 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             }
         }
 
-        if ( params.isIncludeChildrenForOrganisationUnits() || params.isReturnParentForOrganisationUnits() )
+        if ( joinOrgUnit )
         {
-            List<OrganisationUnit> orgUnitList = new ArrayList<>( params.getOrganisationUnits() );
-            List<Long> orgUnitIdList = orgUnitList.stream().map( OrganisationUnit::getId )
-                .collect( Collectors.toList() );
-            List<String> orgUnitPathList = orgUnitList.stream().map( OrganisationUnit::getPath )
-                .collect( Collectors.toList() );
-
-            sql += " join organisationunit ou on ou.organisationunitid = dv.sourceid"
-                + " join "
-                + statementBuilder.literalLongStringTable( orgUnitIdList, orgUnitPathList, "opath", "id", "path" )
-                + " on ou.path like " + statementBuilder.concatenate( "opath.path", "'%'" );
+            sql += " join organisationunit ou on ou.organisationunitid = dv.sourceid";
         }
-        else if ( params.hasOrganisationUnits() )
+
+        if ( params.hasOrgUnitLevel() )
+        {
+            where += sqlHelper.whereAnd() + "ou.hierarchylevel " +
+                (params.isIncludeChildren() ? ">" : "") +
+                "= " + params.getOrgUnitLevel();
+        }
+
+        if ( params.hasOrgUnitParents() )
+        {
+            where += sqlHelper.whereAnd() + "(";
+
+            for ( OrganisationUnit parent : params.getOrgUnitParents() )
+            {
+                where += sqlHelper.or() + "ou.path like '" + parent.getPath() + "%'";
+            }
+
+            where += " )";
+        }
+
+        if ( params.hasOrganisationUnits() )
         {
             String orgUnitIdList = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) );
 
@@ -455,6 +475,11 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
         sql += where;
 
+        if ( params.isOrderByOrgUnitPath() )
+        {
+            sql += " order by ou.path";
+        }
+
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         List<DeflatedDataValue> result = new ArrayList<>();
@@ -473,10 +498,22 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             String comment = rowSet.getString( 10 );
             boolean followup = rowSet.getBoolean( 11 );
             boolean deleted = rowSet.getBoolean( 12 );
+            String sourcePath = joinOrgUnit ? rowSet.getString( 13 ) : null;
 
-            result.add( new DeflatedDataValue( dataElementId, periodId,
+            DeflatedDataValue ddv = new DeflatedDataValue( dataElementId, periodId,
                 organisationUnitId, categoryOptionComboId, attributeOptionComboId,
-                value, storedBy, created, lastUpdated, comment, followup, deleted ) );
+                value, storedBy, created, lastUpdated, comment, followup, deleted );
+
+            ddv.setSourcePath( sourcePath );
+
+            if ( params.hasCallback() )
+            {
+                params.getCallback().handle( ddv );
+            }
+            else
+            {
+                result.add( ddv );
+            }
         }
 
         log.debug( result.size() + " DeflatedDataValues returned from: " + sql );
@@ -523,37 +560,38 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
     /**
      * Gets a list of DataElementOperands to use for SQL query.
-     *
-     * If there are data elements to query, these are combined with the data
-     * element operands (DEOs) into one list.
-     *
-     * If, in the resulting set of DEOs, there are DEOs for the same data
-     * element both with and without non-null category option combos (COCs),
-     * then the DEOs with non-null COCs are removed for that data element. This
-     * is because the DEO with the null COC will already match all COCs for that
-     * data element. We do not want to match them again, or the same data value
-     * rows will be duplicated.
+     * <p>
+     * If there are no DataElementOperands ("DEOs") parameters, or if the
+     * DataElement in each DEO is also present as a DataElement parameter, then
+     * return null. In this case the SQL query need only fetch all datavalues
+     * where the DataElement is in the DataElement list.
+     * <p>
+     * However if there are some DEOs parameters with DataElements that are not
+     * also DataElements parameters, then return a list of DataElementOperands
+     * where the CategoryOptionCombo is specified for a specific DEO parameter,
+     * or is null (implying here a wildcard) for any specified DataElement
+     * parameter. This list will be used to form a selection for all
+     * DataElementOperands and DataElements together.
      *
      * @param params the data export parameters
-     * @return data element operands to use for query
+     * @return data element operand list (if any) for the SQL query
      */
     private List<DataElementOperand> getQueryDataElementOperands( DataExportParams params )
     {
-        Set<DataElementOperand> deos = params.getDataElementOperands();
+        List<DataElementOperand> deos = params.getDataElementOperands().stream()
+            .filter( deo -> !params.getDataElements().contains( deo.getDataElement() ) )
+            .collect( Collectors.toList() );
 
-        if ( params.hasDataElements() )
+        if ( deos.isEmpty() )
         {
-            deos = Sets.union( deos, params.getDataElements().stream()
-                .map( de -> new DataElementOperand( de ) ).collect( Collectors.toSet() ) );
+            return null;
         }
 
-        Set<Long> wildDataElementIds = deos.stream()
-            .filter( deo -> deo.getCategoryOptionCombo() == null )
-            .map( deo -> deo.getDataElement().getId() ).collect( Collectors.toSet() );
+        for ( DataElement de : params.getDataElements() )
+        {
+            deos.add( new DataElementOperand( de, null ) );
+        }
 
-        return deos.stream()
-            .filter( deo -> deo.getCategoryOptionCombo() == null
-                || !wildDataElementIds.contains( deo.getDataElement().getId() ) )
-            .collect( Collectors.toList() );
+        return deos;
     }
 }
