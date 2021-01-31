@@ -842,6 +842,6 @@ public class DefaultPredictionService
      */
     private boolean presentIn( Set<DimensionalItemObject> items, Map<DimensionalItemObject, Double> valueMap )
     {
-        return 0 != Sets.intersection( items, valueMap.keySet() ).size();
+        return !Sets.intersection( items, valueMap.keySet() ).isEmpty();
     }
 }

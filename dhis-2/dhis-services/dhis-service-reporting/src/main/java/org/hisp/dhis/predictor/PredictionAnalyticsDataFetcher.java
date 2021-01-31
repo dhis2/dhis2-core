@@ -66,7 +66,7 @@ public class PredictionAnalyticsDataFetcher
 {
     private final AnalyticsService analyticsService;
 
-    public final static int PARTITION_SIZE = 500;
+    public static final int PARTITION_SIZE = 500;
 
     private List<List<OrganisationUnit>> partitions;
 
@@ -176,7 +176,8 @@ public class PredictionAnalyticsDataFetcher
 
         if ( partitionIndex >= partitions.size() )
         {
-            throw new RuntimeException( "Unexpected partitionIndex " + partitionIndex + " >= " + partitions.size() );
+            throw new IllegalArgumentException(
+                "Unexpected partitionIndex " + partitionIndex + " >= " + partitions.size() );
         }
 
         partition = partitions.get( partitionIndex );

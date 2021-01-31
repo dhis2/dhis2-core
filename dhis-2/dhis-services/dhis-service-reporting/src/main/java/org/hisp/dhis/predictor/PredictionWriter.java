@@ -112,58 +112,110 @@ public class PredictionWriter
 
         for ( DataValue prediction : predictions )
         {
-            boolean predictionIsZeroAndInsignificant = dataValueIsZeroAndInsignificant(
-                prediction.getValue(), prediction.getDataElement() );
+            writePrediction( prediction, oldPredictionMap );
+        }
 
-            DataValue oldPrediction = oldPredictionMap.get( mapKey( prediction ) );
+        deleteObsoletePredictions( oldPredictionMap );
+    }
 
-            if ( oldPrediction == null )
+    public void flush()
+    {
+        dataValueBatchHandler.flush();
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive Methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Writes a predicted data value to the database.
+     * <p>
+     * Note that the entry from oldPredictionMap may be removed as a consequence
+     * of this method. If it is not removed from the map, then it may be an
+     * obsoleted prediction that needs to be deleted from the database.
+     *
+     * @param prediction new predicted data value.
+     * @param oldPredictionMap existing predicted data values.
+     */
+    private void writePrediction( DataValue prediction, Map<String, DataValue> oldPredictionMap )
+    {
+        boolean predictionIsZeroAndInsignificant = dataValueIsZeroAndInsignificant(
+            prediction.getValue(), prediction.getDataElement() );
+
+        DataValue oldPrediction = oldPredictionMap.get( mapKey( prediction ) );
+
+        if ( oldPrediction == null )
+        {
+            if ( !predictionIsZeroAndInsignificant )
             {
-                if ( predictionIsZeroAndInsignificant )
+                insertPrediction( prediction );
+            }
+        }
+        else
+        {
+            if ( predictionIsZeroAndInsignificant )
+            {
+                if ( !oldPrediction.isDeleted() )
                 {
-                    continue;
+                    return; // Keep old prediction in the list to delete it.
                 }
-
-                summary.incrementInserted();
-
-                /*
-                 * Note: BatchHandler can be used for inserting only when the
-                 * period previously existed. To insert values into new periods
-                 * (just added to the database within this transaction), the
-                 * dataValueService must be used.
-                 */
-                if ( existingOutputPeriods.contains( prediction.getPeriod() ) )
-                {
-                    dataValueBatchHandler.addObject( prediction );
-                }
-                else
-                {
-                    dataValueService.addDataValue( prediction );
-                }
+            }
+            else if ( !prediction.getValue().equals( oldPrediction.getValue() )
+                || oldPrediction.isDeleted() )
+            {
+                updatePrediction( prediction );
             }
             else
             {
-                if ( prediction.getValue().equals( oldPrediction.getValue() ) && !oldPrediction.isDeleted() )
-                {
-                    summary.incrementUnchanged();
-                }
-                else
-                {
-                    if ( predictionIsZeroAndInsignificant )
-                    {
-                        continue; // Leave the old deleted value because the new
-                                  // value, insigificant, won't be stored.
-                    }
-
-                    summary.incrementUpdated();
-
-                    dataValueBatchHandler.updateObject( prediction );
-                }
-
-                oldPredictionMap.remove( mapKey( prediction ) );
+                summary.incrementUnchanged();
             }
-        }
 
+            oldPredictionMap.remove( mapKey( prediction ) );
+        }
+    }
+
+    /**
+     * Adds a predicted data value to the database.
+     * <p>
+     * Note: BatchHandler can be used for inserting only when the period
+     * previously existed. To insert values into new periods (just added to the
+     * database within this transaction), the dataValueService must be used.
+     *
+     * @param prediction the predicted data value.
+     */
+    private void insertPrediction( DataValue prediction )
+    {
+        summary.incrementInserted();
+
+        if ( existingOutputPeriods.contains( prediction.getPeriod() ) )
+        {
+            dataValueBatchHandler.addObject( prediction );
+        }
+        else
+        {
+            dataValueService.addDataValue( prediction );
+        }
+    }
+
+    /**
+     * Updates a predicted data value in the database.
+     *
+     * @param prediction the predicted data value.
+     */
+    private void updatePrediction( DataValue prediction )
+    {
+        summary.incrementUpdated();
+
+        dataValueBatchHandler.updateObject( prediction );
+    }
+
+    /**
+     * (Soft) deletes any remaining old predictions from the database.
+     *
+     * @param oldPredictionMap
+     */
+    private void deleteObsoletePredictions( Map<String, DataValue> oldPredictionMap )
+    {
         for ( DataValue remainingOldPrediction : oldPredictionMap.values() )
         {
             if ( remainingOldPrediction.isDeleted() )
@@ -179,15 +231,12 @@ public class PredictionWriter
         }
     }
 
-    public void flush()
-    {
-        dataValueBatchHandler.flush();
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive Methods
-    // -------------------------------------------------------------------------
-
+    /**
+     * Gets a key to be used in the old prediction map.
+     *
+     * @param dv data value to be accessed.
+     * @return a key identifying this data value's dimensions.
+     */
     private String mapKey( DataValue dv )
     {
         return dv.getPeriod().getCode() + dv.getSource().getUid() + dv.getDataElement().getUid()

@@ -330,7 +330,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
         if ( params.isIncludeChildrenForOrganisationUnits() )
         {
-            throw new RuntimeException(
+            throw new IllegalArgumentException(
                 "getDeflatedDataValues doesn't support includChildren and selected organisation units at the same time." );
         }
 

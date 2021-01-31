@@ -140,9 +140,9 @@ public class PredictionDataValueFetcher
 
     private TimeUnit semaphoreTimeoutUnit = TimeUnit.MINUTES;
 
-    private final static String BEFORE_PATHS = "."; // Lexically before '/'
+    private static final String BEFORE_PATHS = "."; // Lexically before '/'
 
-    private final static String AFTER_PATHS = "0"; // Lexically after '/'
+    private static final String AFTER_PATHS = "0"; // Lexically after '/'
 
     public PredictionDataValueFetcher( DataValueService dataValueService,
         CategoryService categoryService )
@@ -246,7 +246,7 @@ public class PredictionDataValueFetcher
 
             if ( !tryAcquire( consumerSemaphore ) ) // Wait until data consumed
             {
-                throw new RuntimeException( "handle could not acquire consumer semaphore" );
+                throw new IllegalStateException( "handle could not acquire consumer semaphore" );
             }
 
             deflatedDataValues = new ArrayList<>();
@@ -271,7 +271,7 @@ public class PredictionDataValueFetcher
     {
         if ( !tryAcquire( producerSemaphore ) ) // Wait until data is ready
         {
-            throw new RuntimeException( "getDataValues could not acquire producer semaphore" );
+            throw new IllegalStateException( "getDataValues could not acquire producer semaphore" );
         }
 
         if ( producerException != null )
@@ -281,7 +281,7 @@ public class PredictionDataValueFetcher
 
         if ( orgUnit.getPath().compareTo( consumerOrgUnitPath ) <= 0 )
         {
-            throw new RuntimeException( "getDataValues out of order, after " + consumerOrgUnitPath
+            throw new IllegalArgumentException( "getDataValues out of order, after " + consumerOrgUnitPath
                 + " called with " + orgUnit.toString() );
         }
 
@@ -297,12 +297,12 @@ public class PredictionDataValueFetcher
 
         if ( !consumerOrgUnitPath.equals( producerOrgUnitPath ) )
         {
-            throw new RuntimeException( "getDataValues ready for " + producerOrgUnitPath
+            throw new IllegalArgumentException( "getDataValues ready for " + producerOrgUnitPath
                 + " but called with " + orgUnit.toString() );
         }
 
         List<DataValue> dataValues = deflatedDataValues.stream()
-            .map( dv -> inflateDataValue( dv ) ).collect( Collectors.toList() );
+            .map( this::inflateDataValue ).collect( Collectors.toList() );
 
         consumerSemaphore.release(); // Data now consumed (in local variable)
 
