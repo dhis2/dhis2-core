@@ -29,7 +29,6 @@ package org.hisp.dhis.organisationunit.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -51,11 +50,10 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitHierarchy;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.system.objectmapper.OrganisationUnitRelationshipRowMapper;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -105,6 +103,17 @@ public class HibernateOrganisationUnitStore
     public List<OrganisationUnit> getOrganisationUnitsWithoutGroups()
     {
         return getQuery( "from OrganisationUnit o where size(o.groups) = 0" ).list();
+    }
+
+    @Override
+    public List<OrganisationUnit> getOrganisationUnitsWithProgram( Program program )
+    {
+        final String jpql = "select distinct o from OrganisationUnit o " +
+            "join o.programs p where p.id = :programId";
+
+        return getQuery( jpql )
+            .setParameter( "programId", program.getId() )
+            .list();
     }
 
     @Override
@@ -292,25 +301,6 @@ public class HibernateOrganisationUnitStore
     // -------------------------------------------------------------------------
     // OrganisationUnitHierarchy
     // -------------------------------------------------------------------------
-
-    @Override
-    public OrganisationUnitHierarchy getOrganisationUnitHierarchy()
-    {
-        final String sql = "select organisationunitid, parentid from organisationunit";
-
-        return new OrganisationUnitHierarchy( jdbcTemplate.query( sql, new OrganisationUnitRelationshipRowMapper() ) );
-    }
-
-    @Override
-    public void updateOrganisationUnitParent( long organisationUnitId, long parentId )
-    {
-        Timestamp now = new Timestamp( new Date().getTime() );
-
-        final String sql = "update organisationunit " + "set parentid=" + parentId + ", lastupdated='"
-            + now + "' " + "where organisationunitid=" + organisationUnitId;
-
-        jdbcTemplate.execute( sql );
-    }
 
     @Override
     public void updatePaths()

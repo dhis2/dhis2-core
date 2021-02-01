@@ -140,7 +140,7 @@ public class CacheManifestAction
 
         if ( cacheManifest != null )
         {
-            try (BufferedReader bufferedReader = new BufferedReader( new FileReader( cacheManifest ) ))
+            try ( BufferedReader bufferedReader = new BufferedReader( new FileReader( cacheManifest ) ) )
             {
                 builder = new StringBuilder();
                 String line;

@@ -25,48 +25,59 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.webapi.controller.event.mapper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import java.util.Arrays;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.junit.Test;
-
-import com.google.common.collect.Sets;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
 
 /**
- * @author Lars Helge Overland
+ * Order parameter container to use within services.
+ *
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public class ProgramTest
+@Data
+@Builder
+public class OrderParam
 {
-    @Test
-    public void testUpdateOrganisationUnits()
+    private final String field;
+
+    private final SortDirection direction;
+
+    @Getter
+    @AllArgsConstructor
+    public enum SortDirection
     {
-        Program prA = new Program();
+        ASC( "asc", false ),
+        DESC( "desc", false ),
+        IASC( "iasc", true ),
+        IDESC( "idesc", true );
 
-        OrganisationUnit ouA = new OrganisationUnit( "ouA" );
-        OrganisationUnit ouB = new OrganisationUnit( "ouB" );
-        OrganisationUnit ouC = new OrganisationUnit( "ouC" );
-        OrganisationUnit ouD = new OrganisationUnit( "ouD" );
+        private static final SortDirection DEFAULT_SORTING_DIRECTION = ASC;
 
-        prA.addOrganisationUnit( ouA );
-        prA.addOrganisationUnit( ouB );
+        private final String value;
 
-        assertEquals( 2, prA.getOrganisationUnits().size() );
-        assertTrue( prA.getOrganisationUnits().containsAll( Sets.newHashSet( ouA, ouB ) ) );
-        assertTrue( ouA.getPrograms().contains( prA ) );
-        assertTrue( ouB.getPrograms().contains( prA ) );
-        assertTrue( ouC.getPrograms().isEmpty() );
-        assertTrue( ouD.getPrograms().isEmpty() );
+        private final boolean ignoreCase;
 
-        prA.updateOrganisationUnits( Sets.newHashSet( ouB, ouC ) );
+        public static SortDirection of( String value )
+        {
+            return of( value, DEFAULT_SORTING_DIRECTION );
+        }
 
-        assertEquals( 2, prA.getOrganisationUnits().size() );
-        assertTrue( prA.getOrganisationUnits().containsAll( Sets.newHashSet( ouB, ouC ) ) );
-        assertTrue( ouA.getPrograms().isEmpty() );
-        assertTrue( ouB.getPrograms().contains( prA ) );
-        assertTrue( ouC.getPrograms().contains( prA ) );
-        assertTrue( ouD.getPrograms().isEmpty() );
+        public static SortDirection of( String value, SortDirection defaultSortingDirection )
+        {
+            return Arrays.stream( values() )
+                .filter( sortDirection -> sortDirection.getValue().equalsIgnoreCase( value ) )
+                .findFirst()
+                .orElse( defaultSortingDirection );
+        }
+
+        public boolean isAscending()
+        {
+            return this.equals( ASC ) || this.equals( IASC );
+        }
     }
 }

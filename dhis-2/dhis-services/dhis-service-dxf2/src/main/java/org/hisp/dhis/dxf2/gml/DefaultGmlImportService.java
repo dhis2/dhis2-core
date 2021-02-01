@@ -192,7 +192,7 @@ public class DefaultGmlImportService
     {
         Metadata metadata;
 
-        try (InputStream dxfStream = transformGml( inputStream ))
+        try ( InputStream dxfStream = transformGml( inputStream ) )
         {
             metadata = renderService.fromXml( dxfStream, Metadata.class );
         }

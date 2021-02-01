@@ -121,7 +121,7 @@ public class V2_36_11__Migrate_sharings_to_jsonb
         String tablePKName )
         throws SQLException
     {
-        try (Statement statement = context.getConnection().createStatement())
+        try ( Statement statement = context.getConnection().createStatement() )
         {
             ResultSet resultSet = statement
                 .executeQuery( "select exists ( select 1 from " + tableName + " where sharing = '{}')" );
@@ -154,7 +154,7 @@ public class V2_36_11__Migrate_sharings_to_jsonb
             "where _tuga." + tablePKName + " = _entity." + tablePKName + " ) , ','), '}},{', '},'), ''), NULL)::json)" +
             ")));";
 
-        try (Statement statement = context.getConnection().createStatement())
+        try ( Statement statement = context.getConnection().createStatement() )
         {
             log.info( "Executing sharing migration query: [" + query + "]" );
             statement.execute( query );
