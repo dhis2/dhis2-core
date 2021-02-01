@@ -294,8 +294,8 @@ public class SqlViewServiceTest
     @Test
     public void testGetGridValidationFailure()
     {
-        createAndInjectAdminUser(); // this is the easiest way to be allowed to
-                                    // read SQL view data
+        // this is the easiest way to be allowed to read SQL view data
+        createAndInjectAdminUser();
 
         SqlView sqlView = getSqlView( "select * from dataelement; delete from dataelement" );
         sqlViewService.saveSqlView( sqlView );

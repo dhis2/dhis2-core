@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.db.migration.v36;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -67,12 +68,14 @@ public class V2_36_23__Add_data_sharing_to_sqlview extends BaseJavaMigration
         JsonProcessingException
     {
         String updatedSharing = SharingUtils.withAccess( sharing, Sharing::copyMetadataToData );
-        String update = String.format( "update sqlview set sharing = '%s'::json where sqlviewid = %d", updatedSharing,
-            sqlviewid );
-        try (Statement statement = context.getConnection().createStatement())
+        try (PreparedStatement statement = context.getConnection()
+            .prepareStatement( "update sqlview set sharing = ?::json where sqlviewid = ?" ))
         {
-            log.info( "Executing sharing migration query: [" + update + "]" );
-            statement.execute( update );
+            statement.setLong( 2, sqlviewid );
+            statement.setString( 1, updatedSharing );
+
+            log.info( "Executing sharing migration query: [" + statement + "]" );
+            statement.executeUpdate();
         }
         catch ( SQLException e )
         {

@@ -106,26 +106,13 @@ public class Sharing
 
     public void setUserAccesses( Set<UserAccess> userAccesses )
     {
-        if ( this.users != null )
-            this.users.clear();
-        else
-            this.users = new HashMap<>();
-
+        this.users = clearOrInit( this.users );
         userAccesses.forEach( this::addUserAccess );
-    }
-
-    public boolean isExternal()
-    {
-        return external;
     }
 
     public void setDtoUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )
     {
-        if ( this.users != null )
-            this.users.clear();
-        else
-            this.users = new HashMap<>();
-
+        this.users = clearOrInit( this.users );
         if ( userAccesses != null && !userAccesses.isEmpty() )
         {
             userAccesses.forEach( ua -> this.addUserAccess( new UserAccess( ua ) ) );
@@ -134,14 +121,7 @@ public class Sharing
 
     public void setDtoUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses )
     {
-        if ( this.userGroups != null )
-        {
-            this.userGroups.clear();
-        }
-
-        else
-            this.userGroups = new HashMap<>();
-
+        this.userGroups = clearOrInit( this.userGroups );
         if ( userGroupAccesses != null && !userGroupAccesses.isEmpty() )
         {
             userGroupAccesses.forEach( uga -> this.addUserGroupAccess( new UserGroupAccess( uga ) ) );
@@ -150,10 +130,7 @@ public class Sharing
 
     public void setUserGroupAccess( Set<UserGroupAccess> userGroupAccesses )
     {
-        if ( this.userGroups != null )
-            this.userGroups.clear();
-        else
-            this.userGroups = new HashMap<>();
+        this.userGroups = clearOrInit( this.userGroups );
         userGroupAccesses.forEach( this::addUserGroupAccess );
     }
 
@@ -177,7 +154,7 @@ public class Sharing
 
     public void addUserGroupAccess( UserGroupAccess userGroupAccess )
     {
-        if ( userGroupAccess == null )
+        if ( userGroups == null )
         {
             userGroups = new HashMap<>();
         }
@@ -221,6 +198,18 @@ public class Sharing
             .userGroups( new HashMap<>( userGroups ) ).build();
     }
 
+    /**
+     * Returns a new {@link Sharing} instance where all access strings have been
+     * transformed.
+     *
+     * @param accessTransformation A transformation for access strings that is
+     *        applied to all access strings of this {@link Sharing} to produce
+     *        the access strings used in the newly created {@link Sharing}
+     *        object returned.
+     * @return A new {@link Sharing} instance where the access strings of public
+     *         access, user and group access have been transformed by the
+     *         provided transformation. This {@link Sharing} is kept unchanged.
+     */
     public Sharing withAccess( UnaryOperator<String> accessTransformation )
     {
         return builder()
@@ -242,6 +231,16 @@ public class Sharing
         }
         return map.entrySet().stream()
             .collect( toMap( Entry::getKey, e -> mapper.apply( e.getValue() ) ) );
+    }
+
+    private static <T> Map<String, T> clearOrInit( Map<String, T> map )
+    {
+        if ( map != null )
+        {
+            map.clear();
+            return map;
+        }
+        return new HashMap<>();
     }
 
     public static String copyMetadataToData( String access )
