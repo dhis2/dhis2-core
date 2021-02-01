@@ -53,7 +53,7 @@ public class V2_36_23__Add_data_sharing_to_sqlview extends BaseJavaMigration
     public void migrate( Context context )
         throws Exception
     {
-        try (Statement statement = context.getConnection().createStatement())
+        try ( Statement statement = context.getConnection().createStatement() )
         {
             ResultSet results = statement.executeQuery( "select sqlviewid, sharing from sqlview;" );
             while ( results.next() )
@@ -68,8 +68,8 @@ public class V2_36_23__Add_data_sharing_to_sqlview extends BaseJavaMigration
         JsonProcessingException
     {
         String updatedSharing = SharingUtils.withAccess( sharing, Sharing::copyMetadataToData );
-        try (PreparedStatement statement = context.getConnection()
-            .prepareStatement( "update sqlview set sharing = ?::json where sqlviewid = ?" ))
+        try ( PreparedStatement statement = context.getConnection()
+            .prepareStatement( "update sqlview set sharing = ?::json where sqlviewid = ?" ) )
         {
             statement.setLong( 2, sqlviewid );
             statement.setString( 1, updatedSharing );
