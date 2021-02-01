@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.TrackerIdScheme.UID;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.ValidationMode.FULL;
 import static org.hisp.dhis.tracker.bundle.TrackerBundleMode.COMMIT;
+
 import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.ATOMIC_MODE_KEY;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.DATA_ELEMENT_ID_SCHEME_KEY;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.FLUSH_MODE_KEY;
@@ -44,6 +45,7 @@ import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder
 import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.PROGRAM_STAGE_ID_SCHEME_KEY;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.SKIP_RULE_ENGINE_KEY;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.VALIDATION_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.SKIP_SIDE_EFFECTS;
 
 import java.util.List;
 import java.util.Map;
@@ -87,6 +89,7 @@ public class TrackerImportParamsBuilder
                 getEnumWithDefault( TrackerImportStrategy.class, parameters, IMPORT_STRATEGY_KEY, CREATE_AND_UPDATE ) )
             .atomicMode( getEnumWithDefault( AtomicMode.class, parameters, ATOMIC_MODE_KEY, ALL ) )
             .flushMode( getEnumWithDefault( FlushMode.class, parameters, FLUSH_MODE_KEY, AUTO ) )
+            .skipSideEffects( getBooleanValueOrDefault( parameters, SKIP_SIDE_EFFECTS ) )
             .skipRuleEngine( getBooleanValueOrDefault( parameters, SKIP_RULE_ENGINE_KEY ) );
     }
 
@@ -184,6 +187,7 @@ public class TrackerImportParamsBuilder
         ATOMIC_MODE_KEY( "atomicMode" ),
         FLUSH_MODE_KEY( "flushMode" ),
         SKIP_RULE_ENGINE_KEY( "skipRuleEngine" ),
+        SKIP_SIDE_EFFECTS( "skipSideEffects" ),
         ID_SCHEME_KEY( "idScheme" ),
         ORG_UNIT_ID_SCHEME_KEY( "orgUnitIdScheme" ),
         PROGRAM_ID_SCHEME_KEY( "programIdScheme" ),
