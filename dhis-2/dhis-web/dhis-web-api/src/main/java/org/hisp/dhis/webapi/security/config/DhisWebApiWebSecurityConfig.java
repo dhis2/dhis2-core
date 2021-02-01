@@ -235,15 +235,6 @@ public class DhisWebApiWebSecurityConfig
             auth.authenticationEventPublisher( authenticationEventPublisher );
         }
 
-        @Autowired
-        private DefaultAuthenticationEventPublisher authenticationEventPublisher;
-
-        public void configure( AuthenticationManagerBuilder auth )
-            throws Exception
-        {
-            auth.authenticationEventPublisher( authenticationEventPublisher );
-        }
-
         @Override
         protected void configure( HttpSecurity http )
             throws Exception
