@@ -30,20 +30,16 @@ package org.hisp.dhis.tracker.bundle;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
-import java.sql.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -103,57 +99,6 @@ public class EventDataValueTest
         Set<EventDataValue> eventDataValues = psi.getEventDataValues();
 
         assertEquals( 4, eventDataValues.size() );
-    }
-
-    @Test
-    public void testClientDatesForTeiEnrollmentEvent()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/single_event.json" );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-
-        TrackerImportParams teiParams = fromJson( "tracker/single_tei.json", userA.getUid() );
-        TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json", userA.getUid() );
-
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-
-        List<TrackedEntityInstance> teis = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, teis.size() );
-
-        TrackedEntityInstance tei = teis.get( 0 );
-
-        assertNotNull( tei.getCreatedAtClient() );
-        assertNotNull( tei.getLastUpdatedAtClient() );
-
-        assertEquals(
-            Date.from( teiParams.getTrackedEntities().get( 0 ).getCreatedAtClient() ), tei.getCreatedAtClient() );
-        assertEquals(
-            Date.from( teiParams.getTrackedEntities().get( 0 ).getUpdatedAtClient() ), tei.getLastUpdatedAtClient() );
-
-        Set<ProgramInstance> pis = tei.getProgramInstances();
-        assertEquals( 1, pis.size() );
-        ProgramInstance pi = pis.iterator().next();
-
-        assertNotNull( pi.getCreatedAtClient() );
-        assertNotNull( pi.getLastUpdatedAtClient() );
-
-        assertEquals( Date.from( enrollmentParams.getEnrollments().get( 0 ).getCreatedAtClient() ),
-            pi.getCreatedAtClient() );
-        assertEquals(
-            Date.from( enrollmentParams.getEnrollments().get( 0 ).getUpdatedAtClient() ), pi.getLastUpdatedAtClient() );
-
-        Set<ProgramStageInstance> psis = pi.getProgramStageInstances();
-        assertEquals( 1, psis.size() );
-        ProgramStageInstance psi = psis.iterator().next();
-
-        assertNotNull( psi.getCreatedAtClient() );
-        assertNotNull( psi.getLastUpdatedAtClient() );
-
-        assertEquals(
-            Date.from( trackerImportParams.getEvents().get( 0 ).getCreatedAtClient() ), psi.getCreatedAtClient() );
-        assertEquals(
-            Date.from( trackerImportParams.getEvents().get( 0 ).getUpdatedAtClient() ), psi.getLastUpdatedAtClient() );
     }
 
     @Test
