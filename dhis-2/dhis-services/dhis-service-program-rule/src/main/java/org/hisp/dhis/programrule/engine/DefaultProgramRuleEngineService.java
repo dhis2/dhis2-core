@@ -50,9 +50,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Lists;
 
 /**
- * Created by zubair@dhis2.org on 23.10.17.
+ * @author Zubair Asghar
  */
-
 @Slf4j
 @Service( "org.hisp.dhis.programrule.engine.ProgramRuleEngineService" )
 public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
