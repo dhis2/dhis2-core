@@ -30,10 +30,13 @@ package org.hisp.dhis.programrule.engine;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -54,6 +57,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAuthorityGroup;
 
 import com.google.api.client.util.Lists;
+import com.google.api.client.util.Maps;
 import com.google.api.client.util.Sets;
 
 /**
@@ -63,6 +67,11 @@ import com.google.api.client.util.Sets;
 public class ProgramRuleEngine
 {
     private static final String USER = "USER";
+
+    private static final String REGEX = "d2:inOrgUnitGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|" +
+        "( *'[^']*'))*( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))* *\\)";
+
+    private static final Pattern PATTERN = Pattern.compile( REGEX );
 
     private final ProgramRuleEntityMapperService programRuleEntityMapperService;
 
@@ -131,6 +140,20 @@ public class ProgramRuleEngine
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
+        String programStageUid = programStageInstance != null ? programStageInstance.getProgramStage().getUid() : null;
+
+        List<ProgramRule> programRules = implementableRuleService
+            .getImplementableRules( program )
+            .stream()
+            .filter( rule -> Objects.isNull( rule.getProgramStage() ) ||
+                Objects.equals( rule.getProgramStage().getUid(), programStageUid ) )
+            .collect( Collectors.toList() );
+
+        if ( programRules.isEmpty() )
+        {
+            return ruleEffects;
+        }
+
         List<RuleEvent> ruleEvents = getRuleEvents( events, programStageInstance );
 
         RuleEnrollment ruleEnrollment = getRuleEnrollment( enrollment, trackedEntityAttributeValues );
@@ -138,7 +161,7 @@ public class ProgramRuleEngine
         try
         {
             RuleEngine.Builder builder = getRuleEngineContext( program,
-                programStageInstance != null ? programStageInstance.getProgramStage().getUid() : null )
+                programRules )
                     .toEngineBuilder()
                     .triggerEnvironment( TriggerEnvironment.SERVER )
                     .events( ruleEvents );
@@ -191,25 +214,36 @@ public class ProgramRuleEngine
         return ruleEngine.evaluate( condition );
     }
 
-    private RuleEngineContext getRuleEngineContext( Program program, String uid )
+    private RuleEngineContext getRuleEngineContext( Program program, List<ProgramRule> programRules )
     {
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService
             .getProgramRuleVariable( program );
-        List<ProgramRule> programRules = implementableRuleService
-            .getImplementableRules( program )
-            .stream()
-            .filter( rule -> Objects.isNull( rule.getProgramStage() ) ||
-                Objects.equals( rule.getProgramStage().getUid(), uid ) )
-            .collect( Collectors.toList() );
 
         Map<String, String> constantMap = constantService.getConstantMap().entrySet()
             .stream()
             .collect( Collectors.toMap( Map.Entry::getKey, v -> v.getValue().toString() ) );
 
-        Map<String, List<String>> supplementaryData = organisationUnitGroupService.getAllOrganisationUnitGroups()
-            .stream()
-            .collect( Collectors.toMap( BaseIdentifiableObject::getUid,
-                g -> g.getMembers().stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
+        List<String> orgUnitGroups = new ArrayList<>();
+
+        for ( ProgramRule programRule : programRules )
+        {
+
+            Matcher matcher = PATTERN.matcher( StringUtils.defaultIfBlank( programRule.getCondition(), "" ) );
+
+            while ( matcher.find() )
+            {
+                orgUnitGroups.add( StringUtils.replace( matcher.group( 1 ), "'", "" ) );
+            }
+        }
+
+        Map<String, List<String>> supplementaryData = Maps.newHashMap();
+
+        if ( !orgUnitGroups.isEmpty() )
+        {
+            supplementaryData = orgUnitGroups.stream().collect(
+                Collectors.toMap( g -> g, g -> organisationUnitGroupService.getOrganisationUnitGroup( g ).getMembers()
+                    .stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
+        }
 
         if ( currentUserService.getCurrentUser() != null )
         {
