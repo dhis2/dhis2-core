@@ -165,6 +165,52 @@ public class DefaultGatewayAdministrationService
     }
 
     @Override
+    public boolean addOrUpdateGateway( SmsGatewayConfig payLoad, Class<?> klass )
+    {
+        SmsConfiguration smsConfiguration = getSmsConfiguration();
+
+        if ( smsConfiguration != null )
+        {
+            SmsGatewayConfig gatewayConfig = smsConfigurationManager.checkInstanceOfGateway( klass );
+
+            int index = -1;
+
+            if ( gatewayConfig != null )
+            {
+                index = smsConfiguration.getGateways().indexOf( gatewayConfig );
+            }
+
+            payLoad.setUid( CodeGenerator.generateCode( 10 ) );
+            gatewayConfig = payLoad;
+
+            if ( smsConfiguration.getGateways() == null || smsConfiguration.getGateways().isEmpty() )
+            {
+                gatewayConfig.setDefault( true );
+            }
+
+            if ( index >= 0 )
+            {
+                smsConfiguration.getGateways().set( index, gatewayConfig );
+
+                gatewayConfigurationMap.put( gatewayConfig.getName(), gatewayConfig );
+            }
+            else
+            {
+                smsConfiguration.getGateways().add( gatewayConfig );
+
+                gatewayConfigurationMap.put( gatewayConfig.getName(), gatewayConfig );
+            }
+
+            smsConfigurationManager.updateSmsConfiguration( smsConfiguration );
+            initializeSmsConfig();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
     public void updateGateway( SmsGatewayConfig persistedConfig, SmsGatewayConfig updatedConfig )
     {
         if ( persistedConfig == null || updatedConfig == null )
