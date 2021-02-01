@@ -150,7 +150,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testCompletedDateForEnrollment()
     {
-        String sql =  castString( test( "V{completed_date}", new DefaultLiteral(), enrollmentIndicator ) );
+        String sql = castString( test( "V{completed_date}", new DefaultLiteral(), enrollmentIndicator ) );
         assertThat( sql, is( "completeddate" ) );
     }
 
