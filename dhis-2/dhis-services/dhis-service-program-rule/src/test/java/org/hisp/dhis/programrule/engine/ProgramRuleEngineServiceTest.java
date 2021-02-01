@@ -33,11 +33,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_PROGRAM_RULE_SERVER_EXECUTION;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -91,6 +94,9 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     @Mock
     private ProgramService programService;
 
+    @Mock
+    private DhisConfigurationProvider config;
+
     @Spy
     private ArrayList<RuleActionImplementer> ruleActionImplementers;
 
@@ -123,6 +129,8 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         // stub for ruleActionSendMessage
         Mockito.lenient().when( ruleActionSendMessage.accept( any() ) ).thenReturn( true );
+
+        Mockito.when( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) ).thenReturn( false );
     }
 
     @Test
