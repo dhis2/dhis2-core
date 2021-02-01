@@ -243,6 +243,25 @@ public class Sharing
         return new HashMap<>();
     }
 
+    /**
+     * First to positions are metadata sharing, positions 3 and 4 are data
+     * sharing. This copies the positions 1 and 2 to 3 and 4:
+     *
+     * The pattern {@code rw--xxxx} becomes {@code rwrwxxxx}.
+     *
+     * For example:
+     *
+     * <pre>
+     * r------- => r-r-----
+     * rw------ => rwrw----
+     * r-rw---- => r-r-----
+     * </pre>
+     *
+     * @param access a access string which is expected to be either null or 8
+     *        characters long
+     * @return the provided access string except that position 1 and 2 are
+     *         copied to position 3 and 4.
+     */
     public static String copyMetadataToData( String access )
     {
         if ( access == null )
