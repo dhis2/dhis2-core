@@ -45,7 +45,7 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Zubair Asghar.
+ * @author Zubair Asghar
  */
 @Slf4j
 @Component( "org.hisp.dhis.programrule.engine.RuleActionAssignValueImplementer" )
