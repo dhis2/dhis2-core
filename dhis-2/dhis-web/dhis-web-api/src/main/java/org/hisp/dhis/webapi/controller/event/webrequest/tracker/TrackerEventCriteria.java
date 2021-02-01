@@ -25,43 +25,79 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
 
 import java.util.Date;
+import java.util.Set;
+
+import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.ProgramStatus;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.program.ProgramStatus;
-
+/**
+ * Class to hold EventController request parameters into a handy place
+ *
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
+ */
 @Data
 @NoArgsConstructor
-public class EnrollmentCriteria extends PagingAndSortingCriteriaAdapter
+public class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
 {
-    private String ou;
-
-    private OrganisationUnitSelectionMode ouMode;
-
     private String program;
+
+    private String programStage;
 
     private ProgramStatus programStatus;
 
     private Boolean followUp;
 
-    private Date lastUpdated;
+    private String trackedEntity;
 
-    private String lastUpdatedDuration;
+    private String ou;
 
-    private Date programStartDate;
+    private OrganisationUnitSelectionMode ouMode;
 
-    private Date programEndDate;
+    private AssignedUserSelectionMode assignedUserMode;
 
-    private String trackedEntityType;
+    private String assignedUser;
 
-    private String trackedEntityInstance;
+    private Date occurredAtFrom;
 
-    private String enrollment;
+    private Date occurredAtTo;
+
+    private Date deadlineAtFrom;
+
+    private Date deadlineAtTo;
+
+    private Date updatedAtFrom;
+
+    private Date updatedAtTo;
+
+    private String updatedAtWithin;
+
+    private EventStatus status;
+
+    private String attributeCc;
+
+    private String attributeCos;
+
+    private boolean skipMeta;
+
+    private String attachment;
 
     private boolean includeDeleted;
+
+    private String event;
+
+    private Boolean skipEventId;
+
+    private Set<String> filter;
+
+    private IdSchemes idSchemes = new IdSchemes();
 }
