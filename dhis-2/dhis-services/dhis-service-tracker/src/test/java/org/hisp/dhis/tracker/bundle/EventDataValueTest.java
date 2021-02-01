@@ -65,15 +65,13 @@ public class EventDataValueTest
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
 
-    private User userA;
-
     @Override
     protected void initTest()
         throws IOException
     {
         setUpMetadata( "tracker/simple_metadata.json" );
 
-        userA = userService.getUser( "M5zQapPyTZI" );
+        final User userA = userService.getUser( "M5zQapPyTZI" );
 
         TrackerImportParams teiParams = fromJson( "tracker/single_tei.json", userA.getUid() );
         assertNoImportErrors( trackerImportService.importTracker( teiParams ) );

@@ -40,7 +40,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -160,9 +159,11 @@ public class EnrollmentTrackerConverterService
 
         programInstance.setStatus( enrollment.getStatus().getProgramStatus() );
 
-        if ( programInstance.getStatus().equals( ProgramStatus.COMPLETED ) )
+        if ( programInstance.isCompleted() )
         {
-            programInstance.setEndDate( DateUtils.fromInstant( enrollment.getCompletedAt() ) );
+            programInstance
+                .setEndDate( enrollment.getCompletedAt() != null ? DateUtils.fromInstant( enrollment.getCompletedAt() )
+                    : new Date() );
             programInstance.setCompletedBy( enrollment.getCompletedBy() );
         }
 
