@@ -28,11 +28,13 @@
 package org.hisp.dhis.programrule.engine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_PROGRAM_RULE_SERVER_EXECUTION;
 
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -71,11 +73,14 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
     private final ProgramService programService;
 
+    private final DhisConfigurationProvider config;
+
     public DefaultProgramRuleEngineService(
         @Qualifier( "serviceTrackerRuleEngine" ) ProgramRuleEngine programRuleEngineNew,
         @Qualifier( "notificationRuleEngine" ) ProgramRuleEngine programRuleEngine,
         List<RuleActionImplementer> ruleActionImplementers, ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService, ProgramService programService )
+        ProgramStageInstanceService programStageInstanceService, ProgramService programService,
+        DhisConfigurationProvider config )
     {
         checkNotNull( programRuleEngine );
         checkNotNull( programRuleEngineNew );
@@ -83,6 +88,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         checkNotNull( programInstanceService );
         checkNotNull( programStageInstanceService );
         checkNotNull( programService );
+        checkNotNull( config );
 
         this.programRuleEngine = programRuleEngine;
         this.programRuleEngineNew = programRuleEngineNew;
@@ -90,12 +96,18 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         this.programInstanceService = programInstanceService;
         this.programStageInstanceService = programStageInstanceService;
         this.programService = programService;
+        this.config = config;
     }
 
     @Override
     @Transactional
     public List<RuleEffect> evaluateEnrollmentAndRunEffects( long programInstanceId )
     {
+        if ( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) )
+        {
+            return Lists.newArrayList();
+        }
+
         ProgramInstance programInstance = programInstanceService.getProgramInstance( programInstanceId );
 
         if ( programInstance == null )
@@ -122,6 +134,11 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     @Transactional
     public List<RuleEffect> evaluateEventAndRunEffects( long programStageInstanceId )
     {
+        if ( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) )
+        {
+            return Lists.newArrayList();
+        }
+
         ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstanceId );
 
         return evaluateEventAndRunEffects( psi );
@@ -131,6 +148,11 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     @Transactional
     public List<RuleEffect> evaluateEventAndRunEffects( String event )
     {
+        if ( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) )
+        {
+            return Lists.newArrayList();
+        }
+
         ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( event );
 
         return evaluateEventAndRunEffects( psi );
