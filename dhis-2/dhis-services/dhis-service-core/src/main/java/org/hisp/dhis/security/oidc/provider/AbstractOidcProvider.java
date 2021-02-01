@@ -1,5 +1,7 @@
-package org.hisp.dhis.security.oidc.provider;/*
- * Copyright (c) 2004-2020, University of Oslo
+package org.hisp.dhis.security.oidc.provider;
+
+/*
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +31,45 @@ package org.hisp.dhis.security.oidc.provider;/*
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public abstract class DhisOidcProvider
+public abstract class AbstractOidcProvider
 {
     protected static final String DEFAULT_REDIRECT_TEMPLATE_URL = "{baseUrl}/oauth2/code/{registrationId}";
 
     public static final String DEFAULT_MAPPING_CLAIM = "email";
 
-}
+    public static final String DEFAULT_SCOPE = "openid";
 
+    public final static String PROVIDER_ID = "provider_id";
+
+    public final static String CLIENT_ID = "client_id";
+
+    public final static String CLIENT_SECRET = "client_secret";
+
+    public final static String MAPPING_CLAIM = "mapping_claim";
+
+    public final static String REDIRECT_URL = "redirect_url";
+
+    public final static String AUTHORIZATION_URI = "authorization_uri";
+
+    public final static String TOKEN_URI = "token_uri";
+
+    public final static String USERINFO_URI = "user_info_uri";
+
+    public final static String JWK_URI = "jwk_uri";
+
+    public final static String END_SESSION_ENDPOINT = "end_session_endpoint";
+
+    public final static String DISPLAY_ALIAS = "display_alias";
+
+    public final static String ENABLE_LOGOUT = "enable_logout";
+
+    public final static String SCOPES = "scopes";
+
+    public final static String LOGO_IMAGE = "logo_image";
+
+    public final static String LOGO_IMAGE_PADDING = "logo_image_padding";
+
+    public final static String ENABLE_PKCE = "enable_pkce";
+
+    public final static String EXTRA_REQUEST_PARAMETERS = "extra_request_parameters";
+}
