@@ -35,16 +35,16 @@ import org.springframework.context.ApplicationEvent;
  */
 public class DataValueUpdatedEvent extends ApplicationEvent
 {
-    private long programStageInstance;
+    private String programStageInstanceUid;
 
-    public DataValueUpdatedEvent( Object source, long programStageInstance )
+    public DataValueUpdatedEvent( Object source, String programStageInstanceUid )
     {
         super( source );
-        this.programStageInstance = programStageInstance;
+        this.programStageInstanceUid = programStageInstanceUid;
     }
 
-    public long getProgramStageInstance()
+    public String getProgramStageInstanceUid()
     {
-        return programStageInstance;
+        return programStageInstanceUid;
     }
 }

@@ -30,9 +30,13 @@ package org.hisp.dhis.dxf2.events.importer.context;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import lombok.Builder;
+import lombok.Getter;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -49,9 +53,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
-
-import lombok.Builder;
-import lombok.Getter;
 
 /**
  * This class acts as a cache for data required during the Event import process.
@@ -85,7 +86,8 @@ public class WorkContext
      * Holds a Map of all {@see TrackedEntityInstance} associated to the Events to
      * import.
      *
-     * Map: key -> Event UID value -> Pair<TrackedEntityInstance, canBeUpdatedByCurrentUser boolean>
+     * Map: key -> Event UID value -> Pair<TrackedEntityInstance,
+     * canBeUpdatedByCurrentUser boolean>
      */
     private final Map<String, Pair<TrackedEntityInstance, Boolean>> trackedEntityInstanceMap;
 
@@ -136,6 +138,13 @@ public class WorkContext
     private final Map<String, Note> notesMap;
 
     /**
+     * Holds a Map of Program ID (primary key) and List of Org Unit ID associated to
+     * each program. Note that the List only contains the Org Unit ID of org units
+     * that are specified in the payload.
+     */
+    private final Map<Long, List<Long>> programWithOrgUnitsMap;
+
+    /**
      * Services / components
      */
     private final ServiceDelegator serviceDelegator;
@@ -165,14 +174,14 @@ public class WorkContext
         }
         return null;
     }
-    
+
     public Optional<TrackedEntityInstance> getTrackedEntityInstance( String event )
     {
         final Pair<TrackedEntityInstance, Boolean> teiPair = this.trackedEntityInstanceMap.get( event );
 
         return (teiPair != null) ? Optional.of( teiPair.getKey() ) : Optional.empty();
     }
-    
+
     public Optional<ProgramStageInstance> getProgramStageInstance( String event )
     {
         return Optional.ofNullable( this.getProgramStageInstanceMap().get( event ) );

@@ -40,8 +40,11 @@ import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -54,10 +57,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
-
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
@@ -151,8 +150,10 @@ public class EventManager
 
             // Post processing only the events that passed validation and were persisted
             // correctly.
-            processingManager.getPostInsertProcessorFactory().process( workContext, events.stream()
-                .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
+            List<Event> savedEvents = events.stream()
+                .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
+
+            processingManager.getPostInsertProcessorFactory().process( workContext, savedEvents );
 
             incrementSummaryTotals( events, importSummaries, CREATE );
 
@@ -216,8 +217,11 @@ public class EventManager
 
             // Post processing only the events that passed validation and were persisted
             // correctly.
-            processingManager.getPostUpdateProcessorFactory().process( workContext, events.stream()
-                .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
+
+            List<Event> savedEvents = events.stream()
+                .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
+
+            processingManager.getPostUpdateProcessorFactory().process( workContext, savedEvents );
 
             incrementSummaryTotals( events, importSummaries, UPDATE );
 

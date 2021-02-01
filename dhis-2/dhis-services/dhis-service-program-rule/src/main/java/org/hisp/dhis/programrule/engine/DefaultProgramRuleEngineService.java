@@ -147,6 +147,28 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
         ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstanceId );
 
+        return evaluateEventAndRunEffects( psi );
+    }
+
+    @Override
+    @Transactional
+    public List<RuleEffect> evaluateEventAndRunEffects( String event )
+    {
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( event );
+
+        return evaluateEventAndRunEffects( psi );
+    }
+
+    @Override
+    public RuleValidationResult getDescription( String condition, String programId )
+    {
+        Program program = programService.getProgram( programId );
+
+        return programRuleEngineNew.getDescription( condition, program );
+    }
+
+    private List<RuleEffect> evaluateEventAndRunEffects( ProgramStageInstance psi )
+    {
         if ( psi == null )
         {
             return Lists.newArrayList();
@@ -154,7 +176,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( psi.getProgramInstance().getId() );
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( psi.getProgramInstance(), psi,
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, psi,
             programInstance.getProgramStageInstances() );
 
         for ( RuleEffect effect : ruleEffects )
@@ -167,13 +189,5 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         }
 
         return ruleEffects;
-    }
-
-    @Override
-    public RuleValidationResult getDescription( String condition, String programId )
-    {
-        Program program = programService.getProgram( programId );
-
-        return programRuleEngineNew.getDescription( condition, program );
     }
 }

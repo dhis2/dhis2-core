@@ -28,6 +28,8 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Objects;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.option.OptionSet;
@@ -66,8 +68,7 @@ public class OptionSetObjectBundleHook
             return;
         }
 
-        optionSet.getOptions().forEach( option -> {
-
+        optionSet.getOptions().stream().filter( Objects::nonNull ).forEach( option -> {
             if ( option.getOptionSet() == null )
             {
                 option.setOptionSet( optionSet );

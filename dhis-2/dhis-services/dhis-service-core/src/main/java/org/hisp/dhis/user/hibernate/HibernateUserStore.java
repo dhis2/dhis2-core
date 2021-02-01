@@ -43,6 +43,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.persistence.TypedQuery;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.annotations.QueryHints;
@@ -66,8 +68,6 @@ import org.hisp.dhis.user.UserStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Nguyen Hong Duc
@@ -132,7 +132,7 @@ public class HibernateUserStore
             }
             else if ( o.getClass().isArray() )
             {
-                users.add( (User) ( (Object[]) o )[0] );
+                users.add( (User) ((Object[]) o)[0] );
             }
         }
         return users;
@@ -154,13 +154,21 @@ public class HibernateUserStore
             Schema userSchema = schemaService.getSchema( User.class );
             convertedOrder = QueryUtils.convertOrderStrings( orders, userSchema );
 
-            hql = Stream.of( "select distinct u", JpaQueryUtils.createSelectOrderExpression( convertedOrder, "u" ) ).filter( Objects::nonNull ).collect( Collectors.joining( "," ) );
+            hql = Stream.of( "select distinct u", JpaQueryUtils.createSelectOrderExpression( convertedOrder, "u" ) )
+                .filter( Objects::nonNull ).collect( Collectors.joining( "," ) );
             hql += " ";
         }
 
-        hql +=
-            "from User u " +
-            "inner join u.userCredentials uc ";
+        hql += "from User u ";
+
+        if ( count )
+        {
+            hql += "inner join u.userCredentials uc ";
+        }
+        else
+        {
+            hql += "inner join fetch u.userCredentials uc ";
+        }
 
         if ( params.isPrefetchUserGroups() && !count )
         {
@@ -210,8 +218,7 @@ public class HibernateUserStore
         if ( params.getQuery() != null )
         {
             hql += hlp.whereAnd() + " (" +
-                "lower(u.firstName) like :key " +
-                "or lower(u.surname) like :key " +
+                "concat(lower(u.firstName),' ',lower(u.surname)) like :key " +
                 "or lower(u.email) like :key " +
                 "or lower(uc.username) like :key) ";
         }
@@ -306,7 +313,8 @@ public class HibernateUserStore
 
         if ( params.isCanManage() && params.getUser() != null )
         {
-            Collection<Long> managedGroups = IdentifiableObjectUtils.getIdentifiers( params.getUser().getManagedGroups() );
+            Collection<Long> managedGroups = IdentifiableObjectUtils
+                .getIdentifiers( params.getUser().getManagedGroups() );
 
             query.setParameterList( "ids", managedGroups );
         }
@@ -325,7 +333,8 @@ public class HibernateUserStore
 
         if ( params.isDisjointRoles() && params.getUser() != null )
         {
-            Collection<Long> roles = IdentifiableObjectUtils.getIdentifiers( params.getUser().getUserCredentials().getUserAuthorityGroups() );
+            Collection<Long> roles = IdentifiableObjectUtils
+                .getIdentifiers( params.getUser().getUserCredentials().getUserAuthorityGroups() );
 
             query.setParameterList( "roles", roles );
         }
@@ -351,7 +360,8 @@ public class HibernateUserStore
             {
                 for ( int i = 0; i < params.getOrganisationUnits().size(); i++ )
                 {
-                    query.setParameter( String.format( "ouUid%d", i ), "%/" + params.getOrganisationUnits().get( i ).getUid() + "%" );
+                    query.setParameter( String.format( "ouUid%d", i ),
+                        "%/" + params.getOrganisationUnits().get( i ).getUid() + "%" );
                 }
             }
             else
@@ -369,14 +379,17 @@ public class HibernateUserStore
             query.setParameterList( "userGroupIds", userGroupIds );
         }
 
-        if ( params.getFirst() != null )
+        if ( !count )
         {
-            query.setFirstResult( params.getFirst() );
-        }
+            if ( params.getFirst() != null )
+            {
+                query.setFirstResult( params.getFirst() );
+            }
 
-        if ( params.getMax() != null )
-        {
-            query.setMaxResults( params.getMax() ).list();
+            if ( params.getMax() != null )
+            {
+                query.setMaxResults( params.getMax() );
+            }
         }
 
         return query;
@@ -405,7 +418,8 @@ public class HibernateUserStore
 
         String hql = "from UserCredentials uc where uc.username = :username";
 
-        TypedQuery<UserCredentials> typedQuery = sessionFactory.getCurrentSession().createQuery( hql, UserCredentials.class );
+        TypedQuery<UserCredentials> typedQuery = sessionFactory.getCurrentSession().createQuery( hql,
+            UserCredentials.class );
         typedQuery.setParameter( "username", username );
         typedQuery.setHint( QueryHints.CACHEABLE, true );
 

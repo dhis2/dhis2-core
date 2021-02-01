@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.db.migration.config;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,35 +28,37 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.rules.models.RuleValidationResult;
+import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.FlywayException;
+import org.flywaydb.core.api.configuration.Configuration;
+import org.flywaydb.core.api.output.MigrateResult;
 
 /**
- * Created by zubair@dhis2.org on 23.10.17.
+ * Customised Flyway to optionally run repair before migrate based on a flag.
+ *
+ * @author Ameen Mohamed
+ *
  */
-public interface ProgramRuleEngineService
+public class DhisFlyway
+    extends
+    Flyway
 {
-    /**
-     * Call rule engine to evaluate the target enrollment and get a list of rule
-     * effects, then run the actions present in these effects
-     *
-     * @param enrollment Uid of the target enrollment
-     * @return the list of rule effects calculated by rule engine
-     */
-    List<RuleEffect> evaluateEnrollmentAndRunEffects( long enrollment );
+    private boolean repairBeforeMigrate = false;
 
-    /**
-     * Call rule engine to evaluate the target event and get a list of rule effects,
-     * then run the actions present in these effects
-     *
-     * @param event Uid of the target event
-     * @return the list of rule effects calculated by rule engine
-     */
-    List<RuleEffect> evaluateEventAndRunEffects( long event );
+    public DhisFlyway( Configuration configuration, boolean repairBeforeMigrate )
+    {
+        super( configuration );
+        this.repairBeforeMigrate = repairBeforeMigrate;
+    }
 
-    List<RuleEffect> evaluateEventAndRunEffects( String event );
-
-    RuleValidationResult getDescription( String condition, String programId );
+    @Override
+    public MigrateResult migrate()
+        throws FlywayException
+    {
+        if ( repairBeforeMigrate )
+        {
+            super.repair();
+        }
+        return super.migrate();
+    }
 }

@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.hisp.dhis</groupId>
   <artifactId>dhis</artifactId>
-  <version>2.35.1-SNAPSHOT</version>
+  <version>2.35.2-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>DHIS 2</name>
   <url>http://dhis2.org</url>
@@ -601,7 +601,7 @@
       <dependency>
         <groupId>org.hisp.dhis.parser</groupId>
         <artifactId>dhis-antlr-expression-parser</artifactId>
-        <version>1.0.12</version>
+        <version>1.0.13</version>
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
@@ -2069,7 +2069,7 @@
     <lettuce.version>5.2.0.RELEASE</lettuce.version>
     <spring-data-redis.version>2.3.2.RELEASE</spring-data-redis.version>
     <spring-session-data-redis.version>2.3.0.RELEASE</spring-session-data-redis.version>
-    <struts.version>2.5.22</struts.version>
+    <struts.version>2.5.26</struts.version>
     <hibernate.version>5.2.17.Final</hibernate.version>
     <hibernate-validator.version>5.0.3.Final</hibernate-validator.version>
     <jclouds.version>2.2.0</jclouds.version>

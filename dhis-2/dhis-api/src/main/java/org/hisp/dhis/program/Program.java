@@ -123,8 +123,8 @@ public class Program
     private CategoryCombo categoryCombo;
 
     /**
-     * Property indicating whether offline storage is enabled for this program
-     * or not
+     * Property indicating whether offline storage is enabled for this program or
+     * not
      */
     private boolean skipOffline;
 
@@ -135,8 +135,8 @@ public class Program
     private Boolean displayFrontPageList = false;
 
     /**
-     * Property indicating whether first stage can appear for data entry on the
-     * same page with registration
+     * Property indicating whether first stage can appear for data entry on the same
+     * page with registration
      */
     private Boolean useFirstStageDuringRegistration = false;
 
@@ -147,25 +147,28 @@ public class Program
     private FeatureType featureType;
 
     /**
-     * How many days after period is over will this program block creation and modification of events
+     * How many days after period is over will this program block creation and
+     * modification of events
      */
     private int expiryDays;
 
     /**
-     * The PeriodType indicating the frequency that this program will use to decide on expiration. This
-     * relates to the {@link Program#expiryDays} property. The end date of the relevant period is used
-     * as basis for the number of expiration days.
+     * The PeriodType indicating the frequency that this program will use to decide
+     * on expiration. This relates to the {@link Program#expiryDays} property. The
+     * end date of the relevant period is used as basis for the number of expiration
+     * days.
      */
     private PeriodType expiryPeriodType;
 
     /**
-     * How many days after an event is completed will this program block modification of the event
+     * How many days after an event is completed will this program block
+     * modification of the event
      */
     private int completeEventsExpiryDays;
 
     /**
-     * Property indicating minimum number of attributes required to fill
-     * before search is triggered
+     * Property indicating minimum number of attributes required to fill before
+     * search is triggered
      */
     private int minAttributesRequiredToSearch = 1;
 
@@ -245,8 +248,8 @@ public class Program
     }
 
     /**
-     * Returns the ProgramTrackedEntityAttribute of this Program which contains
-     * the given TrackedEntityAttribute.
+     * Returns the ProgramTrackedEntityAttribute of this Program which contains the
+     * given TrackedEntityAttribute.
      */
     public ProgramTrackedEntityAttribute getAttribute( TrackedEntityAttribute attribute )
     {
@@ -272,8 +275,8 @@ public class Program
     }
 
     /**
-     * Returns data elements which are part of the stages of this program which
-     * have a legend set and is of numeric value type.
+     * Returns data elements which are part of the stages of this program which have
+     * a legend set and is of numeric value type.
      */
     public Set<DataElement> getDataElementsWithLegendSet()
     {
@@ -294,8 +297,9 @@ public class Program
     }
 
     /**
-     * Returns non-confidential TrackedEntityAttributes from ProgramTrackedEntityAttributes. Use
-     * getAttributes() to access the persisted attribute list.
+     * Returns non-confidential TrackedEntityAttributes from
+     * ProgramTrackedEntityAttributes. Use getAttributes() to access the persisted
+     * attribute list.
      */
     public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributes()
     {
@@ -335,8 +339,7 @@ public class Program
     }
 
     /**
-     * Indicates whether this program contains the given tracked entity
-     * attribute.
+     * Indicates whether this program contains the given tracked entity attribute.
      */
     public boolean containsAttribute( TrackedEntityAttribute attribute )
     {
@@ -373,6 +376,10 @@ public class Program
         return programStages != null && programStages.size() == 1;
     }
 
+    /**
+     * @deprecated use {@link ProgramService.hasOrgUnit()} instead.
+     */
+    @Deprecated
     public boolean hasOrganisationUnit( OrganisationUnit unit )
     {
         return organisationUnits.contains( unit );
