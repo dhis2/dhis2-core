@@ -12,7 +12,7 @@
 
     <property name="uid" column="uid" unique="true" length="11" not-null="true" />
 
-    <set name="recipients" table="outbound_sms_recipients" fetch="join">
+    <set name="recipients" table="outbound_sms_recipients" fetch="select">
       <key column="outbound_sms_id" />
       <element type="text"/>
     </set>
