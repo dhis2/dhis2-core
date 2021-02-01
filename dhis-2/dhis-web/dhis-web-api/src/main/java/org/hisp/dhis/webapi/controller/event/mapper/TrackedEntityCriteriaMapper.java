@@ -29,18 +29,20 @@ package org.hisp.dhis.webapi.controller.event.mapper;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -61,7 +63,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.TrackedEntityInstanceCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -123,9 +126,9 @@ public class TrackedEntityCriteriaMapper
         Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
             .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
 
-        List<String> orderParams = getOrderParams( criteria );
+        List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );
 
-        validateOrderParams( params, orderParams, attributes );
+        validateOrderParams( orderParams, attributes );
 
         if ( criteria.getAttribute() != null )
         {
@@ -342,14 +345,17 @@ public class TrackedEntityCriteriaMapper
         }
     }
 
-    private List<String> getOrderParams( TrackedEntityInstanceCriteria criteria )
+    private List<OrderParam> toOrderParams( List<OrderCriteria> criteria )
     {
-        if ( !StringUtils.isEmpty( criteria.getOrder() ) )
-        {
-            return Arrays.asList( criteria.getOrder().split( "," ) );
-        }
-
-        return null;
+        return Optional.ofNullable( criteria )
+            .orElse( Collections.emptyList() )
+            .stream()
+            .filter( Objects::nonNull )
+            .map( orderCriteria -> OrderParam.builder()
+                .direction( orderCriteria.getDirection() )
+                .field( orderCriteria.getField() )
+                .build() )
+            .collect( Collectors.toList() );
     }
 
     private ProgramStage getProgramStageFromProgram( Program program, String programStage )
@@ -363,26 +369,15 @@ public class TrackedEntityCriteriaMapper
             .orElse( null );
     }
 
-    private void validateOrderParams( TrackedEntityInstanceQueryParams params, List<String> orderParams,
-        Map<String, TrackedEntityAttribute> attributes )
+    private void validateOrderParams( List<OrderParam> orderParams, Map<String, TrackedEntityAttribute> attributes )
     {
         if ( orderParams != null && !orderParams.isEmpty() )
         {
-            for ( String orderParam : orderParams )
+            for ( OrderParam orderParam : orderParams )
             {
-                String[] prop = orderParam.split( ":" );
-
-                if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
+                if ( !isStaticColumn( orderParam.getField() ) && !attributes.containsKey( orderParam.getField() ) )
                 {
-                    if ( !params.getStaticOrderColumns().contains( prop[0] ) && !attributes.isEmpty()
-                        && !attributes.containsKey( prop[0] ) )
-                    {
-                        throw new IllegalQueryException( "Invalid order property: " + prop[0] );
-                    }
-                }
-                else
-                {
-                    throw new IllegalQueryException( "Invalid order parameter: " + orderParam );
+                    throw new IllegalQueryException( "Invalid order property: " + orderParam.getField() );
                 }
             }
         }

@@ -25,33 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.reservedvalue;
-
-import java.util.List;
-
-import org.hisp.dhis.common.GenericStore;
+package org.hisp.dhis.webapi.controller.event.webrequest;
 
 /**
- * @author Stian Sandvold
+ * Paging parameters
+ *
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public interface ReservedValueStore
-    extends GenericStore<ReservedValue>
+public interface PagingCriteria
 {
-    List<ReservedValue> reserveValues( ReservedValue reservedValue, List<String> values );
 
-    List<ReservedValue> reserveValuesAndCheckUniqueness( ReservedValue reservedValue, List<String> values );
+    /**
+     * Page number to return.
+     */
+    Integer getPage();
 
-    List<ReservedValue> reserveValuesJpa( ReservedValue reservedValue, List<String> values );
+    /**
+     * Page size.
+     */
+    Integer getPageSize();
 
-    List<ReservedValue> getIfReservedValues( ReservedValue reservedValue, List<String> values );
+    /**
+     * Indicates whether to include the total number of pages in the paging
+     * response.
+     */
+    boolean isTotalPages();
 
-    int getNumberOfUsedValues( ReservedValue reservedValue );
+    /**
+     * Indicates whether paging should be skipped.
+     */
+    Boolean getSkipPaging();
 
-    void removeExpiredReservations();
-
-    boolean useReservedValue( String ownerUID, String value );
-
-    void deleteReservedValueByUid( String uid );
-
-    boolean isReserved( String ownerObject, String ownerUID, String value );
+    /**
+     * Indicated whether paging is enabled
+     */
+    Boolean getPaging();
 }

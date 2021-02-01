@@ -25,33 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.reservedvalue;
+package org.hisp.dhis.webapi.controller.event.webrequest;
 
 import java.util.List;
 
-import org.hisp.dhis.common.GenericStore;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * @author Stian Sandvold
+ * simplest implementation of PagingCriteria and SortingCriteria
+ *
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public interface ReservedValueStore
-    extends GenericStore<ReservedValue>
+@Data
+@NoArgsConstructor( access = AccessLevel.PROTECTED )
+public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria, SortingCriteria
 {
-    List<ReservedValue> reserveValues( ReservedValue reservedValue, List<String> values );
 
-    List<ReservedValue> reserveValuesAndCheckUniqueness( ReservedValue reservedValue, List<String> values );
+    /**
+     * Page number to return.
+     */
+    private Integer page;
 
-    List<ReservedValue> reserveValuesJpa( ReservedValue reservedValue, List<String> values );
+    /**
+     * Page size.
+     */
+    private Integer pageSize;
 
-    List<ReservedValue> getIfReservedValues( ReservedValue reservedValue, List<String> values );
+    /**
+     * Indicates whether to include the total number of pages in the paging
+     * response.
+     */
+    private boolean totalPages;
 
-    int getNumberOfUsedValues( ReservedValue reservedValue );
+    /**
+     * Indicates whether paging should be skipped.
+     */
+    private Boolean skipPaging;
 
-    void removeExpiredReservations();
+    /**
+     * Indicated whether paging is enabled
+     */
+    private Boolean paging;
 
-    boolean useReservedValue( String ownerUID, String value );
+    /**
+     * order params
+     */
+    private List<OrderCriteria> order;
 
-    void deleteReservedValueByUid( String uid );
-
-    boolean isReserved( String ownerObject, String ownerUID, String value );
 }

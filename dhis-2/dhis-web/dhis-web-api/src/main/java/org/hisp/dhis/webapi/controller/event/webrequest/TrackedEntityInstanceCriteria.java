@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event;
+package org.hisp.dhis.webapi.controller.event.webrequest;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -46,7 +46,7 @@ import org.hisp.dhis.program.ProgramStatus;
  */
 @Data
 @NoArgsConstructor
-public class TrackedEntityInstanceCriteria
+public class TrackedEntityInstanceCriteria extends PagingAndSortingCriteriaAdapter
 {
     private String query;
 
@@ -175,32 +175,6 @@ public class TrackedEntityInstanceCriteria
     private boolean skipMeta;
 
     /**
-     * Page number to return.
-     */
-    private Integer page;
-
-    /**
-     * Page size.
-     */
-    private Integer pageSize;
-
-    /**
-     * Indicates whether to include the total number of pages in the paging
-     * response.
-     */
-    private boolean totalPages;
-
-    /**
-     * Indicates whether paging should be skipped.
-     */
-    private Boolean skipPaging;
-
-    /**
-     * Indicated whether paging is enabled
-     */
-    private Boolean paging;
-
-    /**
      * Indicates whether to include soft-deleted elements
      */
     private boolean includeDeleted;
@@ -209,11 +183,6 @@ public class TrackedEntityInstanceCriteria
      * Indicates whether to include all TEI attributes
      */
     private boolean includeAllAttributes;
-
-    /**
-     * TEI order params
-     */
-    private String order;
 
     /**
      * The file name in case of exporting as file

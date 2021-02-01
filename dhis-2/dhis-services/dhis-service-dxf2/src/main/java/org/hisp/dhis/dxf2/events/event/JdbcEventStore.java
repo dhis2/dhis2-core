@@ -113,12 +113,12 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.query.JpaQueryUtils;
-import org.hisp.dhis.query.Order;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
@@ -1430,27 +1430,22 @@ public class JdbcEventStore implements EventStore
         {
             List<String> orderFields = new ArrayList<>();
 
-            for ( String order : params.getGridOrders() )
+            for ( OrderParam order : params.getGridOrders() )
             {
-                String[] prop = order.split( ":" );
-
-                if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
+                if ( STATIC_EVENT_COLUMNS.contains( order.getField() ) )
                 {
-                    if ( STATIC_EVENT_COLUMNS.contains( prop[0] ) )
-                    {
-                        orderFields.add( prop[0] + " " + prop[1] );
-                    }
-                    else
-                    {
-                        Set<QueryItem> queryItems = params.getDataElements();
+                    orderFields.add( order.getField() + " " + order.getDirection() );
+                }
+                else
+                {
+                    Set<QueryItem> queryItems = params.getDataElements();
 
-                        for ( QueryItem item : queryItems )
+                    for ( QueryItem item : queryItems )
+                    {
+                        if ( order.getField().equals( item.getItemId() ) )
                         {
-                            if ( prop[0].equals( item.getItemId() ) )
-                            {
-                                orderFields.add( prop[0] + " " + prop[1] );
-                                break;
-                            }
+                            orderFields.add( order.getField() + " " + order.getDirection() );
+                            break;
                         }
                     }
                 }
@@ -1471,21 +1466,17 @@ public class JdbcEventStore implements EventStore
 
         if ( params.getGridOrders() != null )
         {
-            for ( String order : params.getGridOrders() )
+            for ( OrderParam order : params.getGridOrders() )
             {
-                String[] prop = order.split( ":" );
 
-                if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
+                Set<QueryItem> items = params.getDataElements();
+
+                for ( QueryItem item : items )
                 {
-                    Set<QueryItem> items = params.getDataElements();
-
-                    for ( QueryItem item : items )
+                    if ( order.getField().equals( item.getItemId() ) )
                     {
-                        if ( prop[0].equals( item.getItemId() ) )
-                        {
-                            orderFields.add( prop[0] + " " + prop[1] );
-                            break;
-                        }
+                        orderFields.add( order.getField() + " " + order.getDirection() );
+                        break;
                     }
                 }
             }
@@ -1493,12 +1484,12 @@ public class JdbcEventStore implements EventStore
 
         if ( params.getOrders() != null )
         {
-            for ( Order order : params.getOrders() )
+            for ( OrderParam order : params.getOrders() )
             {
-                if ( QUERY_PARAM_COL_MAP.containsKey( order.getProperty().getName() ) )
+                if ( QUERY_PARAM_COL_MAP.containsKey( order.getField() ) )
                 {
-                    String orderText = QUERY_PARAM_COL_MAP.get( order.getProperty().getName() );
-                    orderText += order.isAscending() ? " asc" : " desc";
+                    String orderText = QUERY_PARAM_COL_MAP.get( order.getField() );
+                    orderText += " " + (order.getDirection().isAscending() ? "asc" : "desc");
                     orderFields.add( orderText );
                 }
             }

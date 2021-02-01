@@ -25,33 +25,59 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.reservedvalue;
+package org.hisp.dhis.webapi.controller.event.mapper;
 
-import java.util.List;
+import java.util.Arrays;
 
-import org.hisp.dhis.common.GenericStore;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
 
 /**
- * @author Stian Sandvold
+ * Order parameter container to use within services.
+ *
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public interface ReservedValueStore
-    extends GenericStore<ReservedValue>
+@Data
+@Builder
+public class OrderParam
 {
-    List<ReservedValue> reserveValues( ReservedValue reservedValue, List<String> values );
+    private final String field;
 
-    List<ReservedValue> reserveValuesAndCheckUniqueness( ReservedValue reservedValue, List<String> values );
+    private final SortDirection direction;
 
-    List<ReservedValue> reserveValuesJpa( ReservedValue reservedValue, List<String> values );
+    @Getter
+    @AllArgsConstructor
+    public enum SortDirection
+    {
+        ASC( "asc", false ),
+        DESC( "desc", false ),
+        IASC( "iasc", true ),
+        IDESC( "idesc", true );
 
-    List<ReservedValue> getIfReservedValues( ReservedValue reservedValue, List<String> values );
+        private static final SortDirection DEFAULT_SORTING_DIRECTION = ASC;
 
-    int getNumberOfUsedValues( ReservedValue reservedValue );
+        private final String value;
 
-    void removeExpiredReservations();
+        private final boolean ignoreCase;
 
-    boolean useReservedValue( String ownerUID, String value );
+        public static SortDirection of( String value )
+        {
+            return of( value, DEFAULT_SORTING_DIRECTION );
+        }
 
-    void deleteReservedValueByUid( String uid );
+        public static SortDirection of( String value, SortDirection defaultSortingDirection )
+        {
+            return Arrays.stream( values() )
+                .filter( sortDirection -> sortDirection.getValue().equalsIgnoreCase( value ) )
+                .findFirst()
+                .orElse( defaultSortingDirection );
+        }
 
-    boolean isReserved( String ownerObject, String ownerUID, String value );
+        public boolean isAscending()
+        {
+            return this.equals( ASC ) || this.equals( IASC );
+        }
+    }
 }
