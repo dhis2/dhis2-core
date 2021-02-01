@@ -43,6 +43,7 @@ public enum ConfigurationKey
     SYSTEM_MONITORING_USERNAME( "system.monitoring.username" ),
     SYSTEM_MONITORING_PASSWORD( "system.monitoring.password" ),
     SYSTEM_SQL_VIEW_TABLE_PROTECTION( "system.sql_view_table_protection", Constants.ON, false ),
+    SYSTEM_PROGRAM_RULE_SERVER_EXECUTION( "system.program_rule.server_execution", Constants.ON, false ),
     NODE_ID( "node.id", "", false ),
     ENCRYPTION_PASSWORD( "encryption.password", "", true ),
     CONNECTION_DIALECT( "connection.dialect", "", false ),
@@ -129,7 +130,6 @@ public enum ConfigurationKey
     OIDC_PROVIDER_WSO2_DISPLAY_ALIAS( "oidc.provider.wso2.display_alias", "", false ),
     OIDC_PROVIDER_WSO2_ENABLE_LOGOUT( "oidc.provider.wso2.enable_logout", Constants.TRUE, false );
 
-
     private final String key;
 
     private final String defaultValue;
@@ -177,7 +177,7 @@ public enum ConfigurationKey
         return Arrays.stream( ConfigurationKey.values() ).filter( k -> k.key.equals( key ) ).findFirst();
     }
 
-    private static final class Constants
+    public static final class Constants
     {
         public static final String FALSE = Boolean.FALSE.toString();
 
