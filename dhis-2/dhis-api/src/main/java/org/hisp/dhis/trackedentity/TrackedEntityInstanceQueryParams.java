@@ -1268,7 +1268,7 @@ public class TrackedEntityInstanceQueryParams
     public enum OrderColumn
     {
         TRACKEDENTITY( "trackedEntity", "tei.uid" ),
-        CREATED( "created", "tei.created" ),
+        CREATED( CREATED_ID, "tei.created" ),
         CREATED_AT( "createdAt", "tei.created" ),
         CREATED_AT_CLIENT( "createdAtClient", "tei.createdAtClient" ),
         UPDATED_AT( "updatedAt", "tei.lastUpdated" ),
@@ -1276,7 +1276,7 @@ public class TrackedEntityInstanceQueryParams
         ENROLLED_AT( "enrolledAt", "pi.enrollmentDate" ),
         // this works only for the new endpoint
         // ORGUNIT_NAME( "orgUnitName", "tei.organisationUnit.name" ),
-        INACTIVE( "inactive", "tei.inactive" ),
+        INACTIVE( INACTIVE_ID, "tei.inactive" ),
         ENROLLMENT_OCCURED_AT( "enrollmentOccurredAt", "pi.incidentDate" ),
         ENROLLMENT_CREATED_AT( "enrollmentCreatedAt", "pi.created" ),
         ENROLLMENT_CREATED_AT_CLIENT( "enrollmentCreatedAtClient", "pi.createdAtClient" ),
