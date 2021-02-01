@@ -148,7 +148,7 @@ public class SmsGatewayController
         throws IOException
     {
         SmsGatewayConfig payLoad = renderService.fromJson( request.getInputStream(),
-                SmsGatewayConfig.class );
+            SmsGatewayConfig.class );
 
         if ( gatewayAdminService.addGateway( payLoad ) )
         {

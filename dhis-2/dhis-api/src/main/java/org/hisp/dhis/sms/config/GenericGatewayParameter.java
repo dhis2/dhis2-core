@@ -72,12 +72,6 @@ public class GenericGatewayParameter
 
     public String getValue()
     {
-        return confidential ? "" : value;
-    }
-
-    @JsonIgnore
-    public String getDisplayValue()
-    {
         return value;
     }
 

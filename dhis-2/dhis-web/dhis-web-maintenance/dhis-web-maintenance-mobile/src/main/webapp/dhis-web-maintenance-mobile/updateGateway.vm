@@ -163,11 +163,8 @@
 			      <tr id="trOldParam$rowId" name="trOldParam$rowId" class="trOldParam">
 			     	 <td><input type="text" name="oldVName$rowId" id="oldVName$rowId" style="width:9em" value="$!encoder.htmlEncode( $!param.key )"/></td>
 			     	 <td>		     	 
-			     	 #if($param.confidential)
-			     	 	 <input type="password" name="oldValue$rowId" id="oldValue$rowId" style="width:10em" value=""/>
-			     	 #else	     	 
+
 			     		 <input type="text" name="oldValue$rowId" id="oldValue$rowId" style="width:10em" value="$!encoder.htmlEncode( $!param.value )"/> 
-			     	 #end
                          <input type="hidden" name="oldHidden$rowId" id="oldHidden$rowId" value="$!encoder.htmlEncode( $!param.confidential )"/>
 			     	 	<input style="margin-left: 13em" type="button" value="remove" onclick="removeOldParamForm('$rowId')"/>
 			     	 </td>

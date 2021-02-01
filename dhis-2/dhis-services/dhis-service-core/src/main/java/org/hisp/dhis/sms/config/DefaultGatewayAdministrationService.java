@@ -128,6 +128,7 @@ public class DefaultGatewayAdministrationService
 
             if ( persisted != null )
             {
+                updateGateway( persisted, config );
                 return true;
             }
 
