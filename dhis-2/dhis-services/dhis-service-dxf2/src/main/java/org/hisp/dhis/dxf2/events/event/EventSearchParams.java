@@ -45,9 +45,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.query.Order;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 
 /**
  * @author Lars Helge Overland
@@ -153,9 +153,9 @@ public class EventSearchParams
 
     private boolean skipPaging;
 
-    private List<Order> orders;
+    private List<OrderParam> orders;
 
-    private List<String> gridOrders;
+    private List<OrderParam> gridOrders;
 
     private boolean includeAttributes;
 
@@ -586,23 +586,23 @@ public class EventSearchParams
         return this;
     }
 
-    public List<Order> getOrders()
+    public List<OrderParam> getOrders()
     {
         return this.orders;
     }
 
-    public EventSearchParams setOrders( List<Order> orders )
+    public EventSearchParams setOrders( List<OrderParam> orders )
     {
         this.orders = orders;
         return this;
     }
 
-    public List<String> getGridOrders()
+    public List<OrderParam> getGridOrders()
     {
         return this.gridOrders;
     }
 
-    public EventSearchParams setGridOrders( List<String> gridOrders )
+    public EventSearchParams setGridOrders( List<OrderParam> gridOrders )
     {
         this.gridOrders = gridOrders;
         return this;

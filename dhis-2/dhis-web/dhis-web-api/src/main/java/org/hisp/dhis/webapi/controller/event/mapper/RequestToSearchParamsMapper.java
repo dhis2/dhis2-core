@@ -27,13 +27,20 @@
  */
 package org.hisp.dhis.webapi.controller.event.mapper;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
+
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -43,12 +50,16 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -57,19 +68,25 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.query.Order;
+import org.hisp.dhis.query.QueryUtils;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
+import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
 @Component
+@RequiredArgsConstructor
 public class RequestToSearchParamsMapper
 {
     private final CurrentUserService currentUserService;
@@ -86,25 +103,19 @@ public class RequestToSearchParamsMapper
 
     private final DataElementService dataElementService;
 
-    public RequestToSearchParamsMapper( CurrentUserService currentUserService, ProgramService programService,
-        OrganisationUnitService organisationUnitService, ProgramStageService programStageService, AclService aclService,
-        TrackedEntityInstanceService entityInstanceService, DataElementService dataElementService )
-    {
-        checkNotNull( currentUserService );
-        checkNotNull( programService );
-        checkNotNull( organisationUnitService );
-        checkNotNull( programStageService );
-        checkNotNull( aclService );
-        checkNotNull( entityInstanceService );
-        checkNotNull( dataElementService );
+    private final InputUtils inputUtils;
 
-        this.currentUserService = currentUserService;
-        this.programService = programService;
-        this.organisationUnitService = organisationUnitService;
-        this.programStageService = programStageService;
-        this.aclService = aclService;
-        this.entityInstanceService = entityInstanceService;
-        this.dataElementService = dataElementService;
+    private final SchemaService schemaService;
+
+    private Schema schema;
+
+    @PostConstruct
+    void setSchema()
+    {
+        if ( schema == null )
+        {
+            schema = schemaService.getDynamicSchema( Event.class );
+        }
     }
 
     public EventSearchParams map( String program, String programStage, ProgramStatus programStatus, Boolean followUp,
@@ -112,7 +123,8 @@ public class RequestToSearchParamsMapper
         Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd, Date lastUpdatedStartDate,
         Date lastUpdatedEndDate, String lastUpdatedDuration, EventStatus status,
         CategoryOptionCombo attributeOptionCombo, IdSchemes idSchemes, Integer page, Integer pageSize,
-        boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes,
+        boolean totalPages, boolean skipPaging, List<OrderParam> orders, List<OrderParam> gridOrders,
+        boolean includeAttributes,
         Set<String> events, Boolean skipEventId, AssignedUserSelectionMode assignedUserSelectionMode,
         Set<String> assignedUsers, Set<String> filters, Set<String> dataElements, boolean includeAllDataElements,
         boolean includeDeleted )
@@ -271,5 +283,94 @@ public class RequestToSearchParamsMapper
         }
 
         return new QueryItem( de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
+    }
+
+    public EventSearchParams map( EventCriteria eventCriteria )
+    {
+
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
+            eventCriteria.getEvent(),
+            eventCriteria.getAttributeCos(),
+            true );
+
+        Set<String> eventIds = TextUtils.splitToArray( eventCriteria.getEvent(), TextUtils.SEMICOLON );
+        Set<String> assignedUserIds = TextUtils.splitToArray( eventCriteria.getAssignedUser(), TextUtils.SEMICOLON );
+        Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( eventCriteria.getOrder() );
+
+        return map( eventCriteria.getProgram(),
+            eventCriteria.getProgramStage(),
+            eventCriteria.getProgramStatus(),
+            eventCriteria.getFollowUp(),
+            eventCriteria.getOrgUnit(),
+            eventCriteria.getOuMode(),
+            eventCriteria.getTrackedEntityInstance(),
+            eventCriteria.getStartDate(),
+            eventCriteria.getEndDate(),
+            eventCriteria.getDueDateStart(),
+            eventCriteria.getDueDateEnd(),
+            eventCriteria.getLastUpdatedStartDate(),
+            eventCriteria.getLastUpdated() != null ? eventCriteria.getLastUpdatedEndDate()
+                : eventCriteria.getLastUpdated(),
+            eventCriteria.getLastUpdatedDuration(),
+            eventCriteria.getStatus(),
+            attributeOptionCombo,
+            eventCriteria.getIdSchemes(),
+            eventCriteria.getPage(),
+            eventCriteria.getPageSize(),
+            eventCriteria.isTotalPages(),
+            PagerUtils.isSkipPaging( eventCriteria.getSkipPaging(), eventCriteria.getPaging() ),
+            getOrderParams( eventCriteria.getOrder() ),
+            getGridOrderParams( eventCriteria.getOrder(), dataElementOrders ),
+            false,
+            eventIds,
+            eventCriteria.getSkipEventId(),
+            eventCriteria.getAssignedUserMode(),
+            assignedUserIds,
+            eventCriteria.getFilter(),
+            dataElementOrders.keySet(),
+            false,
+            eventCriteria.isIncludeDeleted() );
+    }
+
+    private List<OrderParam> getOrderParams( List<OrderCriteria> order )
+    {
+        if ( order != null && !order.isEmpty() )
+        {
+            return QueryUtils.filteredBySchema( order, schema );
+        }
+        return Collections.emptyList();
+    }
+
+    private List<OrderParam> getGridOrderParams( List<OrderCriteria> order,
+        Map<String, SortDirection> dataElementOrders )
+    {
+        return Optional.ofNullable( order )
+            .orElse( Collections.emptyList() )
+            .stream()
+            .filter( Objects::nonNull )
+            .filter( orderCriteria -> dataElementOrders.containsKey( orderCriteria.getField() ) )
+            .map( orderCriteria -> OrderParam.builder()
+                .field( orderCriteria.getField() )
+                .direction( dataElementOrders.get( orderCriteria.getField() ) )
+                .build() )
+            .collect( Collectors.toList() );
+    }
+
+    private Map<String, SortDirection> getDataElementsFromOrder( List<OrderCriteria> allOrders )
+    {
+        Map<String, SortDirection> dataElements = new HashMap<>();
+
+        if ( allOrders != null )
+        {
+            for ( OrderCriteria orderCriteria : allOrders )
+            {
+                DataElement de = dataElementService.getDataElement( orderCriteria.getField() );
+                if ( de != null )
+                {
+                    dataElements.put( orderCriteria.getField(), orderCriteria.getDirection() );
+                }
+            }
+        }
+        return dataElements;
     }
 }

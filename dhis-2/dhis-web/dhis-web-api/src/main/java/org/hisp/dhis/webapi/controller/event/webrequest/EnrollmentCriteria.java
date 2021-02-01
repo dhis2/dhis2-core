@@ -25,33 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.reservedvalue;
+package org.hisp.dhis.webapi.controller.event.webrequest;
 
-import java.util.List;
+import java.util.Date;
 
-import org.hisp.dhis.common.GenericStore;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * @author Stian Sandvold
- */
-public interface ReservedValueStore
-    extends GenericStore<ReservedValue>
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.program.ProgramStatus;
+
+@Data
+@NoArgsConstructor
+public class EnrollmentCriteria extends PagingAndSortingCriteriaAdapter
 {
-    List<ReservedValue> reserveValues( ReservedValue reservedValue, List<String> values );
+    private String ou;
 
-    List<ReservedValue> reserveValuesAndCheckUniqueness( ReservedValue reservedValue, List<String> values );
+    private OrganisationUnitSelectionMode ouMode;
 
-    List<ReservedValue> reserveValuesJpa( ReservedValue reservedValue, List<String> values );
+    private String program;
 
-    List<ReservedValue> getIfReservedValues( ReservedValue reservedValue, List<String> values );
+    private ProgramStatus programStatus;
 
-    int getNumberOfUsedValues( ReservedValue reservedValue );
+    private Boolean followUp;
 
-    void removeExpiredReservations();
+    private Date lastUpdated;
 
-    boolean useReservedValue( String ownerUID, String value );
+    private String lastUpdatedDuration;
 
-    void deleteReservedValueByUid( String uid );
+    private Date programStartDate;
 
-    boolean isReserved( String ownerObject, String ownerUID, String value );
+    private Date programEndDate;
+
+    private String trackedEntityType;
+
+    private String trackedEntityInstance;
+
+    private String enrollment;
+
+    private boolean includeDeleted;
 }

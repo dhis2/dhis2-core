@@ -25,33 +25,80 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.reservedvalue;
+package org.hisp.dhis.webapi.controller.event.webrequest;
 
-import java.util.List;
+import java.util.Date;
+import java.util.Set;
 
-import org.hisp.dhis.common.GenericStore;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.ProgramStatus;
 
 /**
- * @author Stian Sandvold
+ * Class to hold EventController request parameters into a handy place
+ *
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public interface ReservedValueStore
-    extends GenericStore<ReservedValue>
+@Data
+@NoArgsConstructor
+public class EventCriteria extends PagingAndSortingCriteriaAdapter
 {
-    List<ReservedValue> reserveValues( ReservedValue reservedValue, List<String> values );
+    private String program;
 
-    List<ReservedValue> reserveValuesAndCheckUniqueness( ReservedValue reservedValue, List<String> values );
+    private String programStage;
 
-    List<ReservedValue> reserveValuesJpa( ReservedValue reservedValue, List<String> values );
+    private ProgramStatus programStatus;
 
-    List<ReservedValue> getIfReservedValues( ReservedValue reservedValue, List<String> values );
+    private Boolean followUp;
 
-    int getNumberOfUsedValues( ReservedValue reservedValue );
+    private String trackedEntityInstance;
 
-    void removeExpiredReservations();
+    private String orgUnit;
 
-    boolean useReservedValue( String ownerUID, String value );
+    private OrganisationUnitSelectionMode ouMode;
 
-    void deleteReservedValueByUid( String uid );
+    private AssignedUserSelectionMode assignedUserMode;
 
-    boolean isReserved( String ownerObject, String ownerUID, String value );
+    private String assignedUser;
+
+    private Date startDate;
+
+    private Date endDate;
+
+    private Date dueDateStart;
+
+    private Date dueDateEnd;
+
+    private Date lastUpdated;
+
+    private Date lastUpdatedStartDate;
+
+    private Date lastUpdatedEndDate;
+
+    private String lastUpdatedDuration;
+
+    private EventStatus status;
+
+    private String attributeCc;
+
+    private String attributeCos;
+
+    private boolean skipMeta;
+
+    private String attachment;
+
+    private boolean includeDeleted;
+
+    private String event;
+
+    private Boolean skipEventId;
+
+    private Set<String> filter;
+
+    private IdSchemes idSchemes = new IdSchemes();
 }

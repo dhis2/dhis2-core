@@ -25,33 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.reservedvalue;
+package org.hisp.dhis.webapi.security.config;
 
 import java.util.List;
 
-import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.springframework.core.convert.converter.Converter;
 
 /**
- * @author Stian Sandvold
+ * String to Order Criterias converter for MVC requests
+ *
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public interface ReservedValueStore
-    extends GenericStore<ReservedValue>
+class StringToOrderCriteriaListConverter implements Converter<String, List<OrderCriteria>>
 {
-    List<ReservedValue> reserveValues( ReservedValue reservedValue, List<String> values );
-
-    List<ReservedValue> reserveValuesAndCheckUniqueness( ReservedValue reservedValue, List<String> values );
-
-    List<ReservedValue> reserveValuesJpa( ReservedValue reservedValue, List<String> values );
-
-    List<ReservedValue> getIfReservedValues( ReservedValue reservedValue, List<String> values );
-
-    int getNumberOfUsedValues( ReservedValue reservedValue );
-
-    void removeExpiredReservations();
-
-    boolean useReservedValue( String ownerUID, String value );
-
-    void deleteReservedValueByUid( String uid );
-
-    boolean isReserved( String ownerObject, String ownerUID, String value );
+    @Override
+    public List<OrderCriteria> convert( String source )
+    {
+        return OrderCriteria.fromOrderString( source );
+    }
 }

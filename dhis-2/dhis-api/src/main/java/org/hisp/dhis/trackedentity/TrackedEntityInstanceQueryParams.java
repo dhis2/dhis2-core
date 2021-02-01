@@ -30,14 +30,17 @@ package org.hisp.dhis.trackedentity;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateUtils;
@@ -51,9 +54,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
 /**
@@ -88,19 +91,6 @@ public class TrackedEntityInstanceQueryParams
     public static final int DEFAULT_PAGE = 1;
 
     public static final int DEFAULT_PAGE_SIZE = 50;
-
-    private static final Map<String, String> ORDER_COLS_MAP = ImmutableMap.<String, String> builder()
-        .put( "uid", "tei.uid" )
-        .put( CREATED_ID, "tei.created" )
-        .put( "storedBy", "tei.storedBy" )
-        .put( "lastUpdated", "tei.lastUpdated" )
-        .put( "lastUpdatedAtClient", "tei.lastUpdatedAtClient" )
-        .put( "lastSynchronized", "tei.lastSynchronized" )
-        .put( "orgUnitName", "tei.organisationUnit.name" )
-        .put( INACTIVE_ID, "tei.inactive" )
-        .put( DELETED, "tei.deleted" )
-        .put( "enrollmentStatus", "pi.status" )
-        .build();
 
     /**
      * Query value, will apply to all relevant attributes.
@@ -283,7 +273,7 @@ public class TrackedEntityInstanceQueryParams
     /**
      * TEI order params
      */
-    private List<String> orders;
+    private List<OrderParam> orders;
 
     // -------------------------------------------------------------------------
     // Transient properties
@@ -768,37 +758,20 @@ public class TrackedEntityInstanceQueryParams
 
     public boolean hasAttributeAsOrder()
     {
-        if ( hasOrders() )
-        {
-            for ( String order : getOrders() )
-            {
-                String[] prop = order.split( ":" );
-
-                if ( prop.length == 2 && !getStaticOrderColumns().contains( prop[0] ) )
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return hasOrders() && getOrders().stream()
+            .anyMatch( orderParam -> !OrderColumn.isStaticColumn( orderParam.getField() ) );
     }
 
     public String getFirstAttributeOrder()
     {
         if ( hasOrders() )
         {
-            for ( String order : getOrders() )
-            {
-                String[] prop = order.split( ":" );
-
-                if ( prop.length == 2 && !getStaticOrderColumns().contains( prop[0] ) )
-                {
-                    return prop[0];
-                }
-            }
+            return getOrders().stream()
+                .map( OrderParam::getField )
+                .filter( field -> !OrderColumn.isStaticColumn( field ) )
+                .findFirst()
+                .orElse( null );
         }
-
         return null;
     }
 
@@ -1236,12 +1209,12 @@ public class TrackedEntityInstanceQueryParams
         return this;
     }
 
-    public List<String> getOrders()
+    public List<OrderParam> getOrders()
     {
         return orders;
     }
 
-    public void setOrders( List<String> orders )
+    public void setOrders( List<OrderParam> orders )
     {
         this.orders = orders;
     }
@@ -1289,13 +1262,39 @@ public class TrackedEntityInstanceQueryParams
         this.trackedEntityTypes = trackedEntityTypes;
     }
 
-    public Set<String> getStaticOrderColumns()
+    @Getter
+    @AllArgsConstructor
+    public enum OrderColumn
     {
-        return ORDER_COLS_MAP.keySet();
-    }
+        UID( "uid", "tei.uid" ),
+        CREATED( CREATED_ID, "tei.created" ),
+        STORED_BY( "storedBy", "tei.storedBy" ),
+        LAST_UPDATED( "lastUpdated", "tei.lastUpdated" ),
+        LAST_UPDATED_CLIENT( "lastUpdatedAtClient", "tei.lastUpdatedAtClient" ),
+        LAST_SYNCHRONIZED( "lastSynchronized", "tei.lastSynchronized" ),
+        ORG_UNIT_NAME( "orgUnitName", "tei.organisationUnit.name" ),
+        INACTIVE( INACTIVE_ID, "tei.inactive" ),
+        DELETED( TrackedEntityInstanceQueryParams.DELETED, "tei.deleted" ),
+        ENROLLMENT_STATUS( "enrollmentStatus", "pi.status" );
 
-    public String getStaticOrderColumnValue( String key )
-    {
-        return ORDER_COLS_MAP.get( key );
+        private final String propName;
+
+        private final String column;
+
+        public static boolean isStaticColumn( String propName )
+        {
+            return Arrays.stream( OrderColumn.values() )
+                .anyMatch( orderColumn -> orderColumn.getPropName().equals( propName ) );
+        }
+
+        public static String getColumn( String property )
+        {
+            return Arrays.stream( values() )
+                .filter( orderColumn -> orderColumn.getPropName().equals( property ) )
+                .map( OrderColumn::getColumn )
+                .findFirst()
+                .orElseThrow(
+                    () -> new IllegalArgumentException( "Property" + property + " is not defined as order column" ) );
+        }
     }
 }
