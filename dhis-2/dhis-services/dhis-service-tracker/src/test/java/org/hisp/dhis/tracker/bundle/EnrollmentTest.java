@@ -38,7 +38,6 @@ import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
@@ -47,6 +46,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.Test;
@@ -64,9 +64,6 @@ public class EnrollmentTest
     @Autowired
     private IdentifiableObjectManager manager;
 
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
-
     private User userA;
 
     @Override
@@ -80,19 +77,23 @@ public class EnrollmentTest
         TrackerImportParams teiParams = fromJson( "tracker/single_tei.json", userA.getUid() );
         assertNoImportErrors( trackerImportService.importTracker( teiParams ) );
 
+        TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json", userA.getUid() );
+        assertNoImportErrors( trackerImportService.importTracker( enrollmentParams ) );
+
     }
 
     @Test
     public void testClientDatesForTeiEnrollmentEvent()
         throws IOException
     {
-        TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json", userA.getUid() );
-        assertNoImportErrors( trackerImportService.importTracker( enrollmentParams ) );
-
         TrackerImportParams trackerImportParams = fromJson( "tracker/single_event.json" );
-        assertNoImportErrors( trackerImportService.importTracker( trackerImportParams ) );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
 
         TrackerImportParams teiParams = fromJson( "tracker/single_tei.json", userA.getUid() );
+        TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json", userA.getUid() );
+
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
 
         List<TrackedEntityInstance> teis = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, teis.size() );
@@ -142,9 +143,6 @@ public class EnrollmentTest
         throws IOException
     {
         TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json", userA.getUid() );
-        TrackerImportReport createdReport = trackerImportService.importTracker( enrollmentParams );
-        assertNoImportErrors( createdReport );
-        assertEquals( 1, createdReport.getStats().getCreated() );
 
         List<ProgramInstance> pis = manager.getAll( ProgramInstance.class );
 
