@@ -34,9 +34,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
- * @author Zubair Asghar.
+ * @author Zubair Asghar
  */
-
 @Async
 @RequiredArgsConstructor
 @Component( "org.hisp.dhis.programrule.engine.ProgramRuleEngineListener" )

@@ -39,7 +39,6 @@ public enum ConfigurationKey
 {
     SYSTEM_READ_ONLY_MODE( "system.read_only_mode", Constants.OFF, false ),
     SYSTEM_SESSION_TIMEOUT( "system.session.timeout", "3600", false ),
-    SYSTEM_INTERNAL_SERVICE_API( "system.internal_service_api", Constants.OFF, false ),
     SYSTEM_MONITORING_URL( "system.monitoring.url" ),
     SYSTEM_MONITORING_USERNAME( "system.monitoring.username" ),
     SYSTEM_MONITORING_PASSWORD( "system.monitoring.password" ),

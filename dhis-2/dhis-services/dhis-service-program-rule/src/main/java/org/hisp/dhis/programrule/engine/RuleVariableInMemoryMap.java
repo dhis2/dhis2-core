@@ -33,9 +33,8 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 /**
- * @Author Zubair Asghar.
+ * @Author Zubair Asghar
  */
-
 @Component( "org.hisp.dhis.programrule.engine.RuleVariableInMemoryMap" )
 public class RuleVariableInMemoryMap
 {
