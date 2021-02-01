@@ -35,7 +35,7 @@ org.hisp.dhis.dataelement.DataElementGroupSet
 org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter
 org.hisp.dhis.color.Color
 org.hisp.dhis.organisationunit.OrganisationUnitGroupSet
-org.hisp.dhis.user.UserGroupAccess
+org.hisp.dhis.user.sharing.UserGroupAccess
 org.hisp.dhis.option.OptionSet
 org.hisp.dhis.keyjsonvalue.KeyJsonValue
 org.hisp.dhis.expression.Expression
@@ -62,7 +62,7 @@ org.hisp.dhis.common.DataDimensionItem
 org.hisp.dhis.dataset.Section
 org.hisp.dhis.programrule.ProgramRule
 org.hisp.dhis.translation.ObjectTranslation
-org.hisp.dhis.user.UserAccess
+org.hisp.dhis.user.sharing.UserAccess
 org.hisp.dhis.user.UserAuthorityGroup
 org.hisp.dhis.period.RelativePeriods
 org.hisp.dhis.dataapproval.DataApprovalLevel

@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +25,25 @@ package org.hisp.dhis.analytics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.hamcrest.Matchers.*;
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.junit.Assert.*;
+
+import java.util.*;
+
 import org.hamcrest.Matchers;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -54,11 +57,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.*;
-
-import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.common.DimensionalObject.*;
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -69,43 +69,63 @@ public class DataQueryParamsTest
     private IndicatorType it;
 
     private Indicator inA;
+
     private Indicator inB;
 
     private CategoryOption coA;
+
     private CategoryOption coB;
+
     private Category caA;
+
     private CategoryCombo ccA;
+
     private CategoryOptionCombo cocA;
+
     private CategoryOptionCombo cocB;
 
     private DataElement deA;
+
     private DataElement deB;
+
     private DataElement deC;
 
     private DataSet dsA;
+
     private DataSet dsB;
+
     private DataSet dsC;
+
     private DataSet dsD;
 
     private ReportingRate rrA;
+
     private ReportingRate rrB;
+
     private ReportingRate rrC;
+
     private ReportingRate rrD;
 
     private Program prA;
+
     private Program prB;
 
     private DataElementGroup degA;
+
     private DataElementGroup degB;
+
     private DataElementGroupSet degsA;
 
     private TrackedEntityAttribute atA;
 
     private Period peA;
+
     private Period peB;
+
     private Period peC;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
 
     @Before
@@ -153,7 +173,7 @@ public class DataQueryParamsTest
 
         peA = createPeriod( "201601" );
         peB = createPeriod( "201603" );
-        peC = createPeriod( "2017July");
+        peC = createPeriod( "2017July" );
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
@@ -162,13 +182,20 @@ public class DataQueryParamsTest
     @Test
     public void testAddDimension()
     {
-        DimensionalObject doA = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList() );
-        DimensionalObject doB = new BaseDimensionalObject( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID, DimensionType.CATEGORY_OPTION_COMBO, Lists.newArrayList() );
-        DimensionalObject doC = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList() );
-        DimensionalObject doD = new BaseDimensionalObject( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID, DimensionType.ATTRIBUTE_OPTION_COMBO, Lists.newArrayList() );
-        DimensionalObject doE = new BaseDimensionalObject( "WpDi1seZU0Z", DimensionType.DATA_ELEMENT_GROUP_SET, Lists.newArrayList() );
-        DimensionalObject doF = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList() );
-        DimensionalObject doG = new BaseDimensionalObject( "Cz3WQznvrCM", DimensionType.ORGANISATION_UNIT_GROUP_SET, Lists.newArrayList() );
+        DimensionalObject doA = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+            DimensionType.ORGANISATION_UNIT, Lists.newArrayList() );
+        DimensionalObject doB = new BaseDimensionalObject( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID,
+            DimensionType.CATEGORY_OPTION_COMBO, Lists.newArrayList() );
+        DimensionalObject doC = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+            Lists.newArrayList() );
+        DimensionalObject doD = new BaseDimensionalObject( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID,
+            DimensionType.ATTRIBUTE_OPTION_COMBO, Lists.newArrayList() );
+        DimensionalObject doE = new BaseDimensionalObject( "WpDi1seZU0Z", DimensionType.DATA_ELEMENT_GROUP_SET,
+            Lists.newArrayList() );
+        DimensionalObject doF = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
+            Lists.newArrayList() );
+        DimensionalObject doG = new BaseDimensionalObject( "Cz3WQznvrCM", DimensionType.ORGANISATION_UNIT_GROUP_SET,
+            Lists.newArrayList() );
 
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( doA )
@@ -212,7 +239,8 @@ public class DataQueryParamsTest
     @Test
     public void testGetDimensionFromParam()
     {
-        assertEquals( DATA_X_DIM_ID, DimensionalObjectUtils.getDimensionFromParam( "dx:D348asd782j;kj78HnH6hgT;9ds9dS98s2" ) );
+        assertEquals( DATA_X_DIM_ID,
+            DimensionalObjectUtils.getDimensionFromParam( "dx:D348asd782j;kj78HnH6hgT;9ds9dS98s2" ) );
     }
 
     @Test
@@ -220,7 +248,8 @@ public class DataQueryParamsTest
     {
         List<String> expected = new ArrayList<>( Lists.newArrayList( "D348asd782j", "kj78HnH6hgT", "9ds9dS98s2" ) );
 
-        assertEquals( expected, DimensionalObjectUtils.getDimensionItemsFromParam( "de:D348asd782j;kj78HnH6hgT;9ds9dS98s2" ) );
+        assertEquals( expected,
+            DimensionalObjectUtils.getDimensionItemsFromParam( "de:D348asd782j;kj78HnH6hgT;9ds9dS98s2" ) );
     }
 
     @Test
@@ -273,10 +302,12 @@ public class DataQueryParamsTest
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, null,
                 Lists.newArrayList( createIndicator( 'A', null ), createIndicator( 'B', null ) ) ) )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, null, null,
+            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT,
+                null, null,
                 Lists.newArrayList( createOrganisationUnit( 'A' ), createOrganisationUnit( 'B' ) ) ) )
             .addFilter( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, null, null,
-                Lists.newArrayList( createPeriod( "201201" ), createPeriod( "201202" ) ) ) ).build();
+                Lists.newArrayList( createPeriod( "201201" ), createPeriod( "201202" ) ) ) )
+            .build();
 
         assertEquals( 2, params.getDimensions().size() );
         assertEquals( 1, params.getFilters().size() );
@@ -333,10 +364,14 @@ public class DataQueryParamsTest
     public void testGetDimensionItemArrayExplodeCoc()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-            .addOrSetDimensionOptions( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, Lists.newArrayList( deA, deB, deC ) )
-            .addOrSetDimensionOptions( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, null, Lists.newArrayList( peA, peB ) ).build();
+            .addOrSetDimensionOptions( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null,
+                Lists.newArrayList( deA, deB, deC ) )
+            .addOrSetDimensionOptions( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, null,
+                Lists.newArrayList( peA, peB ) )
+            .build();
 
-        List<DimensionalItemObject> items = params.getDimensionItemsExplodeCoc( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID );
+        List<DimensionalItemObject> items = params
+            .getDimensionItemsExplodeCoc( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID );
 
         assertEquals( 2, items.size() );
         assertTrue( items.contains( cocA ) );
@@ -367,10 +402,13 @@ public class DataQueryParamsTest
         List<DimensionalItemObject> itemsBefore = Lists.newArrayList( createIndicator( 'A', null ),
             createIndicator( 'B', null ), createIndicator( 'C', null ), createIndicator( 'D', null ) );
 
-        List<DimensionalItemObject> itemsAfter = Lists.newArrayList( createIndicator( 'A', null ), createIndicator( 'B', null ) );
+        List<DimensionalItemObject> itemsAfter = Lists.newArrayList( createIndicator( 'A', null ),
+            createIndicator( 'B', null ) );
 
         DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, null, itemsBefore ) ).build();
+            .addDimension( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, null,
+                itemsBefore ) )
+            .build();
 
         assertEquals( itemsBefore, params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems() );
 
@@ -410,7 +448,8 @@ public class DataQueryParamsTest
             .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
             .build();
 
-        List<DimensionalObject> dimensions = params.getDimensionsAndFilters( Sets.newHashSet( DimensionType.PERIOD, DimensionType.ORGANISATION_UNIT ) );
+        List<DimensionalObject> dimensions = params
+            .getDimensionsAndFilters( Sets.newHashSet( DimensionType.PERIOD, DimensionType.ORGANISATION_UNIT ) );
 
         assertEquals( 2, dimensions.size() );
         assertTrue( dimensions.contains( new BaseDimensionalObject( PERIOD_DIM_ID ) ) );
@@ -420,9 +459,9 @@ public class DataQueryParamsTest
     @Test
     public void testGetLatestPeriod()
     {
-        Period jan_2016 = PeriodType.getPeriodFromIsoString( "201601");
-        Period feb_2016 = PeriodType.getPeriodFromIsoString( "201602");
-        Period mar_2016 = PeriodType.getPeriodFromIsoString( "201603");
+        Period jan_2016 = PeriodType.getPeriodFromIsoString( "201601" );
+        Period feb_2016 = PeriodType.getPeriodFromIsoString( "201602" );
+        Period mar_2016 = PeriodType.getPeriodFromIsoString( "201603" );
 
         DataQueryParams paramsA = DataQueryParams.newBuilder()
             .withPeriods( Lists.newArrayList( jan_2016 ) )
@@ -441,8 +480,8 @@ public class DataQueryParamsTest
     @Test
     public void testGetLatestEndDate()
     {
-        Period q1_2016 = PeriodType.getPeriodFromIsoString( "2016Q1");
-        Period q2_2016 = PeriodType.getPeriodFromIsoString( "2016Q2");
+        Period q1_2016 = PeriodType.getPeriodFromIsoString( "2016Q1" );
+        Period q2_2016 = PeriodType.getPeriodFromIsoString( "2016Q2" );
         Calendar today = Calendar.getInstance();
 
         DataQueryParams paramsA = DataQueryParams.newBuilder()
@@ -468,9 +507,9 @@ public class DataQueryParamsTest
     @Test
     public void testGetEarliestStartDate()
     {
-        Period jan_2016 = PeriodType.getPeriodFromIsoString( "201601");
-        Period feb_2016 = PeriodType.getPeriodFromIsoString( "201602");
-        Period mar_2016 = PeriodType.getPeriodFromIsoString( "201603");
+        Period jan_2016 = PeriodType.getPeriodFromIsoString( "201601" );
+        Period feb_2016 = PeriodType.getPeriodFromIsoString( "201602" );
+        Period mar_2016 = PeriodType.getPeriodFromIsoString( "201603" );
         Date dec_2015 = getDate( 2015, 12, 1 );
 
         DataQueryParams paramsA = DataQueryParams.newBuilder()
@@ -496,9 +535,9 @@ public class DataQueryParamsTest
     @Test
     public void testSetPeriodDimensionWithoutOptionsA()
     {
-        Period mar_2016 = PeriodType.getPeriodFromIsoString( "201603");
-        Period apr_2016 = PeriodType.getPeriodFromIsoString( "201604");
-        Period may_2016 = PeriodType.getPeriodFromIsoString( "201605");
+        Period mar_2016 = PeriodType.getPeriodFromIsoString( "201603" );
+        Period apr_2016 = PeriodType.getPeriodFromIsoString( "201604" );
+        Period may_2016 = PeriodType.getPeriodFromIsoString( "201605" );
 
         DataQueryParams params = DataQueryParams.newBuilder()
             .withPeriods( Lists.newArrayList( mar_2016, apr_2016, may_2016 ) ).build();
@@ -600,14 +639,21 @@ public class DataQueryParamsTest
     public void testGetKey()
     {
         DataQueryParams paramsA = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA, deB ) ) )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB ) ) )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA ) ) ).build();
+            .addDimension( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
+                Lists.newArrayList( deA, deB ) ) )
+            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT,
+                Lists.newArrayList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+                Lists.newArrayList( peA ) ) )
+            .build();
 
         DataQueryParams paramsB = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA ) ) )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA ) ) )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peB ) ) )
+            .addDimension( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
+                Lists.newArrayList( deA ) ) )
+            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT,
+                Lists.newArrayList( ouA ) ) )
+            .addDimension( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+                Lists.newArrayList( peB ) ) )
             .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
 
         assertNotNull( paramsA.getKey() );
@@ -616,12 +662,13 @@ public class DataQueryParamsTest
         assertNotNull( paramsB.getKey() );
         assertEquals( 40, paramsB.getKey().length() );
 
-        assertNotEquals(paramsA.getKey(), paramsB.getKey()); // No collision
+        assertNotEquals( paramsA.getKey(), paramsB.getKey() ); // No collision
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    public void testFinancialYearPeriodResultsInTwoAggregationYears() {
+    @SuppressWarnings( "unchecked" )
+    public void testFinancialYearPeriodResultsInTwoAggregationYears()
+    {
 
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peC ) ) )
@@ -634,14 +681,12 @@ public class DataQueryParamsTest
 
         assertThat( periodMap.keySet(), IsIterableContainingInAnyOrder.containsInAnyOrder(
             hasProperty( "isoDate", Matchers.is( "2017" ) ),
-            hasProperty( "isoDate", Matchers.is( "2018" ) ) )
-        );
+            hasProperty( "isoDate", Matchers.is( "2018" ) ) ) );
 
-        assertThat( periodMap.allValues(), hasSize( 2 ));
+        assertThat( periodMap.allValues(), hasSize( 2 ) );
 
         assertThat( periodMap.allValues(), IsIterableContainingInAnyOrder.containsInAnyOrder(
             hasProperty( "isoDate", Matchers.is( peC.getIsoDate() ) ),
-            hasProperty( "isoDate", Matchers.is( peC.getIsoDate() ) ) )
-        );
+            hasProperty( "isoDate", Matchers.is( peC.getIsoDate() ) ) ) );
     }
 }

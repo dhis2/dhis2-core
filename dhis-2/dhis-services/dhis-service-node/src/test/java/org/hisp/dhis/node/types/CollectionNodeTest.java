@@ -1,7 +1,5 @@
-package org.hisp.dhis.node.types;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,12 @@ package org.hisp.dhis.node.types;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.node.types;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
 
 import org.hamcrest.Matchers;
-import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -43,16 +44,16 @@ public class CollectionNodeTest
     public void createEmpty()
     {
         final CollectionNode collectionNode = new CollectionNode( "tests", 0 );
-        Assert.assertEquals( "tests", collectionNode.getName() );
-        Assert.assertEquals( 0, collectionNode.getUnorderedChildren().size() );
+        assertEquals( "tests", collectionNode.getName() );
+        assertEquals( 0, collectionNode.getUnorderedChildren().size() );
     }
 
     @Test
     public void createNonEmpty()
     {
         final CollectionNode collectionNode = new CollectionNode( "tests", 10 );
-        Assert.assertEquals( "tests", collectionNode.getName() );
-        Assert.assertEquals( 0, collectionNode.getUnorderedChildren().size() );
+        assertEquals( "tests", collectionNode.getName() );
+        assertEquals( 0, collectionNode.getUnorderedChildren().size() );
     }
 
     @Test
@@ -89,14 +90,14 @@ public class CollectionNodeTest
         collectionNode.addChild( simpleNode2 );
         collectionNode.addChild( simpleNode3 );
 
-        Assert.assertThat( collectionNode.getChildren(), Matchers.contains( simpleNode2, simpleNode1, simpleNode3 ) );
+        assertThat( collectionNode.getChildren(), Matchers.contains( simpleNode2, simpleNode1, simpleNode3 ) );
     }
 
     @Test
     public void getEmptyChildren()
     {
         final CollectionNode collectionNode = new CollectionNode( "tests", 0 );
-        Assert.assertEquals( 0, collectionNode.getChildren().size() );
+        assertEquals( 0, collectionNode.getChildren().size() );
     }
 
     @Test
@@ -105,6 +106,6 @@ public class CollectionNodeTest
         final CollectionNode collectionNode = new CollectionNode( "tests", 0 );
         final SimpleNode simpleNode1 = new SimpleNode( "id", "My Test 1" );
         collectionNode.addChild( simpleNode1 );
-        Assert.assertThat( collectionNode.getChildren(), Matchers.contains( simpleNode1 ) );
+        assertThat( collectionNode.getChildren(), Matchers.contains( simpleNode1 ) );
     }
 }

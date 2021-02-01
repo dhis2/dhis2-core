@@ -1,7 +1,5 @@
-package org.hisp.dhis.dashboard;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,20 @@ package org.hisp.dhis.dashboard;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dashboard;
+
+import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
-
-import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -81,26 +82,28 @@ public interface DashboardService
     // -------------------------------------------------------------------------
 
     void updateDashboardItem( DashboardItem item );
-    
+
     DashboardItem getDashboardItem( String uid );
 
     Dashboard getDashboardFromDashboardItem( DashboardItem dashboardItem );
 
     void deleteDashboardItem( DashboardItem item );
-    
-    int countMapDashboardItems( Map map );
 
-    int countChartDashboardItems( Chart chart );
+    List<DashboardItem> getVisualizationDashboardItems( Visualization visualization );
 
-    int countEventChartDashboardItems( EventChart eventChart );
+    List<DashboardItem> getReportTableDashboardItems( ReportTable reportTable );
 
-    int countReportTableDashboardItems( ReportTable reportTable );
+    List<DashboardItem> getChartDashboardItems( Chart chart );
 
-    int countVisualizationDashboardItems( Visualization visualization );
+    List<DashboardItem> getEventChartDashboardItems( EventChart eventChart );
 
-    int countReportDashboardItems( Report report );
+    List<DashboardItem> getMapDashboardItems( Map map );
 
-    int countDocumentDashboardItems( Document document );
-    
-    int countUserDashboardItems( User user );
+    List<DashboardItem> getEventReportDashboardItems( EventReport eventReport );
+
+    List<DashboardItem> getUserDashboardItems( User user );
+
+    List<DashboardItem> getReportDashboardItems( Report report );
+
+    List<DashboardItem> getDocumentDashboardItems( Document document );
 }

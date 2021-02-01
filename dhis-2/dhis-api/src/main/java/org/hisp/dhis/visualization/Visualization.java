@@ -1,7 +1,5 @@
-package org.hisp.dhis.visualization;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,13 @@ package org.hisp.dhis.visualization;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.visualization;
 
 import static com.google.common.base.Verify.verify;
 import static java.util.Arrays.asList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.join;
@@ -46,6 +46,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getSortedKeysMap;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
+import static org.hisp.dhis.visualization.DimensionDescriptor.getDimensionIdentifierFor;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 import java.util.ArrayList;
@@ -54,19 +55,34 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.NumberType;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.color.ColorSet;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseAnalyticalObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.CombinationGenerator;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.DisplayDensity;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.FontSize;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.HideEmptyItemStrategy;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.RegressionType;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.legend.LegendDisplayStrategy;
 import org.hisp.dhis.legend.LegendDisplayStyle;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
@@ -80,14 +96,20 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "visualization", namespace = DXF_2_0 )
 public class Visualization
     extends BaseAnalyticalObject
-        implements MetadataObject
+    implements MetadataObject
 {
     public static final String REPORTING_MONTH_COLUMN_NAME = "reporting_month_name";
+
     public static final String PARAM_ORGANISATIONUNIT_COLUMN_NAME = "param_organisationunit_name";
+
     public static final String ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME = "organisation_unit_is_parent";
+
     public static final String SPACE = " ";
+
     public static final String TOTAL_COLUMN_NAME = "total";
+
     public static final String TOTAL_COLUMN_PRETTY_NAME = "Total";
+
     public static final String EMPTY = "";
 
     private static final String ILLEGAL_FILENAME_CHARS_REGEX = "[/\\?%*:|\"'<>.]";
@@ -160,6 +182,17 @@ public class Visualization
      */
     private RegressionType regressionType = RegressionType.NONE;
 
+    /**
+     * List of {@link Series}. Refers to the dimension items in the first
+     * dimension of the "columns" list by dimension item identifier.
+     */
+    private List<Series> series = new ArrayList<>();
+
+    /**
+     * Outlier analysis settings.
+     */
+    private OutlierAnalysis outlierAnalysis;
+
     // -------------------------------------------------------------------------
     // Display definitions
     // -------------------------------------------------------------------------
@@ -184,24 +217,27 @@ public class Visualization
      */
     private List<Axis> optionalAxes = new ArrayList<>();
 
-    /*
-     * # Legend related attributes.
-     */
     private LegendDisplayStyle legendDisplayStyle;
 
     private LegendSet legendSet;
 
     private LegendDisplayStrategy legendDisplayStrategy;
 
-    private ColorSet colorSet;
+    /**
+     * The font style for various components of the visualization.
+     */
+    private VisualizationFontStyle fontStyle;
+
+    /**
+     * The key of the color set to use for visualization items, like columns and
+     * bars.
+     */
+    private String colorSet;
 
     // -------------------------------------------------------------------------
     // Display items for graphics/charts
     // -------------------------------------------------------------------------
 
-    /*
-     * # Settings more likely to be applied to graphics or charts.
-     */
     private Double targetLineValue;
 
     private Double baseLineValue;
@@ -222,9 +258,13 @@ public class Visualization
 
     private String rangeAxisLabel;
 
+    private LegendDefinitions legend;
+
+    private List<AxisV2> axes = new ArrayList<>();
+
     /**
-     * The period of years of this visualization. See RelativePeriodEnum for a valid
-     * list of enum based strings.
+     * The period of years of this visualization. See RelativePeriodEnum for a
+     * valid list of enum based strings.
      */
     private List<String> yearlySeries = new ArrayList<>();
 
@@ -243,18 +283,20 @@ public class Visualization
     private boolean skipRounding;
 
     /**
-     * Indicates whether the visualization contains regression columns. More likely
-     * to be applicable to pivot and reports.
+     * Indicates whether the visualization contains regression columns. More
+     * likely to be applicable to pivot and reports.
      */
     private boolean regression;
 
     /**
-     * Indicates whether the visualization contains cumulative values or columns.
+     * Indicates whether the visualization contains cumulative values or
+     * columns.
      */
     private boolean cumulativeValues;
 
     /**
-     * User stacked values or not. Very likely to be applied for graphics/charts.
+     * User stacked values or not. Very likely to be applied for
+     * graphics/charts.
      */
     private boolean percentStackedValues;
 
@@ -329,17 +371,15 @@ public class Visualization
      */
     private transient String gridTitle;
 
-    /**
-     * The name of the reporting month based on the report param.
-     */
-    private transient String reportingPeriodName;
-
     /*
-     * Collections mostly used for analytics tabulated data, like pivots or reports.
+     * Collections mostly used for analytics tabulated data, like pivots or
+     * reports.
      */
     private transient List<List<DimensionalItemObject>> gridColumns = new ArrayList<>();
 
     private transient List<List<DimensionalItemObject>> gridRows = new ArrayList<>();
+
+    private transient List<DimensionDescriptor> dimensionDescriptors = new ArrayList<>();
 
     public Visualization()
     {
@@ -400,8 +440,8 @@ public class Visualization
     }
 
     @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
+    @JacksonXmlProperty( localName = "parentGraphMap", namespace = DxfNamespaces.DXF_2_0 )
     public Map<String, String> getParentGraphMap()
     {
         return parentGraphMap;
@@ -418,12 +458,12 @@ public class Visualization
     @JacksonXmlProperty( localName = "columnDimension", namespace = DXF_2_0 )
     public List<String> getColumnDimensions()
     {
-        return removingNullElements( columnDimensions );
+        return columnDimensions;
     }
 
     public void setColumnDimensions( List<String> columnDimensions )
     {
-        this.columnDimensions = removingNullElements( columnDimensions );
+        this.columnDimensions = columnDimensions;
     }
 
     @JsonProperty
@@ -431,12 +471,12 @@ public class Visualization
     @JacksonXmlProperty( localName = "rowDimension", namespace = DXF_2_0 )
     public List<String> getRowDimensions()
     {
-        return removingNullElements( rowDimensions );
+        return rowDimensions;
     }
 
     public void setRowDimensions( List<String> rowDimensions )
     {
-        this.rowDimensions = removingNullElements( rowDimensions );
+        this.rowDimensions = rowDimensions;
     }
 
     @JsonProperty
@@ -444,12 +484,12 @@ public class Visualization
     @JacksonXmlProperty( localName = "filterDimension", namespace = DXF_2_0 )
     public List<String> getFilterDimensions()
     {
-        return removingNullElements( filterDimensions );
+        return filterDimensions;
     }
 
     public void setFilterDimensions( List<String> filterDimensions )
     {
-        this.filterDimensions = removingNullElements( filterDimensions );
+        this.filterDimensions = filterDimensions;
     }
 
     @JsonProperty
@@ -519,7 +559,7 @@ public class Visualization
         return cumulativeValues;
     }
 
-    public void setCumulativeValues(boolean cumulativeValues)
+    public void setCumulativeValues( boolean cumulativeValues )
     {
         this.cumulativeValues = cumulativeValues;
     }
@@ -628,7 +668,7 @@ public class Visualization
         return optionalAxes;
     }
 
-    public void setOptionalAxes(List<Axis> optionalAxes)
+    public void setOptionalAxes( List<Axis> optionalAxes )
     {
         this.optionalAxes = optionalAxes;
     }
@@ -819,6 +859,19 @@ public class Visualization
         this.regressionType = regressionType;
     }
 
+    @JsonProperty( "series" )
+    @JacksonXmlElementWrapper( localName = "series", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "seriesItem", namespace = DXF_2_0 )
+    public List<Series> getSeries()
+    {
+        return series;
+    }
+
+    public void setSeries( List<Series> series )
+    {
+        this.series = series;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getDomainAxisLabel()
@@ -917,12 +970,24 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public ColorSet getColorSet()
+    public VisualizationFontStyle getFontStyle()
+    {
+        return fontStyle;
+    }
+
+    public void setFontStyle( VisualizationFontStyle fontStyle )
+    {
+        this.fontStyle = fontStyle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public String getColorSet()
     {
         return colorSet;
     }
 
-    public void setColorSet( ColorSet colorSet )
+    public void setColorSet( String colorSet )
     {
         this.colorSet = colorSet;
     }
@@ -941,6 +1006,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getTargetLineValue()
     {
         return targetLineValue;
@@ -953,6 +1019,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getBaseLineValue()
     {
         return baseLineValue;
@@ -977,6 +1044,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getRangeAxisMaxValue()
     {
         return rangeAxisMaxValue;
@@ -989,6 +1057,7 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -Double.MAX_VALUE )
     public Double getRangeAxisMinValue()
     {
         return rangeAxisMinValue;
@@ -1036,6 +1105,66 @@ public class Visualization
         this.yearlySeries = yearlySeries;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public OutlierAnalysis getOutlierAnalysis()
+    {
+        return outlierAnalysis;
+    }
+
+    public void setOutlierAnalysis( OutlierAnalysis outlierAnalysis )
+    {
+        this.outlierAnalysis = outlierAnalysis;
+    }
+
+    @JsonProperty( value = "legend" )
+    @JacksonXmlProperty( localName = "legend", namespace = DXF_2_0 )
+    public LegendDefinitions getLegend()
+    {
+        return legend;
+    }
+
+    public void setLegend( LegendDefinitions legend )
+    {
+        this.legend = legend;
+    }
+
+    @JsonProperty( value = "axes" )
+    @JacksonXmlProperty( localName = "axes", namespace = DXF_2_0 )
+    public List<AxisV2> getAxes()
+    {
+        return axes;
+    }
+
+    public void setAxes( List<AxisV2> axes )
+    {
+        this.axes = axes;
+    }
+
+    /**
+     * Returns the list of DimensionDescriptor held internally to the current
+     * Visualization object. See {@link #addDimensionDescriptor}.
+     *
+     * @return the list of DimensionDescriptor's held.
+     */
+    public List<DimensionDescriptor> getDimensionDescriptors()
+    {
+        return dimensionDescriptors;
+    }
+
+    /**
+     * This method will hold the mapping of a dimension and its respective
+     * formal type.
+     *
+     * @param dimension the dimension, which should also be found in
+     *        "{@link #columnDimensions}" and "{@link #rowDimensions}".
+     * @param dimensionType the formal dimension type. See {@link DimensionType}
+     */
+    public void addDimensionDescriptor( final String dimension, final DimensionType dimensionType )
+    {
+        this.dimensionDescriptors.add( new DimensionDescriptor( dimension, dimensionType ) );
+    }
+
     @Override
     public void init( final User user, final Date date, final OrganisationUnit organisationUnit,
         final List<OrganisationUnit> organisationUnitsAtLevel, final List<OrganisationUnit> organisationUnitsInGroups,
@@ -1063,12 +1192,6 @@ public class Visualization
 
         this.relativePeriodDate = date;
         this.relativeOrganisationUnit = organisationUnit;
-
-        // Handle report parameters
-        if ( hasRelativePeriods() )
-        {
-            this.reportingPeriodName = relatives.getReportingPeriodName( date, format );
-        }
 
         if ( organisationUnit != null && hasReportingParams() && reportingParams.isParentOrganisationUnit() )
         {
@@ -1175,7 +1298,8 @@ public class Visualization
      */
     public List<DimensionalItemObject> chartSeries()
     {
-        // Chart must have one column dimension (series). This is a protective checking.
+        // Chart must have one column dimension (series). This is a protective
+        // checking.
         if ( isEmpty( columnDimensions ) || isBlank( columnDimensions.get( 0 ) ) )
         {
             return null;
@@ -1192,7 +1316,8 @@ public class Visualization
      */
     public List<DimensionalItemObject> chartCategory()
     {
-        // Chart must have one row dimension (category). This is a protective checking.
+        // Chart must have one row dimension (category). This is a protective
+        // checking.
         if ( isEmpty( rowDimensions ) || isBlank( rowDimensions.get( 0 ) ) )
         {
             return null;
@@ -1202,8 +1327,8 @@ public class Visualization
     }
 
     /**
-     * Returns a list of dimensional items based on the given dimension and internal
-     * attributes of the current Visualization object.
+     * Returns a list of dimensional items based on the given dimension and
+     * internal attributes of the current Visualization object.
      *
      * @param dimension a given dimension
      * @return the list of DimensionalItemObject's
@@ -1217,7 +1342,8 @@ public class Visualization
     }
 
     public void populateGridColumnsAndRows( Date date, User user,
-        List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups, I18nFormat format )
+        List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups,
+        I18nFormat format )
     {
         List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
         List<List<DimensionalItemObject>> tableRows = new ArrayList<>();
@@ -1225,17 +1351,29 @@ public class Visualization
 
         for ( String dimension : columnDimensions )
         {
-            tableColumns.add( getDimensionalObject( dimension, date, user, false, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
+            if ( dimension != null )
+            {
+                tableColumns.add( getDimensionalObject( dimension, date, user, false, organisationUnitsAtLevel,
+                    organisationUnitsInGroups, format ).getItems() );
+            }
         }
 
         for ( String dimension : rowDimensions )
         {
-            tableRows.add( getDimensionalObject( dimension, date, user, true, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
+            if ( dimension != null )
+            {
+                tableRows.add( getDimensionalObject( dimension, date, user, true, organisationUnitsAtLevel,
+                    organisationUnitsInGroups, format ).getItems() );
+            }
         }
 
         for ( String filter : filterDimensions )
         {
-            filterItems.addAll( getDimensionalObject( filter, date, user, true, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
+            if ( filter != null )
+            {
+                filterItems.addAll( getDimensionalObject( filter, date, user, true, organisationUnitsAtLevel,
+                    organisationUnitsInGroups, format ).getItems() );
+            }
         }
 
         gridColumns = CombinationGenerator.newInstance( tableColumns ).getCombinations();
@@ -1279,21 +1417,6 @@ public class Visualization
     // -------------------------------------------------------------------------
     // Display and supportive methods
     // -------------------------------------------------------------------------
-
-    /**
-     * Filtering out eventual null elements caused by occasional invalid sortOrder.
-     *
-     * @param list
-     * @return the list without null elements.
-     */
-    private List<String> removingNullElements( final List<String> list )
-    {
-        if ( isNotEmpty( list ) )
-        {
-            return list.stream().filter( x -> x != null ).collect( Collectors.toList() );
-        }
-        return list;
-    }
 
     /**
      * Returns the category combo of the first data element.
@@ -1367,8 +1490,8 @@ public class Visualization
     }
 
     /**
-     * Generates a grid for this visualization based on the given aggregate value
-     * map.
+     * Generates a grid for this visualization based on the given aggregate
+     * value map.
      *
      * @param grid the grid, should be empty and not null.
      * @param valueMap the mapping of identifiers to aggregate values.
@@ -1402,10 +1525,11 @@ public class Visualization
         final Map<String, String> metaData = getMetaData();
         metaData.putAll( PRETTY_NAMES );
 
-        for ( String row : rowDimensions )
+        for ( String dimension : rowDimensions )
         {
-            final String name = StringUtils.defaultIfEmpty( metaData.get( row ), row );
-            final String col = StringUtils.defaultIfEmpty( COLUMN_NAMES.get( row ), row );
+            final String dimensionId = getDimensionIdentifierFor( dimension, getDimensionDescriptors() );
+            final String name = defaultIfEmpty( metaData.get( dimensionId ), dimensionId );
+            final String col = defaultIfEmpty( COLUMN_NAMES.get( dimensionId ), dimensionId );
 
             grid.addHeader( new GridHeader( name + " ID", col + "id", TEXT, String.class.getName(), true, true ) );
             grid.addHeader( new GridHeader( name, col + "name", TEXT, String.class.getName(), false, true ) );
@@ -1554,12 +1678,12 @@ public class Visualization
     }
 
     /**
-     * Generates a column name based on short-names of the argument objects. Null
-     * arguments are ignored in the name.
+     * Generates a column name based on short-names of the argument objects.
+     * Null arguments are ignored in the name.
      * <p/>
-     * The period column name must be static when on columns so it can be re-used in
-     * reports, hence the name property is used which will be formatted only when
-     * the period dimension is on rows.
+     * The period column name must be static when on columns so it can be
+     * re-used in reports, hence the name property is used which will be
+     * formatted only when the period dimension is on rows.
      */
     public static String getColumnName( final List<DimensionalItemObject> objects )
     {
@@ -1600,8 +1724,9 @@ public class Visualization
     }
 
     /**
-     * Checks whether the given List of IdentifiableObjects contains an object which
-     * is an OrganisationUnit and has the currentParent property set to true.
+     * Checks whether the given List of IdentifiableObjects contains an object
+     * which is an OrganisationUnit and has the currentParent property set to
+     * true.
      *
      * @param objects the List of IdentifiableObjects.
      */
@@ -1618,7 +1743,8 @@ public class Visualization
     }
 
     /**
-     * Returns the name of the parent organisation unit, or an empty string if null.
+     * Returns the name of the parent organisation unit, or an empty string if
+     * null.
      */
     public String getParentOrganisationUnitName()
     {

@@ -1,7 +1,5 @@
-package org.hisp.dhis.hibernate.jsonb.type;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,19 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.hibernate.jsonb.type;
 
-import org.hamcrest.Matchers;
-import org.hisp.dhis.translation.Translation;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import org.hamcrest.Matchers;
+import org.hisp.dhis.translation.Translation;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link JsonSetBinaryType}.
@@ -76,13 +78,13 @@ public class JsonSetBinaryTypeTest
     public void deepCopy()
     {
         final Set<Translation> result = (Set<Translation>) jsonBinaryType.deepCopy( translations );
-        Assert.assertNotSame( translations, result );
-        Assert.assertThat( result, Matchers.containsInAnyOrder( translation1, translation2 ) );
+        assertNotSame( translations, result );
+        assertThat( result, Matchers.containsInAnyOrder( translation1, translation2 ) );
     }
 
     @Test
     public void deepCopyNull()
     {
-        Assert.assertNull( jsonBinaryType.deepCopy( null ) );
+        assertNull( jsonBinaryType.deepCopy( null ) );
     }
 }

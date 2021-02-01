@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,15 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
+
+import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.TranslationProperty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.translation.TranslationProperty;
 
 /**
  * @author Bob Jolliffe
@@ -53,15 +53,7 @@ public class BaseNameableObject
      */
     protected String description;
 
-    /**
-     * The i18n variant of the short name. Should not be persisted.
-     */
-    protected transient String displayShortName;
-
-    /**
-     * The i18n variant of the description. Should not be persisted.
-     */
-    protected transient String displayDescription;
+    protected String formName;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -99,8 +91,8 @@ public class BaseNameableObject
     // -------------------------------------------------------------------------
 
     /**
-     * Returns the display property indicated by the given display property. Falls
-     * back to display name if display short name is null.
+     * Returns the display property indicated by the given display property.
+     * Falls back to display name if display short name is null.
      *
      * @param displayProperty the display property.
      * @return the display property.
@@ -109,7 +101,7 @@ public class BaseNameableObject
     @JsonIgnore
     public String getDisplayProperty( DisplayProperty displayProperty )
     {
-        if ( DisplayProperty.SHORTNAME.equals( displayProperty ) && getDisplayShortName() != null )
+        if ( DisplayProperty.SHORTNAME == displayProperty && getDisplayShortName() != null )
         {
             return getDisplayShortName();
         }
@@ -133,7 +125,8 @@ public class BaseNameableObject
     }
 
     /**
-     * Class check uses isAssignableFrom and get-methods to handle proxied objects.
+     * Class check uses isAssignableFrom and get-methods to handle proxied
+     * objects.
      */
     @Override
     public boolean equals( Object o )
@@ -165,7 +158,8 @@ public class BaseNameableObject
             return false;
         }
 
-        if ( getDescription() != null ? !getDescription().equals( other.getDescription() ) : other.getDescription() != null )
+        if ( getDescription() != null ? !getDescription().equals( other.getDescription() )
+            : other.getDescription() != null )
         {
             return false;
         }
@@ -213,13 +207,7 @@ public class BaseNameableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayShortName()
     {
-        displayShortName = getTranslation( TranslationProperty.SHORT_NAME, displayShortName );
-        return displayShortName != null ? displayShortName : getShortName();
-    }
-
-    public void setDisplayShortName( String displayShortName )
-    {
-        this.displayShortName = displayShortName;
+        return getTranslation( TranslationProperty.SHORT_NAME, getShortName() );
     }
 
     @Override
@@ -241,12 +229,33 @@ public class BaseNameableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayDescription()
     {
-        displayDescription = getTranslation( TranslationProperty.DESCRIPTION, displayDescription );
-        return displayDescription != null ? displayDescription : getDescription();
+        return getTranslation( TranslationProperty.DESCRIPTION, getDescription() );
     }
 
-    public void setDisplayDescription( String displayDescription )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayFormName()
     {
-        this.displayDescription = displayDescription;
+        return getTranslation( TranslationProperty.FORM_NAME, getFormNameFallback() );
+    }
+
+    /**
+     * Returns the form name, or the name if it does not exist.
+     */
+    public String getFormNameFallback()
+    {
+        return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFormName()
+    {
+        return formName;
+    }
+
+    public void setFormName( String formName )
+    {
+        this.formName = formName;
     }
 }

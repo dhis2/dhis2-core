@@ -1,7 +1,5 @@
-package org.hisp.dhis.organisationunit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.organisationunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.organisationunit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
@@ -51,6 +50,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -345,6 +345,13 @@ public class DefaultOrganisationUnitService
 
     @Override
     @Transactional( readOnly = true )
+    public List<OrganisationUnit> getOrganisationUnitsWithProgram( Program program )
+    {
+        return organisationUnitStore.getOrganisationUnitsWithProgram( program );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitsAtLevel( int level )
     {
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
@@ -373,7 +380,8 @@ public class DefaultOrganisationUnitService
     public List<OrganisationUnit> getOrganisationUnitsAtOrgUnitLevels( Collection<OrganisationUnitLevel> levels,
         Collection<OrganisationUnit> parents )
     {
-        return getOrganisationUnitsAtLevels( levels.stream().map( l -> l.getLevel() ).collect( Collectors.toList() ),
+        return getOrganisationUnitsAtLevels(
+            levels.stream().map( OrganisationUnitLevel::getLevel ).collect( Collectors.toList() ),
             parents );
     }
 
@@ -439,13 +447,6 @@ public class DefaultOrganisationUnitService
         }
 
         return set;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<OrganisationUnit> getOrganisationUnitsBetweenByName( String name, int first, int max )
-    {
-        return organisationUnitStore.getAllLikeName( name, first, max );
     }
 
     @Override
@@ -528,24 +529,6 @@ public class DefaultOrganisationUnitService
         OrganisationUnit organisationUnit = organisationUnitStore.getByUid( uid );
 
         return organisationUnit != null && organisationUnit.isDescendant( organisationUnits );
-    }
-
-    // -------------------------------------------------------------------------
-    // OrganisationUnitHierarchy
-    // -------------------------------------------------------------------------
-
-    @Override
-    @Transactional( readOnly = true )
-    public OrganisationUnitHierarchy getOrganisationUnitHierarchy()
-    {
-        return organisationUnitStore.getOrganisationUnitHierarchy();
-    }
-
-    @Override
-    @Transactional
-    public void updateOrganisationUnitParent( long organisationUnitId, long parentId )
-    {
-        organisationUnitStore.updateOrganisationUnitParent( organisationUnitId, parentId );
     }
 
     // -------------------------------------------------------------------------
@@ -840,7 +823,8 @@ public class DefaultOrganisationUnitService
             }
             else
             {
-                // Get top search point through top level org unit which contains coordinate
+                // Get top search point through top level org unit which
+                // contains coordinate
 
                 List<OrganisationUnit> orgUnitsTopLevel = getTopLevelOrgUnitWithPoint( longitude, latitude, 1,
                     getNumberOfOrganisationalLevels() - 1 );
@@ -851,7 +835,8 @@ public class DefaultOrganisationUnitService
                 }
             }
 
-            // Search children org units to get the lowest level org unit that contains
+            // Search children org units to get the lowest level org unit that
+            // contains
             // coordinate
 
             if ( topOrgUnit != null )
@@ -900,7 +885,8 @@ public class DefaultOrganisationUnitService
     // -------------------------------------------------------------------------
 
     /**
-     * Searches organisation units until finding one with polygon containing point.
+     * Searches organisation units until finding one with polygon containing
+     * point.
      */
     private List<OrganisationUnit> getTopLevelOrgUnitWithPoint( double longitude, double latitude, int searchLevel,
         int stopLevel )

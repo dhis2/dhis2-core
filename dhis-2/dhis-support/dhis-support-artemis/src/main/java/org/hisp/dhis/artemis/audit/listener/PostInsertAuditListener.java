@@ -1,7 +1,5 @@
-package org.hisp.dhis.artemis.audit.listener;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,12 @@ package org.hisp.dhis.artemis.audit.listener;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.artemis.audit.listener;
+
+import java.time.LocalDateTime;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.persister.entity.EntityPersister;
@@ -38,9 +40,8 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
 
 /**
  * @author Luciano Fiandesio
@@ -53,9 +54,10 @@ public class PostInsertAuditListener
     public PostInsertAuditListener(
         AuditManager auditManager,
         AuditObjectFactory auditObjectFactory,
-        UsernameSupplier userNameSupplier )
+        UsernameSupplier userNameSupplier,
+        SchemaService schemaService )
     {
-        super( auditManager, auditObjectFactory, userNameSupplier );
+        super( auditManager, auditObjectFactory, userNameSupplier, schemaService );
     }
 
     @Override
@@ -67,17 +69,18 @@ public class PostInsertAuditListener
     @Override
     public void onPostInsert( PostInsertEvent postInsertEvent )
     {
-        Object entity = postInsertEvent.getEntity();
+        getAuditable( postInsertEvent.getEntity(), "create" ).ifPresent( auditable -> auditManager.send( Audit.builder()
+            .auditType( getAuditType() )
+            .auditScope( auditable.scope() )
+            .createdAt( LocalDateTime.now() )
+            .createdBy( getCreatedBy() )
+            .object( postInsertEvent.getEntity() )
+            .attributes( auditManager.collectAuditAttributes( postInsertEvent.getEntity(),
+                postInsertEvent.getEntity().getClass() ) )
+            .auditableEntity(
+                new AuditableEntity( postInsertEvent.getEntity().getClass(), createAuditEntry( postInsertEvent ) ) )
+            .build() ) );
 
-        getAuditable( entity, "create" ).ifPresent( auditable ->
-            auditManager.send( Audit.builder()
-                .auditType( getAuditType() )
-                .auditScope( auditable.scope() )
-                .createdAt( LocalDateTime.now() )
-                .createdBy( getCreatedBy() )
-                .object( entity )
-                .auditableEntity( new AuditableEntity( entity ) )
-                .build() ) );
     }
 
     @Override
@@ -90,5 +93,14 @@ public class PostInsertAuditListener
     public void onPostInsertCommitFailed( PostInsertEvent event )
     {
         log.warn( "onPostInsertCommitFailed: " + event );
+    }
+
+    /**
+     * Create Audit entry for insert event
+     */
+    private Object createAuditEntry( PostInsertEvent postInsertEvent )
+    {
+        return super.createAuditEntry( postInsertEvent.getEntity(), postInsertEvent.getState(),
+            postInsertEvent.getSession(), postInsertEvent.getId(), postInsertEvent.getPersister() );
     }
 }

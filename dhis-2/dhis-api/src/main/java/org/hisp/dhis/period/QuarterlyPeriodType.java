@@ -1,7 +1,5 @@
-package org.hisp.dhis.period;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
 
-import com.google.common.collect.Lists;
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * PeriodType for quarterly Periods. A valid quarterly Period has startDate set
@@ -64,6 +63,8 @@ public class QuarterlyPeriodType
     public static final String NAME = "Quarterly";
 
     public static final int FREQUENCY_ORDER = 91;
+
+    public static final String SQL_INTERVAL = "3 months";
 
     // -------------------------------------------------------------------------
     // PeriodType functionality
@@ -100,6 +101,12 @@ public class QuarterlyPeriodType
     public int getFrequencyOrder()
     {
         return FREQUENCY_ORDER;
+    }
+
+    @Override
+    public String getSqlInterval()
+    {
+        return SQL_INTERVAL;
     }
 
     // -------------------------------------------------------------------------
@@ -170,7 +177,7 @@ public class QuarterlyPeriodType
     public String getIsoDate( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
         DateTimeUnit newUnit = dateTimeUnit;
-        
+
         if ( !calendar.name().equals( ISO_CALENDAR_NAME ) && newUnit.isIso8601() )
         {
             newUnit = calendar.fromIso( newUnit );
@@ -178,16 +185,16 @@ public class QuarterlyPeriodType
 
         switch ( newUnit.getMonth() )
         {
-            case 1:
-                return newUnit.getYear() + "Q1";
-            case 4:
-                return newUnit.getYear() + "Q2";
-            case 7:
-                return newUnit.getYear() + "Q3";
-            case 10:
-                return newUnit.getYear() + "Q4";
-            default:
-                throw new IllegalArgumentException( "Month not valid [1,4,7,10], was given " + dateTimeUnit.getMonth() );
+        case 1:
+            return newUnit.getYear() + "Q1";
+        case 4:
+            return newUnit.getYear() + "Q2";
+        case 7:
+            return newUnit.getYear() + "Q3";
+        case 10:
+            return newUnit.getYear() + "Q4";
+        default:
+            throw new IllegalArgumentException( "Month not valid [1,4,7,10], was given " + dateTimeUnit.getMonth() );
         }
     }
 

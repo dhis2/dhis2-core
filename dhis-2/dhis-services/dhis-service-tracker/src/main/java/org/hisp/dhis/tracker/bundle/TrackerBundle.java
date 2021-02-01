@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.bundle;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,17 @@ package org.hisp.dhis.tracker.bundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.bundle;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.*;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.tracker.AtomicMode;
-import org.hisp.dhis.tracker.FlushMode;
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.ValidationMode;
+import org.hisp.dhis.tracker.*;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -47,10 +43,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -85,6 +78,24 @@ public class TrackerBundle
     private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE;
 
     /**
+     * Should text pattern validation be skipped or not, default is not.
+     */
+    @JsonProperty
+    private boolean skipTextPatternValidation;
+
+    /**
+     * Should side effects be skipped or not, default is not.
+     */
+    @JsonProperty
+    private boolean skipSideEffects;
+
+    /**
+     * Should rule engine call be skipped or not, default is to skip.
+     */
+    @JsonProperty
+    private boolean skipRuleEngine;
+
+    /**
      * Should import be treated as a atomic import (all or nothing).
      */
     @Builder.Default
@@ -103,13 +114,8 @@ public class TrackerBundle
     private ValidationMode validationMode = ValidationMode.FULL;
 
     /**
-     * Give full report, or only include errors.
-     */
-    @Builder.Default
-    private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
-
-    /**
-     * Preheat bundle for all attached objects (or null if preheater not run yet).
+     * Preheat bundle for all attached objects (or null if preheater not run
+     * yet).
      */
     private TrackerPreheat preheat;
 
@@ -153,5 +159,20 @@ public class TrackerBundle
     public String getUsername()
     {
         return User.username( user );
+    }
+
+    public Optional<TrackedEntity> getTrackedEntity( String id )
+    {
+        return this.trackedEntities.stream().filter( t -> t.getTrackedEntity().equals( id ) ).findFirst();
+    }
+
+    public Optional<Event> getEvent( String id )
+    {
+        return this.events.stream().filter( t -> t.getEvent().equals( id ) ).findFirst();
+    }
+
+    public Optional<Enrollment> getEnrollment( String id )
+    {
+        return this.enrollments.stream().filter( t -> t.getEnrollment().equals( id ) ).findFirst();
     }
 }

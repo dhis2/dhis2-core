@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.metadata;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,12 @@ package org.hisp.dhis.webapi.controller.metadata;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.metadata;
 
-import com.google.common.net.HttpHeaders;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -44,9 +46,7 @@ import org.mockito.junit.MockitoRule;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.google.common.net.HttpHeaders;
 
 /**
  * Unit tests for {@link MetadataExportControllerUtils}.
@@ -74,11 +74,13 @@ public class MetadataExportControllerUtilsTest
 
         Mockito.when( contextService.getParameterValuesMap() ).thenReturn( parameterValuesMap );
         Mockito.when( exportService.getParamsFromMap( Mockito.same( parameterValuesMap ) ) ).thenReturn( exportParams );
-        Mockito.when( exportService.getMetadataWithDependenciesAsNode( Mockito.same( attribute ), Mockito.same( exportParams ) ) )
+        Mockito
+            .when( exportService.getMetadataWithDependenciesAsNode( Mockito.same( attribute ),
+                Mockito.same( exportParams ) ) )
             .thenReturn( rootNode );
 
-        final ResponseEntity<RootNode> responseEntity =
-            MetadataExportControllerUtils.getWithDependencies( contextService, exportService, attribute, false );
+        final ResponseEntity<RootNode> responseEntity = MetadataExportControllerUtils
+            .getWithDependencies( contextService, exportService, attribute, false );
         Assert.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
         Assert.assertSame( rootNode, responseEntity.getBody() );
         Assert.assertFalse( responseEntity.getHeaders().containsKey( HttpHeaders.CONTENT_DISPOSITION ) );
@@ -94,11 +96,13 @@ public class MetadataExportControllerUtilsTest
 
         Mockito.when( contextService.getParameterValuesMap() ).thenReturn( parameterValuesMap );
         Mockito.when( exportService.getParamsFromMap( Mockito.same( parameterValuesMap ) ) ).thenReturn( exportParams );
-        Mockito.when( exportService.getMetadataWithDependenciesAsNode( Mockito.same( attribute ), Mockito.same( exportParams ) ) )
+        Mockito
+            .when( exportService.getMetadataWithDependenciesAsNode( Mockito.same( attribute ),
+                Mockito.same( exportParams ) ) )
             .thenReturn( rootNode );
 
-        final ResponseEntity<RootNode> responseEntity =
-            MetadataExportControllerUtils.getWithDependencies( contextService, exportService, attribute, true );
+        final ResponseEntity<RootNode> responseEntity = MetadataExportControllerUtils
+            .getWithDependencies( contextService, exportService, attribute, true );
         Assert.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
         Assert.assertSame( rootNode, responseEntity.getBody() );
         Assert.assertEquals( "attachment; filename=metadata",
@@ -109,8 +113,8 @@ public class MetadataExportControllerUtilsTest
     public void createResponseEntity()
     {
         final RootNode rootNode = new RootNode( "test" );
-        final ResponseEntity<RootNode> responseEntity =
-            MetadataExportControllerUtils.createResponseEntity( rootNode, false );
+        final ResponseEntity<RootNode> responseEntity = MetadataExportControllerUtils.createResponseEntity( rootNode,
+            false );
         Assert.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
         Assert.assertSame( rootNode, responseEntity.getBody() );
         Assert.assertFalse( responseEntity.getHeaders().containsKey( HttpHeaders.CONTENT_DISPOSITION ) );
@@ -120,8 +124,8 @@ public class MetadataExportControllerUtilsTest
     public void createResponseEntityAsDownload()
     {
         final RootNode rootNode = new RootNode( "test" );
-        final ResponseEntity<RootNode> responseEntity =
-            MetadataExportControllerUtils.createResponseEntity( rootNode, true );
+        final ResponseEntity<RootNode> responseEntity = MetadataExportControllerUtils.createResponseEntity( rootNode,
+            true );
         Assert.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
         Assert.assertSame( rootNode, responseEntity.getBody() );
         Assert.assertEquals( "attachment; filename=metadata",

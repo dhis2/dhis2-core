@@ -1,7 +1,5 @@
-package org.hisp.dhis.indicator.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,12 @@ package org.hisp.dhis.indicator.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.indicator.hibernate;
 
 import java.util.List;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -43,7 +41,8 @@ import org.springframework.stereotype.Repository;
 
 /**
  * @author Lars Helge Overland
- * @version $Id: HibernateIndicatorStore.java 3287 2007-05-08 00:26:53Z larshelg $
+ * @version $Id: HibernateIndicatorStore.java 3287 2007-05-08 00:26:53Z larshelg
+ *          $
  */
 @Repository( "org.hisp.dhis.indicator.IndicatorStore" )
 public class HibernateIndicatorStore
@@ -51,11 +50,9 @@ public class HibernateIndicatorStore
     implements IndicatorStore
 {
     public HibernateIndicatorStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, Indicator.class, currentUserService, deletedObjectService, aclService,
-            true );
+        super( sessionFactory, jdbcTemplate, publisher, Indicator.class, currentUserService, aclService, true );
     }
     // -------------------------------------------------------------------------
     // Indicator

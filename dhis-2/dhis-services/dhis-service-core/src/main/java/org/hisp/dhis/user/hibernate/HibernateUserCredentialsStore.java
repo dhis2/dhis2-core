@@ -1,7 +1,5 @@
-package org.hisp.dhis.user.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,18 @@ package org.hisp.dhis.user.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user.hibernate;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserCredentialsStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -42,12 +48,13 @@ import org.springframework.stereotype.Repository;
  */
 @Repository( "org.hisp.dhis.user.UserCredentialsStore" )
 public class HibernateUserCredentialsStore
-    extends HibernateGenericStore<UserCredentials>
+    extends HibernateIdentifiableObjectStore<UserCredentials>
     implements UserCredentialsStore
 {
-    public HibernateUserCredentialsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
+    public HibernateUserCredentialsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, UserCredentials.class, true );
+        super( sessionFactory, jdbcTemplate, publisher, UserCredentials.class, currentUserService, aclService, true );
     }
 
     @Override
@@ -72,5 +79,35 @@ public class HibernateUserCredentialsStore
         Query<UserCredentials> query = getQuery( "from UserCredentials uc where uc.ldapId = :ldapId" );
         query.setParameter( "ldapId", ldapId );
         return query.uniqueResult();
+    }
+
+    @Override
+    public UserCredentials getUserCredentialsByIdToken( String token )
+    {
+        Query<UserCredentials> query = getQuery( "from UserCredentials uc where uc.idToken = :token" );
+        query.setParameter( "token", token );
+        return query.uniqueResult();
+    }
+
+    @Override
+    public UserCredentials getUserCredentialsByUuid( UUID uuid )
+    {
+        Query<UserCredentials> query = getQuery( "from UserCredentials uc where uc.uuid = :uuid" );
+        query.setParameter( "uuid", uuid );
+        return query.uniqueResult();
+    }
+
+    @Override
+    public List<UserCredentials> getUserCredentialsByUsernames( Collection<String> usernames )
+    {
+        if ( usernames == null || usernames.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
+        Query<UserCredentials> query = getQuery( "from UserCredentials uc where uc.username in (:usernames) " );
+        query.setParameter( "usernames", usernames );
+
+        return query.getResultList();
     }
 }

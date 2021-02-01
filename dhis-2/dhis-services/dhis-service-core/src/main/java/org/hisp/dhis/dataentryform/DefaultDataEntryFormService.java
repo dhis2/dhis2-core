@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataentryform;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dataentryform;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataentryform;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.text.StringEscapeUtils.escapeHtml3;
@@ -37,6 +36,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
@@ -56,8 +57,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Maps;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Bharath Kumar
  */
@@ -67,8 +66,11 @@ public class DefaultDataEntryFormService
     implements DataEntryFormService
 {
     private static final String EMPTY_VALUE_TAG = "value=\"\"";
+
     private static final String EMPTY_TITLE_TAG = "title=\"\"";
+
     private static final String TAG_CLOSE = "/>";
+
     private static final String EMPTY = "";
 
     // ------------------------------------------------------------------------
@@ -126,28 +128,28 @@ public class DefaultDataEntryFormService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataEntryForm getDataEntryForm( long id )
     {
         return dataEntryFormStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataEntryForm getDataEntryFormByName( String name )
     {
         return dataEntryFormStore.getDataEntryFormByName( name );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataEntryForm> getAllDataEntryForms()
     {
         return dataEntryFormStore.getAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public String prepareDataEntryFormForSave( String htmlCode )
     {
         if ( htmlCode == null )
@@ -189,14 +191,14 @@ public class DefaultDataEntryFormService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public String prepareDataEntryFormForEdit( DataEntryForm dataEntryForm, DataSet dataSet, I18n i18n )
     {
         // ------------------------------------------------------------------------
         // Only called for creation of CustomDataForm
         // ------------------------------------------------------------------------
 
-        //TODO HTML encode names
+        // TODO HTML encode names
 
         if ( dataEntryForm == null || !dataEntryForm.hasForm() || dataSet == null )
         {
@@ -229,33 +231,42 @@ public class DefaultDataEntryFormService
 
                 String optionComboId = identifierMatcher.group( 2 );
 
-                CategoryOptionCombo categoryOptionCombo = optionComboMap.get( optionComboId, () -> idObjectManager.getObject( CategoryOptionCombo.class, IdScheme.UID, optionComboId ) );
+                CategoryOptionCombo categoryOptionCombo = optionComboMap.get( optionComboId,
+                    () -> idObjectManager.getObject( CategoryOptionCombo.class, IdScheme.UID, optionComboId ) );
 
-                String optionComboName = categoryOptionCombo != null ? escapeHtml3( categoryOptionCombo.getName() ) : "[ " + i18n.getString( "cat_option_combo_not_exist" ) + " ]";
+                String optionComboName = categoryOptionCombo != null ? escapeHtml3( categoryOptionCombo.getName() )
+                    : "[ " + i18n.getString( "cat_option_combo_not_exist" ) + " ]";
 
-                StringBuilder title = dataElement != null ?
-                    new StringBuilder( "title=\"" ).append( dataElementId ).append( " - " ).
-                        append( escapeHtml3( dataElement.getDisplayName() ) ).append( " - " ).append( optionComboId ).append( " - " ).
-                        append( optionComboName ).append( " - " ).append( dataElement.getValueType() ).append( "\"" ) : new StringBuilder();
+                StringBuilder title = dataElement != null ? new StringBuilder( "title=\"" ).append( dataElementId )
+                    .append( " - " ).append( escapeHtml3( dataElement.getDisplayName() ) ).append( " - " )
+                    .append( optionComboId ).append( " - " ).append( optionComboName ).append( " - " )
+                    .append( dataElement.getValueType() ).append( "\"" ) : new StringBuilder();
 
-                displayValue = dataElement != null ? "value=\"[ " + escapeHtml3( dataElement.getDisplayName() ) + " " + optionComboName + " ]\"" : "[ " + i18n.getString( "data_element_not_exist" ) + " ]";
-                displayTitle = dataElement != null ? title.toString() : "[ " + i18n.getString( "dataelement_not_exist" ) + " ]";
+                displayValue = dataElement != null
+                    ? "value=\"[ " + escapeHtml3( dataElement.getDisplayName() ) + " " + optionComboName + " ]\""
+                    : "[ " + i18n.getString( "data_element_not_exist" ) + " ]";
+                displayTitle = dataElement != null ? title.toString()
+                    : "[ " + i18n.getString( "dataelement_not_exist" ) + " ]";
             }
             else if ( dataElementTotalMatcher.find() && dataElementTotalMatcher.groupCount() > 0 )
             {
                 String dataElementId = dataElementTotalMatcher.group( 1 );
                 DataElement dataElement = dataElementService.getDataElement( dataElementId );
 
-                displayValue = dataElement != null ? "value=\"[ " + escapeHtml3( dataElement.getDisplayName() ) + " ]\"" : "[ " + i18n.getString( "data_element_not_exist" ) + " ]";
-                displayTitle = dataElement != null ? "title=\"" + escapeHtml3( dataElement.getDisplayName() ) + "\"" : "[ " + i18n.getString( "data_element_not_exist" ) + " ]";
+                displayValue = dataElement != null ? "value=\"[ " + escapeHtml3( dataElement.getDisplayName() ) + " ]\""
+                    : "[ " + i18n.getString( "data_element_not_exist" ) + " ]";
+                displayTitle = dataElement != null ? "title=\"" + escapeHtml3( dataElement.getDisplayName() ) + "\""
+                    : "[ " + i18n.getString( "data_element_not_exist" ) + " ]";
             }
             else if ( indicatorMatcher.find() && indicatorMatcher.groupCount() > 0 )
             {
                 String indicatorId = indicatorMatcher.group( 1 );
                 Indicator indicator = indicatorService.getIndicator( indicatorId );
 
-                displayValue = indicator != null ? "value=\"[ " + escapeHtml3( indicator.getDisplayName() ) + " ]\"" : "[ " + i18n.getString( "indicator_not_exist" ) + " ]";
-                displayTitle = indicator != null ? "title=\"" + escapeHtml3( indicator.getDisplayName() ) + "\"" : "[ " + i18n.getString( "indicator_not_exist" ) + " ]";
+                displayValue = indicator != null ? "value=\"[ " + escapeHtml3( indicator.getDisplayName() ) + " ]\""
+                    : "[ " + i18n.getString( "indicator_not_exist" ) + " ]";
+                displayTitle = indicator != null ? "title=\"" + escapeHtml3( indicator.getDisplayName() ) + "\""
+                    : "[ " + i18n.getString( "indicator_not_exist" ) + " ]";
             }
 
             // -----------------------------------------------------------------
@@ -268,8 +279,10 @@ public class DefaultDataEntryFormService
                 continue;
             }
 
-            inputHtml = inputHtml.contains( EMPTY_VALUE_TAG ) ? inputHtml.replace( EMPTY_VALUE_TAG, displayValue ) : inputHtml.replace( TAG_CLOSE, (displayValue + TAG_CLOSE) );
-            inputHtml = inputHtml.contains( EMPTY_TITLE_TAG ) ? inputHtml.replace( EMPTY_TITLE_TAG, displayTitle ) : inputHtml.replace( TAG_CLOSE, (displayTitle + TAG_CLOSE) );
+            inputHtml = inputHtml.contains( EMPTY_VALUE_TAG ) ? inputHtml.replace( EMPTY_VALUE_TAG, displayValue )
+                : inputHtml.replace( TAG_CLOSE, (displayValue + TAG_CLOSE) );
+            inputHtml = inputHtml.contains( EMPTY_TITLE_TAG ) ? inputHtml.replace( EMPTY_TITLE_TAG, displayTitle )
+                : inputHtml.replace( TAG_CLOSE, (displayTitle + TAG_CLOSE) );
 
             inputMatcher.appendReplacement( sb, inputHtml );
         }
@@ -280,10 +293,10 @@ public class DefaultDataEntryFormService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public String prepareDataEntryFormForEntry( DataEntryForm dataEntryForm, DataSet dataSet, I18n i18n )
     {
-        //TODO HTML encode names
+        // TODO HTML encode names
 
         if ( dataEntryForm == null || !dataEntryForm.hasForm() || dataSet == null )
         {
@@ -293,8 +306,9 @@ public class DefaultDataEntryFormService
         // ---------------------------------------------------------------------
         // Inline javascript/html to add to HTML before output
         // ---------------------------------------------------------------------
-        
-        List<String> compulsoryDataElementOperands = dataSet.getCompulsoryDataElementOperands().stream().map( DataElementOperand::getDimensionItem ).collect(  Collectors.toList() );        
+
+        List<String> compulsoryDataElementOperands = dataSet.getCompulsoryDataElementOperands().stream()
+            .map( DataElementOperand::getDimensionItem ).collect( Collectors.toList() );
 
         Map<String, DataElement> dataElementMap = Maps.uniqueIndex( dataSet.getDataElements(), de -> de.getUid() );
 
@@ -329,14 +343,17 @@ public class DefaultDataEntryFormService
 
                 if ( dataElement == null )
                 {
-                    return i18n.getString( "dataelement_with_id" ) + ": " + dataElementId + " " + i18n.getString( "does_not_exist_in_data_set" );
+                    return i18n.getString( "dataelement_with_id" ) + ": " + dataElementId + " "
+                        + i18n.getString( "does_not_exist_in_data_set" );
                 }
 
-                CategoryOptionCombo categoryOptionCombo = optionComboMap.get( optionComboId, () -> idObjectManager.getObject( CategoryOptionCombo.class, IdScheme.UID, optionComboId ) );
+                CategoryOptionCombo categoryOptionCombo = optionComboMap.get( optionComboId,
+                    () -> idObjectManager.getObject( CategoryOptionCombo.class, IdScheme.UID, optionComboId ) );
 
                 if ( categoryOptionCombo == null )
                 {
-                    return i18n.getString( "category_option_combo_with_id" ) + ": " + optionComboId + " " + i18n.getString( "does_not_exist_in_data_set" );
+                    return i18n.getString( "category_option_combo_with_id" ) + ": " + optionComboId + " "
+                        + i18n.getString( "does_not_exist_in_data_set" );
                 }
 
                 if ( dataSet.isDataElementDecoration() && dataElement.hasDescription() )
@@ -346,37 +363,44 @@ public class DefaultDataEntryFormService
                 }
 
                 String appendCode = "", inputFieldId = dataElementId + "-" + optionComboId;
-                
+
                 ValueType valueType = dataElement.getValueType();
-                
-                String required = compulsoryDataElementOperands.contains( dataElementId + "." + optionComboId ) ? "required=\"required\"" : "";
+
+                String required = compulsoryDataElementOperands.contains( dataElementId + "." + optionComboId )
+                    ? "required=\"required\""
+                    : "";
 
                 if ( ValueType.BOOLEAN == valueType )
                 {
-                    inputHtml = inputHtml.replaceAll(inputHtml, TAG_CLOSE);
-                    
+                    inputHtml = inputHtml.replaceAll( inputHtml, TAG_CLOSE );
+
                     appendCode += "<label>";
-                    appendCode += "<input type=\"radio\" class=\"entryselect\"" + required + " name=\"" + inputFieldId + "-val\"  id=\"" + inputFieldId + "-val\" tabindex=\"" + i++ + "\" value=\"true\">";
+                    appendCode += "<input type=\"radio\" class=\"entryselect\"" + required + " name=\"" + inputFieldId
+                        + "-val\"  id=\"" + inputFieldId + "-val\" tabindex=\"" + i++ + "\" value=\"true\">";
                     appendCode += i18n.getString( "yes" );
                     appendCode += "</label>";
-                    
+
                     appendCode += "<label>";
-                    appendCode += "<input type=\"radio\" class=\"entryselect\"" +  required + " name=\"" + inputFieldId + "-val\" " +
+                    appendCode += "<input type=\"radio\" class=\"entryselect\"" + required + " name=\"" + inputFieldId
+                        + "-val\" " +
                         " id=\"" + inputFieldId + "-val\" tabindex=\"" + i++ + "\" value=\"false\">";
                     appendCode += i18n.getString( "no" );
                     appendCode += "</label>";
 
-                    appendCode += "<img class=\"commentlink\" id=\"" + inputFieldId +"-comment\" " +
-                                    "src=\"../images/comment.png\" title=\"View " + "comment\" style=\"cursor: pointer;\"" + TAG_CLOSE;
+                    appendCode += "<img class=\"commentlink\" id=\"" + inputFieldId + "-comment\" " +
+                        "src=\"../images/comment.png\" title=\"View " + "comment\" style=\"cursor: pointer;\""
+                        + TAG_CLOSE;
                 }
                 else if ( ValueType.TRUE_ONLY == valueType )
                 {
-                    appendCode += " name=\"entrytrueonly\" class=\"entrytrueonly\"" +  required + "type=\"checkbox\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
+                    appendCode += " name=\"entrytrueonly\" class=\"entrytrueonly\"" + required
+                        + "type=\"checkbox\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
                 }
                 else if ( dataElement.hasOptionSet() )
                 {
-                    appendCode += " name=\"entryoptionset\""+ required  + " class=\"entryoptionset\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
-                    appendCode += "<img class=\"commentlink\" id=\"" + inputFieldId +"-comment\" " +
+                    appendCode += " name=\"entryoptionset\"" + required + " class=\"entryoptionset\" tabindex=\"" + i++
+                        + "\"" + TAG_CLOSE;
+                    appendCode += "<img class=\"commentlink\" id=\"" + inputFieldId + "-comment\" " +
                         "src=\"../images/comment.png\" title=\"View " +
                         "comment\" style=\"cursor: pointer;\"" + TAG_CLOSE;
                 }
@@ -384,53 +408,62 @@ public class DefaultDataEntryFormService
                 {
                     inputHtml = inputHtml.replace( "input", "textarea" );
 
-                    appendCode += " name=\"entryfield\"" + required  + " class=\"entryfield entryarea\" tabindex=\"" + i++ + "\"" + "></textarea>";
+                    appendCode += " name=\"entryfield\"" + required + " class=\"entryfield entryarea\" tabindex=\""
+                        + i++ + "\"" + "></textarea>";
                 }
                 else if ( valueType.isFile() )
                 {
                     inputHtml = inputHtml.replace( "input", "div" );
 
                     appendCode += " class=\"entryfileresource\" tabindex=\"" + i++ + "\">" +
-                                    "<input " + required + " class=\"entryfileresource-input\" id=\"input-"+ inputFieldId + "-val\">" +
-                                    "<div class=\"upload-field\">" +
-                                        "<div class=\"upload-fileinfo\">" +
-                                            "<div class=\"upload-fileinfo-size\"></div>" +
-                                            "<div class=\"upload-fileinfo-name\"></div>" +
-                                        "</div>" +
-                                        "<div class=\"upload-progress\">" +
-                                            "<div class=\"upload-progress-bar\"></div>" +
-                                            "<div class=\"upload-progress-info\"></div>" +
-                                        "</div>" +
-                                    "</div>" +
-                                    "<div class=\"upload-button-group\">" +
-                                        "<button class=\"upload-button\"></button>" +
-                                    "</div>" +
-                                    "<input type=\"file\" style=\"display: none;\">" +
-                                "</div>";
+                        "<input " + required + " class=\"entryfileresource-input\" id=\"input-" + inputFieldId
+                        + "-val\">" +
+                        "<div class=\"upload-field\">" +
+                        "<div class=\"upload-fileinfo\">" +
+                        "<div class=\"upload-fileinfo-size\"></div>" +
+                        "<div class=\"upload-fileinfo-name\"></div>" +
+                        "</div>" +
+                        "<div class=\"upload-progress\">" +
+                        "<div class=\"upload-progress-bar\"></div>" +
+                        "<div class=\"upload-progress-info\"></div>" +
+                        "</div>" +
+                        "</div>" +
+                        "<div class=\"upload-button-group\">" +
+                        "<button class=\"upload-button\"></button>" +
+                        "</div>" +
+                        "<input type=\"file\" style=\"display: none;\">" +
+                        "</div>";
                 }
-                else if ( ValueType.TIME == valueType ) 
+                else if ( ValueType.TIME == valueType )
                 {
-                    appendCode += " type=\"time\" name=\"entrytime\"" + required + " class=\"entrytime\" tabindex=\"" + i++ + "\" id=\""+ inputFieldId + "\">";
+                    appendCode += " type=\"time\" name=\"entrytime\"" + required + " class=\"entrytime\" tabindex=\""
+                        + i++ + "\" id=\"" + inputFieldId + "\">";
                 }
                 else if ( ValueType.DATETIME == valueType )
                 {
-                    appendCode += " type=\"text\" name=\"entryfield\"" + required + " class=\"entryfield\" tabindex=\"" + i++ + "\">&nbsp;";
-                    appendCode += "<input type=\"time\" name=\"entrytime\"" +  required + " class=\"entrytime\" tabindex=\"" + i++ + "\" id=\""+
-                        inputFieldId +"-time" +"\">";
+                    appendCode += " type=\"text\" name=\"entryfield\"" + required + " class=\"entryfield\" tabindex=\""
+                        + i++ + "\">&nbsp;";
+                    appendCode += "<input type=\"time\" name=\"entrytime\"" + required
+                        + " class=\"entrytime\" tabindex=\"" + i++ + "\" id=\"" +
+                        inputFieldId + "-time" + "\">";
                 }
                 else if ( ValueType.URL == valueType )
                 {
-                    appendCode += " type=\"url\" name=\"entryfield\"" +  required + " class=\"entryfield\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
+                    appendCode += " type=\"url\" name=\"entryfield\"" + required + " class=\"entryfield\" tabindex=\""
+                        + i++ + "\"" + TAG_CLOSE;
                 }
                 else
                 {
-                    appendCode += " type=\"text\" name=\"entryfield\"" + required + " class=\"entryfield\" tabindex=\"" + i++ + "\"" + TAG_CLOSE;
+                    appendCode += " type=\"text\" name=\"entryfield\"" + required + " class=\"entryfield\" tabindex=\""
+                        + i++ + "\"" + TAG_CLOSE;
                 }
 
                 inputHtml = inputHtml.replace( TAG_CLOSE, appendCode );
 
-                inputHtml += "<span id=\"" + dataElement.getUid() + "-dataelement\" style=\"display:none\">" + dataElement.getFormNameFallback() + "</span>";
-                inputHtml += "<span id=\"" + categoryOptionCombo.getUid() + "-optioncombo\" style=\"display:none\">" + categoryOptionCombo.getName() + "</span>";
+                inputHtml += "<span id=\"" + dataElement.getUid() + "-dataelement\" style=\"display:none\">"
+                    + dataElement.getFormNameFallback() + "</span>";
+                inputHtml += "<span id=\"" + categoryOptionCombo.getUid() + "-optioncombo\" style=\"display:none\">"
+                    + categoryOptionCombo.getName() + "</span>";
             }
             else if ( dataElementTotalMatcher.find() && dataElementTotalMatcher.groupCount() > 0 )
             {
@@ -450,7 +483,7 @@ public class DefaultDataEntryFormService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Set<DataElement> getDataElementsInDataEntryForm( DataSet dataSet )
     {
         if ( dataSet == null || !dataSet.hasDataEntryForm() )

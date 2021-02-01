@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentity;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,10 @@ package org.hisp.dhis.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentity;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.user.User;
 
 /**
@@ -50,7 +48,7 @@ public interface TrackerOwnershipManager
      *        skipped or not.
      */
     void transferOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit orgUnit,
-                            boolean skipAccessValidation, boolean createIfNotExists );
+        boolean skipAccessValidation, boolean createIfNotExists );
 
     /**
      * @param entityInstance The tracked entity instance object
@@ -58,7 +56,7 @@ public interface TrackerOwnershipManager
      * @param organisationUnit The org unit that has to become the owner
      */
     void assignOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit organisationUnit,
-                          boolean skipAccessValidation, boolean overwriteIfExists );
+        boolean skipAccessValidation, boolean overwriteIfExists );
 
     /**
      * Check whether the user has access (as owner or has temporarily broken the
@@ -71,16 +69,7 @@ public interface TrackerOwnershipManager
      */
     boolean hasAccess( User user, TrackedEntityInstance entityInstance, Program program );
 
-
-    /**
-     * Check whether the user has access (as owner or has temporarily broken the
-     * glass) for the program instance.
-     *
-     * @param user The user with which access has to be checked for.
-     * @param programInstance The program instance.
-     * @return true if the user has access, false otherwise.
-     */
-    boolean hasAccess( User user, ProgramInstance programInstance );
+    boolean hasAccess( User user, String entityInstance, OrganisationUnit organisationUnit, Program program );
 
     /**
      * Grant temporary ownership for a user for a specific tei-program

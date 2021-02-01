@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,27 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
-import com.google.common.collect.ImmutableMap;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
+import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
+import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.when;
+
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.antlr.Parser;
-import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.antlr.literal.DefaultLiteral;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
@@ -51,27 +64,12 @@ import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
-import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
-import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
-import static org.mockito.Mockito.when;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Jim Grace
@@ -99,9 +97,6 @@ public class ProgramSqlGeneratorItemsTest
 
     @org.junit.Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @Mock
     private ProgramIndicatorService programIndicatorService;
@@ -183,8 +178,7 @@ public class ProgramSqlGeneratorItemsTest
         when( constantService.getConstant( constantA.getUid() ) ).thenReturn( constantA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
 
-        thrown.expect( org.hisp.dhis.antlr.ParserException.class );
-        test( "#{ProgrmStagA.NotElementA}" );
+        assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "#{ProgrmStagA.NotElementA}" ) );
     }
 
     @Test
@@ -208,8 +202,7 @@ public class ProgramSqlGeneratorItemsTest
     @Test
     public void testAttributeNotFound()
     {
-        thrown.expect( org.hisp.dhis.antlr.ParserException.class );
-        test( "A{NoAttribute}" );
+        assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "A{NoAttribute}" ) );
     }
 
     @Test
@@ -222,15 +215,13 @@ public class ProgramSqlGeneratorItemsTest
     @Test
     public void testConstantNotFound()
     {
-        thrown.expect( org.hisp.dhis.antlr.ParserException.class );
-        test( "C{notConstant}" );
+        assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "C{notConstant}" ) );
     }
 
     @Test
     public void testInvalidItemType()
     {
-        thrown.expect( ParserException.class );
-        test( "I{notValidItm}" );
+        assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "I{notValidItm}" ) );
     }
 
     // -------------------------------------------------------------------------

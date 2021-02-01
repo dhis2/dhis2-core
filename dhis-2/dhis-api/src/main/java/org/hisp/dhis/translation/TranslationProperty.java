@@ -1,7 +1,5 @@
-package org.hisp.dhis.translation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,27 @@ package org.hisp.dhis.translation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.translation;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public enum TranslationProperty
 {
-    NAME ( "name" ),
-    SHORT_NAME ( "shortName" ),
-    DESCRIPTION ("description" ),
-    FORM_NAME ( "formName" );
+    NAME( "name" ),
+    SHORT_NAME( "shortName" ),
+    DESCRIPTION( "description" ),
+    FORM_NAME( "formName" ),
+    NUMERATOR_DESCRIPTION( "numeratorDescription" ),
+    DENOMINATOR_DESCRIPTION( "denominatorDescription" ),
+    RELATIONSHIP_FROM_TO_NAME( "fromToName" ),
+    RELATIONSHIP_TO_FROM_NAME( "toFromName" ),
+    INSTRUCTION( "instruction" ),
+    INCIDENT_DATE_LABEL( "incidentDateLabel" ),
+    ENROLLMENT_DATE_LABEL( "enrollmentDateLabel" ),
+    EXECUTION_DATE_LABEL( "executionDateLabel" ),
+    DUE_DATE_LABEL( "dueDateLabel" ),
+    CONTENT( "content" );
 
     private String name;
 
@@ -49,7 +58,7 @@ public enum TranslationProperty
     {
         for ( TranslationProperty type : TranslationProperty.values() )
         {
-            if ( type.name().equalsIgnoreCase( value ) )
+            if ( type.getName().equalsIgnoreCase( value ) )
             {
                 return type;
             }

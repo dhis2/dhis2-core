@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.action;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,25 @@ package org.hisp.dhis.security.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.action;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.struts2.ServletActionContext;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
+import org.hisp.dhis.security.oidc.DhisClientRegistrationRepository;
+import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mobile.device.Device;
 import org.springframework.mobile.device.DeviceResolver;
 
+import com.google.common.collect.ImmutableMap;
 import com.opensymphony.xwork2.Action;
 
 /**
@@ -59,6 +65,12 @@ public class LoginAction
 
     @Autowired
     private ResourceBundleManager resourceBundleManager;
+
+    @Autowired
+    private DhisConfigurationProvider configurationProvider;
+
+    @Autowired
+    private DhisClientRegistrationRepository repository;
 
     // -------------------------------------------------------------------------
     // Input & Output
@@ -83,6 +95,13 @@ public class LoginAction
         return availableLocales;
     }
 
+    private final Map<String, Object> oidcConfig = new HashMap<>();
+
+    public Map<String, Object> getOidcConfig()
+    {
+        return oidcConfig;
+    }
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -91,6 +110,8 @@ public class LoginAction
     public String execute()
         throws Exception
     {
+        addRegisteredProviders();
+
         Device device = deviceResolver.resolveDevice( ServletActionContext.getRequest() );
 
         ServletActionContext.getResponse().addHeader( "Login-Page", "true" );
@@ -103,5 +124,28 @@ public class LoginAction
         availableLocales = new ArrayList<>( resourceBundleManager.getAvailableLocales() );
 
         return "standard";
+    }
+
+    private void addRegisteredProviders()
+    {
+        List<Map<String, String>> providers = new ArrayList<>();
+
+        Set<String> allRegistrationIds = repository.getAllRegistrationId();
+
+        for ( String registrationId : allRegistrationIds )
+        {
+            DhisOidcClientRegistration clientRegistration = repository.getDhisOidcClientRegistration( registrationId );
+
+            providers.add( ImmutableMap.of(
+                "id", registrationId,
+                "icon", clientRegistration.getLoginIcon(),
+                "iconPadding", clientRegistration.getLoginIconPadding(),
+                "loginText", clientRegistration.getLoginText() ) );
+        }
+
+        if ( !providers.isEmpty() )
+        {
+            oidcConfig.put( "providers", providers );
+        }
     }
 }

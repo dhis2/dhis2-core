@@ -1,7 +1,5 @@
-package org.hisp.dhis.keyjsonvalue.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,16 @@ package org.hisp.dhis.keyjsonvalue.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.keyjsonvalue.hibernate;
+
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -39,10 +42,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Stian Sandvold
@@ -53,9 +52,9 @@ public class HibernateKeyJsonValueStore
     implements KeyJsonValueStore
 {
     public HibernateKeyJsonValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, KeyJsonValue.class, currentUserService, deletedObjectService, aclService,
+        super( sessionFactory, jdbcTemplate, publisher, KeyJsonValue.class, currentUserService, aclService,
             true );
     }
 
@@ -101,7 +100,8 @@ public class HibernateKeyJsonValueStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) ) );
+        return getList( builder,
+            newJpaParameters().addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) ) );
     }
 
     @Override

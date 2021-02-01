@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,18 @@ package org.hisp.dhis.dataset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import java.util.Iterator;
-
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.dataset;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
@@ -65,24 +67,35 @@ public class SectionDeletionHandler
     {
         return Section.class.getSimpleName();
     }
-    
+
     @Override
     public void deleteDataElement( DataElement dataElement )
     {
         for ( Section section : sectionService.getAllSections() )
         {
-            if ( section.getDataElements().remove( dataElement ) )
+            List<DataElementOperand> operandsToRemove = section
+                .getGreyedFields()
+                .stream()
+                .filter( operand -> operand.getDataElement().equals( dataElement ) )
+                .collect( Collectors.toList() );
+
+            operandsToRemove
+                .stream()
+                .forEach( operand -> section.getGreyedFields().remove( operand ) );
+
+            if ( section.getDataElements().remove( dataElement ) || !operandsToRemove.isEmpty() )
             {
                 sectionService.updateSection( section );
             }
+
         }
     }
-    
+
     @Override
     public void deleteDataSet( DataSet dataSet )
     {
         Iterator<Section> iterator = dataSet.getSections().iterator();
-        
+
         while ( iterator.hasNext() )
         {
             Section section = iterator.next();

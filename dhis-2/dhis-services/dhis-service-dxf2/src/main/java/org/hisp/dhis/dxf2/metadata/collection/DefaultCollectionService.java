@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.collection;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,14 @@ package org.hisp.dhis.dxf2.metadata.collection;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.collection;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -34,6 +40,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
@@ -43,17 +50,10 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service ( "org.hisp.dhis.dxf2.metadata.collection.CollectionService" )
+@Service( "org.hisp.dhis.dxf2.metadata.collection.CollectionService" )
 @Transactional
 public class DefaultCollectionService
     implements CollectionService
@@ -91,9 +91,10 @@ public class DefaultCollectionService
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public void addCollectionItems( IdentifiableObject object, String propertyName, List<IdentifiableObject> objects ) throws Exception
+    public void addCollectionItems( IdentifiableObject object, String propertyName, List<IdentifiableObject> objects )
+        throws Exception
     {
-        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
         if ( !aclService.canUpdate( currentUserService.getCurrentUser(), object ) )
         {
@@ -102,34 +103,40 @@ public class DefaultCollectionService
 
         if ( !schema.haveProperty( propertyName ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Property " + propertyName + " does not exist on " + object.getClass().getName() ) );
+            throw new WebMessageException( WebMessageUtils
+                .notFound( "Property " + propertyName + " does not exist on " + object.getClass().getName() ) );
         }
 
         Property property = schema.getProperty( propertyName );
 
         if ( !property.isCollection() || !property.isIdentifiableObject() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Only identifiable object collections can be added to." ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Only identifiable object collections can be added to." ) );
         }
 
-        Collection<String> itemCodes = objects.stream().map( IdentifiableObject::getUid ).collect( Collectors.toList() );
+        Collection<String> itemCodes = objects.stream().map( IdentifiableObject::getUid )
+            .collect( Collectors.toList() );
 
         if ( itemCodes.isEmpty() )
         {
             return;
         }
 
-        List<? extends IdentifiableObject> items = manager.get( ((Class<? extends IdentifiableObject>) property.getItemKlass()), itemCodes );
+        List<? extends IdentifiableObject> items = manager
+            .get( ((Class<? extends IdentifiableObject>) property.getItemKlass()), itemCodes );
 
         manager.refresh( object );
 
         if ( property.isOwner() )
         {
-            Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) property.getGetterMethod().invoke( object );
+            Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) property.getGetterMethod()
+                .invoke( object );
 
             for ( IdentifiableObject item : items )
             {
-                if ( !collection.contains( item ) ) collection.add( item );
+                if ( !collection.contains( item ) )
+                    collection.add( item );
             }
 
             manager.update( object );
@@ -143,7 +150,8 @@ public class DefaultCollectionService
             {
                 try
                 {
-                    Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) owningProperty.getGetterMethod().invoke( item );
+                    Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) owningProperty
+                        .getGetterMethod().invoke( item );
 
                     if ( !collection.contains( object ) )
                     {
@@ -163,9 +171,10 @@ public class DefaultCollectionService
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public void delCollectionItems( IdentifiableObject object, String propertyName, List<IdentifiableObject> objects ) throws Exception
+    public void delCollectionItems( IdentifiableObject object, String propertyName, List<IdentifiableObject> objects )
+        throws Exception
     {
-        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
         if ( !aclService.canUpdate( currentUserService.getCurrentUser(), object ) )
         {
@@ -174,34 +183,40 @@ public class DefaultCollectionService
 
         if ( !schema.haveProperty( propertyName ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Property " + propertyName + " does not exist on " + object.getClass().getName() ) );
+            throw new WebMessageException( WebMessageUtils
+                .notFound( "Property " + propertyName + " does not exist on " + object.getClass().getName() ) );
         }
 
         Property property = schema.getProperty( propertyName );
 
         if ( !property.isCollection() || !property.isIdentifiableObject() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Only identifiable object collections can be removed from." ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Only identifiable object collections can be removed from." ) );
         }
 
-        Collection<String> itemCodes = objects.stream().map( IdentifiableObject::getUid ).collect( Collectors.toList() );
+        Collection<String> itemCodes = objects.stream().map( IdentifiableObject::getUid )
+            .collect( Collectors.toList() );
 
         if ( itemCodes.isEmpty() )
         {
             return;
         }
 
-        List<? extends IdentifiableObject> items = manager.get( ((Class<? extends IdentifiableObject>) property.getItemKlass()), itemCodes );
+        List<? extends IdentifiableObject> items = manager
+            .get( ((Class<? extends IdentifiableObject>) property.getItemKlass()), itemCodes );
 
         manager.refresh( object );
 
         if ( property.isOwner() )
         {
-            Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) property.getGetterMethod().invoke( object );
+            Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) property.getGetterMethod()
+                .invoke( object );
 
             for ( IdentifiableObject item : items )
             {
-                if ( collection.contains( item ) ) collection.remove( item );
+                if ( collection.contains( item ) )
+                    collection.remove( item );
             }
         }
         else
@@ -213,7 +228,8 @@ public class DefaultCollectionService
             {
                 try
                 {
-                    Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) owningProperty.getGetterMethod().invoke( item );
+                    Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) owningProperty
+                        .getGetterMethod().invoke( item );
 
                     if ( collection.contains( object ) )
                     {
@@ -235,23 +251,29 @@ public class DefaultCollectionService
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public void clearCollectionItems( IdentifiableObject object, String pvProperty ) throws WebMessageException, InvocationTargetException, IllegalAccessException
+    public void clearCollectionItems( IdentifiableObject object, String pvProperty )
+        throws WebMessageException,
+        InvocationTargetException,
+        IllegalAccessException
     {
-        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
         if ( !schema.haveProperty( pvProperty ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Property " + pvProperty + " does not exist on " + object.getClass().getName() ) );
+            throw new WebMessageException( WebMessageUtils
+                .notFound( "Property " + pvProperty + " does not exist on " + object.getClass().getName() ) );
         }
 
         Property property = schema.getProperty( pvProperty );
 
         if ( !property.isCollection() || !property.isIdentifiableObject() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Only identifiable collections are allowed to be cleared." ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Only identifiable collections are allowed to be cleared." ) );
         }
 
-        Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) property.getGetterMethod().invoke( object );
+        Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) property.getGetterMethod()
+            .invoke( object );
 
         manager.refresh( object );
 
@@ -266,7 +288,8 @@ public class DefaultCollectionService
             {
                 Schema itemSchema = schemaService.getDynamicSchema( property.getItemKlass() );
                 Property itemProperty = itemSchema.propertyByRole( property.getOwningRole() );
-                Collection<IdentifiableObject> itemCollection = (Collection<IdentifiableObject>) itemProperty.getGetterMethod().invoke( itemObject );
+                Collection<IdentifiableObject> itemCollection = (Collection<IdentifiableObject>) itemProperty
+                    .getGetterMethod().invoke( itemObject );
                 itemCollection.remove( object );
 
                 manager.update( itemObject );

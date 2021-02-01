@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +25,32 @@ package org.hisp.dhis.analytics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics;
+
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.QUOTE;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
-
-import static org.junit.Assert.*;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.QUOTE;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 public class AnalyticsIndexTest
 {
     @Test
     public void testGetIndexName()
     {
-        AnalyticsIndex indexA = new AnalyticsIndex( "analytics_2017_temp", Lists.newArrayList( quote( "quarterly" ) ), null );
-        AnalyticsIndex indexB = new AnalyticsIndex( "analytics_2018_temp", Lists.newArrayList( quote( "ax" ), quote( "co" ) ), null );
-        AnalyticsIndex indexC = new AnalyticsIndex( "analytics_2019_temp", Lists.newArrayList( quote( "YtbsuPPo010" ) ), null );
+        AnalyticsIndex indexA = new AnalyticsIndex( "analytics_2017_temp", Lists.newArrayList( quote( "quarterly" ) ),
+            null );
+        AnalyticsIndex indexB = new AnalyticsIndex( "analytics_2018_temp",
+            Lists.newArrayList( quote( "ax" ), quote( "co" ) ), null );
+        AnalyticsIndex indexC = new AnalyticsIndex( "analytics_2019_temp", Lists.newArrayList( quote( "YtbsuPPo010" ) ),
+            null );
 
-        assertTrue( indexA.getIndexName( AnalyticsTableType.DATA_VALUE ).startsWith( QUOTE + "in_quarterly_ax_2017_" ) );
+        assertTrue(
+            indexA.getIndexName( AnalyticsTableType.DATA_VALUE ).startsWith( QUOTE + "in_quarterly_ax_2017_" ) );
         assertTrue( indexB.getIndexName( AnalyticsTableType.DATA_VALUE ).startsWith( QUOTE + "in_ax_co_ax_2018_" ) );
-        assertTrue( indexC.getIndexName( AnalyticsTableType.DATA_VALUE ).startsWith( QUOTE + "in_YtbsuPPo010_ax_2019_" ) );
+        assertTrue(
+            indexC.getIndexName( AnalyticsTableType.DATA_VALUE ).startsWith( QUOTE + "in_YtbsuPPo010_ax_2019_" ) );
     }
 }

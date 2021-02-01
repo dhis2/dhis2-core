@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentity;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,15 @@ package org.hisp.dhis.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentity;
 
-import com.google.common.collect.ImmutableSet;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import javax.imageio.ImageIO;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -38,6 +43,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.CurrentUserService;
@@ -48,15 +54,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import javax.imageio.ImageIO;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Abyot Asalefew
@@ -67,7 +65,7 @@ public class DefaultTrackedEntityAttributeService
 {
     private static final int VALUE_MAX_LENGTH = 50000;
 
-    private static final Set<String> VALID_IMAGE_FORMATS = ImmutableSet.<String>builder().add(
+    private static final Set<String> VALID_IMAGE_FORMATS = ImmutableSet.<String> builder().add(
         ImageIO.getReaderFormatNames() ).build();
 
     // -------------------------------------------------------------------------
@@ -75,18 +73,31 @@ public class DefaultTrackedEntityAttributeService
     // -------------------------------------------------------------------------
 
     private final TrackedEntityAttributeStore attributeStore;
+
     private final ProgramService programService;
+
     private final TrackedEntityTypeService trackedEntityTypeService;
+
     private final FileResourceService fileResourceService;
+
     private final UserService userService;
+
     private final CurrentUserService currentUserService;
+
     private final AclService aclService;
+
     private final TrackedEntityAttributeStore trackedEntityAttributeStore;
 
-    public DefaultTrackedEntityAttributeService ( TrackedEntityAttributeStore attributeStore,
+    private final TrackedEntityTypeAttributeStore entityTypeAttributeStore;
+
+    private final ProgramTrackedEntityAttributeStore programAttributeStore;
+
+    public DefaultTrackedEntityAttributeService( TrackedEntityAttributeStore attributeStore,
         ProgramService programService, TrackedEntityTypeService trackedEntityTypeService,
         FileResourceService fileResourceService, UserService userService, CurrentUserService currentUserService,
-        AclService aclService, TrackedEntityAttributeStore trackedEntityAttributeStore )
+        AclService aclService, TrackedEntityAttributeStore trackedEntityAttributeStore,
+        TrackedEntityTypeAttributeStore entityTypeAttributeStore,
+        ProgramTrackedEntityAttributeStore programAttributeStore )
     {
         checkNotNull( attributeStore );
         checkNotNull( programService );
@@ -96,6 +107,8 @@ public class DefaultTrackedEntityAttributeService
         checkNotNull( currentUserService );
         checkNotNull( aclService );
         checkNotNull( trackedEntityAttributeStore );
+        checkNotNull( entityTypeAttributeStore );
+        checkNotNull( programAttributeStore );
 
         this.attributeStore = attributeStore;
         this.programService = programService;
@@ -105,6 +118,8 @@ public class DefaultTrackedEntityAttributeService
         this.currentUserService = currentUserService;
         this.aclService = aclService;
         this.trackedEntityAttributeStore = trackedEntityAttributeStore;
+        this.entityTypeAttributeStore = entityTypeAttributeStore;
+        this.programAttributeStore = programAttributeStore;
     }
 
     // -------------------------------------------------------------------------
@@ -119,14 +134,14 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<TrackedEntityAttribute> getAllTrackedEntityAttributes()
     {
         return attributeStore.getAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public TrackedEntityAttribute getTrackedEntityAttribute( long id )
     {
         return attributeStore.get( id );
@@ -148,21 +163,21 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public TrackedEntityAttribute getTrackedEntityAttributeByName( String name )
     {
         return attributeStore.getByName( name );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public TrackedEntityAttribute getTrackedEntityAttribute( String uid )
     {
         return attributeStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<TrackedEntityAttribute> getTrackedEntityAttributesByDisplayOnVisitSchedule(
         boolean displayOnVisitSchedule )
     {
@@ -170,14 +185,14 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInListNoProgram()
     {
         return attributeStore.getDisplayInListNoProgram();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public String validateAttributeUniquenessWithinScope( TrackedEntityAttribute trackedEntityAttribute,
         String value, TrackedEntityInstance trackedEntityInstance, OrganisationUnit organisationUnit )
     {
@@ -185,8 +200,9 @@ public class DefaultTrackedEntityAttributeService
         Assert.notNull( value, "tracked entity attribute value is required." );
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.addAttribute( new QueryItem( trackedEntityAttribute, QueryOperator.EQ, value, trackedEntityAttribute.getValueType(),
-            trackedEntityAttribute.getAggregationType(), trackedEntityAttribute.getOptionSet() ) );
+        params.addAttribute(
+            new QueryItem( trackedEntityAttribute, QueryOperator.EQ, value, trackedEntityAttribute.getValueType(),
+                trackedEntityAttribute.getAggregationType(), trackedEntityAttribute.getOptionSet() ) );
 
         if ( trackedEntityAttribute.getOrgUnitScopeNullSafe() )
         {
@@ -194,9 +210,11 @@ public class DefaultTrackedEntityAttributeService
             params.addOrganisationUnit( organisationUnit );
         }
 
-        Optional<String> fetchedTeiUid = trackedEntityAttributeStore.getTrackedEntityInstanceUidWithUniqueAttributeValue( params );
+        Optional<String> fetchedTeiUid = trackedEntityAttributeStore
+            .getTrackedEntityInstanceUidWithUniqueAttributeValue( params );
 
-        if ( fetchedTeiUid.isPresent() && (trackedEntityInstance == null || !fetchedTeiUid.get().equals( trackedEntityInstance.getUid() )) )
+        if ( fetchedTeiUid.isPresent()
+            && (trackedEntityInstance == null || !fetchedTeiUid.get().equals( trackedEntityInstance.getUid() )) )
         {
             return "Non-unique attribute value '" + value + "' for attribute " + trackedEntityAttribute.getUid();
         }
@@ -205,7 +223,7 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public String validateValueType( TrackedEntityAttribute trackedEntityAttribute, String value )
     {
         Assert.notNull( trackedEntityAttribute, "tracked entity attribute is required" );
@@ -220,25 +238,30 @@ public class DefaultTrackedEntityAttributeService
 
         if ( ValueType.NUMBER == valueType && !MathUtils.isNumeric( value ) )
         {
-            return "Value '" + errorValue + "' is not a valid numeric type for attribute " + trackedEntityAttribute.getUid();
+            return "Value '" + errorValue + "' is not a valid numeric type for attribute "
+                + trackedEntityAttribute.getUid();
         }
         else if ( ValueType.BOOLEAN == valueType && !MathUtils.isBool( value ) )
         {
-            return "Value '" + errorValue + "' is not a valid boolean type for attribute " + trackedEntityAttribute.getUid();
+            return "Value '" + errorValue + "' is not a valid boolean type for attribute "
+                + trackedEntityAttribute.getUid();
         }
         else if ( ValueType.DATE == valueType && DateUtils.parseDate( value ) == null )
         {
-            return "Value '" + errorValue + "' is not a valid date type for attribute " + trackedEntityAttribute.getUid();
+            return "Value '" + errorValue + "' is not a valid date type for attribute "
+                + trackedEntityAttribute.getUid();
         }
         else if ( ValueType.TRUE_ONLY == valueType && !"true".equals( value ) )
         {
-            return "Value '" + errorValue + "' is not true (true-only type) for attribute " + trackedEntityAttribute.getUid();
+            return "Value '" + errorValue + "' is not true (true-only type) for attribute "
+                + trackedEntityAttribute.getUid();
         }
         else if ( ValueType.USERNAME == valueType )
         {
             if ( userService.getUserCredentialsByUsername( value ) == null )
             {
-                return "Value '" + errorValue + "' is not a valid username for attribute " + trackedEntityAttribute.getUid();
+                return "Value '" + errorValue + "' is not a valid username for attribute "
+                    + trackedEntityAttribute.getUid();
             }
         }
         else if ( ValueType.DATE == valueType && !DateUtils.dateIsValid( value ) )
@@ -247,7 +270,8 @@ public class DefaultTrackedEntityAttributeService
         }
         else if ( ValueType.DATETIME == valueType && !DateUtils.dateTimeIsValid( value ) )
         {
-            return "Value '" + errorValue + "' is not a valid datetime for attribute " + trackedEntityAttribute.getUid();
+            return "Value '" + errorValue + "' is not a valid datetime for attribute "
+                + trackedEntityAttribute.getUid();
         }
         else if ( ValueType.IMAGE == valueType )
         {
@@ -263,14 +287,14 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes()
     {
         return getAllUserReadableTrackedEntityAttributes( currentUserService.getCurrentUser() );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user )
     {
         List<Program> programs = programService.getAllPrograms();
@@ -280,16 +304,26 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user, List<Program> programs, List<TrackedEntityType> trackedEntityTypes )
+    @Transactional( readOnly = true )
+    public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user, List<Program> programs,
+        List<TrackedEntityType> trackedEntityTypes )
     {
-        Set<TrackedEntityAttribute> attributes;
+        Set<TrackedEntityAttribute> attributes = new HashSet<>();
 
-        attributes = programs.stream().filter( program -> aclService.canDataRead( user, program ) ).collect( Collectors.toList() )
-            .stream().map( Program::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );
+        if ( programs != null && !programs.isEmpty() )
+        {
+            attributes.addAll( programAttributeStore.getAttributes(
+                programs.stream().filter( program -> aclService.canDataRead( user, program ) )
+                    .collect( Collectors.toList() ) ) );
+        }
 
-        attributes.addAll( trackedEntityTypes.stream().filter( trackedEntityType -> aclService.canDataRead( user, trackedEntityType ) ).collect( Collectors.toList() )
-            .stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() ) );
+        if ( trackedEntityTypes != null && !trackedEntityTypes.isEmpty() )
+        {
+            attributes.addAll( entityTypeAttributeStore.getAttributes(
+                trackedEntityTypes.stream()
+                    .filter( trackedEntityType -> aclService.canDataRead( user, trackedEntityType ) ).collect(
+                        Collectors.toList() ) ) );
+        }
 
         return attributes;
     }
@@ -299,10 +333,18 @@ public class DefaultTrackedEntityAttributeService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<TrackedEntityAttribute> getAllSystemWideUniqueTrackedEntityAttributes()
     {
-        return getAllTrackedEntityAttributes().stream().filter(TrackedEntityAttribute::isSystemWideUnique)
+        return getAllTrackedEntityAttributes().stream().filter( TrackedEntityAttribute::isSystemWideUnique )
+            .collect( Collectors.toList() );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<TrackedEntityAttribute> getAllUniqueTrackedEntityAttributes()
+    {
+        return getAllTrackedEntityAttributes().stream().filter( TrackedEntityAttribute::isUnique )
             .collect( Collectors.toList() );
     }
 
@@ -320,7 +362,7 @@ public class DefaultTrackedEntityAttributeService
         return this.trackedEntityAttributeStore.getTrackedEntityAttributesByProgram();
     }
 
-    private String validateImage(String uid )
+    private String validateImage( String uid )
     {
         FileResource fileResource = fileResourceService.getFileResource( uid );
 

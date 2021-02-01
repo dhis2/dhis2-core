@@ -1,7 +1,5 @@
-package org.hisp.dhis.visualization.impl;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.visualization.impl;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.visualization.impl;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -55,7 +54,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationStore;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -212,7 +210,7 @@ public class DefaultVisualizationServiceTest
     private BaseDimensionalItemObject baseDimensionalItemObjectStub( final String dimensionItem )
     {
         final BaseDimensionalItemObject baseDimensionalItemObject = new BaseDimensionalItemObject( dimensionItem );
-        baseDimensionalItemObject.setDisplayDescription( "display " + dimensionItem );
+        baseDimensionalItemObject.setDescription( "display " + dimensionItem );
         return baseDimensionalItemObject;
     }
 }

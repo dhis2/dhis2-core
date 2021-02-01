@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.ldap.authentication;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.security.ldap.authentication;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.ldap.authentication;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
@@ -34,20 +35,18 @@ import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@Component( "ldapAuthenticationProvider" )
-public class CustomLdapAuthenticationProvider
-    extends LdapAuthenticationProvider
+@Component
+public class CustomLdapAuthenticationProvider extends LdapAuthenticationProvider
 {
     private final DhisConfigurationProvider configurationProvider;
 
-    public CustomLdapAuthenticationProvider( LdapAuthenticator authenticator, LdapAuthoritiesPopulator authoritiesPopulator, DhisConfigurationProvider configurationProvider )
+    public CustomLdapAuthenticationProvider( LdapAuthenticator authenticator,
+        LdapAuthoritiesPopulator authoritiesPopular, DhisConfigurationProvider configurationProvider )
     {
-        super( authenticator, authoritiesPopulator );
+        super( authenticator, authoritiesPopular );
 
         checkNotNull( configurationProvider );
         this.configurationProvider = configurationProvider;

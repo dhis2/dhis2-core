@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.domain;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +25,26 @@ package org.hisp.dhis.tracker.domain;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.vividsolutions.jts.geom.Geometry;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.common.BaseLinkableObject;
 import org.hisp.dhis.event.EventStatus;
+import org.locationtech.jts.geom.Geometry;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -53,6 +56,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class Event
     extends BaseLinkableObject
+    implements TrackerDto
 {
     private String uid;
 
@@ -85,19 +89,17 @@ public class Event
     private String trackedEntity;
 
     @JsonProperty
+    @Builder.Default
     private List<Relationship> relationships = new ArrayList<>();
 
     @JsonProperty
-    private String eventDate;
+    private Instant occurredAt;
 
     @JsonProperty
-    private String dueDate;
+    private Instant scheduledAt;
 
     @JsonProperty
     private String storedBy;
-
-    @JsonProperty
-    private Coordinate coordinate;
 
     @JsonProperty
     private boolean followup;
@@ -106,16 +108,16 @@ public class Event
     private boolean deleted;
 
     @JsonProperty
-    private String created;
+    private Instant createdAt;
 
     @JsonProperty
-    private String lastUpdated;
+    private Instant createdAtClient;
 
     @JsonProperty
-    private String createdAtClient;
+    private Instant updatedAt;
 
     @JsonProperty
-    private String lastUpdatedAtClient;
+    private Instant updatedAtClient;
 
     @JsonProperty
     private String attributeOptionCombo;
@@ -127,7 +129,7 @@ public class Event
     private String completedBy;
 
     @JsonProperty
-    private String completedDate;
+    private Instant completedAt;
 
     @JsonProperty
     private Geometry geometry;
@@ -136,13 +138,16 @@ public class Event
     private String assignedUser;
 
     @JsonProperty
-    private String assignedUserUsername;
-
-    @JsonProperty
     @Builder.Default
     private Set<DataValue> dataValues = new HashSet<>();
 
     @JsonProperty
     @Builder.Default
     private List<Note> notes = new ArrayList<>();
+
+    @JsonIgnore
+    public boolean isCreatableInSearchScope()
+    {
+        return this.getStatus() == EventStatus.SCHEDULE && this.getDataValues().isEmpty() && this.occurredAt == null;
+    }
 }

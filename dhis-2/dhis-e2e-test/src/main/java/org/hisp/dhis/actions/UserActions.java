@@ -1,7 +1,7 @@
 package org.hisp.dhis.actions;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,11 @@ package org.hisp.dhis.actions;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
+
+import java.util.List;
+
+import static org.hamcrest.Matchers.equalTo;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -49,21 +54,17 @@ public class UserActions
     {
         String id = idGenerator.generateUniqueId();
 
-        JsonObject user = new JsonObject();
-
-        user.addProperty( "id", id );
-        user.addProperty( "firstName", firstName );
-        user.addProperty( "surname", surname );
-
-        JsonObject credentials = new JsonObject();
-        credentials.addProperty( "username", username );
-        credentials.addProperty( "password", password );
-
-        JsonObject userInfo = new JsonObject();
-        userInfo.addProperty( "id", id );
-
-        credentials.add( "userInfo", userInfo );
-        user.add( "userCredentials", credentials );
+        JsonObject user = new JsonObjectBuilder()
+            .addProperty( "id", id)
+            .addProperty( "firstName", firstName )
+            .addProperty( "surname", surname )
+            .addObject( "userCredentials", new JsonObjectBuilder()
+                .addProperty( "username", username )
+                .addProperty( "password", password ))
+                .addObject( "userInfo", new JsonObjectBuilder().addProperty( "id", id ) )
+            .addObject( "userInfo", new JsonObjectBuilder()
+                .addProperty( "id", id ))
+            .build();
 
         ApiResponse response = this.post( user );
 
@@ -74,7 +75,7 @@ public class UserActions
         return id;
     }
 
-    public void addURoleToUser( String userId, String userRoleId )
+    public void addRoleToUser( String userId, String userRoleId )
     {
         ApiResponse response = this.get( userId );
         if ( response.extractList( "userCredentials.userRoles.id" ).contains( userRoleId ) )
@@ -89,13 +90,14 @@ public class UserActions
 
         object.get( "userCredentials" ).getAsJsonObject().get( "userRoles" ).getAsJsonArray().add( userRole );
 
-        this.update( userId, object );
+        this.update( userId, object ).validate().statusCode( 200 );
     }
 
     public void addUserToUserGroup( String userId, String userGroupId )
     {
         ApiResponse response = this.get( userId );
-        if ( response.extractList( "userGroups.id" ).contains( userGroupId ) )
+        List<String> userGroups = response.extractList( "userGroups.id" );
+        if ( userGroups != null && userGroups.contains( userGroupId ) )
         {
             return;
         }
@@ -107,7 +109,7 @@ public class UserActions
 
         object.get( "userGroups" ).getAsJsonArray().add( userGroupAccess );
 
-        this.update( userId, object );
+        this.update( userId, object ).validate().statusCode( 200 );
     }
 
     public void grantUserAccessToOrgUnit( String userId, String orgUnitId )
@@ -121,7 +123,8 @@ public class UserActions
         object.get( "teiSearchOrganisationUnits" ).getAsJsonArray().add( orgUnit );
 
         ApiResponse response = this.update( userId, object );
-        response.validate().statusCode( 200 );
+        response.validate().statusCode( 200 )
+            .body( "status", equalTo("OK" ));
     }
 
     public void grantCurrentUserAccessToOrgUnit( String orgUnitId )
@@ -134,5 +137,15 @@ public class UserActions
     public String addUser( final String userName, final String password )
     {
         return addUser( "johnny", "bravo", userName, password );
+    }
+
+    public void updateUserPassword( String userId, String password )
+    {
+        new LoginActions().loginAsSuperUser();
+        JsonObject user = this.get( userId ).getBody();
+        user.getAsJsonObject( "userCredentials" )
+            .addProperty( "password", password );
+
+        this.update( userId, user );
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,17 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import com.google.common.collect.Lists;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
+
+import java.util.List;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -43,14 +50,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.util.List;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -82,7 +82,8 @@ public class ProgramObjectBundleHookTest
     @Before
     public void setUp()
     {
-        this.subject = new ProgramObjectBundleHook( programInstanceService, programService, programStageService, aclService );
+        this.subject = new ProgramObjectBundleHook( programInstanceService, programService, programStageService,
+            aclService );
 
         programA = createProgram( 'A' );
         programA.setId( 100 );
@@ -117,10 +118,11 @@ public class ProgramObjectBundleHookTest
     }
 
     @Test
-    public void verifyProgramInstanceIsSaved()
+    public void verifyProgramInstanceIsSavedForEventProgram()
     {
         ArgumentCaptor<ProgramInstance> argument = ArgumentCaptor.forClass( ProgramInstance.class );
 
+        programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         subject.postCreate( programA, null );
 
         verify( programInstanceService ).addProgramInstance( argument.capture() );
@@ -130,6 +132,17 @@ public class ProgramObjectBundleHookTest
         assertThat( argument.getValue().getProgram(), is( programA ) );
         assertThat( argument.getValue().getStatus(), is( ProgramStatus.ACTIVE ) );
         assertThat( argument.getValue().getStoredBy(), is( "system-process" ) );
+    }
+
+    @Test
+    public void verifyProgramInstanceIsNotSavedForTrackerProgram()
+    {
+        ArgumentCaptor<ProgramInstance> argument = ArgumentCaptor.forClass( ProgramInstance.class );
+
+        programA.setProgramType( ProgramType.WITH_REGISTRATION );
+        subject.postCreate( programA, null );
+
+        verify( programInstanceService, times( 0 ) ).addProgramInstance( argument.capture() );
     }
 
     @Test
@@ -146,7 +159,7 @@ public class ProgramObjectBundleHookTest
         programInstanceQueryParams.setProgramStatus( ProgramStatus.ACTIVE );
 
         when( programInstanceService.getProgramInstances( programA, ProgramStatus.ACTIVE ) )
-            .thenReturn(Lists.newArrayList( new ProgramInstance(), new ProgramInstance()) );
+            .thenReturn( Lists.newArrayList( new ProgramInstance(), new ProgramInstance() ) );
 
         List<ErrorReport> errors = subject.validate( programA, null );
 
@@ -184,8 +197,9 @@ public class ProgramObjectBundleHookTest
         assertThat( argPS.getValue().getName(), is( equalToIgnoringCase( "ProgramStageA" ) ) );
         assertThat( argPS.getValue().getProgram(), is( programA ) );
 
-        assertThat( argument.getValue().getName(), is( equalToIgnoringCase("ProgramA" ) ) );
+        assertThat( argument.getValue().getName(), is( equalToIgnoringCase( "ProgramA" ) ) );
         assertThat( argument.getValue().getProgramStages().size(), is( 1 ) );
-        assertThat( argument.getValue().getProgramStages().iterator().next().getName(), is( equalToIgnoringCase( "ProgramStageA" )));
+        assertThat( argument.getValue().getProgramStages().iterator().next().getName(),
+            is( equalToIgnoringCase( "ProgramStageA" ) ) );
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.jobs;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +25,26 @@ package org.hisp.dhis.dxf2.metadata.jobs;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.jobs;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.springframework.retry.RetryContext;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
 
 /**
  * @author aamerm
@@ -49,6 +52,9 @@ import static org.mockito.Mockito.*;
 public class MetadataRetryContextTest
     extends DhisSpringTest
 {
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
+
     @Mock
     RetryContext retryContext;
 
@@ -56,25 +62,25 @@ public class MetadataRetryContextTest
     MetadataRetryContext metadataRetryContext;
 
     private MetadataVersion mockVersion;
+
     private String testKey = "testKey";
+
     private String testMessage = "testMessage";
 
     @Before
-    public void setUp() throws Exception
+    public void setUp()
     {
-        MockitoAnnotations.initMocks( this );
-
         mockVersion = mock( MetadataVersion.class );
     }
 
     @Test
-    public void testShouldGetRetryContextCorrectly() throws Exception
+    public void testShouldGetRetryContextCorrectly()
     {
         assertEquals( retryContext, metadataRetryContext.getRetryContext() );
     }
 
     @Test
-    public void testShouldSetRetryContextCorrectly() throws Exception
+    public void testShouldSetRetryContextCorrectly()
     {
         RetryContext newMock = mock( RetryContext.class );
 
@@ -84,7 +90,7 @@ public class MetadataRetryContextTest
     }
 
     @Test
-    public void testIfVersionIsNull() throws Exception
+    public void testIfVersionIsNull()
     {
         metadataRetryContext.updateRetryContext( testKey, testMessage, null );
 
@@ -93,7 +99,7 @@ public class MetadataRetryContextTest
     }
 
     @Test
-    public void testIfVersionIsNotNull() throws Exception
+    public void testIfVersionIsNotNull()
     {
         metadataRetryContext.updateRetryContext( testKey, testMessage, mockVersion );
 
@@ -102,7 +108,7 @@ public class MetadataRetryContextTest
     }
 
     @Test
-    public void testIfSummaryIsNull() throws Exception
+    public void testIfSummaryIsNull()
     {
         MetadataSyncSummary metadataSyncSummary = mock( MetadataSyncSummary.class );
 
@@ -114,7 +120,7 @@ public class MetadataRetryContextTest
     }
 
     @Test
-    public void testIfSummaryIsNotNull() throws Exception
+    public void testIfSummaryIsNotNull()
     {
         MetadataSyncSummary testSummary = new MetadataSyncSummary();
         ImportReport importReport = new ImportReport();

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -34,8 +33,8 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 public enum ObjectBundleMode
 {
     /**
-     * If bundle is valid, commit the bundle to the database.
-     * Commits at intervals.
+     * If bundle is valid, commit the bundle to the database. Commits at
+     * intervals.
      */
     COMMIT,
 

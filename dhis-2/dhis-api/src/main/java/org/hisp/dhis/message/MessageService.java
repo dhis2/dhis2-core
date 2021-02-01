@@ -1,15 +1,5 @@
-package org.hisp.dhis.message;
-
-import org.hisp.dhis.dataset.CompleteDataSetRegistration;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.user.User;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +25,15 @@ import java.util.Set;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.message;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Lars Helge Overland
@@ -44,18 +43,21 @@ public interface MessageService
     String META_USER_AGENT = "User-agent: ";
 
     long sendTicketMessage( String subject, String text, String metaData );
-    
-    long sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData, Set<FileResource> attachments );
-    
+
+    long sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData,
+        Set<FileResource> attachments );
+
     long sendSystemMessage( Set<User> recipients, String subject, String text );
-    
-    long sendValidationMessage( Set<User> recipients, String subject, String text, MessageConversationPriority priority );
-    
+
+    long sendValidationMessage( Set<User> recipients, String subject, String text,
+        MessageConversationPriority priority );
+
     long sendMessage( MessageConversationParams params );
 
     long sendSystemErrorNotification( String subject, Throwable t );
 
-    void sendReply( MessageConversation conversation, String text, String metaData, boolean internal, Set<FileResource> attachments );
+    void sendReply( MessageConversation conversation, String text, String metaData, boolean internal,
+        Set<FileResource> attachments );
 
     long saveMessageConversation( MessageConversation conversation );
 

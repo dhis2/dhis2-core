@@ -1,7 +1,7 @@
 package org.hisp.dhis.actions;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -245,6 +245,21 @@ public class RestApiActions
         return new ApiResponse( response );
     }
 
+    /**
+     * Sends PATCH request to specified resource
+     * @param resourceId
+     * @param object
+     * @return
+     */
+    public ApiResponse patch( String resourceId, Object object) {
+        Response response =
+            this.given().body( object, ObjectMapperType.GSON )
+                .when()
+                .patch( resourceId );
+
+        return new ApiResponse( response );
+    }
+
     public ApiResponse postFile( File file )
     {
         return this.postFile( file, null );
@@ -271,6 +286,7 @@ public class RestApiActions
         {
             return;
         }
+
         if ( response.containsImportSummaries() )
         {
             List<ImportSummary> importSummaries = response.getSuccessfulImportSummaries();
@@ -290,11 +306,11 @@ public class RestApiActions
 
                     if ( !CollectionUtils.isEmpty( objectReports ) )
                     {
-                        String endpoint = schemasActions.findSchemaPropertyByKlassName( tr.getKlass(), "plural" );
+                        String ep = schemasActions.findSchemaPropertyByKlassName( tr.getKlass(), "plural" );
 
                         objectReports.forEach( or -> {
                             String uid = or.getUid();
-                            TestRunStorage.addCreatedEntity( endpoint, uid );
+                            TestRunStorage.addCreatedEntity( ep, uid );
                         } );
                     }
 
@@ -304,8 +320,12 @@ public class RestApiActions
         }
         if ( response.isEntityCreated() )
         {
-            TestRunStorage.addCreatedEntity( endpoint, response.extractUid() );
+            this.addCreatedEntity( endpoint, response.extractUid() );
         }
+    }
+
+    protected void addCreatedEntity(String ep, String id) {
+        TestRunStorage.addCreatedEntity( ep, id );
     }
 }
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.cache;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.cache;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.cache;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.springframework.util.Assert.hasText;
@@ -41,7 +40,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 /**
  * A redis backed implementation of {@link Cache}. This implementation uses a
  * shared redis cache server for any number of instances.
- * 
+ *
  * @author Ameen Mohamed
  */
 public class RedisCache<V> implements Cache<V>
@@ -60,7 +59,7 @@ public class RedisCache<V> implements Cache<V>
 
     /**
      * Constructor for instantiating RedisCache.
-     * 
+     *
      * @param cacheBuilder The cache builder instance
      */
     @SuppressWarnings( "unchecked" )
@@ -77,7 +76,7 @@ public class RedisCache<V> implements Cache<V>
     @Override
     public Optional<V> getIfPresent( String key )
     {
-        String redisKey = generateActualKey( key );
+        String redisKey = generateKey( key );
         if ( expiryEnabled && refreshExpriryOnAccess )
         {
             redisTemplate.expire( redisKey, expiryInSeconds, SECONDS );
@@ -88,12 +87,13 @@ public class RedisCache<V> implements Cache<V>
     @Override
     public Optional<V> get( String key )
     {
-        String redisKey = generateActualKey( key );
+        String redisKey = generateKey( key );
         if ( expiryEnabled && refreshExpriryOnAccess )
         {
             redisTemplate.expire( redisKey, expiryInSeconds, SECONDS );
         }
-        return Optional.ofNullable( Optional.ofNullable( redisTemplate.boundValueOps( redisKey ).get() ).orElse( defaultValue ) );
+        return Optional
+            .ofNullable( Optional.ofNullable( redisTemplate.boundValueOps( redisKey ).get() ).orElse( defaultValue ) );
     }
 
     @Override
@@ -103,14 +103,14 @@ public class RedisCache<V> implements Cache<V>
         {
             throw new IllegalArgumentException( "MappingFunction cannot be null" );
         }
-        
-        String redisKey = generateActualKey( key );
-        
+
+        String redisKey = generateKey( key );
+
         if ( expiryEnabled && refreshExpriryOnAccess )
         {
             redisTemplate.expire( redisKey, expiryInSeconds, SECONDS );
         }
-        
+
         V value = redisTemplate.boundValueOps( redisKey ).get();
 
         if ( null == value )
@@ -147,8 +147,8 @@ public class RedisCache<V> implements Cache<V>
         {
             throw new IllegalArgumentException( "Value cannot be null" );
         }
-        
-        String redisKey = generateActualKey( key );
+
+        String redisKey = generateKey( key );
 
         if ( expiryEnabled )
         {
@@ -161,10 +161,11 @@ public class RedisCache<V> implements Cache<V>
     }
 
     @Override
-    public void put( String key, V value, long ttlInSeconds)
+    public void put( String key, V value, long ttlInSeconds )
     {
         hasText( key, "Value cannot be null" );
-        final String redisKey = generateActualKey( key );
+
+        final String redisKey = generateKey( key );
 
         redisTemplate.boundValueOps( redisKey ).set( value, ttlInSeconds, SECONDS );
     }
@@ -172,10 +173,10 @@ public class RedisCache<V> implements Cache<V>
     @Override
     public void invalidate( String key )
     {
-        redisTemplate.delete( generateActualKey( key ) );
+        redisTemplate.delete( generateKey( key ) );
     }
 
-    private String generateActualKey( String key )
+    private String generateKey( String key )
     {
         return cacheRegion.concat( ":" ).concat( key );
     }

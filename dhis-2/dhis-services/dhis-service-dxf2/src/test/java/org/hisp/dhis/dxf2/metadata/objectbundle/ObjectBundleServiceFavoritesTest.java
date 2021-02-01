@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,15 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.chart.Chart;
@@ -47,12 +54,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -76,7 +77,8 @@ public class ObjectBundleServiceFavoritesTest
     private UserService _userService;
 
     @Override
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
         renderService = _renderService;
         userService = _userService;
@@ -84,7 +86,8 @@ public class ObjectBundleServiceFavoritesTest
 
     @Test
     @Ignore
-    public void testCreateMetadataWithCharts1() throws IOException
+    public void testCreateMetadataWithCharts1()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/metadata_with_charts1.json" ).getInputStream(), RenderFormat.JSON );
@@ -111,10 +114,12 @@ public class ObjectBundleServiceFavoritesTest
     }
 
     @Test
-    public void testCreateMetadataWithVisualization() throws IOException
+    public void testCreateMetadataWithVisualization()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_with_visualization.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/favorites/metadata_with_visualization.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -135,14 +140,43 @@ public class ObjectBundleServiceFavoritesTest
         assertEquals( 1, organisationUnits.size() );
         assertEquals( 4, dataElements.size() );
         assertEquals( 3, visualizations.size() );
+
+        assertNotNull( visualizations.get( 0 ).getFontSize() );
+        assertNotNull( visualizations.get( 1 ).getFontSize() );
+        assertNotNull( visualizations.get( 2 ).getFontSize() );
+        assertNotNull( visualizations.get( 0 ).getSeries() );
+        assertNotNull( visualizations.get( 1 ).getSeries() );
+        assertNotNull( visualizations.get( 2 ).getSeries() );
+        assertEquals( 2, visualizations.get( 0 ).getSeries().size() );
+        assertEquals( 2, visualizations.get( 1 ).getSeries().size() );
+        assertEquals( 2, visualizations.get( 2 ).getSeries().size() );
+        assertTrue( visualizations.get( 0 ).getRangeAxisMinValue() < 0 );
+        assertTrue( visualizations.get( 1 ).getRangeAxisMinValue() < 0 );
+        assertTrue( visualizations.get( 2 ).getRangeAxisMinValue() < 0 );
+        assertTrue( visualizations.get( 0 ).getBaseLineValue() < 0 );
+        assertTrue( visualizations.get( 1 ).getBaseLineValue() < 0 );
+        assertTrue( visualizations.get( 2 ).getBaseLineValue() < 0 );
+
+        assertNotNull( visualizations.get( 0 ).getFontStyle() );
+        assertNotNull( visualizations.get( 1 ).getFontStyle() );
+        assertNotNull( visualizations.get( 2 ).getFontStyle() );
+        assertNotNull( visualizations.get( 0 ).getFontStyle().getVisualizationTitle() );
+        assertNotNull( visualizations.get( 1 ).getFontStyle().getVisualizationTitle() );
+        assertNotNull( visualizations.get( 2 ).getFontStyle().getVisualizationTitle() );
+
+        assertEquals( "color_set_01", visualizations.get( 0 ).getColorSet() );
+        assertEquals( "color_set_01", visualizations.get( 1 ).getColorSet() );
+        assertEquals( "color_set_01", visualizations.get( 2 ).getColorSet() );
     }
 
     @Test
     @Ignore
-    public void testCreateMetadataWithChartsWithPeriods1() throws IOException
+    public void testCreateMetadataWithChartsWithPeriods1()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_with_chart_periods1.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/favorites/metadata_with_chart_periods1.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -171,10 +205,12 @@ public class ObjectBundleServiceFavoritesTest
     }
 
     @Test
-    public void testCreateMetadataWithVisualizationsWithPeriods() throws IOException
+    public void testCreateMetadataWithVisualizationsWithPeriods()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_with_visualization_periods.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/favorites/metadata_with_visualization_periods.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -204,7 +240,8 @@ public class ObjectBundleServiceFavoritesTest
 
     @Test
     @Ignore
-    public void testCreateMetadataWithReportTables1() throws IOException
+    public void testCreateMetadataWithReportTables1()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/metadata_with_rt1.json" ).getInputStream(), RenderFormat.JSON );
@@ -231,7 +268,8 @@ public class ObjectBundleServiceFavoritesTest
     }
 
     @Test
-    public void testCreateLegendSets() throws IOException
+    public void testCreateLegendSets()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/legends.json" ).getInputStream(), RenderFormat.JSON );
@@ -258,7 +296,8 @@ public class ObjectBundleServiceFavoritesTest
     }
 
     @Test
-    public void testDeleteLegendSet() throws IOException
+    public void testDeleteLegendSet()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/legends.json" ).getInputStream(), RenderFormat.JSON );

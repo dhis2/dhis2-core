@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.callable;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,17 @@ package org.hisp.dhis.system.callable;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+package org.hisp.dhis.system.callable;
 
 import java.util.concurrent.ExecutionException;
 
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdScheme;
+
 /**
- * Retrieves the category option combination with the given identifier and
- * id scheme. Checks that the current user has {@code data write} access.
+ * Retrieves the category option combination with the given identifier and id
+ * scheme. Checks that the current user has {@code data write} access.
  *
  * @author Lars Helge Overland
  */

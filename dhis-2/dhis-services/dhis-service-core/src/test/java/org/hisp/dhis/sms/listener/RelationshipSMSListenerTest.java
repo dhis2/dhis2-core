@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.listener;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,17 @@ package org.hisp.dhis.sms.listener;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.listener;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -45,8 +54,8 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.smscompression.SMSCompressionException;
-import org.hisp.dhis.smscompression.models.RelationshipSMSSubmission;
+import org.hisp.dhis.smscompression.SmsCompressionException;
+import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -58,16 +67,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class RelationshipSMSListenerTest
     extends
@@ -143,7 +142,7 @@ public class RelationshipSMSListenerTest
 
     @Before
     public void initTest()
-        throws SMSCompressionException
+        throws SmsCompressionException
     {
         subject = new RelationshipSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
@@ -181,7 +180,7 @@ public class RelationshipSMSListenerTest
     }
 
     private void setUpInstances()
-        throws SMSCompressionException
+        throws SmsCompressionException
     {
         user = createUser( 'U' );
         user.setPhoneNumber( ORIGINATOR );
@@ -199,16 +198,16 @@ public class RelationshipSMSListenerTest
         incomingSmsRelationship = createSMSFromSubmission( createRelationshipSubmission() );
     }
 
-    private RelationshipSMSSubmission createRelationshipSubmission()
+    private RelationshipSmsSubmission createRelationshipSubmission()
     {
-        RelationshipSMSSubmission subm = new RelationshipSMSSubmission();
+        RelationshipSmsSubmission subm = new RelationshipSmsSubmission();
 
-        subm.setUserID( user.getUid() );
+        subm.setUserId( user.getUid() );
         subm.setRelationshipType( relationshipType.getUid() );
         subm.setRelationship( "uf3svrmpzOj" );
         subm.setFrom( programInstance.getUid() );
         subm.setTo( programInstance.getUid() );
-        subm.setSubmissionID( 1 );
+        subm.setSubmissionId( 1 );
 
         return subm;
     }

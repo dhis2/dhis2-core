@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,14 @@ package org.hisp.dhis.analytics.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.security;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import org.hisp.dhis.DhisSpringTest;
+import java.util.Set;
+
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -40,25 +41,26 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.util.Set;
 
 /**
  * @author Lars Helge Overland
  */
 public class AnalyticsSecurityManagerTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private AnalyticsSecurityManager securityManager;
@@ -72,21 +74,39 @@ public class AnalyticsSecurityManagerTest
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
+    @Autowired
+    private UserService _userService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
+
     private CategoryOption coA;
+
     private CategoryOption coB;
+
     private Category caA;
 
     private DataElement deA;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
+
     private OrganisationUnit ouC;
 
     private Set<OrganisationUnit> userOrgUnits;
 
     @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
+    @Override
     public void setUpTest()
     {
+        userService = _userService;
+        createAndInjectAdminUser();
         coA = createCategoryOption( 'A' );
         coB = createCategoryOption( 'B' );
 
@@ -113,9 +133,14 @@ public class AnalyticsSecurityManagerTest
 
         userOrgUnits = Sets.newHashSet( ouB, ouC );
 
-        userService = (UserService) getBean( UserService.ID );
+        User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
+        user.setOrganisationUnits( userOrgUnits );
+        user.setDataViewOrganisationUnits( userOrgUnits );
+        user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
 
-        createUserAndInjectSecurityContext( userOrgUnits, userOrgUnits, catDimensionConstraints, false, "F_VIEW_EVENT_ANALYTICS" );
+        userService.addUser( user );
+        injectSecurityContext( user );
+
     }
 
     @Test
@@ -162,7 +187,8 @@ public class AnalyticsSecurityManagerTest
             .withDataElements( Lists.newArrayList( deA ) )
             .withPeriods( Lists.newArrayList( createPeriod( "201801" ), createPeriod( "201802" ) ) )
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
-            .addFilter( new BaseDimensionalObject( caA.getDimension(), DimensionType.CATEGORY, Lists.newArrayList( coA ) ) )
+            .addFilter(
+                new BaseDimensionalObject( caA.getDimension(), DimensionType.CATEGORY, Lists.newArrayList( coA ) ) )
             .build();
 
         params = securityManager.withUserConstraints( params );
@@ -171,7 +197,8 @@ public class AnalyticsSecurityManagerTest
         assertNotNull( params.getFilter( caA.getDimension() ) );
         assertEquals( caA.getDimension(), params.getFilter( caA.getDimension() ).getDimension() );
         assertNotNull( params.getFilter( caA.getDimension() ).getItems().get( 0 ) );
-        assertEquals( coA.getDimensionItem(), params.getFilter( caA.getDimension() ).getItems().get( 0 ).getDimensionItem() );
+        assertEquals( coA.getDimensionItem(),
+            params.getFilter( caA.getDimension() ).getItems().get( 0 ).getDimensionItem() );
     }
 
     @Test
@@ -198,7 +225,8 @@ public class AnalyticsSecurityManagerTest
             .withStartDate( getDate( 2018, 1, 1 ) )
             .withEndDate( getDate( 2018, 4, 1 ) )
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
-            .addFilter( new BaseDimensionalObject( caA.getDimension(), DimensionType.CATEGORY, Lists.newArrayList( coA ) ) )
+            .addFilter(
+                new BaseDimensionalObject( caA.getDimension(), DimensionType.CATEGORY, Lists.newArrayList( coA ) ) )
             .build();
 
         params = securityManager.withUserConstraints( params );
@@ -207,6 +235,7 @@ public class AnalyticsSecurityManagerTest
         assertNotNull( params.getFilter( caA.getDimension() ) );
         assertEquals( caA.getDimension(), params.getFilter( caA.getDimension() ).getDimension() );
         assertNotNull( params.getFilter( caA.getDimension() ).getItems().get( 0 ) );
-        assertEquals( coA.getDimensionItem(), params.getFilter( caA.getDimension() ).getItems().get( 0 ).getDimensionItem() );
+        assertEquals( coA.getDimensionItem(),
+            params.getFilter( caA.getDimension() ).getItems().get( 0 ).getDimensionItem() );
     }
 }

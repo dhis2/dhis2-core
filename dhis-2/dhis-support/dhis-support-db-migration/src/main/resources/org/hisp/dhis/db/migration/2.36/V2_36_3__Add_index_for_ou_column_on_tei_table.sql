@@ -1,0 +1,2 @@
+-- Creates index for organisationunitid for trackedentityinstance table
+CREATE INDEX IF NOT EXISTS in_trackedentityinstance_organisationunitid ON trackedentityinstance USING btree (organisationunitid);

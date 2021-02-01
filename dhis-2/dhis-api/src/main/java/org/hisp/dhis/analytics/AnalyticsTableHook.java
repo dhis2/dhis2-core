@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -45,11 +44,11 @@ public class AnalyticsTableHook
     extends BaseIdentifiableObject implements MetadataObject
 {
     private AnalyticsTablePhase phase;
-    
+
     private ResourceTableType resourceTableType;
-    
+
     private AnalyticsTableType analyticsTableType;
-    
+
     private String sql;
 
     // -------------------------------------------------------------------------
@@ -67,8 +66,9 @@ public class AnalyticsTableHook
         this.resourceTableType = resourceTableType;
         this.sql = sql;
     }
-    
-    public AnalyticsTableHook( String name, AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType, String sql )
+
+    public AnalyticsTableHook( String name, AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType,
+        String sql )
     {
         this.name = name;
         this.phase = phase;

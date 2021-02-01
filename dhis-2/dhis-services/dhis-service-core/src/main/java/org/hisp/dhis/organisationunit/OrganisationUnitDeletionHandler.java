@@ -1,7 +1,5 @@
-package org.hisp.dhis.organisationunit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.organisationunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.organisationunit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -69,41 +68,37 @@ public class OrganisationUnitDeletionHandler
     @Override
     public void deleteDataSet( DataSet dataSet )
     {
-        for ( OrganisationUnit unit : dataSet.getSources() )
-        {
+        dataSet.getSources().iterator().forEachRemaining( unit -> {
             unit.getDataSets().remove( dataSet );
             idObjectManager.updateNoAcl( unit );
-        }
+        } );
     }
 
     @Override
     public void deleteUser( User user )
     {
-        for ( OrganisationUnit unit : user.getOrganisationUnits() )
-        {
-            unit.removeUser( user );
+        user.getOrganisationUnits().iterator().forEachRemaining( unit -> {
+            unit.getUsers().remove( user );
             idObjectManager.updateNoAcl( unit );
-        }
+        } );
     }
 
     @Override
     public void deleteProgram( Program program )
     {
-        for ( OrganisationUnit unit : program.getOrganisationUnits() )
-        {
-            unit.removeProgram( program );
+        program.getOrganisationUnits().iterator().forEachRemaining( unit -> {
+            unit.getPrograms().remove( program );
             idObjectManager.updateNoAcl( unit );
-        }
+        } );
     }
 
     @Override
     public void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
     {
-        for ( OrganisationUnit unit : group.getMembers() )
-        {
-            unit.removeOrganisationUnitGroup( group );
+        group.getMembers().iterator().forEachRemaining( unit -> {
+            unit.getGroups().remove( group );
             idObjectManager.updateNoAcl( unit );
-        }
+        } );
     }
 
     @Override
@@ -120,6 +115,8 @@ public class OrganisationUnitDeletionHandler
     public String allowDeleteOrganisationUnit( OrganisationUnit unit )
     {
         return unit.getChildren().isEmpty() ? null
-            : unit.getChildren().stream().map( BaseIdentifiableObject::getName ).collect( Collectors.joining( "," ) );
+            : unit.getChildren().stream()
+                .map( BaseIdentifiableObject::getName )
+                .collect( Collectors.joining( "," ) );
     }
 }

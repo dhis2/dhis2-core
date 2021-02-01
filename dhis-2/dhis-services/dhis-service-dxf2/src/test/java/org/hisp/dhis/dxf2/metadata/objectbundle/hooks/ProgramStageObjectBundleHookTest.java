@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,10 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+
+import java.util.Collections;
+import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElement;
@@ -39,6 +41,7 @@ import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.junit.Assert;
@@ -49,15 +52,15 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.util.Collections;
-import java.util.List;
-
 public class ProgramStageObjectBundleHookTest
 {
     private ProgramStageObjectBundleHook subject;
 
     @Mock
     private AclService aclService;
+
+    @Mock
+    private ProgramStageSectionService programStageSectionService;
 
     private ProgramStage programStage;
 
@@ -75,7 +78,7 @@ public class ProgramStageObjectBundleHookTest
     @Before
     public void init()
     {
-        this.subject = new ProgramStageObjectBundleHook( aclService );
+        this.subject = new ProgramStageObjectBundleHook( aclService, programStageSectionService );
 
         program = DhisConvenienceTest.createProgram( 'A' );
         program.setUid( "jGRqKgwvvb6" );
@@ -102,7 +105,6 @@ public class ProgramStageObjectBundleHookTest
         objectBundleParams.setUser( user );
         ObjectBundle bundle = new ObjectBundle( objectBundleParams, preheat, Collections
             .singletonMap( OptionSet.class, Collections.singletonList( programStage ) ) );
-
 
         List<ErrorReport> errors = subject.validate( programStage, bundle );
         Assert.assertEquals( 1, errors.size() );

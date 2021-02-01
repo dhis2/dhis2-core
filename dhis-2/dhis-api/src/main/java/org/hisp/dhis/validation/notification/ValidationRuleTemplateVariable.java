@@ -1,7 +1,5 @@
-package org.hisp.dhis.validation.notification;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +25,20 @@ package org.hisp.dhis.validation.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.notification.TemplateVariable;
+package org.hisp.dhis.validation.notification;
 
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.notification.TemplateVariable;
+
 /**
  * @author Halvdan Hoem Grelland
  */
 public enum ValidationRuleTemplateVariable
-    implements TemplateVariable
+    implements
+    TemplateVariable
 {
     RULE_NAME( "rule_name" ),
     DESCRIPTION( "rule_description" ),
@@ -52,9 +52,9 @@ public enum ValidationRuleTemplateVariable
     PERIOD( "period" ),
     CURRENT_DATE( "current_date" );
 
-    private static final Map<String, ValidationRuleTemplateVariable> variableNameMap =
-        EnumSet.allOf( ValidationRuleTemplateVariable.class ).stream()
-            .collect( Collectors.toMap( ValidationRuleTemplateVariable::getVariableName, e -> e ) );
+    private static final Map<String, ValidationRuleTemplateVariable> variableNameMap = EnumSet
+        .allOf( ValidationRuleTemplateVariable.class ).stream()
+        .collect( Collectors.toMap( ValidationRuleTemplateVariable::getVariableName, e -> e ) );
 
     private final String variableName;
 

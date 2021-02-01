@@ -1,7 +1,5 @@
-package org.hisp.dhis.preheat;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,15 @@ package org.hisp.dhis.preheat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.collect.Lists;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.springframework.util.StringUtils;
+package org.hisp.dhis.preheat;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.IdentifiableObject;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -48,21 +48,16 @@ public enum PreheatIdentifier
     /**
      * Preheat using CODE identifiers.
      */
-    CODE,
-
-    /**
-     * Find first non-null identifier in order: UID, CODE
-     */
-    AUTO;
+    CODE;
 
     public <T extends IdentifiableObject> String getIdentifier( T object )
     {
         switch ( this )
         {
-            case UID:
-                return object.getUid();
-            case CODE:
-                return object.getCode();
+        case UID:
+            return object.getUid();
+        case CODE:
+            return object.getCode();
         }
 
         throw new RuntimeException( "Unhandled identifier type." );
@@ -72,18 +67,14 @@ public enum PreheatIdentifier
     {
         switch ( this )
         {
-            case UID:
-            {
-                return Lists.newArrayList( object.getUid() );
-            }
-            case CODE:
-            {
-                return Lists.newArrayList( object.getCode() );
-            }
-            case AUTO:
-            {
-                return Lists.newArrayList( object.getUid(), object.getCode() );
-            }
+        case UID:
+        {
+            return Lists.newArrayList( object.getUid() );
+        }
+        case CODE:
+        {
+            return Lists.newArrayList( object.getCode() );
+        }
         }
 
         return new ArrayList<>();

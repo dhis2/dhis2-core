@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,15 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.PostConstruct;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -35,28 +42,14 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.session.SessionInformation;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
- * Service for retrieving information about the currently
- * authenticated user.
+ * Service for retrieving information about the currently authenticated user.
  * <p>
- * Note that most methods are transactional, except for
- * retrieving current UserInfo.
+ * Note that most methods are transactional, except for retrieving current
+ * UserInfo.
  *
  * @author Torgeir Lorange Ostby
  */
@@ -65,10 +58,17 @@ public class DefaultCurrentUserService
     extends AbstractSpringSecurityCurrentUserService
 {
     /**
-     * Cache for user IDs. Key is username. Disabled during test phase.
-     * Take care not to cache user info which might change during runtime.
+     * Cache for user IDs. Key is username. Disabled during test phase. Take
+     * care not to cache user info which might change during runtime.
      */
     private static Cache<Long> USERNAME_ID_CACHE;
+
+    /**
+     * Cache contains Set of UserGroup UID for each user. Key is username. This
+     * will be used for ACL check in
+     * {@link org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore}
+     */
+    private static Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -80,19 +80,15 @@ public class DefaultCurrentUserService
 
     private final CacheProvider cacheProvider;
 
-    private final SessionRegistry sessionRegistry;
-
     public DefaultCurrentUserService( Environment env, CacheProvider cacheProvider,
-        @Lazy SessionRegistry sessionRegistry, @Lazy UserStore userStore )
+        @Lazy UserStore userStore )
     {
         checkNotNull( env );
         checkNotNull( cacheProvider );
-        checkNotNull( sessionRegistry );
         checkNotNull( userStore );
 
         this.env = env;
         this.cacheProvider = cacheProvider;
-        this.sessionRegistry = sessionRegistry;
         this.userStore = userStore;
     }
 
@@ -110,10 +106,15 @@ public class DefaultCurrentUserService
             .forceInMemory()
             .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 4000 )
             .build();
+
+        currentUserGroupInfoCache = cacheProvider.newCacheBuilder( CurrentUserGroupInfo.class )
+            .forRegion( "currentUserGroupInfoCache" )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
+            .forceInMemory()
+            .build();
     }
 
     @Override
-    @Transactional(readOnly = true)
     public User getCurrentUser()
     {
         String username = getCurrentUsername();
@@ -130,35 +131,101 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        return userStore.getUser( userId );
+        User user = userStore.getUser( userId );
+
+        if ( user == null )
+        {
+            UserCredentials credentials = userStore.getUserCredentialsByUsername( username );
+
+            user = userStore.getUser( credentials.getId() );
+
+            if ( user == null )
+            {
+                throw new RuntimeException( "Could not retrieve current user!" );
+            }
+        }
+
+        if ( user.getUserCredentials() == null )
+        {
+            throw new RuntimeException( "Could not retrieve current user credentials!" );
+        }
+
+        // TODO: this is pretty ugly way to retrieve auths
+        user.getUserCredentials().getAllAuthorities();
+        return user;
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public UserInfo getCurrentUserInfo()
+    @Transactional( readOnly = true )
+    public User getCurrentUserInTransaction()
     {
-        UserDetails userDetails = getCurrentUserDetails();
+        String username = getCurrentUsername();
 
-        if ( userDetails == null )
+        if ( username == null )
         {
             return null;
         }
 
-        Long userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), un -> getUserId( un ) ).orElse( null );
+        User user = null;
+
+        Long userId = USERNAME_ID_CACHE.get( username, this::getUserId ).orElse( null );
+
+        if ( userId != null )
+        {
+            user = userStore.getUser( userId );
+        }
+
+        if ( user == null )
+        {
+            UserCredentials credentials = userStore.getUserCredentialsByUsername( username );
+
+            // Happens when user is anonymous aka. not logged in yet.
+            if ( credentials == null )
+            {
+                return null;
+            }
+
+            user = userStore.getUser( credentials.getId() );
+
+            if ( user == null )
+            {
+                throw new RuntimeException( "Could not retrieve current user!" );
+            }
+        }
+
+        if ( user.getUserCredentials() == null )
+        {
+            throw new RuntimeException( "Could not retrieve current user credentials!" );
+        }
+
+        user.getUserCredentials().getAllAuthorities();
+
+        return user;
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public UserInfo getCurrentUserInfo()
+    {
+        String currentUsername = getCurrentUsername();
+
+        if ( currentUsername == null )
+        {
+            return null;
+        }
+
+        Long userId = USERNAME_ID_CACHE.get( currentUsername, this::getUserId ).orElse( null );
 
         if ( userId == null )
         {
             return null;
         }
 
-        Set<String> authorities = userDetails.getAuthorities()
-            .stream().map( GrantedAuthority::getAuthority )
-            .collect( Collectors.toSet() );
-
-        return new UserInfo( userId, userDetails.getUsername(), authorities );
+        return new UserInfo( userId, currentUsername, getCurrentUserAuthorities() );
     }
 
-    private Long getUserId( String username )
+    @Override
+    public Long getUserId( String username )
     {
         UserCredentials credentials = userStore.getUserCredentialsByUsername( username );
 
@@ -166,7 +233,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean currentUserIsSuper()
     {
         User user = getCurrentUser();
@@ -175,7 +242,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Set<OrganisationUnit> getCurrentUserOrganisationUnits()
     {
         User user = getCurrentUser();
@@ -184,7 +251,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean currentUserIsAuthorized( String auth )
     {
         User user = getCurrentUser();
@@ -199,15 +266,58 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public void expireUserSessions()
+    public CurrentUserGroupInfo getCurrentUserGroupsInfo()
     {
-        UserDetails userDetails = getCurrentUserDetails();
+        UserInfo currentUserInfo = getCurrentUserInfo();
 
-        if ( userDetails != null )
+        if ( currentUserInfo == null )
         {
-            List<SessionInformation> sessions = sessionRegistry.getAllSessions( userDetails, false );
-            sessions.forEach( SessionInformation::expireNow );
+            return null;
         }
+
+        return currentUserGroupInfoCache
+            .get( currentUserInfo.getUsername(), this::getCurrentUserGroupsInfo ).orElse( null );
+    }
+
+    @Override
+    public CurrentUserGroupInfo getCurrentUserGroupsInfo( UserInfo userInfo )
+    {
+        if ( userInfo == null )
+        {
+            return null;
+        }
+
+        return currentUserGroupInfoCache
+            .get( userInfo.getUsername(), this::getCurrentUserGroupsInfo ).orElse( null );
+    }
+
+    @Override
+    public void invalidateUserGroupCache( String username )
+    {
+        try
+        {
+            currentUserGroupInfoCache.invalidate( username );
+        }
+        catch ( NullPointerException exception )
+        {
+            // Ignore if key doesn't exist
+        }
+    }
+
+    private CurrentUserGroupInfo getCurrentUserGroupsInfo( String username )
+    {
+        if ( username == null )
+        {
+            return null;
+        }
+
+        Long userId = USERNAME_ID_CACHE.get( username, this::getUserId ).orElse( null );
+
+        if ( userId == null )
+        {
+            return null;
+        }
+
+        return userStore.getCurrentUserGroupInfo( getCurrentUserInfo().getId() );
     }
 }

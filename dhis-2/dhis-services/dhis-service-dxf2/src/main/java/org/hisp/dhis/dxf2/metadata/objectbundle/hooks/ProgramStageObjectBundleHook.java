@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,16 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hibernate.Session;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -40,10 +43,10 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -54,10 +57,13 @@ public class ProgramStageObjectBundleHook
 {
     private final AclService aclService;
 
-    public ProgramStageObjectBundleHook( AclService aclService )
+    private final ProgramStageSectionService programStageSectionService;
+
+    public ProgramStageObjectBundleHook( AclService aclService, ProgramStageSectionService programStageSectionService )
     {
         checkNotNull( aclService );
         this.aclService = aclService;
+        this.programStageSectionService = programStageSectionService;
     }
 
     @Override
@@ -68,7 +74,7 @@ public class ProgramStageObjectBundleHook
             return new ArrayList<>();
         }
 
-        ProgramStage programStage = ( ProgramStage ) object;
+        ProgramStage programStage = (ProgramStage) object;
 
         List<ErrorReport> errors = new ArrayList<>();
 
@@ -98,11 +104,36 @@ public class ProgramStageObjectBundleHook
             return;
         }
 
-        ProgramStage programStage = ( ProgramStage ) object;
+        ProgramStage programStage = (ProgramStage) object;
 
         Session session = sessionFactory.getCurrentSession();
 
         updateProgramStageSections( session, programStage );
+    }
+
+    @Override
+    public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
+    {
+        if ( object == null || !object.getClass().isAssignableFrom( ProgramStage.class ) )
+            return;
+
+        deleteRemovedSection( (ProgramStage) persistedObject, (ProgramStage) object );
+    }
+
+    private void deleteRemovedSection( ProgramStage persistedProgramStage, ProgramStage importProgramStage )
+    {
+        List<String> importIds = importProgramStage.getProgramStageSections().stream()
+            .map( BaseIdentifiableObject::getUid )
+            .collect( Collectors.toList() );
+
+        List<ProgramStageSection> programStageSectionsToDelete = persistedProgramStage.getProgramStageSections()
+            .stream()
+            .filter( section -> !importIds.contains( section.getUid() ) )
+            .peek( programStageSectionService::deleteProgramStageSection )
+            .collect( Collectors.toList() );
+
+        persistedProgramStage.getProgramStageSections()
+            .removeAll( programStageSectionsToDelete );
     }
 
     private void updateProgramStageSections( Session session, ProgramStage programStage )
@@ -139,7 +170,8 @@ public class ProgramStageObjectBundleHook
 
             if ( dataElement == null || !aclService.canRead( bundle.getUser(), de ) )
             {
-                errors.add( new ErrorReport( DataElement.class, ErrorCode.E3012, identifier.getIdentifiersWithName( bundle.getUser() ),
+                errors.add( new ErrorReport( DataElement.class, ErrorCode.E3012,
+                    identifier.getIdentifiersWithName( bundle.getUser() ),
                     identifier.getIdentifiersWithName( de ) ) );
             }
         } );

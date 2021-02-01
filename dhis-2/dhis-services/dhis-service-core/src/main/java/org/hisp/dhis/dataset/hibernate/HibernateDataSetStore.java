@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataset.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,21 @@ package org.hisp.dhis.dataset.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataset.hibernate;
 
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
@@ -46,15 +48,12 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Lists;
 
 /**
  * @author Kristian Nordal
  */
-@Repository ( "org.hisp.dhis.dataset.DataSetStore" )
+@Repository( "org.hisp.dhis.dataset.DataSetStore" )
 public class HibernateDataSetStore
     extends HibernateIdentifiableObjectStore<DataSet>
     implements DataSetStore
@@ -66,11 +65,10 @@ public class HibernateDataSetStore
     private final PeriodService periodService;
 
     public HibernateDataSetStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
         PeriodService periodService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, DataSet.class, currentUserService, deletedObjectService, aclService,
-            true );
+        super( sessionFactory, jdbcTemplate, publisher, DataSet.class, currentUserService, aclService, true );
 
         checkNotNull( periodService );
 
@@ -109,19 +107,9 @@ public class HibernateDataSetStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<DataSet> parameters = newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "periodType" ), refreshedPeriodType ) ) ;
+            .addPredicate( root -> builder.equal( root.get( "periodType" ), refreshedPeriodType ) );
 
         return getList( builder, parameters );
-    }
-
-    @Override
-    public List<DataSet> getDataSetsForMobile( OrganisationUnit source )
-    {
-        String hql = "from DataSet d where :source in elements(d.sources) and d.mobile = true";
-
-        Query<DataSet> query = getQuery( hql );
-
-        return query.setParameter( "source", source ).list();
     }
 
     @Override

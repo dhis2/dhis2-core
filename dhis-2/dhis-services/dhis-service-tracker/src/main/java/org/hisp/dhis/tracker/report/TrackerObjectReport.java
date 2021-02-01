@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.report;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,19 @@ package org.hisp.dhis.tracker.report;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-import org.hisp.dhis.tracker.TrackerErrorCode;
-import org.hisp.dhis.tracker.TrackerType;
+package org.hisp.dhis.tracker.report;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import lombok.Data;
+
+import org.hisp.dhis.tracker.TrackerType;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -45,7 +46,7 @@ import java.util.Map;
 public class TrackerObjectReport
 {
     /**
-     * Type of object this @{@link TrackerObjectReport} represents.
+     * Type of object this {@link TrackerObjectReport} represents.
      */
     @JsonProperty
     private final TrackerType trackerType;
@@ -69,11 +70,36 @@ public class TrackerObjectReport
         this.trackerType = trackerType;
     }
 
-    public TrackerObjectReport( TrackerType trackerType, String uid, int index )
+    public TrackerObjectReport( TrackerType trackerType, String uid, Integer index )
     {
         this.trackerType = trackerType;
         this.uid = uid;
         this.index = index;
+    }
+
+    @JsonCreator
+    public TrackerObjectReport( @JsonProperty( "trackerType" ) TrackerType trackerType,
+        @JsonProperty( "uid" ) String uid, @JsonProperty( "index" ) Integer index,
+        @JsonProperty( "errorReports" ) List<TrackerErrorReport> errorReports )
+    {
+        this.trackerType = trackerType;
+        this.uid = uid;
+        this.index = index;
+        if ( errorReports != null )
+        {
+            List<TrackerErrorReport> errorCodeReportList;
+            for ( TrackerErrorReport errorReport : errorReports )
+            {
+                errorCodeReportList = this.errorReportsByCode.get( errorReport.getErrorCode() );
+
+                if ( errorCodeReportList == null )
+                {
+                    errorCodeReportList = new ArrayList<>();
+                }
+                errorCodeReportList.add( errorReport );
+                this.errorReportsByCode.put( errorReport.getErrorCode(), errorCodeReportList );
+            }
+        }
     }
 
     @JsonProperty
@@ -85,9 +111,9 @@ public class TrackerObjectReport
         return errorReports;
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Utility Methods
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     public boolean isEmpty()
     {

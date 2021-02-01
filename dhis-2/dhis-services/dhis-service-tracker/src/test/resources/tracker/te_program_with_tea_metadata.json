@@ -250,7 +250,7 @@
           "created": "2020-02-10T09:12:52.050",
           "name": "Person Attribute_Text",
           "displayName": "Person Attribute_Text",
-          "mandatory": true,
+          "mandatory": false,
           "displayShortName": "null Attribute_Text",
           "externalAccess": false,
           "valueType": "TEXT",

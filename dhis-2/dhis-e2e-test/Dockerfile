@@ -1,4 +1,4 @@
-FROM maven:3.5.3-jdk-8-slim
+FROM maven:3.6.3-openjdk-11-slim
 
 COPY pom.xml wait-for-it.sh /
 COPY config/dhis2_home/dhis.conf /config/dhis2_home/dhis.conf

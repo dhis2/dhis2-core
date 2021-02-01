@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,11 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
@@ -37,16 +38,16 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar.
@@ -55,20 +56,27 @@ import lombok.extern.slf4j.Slf4j;
 @Component( "org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" )
 public class RuleActionScheduleMessageImplementer extends NotificationRuleActionImplementer
 {
+    public static final String LOG_MESSAGE = "Notification with id:%s has been scheduled";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
+    private final ProgramNotificationInstanceService programNotificationInstanceService;
 
-    public RuleActionScheduleMessageImplementer( ProgramNotificationTemplateStore programNotificationTemplateStore,
-         NotificationLoggingService notificationLoggingService,
-         ProgramInstanceService programInstanceService,
-         ProgramStageInstanceService programStageInstanceService,
-         @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore )
+    private final NotificationTemplateService notificationTemplateService;
+
+    public RuleActionScheduleMessageImplementer( ProgramNotificationTemplateService programNotificationTemplateService,
+        NotificationLoggingService notificationLoggingService,
+        ProgramInstanceService programInstanceService,
+        ProgramStageInstanceService programStageInstanceService,
+        ProgramNotificationInstanceService programNotificationInstanceService,
+        NotificationTemplateService notificationTemplateService )
     {
-        super(programNotificationTemplateStore, notificationLoggingService, programInstanceService, programStageInstanceService);
-        this.programNotificationInstanceStore = programNotificationInstanceStore;
+        super( programNotificationTemplateService, notificationLoggingService, programInstanceService,
+            programStageInstanceService );
+        this.programNotificationInstanceService = programNotificationInstanceService;
+        this.notificationTemplateService = notificationTemplateService;
     }
 
     @Override
@@ -78,6 +86,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     }
 
     @Override
+    @Transactional
     public void implement( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
         if ( !validate( ruleEffect, programInstance ) )
@@ -87,22 +96,28 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
 
+        if ( template == null )
+        {
+            return;
+        }
+
         String key = generateKey( template, programInstance );
 
-        String date = ruleEffect.data();
+        String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
 
         if ( !isDateValid( date ) )
         {
             return;
         }
 
-        ProgramNotificationInstance notificationInstance = createNotificationInstance( template, date );
+        ProgramNotificationInstance notificationInstance = notificationTemplateService
+            .createNotificationInstance( template, date );
         notificationInstance.setProgramStageInstance( null );
         notificationInstance.setProgramInstance( programInstance );
 
-        programNotificationInstanceStore.save( notificationInstance );
+        programNotificationInstanceService.save( notificationInstance );
 
-        log.info( String.format( "Notification with id:%s has been scheduled", template.getUid() ) );
+        log.info( String.format( LOG_MESSAGE, template.getUid() ) );
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
@@ -110,8 +125,18 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     }
 
     @Override
+    @Transactional
     public void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
     {
+        checkNulls( ruleEffect, programStageInstance );
+
+        // For program without registration
+        if ( programStageInstance.getProgramStage().getProgram().isWithoutRegistration() )
+        {
+            handleSingleEvent( ruleEffect, programStageInstance );
+            return;
+        }
+
         if ( !validate( ruleEffect, programStageInstance.getProgramInstance() ) )
         {
             return;
@@ -119,22 +144,28 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
 
+        if ( template == null )
+        {
+            return;
+        }
+
         String key = generateKey( template, programStageInstance.getProgramInstance() );
 
-        String date = ruleEffect.data();
+        String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
 
         if ( !isDateValid( date ) )
         {
             return;
         }
 
-        ProgramNotificationInstance notificationInstance = createNotificationInstance( template, date );
+        ProgramNotificationInstance notificationInstance = notificationTemplateService
+            .createNotificationInstance( template, date );
         notificationInstance.setProgramStageInstance( programStageInstance );
         notificationInstance.setProgramInstance( null );
 
-        programNotificationInstanceStore.save( notificationInstance );
+        programNotificationInstanceService.save( notificationInstance );
 
-        log.info( String.format( "Notification with id:%s has been scheduled", template.getUid() ) );
+        log.info( String.format( LOG_MESSAGE, template.getUid() ) );
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );
@@ -143,12 +174,14 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     }
 
     @Override
+    @Transactional
     public void implementEnrollmentAction( RuleEffect ruleEffect, String programInstance )
     {
         implement( ruleEffect, programInstanceService.getProgramInstance( programInstance ) );
     }
 
     @Override
+    @Transactional
     public void implementEventAction( RuleEffect ruleEffect, String programStageInstance )
     {
         implement( ruleEffect, programStageInstanceService.getProgramStageInstance( programStageInstance ) );
@@ -157,6 +190,32 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     // -------------------------------------------------------------------------
     // Supportive Methods
     // -------------------------------------------------------------------------
+
+    private void handleSingleEvent( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
+    {
+        ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
+
+        if ( template == null )
+        {
+            return;
+        }
+
+        String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
+
+        if ( !isDateValid( date ) )
+        {
+            return;
+        }
+
+        ProgramNotificationInstance notificationInstance = notificationTemplateService
+            .createNotificationInstance( template, date );
+        notificationInstance.setProgramStageInstance( programStageInstance );
+        notificationInstance.setProgramInstance( null );
+
+        programNotificationInstanceService.save( notificationInstance );
+
+        log.info( String.format( LOG_MESSAGE, template.getUid() ) );
+    }
 
     private boolean isDateValid( String date )
     {
@@ -169,6 +228,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
         }
 
         log.error( "Invalid date: " + date );
+
         return false;
     }
 }

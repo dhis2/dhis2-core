@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.job;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,31 +25,34 @@ package org.hisp.dhis.tracker.job;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.artemis.Message;
-import org.hisp.dhis.artemis.MessageType;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+package org.hisp.dhis.tracker.job;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Builder;
+import lombok.Data;
+
+import org.hisp.dhis.artemis.Message;
+import org.hisp.dhis.artemis.MessageType;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 /**
  * Class holding data necessary for implementation of side effects.
+ *
  * @author Zubair Asghar
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder( builderClassName = "TrackerSideEffectBundleBuilder" )
+@JsonDeserialize( builder = TrackerSideEffectDataBundle.TrackerSideEffectBundleBuilder.class )
 public class TrackerSideEffectDataBundle implements Message
 {
     @JsonProperty
@@ -61,18 +62,18 @@ public class TrackerSideEffectDataBundle implements Message
     private Class<? extends BaseIdentifiableObject> klass;
 
     @JsonProperty
-    private BaseIdentifiableObject object;
+    private String object;
 
     @JsonProperty
     private JobConfiguration jobConfiguration;
 
     @JsonProperty
     @Builder.Default
-    private Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
+    private Map<String, List<TrackerRuleEngineSideEffect>> enrollmentRuleEffects = new HashMap<>();
 
     @JsonProperty
     @Builder.Default
-    private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
+    private Map<String, List<TrackerRuleEngineSideEffect>> eventRuleEffects = new HashMap<>();
 
     @JsonProperty
     private TrackerImportStrategy importStrategy;
@@ -88,5 +89,10 @@ public class TrackerSideEffectDataBundle implements Message
     public MessageType getMessageType()
     {
         return MessageType.TRACKER_SIDE_EFFECT;
+    }
+
+    @JsonPOJOBuilder( withPrefix = "" )
+    public static final class TrackerSideEffectBundleBuilder
+    {
     }
 }

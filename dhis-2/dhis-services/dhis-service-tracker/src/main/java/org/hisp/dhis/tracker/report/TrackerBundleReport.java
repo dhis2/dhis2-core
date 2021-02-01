@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.report;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,24 @@ package org.hisp.dhis.tracker.report;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
+package org.hisp.dhis.tracker.report;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.tracker.TrackerType;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
+ * The Bundle Report is responsible for aggregating the outcome of the
+ * persistence stage of the Tracker Import.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
@@ -48,9 +51,6 @@ import java.util.Map;
 @AllArgsConstructor
 public class TrackerBundleReport
 {
-    @JsonProperty
-    private TrackerBundleParams bundleParams;
-
     @JsonProperty
     @Builder.Default
     private TrackerStatus status = TrackerStatus.OK;
@@ -68,9 +68,9 @@ public class TrackerBundleReport
         return stats;
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Utility Methods
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     /**
      * Are there any errors present?

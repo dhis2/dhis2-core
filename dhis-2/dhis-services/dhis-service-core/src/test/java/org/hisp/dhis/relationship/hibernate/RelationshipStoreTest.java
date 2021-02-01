@@ -1,7 +1,5 @@
-package org.hisp.dhis.relationship.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.relationship.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.relationship.hibernate;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -36,8 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
-import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.*;
@@ -45,12 +43,9 @@ import org.hisp.dhis.relationship.*;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Category( IntegrationTest.class )
-public class RelationshipStoreTest
-    extends IntegrationTestBase
+public class RelationshipStoreTest extends TransactionalIntegrationTest
 {
     @Autowired
     private RelationshipService relationshipService;
@@ -119,7 +114,8 @@ public class RelationshipStoreTest
     @Test
     public void getByTrackedEntityInstance()
     {
-        List<Relationship> relationshipList = relationshipService.getRelationshipsByTrackedEntityInstance( trackedEntityInstanceA, true );
+        List<Relationship> relationshipList = relationshipService
+            .getRelationshipsByTrackedEntityInstance( trackedEntityInstanceA, true );
 
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( relationship ) );
@@ -128,7 +124,7 @@ public class RelationshipStoreTest
     @Test
     public void getByProgramStageInstance()
     {
-        Program programA = createProgram('A', new HashSet<>(), organisationUnit );
+        Program programA = createProgram( 'A', new HashSet<>(), organisationUnit );
         programService.addProgram( programA );
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setProgram( programA );
@@ -163,7 +159,8 @@ public class RelationshipStoreTest
 
         relationshipService.addRelationship( relationshipA );
 
-        List<Relationship> relationshipList = relationshipService.getRelationshipsByProgramStageInstance( programStageInstance, true );
+        List<Relationship> relationshipList = relationshipService
+            .getRelationshipsByProgramStageInstance( programStageInstance, true );
 
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( relationshipA ) );
@@ -174,7 +171,8 @@ public class RelationshipStoreTest
     @Test
     public void getByRelationshipType()
     {
-        List<Relationship> relationshipList = relationshipService.getRelationshipsByRelationshipType( relationshipType );
+        List<Relationship> relationshipList = relationshipService
+            .getRelationshipsByRelationshipType( relationshipType );
 
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( relationship ) );
@@ -186,12 +184,5 @@ public class RelationshipStoreTest
         Optional<Relationship> existing = relationshipService.getRelationshipByRelationship( relationship );
 
         assertTrue( existing.isPresent() );
-    }
-
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }

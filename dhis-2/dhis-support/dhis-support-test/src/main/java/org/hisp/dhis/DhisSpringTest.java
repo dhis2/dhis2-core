@@ -1,7 +1,5 @@
-package org.hisp.dhis;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,16 @@ package org.hisp.dhis;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis;
 
-import java.lang.reflect.Method;
-
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.hisp.dhis.config.UnitTestConfig;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.utils.TestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -48,26 +48,27 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration( classes = UnitTestConfig.class )
 @ActiveProfiles( profiles = { "test-h2" } )
 @Transactional
-public abstract class DhisSpringTest
-    extends
-    DhisConvenienceTest
+public abstract class DhisSpringTest extends BaseSpringTest
 {
-    // -------------------------------------------------------------------------
-    // ApplicationContextAware implementation
-    // -------------------------------------------------------------------------
-
-    @Autowired
-    protected ApplicationContext context;
-
-    // -------------------------------------------------------------------------
-    // Fixture
-    // -------------------------------------------------------------------------
+    protected boolean emptyDatabaseAfterTest()
+    {
+        return false;
+    }
 
     @Before
     public final void before()
         throws Exception
     {
-        executeStartupRoutines();
+        TestUtils.executeStartupRoutines( applicationContext );
+
+        boolean enableQueryLogging = dhisConfigurationProvider.getBoolean( ConfigurationKey.ENABLE_QUERY_LOGGING );
+
+        if ( enableQueryLogging )
+        {
+            Configurator.setLevel( "org.hisp.dhis.datasource.query", Level.INFO );
+            Configurator.setRootLevel( Level.INFO );
+        }
+
         setUpTest();
     }
 
@@ -76,52 +77,7 @@ public abstract class DhisSpringTest
         throws Exception
     {
         clearSecurityContext();
+
         tearDownTest();
-    }
-
-    /**
-     * Method to override.
-     */
-    protected void setUpTest()
-        throws Exception
-    {
-    }
-
-    protected void tearDownTest()
-        throws Exception
-    {
-    }
-
-    // -------------------------------------------------------------------------
-    // Utility methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * Retrieves a bean from the application context.
-     *
-     * @param beanId the identifier of the bean.
-     */
-    protected Object getBean( String beanId )
-    {
-        return context.getBean( beanId );
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private void executeStartupRoutines()
-        throws Exception
-    {
-        String id = "org.hisp.dhis.system.startup.StartupRoutineExecutor";
-
-        if ( context != null && context.containsBean( id ) )
-        {
-            Object object = context.getBean( id );
-
-            Method method = object.getClass().getMethod( "executeForTesting", new Class[0] );
-
-            method.invoke( object, new Object[0] );
-        }
     }
 }

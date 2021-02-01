@@ -1,7 +1,5 @@
-package org.hisp.dhis.fieldfilter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,13 @@ package org.hisp.dhis.fieldfilter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.ComplexNode;
+package org.hisp.dhis.fieldfilter;
 
 import java.util.Arrays;
 import java.util.List;
+
+import org.hisp.dhis.node.types.CollectionNode;
+import org.hisp.dhis.node.types.ComplexNode;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -40,7 +39,7 @@ import java.util.List;
 public interface FieldFilterService
 {
     List<String> SHARING_FIELDS = Arrays.asList(
-        "!user", "!publicAccess", "!userGroupAccesses", "!userAccesses", "!externalAccess" );
+        "!user", "!publicAccess", "!userGroupAccesses", "!userAccesses", "!externalAccess", "!sharing" );
 
     /**
      * Perform inclusion/exclusion on a list of objects.

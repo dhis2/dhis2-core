@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.domain;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,20 @@ package org.hisp.dhis.tracker.domain;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.vividsolutions.jts.geom.Geometry;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.organisationunit.FeatureType;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.locationtech.jts.geom.Geometry;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -46,28 +47,30 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrackedEntity
+public class TrackedEntity implements TrackerDto
 {
-    @JsonProperty
-    private String trackedEntityType;
+    private String uid;
 
     @JsonProperty
     private String trackedEntity;
 
     @JsonProperty
+    private String trackedEntityType;
+
+    @JsonProperty
+    private Instant createdAt;
+
+    @JsonProperty
+    private Instant createdAtClient;
+
+    @JsonProperty
+    private Instant updatedAt;
+
+    @JsonProperty
+    private Instant updatedAtClient;
+
+    @JsonProperty
     private String orgUnit;
-
-    @JsonProperty
-    private String created;
-
-    @JsonProperty
-    private String lastUpdated;
-
-    @JsonProperty
-    private String createdAtClient;
-
-    @JsonProperty
-    private String lastUpdatedAtClient;
 
     @JsonProperty
     private boolean inactive;
@@ -76,14 +79,10 @@ public class TrackedEntity
     private boolean deleted;
 
     @JsonProperty
-    @Builder.Default
-    private FeatureType featureType = FeatureType.NONE;
-
-    @JsonProperty
-    private String coordinates;
-
-    @JsonProperty
     private Geometry geometry;
+
+    @JsonProperty
+    private String storedBy;
 
     @JsonProperty
     @Builder.Default

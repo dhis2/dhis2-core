@@ -1,7 +1,5 @@
-package org.hisp.dhis.reporttable;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,14 @@ package org.hisp.dhis.reporttable;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.reporttable;
+
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.user.User;
-
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -44,6 +43,7 @@ public interface ReportTableService
     String ID = ReportTableService.class.getName();
 
     String MODE_REPORT = "report";
+
     String MODE_REPORT_TABLE = "table";
 
     /**
@@ -100,11 +100,11 @@ public interface ReportTableService
     List<ReportTable> getAllReportTables();
 
     /**
-     * Instantiates and populates a Grid populated with data from the ReportTable
-     * with the given identifier.
+     * Instantiates and populates a Grid populated with data from the
+     * ReportTable with the given identifier.
      *
-     * @param uid                 the ReportTable unique identifier.
-     * @param reportingPeriod     the reporting date.
+     * @param uid the ReportTable unique identifier.
+     * @param reportingPeriod the reporting date.
      * @param organisationUnitUid the organisation unit uid.
      * @return a Grid.
      */

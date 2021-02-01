@@ -1,7 +1,5 @@
-package org.hisp.dhis.interpretation.impl;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.interpretation.impl;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.interpretation.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -40,6 +39,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -149,22 +149,19 @@ public class DefaultInterpretationService
 
         Set<User> users = new HashSet<>();
 
-        if ( interpretation != null )
+        if ( user != null )
         {
-            if ( user != null )
-            {
-                interpretation.setUser( user );
-            }
-
-            if ( interpretation.getPeriod() != null )
-            {
-                interpretation.setPeriod( periodService.reloadPeriod( interpretation.getPeriod() ) );
-            }
-
-            users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
-            interpretation.setMentionsFromUsers( users );
-            updateSharingForMentions( interpretation, users );
+            interpretation.setUser( user );
         }
+
+        if ( interpretation.getPeriod() != null )
+        {
+            interpretation.setPeriod( periodService.reloadPeriod( interpretation.getPeriod() ) );
+        }
+
+        users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
+        interpretation.setMentionsFromUsers( users );
+        updateSharingForMentions( interpretation, users );
 
         interpretationStore.save( interpretation );
         notifySubscribers( interpretation, null, NotificationType.INTERPRETATION_CREATE );
@@ -191,8 +188,11 @@ public class DefaultInterpretationService
     {
         Set<User> users = MentionUtils.getMentionedUsers( comment.getText(), userService );
         comment.setMentionsFromUsers( users );
-        updateSharingForMentions( interpretation, users );
-        interpretationStore.update( interpretation );
+        comment.setLastUpdated( new Date() );
+        if ( updateSharingForMentions( interpretation, users ) )
+        {
+            interpretationStore.update( interpretation );
+        }
         notifySubscribers( interpretation, comment, NotificationType.COMMENT_UPDATE );
         sendMentionNotifications( interpretation, comment, users );
     }
@@ -239,60 +239,61 @@ public class DefaultInterpretationService
         return interpretationStore.getAllOrderedLastUpdated( first, max );
     }
 
-    private long sendNotificationMessage( Set<User> users, Interpretation interpretation, InterpretationComment comment, NotificationType notificationType )
+    private long sendNotificationMessage( Set<User> users, Interpretation interpretation, InterpretationComment comment,
+        NotificationType notificationType )
     {
         I18n i18n = i18nManager.getI18n();
-        String currentUsername = currentUserService.getCurrentUser().getUsername();
+        String currentUsername = currentUserService.getCurrentUsername();
         String interpretableName = interpretation.getObject().getName();
         String actionString;
         String details;
 
         switch ( notificationType )
         {
-            case INTERPRETATION_CREATE:
-                actionString = i18n.getString( "notification_interpretation_create" );
-                details = interpretation.getText();
-                break;
-            case INTERPRETATION_UPDATE:
-                actionString = i18n.getString( "notification_interpretation_update" );
-                details = interpretation.getText();
-                break;
-            case INTERPRETATION_LIKE:
-                actionString = i18n.getString( "notification_interpretation_like" );
-                details = "";
-                break;
-            case COMMENT_CREATE:
-                actionString = i18n.getString( "notification_comment_create" );
-                details = comment.getText();
-                break;
-            case COMMENT_UPDATE:
-                actionString = i18n.getString( "notification_comment_update" );
-                details = comment.getText();
-                break;
-            default:
-                throw new IllegalArgumentException( "Unknown notification type: " + notificationType );
+        case INTERPRETATION_CREATE:
+            actionString = i18n.getString( "notification_interpretation_create" );
+            details = interpretation.getText();
+            break;
+        case INTERPRETATION_UPDATE:
+            actionString = i18n.getString( "notification_interpretation_update" );
+            details = interpretation.getText();
+            break;
+        case INTERPRETATION_LIKE:
+            actionString = i18n.getString( "notification_interpretation_like" );
+            details = "";
+            break;
+        case COMMENT_CREATE:
+            actionString = i18n.getString( "notification_comment_create" );
+            details = comment.getText();
+            break;
+        case COMMENT_UPDATE:
+            actionString = i18n.getString( "notification_comment_update" );
+            details = comment.getText();
+            break;
+        default:
+            throw new IllegalArgumentException( "Unknown notification type: " + notificationType );
         }
 
         String subject = String.join( " ", Arrays.asList(
             i18n.getString( "notification_user" ),
             currentUsername,
             actionString,
-            i18n.getString( "notification_object_subscribed" )
-        ) );
+            i18n.getString( "notification_object_subscribed" ) ) );
 
         String fullBody = String.join( "\n\n", Arrays.asList(
             String.format( "%s: %s", subject, interpretableName ),
             Jsoup.parse( details ).text(),
-            String.format( "%s %s", i18n.getString( "go_to" ), getInterpretationLink( interpretation ) )
-        ) );
+            String.format( "%s %s", i18n.getString( "go_to" ), getInterpretationLink( interpretation ) ) ) );
 
         return messageService.sendSystemMessage( users, subject, fullBody );
     }
 
-    private void notifySubscribers( Interpretation interpretation, InterpretationComment comment, NotificationType notificationType )
+    private void notifySubscribers( Interpretation interpretation, InterpretationComment comment,
+        NotificationType notificationType )
     {
         IdentifiableObject interpretableObject = interpretation.getObject();
-        Schema interpretableObjectSchema = schemaService.getDynamicSchema( interpretableObject.getClass() );
+        Schema interpretableObjectSchema = schemaService
+            .getDynamicSchema( HibernateProxyUtils.getRealClass( interpretableObject ) );
 
         if ( interpretableObjectSchema.isSubscribable() )
         {
@@ -307,7 +308,8 @@ public class DefaultInterpretationService
         }
     }
 
-    private void sendMentionNotifications( Interpretation interpretation, InterpretationComment comment, Set<User> users )
+    private void sendMentionNotifications( Interpretation interpretation, InterpretationComment comment,
+        Set<User> users )
     {
         if ( interpretation == null || users.isEmpty() )
         {
@@ -337,7 +339,8 @@ public class DefaultInterpretationService
         messageService.sendSystemMessage( users, subjectContent.toString(), messageContent.toString() );
     }
 
-    private String getInterpretationLink( Interpretation interpretation ) {
+    private String getInterpretationLink( Interpretation interpretation )
+    {
         String path;
 
         switch ( interpretation.getType() )
@@ -347,8 +350,9 @@ public class DefaultInterpretationService
                 + interpretation.getUid();
             break;
         case VISUALIZATION:
-            path = "/dhis-web-data-visualizer/index.html#/" + interpretation.getVisualization().getUid() + "/interpretation/"
-                    + interpretation.getUid();
+            path = "/dhis-web-data-visualizer/index.html#/" + interpretation.getVisualization().getUid()
+                + "/interpretation/"
+                + interpretation.getUid();
             break;
         case REPORT_TABLE:
             path = "/dhis-web-pivot/index.html?id=" + interpretation.getReportTable().getUid() + "&interpretationid="
@@ -374,15 +378,21 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public void updateSharingForMentions( Interpretation interpretation, Set<User> users )
+    public boolean updateSharingForMentions( Interpretation interpretation, Set<User> users )
     {
+        boolean modified = false;
+        IdentifiableObject interpretationObject = interpretation.getObject();
+
         for ( User user : users )
         {
-            if ( !aclService.canRead( user, interpretation.getObject() ) )
+            if ( !aclService.canRead( user, interpretationObject ) )
             {
-                interpretation.getObject().getUserAccesses().add( new UserAccess( user, AccessStringHelper.READ ) );
+                interpretationObject.getSharing().addDtoUserAccess( new UserAccess( user, AccessStringHelper.READ ) );
+                modified = true;
             }
         }
+
+        return modified;
     }
 
     @Override

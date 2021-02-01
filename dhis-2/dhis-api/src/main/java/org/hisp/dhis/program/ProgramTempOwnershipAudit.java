@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -101,7 +100,8 @@ public class ProgramTempOwnershipAudit implements Serializable
 
         return Objects.equals( this.program, other.program )
             && Objects.equals( this.reason, other.reason ) && Objects.equals( this.created, other.created )
-            && Objects.equals( this.accessedBy, other.accessedBy ) && Objects.equals( this.entityInstance, other.entityInstance );
+            && Objects.equals( this.accessedBy, other.accessedBy )
+            && Objects.equals( this.entityInstance, other.entityInstance );
     }
 
     // -------------------------------------------------------------------------

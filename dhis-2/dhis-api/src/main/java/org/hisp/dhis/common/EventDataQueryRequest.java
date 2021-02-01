@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -578,6 +577,46 @@ public class EventDataQueryRequest
         public EventDataQueryRequestBuilder pageSize( Integer pageSize )
         {
             this.request.pageSize = pageSize;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder fromCriteria( EventsAnalyticsQueryCriteria criteria )
+        {
+            this.request.aggregationType = criteria.getAggregationType();
+            this.request.aggregateData = criteria.isAggregateData();
+            this.request.asc = criteria.getAsc();
+            this.request.collapseDataDimensions = criteria.isCollapseDataDimensions();
+            this.request.completedOnly = criteria.isCompletedOnly();
+            this.request.coordinateField = criteria.getCoordinateField();
+            this.request.collapseDataDimensions = criteria.isCollapseDataDimensions();
+            this.request.desc = criteria.getDesc();
+            this.request.dimension = criteria.getDimension();
+            this.request.displayProperty = criteria.getDisplayProperty();
+            this.request.endDate = criteria.getEndDate();
+            this.request.eventStatus = criteria.getEventStatus();
+            this.request.filter = criteria.getFilter();
+            this.request.hierarchyMeta = criteria.isHierarchyMeta();
+            this.request.includeMetadataDetails = criteria.isIncludeMetadataDetails();
+            this.request.limit = criteria.getLimit();
+            this.request.ouMode = criteria.getOuMode();
+            this.request.outputType = criteria.getOutputType();
+            this.request.page = criteria.getPage();
+            this.request.pageSize = criteria.getPageSize();
+            this.request.programStatus = criteria.getProgramStatus();
+            this.request.relativePeriodDate = criteria.getRelativePeriodDate();
+            this.request.showHierarchy = criteria.isShowHierarchy();
+            this.request.skipRounding = criteria.isSkipRounding();
+            this.request.skipData = criteria.isSkipData();
+            this.request.skipMeta = criteria.isSkipMeta();
+            this.request.sortOrder = criteria.getSortOrder();
+            this.request.stage = criteria.getStage();
+            this.request.startDate = criteria.getStartDate();
+            this.request.timeField = criteria.getTimeField();
+            this.request.userOrgUnit = criteria.getUserOrgUnit();
+            this.request.value = criteria.getValue();
+            this.request.dataIdScheme = criteria.getDataIdScheme();
+            this.request.orgUnitField = criteria.getOrgUnitField();
+            this.request.coordinatesOnly = criteria.isCoordinatesOnly();
             return this;
         }
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.job;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +25,24 @@ package org.hisp.dhis.tracker.job;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.job;
+
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.programrule.engine.RuleActionImplementer;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.tracker.converter.TrackerSideEffectConverterService;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
-
-
 /**
- * Class represents a thread which will be triggered as soon as tracker rule engine consumer consumes a message from
- * tracker rule engine queue. It loops through the list of rule effects and implement it if it has an associated
+ * Class represents a thread which will be triggered as soon as tracker rule
+ * engine consumer consumes a message from tracker rule engine queue. It loops
+ * through the list of rule effects and implement it if it has an associated
  * rule implementer class.
  *
  * @author Zubair Asghar
@@ -52,13 +52,18 @@ import java.util.Map;
 public class TrackerRuleEngineThread extends SecurityContextRunnable
 {
     private final List<RuleActionImplementer> ruleActionImplementers;
+
+    private final TrackerSideEffectConverterService trackerSideEffectConverterService;
+
     private final Notifier notifier;
 
     private TrackerSideEffectDataBundle sideEffectDataBundle;
 
-    public TrackerRuleEngineThread( List<RuleActionImplementer> ruleActionImplementers, Notifier notifier )
+    public TrackerRuleEngineThread( List<RuleActionImplementer> ruleActionImplementers, Notifier notifier,
+        TrackerSideEffectConverterService trackerSideEffectConverterService )
     {
         this.ruleActionImplementers = ruleActionImplementers;
+        this.trackerSideEffectConverterService = trackerSideEffectConverterService;
         this.notifier = notifier;
     }
 
@@ -70,15 +75,17 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
             return;
         }
 
-        Map<String, List<RuleEffect>> enrollmentRuleEffects = sideEffectDataBundle.getEnrollmentRuleEffects();
-        Map<String, List<RuleEffect>> eventRuleEffects = sideEffectDataBundle.getEventRuleEffects();
+        Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerSideEffectConverterService
+            .toRuleEffects( sideEffectDataBundle.getEnrollmentRuleEffects() );
+        Map<String, List<RuleEffect>> eventRuleEffects = trackerSideEffectConverterService
+            .toRuleEffects( sideEffectDataBundle.getEventRuleEffects() );
 
         for ( RuleActionImplementer ruleActionImplementer : ruleActionImplementers )
         {
             for ( Map.Entry<String, List<RuleEffect>> entry : enrollmentRuleEffects.entrySet() )
             {
                 entry.getValue()
-                    .parallelStream()
+                    .stream()
                     .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
                     .forEach( effect -> ruleActionImplementer.implementEnrollmentAction( effect, entry.getKey() ) );
             }
@@ -86,7 +93,7 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
             for ( Map.Entry<String, List<RuleEffect>> entry : eventRuleEffects.entrySet() )
             {
                 entry.getValue()
-                    .parallelStream()
+                    .stream()
                     .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
                     .forEach( effect -> ruleActionImplementer.implementEventAction( effect, entry.getKey() ) );
             }

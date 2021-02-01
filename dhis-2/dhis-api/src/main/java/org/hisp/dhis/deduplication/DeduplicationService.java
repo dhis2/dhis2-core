@@ -1,7 +1,5 @@
-package org.hisp.dhis.deduplication;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +25,27 @@ package org.hisp.dhis.deduplication;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.deduplication;
 
 import java.util.List;
 
 public interface DeduplicationService
 {
-        long addPotentialDuplicate( PotentialDuplicate potentialDuplicate );
+    long addPotentialDuplicate( PotentialDuplicate potentialDuplicate );
 
-        PotentialDuplicate getPotentialDuplicateById( long id );
+    PotentialDuplicate getPotentialDuplicateById( long id );
 
-        PotentialDuplicate getPotentialDuplicateByUid( String uid );
+    PotentialDuplicate getPotentialDuplicateByUid( String uid );
 
-        List<PotentialDuplicate> getAllPotentialDuplicates();
+    List<PotentialDuplicate> getAllPotentialDuplicates();
 
-        void markPotentialDuplicateInvalid( PotentialDuplicate potentialDuplicate );
+    void markPotentialDuplicateInvalid( PotentialDuplicate potentialDuplicate );
 
-        int countPotentialDuplicates( PotentialDuplicateQuery query );
+    int countPotentialDuplicates( PotentialDuplicateQuery query );
 
-        boolean exists( PotentialDuplicate potentialDuplicate );
+    boolean exists( PotentialDuplicate potentialDuplicate );
 
-        List<PotentialDuplicate> getAllPotentialDuplicates( PotentialDuplicateQuery query );
+    List<PotentialDuplicate> getAllPotentialDuplicates( PotentialDuplicateQuery query );
 
-        void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate );
+    void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate );
 }

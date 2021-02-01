@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.domain;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,20 @@ package org.hisp.dhis.tracker.domain;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.vividsolutions.jts.geom.Geometry;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import org.locationtech.jts.geom.Geometry;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -46,22 +47,24 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Enrollment
+public class Enrollment implements TrackerDto
 {
+    private String uid;
+
     @JsonProperty
     private String enrollment;
 
     @JsonProperty
-    private String created;
+    private Instant createdAt;
 
     @JsonProperty
-    private String lastUpdated;
+    private Instant createdAtClient;
 
     @JsonProperty
-    private String createdAtClient;
+    private Instant updatedAt;
 
     @JsonProperty
-    private String lastUpdatedAtClient;
+    private Instant updatedAtClient;
 
     @JsonProperty
     private String trackedEntityType;
@@ -82,22 +85,19 @@ public class Enrollment
     private String orgUnitName;
 
     @JsonProperty
-    private Date enrollmentDate;
+    private Instant enrolledAt;
 
     @JsonProperty
-    private Date incidentDate;
+    private Instant occurredAt;
 
     @JsonProperty
-    private boolean followup;
+    private boolean followUp;
 
     @JsonProperty
     private String completedBy;
 
     @JsonProperty
-    private Date completedDate;
-
-    @JsonProperty
-    private Coordinate coordinate;
+    private Instant completedAt;
 
     @JsonProperty
     private boolean deleted;

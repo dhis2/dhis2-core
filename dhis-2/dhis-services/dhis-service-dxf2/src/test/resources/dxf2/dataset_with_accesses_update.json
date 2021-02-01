@@ -56,10 +56,10 @@
       },
       "userAccesses": [
         {
-          "access": "rwrw----",
-          "displayName": "admin",
-          "id": "T12jeH7KPzk",
-          "userUid": "T12jeH7KPzk"
+          "user": {
+            "id": "T12jeH7KPzk"
+          },
+          "access":"rwrw----"
         }
       ]
     }

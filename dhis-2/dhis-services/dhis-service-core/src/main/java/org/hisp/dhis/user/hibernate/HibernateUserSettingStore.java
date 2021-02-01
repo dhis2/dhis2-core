@@ -1,7 +1,5 @@
-package org.hisp.dhis.user.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.user.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user.hibernate;
 
 import java.util.List;
 
@@ -87,11 +86,12 @@ public class HibernateUserSettingStore
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public UserSetting getUserSetting( User user, String name )
     {
         Session session = sessionFactory.getCurrentSession();
-        Query<UserSetting> query = session.createQuery( "from UserSetting us where us.user = :user and us.name = :name" );
+        Query<UserSetting> query = session
+            .createQuery( "from UserSetting us where us.user = :user and us.name = :name" );
         query.setParameter( "user", user );
         query.setParameter( "name", name );
         query.setCacheable( CACHEABLE );
@@ -100,7 +100,7 @@ public class HibernateUserSettingStore
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public List<UserSetting> getAllUserSettings( User user )
     {
         Session session = sessionFactory.getCurrentSession();

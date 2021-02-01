@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,13 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.data;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.analytics.*;
@@ -105,7 +104,7 @@ public class JdbcAnalyticsManagerTest
 
         subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
 
-        assertExpectedSql("desc");
+        assertExpectedSql( "desc" );
     }
 
     @Test
@@ -115,7 +114,27 @@ public class JdbcAnalyticsManagerTest
 
         subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
 
-        assertExpectedSql("desc");
+        assertExpectedSql( "desc" );
+    }
+
+    @Test
+    public void verifyQueryGeneratedWhenDataElementHasLastInPeriodAggregationType()
+    {
+        DataQueryParams params = createParams( AggregationType.LAST_IN_PERIOD );
+
+        subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
+
+        assertExpectedLastSql( "desc" );
+    }
+
+    @Test
+    public void verifyQueryGeneratedWhenDataElementHasLastInPeriodAvgOrgUnitAggregationType()
+    {
+        DataQueryParams params = createParams( AggregationType.LAST_IN_PERIOD_AVERAGE_ORG_UNIT );
+
+        subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
+
+        assertExpectedLastSql( "desc" );
     }
 
     private void mockRowSet()
@@ -124,7 +143,8 @@ public class JdbcAnalyticsManagerTest
         when( rowSet.next() ).thenReturn( false );
     }
 
-    private DataQueryParams createParams(AggregationType aggregationType) {
+    private DataQueryParams createParams( AggregationType aggregationType )
+    {
 
         DataElement deA = createDataElement( 'A', ValueType.INTEGER, aggregationType );
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
@@ -138,13 +158,27 @@ public class JdbcAnalyticsManagerTest
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) ).build();
     }
 
-    private void assertExpectedSql(String sortOrder) {
+    private void assertExpectedSql( String sortOrder )
+    {
 
         String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"level\",\"daysxvalue\","
             + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","
             + "row_number() over (partition by dx, ou, co, ao order by peenddate " + sortOrder + ", pestartdate "
             + sortOrder + ") as pe_rank "
             + "from analytics as ax where pestartdate >= '2005-01-31' and pestartdate <= '2015-01-31' "
+            + "and (value is not null or textvalue is not null))";
+
+        assertThat( sql.getValue(), containsString( lastAggregationTypeSql ) );
+    }
+
+    private void assertExpectedLastSql( String sortOrder )
+    {
+
+        String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"level\",\"daysxvalue\","
+            + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","
+            + "row_number() over (partition by dx, ou, co, ao order by peenddate " + sortOrder + ", pestartdate "
+            + sortOrder + ") as pe_rank "
+            + "from analytics as ax where pestartdate >= '2015-01-01' and pestartdate <= '2015-01-31' "
             + "and (value is not null or textvalue is not null))";
 
         assertThat( sql.getValue(), containsString( lastAggregationTypeSql ) );

@@ -1,7 +1,5 @@
-package org.hisp.dhis.user.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,28 @@ package org.hisp.dhis.user.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user.hibernate;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Root;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
@@ -34,15 +54,16 @@ import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
@@ -53,23 +74,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.persistence.TypedQuery;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Nguyen Hong Duc
  */
+@Slf4j
 @Repository( "org.hisp.dhis.user.UserStore" )
 public class HibernateUserStore
     extends HibernateIdentifiableObjectStore<User>
@@ -79,13 +87,20 @@ public class HibernateUserStore
 
     public HibernateUserStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService, SchemaService schemaService )
+        AclService aclService, SchemaService schemaService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, User.class, currentUserService, deletedObjectService,
-            aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, User.class, currentUserService, aclService, true );
 
         checkNotNull( schemaService );
         this.schemaService = schemaService;
+    }
+
+    @Override
+    public void save( User user, boolean clearSharing )
+    {
+        super.save( user, clearSharing );
+
+        currentUserService.invalidateUserGroupCache( user.getUsername() );
     }
 
     @Override
@@ -120,6 +135,7 @@ public class HibernateUserStore
         {
             return Collections.emptyList();
         }
+
         final List<User> users = new ArrayList<>( result.size() );
         for ( Object o : result )
         {
@@ -129,7 +145,7 @@ public class HibernateUserStore
             }
             else if ( o.getClass().isArray() )
             {
-                users.add( (User) ( (Object[]) o )[0] );
+                users.add( (User) ((Object[]) o)[0] );
             }
         }
         return users;
@@ -140,7 +156,8 @@ public class HibernateUserStore
         SqlHelper hlp = new SqlHelper();
 
         List<Order> convertedOrder = null;
-        String hql;
+        String hql = null;
+
         if ( count )
         {
             hql = "select count(distinct u) ";
@@ -150,16 +167,32 @@ public class HibernateUserStore
             Schema userSchema = schemaService.getSchema( User.class );
             convertedOrder = QueryUtils.convertOrderStrings( orders, userSchema );
 
-            hql = Stream.of( "select distinct u", JpaQueryUtils.createSelectOrderExpression( convertedOrder, "u" ) ).filter( Objects::nonNull ).collect( Collectors.joining( "," ) );
+            hql = Stream.of( "select distinct u", JpaQueryUtils.createSelectOrderExpression( convertedOrder, "u" ) )
+                .filter( Objects::nonNull ).collect( Collectors.joining( "," ) );
             hql += " ";
         }
 
-        hql +=
-            "from User u " +
-            "inner join u.userCredentials uc " +
-            "left join u.groups g ";
+        hql += "from User u ";
 
-        if ( !params.getOrganisationUnits().isEmpty() )
+        if ( count )
+        {
+            hql += "inner join u.userCredentials uc ";
+        }
+        else
+        {
+            hql += "inner join fetch u.userCredentials uc ";
+        }
+
+        if ( params.isPrefetchUserGroups() && !count )
+        {
+            hql += "left join fetch u.groups g ";
+        }
+        else
+        {
+            hql += "left join u.groups g ";
+        }
+
+        if ( params.hasOrganisationUnits() )
         {
             hql += "left join u.organisationUnits ou ";
 
@@ -180,6 +213,11 @@ public class HibernateUserStore
             }
         }
 
+        if ( params.hasUserGroups() )
+        {
+            hql += hlp.whereAnd() + " g.id in (:userGroupIds) ";
+        }
+
         if ( params.getDisabled() != null )
         {
             hql += hlp.whereAnd() + " uc.disabled = :disabled ";
@@ -193,9 +231,8 @@ public class HibernateUserStore
         if ( params.getQuery() != null )
         {
             hql += hlp.whereAnd() + " (" +
-                "lower(u.firstName) like :key " +
+                "concat(lower(u.firstName),' ',lower(u.surname)) like :key " +
                 "or lower(u.email) like :key " +
-                "or lower(u.surname) like :key " +
                 "or lower(uc.username) like :key) ";
         }
 
@@ -269,6 +306,12 @@ public class HibernateUserStore
             hql += "order by " + StringUtils.defaultString( orderExpression, "u.surname, u.firstName" );
         }
 
+        // ---------------------------------------------------------------------
+        // Query parameters
+        // ---------------------------------------------------------------------
+
+        log.debug( "User query HQL: '{}'", hql );
+
         Query query = getQuery( hql );
 
         if ( params.getQuery() != null )
@@ -283,7 +326,8 @@ public class HibernateUserStore
 
         if ( params.isCanManage() && params.getUser() != null )
         {
-            Collection<Long> managedGroups = IdentifiableObjectUtils.getIdentifiers( params.getUser().getManagedGroups() );
+            Collection<Long> managedGroups = IdentifiableObjectUtils
+                .getIdentifiers( params.getUser().getManagedGroups() );
 
             query.setParameterList( "ids", managedGroups );
         }
@@ -302,7 +346,8 @@ public class HibernateUserStore
 
         if ( params.isDisjointRoles() && params.getUser() != null )
         {
-            Collection<Long> roles = IdentifiableObjectUtils.getIdentifiers( params.getUser().getUserCredentials().getUserAuthorityGroups() );
+            Collection<Long> roles = IdentifiableObjectUtils
+                .getIdentifiers( params.getUser().getUserCredentials().getUserAuthorityGroups() );
 
             query.setParameterList( "roles", roles );
         }
@@ -322,13 +367,14 @@ public class HibernateUserStore
             query.setParameter( "inactiveSince", params.getInactiveSince() );
         }
 
-        if ( !params.getOrganisationUnits().isEmpty() )
+        if ( params.hasOrganisationUnits() )
         {
             if ( params.isIncludeOrgUnitChildren() )
             {
                 for ( int i = 0; i < params.getOrganisationUnits().size(); i++ )
                 {
-                    query.setParameter( String.format( "ouUid%d", i ), "%/" + params.getOrganisationUnits().get( i ).getUid() + "%" );
+                    query.setParameter( String.format( "ouUid%d", i ),
+                        "%/" + params.getOrganisationUnits().get( i ).getUid() + "%" );
                 }
             }
             else
@@ -339,14 +385,24 @@ public class HibernateUserStore
             }
         }
 
-        if ( params.getFirst() != null )
+        if ( params.hasUserGroups() )
         {
-            query.setFirstResult( params.getFirst() );
+            Collection<Long> userGroupIds = IdentifiableObjectUtils.getIdentifiers( params.getUserGroups() );
+
+            query.setParameterList( "userGroupIds", userGroupIds );
         }
 
-        if ( params.getMax() != null )
+        if ( !count )
         {
-            query.setMaxResults( params.getMax() ).list();
+            if ( params.getFirst() != null )
+            {
+                query.setFirstResult( params.getFirst() );
+            }
+
+            if ( params.getMax() != null )
+            {
+                query.setMaxResults( params.getMax() );
+            }
         }
 
         return query;
@@ -362,7 +418,7 @@ public class HibernateUserStore
     @Override
     public User getUser( long id )
     {
-        return sessionFactory.getCurrentSession().get( User.class, id );
+        return getSession().get( User.class, id );
     }
 
     @Override
@@ -375,10 +431,45 @@ public class HibernateUserStore
 
         String hql = "from UserCredentials uc where uc.username = :username";
 
-        TypedQuery<UserCredentials> typedQuery = sessionFactory.getCurrentSession().createQuery( hql, UserCredentials.class );
+        TypedQuery<UserCredentials> typedQuery = sessionFactory.getCurrentSession().createQuery( hql,
+            UserCredentials.class );
         typedQuery.setParameter( "username", username );
         typedQuery.setHint( QueryHints.CACHEABLE, true );
 
         return QueryUtils.getSingleResult( typedQuery );
+    }
+
+    @Override
+    public CurrentUserGroupInfo getCurrentUserGroupInfo( long userId )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery<Object[]> query = builder.createQuery( Object[].class );
+        Root<User> root = query.from( User.class );
+        query.where( builder.equal( root.get( "id" ), userId ) );
+        query.select( builder.array( root.get( "uid" ), root.join( "groups", JoinType.LEFT ).get( "uid" ) ) );
+
+        List<Object[]> results = getSession().createQuery( query ).getResultList();
+
+        CurrentUserGroupInfo currentUserGroupInfo = new CurrentUserGroupInfo();
+
+        if ( CollectionUtils.isEmpty( results ) )
+        {
+            return currentUserGroupInfo;
+        }
+
+        for ( Object[] result : results )
+        {
+            if ( currentUserGroupInfo.getUserUID() == null )
+            {
+                currentUserGroupInfo.setUserUID( result[0].toString() );
+            }
+
+            if ( result[1] != null )
+            {
+                currentUserGroupInfo.getUserGroupUIDs().add( result[1].toString() );
+            }
+        }
+
+        return currentUserGroupInfo;
     }
 }

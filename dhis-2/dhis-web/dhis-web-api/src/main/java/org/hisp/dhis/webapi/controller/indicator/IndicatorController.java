@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.indicator;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +25,15 @@ package org.hisp.dhis.webapi.controller.indicator;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.indicator;
 
+import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
+
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletResponse;
+
+import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
@@ -44,11 +50,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
-import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -61,6 +62,9 @@ public class IndicatorController
     private ExpressionService expressionService;
 
     @Autowired
+    private ExpressionResolver resolver;
+
+    @Autowired
     private I18nManager i18nManager;
 
     @RequestMapping( value = "/expression/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
@@ -69,7 +73,9 @@ public class IndicatorController
     {
         I18n i18n = i18nManager.getI18n();
 
-        ExpressionValidationOutcome result = expressionService.expressionIsValid( expression, INDICATOR_EXPRESSION );
+        String resolvedExpression = resolver.resolve( expression );
+        ExpressionValidationOutcome result = expressionService.expressionIsValid( resolvedExpression,
+            INDICATOR_EXPRESSION );
 
         DescriptiveWebMessage message = new DescriptiveWebMessage();
         message.setStatus( result.isValid() ? Status.OK : Status.ERROR );
@@ -77,7 +83,8 @@ public class IndicatorController
 
         if ( result.isValid() )
         {
-            message.setDescription( expressionService.getExpressionDescription( expression, INDICATOR_EXPRESSION ) );
+            message.setDescription(
+                expressionService.getExpressionDescription( resolvedExpression, INDICATOR_EXPRESSION ) );
         }
 
         webMessageService.sendJson( message, response );

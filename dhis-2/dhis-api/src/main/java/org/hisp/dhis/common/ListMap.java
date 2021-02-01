@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,20 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
+ * Mapping between keys T and a list of values V.
+ *
  * @author Lars Helge Overland
  */
 public class ListMap<T, V>
@@ -46,7 +53,7 @@ public class ListMap<T, V>
     {
         super();
     }
-    
+
     public ListMap( ListMap<T, V> listMap )
     {
         super( listMap );
@@ -79,51 +86,59 @@ public class ListMap<T, V>
         }
     }
 
+    public void putAll( ListMap<T, V> map )
+    {
+        for ( T key : map.keySet() )
+        {
+            putValues( key, map.get( key ) );
+        }
+    }
+
     public Collection<V> allValues()
     {
-        Collection<V> results = new ArrayList<>();
-        
-        for ( Map.Entry<T, List<V>> entry: entrySet() )
+        List<V> results = new ArrayList<>();
+
+        for ( Map.Entry<T, List<V>> entry : entrySet() )
         {
             results.addAll( entry.getValue() );
         }
-        
+
         return results;
     }
 
-    public Set<V> uniqueValues( )
+    public Set<V> uniqueValues()
     {
         Set<V> results = new HashSet<>();
-        
-        for ( Map.Entry<T, List<V>> entry: entrySet() )
+
+        for ( Map.Entry<T, List<V>> entry : entrySet() )
         {
             results.addAll( entry.getValue() );
         }
-        
+
         return results;
     }
 
     public boolean containsValue( T key, V value )
     {
         List<V> list = this.get( key );
-        
+
         if ( list == null )
         {
             return false;
         }
-        
+
         if ( list.contains( value ) )
         {
             return true;
         }
-        
+
         return false;
     }
 
     /**
-     * Produces a ListMap based on the given list of values. The key for
-     * each entry is produced by applying the given keyMapper function.
-     * 
+     * Produces a ListMap based on the given list of values. The key for each
+     * entry is produced by applying the given keyMapper function.
+     *
      * @param values the values of the map.
      * @param keyMapper the function producing the key for each entry.
      * @return a ListMap.
@@ -131,39 +146,40 @@ public class ListMap<T, V>
     public static <T, V> ListMap<T, V> getListMap( List<V> values, Function<V, T> keyMapper )
     {
         ListMap<T, V> map = new ListMap<>();
-        
+
         for ( V value : values )
         {
             T key = keyMapper.apply( value );
-            
+
             map.putValue( key, value );
         }
-        
+
         return map;
     }
 
     /**
-     * Produces a ListMap based on the given list of values. The key for
-     * each entry is produced by applying the given keyMapper function. The value
-     * for each entry is produced by applying the given valueMapper function. 
-     * 
+     * Produces a ListMap based on the given list of values. The key for each
+     * entry is produced by applying the given keyMapper function. The value for
+     * each entry is produced by applying the given valueMapper function.
+     *
      * @param values the values of the map.
      * @param keyMapper the function producing the key for each entry.
      * @param valueMapper the function producing the value for each entry.
      * @return a ListMap.
      */
-    public static <T, U, V> ListMap<T, U> getListMap( List<V> values, Function<V, T> keyMapper, Function<V, U> valueMapper )
+    public static <T, U, V> ListMap<T, U> getListMap( List<V> values, Function<V, T> keyMapper,
+        Function<V, U> valueMapper )
     {
         ListMap<T, U> map = new ListMap<>();
-        
+
         for ( V value : values )
         {
             T key = keyMapper.apply( value );
             U val = valueMapper.apply( value );
-            
+
             map.putValue( key, val );
         }
-        
+
         return map;
     }
 

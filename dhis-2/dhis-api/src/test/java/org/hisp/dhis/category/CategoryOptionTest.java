@@ -1,7 +1,5 @@
-package org.hisp.dhis.category;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,16 @@ package org.hisp.dhis.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.category;
+
+import static org.junit.Assert.*;
 
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.period.DailyPeriodType;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -48,16 +54,59 @@ public class CategoryOptionTest
     @Test
     public void isDefault()
     {
-        CategoryOption category = new CategoryOption();
-        category.setName( CategoryOption.DEFAULT_NAME );
-        Assert.assertTrue( category.isDefault() );
+        CategoryOption categoryOption = new CategoryOption();
+        categoryOption.setName( CategoryOption.DEFAULT_NAME );
+        Assert.assertTrue( categoryOption.isDefault() );
     }
 
     @Test
     public void isNotDefault()
     {
-        CategoryOption category = new CategoryOption();
-        category.setName( CategoryOption.DEFAULT_NAME + "x" );
-        Assert.assertFalse( category.isDefault() );
+        CategoryOption categoryOption = new CategoryOption();
+        categoryOption.setName( CategoryOption.DEFAULT_NAME + "x" );
+        Assert.assertFalse( categoryOption.isDefault() );
+    }
+
+    @Test
+    public void getAdjustedDate_DataSet()
+    {
+        CategoryOption categoryOption = new CategoryOption();
+        DataSet dataSet = new DataSet( "dataSet", new DailyPeriodType() );
+
+        assertNull( categoryOption.getAdjustedEndDate( dataSet ) );
+
+        categoryOption.setEndDate( new DateTime( 2020, 1, 1, 0, 0 ).toDate() );
+        assertEquals( new DateTime( 2020, 1, 1, 0, 0 ).toDate(), categoryOption.getAdjustedEndDate( dataSet ) );
+
+        dataSet.setOpenPeriodsAfterCoEndDate( 3 );
+        assertEquals( new DateTime( 2020, 1, 4, 0, 0 ).toDate(), categoryOption.getAdjustedEndDate( dataSet ) );
+    }
+
+    @Test
+    public void getAdjustedDate_DataElement()
+    {
+        CategoryOption categoryOption = new CategoryOption();
+
+        DataElement dataElement = new DataElement();
+
+        DataSet dataSetA = new DataSet( "dataSetA", new MonthlyPeriodType() );
+        DataSet dataSetB = new DataSet( "dataSetB", new MonthlyPeriodType() );
+
+        dataSetA.addDataSetElement( dataElement );
+        dataSetB.addDataSetElement( dataElement );
+
+        dataElement.getDataSetElements().addAll( dataSetA.getDataSetElements() );
+        dataElement.getDataSetElements().addAll( dataSetB.getDataSetElements() );
+
+        assertNull( categoryOption.getAdjustedEndDate( dataElement ) );
+
+        categoryOption.setEndDate( new DateTime( 2020, 1, 1, 0, 0 ).toDate() );
+        assertEquals( new DateTime( 2020, 1, 1, 0, 0 ).toDate(), categoryOption.getAdjustedEndDate( dataElement ) );
+
+        dataSetA.setOpenPeriodsAfterCoEndDate( 2 );
+        assertEquals( new DateTime( 2020, 3, 1, 0, 0 ).toDate(), categoryOption.getAdjustedEndDate( dataElement ) );
+
+        dataSetB.setOpenPeriodsAfterCoEndDate( 4 );
+        assertEquals( new DateTime( 2020, 5, 1, 0, 0 ).toDate(), categoryOption.getAdjustedEndDate( dataElement ) );
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.programrule;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
@@ -35,12 +36,9 @@ import org.hisp.dhis.program.Program;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author markusbekken
  */
-@Transactional
 @Service( "org.hisp.dhis.programrule.ProgramRuleVariableService" )
 public class DefaultProgramRuleVariableService
     implements ProgramRuleVariableService
@@ -63,6 +61,7 @@ public class DefaultProgramRuleVariableService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long addProgramRuleVariable( ProgramRuleVariable programRuleVariable )
     {
         programRuleVariableStore.save( programRuleVariable );
@@ -70,36 +69,42 @@ public class DefaultProgramRuleVariableService
     }
 
     @Override
+    @Transactional
     public void deleteProgramRuleVariable( ProgramRuleVariable programRuleVariable )
     {
         programRuleVariableStore.delete( programRuleVariable );
     }
 
     @Override
+    @Transactional
     public void updateProgramRuleVariable( ProgramRuleVariable programRuleVariable )
     {
         programRuleVariableStore.update( programRuleVariable );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ProgramRuleVariable getProgramRuleVariable( long id )
     {
         return programRuleVariableStore.get( id );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRuleVariable> getAllProgramRuleVariable()
     {
         return programRuleVariableStore.getAll();
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRuleVariable> getProgramRuleVariable( Program program )
     {
         return programRuleVariableStore.get( program );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean isLinkedToProgramRuleVariable( Program program, DataElement dataElement )
     {
         List<ProgramRuleVariable> ruleVariables = programRuleVariableStore.getProgramVariables( program, dataElement );
@@ -108,12 +113,14 @@ public class DefaultProgramRuleVariableService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRuleVariable> getVariablesWithNoDataElement()
     {
         return programRuleVariableStore.getVariablesWithNoDataElement();
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRuleVariable> getVariablesWithNoAttribute()
     {
         return programRuleVariableStore.getVariablesWithNoAttribute();

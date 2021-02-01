@@ -1,7 +1,5 @@
-package org.hisp.dhis.attribute;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,29 +25,29 @@ package org.hisp.dhis.attribute;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.attribute;
+
+import java.io.Serializable;
+import java.util.Objects;
+
+import org.hisp.dhis.common.CustomAttributeSerializer;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.CustomAttributeSerializer;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement( localName = "attributeValues", namespace = DxfNamespaces.DXF_2_0 )
 public class AttributeValue
-    implements Serializable
+    implements Serializable, EmbeddedObject
 {
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = -6625127769248931066L;
-
     private Attribute attribute;
 
     private String value;
@@ -77,15 +75,29 @@ public class AttributeValue
     }
 
     @Override
-    public boolean equals( Object o )
+    public boolean equals( Object object )
     {
-        if ( this == o ) return true;
-        if ( o == null || getClass() != o.getClass() ) return false;
+        if ( this == object )
+        {
+            return true;
+        }
 
-        AttributeValue that = ( AttributeValue ) o;
+        if ( object == null || getClass() != object.getClass() )
+        {
+            return false;
+        }
 
-        if ( !Objects.equals( attribute, that.attribute ) ) return false;
-        if ( !Objects.equals( value, that.value ) ) return false;
+        AttributeValue that = (AttributeValue) object;
+
+        if ( !Objects.equals( attribute, that.attribute ) )
+        {
+            return false;
+        }
+
+        if ( !Objects.equals( value, that.value ) )
+        {
+            return false;
+        }
 
         return true;
     }
@@ -99,17 +111,19 @@ public class AttributeValue
         return result;
     }
 
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return "AttributeValue{" +
-                "class=" + getClass() +
-                ", value='" + value + '\'' +
+            "class=" + getClass() +
+            ", value='" + value + '\'' +
             ", attribute='" + attribute + '\'' +
-                '}';
+            '}';
     }
 
     @JsonProperty
     @JacksonXmlProperty
+    @Property( required = Property.Value.TRUE )
     public String getValue()
     {
         return value;
@@ -122,6 +136,7 @@ public class AttributeValue
 
     @JsonProperty
     @JsonSerialize( using = CustomAttributeSerializer.class )
+    @Property( value = PropertyType.REFERENCE, required = Property.Value.TRUE )
     public Attribute getAttribute()
     {
         return attribute;

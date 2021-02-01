@@ -1,7 +1,5 @@
-package org.hisp.dhis.cache;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.cache;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.cache;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -46,10 +45,10 @@ public interface Cache<V>
     Optional<V> getIfPresent( String key );
 
     /**
-     * Returns the value associated with the {@code key} in this cache instance,
-     * or {@code defaultValue} if there is no cached value.Note: This method
-     * will return the defaultValue in case of absence of associated cache
-     * value. But will not store the default value into the cache.
+     * Returns the value associated with the {@code key} in this cache instance.
+     * Note: This method will return the defaultValue in case of absence of
+     * associated cache value, but will not store the default value into the
+     * cache.
      *
      * @param key the key whose associated value is to be retrieved
      * @return the value wrapped in Optional, or
@@ -85,7 +84,7 @@ public interface Cache<V>
     /**
      * Associates the {@code value} with the {@code key} in this cache. If the
      * cache previously contained a value associated with the {@code key}, the
-     * old value is replaced by the new {@code value}.Prefer
+     * old value is replaced by the new {@code value}. Prefer
      * {@link #get(String, Function)} when using the conventional "if cached,
      * return; otherwise create, cache and return" pattern.
      *
@@ -122,10 +121,10 @@ public interface Cache<V>
      * this method does not clear anything.
      */
     void invalidateAll();
-    
+
     /**
      * Returns the type of the cache. IN_MEMORY or REDIS or NONE.
-     * 
+     *
      * @return
      */
     CacheType getCacheType();

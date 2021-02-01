@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.domain;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,16 @@ package org.hisp.dhis.tracker.domain;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.Instant;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -41,16 +43,22 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Relationship
+public class Relationship implements TrackerDto
 {
     @JsonProperty
-    private String relationshipType;
+    private String relationship;
 
     @JsonProperty
     private String relationshipName;
 
     @JsonProperty
-    private String relationship;
+    private String relationshipType;
+
+    @JsonProperty
+    private Instant createdAt;
+
+    @JsonProperty
+    private Instant updatedAt;
 
     @JsonProperty
     private boolean bidirectional;
@@ -61,9 +69,9 @@ public class Relationship
     @JsonProperty
     private RelationshipItem to;
 
-    @JsonProperty
-    private String created;
-
-    @JsonProperty
-    private String lastUpdated;
+    @Override
+    public String getUid()
+    {
+        return relationship;
+    }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataset.notifications;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,13 @@ package org.hisp.dhis.dataset.notifications;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataset.notifications;
+
+import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.notification.NotificationTrigger;
-
-import java.util.List;
 
 /**
  * Created by zubair@dhis2.org on 13.07.17.
@@ -40,7 +39,8 @@ import java.util.List;
 public interface DataSetNotificationTemplateStore
     extends IdentifiableObjectStore<DataSetNotificationTemplate>
 {
-    List<DataSetNotificationTemplate> getNotificationsByTriggerType( DataSet dataSet, DataSetNotificationTrigger trigger );
+    List<DataSetNotificationTemplate> getNotificationsByTriggerType( DataSet dataSet,
+        DataSetNotificationTrigger trigger );
 
     List<DataSetNotificationTemplate> getScheduledNotifications( NotificationTrigger trigger );
 }

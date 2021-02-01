@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.command;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.sms.command;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.command;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 import java.util.Set;
@@ -37,8 +38,6 @@ import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @Service( "org.hisp.dhis.sms.command.SMSCommandService" )
 public class DefaultSMSCommandService
@@ -54,6 +53,7 @@ public class DefaultSMSCommandService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<SMSCommand> getSMSCommands()
     {
         return smsCommandStore.getAll();
@@ -65,18 +65,21 @@ public class DefaultSMSCommandService
     }
 
     @Override
+    @Transactional
     public void save( SMSCommand cmd )
     {
         smsCommandStore.save( cmd );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public SMSCommand getSMSCommand( long id )
     {
         return smsCommandStore.get( id );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public SMSCommand getSMSCommand( String name )
     {
         return smsCommandStore.getByName( name );
@@ -90,7 +93,7 @@ public class DefaultSMSCommandService
 
         if ( command != null )
         {
-            command.getCodes().addAll( codes);
+            command.getCodes().addAll( codes );
 
             smsCommandStore.update( command );
         }
@@ -104,14 +107,14 @@ public class DefaultSMSCommandService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<SMSCommand> getJ2MESMSCommands()
     {
         return smsCommandStore.getJ2MESMSCommands();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public SMSCommand getSMSCommand( String commandName, ParserType parserType )
     {
         return smsCommandStore.getSMSCommand( commandName, parserType );
@@ -143,7 +146,7 @@ public class DefaultSMSCommandService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int countDataSetSmsCommands( DataSet dataSet )
     {
         return smsCommandStore.countDataSetSmsCommands( dataSet );

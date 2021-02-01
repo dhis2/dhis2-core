@@ -1,7 +1,5 @@
-package org.hisp.dhis.period;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
 
 import static org.junit.Assert.assertEquals;
 
@@ -138,5 +137,15 @@ public class FinancialNovemberPeriodTypeTest
 
         assertEquals( 11, periods.size() );
         assertEquals( periodType.createPeriod( new DateTime( 2004, 11, 1, 0, 0 ).toDate() ), periods.get( 0 ) );
+    }
+
+    @Test
+    public void testGetRewindedDate()
+    {
+        assertEquals( new DateTime( 2020, 1, 15, 0, 0 ).toDate(),
+            periodType.getRewindedDate( new DateTime( 2023, 1, 15, 0, 0 ).toDate(), 3 ) );
+
+        assertEquals( new DateTime( 2022, 1, 1, 0, 0 ).toDate(),
+            periodType.getRewindedDate( new DateTime( 2020, 1, 1, 0, 0 ).toDate(), -2 ) );
     }
 }

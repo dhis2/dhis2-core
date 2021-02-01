@@ -1,7 +1,5 @@
-package org.hisp.dhis.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,26 @@ package org.hisp.dhis.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.hibernate;
 
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import javax.persistence.NonUniqueResultException;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -49,19 +62,8 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -71,15 +73,23 @@ public class HibernateGenericStore<T>
     implements GenericStore<T>
 {
     public static final String FUNCTION_JSONB_EXTRACT_PATH = "jsonb_extract_path";
+
     public static final String FUNCTION_JSONB_EXTRACT_PATH_TEXT = "jsonb_extract_path_text";
 
+    protected static final int OBJECT_FETCH_SIZE = 2000;
+
     protected SessionFactory sessionFactory;
+
     protected JdbcTemplate jdbcTemplate;
+
     protected ApplicationEventPublisher publisher;
+
     protected Class<T> clazz;
+
     protected boolean cacheable;
 
-    public HibernateGenericStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher, Class<T> clazz, boolean cacheable )
+    public HibernateGenericStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, Class<T> clazz, boolean cacheable )
     {
         checkNotNull( sessionFactory );
         checkNotNull( jdbcTemplate );
@@ -133,11 +143,12 @@ public class HibernateGenericStore<T>
     }
 
     /**
-     * Creates a Query for given HQL query string. Return type is casted
-     * to generic type T of the Store class.
+     * Creates a Query for given HQL query string. Return type is casted to
+     * generic type T of the Store class.
      *
      * @param hql the HQL query.
-     * @return a Query instance with return type is the object type T of the store class
+     * @return a Query instance with return type is the object type T of the
+     *         store class
      */
     @SuppressWarnings( "unchecked" )
     protected final Query<T> getQuery( String hql )
@@ -148,8 +159,8 @@ public class HibernateGenericStore<T>
     }
 
     /**
-     * Creates a Query for given HQL query string. Must specify the return
-     * type of the Query variable.
+     * Creates a Query for given HQL query string. Must specify the return type
+     * of the Query variable.
      *
      * @param hql the HQL query.
      * @return a Query instance with return type specified in the Query<Y>
@@ -180,8 +191,7 @@ public class HibernateGenericStore<T>
     }
 
     /**
-     * Override to add additional restrictions to criteria before
-     * it is invoked.
+     * Override to add additional restrictions to criteria before it is invoked.
      */
     protected void preProcessDetachedCriteria( DetachedCriteria detachedCriteria )
     {
@@ -198,17 +208,16 @@ public class HibernateGenericStore<T>
         return sessionFactory.getCriteriaBuilder();
     }
 
-    //------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------
     // JPA Methods
-    //------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------
 
     /**
-     * Get executable Typed Query from Criteria Query.
-     * Apply cache if needed.
+     * Get executable Typed Query from Criteria Query. Apply cache if needed.
      *
      * @return executable TypedQuery
      */
-    private TypedQuery<T> getExecutableTypedQuery(CriteriaQuery<T> criteriaQuery)
+    private TypedQuery<T> getExecutableTypedQuery( CriteriaQuery<T> criteriaQuery )
     {
         return getSession()
             .createQuery( criteriaQuery )
@@ -279,7 +288,8 @@ public class HibernateGenericStore<T>
 
         if ( !predicateProviders.isEmpty() )
         {
-            List<Predicate> predicates = predicateProviders.stream().map( t -> t.apply( root ) ).collect( Collectors.toList() );
+            List<Predicate> predicates = predicateProviders.stream().map( t -> t.apply( root ) )
+                .collect( Collectors.toList() );
             query.where( predicates.toArray( new Predicate[0] ) );
         }
 
@@ -325,7 +335,8 @@ public class HibernateGenericStore<T>
         {
             if ( countExpressions.size() > 1 )
             {
-                query.multiselect( countExpressions.stream().map( c -> c.apply( root ) ).collect( Collectors.toList() ) );
+                query.multiselect(
+                    countExpressions.stream().map( c -> c.apply( root ) ).collect( Collectors.toList() ) );
             }
             else
             {
@@ -339,7 +350,8 @@ public class HibernateGenericStore<T>
 
         if ( !predicateProviders.isEmpty() )
         {
-            List<Predicate> predicates = predicateProviders.stream().map( t -> t.apply( root ) ).collect( Collectors.toList() );
+            List<Predicate> predicates = predicateProviders.stream().map( t -> t.apply( root ) )
+                .collect( Collectors.toList() );
             query.where( predicates.toArray( new Predicate[0] ) );
         }
 
@@ -358,9 +370,9 @@ public class HibernateGenericStore<T>
         return getSingleResult( getTypedQuery( builder, parameters ) );
     }
 
-    //------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------
     // End JPA Methods
-    //------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------
 
     /**
      * Creates a SqlQuery.
@@ -408,7 +420,10 @@ public class HibernateGenericStore<T>
     @Override
     public void delete( T object )
     {
-        publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
+        if ( !ObjectDeletionRequestedEvent.shouldSkip( HibernateProxyUtils.getRealClass( object ) ) )
+        {
+            publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
+        }
 
         getSession().delete( object );
     }
@@ -448,13 +463,12 @@ public class HibernateGenericStore<T>
         query.select( root ).distinct( true );
 
         List<Predicate> predicates = attributes.stream()
-            .map( attribute ->
-                builder.isNotNull(
+            .map( attribute -> builder.isNotNull(
                 builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ),
                     builder.literal( attribute.getUid() ) ) ) )
             .collect( Collectors.toList() );
 
-        query.where(  builder.or( predicates.toArray(new Predicate[predicates.size()]) ) ) ;
+        query.where( builder.or( predicates.toArray( new Predicate[predicates.size()] ) ) );
 
         return getSession().createQuery( query ).list();
     }
@@ -468,25 +482,44 @@ public class HibernateGenericStore<T>
         Root<T> root = query.from( getClazz() );
 
         CriteriaBuilder.Coalesce<String> coalesce = builder.coalesce();
-        attributes.stream().forEach( attribute ->
-            coalesce.value(
-                builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ) ,
-                    builder.literal( attribute.getUid() )  ) ) );
+        attributes.stream().forEach( attribute -> coalesce.value(
+            builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ),
+                builder.literal( attribute.getUid() ) ) ) );
 
         query.select( coalesce );
 
         List<Predicate> predicates = attributes.stream()
-            .map( attribute ->
-                builder.isNotNull(
-                    builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ),
-                        builder.literal( attribute.getUid() ) ) ) )
+            .map( attribute -> builder.isNotNull(
+                builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ),
+                    builder.literal( attribute.getUid() ) ) ) )
             .collect( Collectors.toList() );
 
-        query.where(  builder.or( predicates.toArray( new Predicate[ predicates.size() ] ) ) ) ;
+        query.where( builder.or( predicates.toArray( new Predicate[predicates.size()] ) ) );
 
         List<String> result = getSession().createQuery( query ).list();
 
-        return JsonAttributeValueBinaryType.convertListJsonToListObject( result );
+        return convertListJsonToListObject( JsonAttributeValueBinaryType.MAPPER, result, AttributeValue.class );
+    }
+
+    @Override
+    public long countAllValuesByAttributes( List<Attribute> attributes )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        CriteriaQuery<Long> query = builder.createQuery( Long.class );
+        Root<T> root = query.from( getClazz() );
+        query.select( builder.countDistinct( root ) );
+
+        List<Predicate> predicates = attributes.stream()
+            .map( attribute -> builder.isNotNull(
+                builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ),
+                    builder.literal( attribute.getUid() ) ) ) )
+            .collect( Collectors.toList() );
+
+        query.where( builder.or( predicates.toArray( new Predicate[predicates.size()] ) ) );
+
+        return getSession().createQuery( query )
+            .getSingleResult();
     }
 
     @Override
@@ -500,7 +533,8 @@ public class HibernateGenericStore<T>
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getCount( builder, newJpaParameters().count( root -> builder.countDistinct( root.get( "id" ) ) ) ).intValue();
+        return getCount( builder, newJpaParameters().count( root -> builder.countDistinct( root.get( "id" ) ) ) )
+            .intValue();
     }
 
     @Override
@@ -511,8 +545,9 @@ public class HibernateGenericStore<T>
 
         Root<T> root = query.from( getClazz() );
 
-        query.select(root );
-        query.where( builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ) ).isNotNull()  );
+        query.select( root );
+        query.where( builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ),
+            builder.literal( attribute.getUid() ) ).isNotNull() );
 
         return getSession().createQuery( query ).list();
     }
@@ -526,7 +561,9 @@ public class HibernateGenericStore<T>
         Root<T> root = query.from( getClazz() );
         query.select( root );
         query.where( builder.equal(
-                        builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
+            builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ),
+                builder.literal( attribute.getUid() ), builder.literal( "value" ) ),
+            value ) );
         return getSession().createQuery( query ).list();
     }
 
@@ -538,15 +575,17 @@ public class HibernateGenericStore<T>
         CriteriaQuery<String> query = builder.createQuery( String.class );
         Root<T> root = query.from( getClazz() );
 
-        query.select( builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ) ,
+        query.select( builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ),
             builder.literal( attribute.getUid() ) ) );
 
         query.where( builder.equal(
-            builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
+            builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ),
+                builder.literal( attribute.getUid() ), builder.literal( "value" ) ),
+            value ) );
 
         List<String> result = getSession().createQuery( query ).list();
 
-        return JsonAttributeValueBinaryType.convertListJsonToListObject( result );
+        return convertListJsonToListObject( JsonAttributeValueBinaryType.MAPPER, result, AttributeValue.class );
     }
 
     @Override
@@ -558,7 +597,9 @@ public class HibernateGenericStore<T>
         Root<T> root = query.from( getClazz() );
         query.select( root );
         query.where( builder.equal(
-            builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attributeValue.getAttribute().getUid() ),  builder.literal( "value" ) ) , attributeValue.getValue() ) );
+            builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ),
+                builder.literal( attributeValue.getAttribute().getUid() ), builder.literal( "value" ) ),
+            attributeValue.getValue() ) );
         return getSession().createQuery( query ).list();
     }
 
@@ -566,14 +607,14 @@ public class HibernateGenericStore<T>
     public <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, AttributeValue attributeValue )
     {
         List<T> objects = getByAttributeValue( attributeValue );
-        return objects.isEmpty() || (object != null && objects.size() == 1 && object.equals( objects.get( 0 ) ) );
+        return objects.isEmpty() || (object != null && objects.size() == 1 && object.equals( objects.get( 0 ) ));
     }
 
     @Override
     public <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, Attribute attribute, String value )
     {
         List<T> objects = getByAttributeAndValue( attribute, value );
-        return objects.isEmpty() || (object != null && objects.size() == 1 && object.equals( objects.get( 0 ) ) );
+        return objects.isEmpty() || (object != null && objects.size() == 1 && object.equals( objects.get( 0 ) ));
     }
 
     @Override
@@ -584,7 +625,8 @@ public class HibernateGenericStore<T>
         CriteriaQuery<T> query = builder.createQuery( getClazz() );
         Root<T> root = query.from( getClazz() );
         query.select( root );
-        query.where( builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ), builder.literal( "value" ) ).in( values ) );
+        query.where( builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ),
+            builder.literal( attribute.getUid() ), builder.literal( "value" ) ).in( values ) );
 
         return getSession().createQuery( query ).list();
     }
@@ -597,5 +639,28 @@ public class HibernateGenericStore<T>
     protected JpaQueryParameters<T> newJpaParameters()
     {
         return new JpaQueryParameters<>();
+    }
+
+    /**
+     * Convert List of Json String object into List of given klass
+     *
+     * @param mapper Object mapper that is configured for given klass
+     * @param content List of Json String
+     * @param klass Class for converting to
+     * @param <T>
+     * @return List of converted Object
+     */
+    public static <T> List<T> convertListJsonToListObject( ObjectMapper mapper, List<String> content, Class<T> klass )
+    {
+        return content.stream().map( json -> {
+            try
+            {
+                return mapper.readValue( json, klass );
+            }
+            catch ( IOException e )
+            {
+                throw new RuntimeException( e );
+            }
+        } ).collect( Collectors.toList() );
     }
 }

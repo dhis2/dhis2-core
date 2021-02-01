@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.objectmapper;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,10 @@ package org.hisp.dhis.system.objectmapper;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.objectmapper;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -34,9 +36,6 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.quick.mapper.RowMapper;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 /**
  * @author Lars Helge Overland
@@ -50,17 +49,17 @@ public class DataValueRowMapper
         throws SQLException
     {
         final DataValue dataValue = new DataValue();
-        
+
         dataValue.setDataElement( new DataElement() );
         dataValue.setCategoryOptionCombo( new CategoryOptionCombo() );
         dataValue.setAttributeOptionCombo( new CategoryOptionCombo() );
         dataValue.setSource( new OrganisationUnit() );
         dataValue.setPeriod( new Period() );
 
-        dataValue.getDataElement().setId( resultSet.getInt( "dataelementid" ) );
-        dataValue.getPeriod().setId( resultSet.getInt( "periodid" ) );
-        dataValue.getSource().setId( resultSet.getInt( "sourceid" ) );
-        dataValue.getCategoryOptionCombo().setId( resultSet.getInt( "categoryoptioncomboid" ) );
+        dataValue.getDataElement().setId( resultSet.getLong( "dataelementid" ) );
+        dataValue.getPeriod().setId( resultSet.getLong( "periodid" ) );
+        dataValue.getSource().setId( resultSet.getLong( "sourceid" ) );
+        dataValue.getCategoryOptionCombo().setId( resultSet.getLong( "categoryoptioncomboid" ) );
         dataValue.setValue( resultSet.getString( "value" ) );
         dataValue.setStoredBy( resultSet.getString( "storedby" ) );
         dataValue.setCreated( resultSet.getDate( "created" ) );

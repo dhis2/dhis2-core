@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.listener;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,27 @@ package org.hisp.dhis.sms.listener;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.listener;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -43,12 +58,18 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.smscompression.SMSCompressionException;
-import org.hisp.dhis.smscompression.models.EnrollmentSMSSubmission;
-import org.hisp.dhis.smscompression.models.SMSAttributeValue;
+import org.hisp.dhis.smscompression.SmsCompressionException;
+import org.hisp.dhis.smscompression.SmsConsts.SmsEnrollmentStatus;
+import org.hisp.dhis.smscompression.SmsConsts.SmsEventStatus;
+import org.hisp.dhis.smscompression.models.EnrollmentSmsSubmission;
+import org.hisp.dhis.smscompression.models.GeoPoint;
+import org.hisp.dhis.smscompression.models.SmsAttributeValue;
+import org.hisp.dhis.smscompression.models.SmsDataValue;
+import org.hisp.dhis.smscompression.models.SmsEvent;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -56,6 +77,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Before;
@@ -65,21 +87,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-
 import com.google.common.collect.Sets;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class EnrollmentSMSListenerTest
     extends
@@ -118,6 +126,9 @@ public class EnrollmentSMSListenerTest
     private CategoryService categoryService;
 
     @Mock
+    private ProgramStageService programStageService;
+
+    @Mock
     private ProgramStageInstanceService programStageInstanceService;
 
     // Needed for this test
@@ -127,6 +138,9 @@ public class EnrollmentSMSListenerTest
 
     @Mock
     private ProgramInstanceService programInstanceService;
+
+    @Mock
+    private TrackedEntityAttributeValueService attributeValueService;
 
     @Mock
     private IdentifiableObjectManager identifiableObjectManager;
@@ -145,7 +159,17 @@ public class EnrollmentSMSListenerTest
 
     // Needed for this test
 
-    private IncomingSms incomingSmsEnrollment;
+    private IncomingSms incomingSmsEnrollmentNoEvents;
+
+    private IncomingSms incomingSmsEnrollmentWithEvents;
+
+    private IncomingSms incomingSmsEnrollmentWithNulls;
+
+    private IncomingSms incomingSmsEnrollmentNoAttribs;
+
+    private IncomingSms incomingSmsEnrollmentEventWithNulls;
+
+    private IncomingSms incomingSmsEnrollmentEventNoValues;
 
     private OrganisationUnit organisationUnit;
 
@@ -161,19 +185,22 @@ public class EnrollmentSMSListenerTest
 
     private TrackedEntityAttributeValue trackedEntityAttributeValue;
 
-    private ProgramTrackedEntityAttribute programTrackedEntityAttribute;
-
     private TrackedEntityType trackedEntityType;
 
     private TrackedEntityInstance trackedEntityInstance;
 
+    private CategoryOptionCombo categoryOptionCombo;
+
+    private DataElement dataElement;
+
     @Before
     public void initTest()
-        throws SMSCompressionException
+        throws SmsCompressionException
     {
         subject = new EnrollmentSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageInstanceService, teiService, programInstanceService, identifiableObjectManager );
+            programStageService, programStageInstanceService, attributeValueService, teiService, programInstanceService,
+            identifiableObjectManager );
 
         setUpInstances();
 
@@ -187,10 +214,9 @@ public class EnrollmentSMSListenerTest
         when( organisationUnitService.getOrganisationUnit( anyString() ) ).thenReturn( organisationUnit );
         when( programService.getProgram( anyString() ) ).thenReturn( program );
         when( trackedEntityTypeService.getTrackedEntityType( anyString() ) ).thenReturn( trackedEntityType );
-        when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
-            .thenReturn( trackedEntityAttribute );
-        when( programInstanceService.enrollTrackedEntityInstance( any(), any(), any(), any(), any() ) )
+        when( programInstanceService.enrollTrackedEntityInstance( any(), any(), any(), any(), any(), any() ) )
             .thenReturn( programInstance );
+        when( programService.hasOrgUnit( any( Program.class ), any( OrganisationUnit.class ) ) ).thenReturn( true );
 
         doAnswer( invocation -> {
             updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
@@ -199,9 +225,113 @@ public class EnrollmentSMSListenerTest
     }
 
     @Test
-    public void testEnrollment()
+    public void testEnrollmentNoEvents()
     {
-        subject.receive( incomingSmsEnrollment );
+        when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
+            .thenReturn( trackedEntityAttribute );
+
+        subject.receive( incomingSmsEnrollmentNoEvents );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 1 ) ).update( any() );
+    }
+
+    @Test
+    public void testEnrollmentWithEvents()
+    {
+        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
+        when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
+        when( programStageService.getProgramStage( anyString() ) ).thenReturn( programStage );
+        when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
+            .thenReturn( trackedEntityAttribute );
+
+        subject.receive( incomingSmsEnrollmentWithEvents );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 1 ) ).update( any() );
+    }
+
+    @Test
+    public void testEnrollmentWithEventsRepeat()
+    {
+        when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
+        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
+        when( programStageService.getProgramStage( anyString() ) ).thenReturn( programStage );
+        when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
+            .thenReturn( trackedEntityAttribute );
+
+        subject.receive( incomingSmsEnrollmentWithEvents );
+        subject.receive( incomingSmsEnrollmentWithEvents );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 2 ) ).update( any() );
+    }
+
+    @Test
+    public void testEnrollmentWithNulls()
+    {
+        when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
+            .thenReturn( trackedEntityAttribute );
+
+        subject.receive( incomingSmsEnrollmentWithNulls );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 1 ) ).update( any() );
+    }
+
+    @Test
+    public void testEnrollmentNoAttribs()
+    {
+        subject.receive( incomingSmsEnrollmentNoAttribs );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( NOATTRIBS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 1 ) ).update( any() );
+    }
+
+    @Test
+    public void testEnrollmentEventWithNulls()
+    {
+        when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
+        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
+        when( programStageService.getProgramStage( anyString() ) ).thenReturn( programStage );
+        when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
+            .thenReturn( trackedEntityAttribute );
+
+        subject.receive( incomingSmsEnrollmentEventWithNulls );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 1 ) ).update( any() );
+    }
+
+    // For now there's no warning if an event within the event
+    // list has no values. This might be changed in the future.
+    @Test
+    public void testEnrollmentEventNoValues()
+    {
+        when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
+        when( programStageService.getProgramStage( anyString() ) ).thenReturn( programStage );
+        when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
+            .thenReturn( trackedEntityAttribute );
+
+        subject.receive( incomingSmsEnrollmentEventNoValues );
 
         assertNotNull( updatedIncomingSms );
         assertTrue( updatedIncomingSms.isParsed() );
@@ -211,7 +341,7 @@ public class EnrollmentSMSListenerTest
     }
 
     private void setUpInstances()
-        throws SMSCompressionException
+        throws SmsCompressionException
     {
         trackedEntityType = createTrackedEntityType( 'T' );
         organisationUnit = createOrganisationUnit( 'O' );
@@ -223,7 +353,8 @@ public class EnrollmentSMSListenerTest
         user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
 
         trackedEntityAttribute = createTrackedEntityAttribute( 'A', ValueType.TEXT );
-        programTrackedEntityAttribute = createProgramTrackedEntityAttribute( program, trackedEntityAttribute );
+        final ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute(
+            program, trackedEntityAttribute );
         program.getProgramAttributes().add( programTrackedEntityAttribute );
         program.getOrganisationUnits().add( organisationUnit );
         program.setTrackedEntityType( trackedEntityType );
@@ -246,26 +377,109 @@ public class EnrollmentSMSListenerTest
             trackedEntityAttribute );
         trackedEntityAttributeValue.setValue( ATTRIBUTE_VALUE );
 
-        incomingSmsEnrollment = createSMSFromSubmission( createEnrollmentSubmission() );
+        categoryOptionCombo = createCategoryOptionCombo( 'C' );
+        dataElement = createDataElement( 'D' );
+
+        incomingSmsEnrollmentNoEvents = createSMSFromSubmission( createEnrollmentSubmissionNoEvents() );
+        incomingSmsEnrollmentWithEvents = createSMSFromSubmission( createEnrollmentSubmissionWithEvents() );
+        incomingSmsEnrollmentWithNulls = createSMSFromSubmission( createEnrollmentSubmissionWithNulls() );
+        incomingSmsEnrollmentNoAttribs = createSMSFromSubmission( createEnrollmentSubmissionNoAttribs() );
+        incomingSmsEnrollmentEventWithNulls = createSMSFromSubmission( createEnrollmentSubmissionEventWithNulls() );
+        incomingSmsEnrollmentEventNoValues = createSMSFromSubmission( createEnrollmentSubmissionEventNoValues() );
     }
 
-    private EnrollmentSMSSubmission createEnrollmentSubmission()
+    private EnrollmentSmsSubmission createEnrollmentSubmissionNoEvents()
     {
-        EnrollmentSMSSubmission subm = new EnrollmentSMSSubmission();
+        EnrollmentSmsSubmission subm = new EnrollmentSmsSubmission();
 
-        subm.setUserID( user.getUid() );
+        subm.setUserId( user.getUid() );
         subm.setOrgUnit( organisationUnit.getUid() );
         subm.setTrackerProgram( program.getUid() );
         subm.setTrackedEntityType( trackedEntityType.getUid() );
         subm.setTrackedEntityInstance( trackedEntityInstance.getUid() );
         subm.setEnrollment( programInstance.getUid() );
-        subm.setTimestamp( new Date() );
-        ArrayList<SMSAttributeValue> values = new ArrayList<>();
-        values.add( new SMSAttributeValue( trackedEntityAttribute.getUid(), ATTRIBUTE_VALUE ) );
+        subm.setEnrollmentDate( new Date() );
+        subm.setIncidentDate( new Date() );
+        subm.setEnrollmentStatus( SmsEnrollmentStatus.ACTIVE );
+        subm.setCoordinates( new GeoPoint( 59.9399586f, 10.7195609f ) );
+        ArrayList<SmsAttributeValue> values = new ArrayList<>();
+        values.add( new SmsAttributeValue( trackedEntityAttribute.getUid(), ATTRIBUTE_VALUE ) );
         subm.setValues( values );
-        subm.setSubmissionID( 1 );
+        subm.setSubmissionId( 1 );
 
         return subm;
     }
 
+    private EnrollmentSmsSubmission createEnrollmentSubmissionWithEvents()
+    {
+        EnrollmentSmsSubmission subm = createEnrollmentSubmissionNoEvents();
+
+        ArrayList<SmsEvent> events = new ArrayList<>();
+        events.add( createEvent() );
+        subm.setEvents( events );
+        return subm;
+    }
+
+    private SmsEvent createEvent()
+    {
+        SmsEvent event = new SmsEvent();
+        event.setOrgUnit( organisationUnit.getUid() );
+        event.setProgramStage( programStage.getUid() );
+        event.setAttributeOptionCombo( categoryOptionCombo.getUid() );
+        event.setEvent( programStageInstance.getUid() );
+        event.setEventStatus( SmsEventStatus.COMPLETED );
+        event.setEventDate( new Date() );
+        event.setDueDate( new Date() );
+        event.setCoordinates( new GeoPoint( 59.9399586f, 10.7195609f ) );
+        ArrayList<SmsDataValue> eventValues = new ArrayList<>();
+        eventValues.add( new SmsDataValue( categoryOptionCombo.getUid(), dataElement.getUid(), "10" ) );
+        event.setValues( eventValues );
+
+        return event;
+    }
+
+    private EnrollmentSmsSubmission createEnrollmentSubmissionWithNulls()
+    {
+        EnrollmentSmsSubmission subm = createEnrollmentSubmissionNoEvents();
+        subm.setEnrollmentDate( null );
+        subm.setIncidentDate( null );
+        subm.setCoordinates( null );
+        subm.setEvents( null );
+
+        return subm;
+    }
+
+    private EnrollmentSmsSubmission createEnrollmentSubmissionNoAttribs()
+    {
+        EnrollmentSmsSubmission subm = createEnrollmentSubmissionNoEvents();
+        subm.setValues( null );
+
+        return subm;
+    }
+
+    private EnrollmentSmsSubmission createEnrollmentSubmissionEventWithNulls()
+    {
+        EnrollmentSmsSubmission subm = createEnrollmentSubmissionNoEvents();
+        SmsEvent event = createEvent();
+        event.setEventDate( null );
+        event.setDueDate( null );
+        event.setCoordinates( null );
+        ArrayList<SmsEvent> events = new ArrayList<>();
+        events.add( event );
+        subm.setEvents( events );
+
+        return subm;
+    }
+
+    private EnrollmentSmsSubmission createEnrollmentSubmissionEventNoValues()
+    {
+        EnrollmentSmsSubmission subm = createEnrollmentSubmissionNoEvents();
+        SmsEvent event = createEvent();
+        event.setValues( null );
+        ArrayList<SmsEvent> events = new ArrayList<>();
+        events.add( event );
+        subm.setEvents( events );
+
+        return subm;
+    }
 }

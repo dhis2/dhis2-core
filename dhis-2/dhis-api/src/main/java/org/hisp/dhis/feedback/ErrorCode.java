@@ -1,7 +1,5 @@
-package org.hisp.dhis.feedback;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +25,72 @@ package org.hisp.dhis.feedback;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.feedback;
 
 /**
- * Error series:
- *
- * E3000 - E3999: Security
- * E4000 - E4999: Metadata validation
- * E5000 - E5999: Preheat
- * E6000 - E6999: Metadata import
- * E7000 - E7099: Scheduling
- * E7100 - E7199: Aggregate analytics
- * E7200 - E7299: Event analytics
- *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public enum ErrorCode
 {
+    /* General */
+    E1000( "API query must be specified" ),
+    E1001( "API query contains an illegal string" ),
+    E1002( "API version is invalid" ),
+
+    /* Basic metadata */
+    E1100( "Data element not found or not accessible: `{0}`" ),
+    E1101( "Period is invalid: `{0}`" ),
+    E1102( "Organisation unit not found or not accessible: `{0}`" ),
+    E1103( "Category option combo not found or not accessible: `{0}`" ),
+    E1104( "Attribute option combo not found or not accessible: `{0}`" ),
+    E1105( "Data set not found or not accessible: `{0}`" ),
+
+    /* Data */
+    E2000( "Query parameters cannot be null" ),
+    E2001( "At least one data element, data set or data element group must be specified" ),
+    E2002( "At least one period, start/end dates, last updated or last updated duration must be specified" ),
+    E2003( "Both periods and start/end date cannot be specified" ),
+    E2004( "Start date must be before end date" ),
+    E2005( "Duration is not valid: `{0}`" ),
+    E2006( "At least one organisation unit or organisation unit group must be specified" ),
+    E2007( "Organisation unit children cannot be included for organisation unit groups" ),
+    E2008( "At least one organisation unit must be specified when children are included" ),
+    E2009( "Limit cannot be less than zero: `{0}`" ),
+    E2010( "User is not allowed to read data for data set: `{0}`" ),
+    E2011( "User is not allowed to read data for attribute option combo: `{0}`" ),
+    E2012( "User is not allowed to view org unit: `{0}`" ),
+    E2013( "At least one data set must be specified" ),
+    E2014( "Unable to parse filter `{0}`" ),
+    E2015( "Unable to parse order param: `{0}`" ),
+    E2016( "Unable to parse element `{0}` on filter `{1}`. The values available are: {2}" ),
+    E2017( "Data set is locked" ),
+    E2018( "Category option combo is required but not specified" ),
+    E2019( "Organisation unit is closed for the selected period: `{0}`" ),
+    E2020( "Organisation unit is not in the hierarchy of the current user: `{0}`" ),
+    E2021( "Data set: `{0}` does not contain data element: `{1}`" ),
+    E2022( "Period: `{0}` is after latest open future period: `{1}` for data element: `{2}`" ),
+    E2023( "Period: `{0}` is before start date: {1} for attribute option: `{2}`" ),
+    E2024( "Period: `{0}` is after start date: {1} for attribute option: `{2}`" ),
+    E2025( "Period: `{0}` is not open for data set: `{1}`" ),
+    E2026( "File resource already assigned or linked to a data value" ),
+    E2027( "File resource is invalid: `{0}`" ),
+    E2028( "Comment is invalid: `{0}`" ),
+    E2029( "Data value is not a valid option of the data element option set: `{0}`" ),
+    E2030( "Data value must match data element value type: `{0}`" ),
+    E2031( "User does not have write access to category option combo: `{0}`" ),
+    E2032( "Data value does not exist" ),
+
+    /* Outlier detection */
+    E2200( "At least one data element must be specified" ),
+    E2201( "Start date and end date must be specified" ),
+    E2202( "Start date must be before end date" ),
+    E2203( "At least one organisation unit must be specified" ),
+    E2204( "Threshold must be a positive number" ),
+    E2205( "Max results must be a positive number" ),
+    E2206( "Max results exceeds the allowed max limit: `{0}`" ),
+    E2207( "Data start date must be before data end date" ),
+    E2208( "Non-numeric data values encountered during outlier value detection" ),
+
     /* Security */
     E3000( "User `{0}` is not allowed to create objects of type {1}." ),
     E3001( "User `{0}` is not allowed to update object `{1}`." ),
@@ -54,8 +102,15 @@ public enum ErrorCode
     E3008( "User `{0}` is not allowed to make public objects of type `{1}`." ),
     E3009( "User `{0}` is not allowed to make private objects of type `{1}`." ),
     E3010( "Invalid access string `{0}`." ),
-    E3011( "Data sharing is not enabled for type `{0}`, but one or more access strings contains data sharing read or write." ),
-    E3012( "User `{0}` does not have read access for object {1}." ),
+    E3011(
+        "Data sharing is not enabled for type `{0}`, but one or more access strings contains data sharing read or write." ),
+    E3012( "User `{0}` does not have read access for object `{1}`." ),
+    E3013( "Sharing settings of system default metadata object of type `{0}` cannot be modified." ),
+    E3014( "You do not have manage access to this object." ),
+    E3015( "Invalid public access string: `{0}`" ),
+    E3016( "Data sharing is not enabled for this object" ),
+    E3017( "Invalid user group access string: `{0}`" ),
+    E3018( "Invalid user access string: `{0}`" ),
 
     /* Metadata Validation */
     E4000( "Missing required property `{0}`." ),
@@ -77,51 +132,70 @@ public enum ErrorCode
     E4016( "Object referenced by the `{0}` property is already associated with another object, value: `{1}`" ),
     E4017( "RenderingType `{0}` is not supported for ValueType `{1}`" ),
     E4018( "Property `{0}` must be set when property `{1}` is `{2}`" ),
-
-    /* TextPattern */
     E4019( "Failed to parse pattern `{0}`. {1}" ),
     E4020( "The value `{0}` does not conform to the attribute pattern `{1}`" ),
-
-    /* TextPattern for ID generation */
     E4021( "ID-pattern is required to have 1 generated segment (RANDOM or SEQUENTIAL)." ),
     E4022( "Pattern `{0}` does not conform to the value type `{1}`." ),
-
-    /* Tracker relationship */
     E4023( "Property `{0}` can not be set when property `{1}` is `{2}`. " ),
     E4024( "Property `{0}` must be set when property `{1}` is `{2}`. " ),
     E4025( "Properties `{0}` and `{1}` are mutually exclusive and cannot be used together." ),
     E4026( "One of the properties `{0}` and `{1}` is required when property `{2}` is `{3}`." ),
-
     E4027( "Value `{0}` is not a valid for property `{1}`" ),
     E4028( "Option set `{0}` already contains option `{1}`" ),
     E4029( "Job parameters cannot be null for job type: {0}" ),
+    E4030( "Object could not be deleted because it is associated with another object: {0}" ),
+    E4031( "A program rule with name `{0}` and program uid `{1}` already exists" ),
+    E4032( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
+
+    /* SQL views */
+    E4300( "SQL query is null" ),
+    E4301( "SQL query must be a select query" ),
+    E4302( "SQL query can only contain a single semi-colon at the end of the query" ),
+    E4303( "Variables contain null key" ),
+    E4304( "Variables contain null value" ),
+    E4305( "Variable params are invalid: `{0}`" ),
+    E4306( "Variables are invalid: `{0}`" ),
+    E4307( "SQL query contains variables not provided in request: `{0}`" ),
+    E4308( "Criteria params are invalid: `{0}`" ),
+    E4309( "Criteria values are invalid: `{0}`" ),
+    E4310( "SQL query contains references to protected tables" ),
+    E4311( "SQL query contains illegal keywords" ),
 
     /* Preheat */
-    E5000( "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
+    E5000(
+        "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
     E5001( "No matching object for given reference. Identifier was {0}, and object was {1}." ),
     E5002( "Invalid reference {0} on object {1} for association `{2}`." ),
     E5003( "Property `{0}` with value `{1}` on object {2} already exists on object {3}." ),
     E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found." ),
 
     /* Metadata import */
-    E6000( "Program `{0}` has more than one Program Instances"),
-    E6001( "ProgramStage `{0}` has invalid next event scheduling property `{1}`. This property need to be data element of value type date and belong the program stage."),
+    E6000( "Program `{0}` has more than one Program Instances" ),
+    E6001(
+        "ProgramStage `{0}` has invalid next event scheduling property `{1}`. This property need to be data element of value type date and belong the program stage." ),
 
     /* File resource */
     E6100( "Filename not present" ),
     E6101( "File type not allowed" ),
 
+    /* Users */
+    E6200( "Feedback message recipients user group not defined" ),
+
     /* Scheduling */
-    E7000( "Failed to add/update job configuration, another job of the same job type is already scheduled with this cron expression: `{0}`" ),
+    E7000(
+        "Failed to add/update job configuration, another job of the same job type is already scheduled with this cron expression: `{0}`" ),
     E7002( "Failed to add/update job configuration, UID does not exist" ),
-    E7003( "Failed to add/update job configuration, only interval can be configured for non configurable job type: `{0}`" ),
-    E7004( "Failed to add/update job configuration, cron expression must be not null for job with scheduling type CRON: `{0}`" ),
+    E7003(
+        "Failed to add/update job configuration, only interval can be configured for non configurable job type: `{0}`" ),
+    E7004(
+        "Failed to add/update job configuration, cron expression must be not null for job with scheduling type CRON: `{0}`" ),
     E7005( "Failed to add/update job configuration, cron expression is invalid: `{0}` " ),
     E7006( "Failed to execute job `{0}`." ),
-    E7007( "Failed to add/update job configuration - Delay must be not null for jobs with scheduling type FIXED_DELAY: `{0}`" ),
+    E7007(
+        "Failed to add/update job configuration - Delay must be not null for jobs with scheduling type FIXED_DELAY: `{0}`" ),
     E7010( "Failed to validate job runtime - `{0}`" ),
 
-    /* Aggregete analytics */
+    /* Aggregate analytics */
     E7100( "Query parameters cannot be null" ),
     E7101( "At least one dimension must be specified" ),
     E7102( "At least one data dimension item or data element group set dimension item must be specified" ),
@@ -142,6 +216,20 @@ public enum ErrorCode
     E7117( "A data dimension 'dx' must be specified when output format is DATA_VALUE_SET" ),
     E7118( "A period dimension 'pe' must be specified when output format is DATA_VALUE_SET" ),
     E7119( "An organisation unit dimension 'ou' must be specified when output format is DATA_VALUE_SET" ),
+    E7120( "User: `{0}` is not allowed to view org unit: `{1}`" ),
+    E7121( "User: `{0}` is not allowed to read data for `{1}`: `{2}`" ),
+    E7122( "Data approval level does not exist: `{0}`" ),
+    E7123( "Current user is constrained by a dimension but has access to no dimension items: `{0}`" ),
+    E7124( "Dimension is present in query without any valid dimension options: `{0}`" ),
+    E7125( "Dimension identifier does not reference any dimension: `{0}`" ),
+    E7126( "Column must be present as dimension in query: `{0}`" ),
+    E7127( "Row must be present as dimension in query: `{0}`" ),
+    E7128( "Query result set exceeded max limit: `{0}`" ),
+    E7129( "Program is specified but does not exist: `{0}`" ),
+    E7130( "Program stage is specified but does not exist: `{0}`" ),
+    E7131( "Query failed, likely because the query timed out" ),
+    E7132( "Query failed. An Indicator expression is resulting in invalid operation: division by zero" ),
+    E7133( "This query cannot be executed, possibly because of invalid types or invalid operation" ),
 
     /* Event analytics */
     E7200( "At least one organisation unit must be specified" ),
@@ -160,7 +248,31 @@ public enum ErrorCode
     E7213( "Bbox is invalid, must be on format: 'min-lng,min-lat,max-lng,max-lat': `{0}`" ),
     E7214( "Cluster field must be specified when bbox or cluster size are specified" ),
     E7215( "Query item cannot specify both legend set and option set: `{0}`" ),
-    E7216( "Query item must be aggregateable when used in aggregate query: `{0}`" );
+    E7216( "Query item must be aggregateable when used in aggregate query: `{0}`" ),
+    E7217( "User is not allowed to view event analytics data: `{0}`" ),
+    E7218( "Spatial database support is not enabled" ),
+    E7219( "Data element must be of value type coordinate or org unit in order to be used as coordinate field: `{0}`" ),
+    E7220( "Attribute must be of value type coordinate or org unit in order to be used as coordinate field: `{0}`" ),
+    E7221( "Coordinate field is invalid: `{0}`" ),
+    E7222( "Query item or filter is invalid: `{0}`" ),
+    E7223( "Value does not refer to a data element or attribute which are numeric and part of the program: `{0}`" ),
+    E7224( "Item identifier does not reference any data element, attribute or indicator part of the program: `{0}`" ),
+    E7225( "Program stage is mandatory for data element dimensions in enrollment analytics queries: `{0}`" ),
+    E7226( "Dimension is not a valid query item: `{0}`" ),
+    E7227( "Relationship entity type not supported: `{0}`" ),
+
+    /* Org unit analytics */
+    E7300( "At least one organisation unit must be specified" ),
+    E7301( "At least one organisation unit group set must be specified" ),
+
+    /* Debug analytics */
+    E7400( "Debug query must contain at least one data element, one period and one organisation unit" ),
+
+    /* Validation Results API */
+    E7500( "Organisation unit does not exist: `{0}`" ),
+    E7501( "Validation rule does not exist: `{0}`" ),
+    E7502( "Filter for period is not valid: `{0}`" ),
+    E7503( "Filter for created date period is not valid: `{0}`" );
 
     private String message;
 

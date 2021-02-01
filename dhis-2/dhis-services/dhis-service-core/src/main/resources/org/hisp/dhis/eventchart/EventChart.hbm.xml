@@ -257,24 +257,10 @@
 
     <property name="translations" type="jblTranslations"/>
 
-    <!-- Access properties -->
-    <property name="externalAccess" />
-
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_eventchart_userid" />
 
-    <property name="publicAccess" length="8" />
-
-    <set name="userGroupAccesses" table="eventchartusergroupaccesses" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="eventchartid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
-    </set>
-
-    <set name="userAccesses" table="eventchartuseraccesses" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="eventchartid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
-    </set>
+    <!-- Sharing -->
+    <property name="sharing" type="jsbObjectSharing"/>
 
     <property name="favorites" type="jbSet" />
 

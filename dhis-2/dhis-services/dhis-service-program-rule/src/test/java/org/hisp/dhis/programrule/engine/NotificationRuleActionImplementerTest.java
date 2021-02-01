@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,19 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 
@@ -44,7 +52,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -80,7 +88,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     // -------------------------------------------------------------------------
 
     @Mock
-    private ProgramNotificationTemplateStore templateStore;
+    private ProgramNotificationTemplateService templateStore;
 
     @Mock
     private ApplicationEventPublisher publisher;
@@ -133,17 +141,15 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
 
-        doAnswer( invocationOnMock ->
-        {
+        doAnswer( invocationOnMock -> {
             eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
             return eventType;
-        }).when( publisher ).publishEvent( any() );
+        } ).when( publisher ).publishEvent( any() );
 
-        doAnswer( invocationOnMock ->
-        {
-            logEntry = ( ExternalNotificationLogEntry ) invocationOnMock.getArguments()[0];
+        doAnswer( invocationOnMock -> {
+            logEntry = (ExternalNotificationLogEntry) invocationOnMock.getArguments()[0];
             return logEntry;
-        }).when( loggingService ).save( any() );
+        } ).when( loggingService ).save( any() );
 
         when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
 
@@ -169,11 +175,10 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
             return eventType;
         } ).when( publisher ).publishEvent( any() );
 
-        doAnswer( invocationOnMock ->
-        {
-            logEntry = ( ExternalNotificationLogEntry ) invocationOnMock.getArguments()[0];
+        doAnswer( invocationOnMock -> {
+            logEntry = (ExternalNotificationLogEntry) invocationOnMock.getArguments()[0];
             return logEntry;
-        }).when( loggingService ).save( any() );
+        } ).when( loggingService ).save( any() );
 
         when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
 
@@ -192,20 +197,17 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     @Test
     public void test_loggingServiceKey()
     {
-
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
-
 
         doAnswer( invocationOnMock -> {
             eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
             return eventType;
         } ).when( publisher ).publishEvent( any() );
 
-        doAnswer( invocationOnMock ->
-        {
-            logEntry = ( ExternalNotificationLogEntry ) invocationOnMock.getArguments()[0];
+        doAnswer( invocationOnMock -> {
+            logEntry = (ExternalNotificationLogEntry) invocationOnMock.getArguments()[0];
             return logEntry;
-        }).when( loggingService ).save( any() );
+        } ).when( loggingService ).save( any() );
 
         when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
 
@@ -243,10 +245,8 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     @Test
     public void test_NothingHappensIfActionIsNull()
     {
-        implementer.implement( null, programInstance );
-
-        verify( templateStore, never() ).getByUid( anyString() );
-        verify( loggingService, never() ).isValidForSending( anyString() );
+        assertThrows( "Rule Effect cannot be null", NullPointerException.class,
+            () -> implementer.implement( null, programInstance ) );
     }
 
     // -------------------------------------------------------------------------
@@ -277,20 +277,11 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         ruleEffectWithActionSendMessage = RuleEffect.create( ruleActionSendMessage );
 
-        setMandatoryFieldFalse = new RuleActionSetMandatoryField()
-        {
-            @Nonnull
-            @Override
-            public String field()
-            {
-                return MANDATORY_FIELD;
-            }
-        };
+        setMandatoryFieldFalse = RuleActionSetMandatoryField.create( MANDATORY_FIELD );
 
         OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
 
-        Program programA = createProgram('A', new HashSet<>(), organisationUnitA );
-        ProgramStage programStageA = createProgramStage( 'A', programA );
+        Program programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
 
         programRuleA = createProgramRule( 'R', programA );
 
@@ -300,7 +291,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         programInstance.setProgram( programA );
         programInstance.setAutoFields();
 
-        programStageA = createProgramStage( 'S', programA );
+        ProgramStage programStageA = createProgramStage( 'S', programA );
         programA.getProgramStages().add( programStageA );
 
         programStageInstance = new ProgramStageInstance();

@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.event;
 
 import java.util.List;
 import java.util.Map;
@@ -71,9 +70,13 @@ import com.google.common.collect.Lists;
 public class ProgramDataElementController
 {
     private final QueryService queryService;
+
     private final FieldFilterService fieldFilterService;
+
     private final ContextService contextService;
+
     private final SchemaService schemaService;
+
     private final ProgramService programService;
 
     public ProgramDataElementController( QueryService queryService, FieldFilterService fieldFilterService,
@@ -88,7 +91,8 @@ public class ProgramDataElementController
 
     @GetMapping
     @SuppressWarnings( "unchecked" )
-    public @ResponseBody RootNode getObjectList( @RequestParam Map<String, String> rpParameters, OrderParams orderParams )
+    public @ResponseBody RootNode getObjectList( @RequestParam Map<String, String> rpParameters,
+        OrderParams orderParams )
         throws QueryParserException
     {
         Schema schema = schemaService.getDynamicSchema( ProgramDataElementDimensionItem.class );

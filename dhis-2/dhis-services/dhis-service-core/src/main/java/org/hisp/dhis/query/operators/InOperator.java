@@ -1,7 +1,5 @@
-package org.hisp.dhis.query.operators;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,14 @@ package org.hisp.dhis.query.operators;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query.operators;
+
+import java.util.Collection;
+import java.util.Date;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
@@ -35,20 +41,17 @@ import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
 import org.hisp.dhis.schema.Property;
 
-import java.util.Collection;
-import java.util.Date;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class InOperator extends Operator
+public class InOperator<T extends Comparable<? super T>> extends Operator<T>
 {
-    public InOperator( Collection<?> arg )
+    public InOperator( Collection<T> arg )
     {
         super( "in", Typed.from( Collection.class ), arg );
     }
 
-    public InOperator( String name, Collection<?> arg )
+    public InOperator( String name, Collection<T> arg )
     {
         super( name, Typed.from( Collection.class ), arg );
     }
@@ -60,10 +63,26 @@ public class InOperator extends Operator
 
         if ( property.isCollection() )
         {
-            return Restrictions.in( queryPath.getPath(), getValue( Collection.class, queryPath.getProperty().getItemKlass(), args.get( 0 ) ) );
+            return Restrictions.in( queryPath.getPath(),
+                getValue( Collection.class, queryPath.getProperty().getItemKlass(), args.get( 0 ) ) );
         }
 
-        return Restrictions.in( queryPath.getPath(), getValue( Collection.class, queryPath.getProperty().getKlass(), args.get( 0 ) ) );
+        return Restrictions.in( queryPath.getPath(),
+            getValue( Collection.class, queryPath.getProperty().getKlass(), args.get( 0 ) ) );
+    }
+
+    @Override
+    public <Y> Predicate getPredicate( CriteriaBuilder builder, Root<Y> root, QueryPath queryPath )
+    {
+        Property property = queryPath.getProperty();
+
+        if ( property.isCollection() )
+        {
+            return root.get( queryPath.getPath() ).in(
+                getValue( Collection.class, queryPath.getProperty().getItemKlass(), getCollectionArgs().get( 0 ) ) );
+        }
+
+        return root.get( queryPath.getPath() ).in( getCollectionArgs().get( 0 ) );
     }
 
     @Override
@@ -95,7 +114,6 @@ public class InOperator extends Operator
                 return true;
             }
         }
-
 
         return false;
     }

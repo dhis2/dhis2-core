@@ -1,7 +1,5 @@
-package org.hisp.dhis.organisationunit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.organisationunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.organisationunit;
 
 import static org.hisp.dhis.organisationunit.FeatureType.POINT;
 import static org.junit.Assert.fail;
@@ -35,23 +34,18 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.locationtech.jts.geom.Geometry;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.vividsolutions.jts.geom.Geometry;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * @author Luciano Fiandesio
  */
-public class OrganisationUnitStoreIntegrationTest extends IntegrationTestBase
+public class OrganisationUnitStoreIntegrationTest extends TransactionalIntegrationTest
 {
     private final static long _150KM = 150_000;
 
@@ -65,14 +59,10 @@ public class OrganisationUnitStoreIntegrationTest extends IntegrationTestBase
     @Autowired
     private IdentifiableObjectManager manager;
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Test
-    public void verifyGetOrgUnitsWithinAGeoBox() throws IOException {
+    public void verifyGetOrgUnitsWithinAGeoBox()
+        throws IOException
+    {
 
         // https://gist.github.com/luciano-fiandesio/ea682cd4b9a37c5b4bef93e3918b8cda
 
@@ -91,15 +81,14 @@ public class OrganisationUnitStoreIntegrationTest extends IntegrationTestBase
         manager.save( ouB );
         manager.save( ouC );
         manager.save( ouD );
-        List<OrganisationUnit> ous = getOUsFromPointToDistance(point, _150KM);
-        assertContainsOnly(ous, ouA);
+        List<OrganisationUnit> ous = getOUsFromPointToDistance( point, _150KM );
+        assertContainsOnly( ous, ouA );
 
-        ous = getOUsFromPointToDistance(point, _190KM);
-        assertContainsOnly(ous, ouA, ouC);
+        ous = getOUsFromPointToDistance( point, _190KM );
+        assertContainsOnly( ous, ouA, ouC );
 
-        ous = getOUsFromPointToDistance(point, _250KM);
-        assertContainsOnly(ous, ouA, ouB, ouC, ouD);
-
+        ous = getOUsFromPointToDistance( point, _250KM );
+        assertContainsOnly( ous, ouA, ouB, ouC, ouD );
 
     }
 
@@ -109,7 +98,8 @@ public class OrganisationUnitStoreIntegrationTest extends IntegrationTestBase
         return organisationUnitStore.getWithinCoordinateArea( box );
     }
 
-    private void assertContainsOnly(List<OrganisationUnit> ous, OrganisationUnit ... ou) {
+    private void assertContainsOnly( List<OrganisationUnit> ous, OrganisationUnit... ou )
+    {
 
         List<String> ouNames = ous.stream().map( BaseIdentifiableObject::getName ).collect( Collectors.toList() );
         for ( OrganisationUnit organisationUnit : ou )

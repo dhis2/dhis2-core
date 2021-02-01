@@ -1,7 +1,5 @@
-package org.hisp.dhis.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,11 @@ package org.hisp.dhis.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.system.util.SecurityUtils;
 import org.hisp.dhis.user.UserCredentials;
@@ -42,9 +43,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.extern.slf4j.Slf4j;
-
-
 /**
  * @author Torgeir Lorange Ostby
  */
@@ -54,13 +52,13 @@ public class DefaultUserDetailsService
     implements UserDetailsService
 {
     public static final String ID = UserDetailsService.class.getName();
-    
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
     private final UserService userService;
-    
+
     private final SecurityService securityService;
 
     public DefaultUserDetailsService( UserService userService, SecurityService securityService )
@@ -77,9 +75,10 @@ public class DefaultUserDetailsService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public UserDetails loadUserByUsername( String username )
-        throws UsernameNotFoundException, DataAccessException
+        throws UsernameNotFoundException,
+        DataAccessException
     {
         UserCredentials credentials = userService.getUserCredentialsByUsername( username );
 
@@ -100,14 +99,17 @@ public class DefaultUserDetailsService
         boolean enabled = !credentials.isDisabled();
         boolean credentialsNonExpired = userService.credentialsNonExpired( credentials );
         boolean accountNonLocked = !securityService.isLocked( credentials.getUsername() );
+        boolean accountNonExpired = !userService.isAccountExpired( credentials );
 
-        if ( ObjectUtils.anyIsFalse( enabled, credentialsNonExpired, accountNonLocked ) )
+        if ( ObjectUtils.anyIsFalse( enabled, credentialsNonExpired, accountNonLocked, accountNonExpired ) )
         {
-            log.info( String.format( "Login attempt for disabled/locked user: '%s', enabled: %b, credentials non-expired: %b, account non-locked: %b", 
-                username, enabled, credentialsNonExpired, accountNonLocked ) );
+            log.info( String.format(
+                "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b, credentials non-expired: %b, account non-locked: %b",
+                username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked ) );
         }
-        
+
         return new User( credentials.getUsername(), credentials.getPassword(),
-            enabled, true, credentialsNonExpired, accountNonLocked, SecurityUtils.getGrantedAuthorities( credentials ) );
+            enabled, accountNonExpired, credentialsNonExpired, accountNonLocked,
+            SecurityUtils.getGrantedAuthorities( credentials ) );
     }
 }

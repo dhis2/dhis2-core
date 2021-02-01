@@ -1,7 +1,5 @@
-package org.hisp.dhis.attribute;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,16 @@ package org.hisp.dhis.attribute;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.attribute;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -40,10 +42,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
@@ -60,17 +59,20 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.sqlview.SqlView;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -163,11 +165,16 @@ public class Attribute
     @Override
     public int hashCode()
     {
-        return 31 * super.hashCode() + Objects.hash( valueType, dataElementAttribute, dataElementGroupAttribute, indicatorAttribute, indicatorGroupAttribute,
-            dataSetAttribute, organisationUnitAttribute, organisationUnitGroupAttribute, organisationUnitGroupSetAttribute, userAttribute, userGroupAttribute,
-            programAttribute, programStageAttribute, trackedEntityTypeAttribute, trackedEntityAttributeAttribute, categoryOptionAttribute, categoryOptionGroupAttribute,
-            mandatory, unique, optionSet, optionAttribute, constantAttribute, legendSetAttribute, programIndicatorAttribute, sqlViewAttribute, sectionAttribute, categoryOptionComboAttribute,
-            categoryOptionGroupAttribute, dataElementGroupSetAttribute, validationRuleAttribute, validationRuleGroupAttribute, categoryAttribute );
+        return 31 * super.hashCode() + Objects.hash( valueType, dataElementAttribute, dataElementGroupAttribute,
+            indicatorAttribute, indicatorGroupAttribute,
+            dataSetAttribute, organisationUnitAttribute, organisationUnitGroupAttribute,
+            organisationUnitGroupSetAttribute, userAttribute, userGroupAttribute,
+            programAttribute, programStageAttribute, trackedEntityTypeAttribute, trackedEntityAttributeAttribute,
+            categoryOptionAttribute, categoryOptionGroupAttribute,
+            mandatory, unique, optionSet, optionAttribute, constantAttribute, legendSetAttribute,
+            programIndicatorAttribute, sqlViewAttribute, sectionAttribute, categoryOptionComboAttribute,
+            categoryOptionGroupAttribute, dataElementGroupSetAttribute, validationRuleAttribute,
+            validationRuleGroupAttribute, categoryAttribute );
     }
 
     @Override
@@ -177,10 +184,12 @@ public class Attribute
         {
             return true;
         }
+
         if ( obj == null || getClass() != obj.getClass() )
         {
             return false;
         }
+
         if ( !super.equals( obj ) )
         {
             return false;
@@ -217,7 +226,6 @@ public class Attribute
             && Objects.equals( this.validationRuleAttribute, other.validationRuleAttribute )
             && Objects.equals( this.validationRuleGroupAttribute, other.validationRuleGroupAttribute )
             && Objects.equals( this.categoryAttribute, other.categoryAttribute )
-
             && Objects.equals( this.mandatory, other.mandatory )
             && Objects.equals( this.unique, other.unique )
             && Objects.equals( this.optionSet, other.optionSet );
@@ -249,6 +257,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.BOOLEAN, required = Property.Value.TRUE )
     public boolean isUnique()
     {
         return unique;
@@ -261,6 +270,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE )
     public boolean isDataElementAttribute()
     {
         return dataElementAttribute;
@@ -285,6 +295,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE )
     public boolean isIndicatorAttribute()
     {
         return indicatorAttribute;
@@ -321,6 +332,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE )
     public boolean isOrganisationUnitAttribute()
     {
         return organisationUnitAttribute;
@@ -357,6 +369,7 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE )
     public boolean isUserAttribute()
     {
         return userAttribute;
@@ -647,36 +660,66 @@ public class Attribute
     {
         List<Class<? extends IdentifiableObject>> klasses = new ArrayList<>();
 
-        if ( dataElementAttribute ) klasses.add( DataElement.class );
-        if ( dataElementGroupAttribute ) klasses.add( DataElementGroup.class );
-        if ( categoryOptionAttribute ) klasses.add( CategoryOption.class );
-        if ( categoryOptionGroupAttribute ) klasses.add( CategoryOptionGroup.class );
-        if ( indicatorAttribute ) klasses.add( Indicator.class );
-        if ( indicatorGroupAttribute ) klasses.add( IndicatorGroup.class );
-        if ( dataSetAttribute ) klasses.add( DataSet.class );
-        if ( organisationUnitAttribute ) klasses.add( OrganisationUnit.class );
-        if ( organisationUnitGroupAttribute ) klasses.add( OrganisationUnitGroup.class );
-        if ( organisationUnitGroupSetAttribute ) klasses.add( OrganisationUnitGroupSet.class );
-        if ( userAttribute ) klasses.add( User.class );
-        if ( userGroupAttribute ) klasses.add( UserGroup.class );
-        if ( programAttribute ) klasses.add( Program.class );
-        if ( programStageAttribute ) klasses.add( ProgramStage.class );
-        if ( trackedEntityTypeAttribute ) klasses.add( TrackedEntityType.class );
-        if ( trackedEntityAttributeAttribute ) klasses.add( TrackedEntityAttribute.class );
-        if ( documentAttribute ) klasses.add( Document.class );
-        if ( optionAttribute ) klasses.add( Option.class );
-        if ( optionSetAttribute ) klasses.add( OptionSet.class );
-        if ( legendSetAttribute ) klasses.add( LegendSet.class );
-        if ( constantAttribute ) klasses.add( Constant.class );
-        if ( programIndicatorAttribute ) klasses.add( ProgramIndicator.class );
-        if ( sqlViewAttribute ) klasses.add( SqlView.class );
-        if ( sectionAttribute ) klasses.add( Section.class );
-        if ( categoryOptionComboAttribute ) klasses.add( CategoryOptionCombo.class );
-        if ( categoryOptionGroupSetAttribute ) klasses.add( CategoryOptionGroupSet.class );
-        if ( dataElementGroupSetAttribute ) klasses.add( DataElementGroupSet.class );
-        if ( validationRuleAttribute ) klasses.add( ValidationRule.class );
-        if ( validationRuleGroupAttribute ) klasses.add( ValidationRuleGroup.class );
-        if ( categoryAttribute ) klasses.add( Category.class );
+        if ( dataElementAttribute )
+            klasses.add( DataElement.class );
+        if ( dataElementGroupAttribute )
+            klasses.add( DataElementGroup.class );
+        if ( categoryOptionAttribute )
+            klasses.add( CategoryOption.class );
+        if ( categoryOptionGroupAttribute )
+            klasses.add( CategoryOptionGroup.class );
+        if ( indicatorAttribute )
+            klasses.add( Indicator.class );
+        if ( indicatorGroupAttribute )
+            klasses.add( IndicatorGroup.class );
+        if ( dataSetAttribute )
+            klasses.add( DataSet.class );
+        if ( organisationUnitAttribute )
+            klasses.add( OrganisationUnit.class );
+        if ( organisationUnitGroupAttribute )
+            klasses.add( OrganisationUnitGroup.class );
+        if ( organisationUnitGroupSetAttribute )
+            klasses.add( OrganisationUnitGroupSet.class );
+        if ( userAttribute )
+            klasses.add( User.class );
+        if ( userGroupAttribute )
+            klasses.add( UserGroup.class );
+        if ( programAttribute )
+            klasses.add( Program.class );
+        if ( programStageAttribute )
+            klasses.add( ProgramStage.class );
+        if ( trackedEntityTypeAttribute )
+            klasses.add( TrackedEntityType.class );
+        if ( trackedEntityAttributeAttribute )
+            klasses.add( TrackedEntityAttribute.class );
+        if ( documentAttribute )
+            klasses.add( Document.class );
+        if ( optionAttribute )
+            klasses.add( Option.class );
+        if ( optionSetAttribute )
+            klasses.add( OptionSet.class );
+        if ( legendSetAttribute )
+            klasses.add( LegendSet.class );
+        if ( constantAttribute )
+            klasses.add( Constant.class );
+        if ( programIndicatorAttribute )
+            klasses.add( ProgramIndicator.class );
+        if ( sqlViewAttribute )
+            klasses.add( SqlView.class );
+        if ( sectionAttribute )
+            klasses.add( Section.class );
+        if ( categoryOptionComboAttribute )
+            klasses.add( CategoryOptionCombo.class );
+        if ( categoryOptionGroupSetAttribute )
+            klasses.add( CategoryOptionGroupSet.class );
+        if ( dataElementGroupSetAttribute )
+            klasses.add( DataElementGroupSet.class );
+        if ( validationRuleAttribute )
+            klasses.add( ValidationRule.class );
+        if ( validationRuleGroupAttribute )
+            klasses.add( ValidationRuleGroup.class );
+        if ( categoryAttribute )
+            klasses.add( Category.class );
 
         return klasses;
     }

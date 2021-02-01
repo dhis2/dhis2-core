@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataapproval;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,31 @@ package org.hisp.dhis.dataapproval;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataapproval;
 
-import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisTest;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
+import static com.google.common.collect.Sets.newHashSet;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.ACCEPT;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.UNACCEPT;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.UNAPPROVE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -52,30 +62,23 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
-import static com.google.common.collect.Sets.newHashSet;
-import static org.hisp.dhis.dataapproval.DataApprovalAction.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Sets;
 
 /**
  * @author Jim Grace
  */
 // FIXME refactor this test to use mocks
-public class DataApprovalAuditServiceTest
-    extends DhisTest
+public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
 {
     private static final String ACCESS_NONE = "--------";
+
     private static final String ACCESS_READ = "r-------";
 
     @Autowired
@@ -119,27 +122,37 @@ public class DataApprovalAuditServiceTest
     // -------------------------------------------------------------------------
 
     private DataApprovalLevel level1;
+
     private DataApprovalLevel level2;
+
     private DataApprovalLevel level3;
 
     private DataApprovalWorkflow workflowA;
+
     private DataApprovalWorkflow workflowB;
 
     private Period periodA;
+
     private Period periodB;
 
     private OrganisationUnit sourceA;
+
     private OrganisationUnit sourceB;
 
     private CurrentUserService superUserService;
+
     private CurrentUserService userAService;
+
     private CurrentUserService userBService;
+
     private CurrentUserService userCService;
+
     private CurrentUserService userDService;
 
     private User userZ;
 
     private CategoryOption optionA;
+
     private CategoryOption optionB;
 
     private Category categoryA;
@@ -147,34 +160,48 @@ public class DataApprovalAuditServiceTest
     private CategoryCombo categoryComboA;
 
     private CategoryOptionCombo optionComboA;
+
     private CategoryOptionCombo optionComboB;
+
     private CategoryOptionCombo optionComboC;
 
     private CategoryOptionGroup optionGroupA;
+
     private CategoryOptionGroup optionGroupB;
 
     private CategoryOptionGroupSet optionGroupSetB;
 
     private Date dateA;
+
     private Date dateB;
 
     private DataApprovalAudit auditAA1;
+
     private DataApprovalAudit auditAB1;
+
     private DataApprovalAudit auditAC1;
+
     private DataApprovalAudit auditBA2;
+
     private DataApprovalAudit auditBB2;
+
     private DataApprovalAudit auditBC2;
+
     private DataApprovalAudit auditBA3;
+
     private DataApprovalAudit auditBB3;
+
     private DataApprovalAudit auditBC3;
 
     // -------------------------------------------------------------------------
     // Set up/tear down helper methods
     // -------------------------------------------------------------------------
 
-    private CurrentUserService getMockCurrentUserService( String userName, boolean superUserFlag, OrganisationUnit orgUnit, String... auths )
+    private CurrentUserService getMockCurrentUserService( String userName, boolean superUserFlag,
+        OrganisationUnit orgUnit, String... auths )
     {
-        CurrentUserService mockCurrentUserService = new MockCurrentUserService( superUserFlag, Sets.newHashSet( orgUnit ), Sets.newHashSet( orgUnit ), auths );
+        CurrentUserService mockCurrentUserService = new MockCurrentUserService( superUserFlag,
+            Sets.newHashSet( orgUnit ), Sets.newHashSet( orgUnit ), auths );
 
         User user = mockCurrentUserService.getCurrentUser();
 
@@ -187,7 +214,8 @@ public class DataApprovalAuditServiceTest
 
         for ( UserAuthorityGroup role : credentials.getUserAuthorityGroups() )
         {
-            role.setName( CodeGenerator.generateUid() ); // Give the role an arbitrary name
+            role.setName( CodeGenerator.generateUid() ); // Give the role an
+                                                         // arbitrary name
 
             userService.addUserAuthorityGroup( role );
         }
@@ -213,20 +241,13 @@ public class DataApprovalAuditServiceTest
 
     private void setPrivateAccess( BaseIdentifiableObject object, UserGroup... userGroups )
     {
-        object.setPublicAccess( ACCESS_NONE );
+        object.getSharing().setPublicAccess( ACCESS_NONE );
         object.setUser( userZ ); // Needed for sharing to work
+        object.getSharing().setOwner( userZ );
 
         for ( UserGroup group : userGroups )
         {
-            UserGroupAccess userGroupAccess = new UserGroupAccess();
-
-            userGroupAccess.setAccess( ACCESS_READ );
-
-            userGroupAccess.setUserGroup( group );
-
-            userGroupAccessService.addUserGroupAccess( userGroupAccess );
-
-            object.getUserGroupAccesses().add( userGroupAccess );
+            object.getSharing().addUserGroupAccess( new UserGroupAccess( group, ACCESS_READ ) );
         }
 
         identifiableObjectManager.updateNoAcl( object );
@@ -237,7 +258,14 @@ public class DataApprovalAuditServiceTest
     // -------------------------------------------------------------------------
 
     @Override
-    public void setUpTest() throws Exception
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
+    @Override
+    public void setUpTest()
+        throws Exception
     {
         // ---------------------------------------------------------------------
         // Add supporting data
@@ -265,6 +293,9 @@ public class DataApprovalAuditServiceTest
 
         UserGroup userGroupC = getUserGroup( "UserGroupA", Sets.newHashSet( userCService.getCurrentUser() ) );
         UserGroup userGroupD = getUserGroup( "UserGroupB", Sets.newHashSet( userDService.getCurrentUser() ) );
+
+        userCService.getCurrentUser().getGroups().add( userGroupC );
+        userDService.getCurrentUser().getGroups().add( userGroupD );
 
         optionA = new CategoryOption( "CategoryOptionA" );
         optionB = new CategoryOption( "CategoryOptionB" );
@@ -326,15 +357,24 @@ public class DataApprovalAuditServiceTest
         dataApprovalService.addWorkflow( workflowA );
         dataApprovalService.addWorkflow( workflowB );
 
-        DataApproval approvalAA1 = new DataApproval( level1, workflowA, periodA, sourceA, optionComboA, false, dateA, userZ );
-        DataApproval approvalAB1 = new DataApproval( level1, workflowA, periodA, sourceA, optionComboB, false, dateA, userZ );
-        DataApproval approvalAC1 = new DataApproval( level1, workflowA, periodA, sourceA, optionComboC, false, dateA, userZ );
-        DataApproval approvalBA2 = new DataApproval( level2, workflowB, periodB, sourceB, optionComboA, false, dateB, userZ );
-        DataApproval approvalBB2 = new DataApproval( level2, workflowB, periodB, sourceB, optionComboB, false, dateB, userZ );
-        DataApproval approvalBC2 = new DataApproval( level2, workflowB, periodB, sourceB, optionComboC, false, dateB, userZ );
-        DataApproval approvalBA3 = new DataApproval( level3, workflowB, periodB, sourceB, optionComboA, false, dateB, userZ );
-        DataApproval approvalBB3 = new DataApproval( level3, workflowB, periodB, sourceB, optionComboB, false, dateB, userZ );
-        DataApproval approvalBC3 = new DataApproval( level3, workflowB, periodB, sourceB, optionComboC, false, dateB, userZ );
+        DataApproval approvalAA1 = new DataApproval( level1, workflowA, periodA, sourceA, optionComboA, false, dateA,
+            userZ );
+        DataApproval approvalAB1 = new DataApproval( level1, workflowA, periodA, sourceA, optionComboB, false, dateA,
+            userZ );
+        DataApproval approvalAC1 = new DataApproval( level1, workflowA, periodA, sourceA, optionComboC, false, dateA,
+            userZ );
+        DataApproval approvalBA2 = new DataApproval( level2, workflowB, periodB, sourceB, optionComboA, false, dateB,
+            userZ );
+        DataApproval approvalBB2 = new DataApproval( level2, workflowB, periodB, sourceB, optionComboB, false, dateB,
+            userZ );
+        DataApproval approvalBC2 = new DataApproval( level2, workflowB, periodB, sourceB, optionComboC, false, dateB,
+            userZ );
+        DataApproval approvalBA3 = new DataApproval( level3, workflowB, periodB, sourceB, optionComboA, false, dateB,
+            userZ );
+        DataApproval approvalBB3 = new DataApproval( level3, workflowB, periodB, sourceB, optionComboB, false, dateB,
+            userZ );
+        DataApproval approvalBC3 = new DataApproval( level3, workflowB, periodB, sourceB, optionComboC, false, dateB,
+            userZ );
         auditAA1 = new DataApprovalAudit( approvalAA1, APPROVE );
         auditAB1 = new DataApprovalAudit( approvalAB1, UNAPPROVE );
         auditAC1 = new DataApprovalAudit( approvalAC1, ACCEPT );
@@ -353,12 +393,6 @@ public class DataApprovalAuditServiceTest
         dataApprovalAuditStore.save( auditBA3 );
         dataApprovalAuditStore.save( auditBB3 );
         dataApprovalAuditStore.save( auditBC3 );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 
     @Override

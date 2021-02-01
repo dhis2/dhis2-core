@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.trackedentity;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +25,24 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.trackedentity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.vividsolutions.jts.geom.Geometry;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.locationtech.jts.geom.Geometry;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -81,6 +81,8 @@ public class TrackedEntityInstance
     private String coordinates;
 
     private Geometry geometry;
+
+    private String storedBy;
 
     public TrackedEntityInstance()
     {
@@ -306,11 +308,25 @@ public class TrackedEntityInstance
         this.geometry = geometry;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getStoredBy()
+    {
+        return storedBy;
+    }
+
+    public void setStoredBy( String storedBy )
+    {
+        this.storedBy = storedBy;
+    }
+
     @Override
     public boolean equals( Object o )
     {
-        if ( this == o ) return true;
-        if ( o == null || getClass() != o.getClass() ) return false;
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
         TrackedEntityInstance that = (TrackedEntityInstance) o;
         return Objects.equals( trackedEntityType, that.trackedEntityType ) &&
             Objects.equals( trackedEntityInstance, that.trackedEntityInstance ) &&
@@ -328,11 +344,13 @@ public class TrackedEntityInstance
     @Override
     public int hashCode()
     {
-        return Objects.hash( trackedEntityType, trackedEntityInstance, orgUnit, created, createdAtClient, lastUpdated, lastUpdatedAtClient,
+        return Objects.hash( trackedEntityType, trackedEntityInstance, orgUnit, created, createdAtClient, lastUpdated,
+            lastUpdatedAtClient,
             relationships, attributes, enrollments, inactive );
     }
 
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return "TrackedEntityInstance{" +
             "trackedEntityType='" + trackedEntityType + '\'' +

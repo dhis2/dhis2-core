@@ -1,7 +1,5 @@
-package org.hisp.dhis.attribute;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,15 @@ package org.hisp.dhis.attribute;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.attribute;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
@@ -38,10 +41,11 @@ import javax.annotation.PostConstruct;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,22 +67,18 @@ public class DefaultAttributeService
 
     private final IdentifiableObjectManager manager;
 
-    private final CacheProvider cacheProvider;
-
     private SessionFactory sessionFactory;
 
     private final Environment env;
 
     public DefaultAttributeService( AttributeStore attributeStore, IdentifiableObjectManager manager,
-        CacheProvider cacheProvider, SessionFactory sessionFactory, Environment env )
+        SessionFactory sessionFactory, Environment env )
     {
         checkNotNull( attributeStore );
         checkNotNull( manager );
-        checkNotNull( cacheProvider );
 
         this.attributeStore = attributeStore;
         this.manager = manager;
-        this.cacheProvider = cacheProvider;
         this.sessionFactory = sessionFactory;
         this.env = env;
     }
@@ -86,7 +86,7 @@ public class DefaultAttributeService
     @PostConstruct
     public void init()
     {
-        attributeCache = cacheProvider.newCacheBuilder( Attribute.class )
+        attributeCache = new SimpleCacheBuilder<Attribute>()
             .forRegion( "metadataAttributes" )
             .expireAfterWrite( 12, TimeUnit.HOURS )
             .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
@@ -107,19 +107,25 @@ public class DefaultAttributeService
     @Transactional
     public void deleteAttribute( Attribute attribute )
     {
-        attributeCache.invalidate( attribute.getUid() );
         attributeStore.delete( attribute );
+        attributeCache.invalidate( attribute.getUid() );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    public void invalidateCachedAttribute( String attributeUid )
+    {
+        attributeCache.invalidate( attributeUid );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public Attribute getAttribute( long id )
     {
         return attributeStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Attribute getAttribute( String uid )
     {
         Optional<Attribute> attribute = attributeCache.get( uid, attr -> attributeStore.getByUid( uid ) );
@@ -127,42 +133,42 @@ public class DefaultAttributeService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Attribute getAttributeByName( String name )
     {
         return attributeStore.getByName( name );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Attribute getAttributeByCode( String code )
     {
         return attributeStore.getByCode( code );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Attribute> getAllAttributes()
     {
         return new ArrayList<>( attributeStore.getAll() );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Attribute> getAttributes( Class<?> klass )
     {
         return new ArrayList<>( attributeStore.getAttributes( klass ) );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Attribute> getMandatoryAttributes( Class<?> klass )
     {
         return new ArrayList<>( attributeStore.getMandatoryAttributes( klass ) );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Attribute> getUniqueAttributes( Class<?> klass )
     {
         return new ArrayList<>( attributeStore.getUniqueAttributes( klass ) );
@@ -174,7 +180,9 @@ public class DefaultAttributeService
 
     @Override
     @Transactional
-    public <T extends IdentifiableObject> void addAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
+    public <T extends IdentifiableObject> void addAttributeValue( T object, AttributeValue attributeValue )
+        throws NonUniqueAttributeValueException
     {
         if ( object == null || attributeValue == null || attributeValue.getAttribute() == null )
         {
@@ -183,17 +191,16 @@ public class DefaultAttributeService
 
         Attribute attribute = getAttribute( attributeValue.getAttribute().getUid() );
 
-        if ( Objects.isNull( attribute ) || !attribute.getSupportedClasses().contains( object.getClass() ) )
+        Class realClass = HibernateProxyUtils.getRealClass( object );
+
+        if ( Objects.isNull( attribute ) || !attribute.getSupportedClasses().contains( realClass ) )
         {
             return;
         }
-        if ( attribute.isUnique() )
-        {
 
-            if (  !manager.isAttributeValueUnique( object.getClass(), object, attributeValue) )
-            {
-                throw new NonUniqueAttributeValueException( attributeValue );
-            }
+        if ( attribute.isUnique() && !manager.isAttributeValueUnique( realClass, object, attributeValue ) )
+        {
+            throw new NonUniqueAttributeValueException( attributeValue );
         }
 
         object.getAttributeValues().add( attributeValue );
@@ -205,7 +212,7 @@ public class DefaultAttributeService
     public <T extends IdentifiableObject> void deleteAttributeValue( T object, AttributeValue attributeValue )
     {
         object.getAttributeValues()
-                .removeIf( a -> a.getAttribute() == attributeValue.getAttribute() );
+            .removeIf( a -> a.getAttribute() == attributeValue.getAttribute() );
         manager.update( object );
     }
 
@@ -223,6 +230,7 @@ public class DefaultAttributeService
     public <T extends IdentifiableObject> void generateAttributes( List<T> entityList )
     {
         entityList.forEach( entity -> entity.getAttributeValues()
-            .forEach( attributeValue -> attributeValue.setAttribute( getAttribute( attributeValue.getAttribute().getUid() ) ) ) );
+            .forEach( attributeValue -> attributeValue
+                .setAttribute( getAttribute( attributeValue.getAttribute().getUid() ) ) ) );
     }
 }

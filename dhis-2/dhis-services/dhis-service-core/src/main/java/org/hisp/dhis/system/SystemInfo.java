@@ -1,7 +1,5 @@
-package org.hisp.dhis.system;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,17 @@ package org.hisp.dhis.system;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.BeanUtils;
 
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
@@ -60,6 +60,10 @@ public class SystemInfo
     private String dateFormat;
 
     private Date serverDate;
+
+    private String serverTimeZoneId;
+
+    private String serverTimeZoneDisplayName;
 
     private Date lastAnalyticsTableSuccess;
 
@@ -143,8 +147,6 @@ public class SystemInfo
 
     private boolean isMetadataSyncEnabled;
 
-    private MetadataAudit metadataAudit;
-
     public SystemInfo instance()
     {
         SystemInfo info = new SystemInfo();
@@ -174,7 +176,6 @@ public class SystemInfo
         this.memoryInfo = null;
         this.cpuCores = null;
         this.systemMonitoringUrl = null;
-        this.metadataAudit = null;
 
         if ( this.databaseInfo != null )
         {
@@ -248,6 +249,30 @@ public class SystemInfo
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getServerTimeZoneId()
+    {
+        return serverTimeZoneId;
+    }
+
+    public void setServerTimeZoneId( String serverTimeZoneId )
+    {
+        this.serverTimeZoneId = serverTimeZoneId;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getServerTimeZoneDisplayName()
+    {
+        return serverTimeZoneDisplayName;
+    }
+
+    public void setServerTimeZoneDisplayName( String serverTimeZoneDisplayName )
+    {
+        this.serverTimeZoneDisplayName = serverTimeZoneDisplayName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getLastAnalyticsTableSuccess()
     {
         return lastAnalyticsTableSuccess;
@@ -301,7 +326,8 @@ public class SystemInfo
         return intervalSinceLastAnalyticsTablePartitionSuccess;
     }
 
-    public void setIntervalSinceLastAnalyticsTablePartitionSuccess( String intervalSinceLastAnalyticsTablePartitionSuccess )
+    public void setIntervalSinceLastAnalyticsTablePartitionSuccess(
+        String intervalSinceLastAnalyticsTablePartitionSuccess )
     {
         this.intervalSinceLastAnalyticsTablePartitionSuccess = intervalSinceLastAnalyticsTablePartitionSuccess;
     }
@@ -712,17 +738,5 @@ public class SystemInfo
     public void setMetadataSyncEnabled( boolean isMetadataSyncEnabled )
     {
         this.isMetadataSyncEnabled = isMetadataSyncEnabled;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public MetadataAudit getMetadataAudit()
-    {
-        return metadataAudit;
-    }
-
-    public void setMetadataAudit( MetadataAudit metadataAudit )
-    {
-        this.metadataAudit = metadataAudit;
     }
 }

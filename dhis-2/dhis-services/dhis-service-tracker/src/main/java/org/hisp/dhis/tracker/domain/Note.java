@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.domain;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,21 @@ package org.hisp.dhis.tracker.domain;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.Instant;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
+ * Notes are text-only objects attached to Events and Enrollments. An Event or
+ * Enrollment may have multiple notes.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
@@ -47,11 +52,14 @@ public class Note
     private String note;
 
     @JsonProperty
-    private String value;
+    private Instant storedAt;
+
+    @JsonProperty
+    private Instant updatedAt;
 
     @JsonProperty
     private String storedBy;
 
     @JsonProperty
-    private String storedDate;
+    private String value;
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.category;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +25,22 @@ package org.hisp.dhis.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.category;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionalEmbeddedObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionalEmbeddedObject;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -48,7 +50,7 @@ public class CategoryOptionGroupSetDimension
     implements DimensionalEmbeddedObject
 {
     private int id;
-    
+
     private CategoryOptionGroupSet dimension;
 
     private List<CategoryOptionGroup> items = new ArrayList<>();
@@ -66,6 +68,7 @@ public class CategoryOptionGroupSetDimension
     @JsonProperty( "categoryOptionGroupSet" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "categoryOptionGroupSet", namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.REFERENCE, required = Property.Value.TRUE )
     public CategoryOptionGroupSet getDimension()
     {
         return dimension;
@@ -79,6 +82,7 @@ public class CategoryOptionGroupSetDimension
     @JsonProperty( "categoryOptionGroups" )
     @JacksonXmlElementWrapper( localName = "categoryOptionGroups", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryOptionGroup", namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.REFERENCE, required = Property.Value.TRUE )
     public List<CategoryOptionGroup> getItems()
     {
         return items;

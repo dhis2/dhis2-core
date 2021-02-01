@@ -1,7 +1,5 @@
-package org.hisp.dhis.artemis;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +25,27 @@ package org.hisp.dhis.artemis;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import lombok.extern.slf4j.Slf4j;
-import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
-
-
-import org.hisp.dhis.artemis.config.ArtemisConfigData;
-import org.hisp.dhis.artemis.config.ArtemisMode;
-import org.springframework.stereotype.Service;
+package org.hisp.dhis.artemis;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
+import org.hisp.dhis.artemis.config.ArtemisConfigData;
+import org.hisp.dhis.artemis.config.ArtemisMode;
+import org.springframework.stereotype.Service;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service
 @Slf4j
+@Service
 public class ArtemisManager
 {
     private final EmbeddedActiveMQ embeddedActiveMQ;
+
     private final ArtemisConfigData artemisConfigData;
 
     public ArtemisManager(
@@ -58,7 +57,8 @@ public class ArtemisManager
     }
 
     @PostConstruct
-    public void startAmqp() throws Exception
+    public void startAmqp()
+        throws Exception
     {
         if ( ArtemisMode.EMBEDDED == artemisConfigData.getMode() )
         {
@@ -68,7 +68,8 @@ public class ArtemisManager
     }
 
     @PreDestroy
-    public void stopAmqp() throws Exception
+    public void stopAmqp()
+        throws Exception
     {
         if ( embeddedActiveMQ == null )
         {

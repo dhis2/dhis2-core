@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,9 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.artemis.audit.configuration;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.audit.AuditScope.AGGREGATE;
@@ -40,7 +40,6 @@ import static org.hisp.dhis.audit.AuditType.SEARCH;
 import static org.hisp.dhis.audit.AuditType.SECURITY;
 import static org.hisp.dhis.audit.AuditType.UPDATE;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -101,6 +100,20 @@ public class AuditMatrixConfigurerTest
     }
 
     @Test
+    public void allDisabled()
+    {
+        when( config.getProperty( ConfigurationKey.AUDIT_METADATA_MATRIX ) ).thenReturn( "DISABLED" );
+        when( config.getProperty( ConfigurationKey.AUDIT_TRACKER_MATRIX ) ).thenReturn( "DISABLED" );
+        when( config.getProperty( ConfigurationKey.AUDIT_AGGREGATE_MATRIX ) ).thenReturn( "DISABLED" );
+
+        matrix = this.subject.configure();
+
+        assertMatrixAllDisabled( METADATA );
+        assertMatrixAllDisabled( TRACKER );
+        assertMatrixAllDisabled( AGGREGATE );
+    }
+
+    @Test
     public void verifyInvalidConfigurationIsIgnored()
     {
         when( config.getProperty( ConfigurationKey.AUDIT_METADATA_MATRIX ) ).thenReturn( "READX;UPDATE" );
@@ -157,6 +170,15 @@ public class AuditMatrixConfigurerTest
     private void assertMatrixDisabled( AuditScope auditScope, AuditType... auditTypes )
     {
         for ( AuditType auditType : auditTypes )
+        {
+            assertThat( "Expecting false for audit type: " + auditType.name(),
+                matrix.get( auditScope ).get( auditType ), is( false ) );
+        }
+    }
+
+    private void assertMatrixAllDisabled( AuditScope auditScope )
+    {
+        for ( AuditType auditType : AuditType.values() )
         {
             assertThat( "Expecting false for audit type: " + auditType.name(),
                 matrix.get( auditScope ).get( auditType ), is( false ) );

@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,13 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
@@ -39,14 +44,9 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
- * Class which encapsulates a query parameter and value. Operator and filter
- * are inherited from QueryFilter.
+ * Class which encapsulates a query parameter and value. Operator and filter are
+ * inherited from QueryFilter.
  *
  * @author Lars Helge Overland
  */
@@ -81,7 +81,8 @@ public class QueryItem
         this.item = item;
     }
 
-    public QueryItem( DimensionalItemObject item, LegendSet legendSet, ValueType valueType, AggregationType aggregationType, OptionSet optionSet )
+    public QueryItem( DimensionalItemObject item, LegendSet legendSet, ValueType valueType,
+        AggregationType aggregationType, OptionSet optionSet )
     {
         this.item = item;
         this.legendSet = legendSet;
@@ -90,7 +91,8 @@ public class QueryItem
         this.optionSet = optionSet;
     }
 
-    public QueryItem( DimensionalItemObject item, LegendSet legendSet, ValueType valueType, AggregationType aggregationType, OptionSet optionSet, Boolean unique )
+    public QueryItem( DimensionalItemObject item, LegendSet legendSet, ValueType valueType,
+        AggregationType aggregationType, OptionSet optionSet, Boolean unique )
     {
         this.item = item;
         this.legendSet = legendSet;
@@ -100,28 +102,31 @@ public class QueryItem
         this.unique = unique;
     }
 
-    public QueryItem( DimensionalItemObject item, LegendSet legendSet, ValueType valueType, AggregationType aggregationType, OptionSet optionSet, RelationshipType relationshipType )
+    public QueryItem( DimensionalItemObject item, LegendSet legendSet, ValueType valueType,
+        AggregationType aggregationType, OptionSet optionSet, RelationshipType relationshipType )
     {
         this( item, legendSet, valueType, aggregationType, optionSet );
         this.relationshipType = relationshipType;
     }
 
-
-    public QueryItem( DimensionalItemObject item, Program program, LegendSet legendSet, ValueType valueType, AggregationType aggregationType, OptionSet optionSet )
+    public QueryItem( DimensionalItemObject item, Program program, LegendSet legendSet, ValueType valueType,
+        AggregationType aggregationType, OptionSet optionSet )
     {
         this( item, legendSet, valueType, aggregationType, optionSet );
 
         this.program = program;
     }
 
-    public QueryItem( DimensionalItemObject item, Program program, LegendSet legendSet, ValueType valueType, AggregationType aggregationType, OptionSet optionSet, RelationshipType relationshipType )
+    public QueryItem( DimensionalItemObject item, Program program, LegendSet legendSet, ValueType valueType,
+        AggregationType aggregationType, OptionSet optionSet, RelationshipType relationshipType )
     {
         this( item, program, legendSet, valueType, aggregationType, optionSet );
 
         this.relationshipType = relationshipType;
     }
 
-    public QueryItem( DimensionalItemObject item, QueryOperator operator, String filter, ValueType valueType, AggregationType aggregationType, OptionSet optionSet )
+    public QueryItem( DimensionalItemObject item, QueryOperator operator, String filter, ValueType valueType,
+        AggregationType aggregationType, OptionSet optionSet )
     {
         this.item = item;
         this.valueType = valueType;
@@ -175,8 +180,8 @@ public class QueryItem
     }
 
     /**
-     * Returns a string representation of the query filters. Returns null if item
-     * has no query items.
+     * Returns a string representation of the query filters. Returns null if
+     * item has no query items.
      */
     public String getFiltersAsString()
     {
@@ -185,7 +190,8 @@ public class QueryItem
             return null;
         }
 
-        List<String> filterStrings = filters.stream().map( QueryFilter::getFilterAsString ).collect( Collectors.toList() );
+        List<String> filterStrings = filters.stream().map( QueryFilter::getFilterAsString )
+            .collect( Collectors.toList() );
         return StringUtils.join( filterStrings, ", " );
     }
 
@@ -240,10 +246,9 @@ public class QueryItem
     }
 
     /**
-     * Returns filter items for all filters associated with this
-     * query item. If no filter items are specified, return all
-     * items part of the legend set. If not legend set is specified,
-     * returns null.
+     * Returns filter items for all filters associated with this query item. If
+     * no filter items are specified, return all items part of the legend set.
+     * If not legend set is specified, returns null.
      */
     public List<String> getLegendSetFilterItemsOrAll()
     {
@@ -252,15 +257,13 @@ public class QueryItem
             return null;
         }
 
-        return hasFilter() ? getQueryFilterItems() :
-            IdentifiableObjectUtils.getUids( legendSet.getSortedLegends() );
+        return hasFilter() ? getQueryFilterItems() : IdentifiableObjectUtils.getUids( legendSet.getSortedLegends() );
     }
 
     /**
-     * Returns filter items for all filters associated with this
-     * query item. If no filter items are specified, return all
-     * items part of the option set. If not option set is specified,
-     * returns null.
+     * Returns filter items for all filters associated with this query item. If
+     * no filter items are specified, return all items part of the option set.
+     * If not option set is specified, returns null.
      */
     public List<String> getOptionSetFilterItemsOrAll()
     {
@@ -269,14 +272,13 @@ public class QueryItem
             return null;
         }
 
-        return hasFilter() ? getOptionSetQueryFilterItems() :
-            IdentifiableObjectUtils.getUids( optionSet.getOptions() );
+        return hasFilter() ? getOptionSetQueryFilterItems() : IdentifiableObjectUtils.getUids( optionSet.getOptions() );
     }
 
     /**
-     * Returns option filter items. Options are specified by code
-     * but returned as identifiers, so the codes are mapped to
-     * options and then to identifiers.
+     * Returns option filter items. Options are specified by code but returned
+     * as identifiers, so the codes are mapped to options and then to
+     * identifiers.
      *
      * //TODO clean up and standardize on identifier.
      */
@@ -290,8 +292,7 @@ public class QueryItem
     }
 
     /**
-     * Returns filter items for all filters associated with this
-     * query item.
+     * Returns filter items for all filters associated with this query item.
      */
     public List<String> getQueryFilterItems()
     {
@@ -301,9 +302,8 @@ public class QueryItem
     }
 
     /**
-     * Returns SQL filter for the given query filter and SQL encoded
-     * filter. If the item value type is text-based, the filter is
-     * converted to lower-case.
+     * Returns SQL filter for the given query filter and SQL encoded filter. If
+     * the item value type is text-based, the filter is converted to lower-case.
      *
      * @param filter the query filter.
      * @param encodedFilter the SQL encoded filter.
@@ -325,7 +325,10 @@ public class QueryItem
 
         for ( TrackedEntityAttribute attribute : attributes )
         {
-            queryItems.add( new QueryItem( attribute, (attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get(0) ), attribute.getValueType(), attribute.getAggregationType(), attribute.hasOptionSet() ? attribute.getOptionSet() : null ) );
+            queryItems.add( new QueryItem( attribute,
+                (attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get( 0 )),
+                attribute.getValueType(), attribute.getAggregationType(),
+                attribute.hasOptionSet() ? attribute.getOptionSet() : null ) );
         }
 
         return queryItems;
@@ -337,7 +340,8 @@ public class QueryItem
 
         for ( DataElement dataElement : dataElements )
         {
-            queryItems.add( new QueryItem( dataElement, dataElement.getLegendSet(), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.hasOptionSet() ? dataElement.getOptionSet() : null ) );
+            queryItems.add( new QueryItem( dataElement, dataElement.getLegendSet(), dataElement.getValueType(),
+                dataElement.getAggregationType(), dataElement.hasOptionSet() ? dataElement.getOptionSet() : null ) );
         }
 
         return queryItems;
@@ -350,7 +354,7 @@ public class QueryItem
     @Override
     public int hashCode()
     {
-        return item.hashCode();
+        return Objects.hash( item, program, programStage );
     }
 
     @Override
@@ -373,13 +377,17 @@ public class QueryItem
 
         final QueryItem other = (QueryItem) object;
 
-        return item.equals( other.getItem() );
+        return Objects.equals( item, other.getItem() ) &&
+            Objects.equals( program, other.getProgram() ) &&
+            Objects.equals( programStage, other.getProgramStage() );
     }
 
     @Override
     public String toString()
     {
-        return "[Item: " + item + ", legend set: " + legendSet + ", filters: " + filters + ", value type: " + valueType + ", optionSet: " + optionSet + "]";
+        return "[Item: " + item + ", legend set: " + legendSet + ", filters: " + filters +
+            ", value type: " + valueType + ", optionSet: " + optionSet +
+            ", program: " + program + ", program stage: " + programStage + "]";
     }
 
     // -------------------------------------------------------------------------

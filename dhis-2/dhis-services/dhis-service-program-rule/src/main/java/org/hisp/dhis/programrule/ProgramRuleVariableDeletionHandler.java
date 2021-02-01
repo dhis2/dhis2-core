@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,26 @@ package org.hisp.dhis.programrule;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.programrule;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
 
 /**
  * @author markusbekken
  */
 @Component( "org.hisp.dhis.programrule.ProgramRuleVariableDeletionHandler" )
 public class ProgramRuleVariableDeletionHandler
-    extends DeletionHandler 
+    extends DeletionHandler
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -61,7 +66,20 @@ public class ProgramRuleVariableDeletionHandler
     {
         return ProgramRuleVariable.class.getSimpleName();
     }
-    
+
+    @Override
+    public String allowDeleteProgramStage( ProgramStage programStage )
+    {
+        String programRuleVariables = programRuleVariableService
+            .getProgramRuleVariable( programStage.getProgram() )
+            .stream()
+            .filter( prv -> Objects.equals( prv.getProgramStage(), programStage ) )
+            .map( BaseIdentifiableObject::getName )
+            .collect( Collectors.joining( ", " ) );
+
+        return StringUtils.isBlank( programRuleVariables ) ? null : programRuleVariables;
+    }
+
     @Override
     public void deleteProgram( Program program )
     {
@@ -70,5 +88,4 @@ public class ProgramRuleVariableDeletionHandler
             programRuleVariableService.deleteProgramRuleVariable( programRuleVariable );
         }
     }
-    
 }

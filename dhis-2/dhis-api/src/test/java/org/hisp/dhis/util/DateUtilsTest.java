@@ -1,7 +1,5 @@
-package org.hisp.dhis.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +25,33 @@ package org.hisp.dhis.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.util;
 
 import static java.util.Calendar.DATE;
 import static java.util.Calendar.MILLISECOND;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hisp.dhis.util.DateUtils.dateIsValid;
 import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
-import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.util.DateUtils.getMediumDate;
-import static org.junit.Assert.*;
+import static org.hisp.dhis.util.DateUtils.parseDate;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.TimeZone;
 
 import org.hisp.dhis.calendar.impl.NepaliCalendar;
 import org.joda.time.DateTime;
-import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
@@ -101,7 +104,7 @@ public class DateUtilsTest
     @Test
     public void testDaysBetween()
     {
-        Assert.assertEquals( 6, DateUtils.daysBetween( new DateTime( 2014, 3, 1, 0, 0 ).toDate(),
+        assertEquals( 6, DateUtils.daysBetween( new DateTime( 2014, 3, 1, 0, 0 ).toDate(),
             new DateTime( 2014, 3, 7, 0, 0 ).toDate() ) );
     }
 
@@ -189,7 +192,7 @@ public class DateUtilsTest
         assertEquals( date1, DateUtils.min( Sets.newHashSet( date1, date2, date3 ) ) );
         assertEquals( date1, DateUtils.min( Sets.newHashSet( date1, date2, date3 ) ) );
         assertEquals( date3, DateUtils.min( Sets.newHashSet( date3, date4, date5 ) ) );
-        assertEquals( null, DateUtils.min( Sets.newHashSet( date4, date5, date6 ) ) );
+        assertNull( DateUtils.min( Sets.newHashSet( date4, date5, date6 ) ) );
         assertEquals( date1, DateUtils.min( Sets.newHashSet( date1, date5, date4 ) ) );
 
         assertNull( DateUtils.max( Sets.newHashSet( date4, date5, date6 ) ) );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.webapi.controller.event;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.google.common.collect.Sets;
-import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dashboard.DashboardItemType;
-import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.metadata.MetadataExportService;
-import org.hisp.dhis.dxf2.metadata.MetadataImportService;
-import org.hisp.dhis.dxf2.metadata.collection.CollectionService;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.patch.PatchService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.schema.MergeService;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.LinkService;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.util.NestedServletException;
@@ -78,12 +57,17 @@ import org.springframework.web.util.NestedServletException;
  */
 public class RelationshipControllerTest
 {
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
 
     private MockMvc mockMvc;
 
     private static final String TEI_ID = "TEI_ID";
+
     private static final String EVENT_ID = "EVENT_ID";
+
     private static final String ENROLLMENT_ID = "ENROLLMENT_ID";
+
     private static final String REL_ID = "REL_ID";
 
     private TrackedEntityInstance tei = new TrackedEntityInstance();
@@ -106,8 +90,6 @@ public class RelationshipControllerTest
     @Mock
     private ProgramStageInstanceService programStageInstanceService;
 
-    private WebMessageService webMessageService = new WebMessageService();
-
     @InjectMocks
     private RelationshipController relationshipController;
 
@@ -116,18 +98,17 @@ public class RelationshipControllerTest
     @Before
     public void setUp()
     {
-        MockitoAnnotations.initMocks( this );
         mockMvc = MockMvcBuilders.standaloneSetup( relationshipController ).build();
     }
 
-    @Test(expected = NestedServletException.class )
+    @Test( expected = NestedServletException.class )
     public void verifyEndpointWithNoArgs()
         throws Exception
     {
         mockMvc.perform( get( ENDPOINT ) );
     }
 
-    @Test(expected = NestedServletException.class )
+    @Test( expected = NestedServletException.class )
     public void verifyEndpointWithNotFoundTei()
         throws Exception
     {
@@ -138,14 +119,14 @@ public class RelationshipControllerTest
     public void verifyEndpointWithTei()
         throws Exception
     {
-        when( trackedEntityInstanceService.getTrackedEntityInstance( TEI_ID )).thenReturn( tei );
+        when( trackedEntityInstanceService.getTrackedEntityInstance( TEI_ID ) ).thenReturn( tei );
         mockMvc.perform( get( ENDPOINT ).param( "tei", TEI_ID ) ).andExpect( status().isOk() );
 
         verify( trackedEntityInstanceService ).getTrackedEntityInstance( TEI_ID );
-        verify( relationshipService ).getRelationshipsByTrackedEntityInstance(tei, false);
+        verify( relationshipService ).getRelationshipsByTrackedEntityInstance( tei, false );
     }
 
-    @Test(expected = NestedServletException.class )
+    @Test( expected = NestedServletException.class )
     public void verifyEndpointWithNotFoundEvent()
         throws Exception
     {
@@ -156,14 +137,14 @@ public class RelationshipControllerTest
     public void verifyEndpointWithEvent()
         throws Exception
     {
-        when( programStageInstanceService.getProgramStageInstance( EVENT_ID )).thenReturn( event );
+        when( programStageInstanceService.getProgramStageInstance( EVENT_ID ) ).thenReturn( event );
         mockMvc.perform( get( ENDPOINT ).param( "event", EVENT_ID ) ).andExpect( status().isOk() );
 
         verify( programStageInstanceService ).getProgramStageInstance( EVENT_ID );
-        verify( relationshipService ).getRelationshipsByProgramStageInstance(event, false);
+        verify( relationshipService ).getRelationshipsByProgramStageInstance( event, false );
     }
 
-    @Test(expected = NestedServletException.class )
+    @Test( expected = NestedServletException.class )
     public void verifyEndpointWithNotFoundEnrollment()
         throws Exception
     {
@@ -174,18 +155,18 @@ public class RelationshipControllerTest
     public void verifyEndpointWithEnrollment()
         throws Exception
     {
-        when( programInstanceService.getProgramInstance( ENROLLMENT_ID )).thenReturn( enrollment );
+        when( programInstanceService.getProgramInstance( ENROLLMENT_ID ) ).thenReturn( enrollment );
         mockMvc.perform( get( ENDPOINT ).param( "enrollment", ENROLLMENT_ID ) ).andExpect( status().isOk() );
 
         verify( programInstanceService ).getProgramInstance( ENROLLMENT_ID );
-        verify( relationshipService ).getRelationshipsByProgramInstance(enrollment, false);
+        verify( relationshipService ).getRelationshipsByProgramInstance( enrollment, false );
     }
 
-    @Test(expected = NestedServletException.class )
+    @Test( expected = NestedServletException.class )
     public void testGetRelationshipNotPresent()
         throws Exception
     {
-        mockMvc.perform( get( ENDPOINT + "/" + REL_ID ));
+        mockMvc.perform( get( ENDPOINT + "/" + REL_ID ) );
     }
 
     @Test
@@ -193,14 +174,14 @@ public class RelationshipControllerTest
         throws Exception
     {
         when( relationshipService.getRelationshipByUid( REL_ID ) ).thenReturn( relationship );
-        mockMvc.perform( get( ENDPOINT + "/" + REL_ID )).andExpect( status().isOk() );
+        mockMvc.perform( get( ENDPOINT + "/" + REL_ID ) ).andExpect( status().isOk() );
     }
 
     @Test( expected = NestedServletException.class )
     public void testDeleteRelationshipNotPresent()
         throws Exception
     {
-        mockMvc.perform( delete( ENDPOINT + "/" + REL_ID )).andExpect( status().isConflict() );
+        mockMvc.perform( delete( ENDPOINT + "/" + REL_ID ) ).andExpect( status().isConflict() );
     }
 
     @Test
@@ -208,6 +189,6 @@ public class RelationshipControllerTest
         throws Exception
     {
         when( relationshipService.getRelationshipByUid( REL_ID ) ).thenReturn( relationship );
-        mockMvc.perform( get( ENDPOINT + "/" + REL_ID )).andExpect( status().isOk() );
+        mockMvc.perform( get( ENDPOINT + "/" + REL_ID ) ).andExpect( status().isOk() );
     }
 }

@@ -5,8 +5,22 @@
 		http://www.springframework.org/schema/beans	http://www.springframework.org/schema/beans/spring-beans-4.3.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
 
   <!-- Web Portal -->
-  
-  <context:component-scan base-package="org.hisp.dhis.configuration" /> 
+
+  <bean id="org.hisp.dhis.security.authority.RequiredAuthoritiesProvider"
+        class="org.hisp.dhis.security.authority.DefaultRequiredAuthoritiesProvider">
+    <property name="requiredAuthoritiesKey" value="requiredAuthorities" />
+    <property name="anyAuthoritiesKey" value="anyAuthorities" />
+    <property name="globalAttributes">
+      <set>
+        <value>M_MODULE_ACCESS_VOTER_ENABLED</value>
+      </set>
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.security.ActionAccessResolver" class="org.hisp.dhis.security.SpringSecurityActionAccessResolver">
+    <property name="requiredAuthoritiesProvider" ref="org.hisp.dhis.security.authority.RequiredAuthoritiesProvider" />
+    <property name="accessDecisionManager" ref="accessDecisionManager" />
+  </bean>
 
   <bean id="org.hisp.dhis.webportal.module.ModuleManager" class="org.hisp.dhis.webportal.module.DefaultModuleManager">
     <property name="actionAccessResolver" ref="org.hisp.dhis.security.ActionAccessResolver" />
@@ -216,9 +230,6 @@
   </bean>
 
   <bean id="org.hisp.dhis.oust.action.GetUserCountAction" class="org.hisp.dhis.oust.action.GetUserCountAction" scope="prototype" />
-
-  <!-- Security import -->
-  <import resource="security.xml" />
 
   <!-- i18n -->
 
@@ -463,7 +474,7 @@
   <!-- Interceptor -->
 
   <bean id="org.hisp.dhis.interceptor.ExceptionInterceptor" class="org.hisp.dhis.interceptor.ExceptionInterceptor">
-    <property name="showStackTrace" value="true" />
+    <property name="showStackTrace" value="false" />
     <property name="ignoredExceptions">
       <list>
         <value>org.apache.catalina.connector.ClientAbortException</value>
@@ -474,6 +485,8 @@
   <bean id="org.hisp.dhis.interceptor.I18nInterceptor" class="org.hisp.dhis.interceptor.I18nInterceptor">
     <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
     <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService"/>
   </bean>
 
   <bean id="org.hisp.dhis.interceptor.SystemSettingInterceptor" class="org.hisp.dhis.interceptor.SystemSettingInterceptor">

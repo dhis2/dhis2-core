@@ -1,7 +1,5 @@
-package org.hisp.dhis.sqlview;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.sqlview;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sqlview;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.sqlview.SqlView.*;
@@ -35,12 +34,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryUtils;
@@ -53,8 +56,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Dang Duy Hieu
@@ -180,7 +181,8 @@ public class DefaultSqlViewService
     }
 
     @Override
-    public Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables, List<String> filters, List<String> fields  )
+    public Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables,
+        List<String> filters, List<String> fields )
     {
         validateSqlView( sqlView, criteria, variables );
 
@@ -188,18 +190,18 @@ public class DefaultSqlViewService
         grid.setTitle( sqlView.getName() );
         grid.setSubtitle( sqlView.getDescription() );
 
-        log.info( String.format( "Retriving data for SQL view: '%s'", sqlView.getUid() ) );
+        log.info( String.format( "Retrieving data for SQL view: '%s'", sqlView.getUid() ) );
 
-        String sql = sqlView.isQuery() ?
-            getSqlForQuery( sqlView, criteria, variables, filters, fields ) :
-            getSqlForView( sqlView, criteria, filters, fields );
+        String sql = sqlView.isQuery() ? getSqlForQuery( sqlView, criteria, variables, filters, fields )
+            : getSqlForView( sqlView, criteria, filters, fields );
 
         sqlViewStore.populateSqlViewGrid( grid, sql );
 
         return grid;
     }
 
-    private String parseFilters(List<String> filters, SqlHelper sqlHelper ) throws QueryParserException
+    private String parseFilters( List<String> filters, SqlHelper sqlHelper )
+        throws QueryParserException
     {
         String query = StringUtils.EMPTY;
 
@@ -210,7 +212,7 @@ public class DefaultSqlViewService
             if ( split.length == 3 )
             {
                 int index = split[0].length() + ":".length() + split[1].length() + ":".length();
-                query +=  getFilterQuery(sqlHelper, split[0], split[1], filter.substring( index ) ) ;
+                query += getFilterQuery( sqlHelper, split[0], split[1], filter.substring( index ) );
             }
             else
             {
@@ -221,7 +223,8 @@ public class DefaultSqlViewService
         return query;
     }
 
-    private String getFilterQuery( SqlHelper sqlHelper, String columnName, String operator, String value ) {
+    private String getFilterQuery( SqlHelper sqlHelper, String columnName, String operator, String value )
+    {
 
         String query = StringUtils.EMPTY;
 
@@ -230,7 +233,8 @@ public class DefaultSqlViewService
         return query;
     }
 
-    private String getSqlForQuery(SqlView sqlView, Map<String, String> criteria, Map<String, String> variables, List<String> filters, List<String> fields )
+    private String getSqlForQuery( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables,
+        List<String> filters, List<String> fields )
     {
         boolean hasCriteria = criteria != null && !criteria.isEmpty();
 
@@ -270,16 +274,19 @@ public class DefaultSqlViewService
 
         if ( currentUser != null )
         {
-            sql = SqlViewUtils.substituteSqlVariable( sql, CURRENT_USER_ID_VARIABLE, Long.toString( currentUser.getId() ) );
+            sql = SqlViewUtils.substituteSqlVariable( sql, CURRENT_USER_ID_VARIABLE,
+                Long.toString( currentUser.getId() ) );
             sql = SqlViewUtils.substituteSqlVariable( sql, CURRENT_USERNAME_VARIABLE, currentUser.getUsername() );
         }
 
         return sql;
     }
 
-    private String getSqlForView( SqlView sqlView, Map<String, String> criteria, List<String> filters, List<String> fields )
+    private String getSqlForView( SqlView sqlView, Map<String, String> criteria, List<String> filters,
+        List<String> fields )
     {
-        String sql = "select " + QueryUtils.parseSelectFields( fields ) + " from " + statementBuilder.columnQuote( sqlView.getViewName() ) + " ";
+        String sql = "select " + QueryUtils.parseSelectFields( fields ) + " from "
+            + statementBuilder.columnQuote( sqlView.getViewName() ) + " ";
 
         boolean hasCriteria = criteria != null && !criteria.isEmpty();
 
@@ -303,7 +310,7 @@ public class DefaultSqlViewService
         return sql;
     }
 
-    private String getCriteriaSqlClause( Map<String, String> criteria,  SqlHelper sqlHelper )
+    private String getCriteriaSqlClause( Map<String, String> criteria, SqlHelper sqlHelper )
     {
         String sql = StringUtils.EMPTY;
 
@@ -313,7 +320,8 @@ public class DefaultSqlViewService
 
             for ( String filter : criteria.keySet() )
             {
-                sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( filter ) + "='" + criteria.get( filter ) + "' ";
+                sql += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( filter ) + "='"
+                    + criteria.get( filter ) + "' ";
             }
         }
 
@@ -324,78 +332,81 @@ public class DefaultSqlViewService
     public void validateSqlView( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables )
         throws IllegalQueryException
     {
-        String violation = null;
+        ErrorMessage error = null;
 
         if ( sqlView == null || sqlView.getSqlQuery() == null )
         {
-            throw new IllegalQueryException( "SQL query is null" );
+            throw new IllegalQueryException( ErrorCode.E4300 );
         }
 
         final Set<String> sqlVars = SqlViewUtils.getVariables( sqlView.getSqlQuery() );
-        final String sql = sqlView.getSqlQuery().replaceAll("\\r|\\n"," ").toLowerCase();
-        final boolean ignoreSqlViewTableProtection = config.isDisabled( ConfigurationKey.SYSTEM_SQL_VIEW_TABLE_PROTECTION );
-        final Set<String> allowedVariables = variables == null ? STANDARD_VARIABLES : Sets.union( variables.keySet(), STANDARD_VARIABLES );
+        final String sql = sqlView.getSqlQuery().replaceAll( "\\r|\\n", " " ).toLowerCase();
+        final boolean ignoreSqlViewTableProtection = config
+            .isDisabled( ConfigurationKey.SYSTEM_SQL_VIEW_TABLE_PROTECTION );
+        final Set<String> allowedVariables = variables == null ? STANDARD_VARIABLES
+            : Sets.union( variables.keySet(), STANDARD_VARIABLES );
 
         if ( !SELECT_PATTERN.matcher( sql ).matches() )
         {
-            violation = "SQL query must be a select query";
+            error = new ErrorMessage( ErrorCode.E4301 );
         }
 
         if ( sql.contains( ";" ) && !sql.trim().endsWith( ";" ) )
         {
-            violation = "SQL query can only contain a single semi-colon at the end of the query";
+            error = new ErrorMessage( ErrorCode.E4302 );
         }
 
         if ( variables != null && variables.keySet().contains( null ) )
         {
-            violation = "Variables contains null key";
+            error = new ErrorMessage( ErrorCode.E4303 );
         }
 
         if ( variables != null && variables.values().contains( null ) )
         {
-            violation = "Variables contains null value";
+            error = new ErrorMessage( ErrorCode.E4304 );
         }
 
         if ( variables != null && !SqlView.getInvalidQueryParams( variables.keySet() ).isEmpty() )
         {
-            violation = "Variable params are invalid: " + SqlView.getInvalidQueryParams( variables.keySet() );
+            error = new ErrorMessage( ErrorCode.E4305, SqlView.getInvalidQueryParams( variables.keySet() ) );
         }
 
         if ( variables != null && !SqlView.getInvalidQueryValues( variables.values() ).isEmpty() )
         {
-            violation = "Variables are invalid: " + SqlView.getInvalidQueryValues( variables.values() );
+            error = new ErrorMessage( ErrorCode.E4306, SqlView.getInvalidQueryValues( variables.values() ) );
         }
 
-        if ( sqlView.isQuery() && !sqlVars.isEmpty() && ( !allowedVariables.containsAll( sqlVars ) ) )
+        if ( sqlView.isQuery() && !sqlVars.isEmpty() && (!allowedVariables.containsAll( sqlVars )) )
         {
-            violation = "SQL query contains variables which were not provided in request: " + sqlVars;
+            error = new ErrorMessage( ErrorCode.E4307, sqlVars );
         }
 
         if ( criteria != null && !SqlView.getInvalidQueryParams( criteria.keySet() ).isEmpty() )
         {
-            violation = "Criteria params are invalid: " + SqlView.getInvalidQueryParams( criteria.keySet() );
+            error = new ErrorMessage( ErrorCode.E4308, SqlView.getInvalidQueryParams( criteria.keySet() ) );
         }
 
         if ( criteria != null && !SqlView.getInvalidQueryValues( criteria.values() ).isEmpty() )
         {
-            violation = "Criteria values are invalid: " + SqlView.getInvalidQueryValues( criteria.values() );
+            error = new ErrorMessage( ErrorCode.E4309, SqlView.getInvalidQueryValues( criteria.values() ) );
         }
 
         if ( !ignoreSqlViewTableProtection && sql.matches( SqlView.getProtectedTablesRegex() ) )
         {
-            violation = "SQL query contains references to protected tables";
+            error = new ErrorMessage( ErrorCode.E4310 );
         }
 
         if ( sql.matches( SqlView.getIllegalKeywordsRegex() ) )
         {
-            violation = "SQL query contains illegal keywords";
+            error = new ErrorMessage( ErrorCode.E4311 );
         }
 
-        if ( violation != null )
+        if ( error != null )
         {
-            log.warn( String.format( "Validation failed for SQL view '%s': %s", sqlView.getUid(), violation ) );
+            log.warn( String.format( "Validation failed for SQL view '%s' with code: '%s' and message: '%s'",
+                sqlView.getUid(), error.getErrorCode(), error.getMessage() ) );
 
-            throw new IllegalQueryException( violation );
+            throw new IllegalQueryException( error );
         }
     }
 

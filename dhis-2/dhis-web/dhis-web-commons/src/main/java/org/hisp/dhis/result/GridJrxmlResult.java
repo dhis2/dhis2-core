@@ -1,7 +1,5 @@
-package org.hisp.dhis.result;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.result;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.result;
 
 import java.io.Writer;
 import java.util.Map;
@@ -61,7 +60,7 @@ public class GridJrxmlResult
     // -------------------------------------------------------------------------
 
     private Grid grid;
-    
+
     public void setGrid( Grid grid )
     {
         this.grid = grid;
@@ -79,7 +78,7 @@ public class GridJrxmlResult
     // -------------------------------------------------------------------------
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public void execute( ActionInvocation invocation )
         throws Exception
     {
@@ -88,25 +87,26 @@ public class GridJrxmlResult
         // ---------------------------------------------------------------------
 
         Grid _grid = (Grid) invocation.getStack().findValue( "grid" );
-        
-        grid = _grid != null ? _grid : grid; 
+
+        grid = _grid != null ? _grid : grid;
 
         Map<Object, Object> _params = (Map<Object, Object>) invocation.getStack().findValue( "params" );
 
         params = _params != null ? _params : params;
-        
+
         // ---------------------------------------------------------------------
         // Configure response
         // ---------------------------------------------------------------------
 
         HttpServletResponse response = ServletActionContext.getResponse();
-        
+
         Writer writer = response.getWriter();
 
-        String filename = CodecUtils.filenameEncode( StringUtils.defaultIfEmpty( grid.getTitle(), DEFAULT_FILENAME ) ) + ".jrxml";
-        
+        String filename = CodecUtils.filenameEncode( StringUtils.defaultIfEmpty( grid.getTitle(), DEFAULT_FILENAME ) )
+            + ".jrxml";
+
         ContextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, true, filename, true );
-        
+
         // ---------------------------------------------------------------------
         // Write jrxml based on Velocity template
         // ---------------------------------------------------------------------

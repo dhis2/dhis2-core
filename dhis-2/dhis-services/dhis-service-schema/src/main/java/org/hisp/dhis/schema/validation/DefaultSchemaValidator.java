@@ -1,7 +1,5 @@
-package org.hisp.dhis.schema.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,19 @@ package org.hisp.dhis.schema.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.schema.validation;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.regex.Pattern;
 
 import org.apache.commons.validator.GenericValidator;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
@@ -41,13 +48,6 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -92,7 +92,7 @@ public class DefaultSchemaValidator implements SchemaValidator
             return errorReports;
         }
 
-        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
         if ( schema == null )
         {
@@ -143,7 +143,8 @@ public class DefaultSchemaValidator implements SchemaValidator
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
-        // TODO How should empty strings be handled? they are not valid color, password, url, etc of course.
+        // TODO How should empty strings be handled? they are not valid color,
+        // password, url, etc of course.
         if ( !String.class.isInstance( propertyObject ) || StringUtils.isEmpty( propertyObject ) )
         {
             return errorReports;
@@ -151,18 +152,20 @@ public class DefaultSchemaValidator implements SchemaValidator
 
         String value = (String) propertyObject;
 
-        // check column max length
+        // Check column max length
         if ( value.length() > property.getLength() )
         {
-            errorReports.add( new ErrorReport( klass, ErrorCode.E4001, property.getName(), property.getLength(), value.length() )
-                .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
+            errorReports.add(
+                new ErrorReport( klass, ErrorCode.E4001, property.getName(), property.getLength(), value.length() )
+                    .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
             return errorReports;
         }
 
         if ( value.length() < property.getMin() || value.length() > property.getMax() )
         {
-            errorReports.add( new ErrorReport( klass, ErrorCode.E4002, property.getName(), property.getMin(), property.getMax(), value.length() )
-                .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
+            errorReports.add( new ErrorReport( klass, ErrorCode.E4002, property.getName(), property.getMin(),
+                property.getMax(), value.length() )
+                    .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
         }
 
         if ( PropertyType.EMAIL == property.getPropertyType() && !GenericValidator.isEmail( value ) )
@@ -175,7 +178,8 @@ public class DefaultSchemaValidator implements SchemaValidator
             errorReports.add( new ErrorReport( klass, ErrorCode.E4004, property.getName(), value )
                 .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
         }
-        else if ( !BCRYPT_PATTERN.matcher( value ).matches() && PropertyType.PASSWORD == property.getPropertyType() && !ValidationUtils.passwordIsValid( value ) )
+        else if ( !BCRYPT_PATTERN.matcher( value ).matches() && PropertyType.PASSWORD == property.getPropertyType()
+            && !ValidationUtils.passwordIsValid( value ) )
         {
             errorReports.add( new ErrorReport( klass, ErrorCode.E4005, property.getName(), value )
                 .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
@@ -186,17 +190,20 @@ public class DefaultSchemaValidator implements SchemaValidator
                 .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
         }
 
-        /* TODO add proper validation for both Points and Polygons, ValidationUtils only supports points at this time
-        if ( PropertyType.GEOLOCATION == property.getPropertyType() && !ValidationUtils.coordinateIsValid( value ) )
-        {
-            validationViolations.add( new ValidationViolation( "Value is not a valid coordinate pair [lon, lat]." ) );
-        }
-        */
+        /*
+         * TODO add proper validation for both Points and Polygons,
+         * ValidationUtils only supports points at this time if (
+         * PropertyType.GEOLOCATION == property.getPropertyType() &&
+         * !ValidationUtils.coordinateIsValid( value ) ) {
+         * validationViolations.add( new ValidationViolation(
+         * "Value is not a valid coordinate pair [lon, lat]." ) ); }
+         */
 
         return errorReports;
     }
 
-    // Commons validator have some issues in latest version, replacing with a very simple test for now
+    // Commons validator have some issues in latest version, replacing with a
+    // very simple test for now
     private boolean isUrl( String url )
     {
         return !StringUtils.isEmpty( url ) && (url.startsWith( "http://" ) || url.startsWith( "https://" ));
@@ -213,10 +220,12 @@ public class DefaultSchemaValidator implements SchemaValidator
 
         Collection<?> value = (Collection<?>) propertyObject;
 
-        if ( value.size() < property.getMin() || value.size() > property.getMax() )
+        if ( (property.getMin() != null && value.size() < property.getMin())
+            || (property.getMax() != null && value.size() > property.getMax()) )
         {
-            errorReports.add( new ErrorReport( klass, ErrorCode.E4007, property.getName(), property.getMin(), property.getMax(), value.size() )
-                .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
+            errorReports.add( new ErrorReport( klass, ErrorCode.E4007, property.getName(), property.getMin(),
+                property.getMax(), value.size() )
+                    .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
         }
 
         return errorReports;
@@ -235,8 +244,9 @@ public class DefaultSchemaValidator implements SchemaValidator
 
         if ( !GenericValidator.isInRange( value, property.getMin(), property.getMax() ) )
         {
-            errorReports.add( new ErrorReport( klass, ErrorCode.E4008, property.getName(), property.getMin(), property.getMax(), value )
-                .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
+            errorReports.add( new ErrorReport( klass, ErrorCode.E4008, property.getName(), property.getMin(),
+                property.getMax(), value )
+                    .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
         }
 
         return errorReports;
@@ -255,8 +265,9 @@ public class DefaultSchemaValidator implements SchemaValidator
 
         if ( !GenericValidator.isInRange( value, property.getMin(), property.getMax() ) )
         {
-            errorReports.add( new ErrorReport( klass, ErrorCode.E4008, property.getName(), property.getMin(), property.getMax(), value )
-                .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
+            errorReports.add( new ErrorReport( klass, ErrorCode.E4008, property.getName(), property.getMin(),
+                property.getMax(), value )
+                    .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
         }
 
         return errorReports;
@@ -275,8 +286,9 @@ public class DefaultSchemaValidator implements SchemaValidator
 
         if ( !GenericValidator.isInRange( value, property.getMin(), property.getMax() ) )
         {
-            errorReports.add( new ErrorReport( klass, ErrorCode.E4008, property.getName(), property.getMin(), property.getMax(), value )
-                .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
+            errorReports.add( new ErrorReport( klass, ErrorCode.E4008, property.getName(), property.getMin(),
+                property.getMax(), value )
+                    .setErrorKlass( property.getKlass() ).setErrorProperty( property.getName() ) );
         }
 
         return errorReports;

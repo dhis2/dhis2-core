@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReports;
 
@@ -41,6 +40,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
@@ -106,14 +106,15 @@ public class UniquenessCheck
         if ( object == null || preheat.isDefault( object ) )
             return errorReports;
 
-        if ( !preheat.getUniquenessMap().containsKey( object.getClass() ) )
+        if ( !preheat.getUniquenessMap().containsKey( HibernateProxyUtils.getRealClass( object ) ) )
         {
-            preheat.getUniquenessMap().put( object.getClass(), new HashMap<>() );
+            preheat.getUniquenessMap().put( HibernateProxyUtils.getRealClass( object ), new HashMap<>() );
         }
 
-        Map<String, Map<Object, String>> uniquenessMap = preheat.getUniquenessMap().get( object.getClass() );
+        Map<String, Map<Object, String>> uniquenessMap = preheat.getUniquenessMap()
+            .get( HibernateProxyUtils.getRealClass( object ) );
 
-        Schema schema = ctx.getSchemaService().getDynamicSchema( object.getClass() );
+        Schema schema = ctx.getSchemaService().getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
         List<Property> uniqueProperties = schema.getProperties().stream()
             .filter( p -> p.isPersisted() && p.isOwner() && p.isUnique() && p.isSimple() )
             .collect( Collectors.toList() );
@@ -128,20 +129,22 @@ public class UniquenessCheck
 
             if ( value != null )
             {
-                String persistedUid = uniquenessMap.get( property.getName() ).get( value );
+                String objectIdentifier = uniquenessMap.get( property.getName() ).get( value );
 
-                if ( persistedUid != null )
+                if ( objectIdentifier != null )
                 {
-                    if ( !object.getUid().equals( persistedUid ) )
+                    if ( !identifier.getIdentifier( object ).equals( objectIdentifier ) )
                     {
-                        errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E5003, property.getName(),
-                            value, identifier.getIdentifiersWithName( object ), persistedUid ).setMainId( persistedUid )
+                        errorReports.add( new ErrorReport( HibernateProxyUtils.getRealClass( object ), ErrorCode.E5003,
+                            property.getName(),
+                            value, identifier.getIdentifiersWithName( object ), objectIdentifier )
+                                .setMainId( objectIdentifier )
                                 .setErrorProperty( property.getName() ) );
                     }
                 }
                 else
                 {
-                    uniquenessMap.get( property.getName() ).put( value, object.getUid() );
+                    uniquenessMap.get( property.getName() ).put( value, identifier.getIdentifier( object ) );
                 }
             }
         } );

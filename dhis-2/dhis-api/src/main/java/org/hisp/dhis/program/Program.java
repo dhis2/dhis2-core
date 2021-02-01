@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -41,6 +40,7 @@ import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.OrganisationUnitAssignable;
 import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
@@ -54,6 +54,7 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.UserAuthorityGroup;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -62,7 +63,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Sets;
 
 /**
  * @author Abyot Asalefew
@@ -70,7 +70,7 @@ import com.google.common.collect.Sets;
 @JacksonXmlRootElement( localName = "program", namespace = DxfNamespaces.DXF_2_0 )
 public class Program
     extends BaseNameableObject
-    implements VersionedObject, MetadataObject
+    implements VersionedObject, MetadataObject, OrganisationUnitAssignable
 {
     private String formName;
 
@@ -146,25 +146,28 @@ public class Program
     private FeatureType featureType;
 
     /**
-     * How many days after period is over will this program block creation and modification of events
+     * How many days after period is over will this program block creation and
+     * modification of events
      */
     private int expiryDays;
 
     /**
-     * The PeriodType indicating the frequency that this program will use to decide on expiration. This
-     * relates to the {@link Program#expiryDays} property. The end date of the relevant period is used
-     * as basis for the number of expiration days.
+     * The PeriodType indicating the frequency that this program will use to
+     * decide on expiration. This relates to the {@link Program#expiryDays}
+     * property. The end date of the relevant period is used as basis for the
+     * number of expiration days.
      */
     private PeriodType expiryPeriodType;
 
     /**
-     * How many days after an event is completed will this program block modification of the event
+     * How many days after an event is completed will this program block
+     * modification of the event
      */
     private int completeEventsExpiryDays;
 
     /**
-     * Property indicating minimum number of attributes required to fill
-     * before search is triggered
+     * Property indicating minimum number of attributes required to fill before
+     * search is triggered
      */
     private int minAttributesRequiredToSearch = 1;
 
@@ -186,6 +189,11 @@ public class Program
     {
     }
 
+    public Program( String name )
+    {
+        this.name = name;
+    }
+
     public Program( String name, String description )
     {
         this.name = name;
@@ -200,24 +208,6 @@ public class Program
     {
         organisationUnits.add( organisationUnit );
         organisationUnit.getPrograms().add( this );
-    }
-
-    public void removeOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        organisationUnits.remove( organisationUnit );
-        organisationUnit.getPrograms().remove( this );
-    }
-
-    public void updateOrganisationUnits( Set<OrganisationUnit> updates )
-    {
-        Set<OrganisationUnit> toRemove = Sets.difference( organisationUnits, updates );
-        Set<OrganisationUnit> toAdd = Sets.difference( updates, organisationUnits );
-
-        toRemove.forEach( u -> u.getPrograms().remove( this ) );
-        toAdd.forEach( u -> u.getPrograms().add( this ) );
-
-        organisationUnits.clear();
-        organisationUnits.addAll( updates );
     }
 
     /**
@@ -293,8 +283,9 @@ public class Program
     }
 
     /**
-     * Returns non-confidential TrackedEntityAttributes from ProgramTrackedEntityAttributes. Use
-     * getAttributes() to access the persisted attribute list.
+     * Returns non-confidential TrackedEntityAttributes from
+     * ProgramTrackedEntityAttributes. Use getAttributes() to access the
+     * persisted attribute list.
      */
     public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributes()
     {
@@ -372,11 +363,6 @@ public class Program
         return programStages != null && programStages.size() == 1;
     }
 
-    public boolean hasOrganisationUnit( OrganisationUnit unit )
-    {
-        return organisationUnits.contains( unit );
-    }
-
     @Override
     public int increaseVersion()
     {
@@ -421,6 +407,7 @@ public class Program
         this.version = version;
     }
 
+    @Override
     @JsonProperty( "organisationUnits" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0 )
@@ -430,6 +417,7 @@ public class Program
         return organisationUnits;
     }
 
+    @Override
     public void setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
     {
         this.organisationUnits = organisationUnits;
@@ -457,6 +445,13 @@ public class Program
         return enrollmentDateLabel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayEnrollmentDateLabel()
+    {
+        return getTranslation( TranslationProperty.ENROLLMENT_DATE_LABEL, getEnrollmentDateLabel() );
+    }
+
     public void setEnrollmentDateLabel( String enrollmentDateLabel )
     {
         this.enrollmentDateLabel = enrollmentDateLabel;
@@ -468,6 +463,13 @@ public class Program
     public String getIncidentDateLabel()
     {
         return incidentDateLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayIncidentDateLabel()
+    {
+        return getTranslation( TranslationProperty.INCIDENT_DATE_LABEL, getIncidentDateLabel() );
     }
 
     public void setIncidentDateLabel( String incidentDateLabel )
@@ -683,8 +685,8 @@ public class Program
     }
 
     /**
-     * Indicates whether this program has a category combination which is different
-     * from the default category combination.
+     * Indicates whether this program has a category combination which is
+     * different from the default category combination.
      */
     public boolean hasCategoryCombo()
     {
@@ -813,6 +815,7 @@ public class Program
         this.style = style;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getFormName()
@@ -820,6 +823,7 @@ public class Program
         return formName;
     }
 
+    @Override
     public void setFormName( String formName )
     {
         this.formName = formName;

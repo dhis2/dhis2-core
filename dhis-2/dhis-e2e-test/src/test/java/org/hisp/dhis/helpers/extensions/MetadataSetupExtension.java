@@ -1,7 +1,7 @@
 package org.hisp.dhis.helpers.extensions;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.helpers.extensions;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
@@ -75,8 +76,9 @@ public class MetadataSetupExtension
 
             String[] files = {
                 "src/test/resources/setup/userGroups.json",
+                "src/test/resources/setup/users.json",
                 "src/test/resources/setup/metadata.json",
-                "src/test/resources/setup/metadata.json",
+                "src/test/resources/setup/userRoles.json",
                 "src/test/resources/setup/users.json"
             };
 
@@ -84,34 +86,42 @@ public class MetadataSetupExtension
             for ( String fileName : files )
             {
                 metadataActions.importAndValidateMetadata( new File( fileName ), queryParams );
-
-                createdData.putAll( TestRunStorage.getCreatedEntities() );
-
-                iterateCreatedData( id -> {
-                    TestRunStorage.removeEntity( createdData.get( id ), id );
-                } );
-
             }
 
-            setupSuperuser();
+            setupUsers();
+
+            createdData.putAll( TestRunStorage.getCreatedEntities() );
+            TestRunStorage.removeAllEntities();
 
         }
     }
 
-    private void setupSuperuser()
+    private void setupUsers()
     {
-        logger.info( "Setting up super user" );
+        logger.info( "Adding users to the TA user group" );
         UserActions userActions = new UserActions();
-        String userRoleId = "yrB6vc5Ip7r";
-        String userGroupId = "OPVIvvXzNTw";
+        String[] users = {
+            TestConfiguration.get().superUserUsername(),
+            TestConfiguration.get().defaultUserUsername(),
+            TestConfiguration.get().adminUserUsername()
+        };
 
-        String userId = userActions.get( "?username=" + TestConfiguration.get().superUserUsername() )
-            .extractString( "users.id[0]" );
+        String userGroupId = Constants.USER_GROUP_ID;
 
-        userActions.addUserToUserGroup( userId, userGroupId );
-        userActions.addURoleToUser( userId, userRoleId );
+        for ( String user : users )
+        {
+            String userId = userActions.get( String.format(
+                "?filter=userCredentials.username:eq:%s", user ) )
+                .extractString( "users.id[0]" );
 
-        TestRunStorage.removeEntity( "/users", userId );
+            if ( userId == null )
+            {
+                return;
+            }
+            userActions.addUserToUserGroup( userId, userGroupId );
+            TestRunStorage.removeEntity( "users", userId );
+        }
+
     }
 
     private void iterateCreatedData( Consumer<String> stringConsumer )

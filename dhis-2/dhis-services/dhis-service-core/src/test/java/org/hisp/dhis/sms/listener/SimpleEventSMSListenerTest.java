@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.listener;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,21 @@ package org.hisp.dhis.sms.listener;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.listener;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -45,10 +58,11 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.smscompression.SMSCompressionException;
-import org.hisp.dhis.smscompression.SMSConsts.SMSEventStatus;
-import org.hisp.dhis.smscompression.models.SMSDataValue;
-import org.hisp.dhis.smscompression.models.SimpleEventSMSSubmission;
+import org.hisp.dhis.smscompression.SmsCompressionException;
+import org.hisp.dhis.smscompression.SmsConsts.SmsEventStatus;
+import org.hisp.dhis.smscompression.models.GeoPoint;
+import org.hisp.dhis.smscompression.models.SimpleEventSmsSubmission;
+import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
@@ -60,21 +74,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-
 import com.google.common.collect.Sets;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class SimpleEventSMSListenerTest
     extends
@@ -135,6 +135,10 @@ public class SimpleEventSMSListenerTest
 
     private IncomingSms incomingSmsSimpleEvent;
 
+    private IncomingSms incomingSmsSimpleEventWithNulls;
+
+    private IncomingSms incomingSmsSimpleEventNoValues;
+
     private OrganisationUnit organisationUnit;
 
     private CategoryOptionCombo categoryOptionCombo;
@@ -149,7 +153,7 @@ public class SimpleEventSMSListenerTest
 
     @Before
     public void initTest()
-        throws SMSCompressionException
+        throws SmsCompressionException
     {
         subject = new SimpleEventSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
@@ -173,6 +177,8 @@ public class SimpleEventSMSListenerTest
             updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
             return updatedIncomingSms;
         } ).when( incomingSmsService ).update( any() );
+
+        when( programService.hasOrgUnit( any( Program.class ), any( OrganisationUnit.class ) ) ).thenReturn( true );
     }
 
     @Test
@@ -187,8 +193,45 @@ public class SimpleEventSMSListenerTest
         verify( incomingSmsService, times( 1 ) ).update( any() );
     }
 
+    @Test
+    public void testSimpleEventRepeat()
+    {
+        subject.receive( incomingSmsSimpleEvent );
+        subject.receive( incomingSmsSimpleEvent );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 2 ) ).update( any() );
+    }
+
+    @Test
+    public void testSimpleEventWithNulls()
+    {
+        subject.receive( incomingSmsSimpleEventWithNulls );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 1 ) ).update( any() );
+    }
+
+    @Test
+    public void testSimpleEventNoValues()
+    {
+        subject.receive( incomingSmsSimpleEventNoValues );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( NOVALUES_MESSAGE, message );
+
+        verify( incomingSmsService, times( 1 ) ).update( any() );
+    }
+
     private void setUpInstances()
-        throws SMSCompressionException
+        throws SmsCompressionException
     {
         organisationUnit = createOrganisationUnit( 'O' );
         program = createProgram( 'P' );
@@ -210,23 +253,46 @@ public class SimpleEventSMSListenerTest
         programStageInstance.setAutoFields();
 
         incomingSmsSimpleEvent = createSMSFromSubmission( createSimpleEventSubmission() );
+        incomingSmsSimpleEventWithNulls = createSMSFromSubmission( createSimpleEventSubmissionWithNulls() );
+        incomingSmsSimpleEventNoValues = createSMSFromSubmission( createSimpleEventSubmissionNoValues() );
     }
 
-    private SimpleEventSMSSubmission createSimpleEventSubmission()
+    private SimpleEventSmsSubmission createSimpleEventSubmission()
     {
-        SimpleEventSMSSubmission subm = new SimpleEventSMSSubmission();
+        SimpleEventSmsSubmission subm = new SimpleEventSmsSubmission();
 
-        subm.setUserID( user.getUid() );
+        subm.setUserId( user.getUid() );
         subm.setOrgUnit( organisationUnit.getUid() );
         subm.setEventProgram( program.getUid() );
         subm.setAttributeOptionCombo( categoryOptionCombo.getUid() );
         subm.setEvent( programStageInstance.getUid() );
-        subm.setEventStatus( SMSEventStatus.COMPLETED );
-        subm.setTimestamp( new Date() );
-        ArrayList<SMSDataValue> values = new ArrayList<>();
-        values.add( new SMSDataValue( categoryOptionCombo.getUid(), dataElement.getUid(), "true" ) );
+        subm.setEventStatus( SmsEventStatus.COMPLETED );
+        subm.setEventDate( new Date() );
+        subm.setDueDate( new Date() );
+        subm.setCoordinates( new GeoPoint( 59.9399586f, 10.7195609f ) );
+
+        ArrayList<SmsDataValue> values = new ArrayList<>();
+        values.add( new SmsDataValue( categoryOptionCombo.getUid(), dataElement.getUid(), "true" ) );
         subm.setValues( values );
-        subm.setSubmissionID( 1 );
+        subm.setSubmissionId( 1 );
+
+        return subm;
+    }
+
+    private SimpleEventSmsSubmission createSimpleEventSubmissionWithNulls()
+    {
+        SimpleEventSmsSubmission subm = createSimpleEventSubmission();
+        subm.setEventDate( null );
+        subm.setDueDate( null );
+        subm.setCoordinates( null );
+
+        return subm;
+    }
+
+    private SimpleEventSmsSubmission createSimpleEventSubmissionNoValues()
+    {
+        SimpleEventSmsSubmission subm = createSimpleEventSubmission();
+        subm.setValues( null );
 
         return subm;
     }

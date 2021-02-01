@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +25,37 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.rules.models.RuleEffect;
+package org.hisp.dhis.programrule.engine;
 
 import java.util.List;
+
+import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.rules.models.RuleValidationResult;
 
 /**
  * Created by zubair@dhis2.org on 23.10.17.
  */
 public interface ProgramRuleEngineService
 {
-    List<RuleEffect> evaluateEnrollment( String enrollmentUid );
-
-    List<RuleEffect> evaluateEvent( String eventUid );
-
+    /**
+     * Call rule engine to evaluate the target enrollment and get a list of rule
+     * effects, then run the actions present in these effects
+     *
+     * @param enrollment Uid of the target enrollment
+     * @return the list of rule effects calculated by rule engine
+     */
     List<RuleEffect> evaluateEnrollmentAndRunEffects( long enrollment );
 
+    /**
+     * Call rule engine to evaluate the target event and get a list of rule
+     * effects, then run the actions present in these effects
+     *
+     * @param event Uid of the target event
+     * @return the list of rule effects calculated by rule engine
+     */
     List<RuleEffect> evaluateEventAndRunEffects( long event );
+
+    List<RuleEffect> evaluateEventAndRunEffects( String event );
+
+    RuleValidationResult getDescription( String condition, String programId );
 }

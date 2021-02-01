@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.vote;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +25,21 @@ package org.hisp.dhis.security.vote;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.vote;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import org.springframework.stereotype.Component;
 
 /**
  * AccessDecisionManager which delegates to other AccessDecisionManagers in a
@@ -48,17 +49,23 @@ import java.util.List;
  * for a specific target, no other AccessDecisionManager is questioned.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: LogicalOrAccessDecisionManager.java 6335 2008-11-20 11:11:26Z larshelg $
+ * @version $Id: LogicalOrAccessDecisionManager.java 6335 2008-11-20 11:11:26Z
+ *          larshelg $
  */
 @Primary
+@Component
 @Slf4j
-public class LogicalOrAccessDecisionManager
-    implements AccessDecisionManager
+public class LogicalOrAccessDecisionManager implements AccessDecisionManager
 {
-    private List<AccessDecisionManager> accessDecisionManagers = Collections.emptyList();
+    private List<AccessDecisionManager> accessDecisionManagers;
 
-    public void setAccessDecisionManagers( List<AccessDecisionManager> accessDecisionManagers )
+    public LogicalOrAccessDecisionManager(
+        List<AccessDecisionManager> accessDecisionManagers )
     {
+        if ( accessDecisionManagers == null )
+        {
+            accessDecisionManagers = Collections.emptyList();
+        }
         this.accessDecisionManagers = accessDecisionManagers;
     }
 
@@ -68,14 +75,16 @@ public class LogicalOrAccessDecisionManager
 
     @Override
     public void decide( Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes )
-        throws AccessDeniedException, InsufficientAuthenticationException
+        throws AccessDeniedException,
+        InsufficientAuthenticationException
     {
         AccessDeniedException ade = null;
         InsufficientAuthenticationException iae = null;
 
         for ( AccessDecisionManager accessDecisionManager : accessDecisionManagers )
         {
-            // Cannot assume that all decision managers can support the same type
+            // Cannot assume that all decision managers can support the same
+            // type
 
             if ( accessDecisionManager.supports( object.getClass() ) )
             {

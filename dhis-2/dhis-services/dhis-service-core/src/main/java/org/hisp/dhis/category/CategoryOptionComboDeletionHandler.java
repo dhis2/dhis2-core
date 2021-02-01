@@ -1,7 +1,5 @@
-package org.hisp.dhis.category;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +25,15 @@ package org.hisp.dhis.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.category;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Iterator;
 
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -69,7 +64,7 @@ public class CategoryOptionComboDeletionHandler
     // DeletionHandler implementation
     // -------------------------------------------------------------------------
 
-    //TODO expressionoptioncombo
+    // TODO expressionoptioncombo
 
     @Override
     public String getClassName()
@@ -80,25 +75,23 @@ public class CategoryOptionComboDeletionHandler
     @Override
     public String allowDeleteCategoryOption( CategoryOption categoryOption )
     {
-        final String dvSql =
-            "select count(*) from datavalue dv " +
+        final String dvSql = "select count(*) from datavalue dv " +
             "where dv.categoryoptioncomboid in ( " +
-                "select cc.categoryoptioncomboid from categoryoptioncombos_categoryoptions cc " +
-                "where cc.categoryoptionid = " + categoryOption.getId() + " ) " +
+            "select cc.categoryoptioncomboid from categoryoptioncombos_categoryoptions cc " +
+            "where cc.categoryoptionid = " + categoryOption.getId() + " ) " +
             "or dv.attributeoptioncomboid in ( " +
-                "select cc.categoryoptioncomboid from categoryoptioncombos_categoryoptions cc " +
-                "where cc.categoryoptionid = " + categoryOption.getId() + " );";
+            "select cc.categoryoptioncomboid from categoryoptioncombos_categoryoptions cc " +
+            "where cc.categoryoptionid = " + categoryOption.getId() + " );";
 
         if ( jdbcTemplate.queryForObject( dvSql, Integer.class ) > 0 )
         {
             return ERROR;
         }
 
-        final String crSql =
-            "select count(*) from completedatasetregistration cdr " +
+        final String crSql = "select count(*) from completedatasetregistration cdr " +
             "where cdr.attributeoptioncomboid in ( " +
-                "select cc.categoryoptioncomboid from categoryoptioncombos_categoryoptions cc " +
-                "where cc.categoryoptionid = " + categoryOption.getId() + " );";
+            "select cc.categoryoptioncomboid from categoryoptioncombos_categoryoptions cc " +
+            "where cc.categoryoptionid = " + categoryOption.getId() + " );";
 
         if ( jdbcTemplate.queryForObject( crSql, Integer.class ) > 0 )
         {
@@ -111,25 +104,23 @@ public class CategoryOptionComboDeletionHandler
     @Override
     public String allowDeleteCategoryCombo( CategoryCombo categoryCombo )
     {
-        final String dvSql =
-            "select count(*) from datavalue dv " +
+        final String dvSql = "select count(*) from datavalue dv " +
             "where dv.categoryoptioncomboid in ( " +
-                "select co.categoryoptioncomboid from categorycombos_optioncombos co " +
-                "where co.categorycomboid=" + categoryCombo.getId() + " ) " +
+            "select co.categoryoptioncomboid from categorycombos_optioncombos co " +
+            "where co.categorycomboid=" + categoryCombo.getId() + " ) " +
             "or dv.attributeoptioncomboid in ( " +
-                "select co.categoryoptioncomboid from categorycombos_optioncombos co " +
-                "where co.categorycomboid=" + categoryCombo.getId() + " );";
+            "select co.categoryoptioncomboid from categorycombos_optioncombos co " +
+            "where co.categorycomboid=" + categoryCombo.getId() + " );";
 
         if ( jdbcTemplate.queryForObject( dvSql, Integer.class ) > 0 )
         {
             return ERROR;
         }
 
-        final String crSql =
-            "select count(*) from completedatasetregistration cdr " +
+        final String crSql = "select count(*) from completedatasetregistration cdr " +
             "where cdr.attributeoptioncomboid in ( " +
-                "select co.categoryoptioncomboid from categorycombos_optioncombos co " +
-                "where co.categorycomboid=" + categoryCombo.getId() + " );";
+            "select co.categoryoptioncomboid from categorycombos_optioncombos co " +
+            "where co.categorycomboid=" + categoryCombo.getId() + " );";
 
         if ( jdbcTemplate.queryForObject( crSql, Integer.class ) > 0 )
         {

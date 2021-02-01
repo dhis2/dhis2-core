@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,10 @@ package org.hisp.dhis.analytics.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.security;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryExWhenTrue;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -38,12 +36,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionType;
@@ -55,14 +53,13 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -105,32 +102,6 @@ public class DefaultAnalyticsSecurityManager
     // AnalyticsSecurityManager implementation
     // -------------------------------------------------------------------------
 
-    /**
-     * Will remove/exclude, from DataQueryParams, any category option that the
-     * current user is authorized to read, so we can filter out the category options
-     * not authorized later on (if any).
-     *
-     * @param programCategories the categories related to this program.
-     */
-    void excludeOnlyAuthorizedCategoryOptions( final List<Category> programCategories )
-    {
-        if ( isNotEmpty( programCategories ) )
-        {
-            User user = currentUserService.getCurrentUser();
-
-            for ( Category category : programCategories )
-            {
-                final List<CategoryOption> categoryOptions = category.getCategoryOptions();
-
-                if ( isNotEmpty( categoryOptions ) )
-                {
-                    category.getCategoryOptions()
-                        .removeIf( categoryOption -> aclService.canDataRead( user, categoryOption ) );
-                }
-            }
-        }
-    }
-
     @Override
     public void decideAccess( DataQueryParams params )
     {
@@ -150,7 +121,8 @@ public class DefaultAnalyticsSecurityManager
     private void decideAccessDataViewOrganisationUnits( DataQueryParams params, User user )
         throws IllegalQueryException
     {
-        List<DimensionalItemObject> queryOrgUnits = params.getDimensionOrFilterItems( DimensionalObject.ORGUNIT_DIM_ID );
+        List<DimensionalItemObject> queryOrgUnits = params
+            .getDimensionOrFilterItems( DimensionalObject.ORGUNIT_DIM_ID );
 
         if ( queryOrgUnits.isEmpty() || user == null || !user.hasDataViewOrganisationUnit() )
         {
@@ -165,8 +137,10 @@ public class DefaultAnalyticsSecurityManager
 
             boolean notDescendant = !queryOrgUnit.isDescendant( viewOrgUnits );
 
-            throwIllegalQueryExWhenTrue( notDescendant, String.format(
-                "User: '%s' is not allowed to view org unit: '%s'", user.getUsername(), queryOrgUnit.getUid() ) );
+            if ( notDescendant )
+            {
+                throwIllegalQueryEx( ErrorCode.E7120, user.getUsername(), queryOrgUnit.getUid() );
+            }
         }
     }
 
@@ -189,12 +163,6 @@ public class DefaultAnalyticsSecurityManager
         if ( params.hasProgram() )
         {
             objects.add( params.getProgram() );
-
-            if ( params.getProgram().hasCategoryCombo() )
-            {
-                final List<Category> programCategories = params.getProgram().getCategoryCombo().getCategories();
-                excludeOnlyAuthorizedCategoryOptions( programCategories );
-            }
         }
 
         if ( params.hasProgramStage() )
@@ -206,9 +174,8 @@ public class DefaultAnalyticsSecurityManager
         {
             if ( !aclService.canDataRead( user, object ) )
             {
-                throw new IllegalQueryException( String.format(
-                    "User: '%s' is not allowed to read data for %s: '%s'",
-                    user.getUsername(), TextUtils.getPrettyClassName( object.getClass() ), object.getUid() ) );
+                throwIllegalQueryEx( ErrorCode.E7121, user.getUsername(),
+                    TextUtils.getPrettyClassName( object.getClass() ), object.getUid() );
             }
         }
     }
@@ -221,7 +188,8 @@ public class DefaultAnalyticsSecurityManager
     }
 
     /**
-     * Checks whether the current user has the {@code F_VIEW_EVENT_ANALYTICS} authority.
+     * Checks whether the current user has the {@code F_VIEW_EVENT_ANALYTICS}
+     * authority.
      *
      * @param params the {@link {@link DataQueryParams}.
      */
@@ -233,15 +201,17 @@ public class DefaultAnalyticsSecurityManager
 
         String username = user != null ? user.getUsername() : "[None]";
 
-        throwIllegalQueryExWhenTrue( notAuthorized, String.format(
-            "User: '%s' is not allowed to view event analytics data", username ) );
+        if ( notAuthorized )
+        {
+            throwIllegalQueryEx( ErrorCode.E7217, username );
+        }
     }
 
     @Override
     public User getCurrentUser( DataQueryParams params )
     {
-        return params != null && params.hasCurrentUser() ?
-            params.getCurrentUser() : currentUserService.getCurrentUser();
+        return params != null && params.hasCurrentUser() ? params.getCurrentUser()
+            : currentUserService.getCurrentUser();
     }
 
     @Override
@@ -253,7 +223,9 @@ public class DefaultAnalyticsSecurityManager
 
         boolean hideUnapprovedData = systemSettingManager.hideUnapprovedDataInAnalytics();
 
-        boolean canViewUnapprovedData = user != null ? user.getUserCredentials().isAuthorized( DataApproval.AUTH_VIEW_UNAPPROVED_DATA ) : true;
+        boolean canViewUnapprovedData = user != null
+            ? user.getUserCredentials().isAuthorized( DataApproval.AUTH_VIEW_UNAPPROVED_DATA )
+            : true;
 
         if ( hideUnapprovedData && user != null )
         {
@@ -263,10 +235,13 @@ public class DefaultAnalyticsSecurityManager
             {
                 // Set approval level from query
 
-                DataApprovalLevel approvalLevel = approvalLevelService.getDataApprovalLevel( params.getApprovalLevel() );
+                DataApprovalLevel approvalLevel = approvalLevelService
+                    .getDataApprovalLevel( params.getApprovalLevel() );
 
-                throwIllegalQueryExWhenTrue( approvalLevel == null, String.format(
-                    "Approval level does not exist: '%s'", params.getApprovalLevel() ) );
+                if ( approvalLevel == null )
+                {
+                    throwIllegalQueryEx( ErrorCode.E7122, params.getApprovalLevel() );
+                }
 
                 approvalLevels = approvalLevelService.getUserReadApprovalLevels( approvalLevel );
             }
@@ -281,7 +256,8 @@ public class DefaultAnalyticsSecurityManager
             {
                 paramsBuilder.withDataApprovalLevels( approvalLevels );
 
-                log.debug( String.format( "User: '%s' constrained by data approval levels: '%s'", user.getUsername(), approvalLevels.values() ) );
+                log.debug( String.format( "User: '%s' constrained by data approval levels: '%s'", user.getUsername(),
+                    approvalLevels.values() ) );
             }
         }
 
@@ -346,7 +322,8 @@ public class DefaultAnalyticsSecurityManager
 
         List<OrganisationUnit> orgUnits = new ArrayList<>( user.getDataViewOrganisationUnits() );
 
-        DimensionalObject constraint = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, orgUnits );
+        DimensionalObject constraint = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+            DimensionType.ORGANISATION_UNIT, orgUnits );
 
         builder.addFilter( constraint );
 
@@ -367,7 +344,8 @@ public class DefaultAnalyticsSecurityManager
         // Check if current user has dimension constraints
         // ---------------------------------------------------------------------
 
-        if ( params == null || user == null || user.getUserCredentials() == null || !user.getUserCredentials().hasDimensionConstraints() )
+        if ( params == null || user == null || user.getUserCredentials() == null
+            || !user.getUserCredentials().hasDimensionConstraints() )
         {
             return;
         }
@@ -385,14 +363,17 @@ public class DefaultAnalyticsSecurityManager
                 continue;
             }
 
-            List<DimensionalItemObject> canReadItems = dimensionService.getCanReadDimensionItems( dimension.getDimension() );
+            List<DimensionalItemObject> canReadItems = dimensionService
+                .getCanReadDimensionItems( dimension.getDimension() );
 
             // -----------------------------------------------------------------
             // Check if current user has access to any items from constraint
             // -----------------------------------------------------------------
 
-            throwIllegalQueryExWhenTrue( canReadItems.isEmpty(), String.format(
-                "Current user is constrained by a dimension but has access to no associated dimension items: '%s'", dimension.getDimension() ) );
+            if ( canReadItems.isEmpty() )
+            {
+                throwIllegalQueryEx( ErrorCode.E7123, dimension.getDimension() );
+            }
 
             // -----------------------------------------------------------------
             // Apply constraint as filter, and remove potential all-dimension
@@ -401,11 +382,12 @@ public class DefaultAnalyticsSecurityManager
             builder.removeDimensionOrFilter( dimension.getDimension() );
 
             DimensionalObject constraint = new BaseDimensionalObject( dimension.getDimension(),
-                dimension.getDimensionType(), null, dimension.getDisplayName(), canReadItems );
+                dimension.getDimensionType(), null, dimension.getDimensionDisplayName(), canReadItems );
 
             builder.addFilter( constraint );
 
-            log.debug( String.format( "User: '%s' constrained by dimension: '%s'", user.getUsername(), constraint.getDimension() ) );
+            log.debug( String.format( "User: '%s' constrained by dimension: '%s'", user.getUsername(),
+                constraint.getDimension() ) );
         }
     }
 }

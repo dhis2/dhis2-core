@@ -1,7 +1,5 @@
-package org.hisp.dhis.visualization.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.visualization.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.visualization.hibernate;
 
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
@@ -55,22 +54,20 @@ import org.springframework.stereotype.Repository;
 
 @Repository( "org.hisp.dhis.visualization.VisualizationStore" )
 public class HibernateVisualizationStore
-    extends
-    HibernateIdentifiableObjectStore<Visualization>
-    implements
-    VisualizationStore
+    extends HibernateIdentifiableObjectStore<Visualization>
+    implements VisualizationStore
 {
     private enum VisualizationSet
     {
-        CHART, PIVOT_TABLE
+        CHART,
+        PIVOT_TABLE
     }
 
     public HibernateVisualizationStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
         DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, Visualization.class, currentUserService, deletedObjectService,
-            aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, Visualization.class, currentUserService, aclService, true );
     }
 
     @Override

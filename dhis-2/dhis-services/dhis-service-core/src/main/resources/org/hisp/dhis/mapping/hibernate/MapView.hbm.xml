@@ -176,6 +176,8 @@
 
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
       foreign-key="fk_mapview_maplegendsetid" />
+      
+    <property name="noDataColor" length="7" />
 
     <property name="radiusLow" />
 
@@ -208,9 +210,25 @@
 
     <property name="eventPointRadius" />
     
+    <property name="thematicMapType" length="50" column="thematicmaptype">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.mapping.ThematicMapType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
     <property name="renderingStrategy" length="50" column="renderingstrategy" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.mapping.MapViewRenderingStrategy</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="eventStatus" length="50" column="eventstatus">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.mapping.EventStatus</param>
         <param name="useNamed">true</param>
         <param name="type">12</param>
       </type>

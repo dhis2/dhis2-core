@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.timer;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.commons.timer;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.timer;
 
 import java.util.concurrent.TimeUnit;
 
@@ -65,7 +64,7 @@ public class SystemTimer
     @Override
     public String toString()
     {
-        double seconds = TimeUnit.MILLISECONDS.convert( duration(), TimeUnit.NANOSECONDS ) / 1000.0f;
-        return String.format( "%.2f seconds", seconds );
+        double seconds = duration() / (double) TimeUnit.SECONDS.toNanos( 1 );
+        return String.format( "%f sec.", seconds );
     }
 }

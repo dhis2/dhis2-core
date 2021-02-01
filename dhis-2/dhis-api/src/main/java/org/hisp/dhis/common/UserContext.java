@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,17 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSetting;
-import org.hisp.dhis.user.UserSettingKey;
-import org.springframework.util.StringUtils;
+package org.hisp.dhis.common;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSetting;
+import org.hisp.dhis.user.UserSettingKey;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -62,11 +61,11 @@ public final class UserContext
     {
         return threadUser.get();
     }
-    
+
     public static String getUsername()
     {
         User user = getUser();
-        
+
         return user != null ? user.getUsername() : "system-process";
     }
 
@@ -76,13 +75,13 @@ public final class UserContext
     }
 
     // TODO Needs synchronized?
-    
+
     public static void setUserSetting( UserSettingKey key, Serializable value )
     {
-        UserContext.setUserSetting( key.getName(), value );
+        setUserSettingInternal( key.getName(), value );
     }
 
-    public static void setUserSetting( String key, Serializable value )
+    private static void setUserSettingInternal( String key, Serializable value )
     {
         if ( threadUserSettings.get() == null )
         {
@@ -99,26 +98,17 @@ public final class UserContext
         }
     }
 
-    public static Serializable getUserSetting( UserSettingKey key )
-    {
-        return threadUserSettings.get() != null ? threadUserSettings.get().get( key.getName() ) : null;
-    }
-
     @SuppressWarnings( "unchecked" )
-    public static <T> T getUserSetting( UserSettingKey key, Class<T> klass )
+    public static <T> T getUserSetting( UserSettingKey key )
     {
         return threadUserSettings.get() != null ? (T) threadUserSettings.get().get( key.getName() ) : null;
-    }
-
-    public static boolean haveUserSetting( UserSettingKey key )
-    {
-        return getUserSetting( key ) != null;
     }
 
     public static void setUserSettings( List<UserSetting> userSettings )
     {
         userSettings.stream()
             .filter( userSetting -> !StringUtils.isEmpty( userSetting.getName() ) )
-            .forEach( userSetting -> UserContext.setUserSetting( userSetting.getName(), userSetting.getValue() ) );
+            .forEach(
+                userSetting -> UserContext.setUserSettingInternal( userSetting.getName(), userSetting.getValue() ) );
     }
 }

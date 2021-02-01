@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -42,6 +41,7 @@ import java.util.Map;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.feedback.TypeReport;
@@ -58,7 +58,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -87,7 +86,7 @@ public class ValidationFactoryTest
     {
         // Create a validation factory with a dummy check
         validationFactory = new ValidationFactory( schemaValidator, schemaService, aclService, userService,
-            Collections.emptyList(), ImmutableMap.of( CREATE_AND_UPDATE, Lists.newArrayList( DummyCheck.class ) ) );
+            Collections.emptyList(), ImmutableMap.of( CREATE_AND_UPDATE, ListUtils.newList( DummyCheck.class ) ) );
     }
 
     @Test

@@ -1,8 +1,5 @@
-package org.hisp.dhis.datastatistics.hibernate;
-
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +25,12 @@ package org.hisp.dhis.datastatistics.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datastatistics.hibernate;
 
 import java.util.Date;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -38,15 +38,12 @@ import org.hisp.dhis.datastatistics.AggregatedStatistics;
 import org.hisp.dhis.datastatistics.DataStatistics;
 import org.hisp.dhis.datastatistics.DataStatisticsStore;
 import org.hisp.dhis.datastatistics.EventInterval;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Yrjan A. F. Fraschetti
@@ -59,11 +56,9 @@ public class HibernateDataStatisticsStore
     implements DataStatisticsStore
 {
     public HibernateDataStatisticsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, DataStatistics.class, currentUserService, deletedObjectService,
-            aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, DataStatistics.class, currentUserService, aclService, false );
     }
 
     // -------------------------------------------------------------------------
@@ -71,7 +66,8 @@ public class HibernateDataStatisticsStore
     // -------------------------------------------------------------------------
 
     @Override
-    public List<AggregatedStatistics> getSnapshotsInInterval( EventInterval eventInterval, Date startDate, Date endDate )
+    public List<AggregatedStatistics> getSnapshotsInInterval( EventInterval eventInterval, Date startDate,
+        Date endDate )
     {
         final String sql = getQuery( eventInterval, startDate, endDate );
 
@@ -159,7 +155,7 @@ public class HibernateDataStatisticsStore
      * Creating a SQL for retrieving aggregated data with group by YEAR.
      *
      * @param start start date
-     * @param end   end date
+     * @param end end date
      * @return SQL string
      */
     private String getYearSql( Date start, Date end )
@@ -173,7 +169,7 @@ public class HibernateDataStatisticsStore
      * Creating a SQL for retrieving aggregated data with group by YEAR, MONTH.
      *
      * @param start start date
-     * @param end   end date
+     * @param end end date
      * @return SQL string
      */
     private String getMonthSql( Date start, Date end )
@@ -189,7 +185,7 @@ public class HibernateDataStatisticsStore
      * Ignoring week 53.
      *
      * @param start start date
-     * @param end   end date
+     * @param end end date
      * @return SQL string
      */
     private String getWeekSql( Date start, Date end )
@@ -205,7 +201,7 @@ public class HibernateDataStatisticsStore
      * Creating a SQL for retrieving aggregated data with group by YEAR, DAY.
      *
      * @param start start date
-     * @param end   end date
+     * @param end end date
      * @return SQL string
      */
     private String getDaySql( Date start, Date end )
@@ -222,13 +218,12 @@ public class HibernateDataStatisticsStore
      * MONTH, WEEK and DAY.
      *
      * @param start start date
-     * @param end   end date
+     * @param end end date
      * @return SQL string
      */
     private String getCommonSql( Date start, Date end )
     {
-        return
-            "cast(round(cast(sum(mapviews) as numeric),0) as int) as mapViews," +
+        return "cast(round(cast(sum(mapviews) as numeric),0) as int) as mapViews," +
             "cast(round(cast(sum(chartviews) as numeric),0) as int) as chartViews," +
             "cast(round(cast(sum(reporttableviews) as numeric),0) as int) as reportTableViews, " +
             "cast(round(cast(sum(eventreportviews) as numeric),0) as int) as eventReportViews, " +

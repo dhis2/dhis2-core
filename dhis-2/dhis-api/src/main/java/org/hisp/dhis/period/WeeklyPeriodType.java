@@ -1,7 +1,5 @@
-package org.hisp.dhis.period;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
 
 /**
  * PeriodType for weekly Periods. A valid weekly Period has startDate set to
@@ -42,6 +41,6 @@ public class WeeklyPeriodType
 
     public WeeklyPeriodType()
     {
-        super( NAME, 1, "yyyyWn", "P7D", 7, "W" );
+        super( NAME, 1, "yyyyWn", "P7D", 7, "1 week", "W" );
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,22 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -52,6 +63,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Order;
+import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.MessageConversationSchemaDescriptor;
@@ -76,17 +88,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -118,7 +121,8 @@ public class MessageConversationController
     private FileResourceService fileResourceService;
 
     @Override
-    protected void postProcessResponseEntity( org.hisp.dhis.message.MessageConversation entity, WebOptions options, Map<String, String> parameters )
+    protected void postProcessResponseEntity( org.hisp.dhis.message.MessageConversation entity, WebOptions options,
+        Map<String, String> parameters )
         throws Exception
     {
         if ( !messageService.hasAccessToManageFeedbackMessages( currentUserService.getCurrentUser() ) )
@@ -137,7 +141,8 @@ public class MessageConversationController
     }
 
     @Override
-    public RootNode getObject( @PathVariable String uid, Map<String, String> rpParameters, HttpServletRequest request, HttpServletResponse response )
+    public RootNode getObject( @PathVariable String uid, Map<String, String> rpParameters, HttpServletRequest request,
+        HttpServletResponse response )
         throws Exception
     {
         org.hisp.dhis.message.MessageConversation messageConversation = messageService.getMessageConversation( uid );
@@ -161,7 +166,8 @@ public class MessageConversationController
     @Override
     @SuppressWarnings( "unchecked" )
     protected List<org.hisp.dhis.message.MessageConversation> getEntityList( WebMetadata metadata, WebOptions options,
-        List<String> filters, List<Order> orders ) throws QueryParserException
+        List<String> filters, List<Order> orders )
+        throws QueryParserException
     {
         List<org.hisp.dhis.message.MessageConversation> messageConversations;
 
@@ -172,10 +178,11 @@ public class MessageConversationController
         }
         else
         {
-            messageConversations = new ArrayList<>( messageService.getMessageConversations( ) );
+            messageConversations = new ArrayList<>( messageService.getMessageConversations() );
         }
 
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData(options), options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
+            options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( messageConversations );
@@ -194,17 +201,32 @@ public class MessageConversationController
                 "messages.text:" + queryOperator + ":" + options.get( "queryString" ),
                 "messages.sender.displayName:" + queryOperator + ":" + options.get( "queryString" ) );
             Query subQuery = queryService
-                .getQueryFromUrl( getEntityClass(), queryFilter, Collections.emptyList(), getPaginationData(options), Junction.Type.OR );
+                .getQueryFromUrl( getEntityClass(), queryFilter, Collections.emptyList(), new Pagination(),
+                    Junction.Type.OR );
             subQuery.setObjects( messageConversations );
             messageConversations = (List<org.hisp.dhis.message.MessageConversation>) queryService.query( subQuery );
+        }
+
+        int count = messageConversations.size();
+
+        Query paginatedQuery = queryService.getQueryFromUrl( getEntityClass(), Collections.emptyList(),
+            Collections.emptyList(), getPaginationData( options ), options.getRootJunction() );
+        paginatedQuery.setObjects( messageConversations );
+
+        messageConversations = (List<org.hisp.dhis.message.MessageConversation>) queryService.query( paginatedQuery );
+
+        if ( options.hasPaging() )
+        {
+            Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
+            metadata.setPager( pager );
         }
 
         return messageConversations;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // POST for new MessageConversation
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     public void postXmlObject( HttpServletRequest request, HttpServletResponse response )
@@ -285,20 +307,23 @@ public class MessageConversationController
 
         String metaData = MessageService.META_USER_AGENT + request.getHeader( ContextUtils.HEADER_USER_AGENT );
 
-        Set<FileResource> attachments = new HashSet<>(  );
+        Set<FileResource> attachments = new HashSet<>();
 
-        for( FileResource fr : messageConversation.getAttachments() )
+        for ( FileResource fr : messageConversation.getAttachments() )
         {
             FileResource fileResource = fileResourceService.getFileResource( fr.getUid() );
 
             if ( fileResource == null )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Attachment '" + fr.getUid() + "' not found." ) );
+                throw new WebMessageException(
+                    WebMessageUtils.conflict( "Attachment '" + fr.getUid() + "' not found." ) );
             }
 
-            if ( !fileResource.getDomain().equals( FileResourceDomain.MESSAGE_ATTACHMENT ) || fileResource.isAssigned() )
+            if ( !fileResource.getDomain().equals( FileResourceDomain.MESSAGE_ATTACHMENT )
+                || fileResource.isAssigned() )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Attachment '" + fr.getUid() + "' is already used or not a valid attachment." ) );
+                throw new WebMessageException( WebMessageUtils
+                    .conflict( "Attachment '" + fr.getUid() + "' is already used or not a valid attachment." ) );
             }
 
             fileResource.setAssigned( true );
@@ -316,9 +341,9 @@ public class MessageConversationController
         webMessageService.send( WebMessageUtils.created( "Message conversation created" ), response, request );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // POST for reply on existing MessageConversation
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.POST )
     public void postMessageConversationReply(
@@ -343,25 +368,28 @@ public class MessageConversationController
             throw new AccessDeniedException( "Not authorized to send internal messages" );
         }
 
-        Set<FileResource> fileResources = new HashSet<>(  );
+        Set<FileResource> fileResources = new HashSet<>();
 
         if ( attachments == null )
         {
             attachments = new HashSet<>();
         }
 
-        for( String fileResourceUid : attachments )
+        for ( String fileResourceUid : attachments )
         {
             FileResource fileResource = fileResourceService.getFileResource( fileResourceUid );
 
             if ( fileResource == null )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Attachment '" + fileResourceUid + "' not found." ) );
+                throw new WebMessageException(
+                    WebMessageUtils.conflict( "Attachment '" + fileResourceUid + "' not found." ) );
             }
 
-            if ( !fileResource.getDomain().equals( FileResourceDomain.MESSAGE_ATTACHMENT ) || fileResource.isAssigned() )
+            if ( !fileResource.getDomain().equals( FileResourceDomain.MESSAGE_ATTACHMENT )
+                || fileResource.isAssigned() )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Attachment '" + fileResourceUid + "' is already used or not a valid attachment." ) );
+                throw new WebMessageException( WebMessageUtils
+                    .conflict( "Attachment '" + fileResourceUid + "' is already used or not a valid attachment." ) );
             }
 
             fileResource.setAssigned( true );
@@ -370,14 +398,12 @@ public class MessageConversationController
             fileResources.add( fileResource );
         }
 
-
         messageService.sendReply( conversation, message, metaData, internal, fileResources );
 
         response
             .addHeader( "Location", MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid() );
         webMessageService.send( WebMessageUtils.created( "Message conversation created" ), response, request );
     }
-
 
     @RequestMapping( value = "/{uid}/recipients", method = RequestMethod.POST )
     public void addRecipientsToMessageConversation( @PathVariable( "uid" ) String uid,
@@ -391,7 +417,8 @@ public class MessageConversationController
             throw new WebMessageException( WebMessageUtils.notFound( "Message conversation does not exist: " + uid ) );
         }
 
-        Set<User> additionalUsers = getUsersToMessageConversation( messageConversation, messageConversation.getUsers() );
+        Set<User> additionalUsers = getUsersToMessageConversation( messageConversation,
+            messageConversation.getUsers() );
 
         additionalUsers.forEach( user -> {
             if ( !conversation.getUsers().contains( user ) )
@@ -403,9 +430,9 @@ public class MessageConversationController
         messageService.updateMessageConversation( conversation );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // POST for feedback
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = "/feedback", method = RequestMethod.POST )
     public void postMessageConversationFeedback( @RequestParam( "subject" ) String subject, @RequestBody String body,
@@ -419,9 +446,9 @@ public class MessageConversationController
         webMessageService.send( WebMessageUtils.created( "Feedback created" ), response, request );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Assign priority
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}/priority", method = RequestMethod.POST, produces = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
@@ -461,9 +488,9 @@ public class MessageConversationController
         return responseNode;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Assign status
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}/status", method = RequestMethod.POST, produces = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
@@ -504,9 +531,9 @@ public class MessageConversationController
         return responseNode;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Assign user
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}/assign", method = RequestMethod.POST, produces = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
@@ -544,23 +571,26 @@ public class MessageConversationController
             return responseNode;
         }
 
-        if ( messageConversation.getMessageType() == MessageType.TICKET && !configurationService.isUserInFeedbackRecipientUserGroup( userToAssign ) )
+        if ( messageConversation.getMessageType() == MessageType.TICKET
+            && !configurationService.isUserInFeedbackRecipientUserGroup( userToAssign ) )
         {
             response.setStatus( HttpServletResponse.SC_CONFLICT );
-            responseNode.addChild( new SimpleNode( "message", "User provided is not a member of the system's feedback recipient group" ) );
+            responseNode.addChild(
+                new SimpleNode( "message", "User provided is not a member of the system's feedback recipient group" ) );
             return responseNode;
         }
 
         messageConversation.setAssignee( userToAssign );
         messageService.updateMessageConversation( messageConversation );
-        responseNode.addChild( new SimpleNode( "message", "User " + userToAssign.getName() + " was assigned successfully" ) );
+        responseNode
+            .addChild( new SimpleNode( "message", "User " + userToAssign.getName() + " was assigned successfully" ) );
         response.setStatus( HttpServletResponse.SC_OK );
 
         return responseNode;
     }
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Remove assigned user
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}/assign", method = RequestMethod.DELETE, produces = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
@@ -596,9 +626,9 @@ public class MessageConversationController
         return responseNode;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Mark conversations read
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}/read", method = RequestMethod.POST, produces = { MediaType.APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
@@ -617,9 +647,9 @@ public class MessageConversationController
         return modifyMessageConversationRead( userUid, uids, response, true );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Mark conversations unread
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}/unread", method = RequestMethod.POST, produces = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
@@ -638,9 +668,9 @@ public class MessageConversationController
         return modifyMessageConversationRead( userUid, uids, response, false );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Mark conversations for follow up
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = "followup", method = RequestMethod.POST, produces = { MediaType.APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
@@ -693,9 +723,9 @@ public class MessageConversationController
         return responseNode;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Clear follow up
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = "unfollowup", method = RequestMethod.POST, produces = { MediaType.APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
@@ -748,13 +778,13 @@ public class MessageConversationController
         return responseNode;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Delete a MessageConversation (requires override auth)
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     /**
-     * Deletes a MessageConversation.
-     * Note that this is a HARD delete and therefore requires override authority for the current user.
+     * Deletes a MessageConversation. Note that this is a HARD delete and
+     * therefore requires override authority for the current user.
      *
      * @param uid the uid of the MessageConversation to delete.
      * @throws Exception
@@ -767,10 +797,10 @@ public class MessageConversationController
         super.deleteObject( uid, request, response );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Remove a user from a MessageConversation
     // In practice a DELETE on MessageConversation <-> User relationship
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = "/{mc-uid}/{user-uid}", method = RequestMethod.DELETE, produces = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
@@ -818,9 +848,9 @@ public class MessageConversationController
         return responseNode;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Remove a user from one or more MessageConversations (batch operation)
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.DELETE, produces = { MediaType.APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
@@ -889,17 +919,20 @@ public class MessageConversationController
 
         if ( message == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "No message found with id '" + msgUid + "' for message conversation with id '" + mcUid + "'" ) );
+            throw new WebMessageException( WebMessageUtils.notFound(
+                "No message found with id '" + msgUid + "' for message conversation with id '" + mcUid + "'" ) );
         }
 
-        boolean attachmentExists = message.getAttachments().stream().filter( att -> att.getUid().equals( fileUid ) ).count() == 1;
+        boolean attachmentExists = message.getAttachments().stream().filter( att -> att.getUid().equals( fileUid ) )
+            .count() == 1;
 
         if ( fr == null || !attachmentExists )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "No messageattachment found with id '" + fileUid + "'" ) );
+            throw new WebMessageException(
+                WebMessageUtils.notFound( "No messageattachment found with id '" + fileUid + "'" ) );
         }
 
-        if ( !fr.getDomain().equals( FileResourceDomain.MESSAGE_ATTACHMENT ))
+        if ( !fr.getDomain().equals( FileResourceDomain.MESSAGE_ATTACHMENT ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Invalid messageattachment." ) );
         }
@@ -907,21 +940,25 @@ public class MessageConversationController
         fileResourceUtils.configureFileResourceResponse( response, fr );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Supportive methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     /**
-     * Determines whether the current user has permission to modify the given user in a MessageConversation.
+     * Determines whether the current user has permission to modify the given
+     * user in a MessageConversation.
      * <p>
-     * The modification is either marking a conversation read/unread for the user or removing the user from the MessageConversation.
+     * The modification is either marking a conversation read/unread for the
+     * user or removing the user from the MessageConversation.
      * <p>
-     * Since there are no per-conversation authorities provided the permission is given if the current user equals the user
-     * or if the current user has update-permission to User objects.
+     * Since there are no per-conversation authorities provided the permission
+     * is given if the current user equals the user or if the current user has
+     * update-permission to User objects.
      *
      * @param currentUser the current user to check authorization for.
-     * @param user        the user to remove from a conversation.
-     * @return true if the current user is allowed to remove the user from a conversation, false otherwise.
+     * @param user the user to remove from a conversation.
+     * @return true if the current user is allowed to remove the user from a
+     *         conversation, false otherwise.
      */
     private boolean canModifyUserConversation( User currentUser, User user )
     {
@@ -929,11 +966,13 @@ public class MessageConversationController
     }
 
     /**
-     * Determines whether the given user has permission to read the MessageConversation.
+     * Determines whether the given user has permission to read the
+     * MessageConversation.
      *
-     * @param user                the user to check permission for.
+     * @param user the user to check permission for.
      * @param messageConversation the MessageConversation to access.
-     * @return true if the user can read the MessageConversation, false otherwise.
+     * @return true if the user can read the MessageConversation, false
+     *         otherwise.
      */
     private boolean canReadMessageConversation( User user,
         org.hisp.dhis.message.MessageConversation messageConversation )
@@ -997,7 +1036,8 @@ public class MessageConversationController
     }
 
     /**
-    /* Returns the specified message after making sure the user has access to it.
+     * /* Returns the specified message after making sure the user has access to
+     * it.
      *
      * @param mcUid the message conversation UID.
      * @param msgUid the message UID.
@@ -1012,7 +1052,8 @@ public class MessageConversationController
 
         if ( conversation == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( String.format( "No message conversation with uid '%s'", mcUid ) ) );
+            throw new WebMessageException(
+                WebMessageUtils.notFound( String.format( "No message conversation with uid '%s'", mcUid ) ) );
         }
 
         if ( !canReadMessageConversation( user, conversation ) )
@@ -1026,7 +1067,8 @@ public class MessageConversationController
 
         if ( messages.size() < 1 )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( String.format( "No message with uid '%s' in messageConversation '%s", msgUid, mcUid ) ) );
+            throw new WebMessageException( WebMessageUtils
+                .notFound( String.format( "No message with uid '%s' in messageConversation '%s", msgUid, mcUid ) ) );
         }
 
         Message message = messages.get( 0 );

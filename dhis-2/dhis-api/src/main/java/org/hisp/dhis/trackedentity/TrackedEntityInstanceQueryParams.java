@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentity;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +25,12 @@ package org.hisp.dhis.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentity;
 
-import com.google.common.base.MoreObjects;
-import org.apache.commons.lang.time.DateUtils;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.user.User;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -49,7 +39,25 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.time.DateUtils;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -57,20 +65,31 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 public class TrackedEntityInstanceQueryParams
 {
     public static final String TRACKED_ENTITY_INSTANCE_ID = "instance";
+
     public static final String CREATED_ID = "created";
+
     public static final String LAST_UPDATED_ID = "lastupdated";
+
     public static final String ORG_UNIT_ID = "ou";
+
     public static final String ORG_UNIT_NAME = "ouname";
+
     public static final String TRACKED_ENTITY_ID = "te";
+
     public static final String TRACKED_ENTITY_ATTRIBUTE_ID = "teattribute";
+
     public static final String TRACKED_ENTITY_ATTRIBUTE_VALUE_ID = "tevalue";
+
     public static final String INACTIVE_ID = "inactive";
+
     public static final String DELETED = "deleted";
 
     public static final String META_DATA_NAMES_KEY = "names";
+
     public static final String PAGER_META_KEY = "pager";
 
     public static final int DEFAULT_PAGE = 1;
+
     public static final int DEFAULT_PAGE_SIZE = 50;
 
     /**
@@ -79,7 +98,8 @@ public class TrackedEntityInstanceQueryParams
     private QueryFilter query;
 
     /**
-     * Attributes to be included in the response. Can be used to filter response.
+     * Attributes to be included in the response. Can be used to filter
+     * response.
      */
     private List<QueryItem> attributes = new ArrayList<>();
 
@@ -89,8 +109,8 @@ public class TrackedEntityInstanceQueryParams
     private List<QueryItem> filters = new ArrayList<>();
 
     /**
-     * Organisation units for which instances in the response were registered at.
-     * Is related to the specified OrganisationUnitMode.
+     * Organisation units for which instances in the response were registered
+     * at. Is related to the specified OrganisationUnitMode.
      */
     private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
@@ -151,19 +171,35 @@ public class TrackedEntityInstanceQueryParams
     private TrackedEntityType trackedEntityType;
 
     /**
-     * Selection mode for the specified organisation units, default is ACCESSIBLE.
+     * Tracked entity types to fetch.
+     */
+    private List<TrackedEntityType> trackedEntityTypes = Lists.newArrayList();
+
+    /**
+     * Selection mode for the specified organisation units, default is
+     * ACCESSIBLE.
      */
     private OrganisationUnitSelectionMode organisationUnitMode = OrganisationUnitSelectionMode.DESCENDANTS;
-    
+
     /**
      * Selection mode for user assignment of events.
      */
     private AssignedUserSelectionMode assignedUserSelectionMode;
-    
+
     /**
      * Set of user ids to filter based on events assigned to the users.
      */
     private Set<String> assignedUsers = new HashSet<>();
+
+    /**
+     * Set of tei uids to explicitly select.
+     */
+    private Set<String> trackedEntityInstanceUids = new HashSet<>();
+
+    /**
+     * ProgramStage to be used in conjunction with eventstatus.
+     */
+    private ProgramStage programStage;
 
     /**
      * Status of any events in the specified program.
@@ -196,7 +232,8 @@ public class TrackedEntityInstanceQueryParams
     private Integer pageSize;
 
     /**
-     * Indicates whether to include the total number of pages in the paging response.
+     * Indicates whether to include the total number of pages in the paging
+     * response.
      */
     private boolean totalPages;
 
@@ -216,25 +253,27 @@ public class TrackedEntityInstanceQueryParams
     private boolean includeAllAttributes;
 
     /**
-     * Indicates whether the search is internal triggered by the system.
-     * The system should trigger superuser search to detect duplicates.
+     * Indicates whether the search is internal triggered by the system. The
+     * system should trigger superuser search to detect duplicates.
      */
     private boolean internalSearch;
 
     /**
-     * Indicates whether the search is for synchronization purposes (for Program Data sync job).
+     * Indicates whether the search is for synchronization purposes (for Program
+     * Data sync job).
      */
     private boolean synchronizationQuery;
 
     /**
-     * Indicates a point in the time used to decide the data that should not be synchronized
+     * Indicates a point in the time used to decide the data that should not be
+     * synchronized
      */
     private Date skipChangedBefore;
 
     /**
      * TEI order params
      */
-    private List<String> orders;
+    private List<OrderParam> orders;
 
     // -------------------------------------------------------------------------
     // Transient properties
@@ -288,12 +327,10 @@ public class TrackedEntityInstanceQueryParams
      * Performs a set of operations on this params.
      *
      * <ul>
-     * <li>
-     * If a query item is specified as an attribute item as well as a filter
+     * <li>If a query item is specified as an attribute item as well as a filter
      * item, the filter item will be removed. In that case, if the attribute
-     * item does not have any filters and the filter item has one or more filters,
-     * these will be applied to the attribute item.
-     * </li>
+     * item does not have any filters and the filter item has one or more
+     * filters, these will be applied to the attribute item.</li>
      * </ul>
      */
     public void conform()
@@ -321,11 +358,11 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Prepares the organisation units of the given parameters to simplify querying.
-     * Mode ACCESSIBLE is converted to DESCENDANTS for organisation units linked
-     * to the given user, and mode CHILDREN is converted to CHILDREN for organisation
-     * units including all their children. Mode can be DESCENDANTS, SELECTED, ALL
-     * only after invoking this method.
+     * Prepares the organisation units of the given parameters to simplify
+     * querying. Mode ACCESSIBLE is converted to DESCENDANTS for organisation
+     * units linked to the given user, and mode CHILDREN is converted to
+     * CHILDREN for organisation units including all their children. Mode can be
+     * DESCENDANTS, SELECTED, ALL only after invoking this method.
      */
     public void handleOrganisationUnits()
     {
@@ -352,9 +389,10 @@ public class TrackedEntityInstanceQueryParams
             setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED );
         }
     }
-    
+
     /**
-     * Prepares the assignedUsers list to the current user id, if the selection mode is CURRENT.
+     * Prepares the assignedUsers list to the current user id, if the selection
+     * mode is CURRENT.
      */
     public void handleCurrentUserSelectionMode()
     {
@@ -364,33 +402,39 @@ public class TrackedEntityInstanceQueryParams
             this.assignedUserSelectionMode = AssignedUserSelectionMode.PROVIDED;
         }
     }
-    
+
+    public boolean hasTrackedEntityInstances()
+    {
+        return CollectionUtils.isNotEmpty( this.trackedEntityInstanceUids );
+    }
+
     public boolean hasAssignedUsers()
     {
         return this.assignedUsers != null && !this.assignedUsers.isEmpty();
     }
-    
+
     public boolean isIncludeOnlyUnassignedEvents()
     {
         return AssignedUserSelectionMode.NONE.equals( this.assignedUserSelectionMode );
     }
-    
+
     public boolean isIncludeOnlyAssignedEvents()
     {
         return AssignedUserSelectionMode.ANY.equals( this.assignedUserSelectionMode );
     }
-    
+
     public TrackedEntityInstanceQueryParams addAttributes( List<QueryItem> attrs )
     {
         attributes.addAll( attrs );
         return this;
     }
-    
+
     public boolean hasFilterForEvents()
     {
-        return hasAssignedUsers() || isIncludeOnlyAssignedEvents() || isIncludeOnlyUnassignedEvents() || hasEventStatus();
+        return hasAssignedUsers() || isIncludeOnlyAssignedEvents() || isIncludeOnlyUnassignedEvents()
+            || hasEventStatus();
     }
-    
+
     /**
      * Add the given attributes to this params if they are not already present.
      */
@@ -408,7 +452,8 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Adds the given filters to this parameters if they are not already present.
+     * Adds the given filters to this parameters if they are not already
+     * present.
      */
     public TrackedEntityInstanceQueryParams addFiltersIfNotExist( List<QueryItem> filtrs )
     {
@@ -425,9 +470,10 @@ public class TrackedEntityInstanceQueryParams
 
     /**
      * Indicates whether this is a logical OR query, meaning that a query string
-     * is specified and instances which matches this query on one or more attributes
-     * should be included in the response. The opposite is an item-specific query,
-     * where the instances which matches the specific attributes should be included.
+     * is specified and instances which matches this query on one or more
+     * attributes should be included in the response. The opposite is an
+     * item-specific query, where the instances which matches the specific
+     * attributes should be included.
      */
     public boolean isOrQuery()
     {
@@ -500,7 +546,8 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Indicates whether this parameters specifies any attributes and/or filters.
+     * Indicates whether this parameters specifies any attributes and/or
+     * filters.
      */
     public boolean hasAttributesOrFilters()
     {
@@ -548,8 +595,8 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Indicates whether this parameters specifies follow up for the given program.
-     * Follow up can be specified as true or false.
+     * Indicates whether this parameters specifies follow up for the given
+     * program. Follow up can be specified as true or false.
      */
     public boolean hasFollowUp()
     {
@@ -581,7 +628,8 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Indicates whether this parameters specifies a program enrollment start date.
+     * Indicates whether this parameters specifies a program enrollment start
+     * date.
      */
     public boolean hasProgramEnrollmentStartDate()
     {
@@ -589,7 +637,8 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Indicates whether this parameters specifies a program enrollment end date.
+     * Indicates whether this parameters specifies a program enrollment end
+     * date.
      */
     public boolean hasProgramEnrollmentEndDate()
     {
@@ -597,7 +646,8 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Indicates whether this parameters specifies a program incident start date.
+     * Indicates whether this parameters specifies a program incident start
+     * date.
      */
     public boolean hasProgramIncidentStartDate()
     {
@@ -626,6 +676,14 @@ public class TrackedEntityInstanceQueryParams
     public boolean isOrganisationUnitMode( OrganisationUnitSelectionMode mode )
     {
         return organisationUnitMode != null && organisationUnitMode.equals( mode );
+    }
+
+    /**
+     * Indicates whether this parameters specifies a programStage.
+     */
+    public boolean hasProgramStage()
+    {
+        return programStage != null;
     }
 
     /**
@@ -691,6 +749,33 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
+     * Indicated whether this params specifies ordering
+     */
+    public boolean hasOrders()
+    {
+        return orders != null && !orders.isEmpty();
+    }
+
+    public boolean hasAttributeAsOrder()
+    {
+        return hasOrders() && getOrders().stream()
+            .anyMatch( orderParam -> !OrderColumn.isStaticColumn( orderParam.getField() ) );
+    }
+
+    public String getFirstAttributeOrder()
+    {
+        if ( hasOrders() )
+        {
+            return getOrders().stream()
+                .map( OrderParam::getField )
+                .filter( field -> !OrderColumn.isStaticColumn( field ) )
+                .findFirst()
+                .orElse( null );
+        }
+        return null;
+    }
+
+    /**
      * Indicates whether paging is enabled.
      */
     public boolean isPaging()
@@ -699,7 +784,8 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Returns the page number, falls back to default value of 1 if not specified.
+     * Returns the page number, falls back to default value of 1 if not
+     * specified.
      */
     public int getPageWithDefault()
     {
@@ -707,7 +793,8 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Returns the page size, falls back to default value of 50 if not specified.
+     * Returns the page size, falls back to default value of 50 if not
+     * specified.
      */
     public int getPageSizeWithDefault()
     {
@@ -834,6 +921,17 @@ public class TrackedEntityInstanceQueryParams
         return this;
     }
 
+    public ProgramStage getProgramStage()
+    {
+        return programStage;
+    }
+
+    public TrackedEntityInstanceQueryParams setProgramStage( ProgramStage programStage )
+    {
+        this.programStage = programStage;
+        return this;
+    }
+
     public ProgramStatus getProgramStatus()
     {
         return programStatus;
@@ -902,7 +1000,8 @@ public class TrackedEntityInstanceQueryParams
 
     public Date getProgramEnrollmentEndDate()
     {
-        return programEnrollmentEndDate != null ? DateUtils.addDays( programEnrollmentEndDate, 1 ) : programEnrollmentEndDate;
+        return programEnrollmentEndDate != null ? DateUtils.addDays( programEnrollmentEndDate, 1 )
+            : programEnrollmentEndDate;
     }
 
     public TrackedEntityInstanceQueryParams setProgramEnrollmentEndDate( Date programEnrollmentEndDate )
@@ -949,7 +1048,8 @@ public class TrackedEntityInstanceQueryParams
         return organisationUnitMode;
     }
 
-    public TrackedEntityInstanceQueryParams setOrganisationUnitMode( OrganisationUnitSelectionMode organisationUnitMode )
+    public TrackedEntityInstanceQueryParams setOrganisationUnitMode(
+        OrganisationUnitSelectionMode organisationUnitMode )
     {
         this.organisationUnitMode = organisationUnitMode;
         return this;
@@ -1109,12 +1209,12 @@ public class TrackedEntityInstanceQueryParams
         return this;
     }
 
-    public List<String> getOrders()
+    public List<OrderParam> getOrders()
     {
         return orders;
     }
 
-    public void setOrders( List<String> orders )
+    public void setOrders( List<OrderParam> orders )
     {
         this.orders = orders;
     }
@@ -1130,6 +1230,17 @@ public class TrackedEntityInstanceQueryParams
         return this;
     }
 
+    public Set<String> getTrackedEntityInstanceUids()
+    {
+        return trackedEntityInstanceUids;
+    }
+
+    public TrackedEntityInstanceQueryParams setTrackedEntityInstanceUids( Set<String> trackedEntityInstanceUids )
+    {
+        this.trackedEntityInstanceUids = trackedEntityInstanceUids;
+        return this;
+    }
+
     public Set<String> getAssignedUsers()
     {
         return assignedUsers;
@@ -1140,6 +1251,50 @@ public class TrackedEntityInstanceQueryParams
         this.assignedUsers = assignedUsers;
         return this;
     }
-    
-    
+
+    public List<TrackedEntityType> getTrackedEntityTypes()
+    {
+        return trackedEntityTypes;
+    }
+
+    public void setTrackedEntityTypes( List<TrackedEntityType> trackedEntityTypes )
+    {
+        this.trackedEntityTypes = trackedEntityTypes;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public enum OrderColumn
+    {
+        UID( "uid", "tei.uid" ),
+        CREATED( CREATED_ID, "tei.created" ),
+        STORED_BY( "storedBy", "tei.storedBy" ),
+        LAST_UPDATED( "lastUpdated", "tei.lastUpdated" ),
+        LAST_UPDATED_CLIENT( "lastUpdatedAtClient", "tei.lastUpdatedAtClient" ),
+        LAST_SYNCHRONIZED( "lastSynchronized", "tei.lastSynchronized" ),
+        ORG_UNIT_NAME( "orgUnitName", "tei.organisationUnit.name" ),
+        INACTIVE( INACTIVE_ID, "tei.inactive" ),
+        DELETED( TrackedEntityInstanceQueryParams.DELETED, "tei.deleted" ),
+        ENROLLMENT_STATUS( "enrollmentStatus", "pi.status" );
+
+        private final String propName;
+
+        private final String column;
+
+        public static boolean isStaticColumn( String propName )
+        {
+            return Arrays.stream( OrderColumn.values() )
+                .anyMatch( orderColumn -> orderColumn.getPropName().equals( propName ) );
+        }
+
+        public static String getColumn( String property )
+        {
+            return Arrays.stream( values() )
+                .filter( orderColumn -> orderColumn.getPropName().equals( property ) )
+                .map( OrderColumn::getColumn )
+                .findFirst()
+                .orElseThrow(
+                    () -> new IllegalArgumentException( "Property" + property + " is not defined as order column" ) );
+        }
+    }
 }

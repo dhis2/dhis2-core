@@ -1,7 +1,7 @@
 package org.hisp.dhis.helpers.config;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,4 +50,10 @@ public interface Config
 
     @Key( "user.default.password" )
     String defaultUSerPassword();
+
+    @Key( "user.admin.username" )
+    String adminUserUsername();
+
+    @Key( "user.admin.password" )
+    String adminUserPassword();
 }

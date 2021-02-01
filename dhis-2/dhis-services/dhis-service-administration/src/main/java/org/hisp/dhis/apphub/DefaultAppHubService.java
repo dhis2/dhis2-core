@@ -1,7 +1,5 @@
-package org.hisp.dhis.apphub;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,13 @@ package org.hisp.dhis.apphub;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.apphub;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.apphub.AppHubUtils.getJsonRequestEntity;
+import static org.hisp.dhis.apphub.AppHubUtils.sanitizeQuery;
+import static org.hisp.dhis.apphub.AppHubUtils.validateApiVersion;
+import static org.hisp.dhis.apphub.AppHubUtils.validateQuery;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -40,24 +43,26 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
- * Created by zubair@dhis2.org on 07.09.17.
+ * @author Zubair Asghar
+ * @author Lars Helge Overland
  */
 @Slf4j
 @Service( "org.hisp.dhis.apphub.AppHubService" )
 public class DefaultAppHubService
-    implements
-        AppHubService
+    implements AppHubService
 {
     private final RestTemplate restTemplate;
 
@@ -74,6 +79,30 @@ public class DefaultAppHubService
         this.restTemplate = restTemplate;
         this.appManager = appManager;
         this.dhisConfigurationProvider = dhisConfigurationProvider;
+    }
+
+    @Override
+    public String getAppHubApiResponse( String apiVersion, String query )
+    {
+        validateApiVersion( apiVersion );
+        validateQuery( query );
+
+        apiVersion = sanitizeQuery( apiVersion );
+        query = sanitizeQuery( query );
+
+        String appHubApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL );
+
+        log.info( "Get App Hub response, base URL: '{}', API version: '{}', query: '{}'", appHubApiUrl, apiVersion,
+            query );
+
+        String url = String.format( "%s/%s/%s", appHubApiUrl, apiVersion, query );
+
+        log.info( "App Hub proxy request URL: '{}'", url );
+
+        ResponseEntity<String> response = restTemplate.exchange( url, HttpMethod.GET, getJsonRequestEntity(),
+            String.class );
+
+        return response.getBody();
     }
 
     @Override

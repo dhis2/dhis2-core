@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataelement;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,16 @@ package org.hisp.dhis.dataelement;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataelement;
+
+import java.util.Collection;
+import java.util.List;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.period.PeriodType;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Defines service functionality for DataElements and DataElementGroups.
@@ -103,8 +102,8 @@ public interface DataElementService
     /**
      * Returns all DataElements.
      *
-     * @return a list of all DataElements, or an empty list if there
-     * are no DataElements.
+     * @return a list of all DataElements, or an empty list if there are no
+     *         DataElements.
      */
     List<DataElement> getAllDataElements();
 
@@ -112,8 +111,8 @@ public interface DataElementService
      * Returns all DataElements of a given type.
      *
      * @param valueType the value type restriction
-     * @return a list of all DataElements with the given value type,
-     * or an empty list if there are no DataElements.
+     * @return a list of all DataElements with the given value type, or an empty
+     *         list if there are no DataElements.
      */
     List<DataElement> getAllDataElementsByValueType( ValueType valueType );
 
@@ -232,14 +231,16 @@ public interface DataElementService
      * Returns all DataElementGroups.
      *
      * @return a collection of all DataElementGroups, or an empty collection if
-     * no DataElementGroups exist.
+     *         no DataElementGroups exist.
      */
     List<DataElementGroup> getAllDataElementGroups();
 
     /**
-     * Returns all DataElements which zeroIsSignificant property is true or false.
+     * Returns all DataElements which zeroIsSignificant property is true or
+     * false.
      *
-     * @param zeroIsSignificant whether zero is significant is true for this query.
+     * @param zeroIsSignificant whether zero is significant is true for this
+     *        query.
      * @return a collection of DataElements.
      */
     List<DataElement> getDataElementsByZeroIsSignificant( boolean zeroIsSignificant );
@@ -267,7 +268,5 @@ public interface DataElementService
     List<DataElement> getByAttribute( Attribute attribute );
 
     DataElement getByUniqueAttributeValue( Attribute attribute, String value );
-
-
 
 }

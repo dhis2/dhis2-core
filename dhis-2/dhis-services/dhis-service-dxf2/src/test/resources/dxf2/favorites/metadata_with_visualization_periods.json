@@ -191,12 +191,10 @@
       "userOrganisationUnit": false,
       "hideTitle": false,
       "userGroupAccesses": [ ],
-      "series": "dx",
       "showData": true
     },
     {
       "showData": true,
-      "series": "dx",
       "hideTitle": false,
       "userGroupAccesses": [ ],
       "userOrganisationUnit": false,
@@ -313,7 +311,6 @@
       "userGroupAccesses": [ ],
       "hideTitle": false,
       "showData": true,
-      "series": "dx",
       "created": "2016-03-17T01:57:32.354+0000",
       "relativePeriods": {
         "thisSixMonth": false,
@@ -465,7 +462,6 @@
       ],
       "created": "2016-03-17T03:25:10.257+0000",
       "showData": true,
-      "series": "dx",
       "hideTitle": false,
       "userGroupAccesses": [ ],
       "userOrganisationUnit": false,

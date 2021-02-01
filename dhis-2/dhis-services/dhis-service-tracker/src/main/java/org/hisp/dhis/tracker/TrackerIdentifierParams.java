@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,18 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
- * Wrapper object to handle identifier-related parameters for tracker import/export
+ * Wrapper object to handle identifier-related parameters for tracker
+ * import/export
  *
  * @author Stian Sandvold
  */
@@ -81,4 +82,39 @@ public class TrackerIdentifierParams
     @Builder.Default
     private TrackerIdentifier idScheme = TrackerIdentifier.UID;
 
+    /**
+     * Specific identifier to match category option combo on.
+     */
+    @JsonProperty
+    @Builder.Default
+    private TrackerIdentifier categoryOptionComboIdScheme = TrackerIdentifier.UID;
+
+    /**
+     * Specific identifier to match category option on.
+     */
+    @JsonProperty
+    @Builder.Default
+    private TrackerIdentifier categoryOptionIdScheme = TrackerIdentifier.UID;
+
+    public TrackerIdentifier getByClass( Class<?> klazz )
+    {
+        switch ( klazz.getSimpleName() )
+        {
+        case "CategoryOptionCombo":
+            return categoryOptionComboIdScheme;
+        case "OrganisationUnit":
+            return orgUnitIdScheme;
+        case "CategoryOption":
+            return categoryOptionIdScheme;
+        case "DataElement":
+            return dataElementIdScheme;
+        case "Program":
+            return programIdScheme;
+        case "ProgramStage":
+            return programStageIdScheme;
+        default:
+            return idScheme;
+        }
+
+    }
 }

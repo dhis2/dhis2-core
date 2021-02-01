@@ -303,7 +303,7 @@ dhis2.period.PeriodGenerator.prototype.generateReversedPeriods = function(genera
  * @returns {Array} Generated periods as array
  */
 dhis2.period.PeriodGenerator.prototype.filterOpenPeriods = function(generator, periods, n, checkStartDate, checkEndDate) {
-  var max = this.generators[generator].todayPlusPeriods( n );
+  var max = this.generators[generator].datePlusPeriods( this.calendar.today(), n );
   var array = [];
   var today = this.calendar.today();
   var startDate = checkStartDate ? this.calendar.parseDate( 'yyyy-mm-dd', checkStartDate.split( " " )[0] ) : null;
@@ -323,6 +323,18 @@ dhis2.period.PeriodGenerator.prototype.filterOpenPeriods = function(generator, p
   } );
   return array;
 };
+
+/**
+ * Adds the given number of periods to a date.
+ *
+ * @param {String} generator Generator to use (String)
+ * @param {Date} d the starting date.
+ * @param {int} n number of periods to add.
+ * @returns {Date} the date, n periods later.
+ */
+dhis2.period.PeriodGenerator.prototype.datePlusPeriods = function(generator, d, n) {
+  return this.generators[generator].datePlusPeriods( d, n );
+}
 
 /**
  * Convenience method to get Daily generator
@@ -581,15 +593,15 @@ $.extend( dhis2.period.BaseGenerator.prototype, {
     throw new Error( '$generate method not implemented on ' + this.name + ' generator.' );
   },
   /**
-   * Get the date calculated from current date added the given number of periods
-   * of this period type.
+   * Adds the given number of periods to a date.
    *
-   * @param {int} n number of periods.
-   * @return date object.
+   * @param {Date} d the starting date.
+   * @param {int} n number of periods to add.
+   * @returns {Date} the date, n periods later.
    */
-  todayPlusPeriods: function(n) {
+  datePlusPeriods: function( d, n) {
     n = n || 0;
-    return this.$todayPlusPeriods( n );
+    return this.$datePlusPeriods( d, n );
   }
 } );
 
@@ -633,8 +645,8 @@ $.extend( dhis2.period.DailyGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
-    return this.calendar.today().add( n, 'd' );
+  $datePlusPeriods: function(d, n) {
+    return d.add( n, 'd' );
   }
 } );
 
@@ -658,18 +670,24 @@ $.extend( dhis2.period.WeeklyGenerator.prototype, {
     var year = offset + this.calendar.today().year();
     var periods = [];
 
-    var startDate = dhis2.period.getStartDateOfYear( year, 1 );
-    startDate = this.calendar.newDate( startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate() );
+    var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 1 );
+    var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 ) );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
     for ( var week = 1; week < 200; week++ ) {
-      var period = {};
-      period['startDate'] = startDate.formatDate( this.format );
 
       // not very elegant, but seems to be best way to get week end, adds a week, then minus 1 day
       var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
 
+      var isNextYearWeek = Date.parse( startDate ) <= nextYearStartDate && nextYearStartDate <= Date.parse( endDate );
+
+      if ( startDate.weekOfYear() === 1 && week > 50 || isNextYearWeek ) {
+        break;
+      }
+
+      var period = {};
+      period['startDate'] = startDate.formatDate( this.format );
       period['endDate'] = endDate.formatDate( this.format );
       period['name'] = 'Week ' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
       period['id'] = 'Weekly_' + period['startDate'];
@@ -681,16 +699,12 @@ $.extend( dhis2.period.WeeklyGenerator.prototype, {
       periods.push( period );
 
       startDate.add( 1, 'w' );
-
-      if ( startDate.weekOfYear() === 1 && week > 50 ) {
-        break;
-      }
     }
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
-    return this.calendar.today().add( n, 'w' );
+  $datePlusPeriods: function(d, n) {
+    return d.add( n, 'w' );
   }
 } );
 
@@ -698,27 +712,26 @@ $.extend( dhis2.period.WeeklyGenerator.prototype, {
 /**
  * Calculate the first date of an EPI year base on ISO standard  ( first week always contains 4th Jan )
  * and week types ( week start on Monday or Sunday, etc. )
+ * @param calendar The calendar under consideration
  * @param year The year to calculate first date
  * @param startDayOfWeek The week type ( Sunday = 0, Monday = 1, etc. )
  * @returns {Date} The first date of the given year
  */
-dhis2.period.getStartDateOfYear = function(year, startDayOfWeek )
+dhis2.period.getStartDateOfYear = function( calendar, year, startDayOfWeek )
 {
-    var jan4 = new Date( year, 0, 4 );
+    var day4OfYear = calendar.newDate( year, 1, 4 );
 
-    var jan4DayOfWeek = jan4.getDay();
+    var startDate = day4OfYear;
 
-    var startDate = jan4;
-    var dayDiff = jan4DayOfWeek - startDayOfWeek;
+    var dayDiff = day4OfYear.dayOfWeek() - startDayOfWeek;
 
     if ( dayDiff > 0 )
     {
-        startDate.setDate( jan4.getDate() - dayDiff );
+        startDate.add( 0 - dayDiff, 'd' );
     }
     else if ( dayDiff < 0 )
     {
-        startDate.setDate( jan4.getDate() - dayDiff );
-        startDate.setDate( startDate.getDate() - 7 );
+        startDate.add( 0 - dayDiff - 7, 'd' );
     }
 
     return startDate;
@@ -744,17 +757,21 @@ $.extend( dhis2.period.WeeklyWednesdayGenerator.prototype, {
     var year = offset + this.calendar.today().year();
     var periods = [];
 
-    var startDate = dhis2.period.getStartDateOfYear( year, 3 );
-    startDate = this.calendar.newDate( startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate() );
+    var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 3 );
+    var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 ) );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
     for ( var week = 1; week < 200; week++ ) {
-      var period = {};
-      period['startDate'] = startDate.formatDate( this.format );
 
       // not very elegant, but seems to be best way to get week end, adds a week, then minus 1 day
       var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
+
+      var isNextYearWeek = Date.parse( startDate ) <= nextYearStartDate && nextYearStartDate <= Date.parse( endDate );
+
+      if ( startDate.weekOfYear() === 1 && week > 50 || isNextYearWeek ) {
+        break;
+      }
 
       period['endDate'] = endDate.formatDate( this.format );
       period['name'] = 'Week ' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
@@ -768,15 +785,12 @@ $.extend( dhis2.period.WeeklyWednesdayGenerator.prototype, {
 
       startDate.add( 1, 'w' );
 
-      if ( startDate.weekOfYear() === 1 && week > 50 ) {
-        break;
-      }
     }
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
-    return this.calendar.today().add( n, 'w' );
+  $datePlusPeriods: function(d, n) {
+    return d.add( n, 'w' );
   }
 } );
 
@@ -800,18 +814,24 @@ $.extend( dhis2.period.WeeklyThursdayGenerator.prototype, {
     var year = offset + this.calendar.today().year();
     var periods = [];
 
-    var startDate = dhis2.period.getStartDateOfYear( year, 4 );
-    startDate = this.calendar.newDate( startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate() );
+    var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 4 );
+    var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 ) );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
     for ( var week = 1; week < 200; week++ ) {
-      var period = {};
-      period['startDate'] = startDate.formatDate( this.format );
 
       // not very elegant, but seems to be best way to get week end, adds a week, then minus 1 day
       var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
 
+      var isNextYearWeek = Date.parse( startDate ) <= nextYearStartDate && nextYearStartDate <= Date.parse( endDate );
+
+      if ( startDate.weekOfYear() === 1 && week > 50 || isNextYearWeek ) {
+        break;
+      }
+
+      var period = {};
+      period['startDate'] = startDate.formatDate( this.format );
       period['endDate'] = endDate.formatDate( this.format );
       period['name'] = 'Week ' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
       period['id'] = 'WeeklyThursday_' + period['startDate'];
@@ -824,15 +844,12 @@ $.extend( dhis2.period.WeeklyThursdayGenerator.prototype, {
 
       startDate.add( 1, 'w' );
 
-      if ( startDate.weekOfYear() === 1 && week > 50 ) {
-        break;
-      }
     }
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
-    return this.calendar.today().add( n, 'w' );
+  $datePlusPeriods: function(d, n) {
+    return d.add( n, 'w' );
   }
 } );
 
@@ -856,18 +873,24 @@ $.extend( dhis2.period.WeeklySaturdayGenerator.prototype, {
     var year = offset + this.calendar.today().year();
     var periods = [];
 
-    var startDate = dhis2.period.getStartDateOfYear( year, 6 );
-    startDate = this.calendar.newDate( startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate() );
+    var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 6 );
+    var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 ) );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
     for ( var week = 1; week < 200; week++ ) {
-      var period = {};
-      period['startDate'] = startDate.formatDate( this.format );
 
       // not very elegant, but seems to be best way to get week end, adds a week, then minus 1 day
       var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
 
+      var isNextYearWeek = Date.parse( startDate ) <= nextYearStartDate && nextYearStartDate <= Date.parse( endDate );
+
+      if ( startDate.weekOfYear() === 1 && week > 50 || isNextYearWeek ) {
+        break;
+      }
+
+      var period = {};
+      period['startDate'] = startDate.formatDate( this.format );
       period['endDate'] = endDate.formatDate( this.format );
       period['name'] = 'Week ' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
       period['id'] = 'WeeklySaturday_' + period['startDate'];
@@ -880,15 +903,12 @@ $.extend( dhis2.period.WeeklySaturdayGenerator.prototype, {
 
       startDate.add( 1, 'w' );
 
-      if ( startDate.weekOfYear() === 1 && week > 50 ) {
-        break;
-      }
     }
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
-    return this.calendar.today().add( n, 'w' );
+  $datePlusPeriods: function(d, n) {
+    return d.add( n, 'w' );
   }
 } );
 
@@ -912,18 +932,24 @@ $.extend( dhis2.period.WeeklySundayGenerator.prototype, {
     var year = offset + this.calendar.today().year();
     var periods = [];
 
-    var startDate = dhis2.period.getStartDateOfYear( year, 7 );
-    startDate = this.calendar.newDate( startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate() );
+    var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 7 );
+    var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 ) );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
     for ( var week = 1; week < 200; week++ ) {
-      var period = {};
-      period['startDate'] = startDate.formatDate( this.format );
 
       // not very elegant, but seems to be best way to get week end, adds a week, then minus 1 day
       var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
 
+      var isNextYearWeek = Date.parse( startDate ) <= nextYearStartDate && nextYearStartDate <= Date.parse( endDate );
+
+      if ( startDate.weekOfYear() === 1 && week > 50 || isNextYearWeek ) {
+        break;
+      }
+
+      var period = {};
+      period['startDate'] = startDate.formatDate( this.format );
       period['endDate'] = endDate.formatDate( this.format );
       period['name'] = 'Week ' + week + ' - ' + period['startDate'] + ' - ' + period['endDate'];
       period['id'] = 'WeeklySunday_' + period['startDate'];
@@ -943,8 +969,8 @@ $.extend( dhis2.period.WeeklySundayGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
-    return this.calendar.today().add( n, 'w' );
+  $datePlusPeriods: function(d, n) {
+    return d.add( n, 'w' );
   }
 } );
 
@@ -968,8 +994,7 @@ $.extend( dhis2.period.BiWeeklyGenerator.prototype, {
         var year = offset + this.calendar.today().year();
         var periods = [];
 
-        var startDate = dhis2.period.getStartDateOfYear( year, 1 );
-        startDate = this.calendar.newDate( startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate() );
+        var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 1 );
 
         // no reliable way to figure out number of weeks in a year (can differ in different calendars)
         // goes up to 200, but break when week is back to 1
@@ -999,8 +1024,8 @@ $.extend( dhis2.period.BiWeeklyGenerator.prototype, {
 
         return periods;
     },
-    $todayPlusPeriods: function(n) {
-        return this.calendar.today().add( n, 'w' );
+    $datePlusPeriods: function(d, n) {
+        return d.add( n, 'w' );
     }
 } );
 
@@ -1043,8 +1068,8 @@ $.extend( dhis2.period.MonthlyGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
-    return this.calendar.today().add( n, 'm' );
+  $datePlusPeriods: function(d, n) {
+    return d.add( n, 'm' );
   }
 } );
 
@@ -1088,7 +1113,7 @@ $.extend( dhis2.period.BiMonthlyGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
+  $datePlusPeriods: function(d, n) {
     return this.calendar.today().add( n * 2, 'm' );
   }
 } );
@@ -1133,7 +1158,7 @@ $.extend( dhis2.period.QuarterlyGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
+  $datePlusPeriods: function(d, n) {
     return this.calendar.today().add( n * 3, 'm' );
   }
 } );
@@ -1192,7 +1217,7 @@ $.extend( dhis2.period.SixMonthlyGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
+  $datePlusPeriods: function(d, n) {
     return this.calendar.today().add( n * 6, 'm' );
   }
 } );
@@ -1251,7 +1276,7 @@ $.extend( dhis2.period.SixMonthlyAprilGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
+  $datePlusPeriods: function(d, n) {
     return this.calendar.today().add( n * 6, 'm' );
   }
 } );
@@ -1277,7 +1302,7 @@ $.extend( dhis2.period.SixMonthlyNovemberGenerator.prototype, {
     var periods = [];
 
     var startDate = this.calendar.newDate( year, 11, 1 );
-    var endDate = this.calendar.newDate( startDate ).set( year + 1, 'y').set( 4, 'm' );    
+    var endDate = this.calendar.newDate( startDate ).set( year + 1, 'y').set( 4, 'm' );
     endDate.set( endDate.daysInMonth( 4 ), 'd' );
 
     var period = {};
@@ -1285,7 +1310,7 @@ $.extend( dhis2.period.SixMonthlyNovemberGenerator.prototype, {
     period['endDate'] = endDate.formatDate( this.format );
     period['name'] = getMonthTranslation( startDate.formatDate( "MM yyyy" ) ) + ' - ' + getMonthTranslation( endDate.formatDate( "MM yyyy" ) );// + ' ' + year;
     period['id'] = 'SixMonthlyNov_' + period['startDate'];
-    period['iso'] = endDate.formatDate( "yyyy" ) + 'NovS1';   
+    period['iso'] = endDate.formatDate( "yyyy" ) + 'NovS1';
 
     period['_startDate'] = this.calendar.newDate( startDate );
     period['_endDate'] = this.calendar.newDate( endDate );
@@ -1310,7 +1335,7 @@ $.extend( dhis2.period.SixMonthlyNovemberGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
+  $datePlusPeriods: function(d, n) {
     return this.calendar.today().add( n * 6, 'm' );
   }
 } );
@@ -1356,8 +1381,8 @@ $.extend( dhis2.period.YearlyGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
-    return this.calendar.today().add( n, 'y' );
+  $datePlusPeriods: function(d, n) {
+    return d.add( n, 'y' );
   }
 } );
 
@@ -1400,7 +1425,7 @@ $.extend( dhis2.period.FinancialBaseGenerator.prototype, {
       period['endDate'] = endDate.formatDate( this.format );
       period['name'] = getMonthTranslation( startDate.formatDate( "MM" ) ) + ' ' + startDate.year() + ' - ' + getMonthTranslation( endDate.formatDate( "MM" ) ) + ' ' + endDate.year();
       period['id'] = 'Financial' + this.monthShortName + '_' + period['startDate'];
-      
+
       var isoDate = this.name === 'FinancialNov' ? endDate.formatDate( "yyyy" ) : startDate.formatDate( "yyyy" );
 
       period['iso'] = isoDate + this.monthShortName;
@@ -1413,8 +1438,8 @@ $.extend( dhis2.period.FinancialBaseGenerator.prototype, {
 
     return periods;
   },
-  $todayPlusPeriods: function(n) {
-    return this.calendar.today().add( n, 'y' );
+  $datePlusPeriods: function(d, n) {
+    return d.add( n, 'y' );
   }
 } );
 
@@ -1543,6 +1568,3 @@ function getMonthTranslation(monthName) {
       return monthName;
   }
 };
-
-
-

@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,16 @@ package org.hisp.dhis.webapi.controller.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.event;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
@@ -54,8 +51,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -66,35 +62,19 @@ public class ProgramController
     extends AbstractCrudController<Program>
 {
     @Autowired
-    private ProgramInstanceService programInstanceService;
-
-    @Autowired
     private ProgramService programService;
 
     @Override
-    protected void postCreateEntity( Program program )
-    {
-        if ( program.isWithoutRegistration() )
-        {
-            ProgramInstance programInstance = new ProgramInstance();
-            programInstance.setEnrollmentDate( new Date() );
-            programInstance.setIncidentDate( new Date() );
-            programInstance.setProgram( program );
-            programInstance.setStatus( ProgramStatus.ACTIVE );
-
-            programInstanceService.addProgramInstance( programInstance );
-        }
-    }
-
-    @Override
     @SuppressWarnings( "unchecked" )
-    protected List<Program> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    protected List<Program> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
+        List<Order> orders )
         throws QueryParserException
     {
         boolean userFilter = Boolean.parseBoolean( options.getOptions().get( "userFilter" ) );
 
         List<Program> entityList;
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ),
+            options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
@@ -118,7 +98,9 @@ public class ProgramController
     }
 
     @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
-    public ResponseEntity<RootNode> getProgramWithDependencies( @PathVariable( "uid" ) String pvUid, @RequestParam( required = false, defaultValue = "false" ) boolean download ) throws WebMessageException
+    public ResponseEntity<RootNode> getProgramWithDependencies( @PathVariable( "uid" ) String pvUid,
+        @RequestParam( required = false, defaultValue = "false" ) boolean download )
+        throws WebMessageException
     {
         Program program = programService.getProgram( pvUid );
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,24 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle;
 
-import org.hisp.dhis.DhisSpringTest;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -44,23 +53,20 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.user.*;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.validation.ValidationRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.*;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class ObjectBundleServiceProgramTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -77,18 +83,23 @@ public class ObjectBundleServiceProgramTest
     @Autowired
     private UserService _userService;
 
-    @Autowired
-    private UserAccessService userAccessService;
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
         renderService = _renderService;
         userService = _userService;
     }
 
     @Test
-    public void testCreateSimpleProgramNoReg() throws IOException
+    public void testCreateSimpleProgramNoReg()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/program_noreg.json" ).getInputStream(), RenderFormat.JSON );
@@ -132,7 +143,8 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Test
-    public void testCreateSimpleProgramWithSectionsNoReg() throws IOException
+    public void testCreateSimpleProgramWithSectionsNoReg()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/program_noreg_sections.json" ).getInputStream(), RenderFormat.JSON );
@@ -176,7 +188,8 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Test
-    public void testCreateSimpleProgramReg() throws IOException
+    public void testCreateSimpleProgramReg()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/program_reg1.json" ).getInputStream(), RenderFormat.JSON );
@@ -203,7 +216,8 @@ public class ObjectBundleServiceProgramTest
         List<Program> programs = manager.getAll( Program.class );
         List<ProgramStage> programStages = manager.getAll( ProgramStage.class );
         List<ProgramStageDataElement> programStageDataElements = manager.getAll( ProgramStageDataElement.class );
-        List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = manager.getAll( ProgramTrackedEntityAttribute.class );
+        List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = manager
+            .getAll( ProgramTrackedEntityAttribute.class );
 
         assertFalse( organisationUnits.isEmpty() );
         assertFalse( dataElements.isEmpty() );
@@ -216,7 +230,54 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Test
-    public void testCreateSimpleProgramRegNextScheduleDate() throws IOException
+    public void testProgramRuleCreation()
+        throws IOException
+    {
+        createProgramRuleMetadata();
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata1 = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/duplicate_program_rule.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params1 = new ObjectBundleParams();
+        params1.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params1.setImportStrategy( ImportStrategy.CREATE );
+        params1.setObjects( metadata1 );
+
+        ObjectBundle bundle1 = objectBundleService.create( params1 );
+        ObjectBundleValidationReport validate1 = objectBundleValidationService.validate( bundle1 );
+
+        assertFalse( validate1.getErrorReports().isEmpty() );
+        assertEquals( 1, validate1.getErrorReports().size() );
+
+        List<ErrorReport> errorReports = validate1.getErrorReports();
+        ErrorReport errorReport = errorReports.get( 0 );
+
+        assertEquals( ErrorCode.E5003, errorReport.getErrorCode() );
+    }
+
+    @Test
+    public void testProgramRuleUpdate()
+        throws IOException
+    {
+        createProgramRuleMetadata();
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata1 = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/existing_program_rule.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params1 = new ObjectBundleParams();
+        params1.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params1.setImportStrategy( ImportStrategy.UPDATE );
+        params1.setObjects( metadata1 );
+
+        ObjectBundle bundle1 = objectBundleService.create( params1 );
+        ObjectBundleValidationReport validate1 = objectBundleValidationService.validate( bundle1 );
+
+        assertTrue( validate1.getErrorReports().isEmpty() );
+    }
+
+    @Test
+    public void testCreateSimpleProgramRegNextScheduleDate()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/program_reg1_valid_nextschedule.json" ).getInputStream(), RenderFormat.JSON );
@@ -234,7 +295,8 @@ public class ObjectBundleServiceProgramTest
         objectBundleService.commit( bundle );
 
         metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/program_reg1_invalid_nextschedule.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/program_reg1_invalid_nextschedule.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -337,12 +399,10 @@ public class ObjectBundleServiceProgramTest
         TrackedEntityAttribute tea2 = manager.get( TrackedEntityAttribute.class, "QhEcRpLZwMb" );
 
         UserAccess userAccess1 = new UserAccess( testUser, "rw------" );
-        userAccessService.addUserAccess( userAccess1 );
-        tea1.getUserAccesses().add( userAccess1 );
+        tea1.getSharing().addUserAccess( userAccess1 );
 
         UserAccess userAccess2 = new UserAccess( testUser, "rw------" );
-        userAccessService.addUserAccess( userAccess2 );
-        tea2.getUserAccesses().add( userAccess2 );
+        tea2.getSharing().addUserAccess( userAccess2 );
 
         manager.update( tea1 );
         manager.update( tea2 );
@@ -360,5 +420,27 @@ public class ObjectBundleServiceProgramTest
         validate = objectBundleValidationService.validate( bundle );
         validate.getErrorReports().forEach( System.out::println );
         assertTrue( validate.getErrorReports().isEmpty() );
+    }
+
+    private void createProgramRuleMetadata()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/metadata_with_program_and_programrules.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+
+        validate.getErrorReports().forEach( System.out::println );
+
+        assertTrue( validate.getErrorReports().isEmpty() );
+
+        objectBundleService.commit( bundle );
     }
 }

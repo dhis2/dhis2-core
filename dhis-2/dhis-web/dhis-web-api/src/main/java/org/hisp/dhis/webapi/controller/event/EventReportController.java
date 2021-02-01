@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,16 @@ package org.hisp.dhis.webapi.controller.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.event;
+
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.eventreport.EventReport;
@@ -35,19 +43,12 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.descriptors.EventReportSchemaDescriptor;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 
 /**
  * @author Lars Helge Overland
@@ -63,12 +64,13 @@ public class EventReportController
     @Autowired
     private I18nManager i18nManager;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // CRUD
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
-    protected EventReport deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response ) throws IOException
+    protected EventReport deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response )
+        throws IOException
     {
         EventReport eventReport = super.deserializeJsonEntity( request, response );
         mergeEventReport( eventReport );
@@ -76,9 +78,9 @@ public class EventReportController
         return eventReport;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Hooks
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     protected void postProcessResponseEntity( EventReport report, WebOptions options, Map<String, String> parameters )
@@ -86,11 +88,16 @@ public class EventReportController
     {
         report.populateAnalyticalProperties();
 
-        Set<OrganisationUnit> roots = currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
+        User currentUser = currentUserService.getCurrentUser();
 
-        for ( OrganisationUnit organisationUnit : report.getOrganisationUnits() )
+        if ( currentUser != null )
         {
-            report.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
+            Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
+
+            for ( OrganisationUnit organisationUnit : report.getOrganisationUnits() )
+            {
+                report.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
+            }
         }
 
         I18nFormat format = i18nManager.getI18nFormat();
@@ -104,9 +111,9 @@ public class EventReportController
         }
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Supportive methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     private void mergeEventReport( EventReport report )
     {

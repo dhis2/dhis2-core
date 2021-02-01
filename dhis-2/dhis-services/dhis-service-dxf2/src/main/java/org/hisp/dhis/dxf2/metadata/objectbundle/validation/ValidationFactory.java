@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,14 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHook;
@@ -49,11 +48,9 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
+@Slf4j
 public class ValidationFactory
 {
-
-    private static final Log log = LogFactory.getLog( ValidationFactory.class );
-
     private final SchemaValidator schemaValidator;
 
     private final SchemaService schemaService;
@@ -95,7 +92,7 @@ public class ValidationFactory
         TypeReport typeReport = new ValidationRunner( validatorMap.get( bundle.getImportMode() ) )
             .executeValidationChain( bundle, klass, persistedObjects, nonPersistedObjects, ctx );
 
-        // remove from the bundle the invalid objects
+        // Remove invalid objects from the bundle
         removeFromBundle( klass, ctx, bundle );
 
         return addStatistics( typeReport, bundle, persistedObjects, nonPersistedObjects );
@@ -108,7 +105,6 @@ public class ValidationFactory
         {
             typeReport.getStats().incCreated( nonPersistedObjects.size() );
             typeReport.getStats().incUpdated( persistedObjects.size() );
-
         }
         else if ( bundle.getImportMode().isCreate() )
         {
@@ -124,6 +120,7 @@ public class ValidationFactory
         {
             typeReport.getStats().incDeleted( persistedObjects.size() );
         }
+
         return typeReport;
     }
 
@@ -152,7 +149,6 @@ public class ValidationFactory
 
     static class ValidationRunner
     {
-
         private List<Class<? extends ValidationCheck>> validators;
 
         public ValidationRunner( List<Class<? extends ValidationCheck>> validators )
@@ -164,7 +160,6 @@ public class ValidationFactory
             List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
             ValidationContext ctx )
         {
-
             TypeReport typeReport = new TypeReport( klass );
             for ( Class<? extends ValidationCheck> validator : validators )
             {

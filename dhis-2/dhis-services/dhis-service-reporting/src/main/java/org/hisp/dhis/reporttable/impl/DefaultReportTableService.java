@@ -1,7 +1,5 @@
-package org.hisp.dhis.reporttable.impl;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,14 @@ package org.hisp.dhis.reporttable.impl;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.reporttable.impl;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.common.*;
@@ -42,13 +48,6 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -74,7 +73,7 @@ public class DefaultReportTableService
 
     public DefaultReportTableService( AnalyticsService analyticsService,
         @Qualifier( "org.hisp.dhis.reporttable.ReportTableStore" ) AnalyticalObjectStore<ReportTable> reportTableStore,
-       OrganisationUnitService organisationUnitService,
+        OrganisationUnitService organisationUnitService,
         CurrentUserService currentUserService, I18nManager i18nManager )
     {
         checkNotNull( analyticsService );
@@ -101,7 +100,7 @@ public class DefaultReportTableService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Grid getReportTableGrid( String uid, Date reportingPeriod, String organisationUnitUid )
     {
         return getReportTableGridByUser( uid, reportingPeriod, organisationUnitUid,
@@ -109,7 +108,7 @@ public class DefaultReportTableService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Grid getReportTableGridByUser( String uid, Date reportingPeriod, String organisationUnitUid, User user )
     {
         I18nFormat format = i18nManager.getI18nFormat();
@@ -173,28 +172,28 @@ public class DefaultReportTableService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public ReportTable getReportTable( long id )
     {
         return reportTableStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public ReportTable getReportTable( String uid )
     {
         return reportTableStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public ReportTable getReportTableNoAcl( String uid )
     {
         return reportTableStore.getByUidNoAcl( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<ReportTable> getAllReportTables()
     {
         return reportTableStore.getAll();

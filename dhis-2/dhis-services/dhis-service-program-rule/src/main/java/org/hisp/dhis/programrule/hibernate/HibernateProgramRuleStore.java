@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,25 +25,30 @@ package org.hisp.dhis.programrule.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.hibernate;
+
+import java.math.BigInteger;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.*;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleActionEvaluationEnvironment;
+import org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleStore;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
-import javax.persistence.criteria.*;
-import java.math.BigInteger;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author markusbekken
@@ -56,11 +59,9 @@ public class HibernateProgramRuleStore
     implements ProgramRuleStore
 {
     public HibernateProgramRuleStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramRule.class, currentUserService, deletedObjectService,
-            aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, ProgramRule.class, currentUserService, aclService, true );
     }
 
     @Override
@@ -83,12 +84,24 @@ public class HibernateProgramRuleStore
     }
 
     @Override
+    public List<ProgramRule> getByProgram( Set<String> programIds )
+    {
+        Session session = getSession();
+        return session.createQuery(
+            "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.program.uid in (:ids)",
+            ProgramRule.class )
+            .setParameterList( "ids", programIds )
+            .getResultList();
+    }
+
+    @Override
     public List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types )
     {
-        return getQuery( "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes )" )
-            .setParameter( "programId", program )
-            .setParameter( "implementableTypes", types )
-            .getResultList();
+        return getQuery(
+            "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes )" )
+                .setParameter( "programId", program )
+                .setParameter( "implementableTypes", types )
+                .getResultList();
     }
 
     @Override
@@ -98,7 +111,8 @@ public class HibernateProgramRuleStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
-            .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "name" ), key, JpaQueryUtils.StringSearchMode.ANYWHERE ) )
+            .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "name" ), key,
+                JpaQueryUtils.StringSearchMode.ANYWHERE ) )
             .addOrder( root -> builder.asc( root.get( "name" ) ) ) );
     }
 
@@ -114,9 +128,10 @@ public class HibernateProgramRuleStore
     @Override
     public List<ProgramRule> getProgramRulesWithNoPriority()
     {
-        return getQuery( "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.priority IS NULL AND pra.programRuleActionType = :actionType" )
-            .setParameter( "actionType", ProgramRuleActionType.ASSIGN )
-            .getResultList();
+        return getQuery(
+            "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.priority IS NULL AND pra.programRuleActionType = :actionType" )
+                .setParameter( "actionType", ProgramRuleActionType.ASSIGN )
+                .getResultList();
     }
 
     @Override
@@ -134,13 +149,14 @@ public class HibernateProgramRuleStore
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public List<ProgramRule> getProgramRulesByEvaluationEnvironment(
         ProgramRuleActionEvaluationEnvironment environment )
     {
         List<BigInteger> bigIntegerList = getSession().createNativeQuery(
-            "select pra.programruleactionid from programrule pr JOIN programruleaction pra ON pr.programruleid=pra.programruleid " +
-                "where environments@> '[\"" + environment + "\"]';")
+            "select pra.programruleactionid from programrule pr JOIN programruleaction pra ON pr.programruleid=pra.programruleid "
+                +
+                "where environments@> '[\"" + environment + "\"]';" )
             .list();
         List<Long> idList = bigIntegerList
             .stream()
@@ -150,7 +166,8 @@ public class HibernateProgramRuleStore
         Session session = getSession();
         session.clear();
         return session.createQuery(
-            "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pra.id in (:ids)", ProgramRule.class )
+            "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pra.id in (:ids)",
+            ProgramRule.class )
             .setParameterList( "ids", idList )
             .getResultList();
     }

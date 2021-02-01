@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -41,7 +40,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -54,19 +53,20 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class IdentifiableObjectManagerTest
-    extends IntegrationTestBase
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private SessionFactory sessionFactory;
@@ -80,13 +80,9 @@ public class IdentifiableObjectManagerTest
     @Autowired
     private UserService _userService;
 
-    @Override public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Override
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
         this.userService = _userService;
     }
@@ -98,8 +94,10 @@ public class IdentifiableObjectManagerTest
 
         dataElementService.addDataElement( dataElementA );
 
-        assertEquals( dataElementA, identifiableObjectManager.get( DataDimensionItem.DATA_DIMENSION_CLASSES, IdScheme.CODE, dataElementA.getCode() ) );
-        assertEquals( dataElementA, identifiableObjectManager.get( DataDimensionItem.DATA_DIMENSION_CLASSES, IdScheme.UID, dataElementA.getUid() ) );
+        assertEquals( dataElementA, identifiableObjectManager.get( DataDimensionItem.DATA_DIMENSION_CLASSES,
+            IdScheme.CODE, dataElementA.getCode() ) );
+        assertEquals( dataElementA, identifiableObjectManager.get( DataDimensionItem.DATA_DIMENSION_CLASSES,
+            IdScheme.UID, dataElementA.getUid() ) );
     }
 
     @Test
@@ -121,11 +119,15 @@ public class IdentifiableObjectManagerTest
         dataElementService.addDataElementGroup( dataElementGroupB );
         long dataElementGroupIdB = dataElementGroupB.getId();
 
-        assertEquals( dataElementA, identifiableObjectManager.getObject( dataElementIdA, DataElement.class.getSimpleName() ) );
-        assertEquals( dataElementB, identifiableObjectManager.getObject( dataElementIdB, DataElement.class.getSimpleName() ) );
+        assertEquals( dataElementA,
+            identifiableObjectManager.getObject( dataElementIdA, DataElement.class.getSimpleName() ) );
+        assertEquals( dataElementB,
+            identifiableObjectManager.getObject( dataElementIdB, DataElement.class.getSimpleName() ) );
 
-        assertEquals( dataElementGroupA, identifiableObjectManager.getObject( dataElementGroupIdA, DataElementGroup.class.getSimpleName() ) );
-        assertEquals( dataElementGroupB, identifiableObjectManager.getObject( dataElementGroupIdB, DataElementGroup.class.getSimpleName() ) );
+        assertEquals( dataElementGroupA,
+            identifiableObjectManager.getObject( dataElementGroupIdA, DataElementGroup.class.getSimpleName() ) );
+        assertEquals( dataElementGroupB,
+            identifiableObjectManager.getObject( dataElementGroupIdB, DataElementGroup.class.getSimpleName() ) );
     }
 
     @Test
@@ -137,8 +139,8 @@ public class IdentifiableObjectManagerTest
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
 
-        Set<Class<? extends IdentifiableObject>> classes = ImmutableSet.<Class<? extends IdentifiableObject>>builder().
-            add( Indicator.class ).add( DataElement.class ).add( DataElementOperand.class ).build();
+        Set<Class<? extends IdentifiableObject>> classes = ImmutableSet.<Class<? extends IdentifiableObject>> builder()
+            .add( Indicator.class ).add( DataElement.class ).add( DataElementOperand.class ).build();
 
         assertEquals( dataElementA, identifiableObjectManager.get( classes, dataElementA.getUid() ) );
         assertEquals( dataElementB, identifiableObjectManager.get( classes, dataElementB.getUid() ) );
@@ -374,13 +376,19 @@ public class IdentifiableObjectManagerTest
     @Test
     public void readUserGroupSharedObjects()
     {
-        User loginUser = createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PUBLIC_ADD", "F_USER_ADD", "F_USERGROUP_PUBLIC_ADD" );
+        User loginUser = createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PUBLIC_ADD", "F_USER_ADD",
+            "F_USERGROUP_PUBLIC_ADD" );
 
         User user = createUser( 'B' );
         identifiableObjectManager.save( user );
 
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( loginUser ) );
         identifiableObjectManager.save( userGroup );
+        user.getGroups().add( userGroup );
+        loginUser.getGroups().add( userGroup );
+
+        identifiableObjectManager.save( loginUser );
+        identifiableObjectManager.save( user );
 
         identifiableObjectManager.save( createDataElement( 'A' ) );
         identifiableObjectManager.save( createDataElement( 'B' ) );
@@ -394,18 +402,13 @@ public class IdentifiableObjectManagerTest
 
         for ( DataElement dataElement : dataElements )
         {
-            dataElement.setUser( user );
-            dataElement.setPublicAccess( AccessStringHelper.newInstance().build() );
-
-            UserGroupAccess userGroupAccess = new UserGroupAccess();
-            userGroupAccess.setAccess( AccessStringHelper.READ );
-            userGroupAccess.setUserGroup( userGroup );
-
-            sessionFactory.getCurrentSession().save( userGroupAccess );
-
-            dataElement.getUserGroupAccesses().add( userGroupAccess );
+            dataElement.getSharing().setOwner( user );
+            dataElement.getSharing().setPublicAccess( AccessStringHelper.newInstance().build() );
+            dataElement.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, AccessStringHelper.READ ) );
             sessionFactory.getCurrentSession().update( dataElement );
         }
+
+        identifiableObjectManager.flush();
 
         assertEquals( 4, identifiableObjectManager.getCount( DataElement.class ) );
         assertEquals( 4, identifiableObjectManager.getAll( DataElement.class ).size() );
@@ -424,8 +427,10 @@ public class IdentifiableObjectManagerTest
         identifiableObjectManager.save( dataElementC );
         identifiableObjectManager.save( dataElementD );
 
-        List<DataElement> ab = identifiableObjectManager.getByUid( DataElement.class, Arrays.asList( dataElementA.getUid(), dataElementB.getUid() ) );
-        List<DataElement> cd = identifiableObjectManager.getByUid( DataElement.class, Arrays.asList( dataElementC.getUid(), dataElementD.getUid() ) );
+        List<DataElement> ab = identifiableObjectManager.getByUid( DataElement.class,
+            Arrays.asList( dataElementA.getUid(), dataElementB.getUid() ) );
+        List<DataElement> cd = identifiableObjectManager.getByUid( DataElement.class,
+            Arrays.asList( dataElementC.getUid(), dataElementD.getUid() ) );
 
         assertTrue( ab.contains( dataElementA ) );
         assertTrue( ab.contains( dataElementB ) );
@@ -436,6 +441,56 @@ public class IdentifiableObjectManagerTest
         assertFalse( cd.contains( dataElementB ) );
         assertTrue( cd.contains( dataElementC ) );
         assertTrue( cd.contains( dataElementD ) );
+    }
+
+    @Test
+    public void getOrderedUidIdSchemeTest()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementC = createDataElement( 'C' );
+        DataElement dataElementD = createDataElement( 'D' );
+
+        identifiableObjectManager.save( dataElementA );
+        identifiableObjectManager.save( dataElementB );
+        identifiableObjectManager.save( dataElementC );
+        identifiableObjectManager.save( dataElementD );
+
+        List<String> uids = Arrays.asList( dataElementA.getUid(), dataElementC.getUid(), dataElementB.getUid(),
+            dataElementD.getUid() );
+
+        List<DataElement> expected = new ArrayList<>(
+            Arrays.asList( dataElementA, dataElementC, dataElementB, dataElementD ) );
+
+        List<DataElement> actual = new ArrayList<>(
+            identifiableObjectManager.getOrdered( DataElement.class, IdScheme.UID, uids ) );
+
+        assertEquals( expected, actual );
+    }
+
+    @Test
+    public void getOrderedCodeIdSchemeTest()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementC = createDataElement( 'C' );
+        DataElement dataElementD = createDataElement( 'D' );
+
+        identifiableObjectManager.save( dataElementA );
+        identifiableObjectManager.save( dataElementB );
+        identifiableObjectManager.save( dataElementC );
+        identifiableObjectManager.save( dataElementD );
+
+        List<String> codes = Arrays.asList( dataElementA.getCode(), dataElementC.getCode(), dataElementB.getCode(),
+            dataElementD.getCode() );
+
+        List<DataElement> expected = new ArrayList<>(
+            Arrays.asList( dataElementA, dataElementC, dataElementB, dataElementD ) );
+
+        List<DataElement> actual = new ArrayList<>(
+            identifiableObjectManager.getOrdered( DataElement.class, IdScheme.CODE, codes ) );
+
+        assertEquals( expected, actual );
     }
 
     @Test
@@ -451,17 +506,20 @@ public class IdentifiableObjectManagerTest
         identifiableObjectManager.save( dataElementC );
         identifiableObjectManager.save( dataElementD );
 
-        List<String> uids = Arrays.asList( dataElementA.getUid(), dataElementC.getUid(), dataElementB.getUid(), dataElementD.getUid() );
+        List<String> uids = Arrays.asList( dataElementA.getUid(), dataElementC.getUid(), dataElementB.getUid(),
+            dataElementD.getUid() );
 
-        List<DataElement> expected = new ArrayList<>( Arrays.asList( dataElementA, dataElementC, dataElementB, dataElementD ) );
+        List<DataElement> expected = new ArrayList<>(
+            Arrays.asList( dataElementA, dataElementC, dataElementB, dataElementD ) );
 
-        List<DataElement> actual = new ArrayList<>( identifiableObjectManager.getByUidOrdered( DataElement.class, uids ) );
+        List<DataElement> actual = new ArrayList<>(
+            identifiableObjectManager.getByUidOrdered( DataElement.class, uids ) );
 
         assertEquals( expected, actual );
     }
 
     @Test
-    public void getByCodeTest()
+    public void testGetByCode()
     {
         DataElement dataElementA = createDataElement( 'A' );
         DataElement dataElementB = createDataElement( 'B' );
@@ -478,8 +536,10 @@ public class IdentifiableObjectManagerTest
         identifiableObjectManager.save( dataElementC );
         identifiableObjectManager.save( dataElementD );
 
-        List<DataElement> ab = identifiableObjectManager.getByCode( DataElement.class, Arrays.asList( dataElementA.getCode(), dataElementB.getCode() ) );
-        List<DataElement> cd = identifiableObjectManager.getByCode( DataElement.class, Arrays.asList( dataElementC.getCode(), dataElementD.getCode() ) );
+        List<DataElement> ab = identifiableObjectManager.getByCode( DataElement.class,
+            Arrays.asList( dataElementA.getCode(), dataElementB.getCode() ) );
+        List<DataElement> cd = identifiableObjectManager.getByCode( DataElement.class,
+            Arrays.asList( dataElementC.getCode(), dataElementD.getCode() ) );
 
         assertTrue( ab.contains( dataElementA ) );
         assertTrue( ab.contains( dataElementB ) );
@@ -490,6 +550,35 @@ public class IdentifiableObjectManagerTest
         assertFalse( cd.contains( dataElementB ) );
         assertTrue( cd.contains( dataElementC ) );
         assertTrue( cd.contains( dataElementD ) );
+    }
+
+    @Test
+    public void getByUidNoAcl()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementC = createDataElement( 'C' );
+
+        dataElementA.setCode( "DE_A" );
+        dataElementB.setCode( "DE_B" );
+        dataElementC.setCode( "DE_C" );
+
+        OrganisationUnit unit1 = createOrganisationUnit( 'A' );
+
+        identifiableObjectManager.save( unit1 );
+
+        identifiableObjectManager.save( dataElementA );
+        identifiableObjectManager.save( dataElementB );
+        identifiableObjectManager.save( dataElementC );
+
+        List<String> uids = Lists.newArrayList( dataElementA.getUid(), dataElementB.getUid(), dataElementC.getUid() );
+
+        List<DataElement> dataElements = identifiableObjectManager.getNoAcl( DataElement.class, uids );
+
+        assertEquals( 3, dataElements.size() );
+        assertTrue( dataElements.contains( dataElementA ) );
+        assertTrue( dataElements.contains( dataElementB ) );
+        assertTrue( dataElements.contains( dataElementC ) );
     }
 
     @Test
@@ -505,7 +594,8 @@ public class IdentifiableObjectManagerTest
 
         Set<String> codes = Sets.newHashSet( unit2.getCode(), unit3.getCode() );
 
-        List<OrganisationUnit> units = identifiableObjectManager.getObjects( OrganisationUnit.class, IdentifiableProperty.CODE, codes );
+        List<OrganisationUnit> units = identifiableObjectManager.getObjects( OrganisationUnit.class,
+            IdentifiableProperty.CODE, codes );
 
         assertEquals( 2, units.size() );
         assertTrue( units.contains( unit2 ) );

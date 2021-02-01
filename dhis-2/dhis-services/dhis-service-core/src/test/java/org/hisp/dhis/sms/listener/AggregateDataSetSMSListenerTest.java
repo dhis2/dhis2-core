@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.listener;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,19 @@ package org.hisp.dhis.sms.listener;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.listener;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -45,9 +56,9 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.smscompression.SMSCompressionException;
-import org.hisp.dhis.smscompression.models.AggregateDatasetSMSSubmission;
-import org.hisp.dhis.smscompression.models.SMSDataValue;
+import org.hisp.dhis.smscompression.SmsCompressionException;
+import org.hisp.dhis.smscompression.models.AggregateDatasetSmsSubmission;
+import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
@@ -59,19 +70,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.util.ArrayList;
-
 import com.google.common.collect.Sets;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class AggregateDataSetSMSListenerTest
     extends
@@ -142,6 +141,8 @@ public class AggregateDataSetSMSListenerTest
 
     private IncomingSms incomingSmsAggregate;
 
+    private IncomingSms incomingSmsAggregateNoValues;
+
     private OrganisationUnit organisationUnit;
 
     private CategoryOptionCombo categoryOptionCombo;
@@ -152,7 +153,7 @@ public class AggregateDataSetSMSListenerTest
 
     @Before
     public void initTest()
-        throws SMSCompressionException
+        throws SmsCompressionException
     {
         subject = new AggregateDataSetSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
@@ -192,8 +193,33 @@ public class AggregateDataSetSMSListenerTest
         verify( incomingSmsService, times( 1 ) ).update( any() );
     }
 
+    @Test
+    public void testAggregateDatasetListenerRepeat()
+    {
+        subject.receive( incomingSmsAggregate );
+        subject.receive( incomingSmsAggregate );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( SUCCESS_MESSAGE, message );
+
+        verify( incomingSmsService, times( 2 ) ).update( any() );
+    }
+
+    @Test
+    public void testAggregateDatasetListenerNoValues()
+    {
+        subject.receive( incomingSmsAggregateNoValues );
+
+        assertNotNull( updatedIncomingSms );
+        assertTrue( updatedIncomingSms.isParsed() );
+        assertEquals( NOVALUES_MESSAGE, message );
+
+        verify( incomingSmsService, times( 1 ) ).update( any() );
+    }
+
     private void setUpInstances()
-        throws SMSCompressionException
+        throws SmsCompressionException
     {
         organisationUnit = createOrganisationUnit( 'O' );
         user = createUser( 'U' );
@@ -205,22 +231,27 @@ public class AggregateDataSetSMSListenerTest
         dataElement = createDataElement( 'D' );
 
         incomingSmsAggregate = createSMSFromSubmission( createAggregateDatasetSubmission() );
+
+        AggregateDatasetSmsSubmission subm = createAggregateDatasetSubmission();
+
+        subm.setValues( null );
+        incomingSmsAggregateNoValues = createSMSFromSubmission( subm );
     }
 
-    private AggregateDatasetSMSSubmission createAggregateDatasetSubmission()
+    private AggregateDatasetSmsSubmission createAggregateDatasetSubmission()
     {
-        AggregateDatasetSMSSubmission subm = new AggregateDatasetSMSSubmission();
+        AggregateDatasetSmsSubmission subm = new AggregateDatasetSmsSubmission();
 
-        subm.setUserID( user.getUid() );
+        subm.setUserId( user.getUid() );
         subm.setOrgUnit( organisationUnit.getUid() );
         subm.setDataSet( dataSet.getUid() );
         subm.setComplete( true );
         subm.setAttributeOptionCombo( categoryOptionCombo.getUid() );
         subm.setPeriod( "2019W16" );
-        ArrayList<SMSDataValue> values = new ArrayList<>();
-        values.add( new SMSDataValue( categoryOptionCombo.getUid(), dataElement.getUid(), "12345678" ) );
+        ArrayList<SmsDataValue> values = new ArrayList<>();
+        values.add( new SmsDataValue( categoryOptionCombo.getUid(), dataElement.getUid(), "12345678" ) );
         subm.setValues( values );
-        subm.setSubmissionID( 1 );
+        subm.setSubmissionId( 1 );
 
         return subm;
     }

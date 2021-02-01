@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,11 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
+
+import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
-
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
@@ -39,4 +39,12 @@ public interface ProgramTrackedEntityAttributeStore
     extends IdentifiableObjectStore<ProgramTrackedEntityAttribute>
 {
     ProgramTrackedEntityAttribute get( Program program, TrackedEntityAttribute attribute );
+
+    /**
+     * Get all TrackedEntityAttribute filtered by given list of Program
+     *
+     * @param programs
+     * @return List of TrackedEntityAttribute
+     */
+    List<TrackedEntityAttribute> getAttributes( List<Program> programs );
 }

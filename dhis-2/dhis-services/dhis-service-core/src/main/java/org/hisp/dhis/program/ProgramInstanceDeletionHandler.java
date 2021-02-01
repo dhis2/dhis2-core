@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +25,39 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.springframework.stereotype.Component;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
 import java.util.Iterator;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Quang Nguyen
  */
 @Component( "org.hisp.dhis.program.ProgramInstanceDeletionHandler" )
 public class ProgramInstanceDeletionHandler
-    extends DeletionHandler
+    extends
+    DeletionHandler
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+    private final JdbcTemplate jdbcTemplate;
 
     private final ProgramInstanceService programInstanceService;
 
-    public ProgramInstanceDeletionHandler( ProgramInstanceService programInstanceService )
+    public ProgramInstanceDeletionHandler( JdbcTemplate jdbcTemplate, ProgramInstanceService programInstanceService )
     {
         checkNotNull( programInstanceService );
+        checkNotNull( jdbcTemplate );
         this.programInstanceService = programInstanceService;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     // -------------------------------------------------------------------------
@@ -76,6 +80,19 @@ public class ProgramInstanceDeletionHandler
     }
 
     @Override
+    public String allowDeleteProgram( Program program )
+    {
+        if ( program.isWithoutRegistration() )
+        {
+            return null;
+        }
+
+        String sql = "SELECT COUNT(*) FROM programinstance where programid = " + program.getId();
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
+
+    @Override
     public void deleteProgram( Program program )
     {
         Collection<ProgramInstance> programInstances = programInstanceService.getProgramInstances( program );
@@ -87,7 +104,7 @@ public class ProgramInstanceDeletionHandler
             {
                 ProgramInstance programInstance = iterator.next();
                 iterator.remove();
-                programInstanceService.deleteProgramInstance( programInstance );
+                programInstanceService.hardDeleteProgramInstance( programInstance );
             }
         }
     }

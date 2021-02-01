@@ -1,7 +1,5 @@
-package org.hisp.dhis.appmanager;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,24 +25,27 @@ package org.hisp.dhis.appmanager;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.appmanager;
 
 public enum AppStatus
 {
-    OK( "ok" ), 
-    NAMESPACE_TAKEN( "namespace_defined_in_manifest_is_in_use" ), 
+    OK( "ok" ),
+    INVALID_BUNDLED_APP_OVERRIDE( "invalid_bundled_app_override" ),
+    INVALID_CORE_APP( "invalid_core_app" ),
+    NAMESPACE_TAKEN( "namespace_defined_in_manifest_is_in_use" ),
     INVALID_ZIP_FORMAT( "zip_file_could_not_be_read" ),
-    MISSING_MANIFEST( "missing_manifest"),
-    INVALID_MANIFEST_JSON( "invalid_json_in_app_manifest_file" ), 
+    MISSING_MANIFEST( "missing_manifest" ),
+    INVALID_MANIFEST_JSON( "invalid_json_in_app_manifest_file" ),
     INSTALLATION_FAILED( "app_could_not_be_installed_on_file_system" ),
     NOT_FOUND( "app_could_not_be_found" ),
     MISSING_SYSTEM_BASE_URL( "system_base_url_is_not_defined" ),
     APPROVED( "approved" ),
     PENDING( "pending" ),
     NOT_APPROVED( "not_approved" ),
-    DELETION_IN_PROGRESS("deletion_in_progress");
-    
+    DELETION_IN_PROGRESS( "deletion_in_progress" );
+
     private String message;
-    
+
     AppStatus( String message )
     {
         this.message = message;
@@ -54,7 +55,7 @@ public enum AppStatus
     {
         return this == OK;
     }
-    
+
     public String getMessage()
     {
         return message;

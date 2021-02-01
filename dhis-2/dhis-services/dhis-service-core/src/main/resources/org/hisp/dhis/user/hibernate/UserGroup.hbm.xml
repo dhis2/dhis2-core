@@ -6,6 +6,7 @@
   >
 
 <hibernate-mapping>
+  <typedef class="org.hibernate.type.PostgresUUIDType" name="pg-uuid" />
   <class name="org.hisp.dhis.user.UserGroup" table="usergroup">
 
     <cache usage="read-write" />
@@ -14,6 +15,8 @@
       <generator class="native" />
     </id>
     &identifiableProperties;
+
+    <property name="uuid" column="uuid" type="pg-uuid" not-null="false" unique="true" />
 
     <property name="name" column="name" not-null="true" unique="false" length="230" />
 
@@ -36,22 +39,10 @@
       <many-to-many column="managedbygroupid" class="org.hisp.dhis.user.UserGroup" foreign-key="fk_usergroupmanaging_managedbygroupid" />
     </set>
 
-    <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_usergroup_userid" />
 
-    <property name="publicAccess" length="8" />
-
-    <set name="userGroupAccesses" table="usergroupusergroupaccesses" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="usergroupid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
-    </set>
-
-    <set name="userAccesses" table="usergroupuseraccesses" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="usergroupid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
-    </set>
+    <!-- Sharing -->
+    <property name="sharing" type="jsbObjectSharing"/>
 
     <!-- Dynamic attribute values -->
     <property name="attributeValues" type="jsbAttributeValues"/>

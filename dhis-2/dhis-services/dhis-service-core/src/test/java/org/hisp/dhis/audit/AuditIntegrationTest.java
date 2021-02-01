@@ -1,16 +1,56 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.audit;
 
-import com.google.common.collect.Sets;
+import static org.awaitility.Awaitility.await;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -20,16 +60,12 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 
 @ActiveProfiles( profiles = { "test-audit" } )
-public class AuditIntegrationTest
-    extends IntegrationTestBase
+public class AuditIntegrationTest extends IntegrationTestBase
 {
     private static final int TIMEOUT = 5;
 
@@ -54,29 +90,19 @@ public class AuditIntegrationTest
     @Autowired
     private IdentifiableObjectManager manager;
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     public void testSaveMetadata()
     {
         DataElement dataElement = createDataElement( 'A' );
         dataElementService.addDataElement( dataElement );
-
         AuditQuery query = AuditQuery.builder()
             .uid( Sets.newHashSet( dataElement.getUid() ) )
             .build();
 
-        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) > 0 );
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
 
         List<Audit> audits = auditService.getAudits( query );
 
@@ -101,7 +127,7 @@ public class AuditIntegrationTest
         AuditQuery query = AuditQuery.builder()
             .uid( Sets.newHashSet( tei.getUid() ) )
             .build();
-        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) > 0 );
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
 
         List<Audit> audits = auditService.getAudits( query );
 
@@ -136,7 +162,7 @@ public class AuditIntegrationTest
         AuditQuery query = AuditQuery.builder()
             .auditAttributes( attributes )
             .build();
-        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) > 0 );
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
 
         List<Audit> audits = auditService.getAudits( query );
 
@@ -164,7 +190,6 @@ public class AuditIntegrationTest
         dataElementService.addDataElement( dataElementB );
         dataElementService.addDataElement( dataElementC );
         dataElementService.addDataElement( dataElementD );
-
 
         Period periodA = createPeriod( getDay( 5 ), getDay( 6 ) );
         Period periodB = createPeriod( getDay( 6 ), getDay( 7 ) );
@@ -206,7 +231,7 @@ public class AuditIntegrationTest
         AuditQuery query = AuditQuery.builder()
             .auditAttributes( attributes )
             .build();
-        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) > 0 );
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
 
         List<Audit> audits = auditService.getAudits( query );
 
@@ -215,5 +240,79 @@ public class AuditIntegrationTest
         assertEquals( DataValue.class.getName(), audit.getKlass() );
         assertEquals( dataElementA.getUid(), audit.getAttributes().get( "dataElement" ) );
         assertNotNull( audit.getData() );
+    }
+
+    @Test
+    public void testSaveProgram()
+        throws IOException
+    {
+        Program program = createProgram( 'A' );
+        manager.save( program );
+        DataElement dataElement = createDataElement( 'A' );
+        manager.save( dataElement );
+        ProgramStage programStage = createProgramStage( 'A', program );
+        programStage.addDataElement( dataElement, 0 );
+        manager.save( programStage );
+
+        AuditQuery query = AuditQuery.builder().uid( Sets.newHashSet( programStage.getUid() ) ).build();
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
+
+        List<Audit> audits = auditService.getAudits( query );
+        assertEquals( 1, audits.size() );
+
+        Audit audit = audits.get( 0 );
+        assertEquals( ProgramStage.class.getName(), audit.getKlass() );
+        assertEquals( programStage.getUid(), audit.getUid() );
+
+        Map<String, Object> deserializeProgramStage = objectMapper.readValue( audit.getData(), Map.class );
+        assertNotNull( deserializeProgramStage.get( "programStageDataElements" ) );
+        List<String> uids = (List<String>) deserializeProgramStage.get( "programStageDataElements" );
+        assertEquals( 1, uids.size() );
+    }
+
+    @Test
+    public void testSaveDataSet()
+        throws JsonProcessingException
+    {
+        DataElement dataElement = createDataElement( 'A' );
+        PeriodType periodType = PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME );
+        DataSet dataSet = createDataSet( 'A' );
+        dataSet.setPeriodType( periodType );
+
+        Period period = createPeriod( periodType, getDate( 2000, 2, 1 ), getDate( 2000, 2, 28 ) );
+
+        periodService.addPeriod( period );
+
+        transactionTemplate.execute( status -> {
+            manager.save( dataElement );
+
+            dbmsManager.clearSession();
+            return null;
+        } );
+
+        transactionTemplate.execute( status -> {
+
+            manager.save( dataSet );
+
+            dataSet.addDataSetElement( dataElement );
+
+            dbmsManager.clearSession();
+            return null;
+        } );
+
+        AuditQuery query = AuditQuery.builder().uid( Sets.newHashSet( dataSet.getUid() ) ).build();
+        await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
+
+        List<Audit> audits = auditService.getAudits( query );
+        assertEquals( 1, audits.size() );
+
+        Audit audit = audits.get( 0 );
+        assertEquals( DataSet.class.getName(), audit.getKlass() );
+        assertEquals( dataSet.getUid(), audit.getUid() );
+
+        Map<String, Object> deserializeProgramStage = objectMapper.readValue( audit.getData(), Map.class );
+        assertNotNull( deserializeProgramStage.get( "dataSetElements" ) );
+        List<String> uids = (List<String>) deserializeProgramStage.get( "dataSetElements" );
+        assertEquals( 1, uids.size() );
     }
 }

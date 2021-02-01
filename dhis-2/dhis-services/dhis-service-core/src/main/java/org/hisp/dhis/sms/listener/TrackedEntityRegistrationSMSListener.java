@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.listener;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.sms.listener;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.listener;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -42,6 +41,7 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -83,12 +83,14 @@ public class TrackedEntityRegistrationSMSListener
 
     private final ProgramInstanceService programInstanceService;
 
-    public TrackedEntityRegistrationSMSListener( ProgramInstanceService programInstanceService,
+    private final ProgramService programService;
+
+    public TrackedEntityRegistrationSMSListener( ProgramService programService,
+        ProgramInstanceService programInstanceService,
         CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, SMSCommandService smsCommandService,
-        TrackedEntityTypeService trackedEntityTypeService, TrackedEntityInstanceService trackedEntityInstanceService,
-        ProgramInstanceService programInstanceService1 )
+        TrackedEntityTypeService trackedEntityTypeService, TrackedEntityInstanceService trackedEntityInstanceService )
     {
         super( programInstanceService, dataElementCategoryService, programStageInstanceService, userService,
             currentUserService, incomingSmsService, smsSender );
@@ -101,7 +103,8 @@ public class TrackedEntityRegistrationSMSListener
         this.smsCommandService = smsCommandService;
         this.trackedEntityTypeService = trackedEntityTypeService;
         this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.programInstanceService = programInstanceService1;
+        this.programInstanceService = programInstanceService;
+        this.programService = programService;
     }
 
     // -------------------------------------------------------------------------
@@ -121,7 +124,7 @@ public class TrackedEntityRegistrationSMSListener
 
         OrganisationUnit orgUnit = SmsUtils.selectOrganisationUnit( orgUnits, parsedMessage, smsCommand );
 
-        if ( !program.hasOrganisationUnit( orgUnit ) )
+        if ( !programService.hasOrgUnit( program, orgUnit ) )
         {
             sendFeedback( SMSCommand.NO_OU_FOR_PROGRAM, senderPhoneNumber, WARNING );
 

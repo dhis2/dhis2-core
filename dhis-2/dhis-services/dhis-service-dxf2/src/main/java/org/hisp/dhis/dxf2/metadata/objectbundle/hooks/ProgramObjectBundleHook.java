@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+
+import java.util.*;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -35,17 +36,17 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.springframework.stereotype.Component;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-
-import java.util.*;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class ProgramObjectBundleHook extends AbstractObjectBundleHook
+public class ProgramObjectBundleHook
+    extends
+    AbstractObjectBundleHook
 {
     private final ProgramInstanceService programInstanceService;
 
@@ -91,7 +92,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate(T object, ObjectBundle bundle )
+    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
         List<ErrorReport> errors = new ArrayList<>();
 
@@ -107,7 +108,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
             errors.add( new ErrorReport( Program.class, ErrorCode.E6000, program.getName() ) );
         }
 
-        errors.addAll( validateAttributeSecurity( program , bundle ) );
+        errors.addAll( validateAttributeSecurity( program, bundle ) );
 
         return errors;
     }
@@ -141,14 +142,14 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
             }
 
             programStageService.saveProgramStage( ps );
-        });
+        } );
 
         programService.updateProgram( program );
     }
 
     private void addProgramInstance( Program program )
     {
-        if ( getProgramInstancesCount( program ) == 0 )
+        if ( getProgramInstancesCount( program ) == 0 && program.isWithoutRegistration() )
         {
             ProgramInstance pi = new ProgramInstance();
             pi.setEnrollmentDate( new Date() );
@@ -182,16 +183,16 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 
         PreheatIdentifier identifier = bundle.getPreheatIdentifier();
 
-        program.getProgramAttributes().forEach( programAttr ->
-        {
+        program.getProgramAttributes().forEach( programAttr -> {
             TrackedEntityAttribute attribute = bundle.getPreheat().get( identifier, programAttr.getAttribute() );
 
             if ( attribute == null || !aclService.canRead( bundle.getUser(), attribute ) )
             {
-                errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E3012, identifier.getIdentifiersWithName( bundle.getUser() ),
+                errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E3012,
+                    identifier.getIdentifiersWithName( bundle.getUser() ),
                     identifier.getIdentifiersWithName( programAttr.getAttribute() ) ) );
             }
-        });
+        } );
 
         return errorReports;
     }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.resourcetable.table;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.resourcetable.table;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.resourcetable.table;
+
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,8 +38,6 @@ import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
-
-import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 /**
  * @author Lars Helge Overland
@@ -60,13 +59,15 @@ public class IndicatorGroupSetResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
+        UniqueNameVerifier uniqueNameVerifier = new UniqueNameVerifier();
+
         String statement = "create table " + getTempTableName() + " (" +
             "indicatorid bigint not null, " +
             "indicatorname varchar(230), ";
 
         for ( IndicatorGroupSet groupSet : objects )
         {
-            statement += quote( groupSet.getName() ) + " varchar(230), ";
+            statement += uniqueNameVerifier.ensureUniqueName( groupSet.getName() ) + " varchar(230), ";
             statement += quote( groupSet.getUid() ) + " character(11), ";
         }
 
@@ -78,23 +79,24 @@ public class IndicatorGroupSetResourceTable
     @Override
     public Optional<String> getPopulateTempTableStatement()
     {
-        String sql =
-            "insert into " + getTempTableName() + " " +
-             "select i.indicatorid as indicatorid, i.name as indicatorname, ";
+        String sql = "insert into " + getTempTableName() + " " +
+            "select i.indicatorid as indicatorid, i.name as indicatorname, ";
 
         for ( IndicatorGroupSet groupSet : objects )
         {
             sql += "(" +
                 "select ig.name from indicatorgroup ig " +
                 "inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid " +
-                "inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = " + groupSet.getId() + " " +
+                "inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = "
+                + groupSet.getId() + " " +
                 "where igm.indicatorid = i.indicatorid " +
                 "limit 1) as " + quote( groupSet.getName() ) + ", ";
 
             sql += "(" +
                 "select ig.uid from indicatorgroup ig " +
                 "inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid " +
-                "inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = " + groupSet.getId() + " " +
+                "inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = "
+                + groupSet.getId() + " " +
                 "where igm.indicatorid = i.indicatorid " +
                 "limit 1) as " + quote( groupSet.getUid() ) + ", ";
         }

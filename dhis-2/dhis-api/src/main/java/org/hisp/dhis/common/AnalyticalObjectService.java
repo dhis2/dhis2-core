@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 import java.util.List;
 
@@ -36,6 +35,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -62,6 +63,10 @@ public interface AnalyticalObjectService<T extends AnalyticalObject>
     List<T> getAnalyticalObjects( Period period );
 
     List<T> getAnalyticalObjects( OrganisationUnit organisationUnit );
+
+    List<T> getAnalyticalObjects( OrganisationUnitGroup organisationUnitGroup );
+
+    List<T> getAnalyticalObjects( OrganisationUnitGroupSet organisationUnitGroupSet );
 
     List<T> getAnalyticalObjects( CategoryOptionGroup categoryOptionGroup );
 

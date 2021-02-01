@@ -1,7 +1,5 @@
-package org.hisp.dhis.mapgeneration;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.mapgeneration;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mapgeneration;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -50,20 +49,22 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Utility class.
- * 
+ *
  * @author Olai Solheim <olais@ifi.uio.no>
  */
 public class MapUtils
 {
     private static final String COLOR_PREFIX = "#";
+
     private static final int COLOR_RADIX = 16;
 
     public static final int DEFAULT_MAP_WIDTH = 500;
+
     public static final int TITLE_HEIGHT = 20;
 
     /**
      * Linear interpolation of int.
-     * 
+     *
      * @param a from
      * @param b to
      * @param t factor, typically 0-1
@@ -76,7 +77,7 @@ public class MapUtils
 
     /**
      * Linear interpolation of double.
-     * 
+     *
      * @param a from
      * @param b to
      * @param t factor, typically 0-1
@@ -89,7 +90,7 @@ public class MapUtils
 
     /**
      * Linear interpolation of RGB colors.
-     * 
+     *
      * @param a from
      * @param b to
      * @param t interpolation factor, typically 0-1
@@ -104,7 +105,7 @@ public class MapUtils
     /**
      * Creates a java.awt.Color from a dhis style color string, e.g. '#ff3200'
      * is an orange color.
-     * 
+     *
      * @param string the color in string, e.g. '#ff3200'
      * @return the Color, or null if string is null or empty.
      */
@@ -114,36 +115,36 @@ public class MapUtils
         {
             return null;
         }
-        
+
         string = string.startsWith( COLOR_PREFIX ) ? string.substring( 1 ) : string;
-        
+
         return new Color( Integer.parseInt( string, COLOR_RADIX ) );
     }
-    
+
     /**
      * Returns the number of non empty sub JsonNodes in the given JsonNode.
-     * 
+     *
      * @param json the JsonNode.
      * @return the number of non empty sub JsonNodes.
      */
     public static int getNonEmptyNodes( JsonNode json )
     {
         int count = 0;
-        
+
         for ( int i = 0; i < json.size(); i++ )
         {
             JsonNode node = json.get( i );
-            
+
             count = nodeIsNonEmpty( node ) ? ++count : count;
         }
-        
+
         return count;
     }
-    
+
     /**
      * Indicates whether the given JsonNode is empty, which implies that the
      * node is not null and has a size greater than 0.
-     * 
+     *
      * @param json the JsonNode.
      * @return true if the given JsonNode is non empty, false otherwise.
      */
@@ -151,7 +152,7 @@ public class MapUtils
     {
         return json != null && json.size() > 0;
     }
-    
+
     // -------------------------------------------------------------------------
     // Map
     // -------------------------------------------------------------------------
@@ -161,7 +162,7 @@ public class MapUtils
         MapContent mapContent = new MapContent();
 
         // Convert map objects to features, and add them to the map
-        
+
         for ( InternalMapLayer mapLayer : map.getLayers() )
         {
             for ( InternalMapObject mapObject : mapLayer.getMapObjects() )
@@ -171,75 +172,78 @@ public class MapUtils
         }
 
         // Create a renderer for this map
-        
+
         GTRenderer renderer = new StreamingRenderer();
         renderer.setMapContent( mapContent );
 
         // Calculate image height
-        
+
         ReferencedEnvelope mapBounds = mapContent.getMaxBounds();
         double widthToHeightFactor = mapBounds.getSpan( 0 ) / mapBounds.getSpan( 1 );
-        int[] widthHeight = getWidthHeight( maxWidth, maxHeight, LegendSet.LEGEND_TOTAL_WIDTH, TITLE_HEIGHT, widthToHeightFactor );
-        
-        //LegendSet.LEGEND_TOTAL_WIDTH;
-        
+        int[] widthHeight = getWidthHeight( maxWidth, maxHeight, LegendSet.LEGEND_TOTAL_WIDTH, TITLE_HEIGHT,
+            widthToHeightFactor );
+
+        // LegendSet.LEGEND_TOTAL_WIDTH;
+
         Rectangle imageBounds = new Rectangle( 0, 0, widthHeight[0], widthHeight[1] );
 
         // Create an image and get the graphics context from it
-        
+
         BufferedImage image = new BufferedImage( imageBounds.width, imageBounds.height, BufferedImage.TYPE_INT_ARGB );
         Graphics2D graphics = (Graphics2D) image.getGraphics();
 
         graphics.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
-        
+
         renderer.paint( graphics, imageBounds, mapBounds );
 
         mapContent.dispose();
-        
+
         return image;
     }
 
     public static BufferedImage renderTitle( String title, Integer width )
-    {        
+    {
         BufferedImage image = new BufferedImage( width, TITLE_HEIGHT, BufferedImage.TYPE_INT_ARGB );
         Graphics2D g = (Graphics2D) image.getGraphics();
-        
+
         g.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
         g.setColor( Color.BLACK );
         g.setFont( Legend.TITLE_FONT );
         g.drawString( title, LegendSet.LEGEND_MARGIN_LEFT, 12 );
-        
+
         return image;
     }
 
     /**
-     * Calculates the width and height of an two-dimensional area. If width is not
-     * null, the width will be used and the height will be calculated. If the height 
-     * is not null, the height will be used and the width will be calculated. If 
-     * both width and height are not null, the width or height will be adjusted 
-     * to the greatest value possible without exceeding any of max width and max 
-     * height.
-     * 
+     * Calculates the width and height of an two-dimensional area. If width is
+     * not null, the width will be used and the height will be calculated. If
+     * the height is not null, the height will be used and the width will be
+     * calculated. If both width and height are not null, the width or height
+     * will be adjusted to the greatest value possible without exceeding any of
+     * max width and max height.
+     *
      * @param maxWidth the maximum width.
      * @param maxHeight the maximum height.
      * @param subtractWidth the value to subtract from final width
-     * @param subtractHeight the value to subtract from final height 
+     * @param subtractHeight the value to subtract from final height
      * @param widthFactor the width to height factor.
      * @return array where first position holds the width and second the height.
-     * @throws IllegalArgumentException if none of width and height are specified.
+     * @throws IllegalArgumentException if none of width and height are
+     *         specified.
      */
-    public static int[] getWidthHeight( Integer maxWidth, Integer maxHeight, int subtractWidth, int subtractHeight, double widthFactor )
+    public static int[] getWidthHeight( Integer maxWidth, Integer maxHeight, int subtractWidth, int subtractHeight,
+        double widthFactor )
     {
         if ( maxWidth == null && maxHeight == null )
         {
             throw new IllegalArgumentException( "At least one of width and height must be specified" );
         }
-        
+
         if ( maxWidth == null )
         {
             maxHeight -= subtractHeight;
             maxWidth = (int) Math.ceil( maxHeight * widthFactor );
-        }   
+        }
         else if ( maxHeight == null )
         {
             maxWidth -= subtractWidth;
@@ -249,9 +253,9 @@ public class MapUtils
         {
             maxWidth -= subtractWidth;
             maxHeight -= subtractHeight;
-            
+
             double maxWidthFactor = (double) maxWidth / maxHeight;
-            
+
             if ( maxWidthFactor > widthFactor ) // Canvas wider than area
             {
                 maxWidth = (int) Math.ceil( maxHeight * widthFactor );
@@ -261,9 +265,9 @@ public class MapUtils
                 maxHeight = (int) Math.ceil( maxWidth / widthFactor );
             }
         }
-        
+
         int[] result = { maxWidth, maxHeight };
-        
+
         return result;
     }
 
@@ -273,11 +277,11 @@ public class MapUtils
     public static Layer createFeatureLayerFromMapObject( InternalMapObject mapObject )
     {
         Style style = mapObject.getStyle();
-        
+
         SimpleFeatureType featureType = mapObject.getFeatureType();
         SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder( featureType );
         DefaultFeatureCollection featureCollection = new DefaultFeatureCollection();
-        
+
         featureBuilder.add( mapObject.getGeometry() );
         SimpleFeature feature = featureBuilder.buildFeature( null );
 
@@ -302,5 +306,5 @@ public class MapUtils
         graphics.drawString( str, 1, 12 );
 
         return image;
-    }  
+    }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.result;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,9 @@ package org.hisp.dhis.result;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.result;
 
-import org.apache.struts2.dispatcher.VelocityResult;
+import org.apache.struts2.result.VelocityResult;
 
 public class VelocityCacheManifestResult
     extends VelocityResult
@@ -40,7 +39,7 @@ public class VelocityCacheManifestResult
 
     @Override
     protected final String getContentType( String templateLocation )
-    {       
+    {
         return "text/cache-manifest";
     }
 }

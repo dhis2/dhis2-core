@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,17 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
@@ -35,6 +44,7 @@ import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.UserOverrideMode;
 import org.hisp.dhis.feedback.ObjectIndexProvider;
 import org.hisp.dhis.feedback.TypedIndexedObjectContainer;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
@@ -42,15 +52,6 @@ import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
 import org.springframework.util.StringUtils;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -63,8 +64,9 @@ public class ObjectBundle implements ObjectIndexProvider
     private final User user;
 
     /**
-     * How should the user property be handled, by default it is left as is. You can override this
-     * to use current user, or a selected user instead (not yet supported).
+     * How should the user property be handled, by default it is left as is. You
+     * can override this to use current user, or a selected user instead (not
+     * yet supported).
      */
     private final UserOverrideMode userOverrideMode;
 
@@ -154,21 +156,25 @@ public class ObjectBundle implements ObjectIndexProvider
     private final TypedIndexedObjectContainer typedIndexedObjectContainer = new TypedIndexedObjectContainer();
 
     /**
-     * Pre-scanned map of all object references (mainly used for object book hundle).
+     * Pre-scanned map of all object references (mainly used for object book
+     * hundle).
      */
     private Map<Class<?>, Map<String, Map<String, Object>>> objectReferences = new HashMap<>();
 
     /**
-     * Simple class => uid => object map to store extra info about an object. Especially
-     * useful for object hooks as they can be working on more than one object at a time, and
-     * needs to be stateless.
+     * Simple class => uid => object map to store extra info about an object.
+     * Especially useful for object hooks as they can be working on more than
+     * one object at a time, and needs to be stateless.
      */
     private Map<Class<?>, Map<String, Map<String, Object>>> extras = new HashMap<>();
 
-    public ObjectBundle( ObjectBundleParams params, Preheat preheat, Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap )
+    public ObjectBundle( ObjectBundleParams params, Preheat preheat,
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap )
     {
-        if ( !objects.containsKey( Boolean.TRUE ) ) objects.put( Boolean.TRUE, new HashMap<>() );
-        if ( !objects.containsKey( Boolean.FALSE ) ) objects.put( Boolean.FALSE, new HashMap<>() );
+        if ( !objects.containsKey( Boolean.TRUE ) )
+            objects.put( Boolean.TRUE, new HashMap<>() );
+        if ( !objects.containsKey( Boolean.FALSE ) )
+            objects.put( Boolean.FALSE, new HashMap<>() );
 
         this.user = params.getUser();
         this.userOverrideMode = params.getUserOverrideMode();
@@ -306,8 +312,8 @@ public class ObjectBundle implements ObjectIndexProvider
      * Returns if the object bundle container contains the specified object.
      *
      * @param object the object that should be checked.
-     * @return <code>true</code> if this object container contains the specified object,
-     * <code>false</code> otherwise.
+     * @return <code>true</code> if this object container contains the specified
+     *         object, <code>false</code> otherwise.
      */
     public boolean containsObject( @Nullable IdentifiableObject object )
     {
@@ -318,6 +324,7 @@ public class ObjectBundle implements ObjectIndexProvider
         return typedIndexedObjectContainer.containsObject( object );
     }
 
+    @SuppressWarnings( { "unchecked" } )
     private void addObject( IdentifiableObject object )
     {
         if ( object == null )
@@ -325,23 +332,25 @@ public class ObjectBundle implements ObjectIndexProvider
             return;
         }
 
-        if ( !objects.get( Boolean.TRUE ).containsKey( object.getClass() ) )
+        Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( object );
+
+        if ( !objects.get( Boolean.TRUE ).containsKey( realClass ) )
         {
-            objects.get( Boolean.TRUE ).put( object.getClass(), new ArrayList<>() );
+            objects.get( Boolean.TRUE ).put( realClass, new ArrayList<>() );
         }
 
-        if ( !objects.get( Boolean.FALSE ).containsKey( object.getClass() ) )
+        if ( !objects.get( Boolean.FALSE ).containsKey( realClass ) )
         {
-            objects.get( Boolean.FALSE ).put( object.getClass(), new ArrayList<>() );
+            objects.get( Boolean.FALSE ).put( realClass, new ArrayList<>() );
         }
 
         if ( isPersisted( object ) )
         {
-            objects.get( Boolean.TRUE ).get( object.getClass() ).add( object );
+            objects.get( Boolean.TRUE ).get( realClass ).add( object );
         }
         else
         {
-            objects.get( Boolean.FALSE ).get( object.getClass() ).add( object );
+            objects.get( Boolean.FALSE ).get( realClass ).add( object );
 
         }
 
@@ -361,13 +370,13 @@ public class ObjectBundle implements ObjectIndexProvider
     public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> getObjectMap()
     {
         Set<Class<? extends IdentifiableObject>> klasses = new HashSet<>();
+
         klasses.addAll( objects.get( Boolean.TRUE ).keySet() );
         klasses.addAll( objects.get( Boolean.FALSE ).keySet() );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap = new HashMap<>();
 
-        klasses.forEach( klass ->
-        {
+        klasses.forEach( klass -> {
             objectMap.put( klass, new ArrayList<>() );
             objectMap.get( klass ).addAll( objects.get( Boolean.TRUE ).get( klass ) );
             objectMap.get( klass ).addAll( objects.get( Boolean.FALSE ).get( klass ) );
@@ -418,6 +427,7 @@ public class ObjectBundle implements ObjectIndexProvider
         this.objectReferences = objectReferences;
     }
 
+    @SuppressWarnings( { "unchecked" } )
     public void putExtras( IdentifiableObject identifiableObject, String key, Object object )
     {
         if ( identifiableObject == null || StringUtils.isEmpty( identifiableObject.getUid() ) || object == null )
@@ -425,19 +435,14 @@ public class ObjectBundle implements ObjectIndexProvider
             return;
         }
 
-        if ( !extras.containsKey( identifiableObject.getClass() ) )
-        {
-            extras.put( identifiableObject.getClass(), new HashMap<>() );
-        }
+        Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( identifiableObject );
 
-        if ( !extras.get( identifiableObject.getClass() ).containsKey( identifiableObject.getUid() ) )
-        {
-            extras.get( identifiableObject.getClass() ).put( identifiableObject.getUid(), new HashMap<>() );
-        }
+        extras.computeIfAbsent( realClass, k -> new HashMap<>() );
 
-        extras.get( identifiableObject.getClass() ).get( identifiableObject.getUid() ).put( key, object );
+        extras.get( realClass ).computeIfAbsent( identifiableObject.getUid(), s -> new HashMap<>() ).put( key, object );
     }
 
+    @SuppressWarnings( { "unchecked" } )
     public Object getExtras( IdentifiableObject identifiableObject, String key )
     {
         if ( identifiableObject == null || StringUtils.isEmpty( identifiableObject.getUid() ) )
@@ -445,19 +450,22 @@ public class ObjectBundle implements ObjectIndexProvider
             return null;
         }
 
-        if ( !extras.containsKey( identifiableObject.getClass() ) )
+        Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( identifiableObject );
+
+        if ( !extras.containsKey( realClass ) )
         {
             return null;
         }
 
-        if ( !extras.get( identifiableObject.getClass() ).containsKey( identifiableObject.getUid() ) )
+        if ( !extras.get( realClass ).containsKey( identifiableObject.getUid() ) )
         {
             return null;
         }
 
-        return extras.get( identifiableObject.getClass() ).get( identifiableObject.getUid() ).get( key );
+        return extras.get( realClass ).get( identifiableObject.getUid() ).get( key );
     }
 
+    @SuppressWarnings( { "unchecked" } )
     public boolean hasExtras( IdentifiableObject identifiableObject, String key )
     {
         if ( identifiableObject == null || StringUtils.isEmpty( identifiableObject.getUid() ) )
@@ -465,36 +473,42 @@ public class ObjectBundle implements ObjectIndexProvider
             return false;
         }
 
-        if ( !extras.containsKey( identifiableObject.getClass() ) )
+        Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( identifiableObject );
+
+        if ( !extras.containsKey( realClass ) )
         {
             return false;
         }
 
-        if ( !extras.get( identifiableObject.getClass() ).containsKey( identifiableObject.getUid() ) )
+        if ( !extras.get( realClass ).containsKey( identifiableObject.getUid() ) )
         {
             return false;
         }
 
-        return extras.get( identifiableObject.getClass() ).get( identifiableObject.getUid() ).containsKey( key );
+        return extras.get( realClass ).get( identifiableObject.getUid() ).containsKey( key );
     }
 
+    @SuppressWarnings( { "unchecked" } )
     public void removeExtras( IdentifiableObject identifiableObject, String key )
     {
-        if ( identifiableObject == null || StringUtils.isEmpty( identifiableObject.getUid() ) || !hasExtras( identifiableObject, key ) )
+        if ( identifiableObject == null || StringUtils.isEmpty( identifiableObject.getUid() )
+            || !hasExtras( identifiableObject, key ) )
         {
             return;
         }
 
-        extras.get( identifiableObject.getClass() ).get( identifiableObject.getUid() ).remove( key );
+        Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( identifiableObject );
 
-        if ( extras.get( identifiableObject.getClass() ).get( identifiableObject.getUid() ).isEmpty() )
+        extras.get( realClass ).get( identifiableObject.getUid() ).remove( key );
+
+        if ( extras.get( realClass ).get( identifiableObject.getUid() ).isEmpty() )
         {
-            extras.get( identifiableObject.getClass() ).remove( identifiableObject.getUid() );
+            extras.get( realClass ).remove( identifiableObject.getUid() );
         }
 
-        if ( extras.get( identifiableObject.getClass() ).isEmpty() )
+        if ( extras.get( realClass ).isEmpty() )
         {
-            extras.remove( identifiableObject.getClass() );
+            extras.remove( realClass );
         }
     }
 

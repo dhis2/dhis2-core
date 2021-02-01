@@ -1,7 +1,5 @@
-package org.hisp.dhis.interpretation.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,13 @@ package org.hisp.dhis.interpretation.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.interpretation.hibernate;
 
 import java.util.List;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationStore;
 import org.hisp.dhis.mapping.Map;
@@ -55,10 +53,9 @@ public class HibernateInterpretationStore
 {
     @Autowired
     public HibernateInterpretationStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
-        AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, Interpretation.class, currentUserService, deletedObjectService, aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, Interpretation.class, currentUserService, aclService, false );
     }
 
     public List<Interpretation> getInterpretations( User user )
@@ -98,9 +95,10 @@ public class HibernateInterpretationStore
     @Override
     public long countVisualizationInterpretations( Visualization visualization )
     {
-        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.visualization=:visualization" )
-            .setParameter( "visualization", visualization )
-            .setCacheable( cacheable );
+        Query query = getQuery(
+            "select count(distinct c) from " + clazz.getName() + " c where c.visualization=:visualization" )
+                .setParameter( "visualization", visualization )
+                .setCacheable( cacheable );
 
         return ((Long) query.uniqueResult()).intValue();
     }

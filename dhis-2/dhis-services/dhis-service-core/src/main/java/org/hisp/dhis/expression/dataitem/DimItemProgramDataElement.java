@@ -1,7 +1,5 @@
-package org.hisp.dhis.expression.dataitem;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,13 @@ package org.hisp.dhis.expression.dataitem;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.common.DimensionalItemId;
+package org.hisp.dhis.expression.dataitem;
 
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
+import org.hisp.dhis.common.DimensionalItemId;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 /**
  * Expression item ProgramDataElement
@@ -42,7 +42,8 @@ public class DimItemProgramDataElement
     extends DimensionalItem
 {
     @Override
-    public DimensionalItemId getDimensionalItemId( ExprContext ctx )
+    public DimensionalItemId getDimensionalItemId( ExprContext ctx,
+        CommonExpressionVisitor visitor )
     {
         return new DimensionalItemId( PROGRAM_DATA_ELEMENT,
             ctx.uid0.getText(),
@@ -50,9 +51,10 @@ public class DimItemProgramDataElement
     }
 
     @Override
-    public String getId( ExprContext ctx )
+    public String getId( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return ctx.uid0.getText() + "." +
-            ctx.uid1.getText();
+            ctx.uid1.getText() +
+            (visitor.getPeriodOffset() == 0 ? "" : "." + visitor.getPeriodOffset());
     }
 }

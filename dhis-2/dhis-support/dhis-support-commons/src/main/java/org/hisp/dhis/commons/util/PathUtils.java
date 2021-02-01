@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.commons.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.util;
 
 /**
  * Utility class with methods for managing file system paths.
@@ -41,6 +40,7 @@ public class PathUtils
 
     /**
      * Converts the fully qualified class name to a UNIX path.
+     *
      * @param clazz the class, separated by '.'.
      * @return the UNIX path, separated by '/'.
      */
@@ -51,6 +51,7 @@ public class PathUtils
 
     /**
      * Converts the fully qualified class name to a UNIX path.
+     *
      * @param clazzName the class name, separated by '.'.
      * @return the UNIX path, separated by '/'.
      */
@@ -61,6 +62,7 @@ public class PathUtils
 
     /**
      * Gets the parent path of the given UNIX path.
+     *
      * @param path the path.
      * @return the parent path.
      */
@@ -78,6 +80,7 @@ public class PathUtils
 
     /**
      * Adds a child to the given UNIX path.
+     *
      * @param parent the parent path.
      * @param child the child path to add.
      * @return the path with the child appended.

@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 
 import org.hisp.dhis.common.GenericStore;
 
@@ -48,6 +51,14 @@ public interface UserCredentialsStore
     UserCredentials getUserCredentialsByUsername( String username );
 
     /**
+     * Retrieves a collection of User with the given usernames.
+     *
+     * @param usernames the usernames of the collection of Users to retrieve.
+     * @return the User.
+     */
+    List<UserCredentials> getUserCredentialsByUsernames( Collection<String> usernames );
+
+    /**
      * Retrieves the UserCredentials associated with the User with the given
      * open ID.
      *
@@ -64,4 +75,22 @@ public interface UserCredentialsStore
      * @return the UserCredentials.
      */
     UserCredentials getUserCredentialsByLdapId( String ldapId );
+
+    /**
+     * Retrieves the UserCredentials associated with the User with the given id
+     * token.
+     *
+     * @param token the restore token of the User.
+     * @return the UserCredentials.
+     */
+    UserCredentials getUserCredentialsByIdToken( String token );
+
+    /**
+     * Retrieves the UserCredentials associated with the User with the given
+     * UUID.
+     *
+     * @param uuid UUID.
+     * @return the UserCredentials.
+     */
+    UserCredentials getUserCredentialsByUuid( UUID uuid );
 }

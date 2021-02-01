@@ -1,7 +1,5 @@
-package org.hisp.dhis.reservedvalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +25,14 @@ package org.hisp.dhis.reservedvalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.reservedvalue;
 
-import com.google.common.collect.Lists;
-import org.apache.commons.collections4.ListUtils;
-import org.hisp.dhis.DhisTest;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.Objects;
-import org.hisp.dhis.textpattern.TextPattern;
-import org.hisp.dhis.textpattern.TextPatternParser;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.springframework.beans.factory.annotation.Autowired;
+import static java.util.Calendar.DATE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -50,23 +40,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Calendar.DATE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import org.apache.commons.collections4.ListUtils;
+import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Objects;
+import org.hisp.dhis.textpattern.TextPattern;
+import org.hisp.dhis.textpattern.TextPatternParser;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.Commit;
 
-public class DefaultReservedValueServiceTest
-    extends DhisTest
+import com.google.common.collect.Lists;
+
+@Commit
+public class DefaultReservedValueServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
     private ReservedValueService reservedValueService;
 
     @Autowired
     private ReservedValueStore reservedValueStore;
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     // Preset values
     private static Date future;
@@ -100,25 +95,6 @@ public class DefaultReservedValueServiceTest
 
         // Set up reserved values
         simpleReservedValue = createReservedValue( tea, "FOOBAR" );
-    }
-
-    @Before
-    public void setUpTest()
-        throws Exception
-    {
-        reservedValueStore.getAll().forEach( reservedValueStore::delete );
-    }
-
-    @After
-    public void tearDown()
-    {
-        reservedValueStore.getAll().forEach( reservedValueStore::delete );
-    }
-
-    @Override
-    protected boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 
     @Test
@@ -188,9 +164,11 @@ public class DefaultReservedValueServiceTest
     public void testReserveReserveASequentialValueWhenNotUsed()
         throws Exception
     {
-        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 1, new HashMap<>(), future );
+        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 1, new HashMap<>(),
+            future );
 
-        assertEquals( 1, res.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
+        assertEquals( 1, res.stream()
+            .filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
         assertEquals( 1, reservedValueStore.getCount() );
 
     }
@@ -199,9 +177,11 @@ public class DefaultReservedValueServiceTest
     public void testReserveReserveMultipleSequentialValueWhenNotUsed()
         throws Exception
     {
-        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 50, new HashMap<>(), future );
+        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 50, new HashMap<>(),
+            future );
 
-        assertEquals( 50, res.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
+        assertEquals( 50, res.stream()
+            .filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
         assertEquals( 50, reservedValueStore.getCount() );
 
     }
@@ -215,25 +195,26 @@ public class DefaultReservedValueServiceTest
 
         // Make sure they where added successfully
         assertEquals( 50,
-            reserved.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
+            reserved.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 )
+                .count() );
         assertEquals( 50, reservedValueStore.getCount() );
 
-        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 25, new HashMap<>(), future );
+        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 25, new HashMap<>(),
+            future );
 
         assertTrue( ListUtils.intersection( reserved, res ).isEmpty() );
-        assertEquals( 25, res.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
+        assertEquals( 25, res.stream()
+            .filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
         assertEquals( 75, reservedValueStore.getCount() );
 
     }
 
     @Test
     public void testReserveReserveTooManySequentialValuesWhenNoneExists()
-        throws Exception
     {
-        thrown.expect( ReserveValueException.class );
-        thrown.expectMessage( "Could not reserve value: Not enough values left to reserve 101 values." );
-
-        reservedValueService.reserve( simpleSequentialTextPattern, 101, new HashMap<>(), future );
+        assertThrows( "Could not reserve value: Not enough values left to reserve 101 values.",
+            ReserveValueException.class,
+            () -> reservedValueService.reserve( simpleSequentialTextPattern, 101, new HashMap<>(), future ) );
     }
 
     @Test
@@ -243,10 +224,9 @@ public class DefaultReservedValueServiceTest
         assertEquals( 99,
             reservedValueService.reserve( simpleSequentialTextPattern, 99, new HashMap<>(), future ).size() );
 
-        thrown.expect( ReserveValueException.class );
-        thrown.expectMessage( "Could not reserve value: Not enough values left to reserve 1 values." );
-
-        reservedValueService.reserve( simpleSequentialTextPattern, 1, new HashMap<>(), future );
+        assertThrows( "Could not reserve value: Not enough values left to reserve 1 values.",
+            ReserveValueException.class,
+            () -> reservedValueService.reserve( simpleSequentialTextPattern, 1, new HashMap<>(), future ) );
     }
 
     @Test

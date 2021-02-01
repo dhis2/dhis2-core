@@ -1,7 +1,5 @@
-package org.hisp.dhis.program.notification;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,17 @@ package org.hisp.dhis.program.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.notification;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,7 +51,9 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.notification.*;
+import org.hisp.dhis.notification.NotificationMessage;
+import org.hisp.dhis.notification.NotificationMessageRenderer;
+import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.Program;
@@ -59,6 +65,7 @@ import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageService;
+import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateMapper;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -69,23 +76,30 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import com.google.common.collect.Sets;
-import org.mockito.junit.MockitoRule;
 
 /**
  * @author Zubair Asghar.
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings( "unchecked" )
 public class ProgramNotificationServiceTest extends DhisConvenienceTest
 {
     private static final String SUBJECT = "subject";
+
     private static final String MESSAGE = "message";
+
     private static final String TEMPLATE_NAME = "message";
+
     private static final String OU_PHONE_NUMBER = "471000000";
+
     private static final String ATT_PHONE_NUMBER = "473000000";
+
     private static final String USERA_PHONE_NUMBER = "47400000";
+
     private static final String USERB_PHONE_NUMBER = "47500000";
+
     private static final String ATT_EMAIL = "attr@test.org";
 
     @Rule
@@ -113,48 +127,74 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private NotificationMessageRenderer<ProgramStageInstance> programStageNotificationRenderer;
 
     @Mock
-    private ProgramNotificationTemplateStore notificationTemplateStore;
+    private ProgramNotificationTemplateService notificationTemplateService;
+
+    private NotificationTemplateMapper notificationTemplateMapper = new NotificationTemplateMapper();
 
     private DefaultProgramNotificationService programNotificationService;
 
     private Set<ProgramInstance> programInstances = new HashSet<>();
+
     private Set<ProgramStageInstance> programStageInstances = new HashSet<>();
+
     private List<ProgramMessage> sentProgramMessages = new ArrayList<>();
+
     private List<MockMessage> sentInternalMessages = new ArrayList<>();
+
     private User userA;
+
     private User userB;
+
     private UserGroup userGroup;
 
     private User userLvlTwoLeftLeft;
+
     private User userLvlTwoLeftRight;
+
     private User userLvlOneLeft;
+
     private User userLvlOneRight;
+
     private User userRoot;
+
     private UserGroup userGroupBasedOnHierarchy;
+
     private UserGroup userGroupBasedOnParent;
 
     private OrganisationUnit root;
+
     private OrganisationUnit lvlOneLeft;
+
     private OrganisationUnit lvlOneRight;
+
     private OrganisationUnit lvlTwoLeftLeft;
+
     private OrganisationUnit lvlTwoLeftRight;
 
     private TrackedEntityInstance tei;
 
     private DataElement dataElement;
+
     private DataElement dataElementEmail;
 
     private TrackedEntityAttribute trackedEntityAttribute;
+
     private TrackedEntityAttribute trackedEntityAttributeEmail;
+
     private ProgramTrackedEntityAttribute programTrackedEntityAttribute;
+
     private ProgramTrackedEntityAttribute programTrackedEntityAttributeEmail;
+
     private TrackedEntityAttributeValue attributeValue;
+
     private TrackedEntityAttributeValue attributeValueEmail;
 
     private NotificationMessage notificationMessage;
 
     private ProgramNotificationTemplate programNotificationTemplate;
+
     private ProgramNotificationTemplate programNotificationTemplateForToday;
+
     private ProgramNotificationInstance programNotificationInstaceForToday;
 
     @Before
@@ -162,7 +202,8 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         programNotificationService = new DefaultProgramNotificationService( this.programMessageService,
             this.messageService, this.programInstanceStore, this.programStageInstanceStore, this.manager,
-            this.programNotificationRenderer, this.programStageNotificationRenderer, notificationTemplateStore );
+            this.programNotificationRenderer, this.programStageNotificationRenderer, notificationTemplateService,
+            notificationTemplateMapper );
 
         setUpInstances();
 
@@ -197,14 +238,13 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
 
-        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation ->
-        {
+        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation -> {
             sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
-            return new BatchResponseStatus(Collections.emptyList());
+            return new BatchResponseStatus( Collections.emptyList() );
         } );
 
         when( programNotificationRenderer.render( any( ProgramInstance.class ),
-                any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
+            any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
         programNotificationTemplate.setNotificationTrigger( NotificationTrigger.COMPLETION );
         programNotificationService.sendEnrollmentCompletionNotifications( programInstances.iterator().next().getId() );
@@ -213,7 +253,8 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         ProgramMessage programMessage = sentProgramMessages.iterator().next();
 
-        assertEquals( TrackedEntityInstance.class, programMessage.getRecipients().getTrackedEntityInstance().getClass() );
+        assertEquals( TrackedEntityInstance.class,
+            programMessage.getRecipients().getTrackedEntityInstance().getClass() );
         assertEquals( tei, programMessage.getRecipients().getTrackedEntityInstance() );
     }
 
@@ -222,14 +263,13 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
 
-        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation ->
-        {
+        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation -> {
             sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
-            return new BatchResponseStatus(Collections.emptyList());
+            return new BatchResponseStatus( Collections.emptyList() );
         } );
 
         when( programNotificationRenderer.render( any( ProgramInstance.class ),
-                any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
+            any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
         programNotificationTemplate.setNotificationTrigger( NotificationTrigger.ENROLLMENT );
 
@@ -239,7 +279,8 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         ProgramMessage programMessage = sentProgramMessages.iterator().next();
 
-        assertEquals( TrackedEntityInstance.class, programMessage.getRecipients().getTrackedEntityInstance().getClass() );
+        assertEquals( TrackedEntityInstance.class,
+            programMessage.getRecipients().getTrackedEntityInstance().getClass() );
         assertEquals( tei, programMessage.getRecipients().getTrackedEntityInstance() );
     }
 
@@ -248,14 +289,13 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
 
-        when( messageService.sendMessage( any() ) ).thenAnswer( invocation ->
-        {
+        when( messageService.sendMessage( any() ) ).thenAnswer( invocation -> {
             sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
             return 40L;
         } );
 
         when( programNotificationRenderer.render( any( ProgramInstance.class ),
-                any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
+            any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
         programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.USER_GROUP );
         programNotificationTemplate.setRecipientUserGroup( userGroup );
@@ -275,14 +315,13 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
 
-        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation ->
-        {
+        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation -> {
             sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
-            return new BatchResponseStatus(Collections.emptyList());
+            return new BatchResponseStatus( Collections.emptyList() );
         } );
 
         when( programNotificationRenderer.render( any( ProgramInstance.class ),
-                any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
+            any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
         programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.ORGANISATION_UNIT_CONTACT );
 
@@ -301,14 +340,13 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
 
-        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation ->
-        {
+        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation -> {
             sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
-            return new BatchResponseStatus(Collections.emptyList());
+            return new BatchResponseStatus( Collections.emptyList() );
         } );
 
         when( programNotificationRenderer.render( any( ProgramInstance.class ),
-                any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
+            any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
         programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE );
         programNotificationTemplate.setRecipientProgramAttribute( trackedEntityAttribute );
@@ -329,14 +367,13 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
 
-        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation ->
-        {
+        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation -> {
             sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
-            return new BatchResponseStatus(Collections.emptyList());
+            return new BatchResponseStatus( Collections.emptyList() );
         } );
 
         when( programNotificationRenderer.render( any( ProgramInstance.class ),
-                any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
+            any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
         programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE );
         programNotificationTemplate.setRecipientProgramAttribute( trackedEntityAttribute );
@@ -357,14 +394,13 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
 
-        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation ->
-        {
+        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation -> {
             sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
-            return new BatchResponseStatus(Collections.emptyList());
+            return new BatchResponseStatus( Collections.emptyList() );
         } );
 
         when( programStageNotificationRenderer.render( any( ProgramStageInstance.class ),
-                any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
+            any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
         programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.DATA_ELEMENT );
         programNotificationTemplate.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.SMS ) );
@@ -391,14 +427,13 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
 
-        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation ->
-        {
+        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation -> {
             sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
-            return new BatchResponseStatus(Collections.emptyList());
+            return new BatchResponseStatus( Collections.emptyList() );
         } );
 
         when( programStageNotificationRenderer.render( any( ProgramStageInstance.class ),
-                any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
+            any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
         programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.DATA_ELEMENT );
         programNotificationTemplate.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) );
@@ -424,14 +459,13 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
 
-        when( messageService.sendMessage( any() ) ).thenAnswer( invocation ->
-        {
+        when( messageService.sendMessage( any() ) ).thenAnswer( invocation -> {
             sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
             return 40L;
         } );
 
         when( programStageNotificationRenderer.render( any( ProgramStageInstance.class ),
-                any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
+            any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
         programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.USER_GROUP );
         programNotificationTemplate.setNotificationTrigger( NotificationTrigger.COMPLETION );
@@ -459,14 +493,13 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
 
-        when( messageService.sendMessage( any() ) ).thenAnswer( invocation ->
-        {
+        when( messageService.sendMessage( any() ) ).thenAnswer( invocation -> {
             sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
             return 40L;
         } );
 
         when( programStageNotificationRenderer.render( any( ProgramStageInstance.class ),
-                any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
+            any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
         programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.USER_GROUP );
         programNotificationTemplate.setNotificationTrigger( NotificationTrigger.COMPLETION );
@@ -491,15 +524,13 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
 
-        when( messageService.sendMessage( any() ) ).thenAnswer( invocation ->
-        {
+        when( messageService.sendMessage( any() ) ).thenAnswer( invocation -> {
             sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
             return 40L;
         } );
 
-
         when( programStageNotificationRenderer.render( any( ProgramStageInstance.class ),
-                any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
+            any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
         programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.USER_GROUP );
 
@@ -530,14 +561,13 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
 
-        when( messageService.sendMessage( any() ) ).thenAnswer( invocation ->
-        {
+        when( messageService.sendMessage( any() ) ).thenAnswer( invocation -> {
             sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
             return 40L;
         } );
 
         when( programStageNotificationRenderer.render( any( ProgramStageInstance.class ),
-                any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
+            any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
         programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.USERS_AT_ORGANISATION_UNIT );
         programNotificationTemplate.setNotificationTrigger( NotificationTrigger.COMPLETION );
@@ -563,15 +593,13 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         sentProgramMessages.clear();
 
-        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation ->
-            {
-                sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
-                return new BatchResponseStatus(Collections.emptyList());
-            } );
+        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation -> {
+            sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
+            return new BatchResponseStatus( Collections.emptyList() );
+        } );
 
         when( manager.getAll( ProgramNotificationInstance.class ) )
             .thenReturn( Collections.singletonList( programNotificationInstaceForToday ) );
-
 
         when( programNotificationRenderer.render( any( ProgramInstance.class ),
             any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
@@ -597,17 +625,20 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
     private void setUpInstances()
     {
-        programNotificationTemplate = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.ENROLLMENT, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE );
+        programNotificationTemplate = createProgramNotificationTemplate( TEMPLATE_NAME, 0,
+            NotificationTrigger.ENROLLMENT, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE );
 
         java.util.Calendar cal = java.util.Calendar.getInstance();
 
         Date today = cal.getTime();
         cal.add( java.util.Calendar.DATE, -1 );
 
-        programNotificationTemplateForToday = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE, today );
+        programNotificationTemplateForToday = createProgramNotificationTemplate( TEMPLATE_NAME, 0,
+            NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE, today );
 
         programNotificationInstaceForToday = new ProgramNotificationInstance();
-        programNotificationInstaceForToday.setProgramNotificationTemplate( programNotificationTemplateForToday );
+        programNotificationInstaceForToday.setProgramNotificationTemplateSnapshot(
+            notificationTemplateMapper.toProgramNotificationTemplateSnapshot( programNotificationTemplateForToday ) );
         programNotificationInstaceForToday.setName( programNotificationTemplateForToday.getName() );
         programNotificationInstaceForToday.setAutoFields();
         programNotificationInstaceForToday.setScheduledAt( today );
@@ -655,14 +686,16 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         userRoot.getOrganisationUnits().add( root );
         root.getUsers().add( userRoot );
 
-        userGroupBasedOnHierarchy = createUserGroup( 'H', Sets.newHashSet( userLvlOneLeft, userLvlOneRight, userLvlTwoLeftLeft, userLvlTwoLeftRight, userRoot ) );
+        userGroupBasedOnHierarchy = createUserGroup( 'H',
+            Sets.newHashSet( userLvlOneLeft, userLvlOneRight, userLvlTwoLeftLeft, userLvlTwoLeftRight, userRoot ) );
         userGroupBasedOnParent = createUserGroup( 'H', Sets.newHashSet( userLvlTwoLeftLeft, userLvlTwoLeftRight ) );
 
         // Program
         Program programA = createProgram( 'A' );
         programA.setAutoFields();
-        programA.setOrganisationUnits( Sets.newHashSet( lvlTwoLeftLeft,lvlTwoLeftRight ) );
-        programA.setNotificationTemplates( Sets.newHashSet( programNotificationTemplate, programNotificationTemplateForToday ) );
+        programA.setOrganisationUnits( Sets.newHashSet( lvlTwoLeftLeft, lvlTwoLeftRight ) );
+        programA.setNotificationTemplates(
+            Sets.newHashSet( programNotificationTemplate, programNotificationTemplateForToday ) );
         programA.getProgramAttributes().add( programTrackedEntityAttribute );
 
         trackedEntityAttribute = createTrackedEntityAttribute( 'T' );
@@ -670,7 +703,8 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         trackedEntityAttribute.setValueType( ValueType.PHONE_NUMBER );
         trackedEntityAttribute.setValueType( ValueType.EMAIL );
         programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA, trackedEntityAttribute );
-        programTrackedEntityAttributeEmail = createProgramTrackedEntityAttribute( programA, trackedEntityAttributeEmail );
+        programTrackedEntityAttributeEmail = createProgramTrackedEntityAttribute( programA,
+            trackedEntityAttributeEmail );
         programTrackedEntityAttribute.setAttribute( trackedEntityAttribute );
         programTrackedEntityAttributeEmail.setAttribute( trackedEntityAttributeEmail );
 

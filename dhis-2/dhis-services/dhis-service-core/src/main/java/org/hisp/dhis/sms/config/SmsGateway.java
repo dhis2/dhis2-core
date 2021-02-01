@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,12 @@ package org.hisp.dhis.sms.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.config;
 
 import java.util.List;
 import java.util.Set;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -46,8 +47,6 @@ import org.springframework.web.client.RestTemplate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
@@ -55,9 +54,13 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class SmsGateway
 {
     protected static final String PROTOCOL_VERSION = "X-Version";
+
     protected static final String MAX_MESSAGE_PART = "?maxMessageParts=4";
+
     protected static final String BASIC = " Basic ";
+
     public static final String KEY_TEXT = "text";
+
     public static final String KEY_RECIPIENT = "recipients";
 
     public static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
@@ -75,16 +78,19 @@ public abstract class SmsGateway
         .put( HttpStatus.METHOD_NOT_ALLOWED, GatewayResponse.RESULT_CODE_405 )
         .put( HttpStatus.GONE, GatewayResponse.RESULT_CODE_410 )
         .put( HttpStatus.SERVICE_UNAVAILABLE, GatewayResponse.RESULT_CODE_503 )
+        .put( HttpStatus.FORBIDDEN, GatewayResponse.RESULT_CODE_403 )
         .put( HttpStatus.INTERNAL_SERVER_ERROR, GatewayResponse.RESULT_CODE_504 ).build();
 
     @Autowired
     private RestTemplate restTemplate;
 
-    protected abstract List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig );
+    protected abstract List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch,
+        SmsGatewayConfig gatewayConfig );
 
     protected abstract boolean accept( SmsGatewayConfig gatewayConfig );
 
-    protected abstract OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig );
+    protected abstract OutboundMessageResponse send( String subject, String text, Set<String> recipients,
+        SmsGatewayConfig gatewayConfig );
 
     public HttpStatus send( String urlTemplate, HttpEntity<?> request, HttpMethod httpMethod, Class<?> klass )
     {

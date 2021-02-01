@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,20 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle;
 
-import com.google.common.base.MoreObjects;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.UserOverrideMode;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
@@ -42,10 +46,7 @@ import org.hisp.dhis.preheat.PreheatParams;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -245,11 +246,13 @@ public class ObjectBundleParams
         return this;
     }
 
-    public boolean isMetadataSyncImport() {
+    public boolean isMetadataSyncImport()
+    {
         return metadataSyncImport;
     }
 
-    public void setMetadataSyncImport(boolean metadataSyncImport) {
+    public void setMetadataSyncImport( boolean metadataSyncImport )
+    {
         this.metadataSyncImport = metadataSyncImport;
     }
 
@@ -297,6 +300,7 @@ public class ObjectBundleParams
         return this;
     }
 
+    @SuppressWarnings( { "unchecked" } )
     public ObjectBundleParams addObject( IdentifiableObject object )
     {
         if ( object == null )
@@ -304,12 +308,9 @@ public class ObjectBundleParams
             return this;
         }
 
-        if ( !objects.containsKey( object.getClass() ) )
-        {
-            objects.put( object.getClass(), new ArrayList<>() );
-        }
+        Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( object );
 
-        objects.get( object.getClass() ).add( object );
+        objects.computeIfAbsent( realClass, k -> new ArrayList<>() ).add( object );
 
         return this;
     }

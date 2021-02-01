@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.dxf2.metadata;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.Category;
@@ -41,8 +40,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.color.Color;
-import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.NameableObject;
@@ -105,9 +102,10 @@ import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -242,10 +240,6 @@ public class Metadata
     private List<TrackedEntityType> trackedEntityTypes = new ArrayList<>();
 
     private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
-
-    private List<Color> colors = new ArrayList<>();
-
-    private List<ColorSet> colorSets = new ArrayList<>();
 
     private List<Predictor> predictors = new ArrayList<>();
 
@@ -1095,32 +1089,6 @@ public class Metadata
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "colorSets", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "colorSet", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ColorSet> getColorSets()
-    {
-        return colorSets;
-    }
-
-    public void setColorSets( List<ColorSet> colorSets )
-    {
-        this.colorSets = colorSets;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "colors", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "color", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Color> getColors()
-    {
-        return colors;
-    }
-
-    public void setColors( List<Color> colors )
-    {
-        this.colors = colors;
-    }
-
-    @JsonProperty
     @JacksonXmlElementWrapper( localName = "predictors", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "predictor", namespace = DxfNamespaces.DXF_2_0 )
     public List<Predictor> getPredictors()
@@ -1180,7 +1148,8 @@ public class Metadata
         return this.validationNotificationTemplates;
     }
 
-    public void setValidationNotificationTemplates( List<ValidationNotificationTemplate> validationNotificationTemplates )
+    public void setValidationNotificationTemplates(
+        List<ValidationNotificationTemplate> validationNotificationTemplates )
     {
         this.validationNotificationTemplates = validationNotificationTemplates;
     }
@@ -1252,8 +1221,6 @@ public class Metadata
             ", relationshipTypes=" + relationshipTypes +
             ", trackedEntityTypes=" + trackedEntityTypes +
             ", trackedEntityAttributes=" + trackedEntityAttributes +
-            ", colors=" + colors +
-            ", colorSets=" + colorSets +
             ", programNotificationTemplates=" + programNotificationTemplates +
             ", predictors=" + predictors +
             ", predictorGroups=" + predictorGroups +

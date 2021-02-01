@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,12 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Set;
+
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
@@ -36,10 +38,9 @@ import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.sharing.Sharing;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * @author Lars Helge Overland
@@ -79,11 +80,13 @@ public interface IdentifiableObject
 
     boolean removeAsFavorite( User user );
 
-    //-----------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------
     // Sharing
-    //-----------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------
 
     User getUser();
+
+    void setUser( User user );
 
     String getPublicAccess();
 
@@ -95,9 +98,10 @@ public interface IdentifiableObject
 
     Access getAccess();
 
-    //-----------------------------------------------------------------------------
+    Sharing getSharing();
+    // -----------------------------------------------------------------------------
     // Utility methods
-    //-----------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------
 
     @JsonIgnore
     String getPropertyValue( IdScheme idScheme );

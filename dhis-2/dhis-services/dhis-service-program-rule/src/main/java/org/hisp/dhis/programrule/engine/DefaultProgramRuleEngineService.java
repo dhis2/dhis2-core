@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +25,27 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.commons.util.DebugUtils;
+
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.rules.models.RuleValidationResult;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Lists;
 
 /**
  * Created by zubair@dhis2.org on 23.10.17.
@@ -48,8 +53,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 @Slf4j
 @Service( "org.hisp.dhis.programrule.engine.ProgramRuleEngineService" )
-public class DefaultProgramRuleEngineService
-    implements ProgramRuleEngineService
+public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -57,79 +61,104 @@ public class DefaultProgramRuleEngineService
 
     private final ProgramRuleEngine programRuleEngine;
 
+    private final ProgramRuleEngine programRuleEngineNew;
+
     private final List<RuleActionImplementer> ruleActionImplementers;
 
     private final ProgramInstanceService programInstanceService;
 
     private final ProgramStageInstanceService programStageInstanceService;
 
-    public DefaultProgramRuleEngineService( ProgramRuleEngine programRuleEngine,
+    private final ProgramService programService;
+
+    public DefaultProgramRuleEngineService(
+        @Qualifier( "serviceTrackerRuleEngine" ) ProgramRuleEngine programRuleEngineNew,
+        @Qualifier( "notificationRuleEngine" ) ProgramRuleEngine programRuleEngine,
         List<RuleActionImplementer> ruleActionImplementers, ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService )
+        ProgramStageInstanceService programStageInstanceService, ProgramService programService )
     {
         checkNotNull( programRuleEngine );
+        checkNotNull( programRuleEngineNew );
         checkNotNull( ruleActionImplementers );
         checkNotNull( programInstanceService );
         checkNotNull( programStageInstanceService );
+        checkNotNull( programService );
 
         this.programRuleEngine = programRuleEngine;
+        this.programRuleEngineNew = programRuleEngineNew;
         this.ruleActionImplementers = ruleActionImplementers;
         this.programInstanceService = programInstanceService;
         this.programStageInstanceService = programStageInstanceService;
+        this.programService = programService;
     }
 
     @Override
+    @Transactional
     public List<RuleEffect> evaluateEnrollmentAndRunEffects( long programInstanceId )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( programInstanceId );
-        List<RuleEffect> ruleEffects = getRuleEffects( programInstance );
+
+        if ( programInstance == null )
+        {
+            return Lists.newArrayList();
+        }
+
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance,
+            programInstance.getProgramStageInstances() );
 
         for ( RuleEffect effect : ruleEffects )
         {
-            ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i ->
-            {
+            ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i -> {
                 log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
                 i.implement( effect, programInstance );
             } );
         }
-        return ruleEffects;
-    }
-
-    @Override
-    public List<RuleEffect> evaluateEnrollment( String programInstanceUid )
-    {
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( programInstanceUid );
-        return getRuleEffects( programInstance );
-    }
-
-    private List<RuleEffect> getRuleEffects( ProgramInstance programInstance )
-    {
-        List<RuleEffect> ruleEffects = new ArrayList<>();
-
-        try
-        {
-            ruleEffects = programRuleEngine.evaluateEnrollment( programInstance );
-        }
-        catch ( Exception ex )
-        {
-            log.error( DebugUtils.getStackTrace( ex ) );
-            log.error( DebugUtils.getStackTrace( ex.getCause() ) );
-        }
 
         return ruleEffects;
     }
 
     @Override
+    @Transactional
     public List<RuleEffect> evaluateEventAndRunEffects( long programStageInstanceId )
     {
         ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstanceId );
-        List<RuleEffect> ruleEffects = getRuleEffects( psi );
+
+        return evaluateEventAndRunEffects( psi );
+    }
+
+    @Override
+    @Transactional
+    public List<RuleEffect> evaluateEventAndRunEffects( String event )
+    {
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( event );
+
+        return evaluateEventAndRunEffects( psi );
+    }
+
+    @Override
+    public RuleValidationResult getDescription( String condition, String programId )
+    {
+        Program program = programService.getProgram( programId );
+
+        return programRuleEngineNew.getDescription( condition, program );
+    }
+
+    private List<RuleEffect> evaluateEventAndRunEffects( ProgramStageInstance psi )
+    {
+        if ( psi == null )
+        {
+            return Lists.newArrayList();
+        }
+
+        ProgramInstance programInstance = programInstanceService.getProgramInstance( psi.getProgramInstance().getId() );
+
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, psi,
+            programInstance.getProgramStageInstances() );
 
         for ( RuleEffect effect : ruleEffects )
         {
-            ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i ->
-            {
+            ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i -> {
                 log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
                 i.implement( effect, psi );
@@ -138,29 +167,4 @@ public class DefaultProgramRuleEngineService
 
         return ruleEffects;
     }
-
-    @Override
-    public List<RuleEffect> evaluateEvent( String programStageInstanceUid )
-    {
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstanceUid );
-        return getRuleEffects( psi );
-    }
-
-    private List<RuleEffect> getRuleEffects( ProgramStageInstance psi )
-    {
-        List<RuleEffect> ruleEffects = new ArrayList<>();
-
-        try
-        {
-            ruleEffects = programRuleEngine.evaluateEvent( psi );
-        }
-        catch ( Exception ex )
-        {
-            log.error( DebugUtils.getStackTrace( ex ) );
-            log.error( DebugUtils.getStackTrace( ex.getCause() ) );
-        }
-
-        return ruleEffects;
-    }
-
 }

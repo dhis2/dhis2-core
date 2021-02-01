@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,6 +84,7 @@ public class ProgramRemovalTest
 
         JsonObject relationshipType = new FileReaderUtils()
             .read( new File( "src/test/resources/tracker/relationshipTypes.json" ) )
+            .replacePropertyValuesWithIds( "id" )
             .get( JsonObject.class ).getAsJsonArray( "relationshipTypes" ).get( 0 )
             .getAsJsonObject();
 

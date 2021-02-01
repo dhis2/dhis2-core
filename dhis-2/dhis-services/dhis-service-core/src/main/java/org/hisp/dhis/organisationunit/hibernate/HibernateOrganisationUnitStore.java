@@ -1,7 +1,5 @@
-package org.hisp.dhis.organisationunit.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,20 @@ package org.hisp.dhis.organisationunit.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.organisationunit.hibernate;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -39,30 +49,17 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitHierarchy;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.system.objectmapper.OrganisationUnitRelationshipRowMapper;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
-
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Kristian Nordal
@@ -76,11 +73,10 @@ public class HibernateOrganisationUnitStore
     private final DbmsManager dbmsManager;
 
     public HibernateOrganisationUnitStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
-        AclService aclService, DbmsManager dbmsManager )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
+        DbmsManager dbmsManager )
     {
-        super( sessionFactory, jdbcTemplate, publisher, OrganisationUnit.class, currentUserService, deletedObjectService,
-            aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, OrganisationUnit.class, currentUserService, aclService, true );
 
         checkNotNull( dbmsManager );
 
@@ -110,12 +106,22 @@ public class HibernateOrganisationUnitStore
     }
 
     @Override
+    public List<OrganisationUnit> getOrganisationUnitsWithProgram( Program program )
+    {
+        final String jpql = "select distinct o from OrganisationUnit o " +
+            "join o.programs p where p.id = :programId";
+
+        return getQuery( jpql )
+            .setParameter( "programId", program.getId() )
+            .list();
+    }
+
+    @Override
     public Long getOrganisationUnitHierarchyMemberCount( OrganisationUnit parent, Object member, String collectionName )
     {
-        final String hql =
-            "select count(*) from OrganisationUnit o " +
-                "where o.path like :path " +
-                "and :object in elements(o." + collectionName + ")";
+        final String hql = "select count(*) from OrganisationUnit o " +
+            "where o.path like :path " +
+            "and :object in elements(o." + collectionName + ")";
 
         Query<Long> query = getTypedQuery( hql );
         query.setParameter( "path", parent.getPath() + "%" )
@@ -220,7 +226,8 @@ public class HibernateOrganisationUnitStore
     }
 
     @Override
-    public Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap( Collection<OrganisationUnit> organisationUnits, Collection<DataSet> dataSets )
+    public Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap(
+        Collection<OrganisationUnit> organisationUnits, Collection<DataSet> dataSets )
     {
         SqlHelper hlp = new SqlHelper();
 
@@ -247,7 +254,8 @@ public class HibernateOrganisationUnitStore
         {
             Assert.notEmpty( dataSets, "Data sets cannot be empty" );
 
-            sql += hlp.whereAnd() + " ds.datasetid in (" + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( dataSets ), "," ) + ") ";
+            sql += hlp.whereAnd() + " ds.datasetid in ("
+                + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( dataSets ), "," ) + ") ";
         }
 
         sql += "group by ou_uid";
@@ -269,7 +277,8 @@ public class HibernateOrganisationUnitStore
     @Override
     public List<OrganisationUnit> getWithinCoordinateArea( double[] box )
     {
-        // can't use hibernate-spatial 'makeenvelope' function, because not available in
+        // can't use hibernate-spatial 'makeenvelope' function, because not
+        // available in
         // current hibernate version
         // see: https://hibernate.atlassian.net/browse/HHH-13083
 
@@ -284,32 +293,14 @@ public class HibernateOrganisationUnitStore
 
     private String doMakeEnvelopeSql( double[] box )
     {
-        // equivalent to: postgis 'ST_MakeEnvelope' (https://postgis.net/docs/ST_MakeEnvelope.html)
+        // equivalent to: postgis 'ST_MakeEnvelope'
+        // (https://postgis.net/docs/ST_MakeEnvelope.html)
         return "ST_MakeEnvelope(" + box[1] + "," + box[0] + "," + box[3] + "," + box[2] + ", 4326)";
     }
 
     // -------------------------------------------------------------------------
     // OrganisationUnitHierarchy
     // -------------------------------------------------------------------------
-
-    @Override
-    public OrganisationUnitHierarchy getOrganisationUnitHierarchy()
-    {
-        final String sql = "select organisationunitid, parentid from organisationunit";
-
-        return new OrganisationUnitHierarchy( jdbcTemplate.query( sql, new OrganisationUnitRelationshipRowMapper() ) );
-    }
-
-    @Override
-    public void updateOrganisationUnitParent( long organisationUnitId, long parentId )
-    {
-        Timestamp now = new Timestamp( new Date().getTime() );
-
-        final String sql = "update organisationunit " + "set parentid=" + parentId + ", lastupdated='"
-            + now + "' " + "where organisationunitid=" + organisationUnitId;
-
-        jdbcTemplate.execute( sql );
-    }
 
     @Override
     public void updatePaths()

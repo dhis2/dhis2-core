@@ -1,7 +1,5 @@
-package org.hisp.dhis.query.operators;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,14 @@ package org.hisp.dhis.query.operators;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query.operators;
+
+import java.util.Collection;
+import java.util.Date;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
@@ -34,15 +40,12 @@ import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
 
-import java.util.Collection;
-import java.util.Date;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class BetweenOperator extends Operator
+public class BetweenOperator<T extends Comparable<? super T>> extends Operator<T>
 {
-    public BetweenOperator( Object arg0, Object arg1 )
+    public BetweenOperator( T arg0, T arg1 )
     {
         super( "between", Typed.from( String.class, Number.class, Date.class ), arg0, arg1 );
     }
@@ -51,6 +54,12 @@ public class BetweenOperator extends Operator
     public Criterion getHibernateCriterion( QueryPath queryPath )
     {
         return Restrictions.between( queryPath.getPath(), args.get( 0 ), args.get( 1 ) );
+    }
+
+    @Override
+    public <Y> Predicate getPredicate( CriteriaBuilder builder, Root<Y> root, QueryPath queryPath )
+    {
+        return builder.between( root.get( queryPath.getPath() ), getArgs().get( 0 ), getArgs().get( 1 ) );
     }
 
     @Override

@@ -1,7 +1,5 @@
-package org.hisp.dhis.datastatistics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,17 @@ package org.hisp.dhis.datastatistics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datastatistics;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.hisp.dhis.DhisSpringTest;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Yrjan A. F. Fraschetti
@@ -49,14 +48,19 @@ public class DataStatisticsEventStoreTest
     private DataStatisticsEventStore dataStatisticsEventStore;
 
     private DataStatisticsEvent dse1;
+
     private DataStatisticsEvent dse2;
+
     private DataStatisticsEvent dse3;
+
     private DataStatisticsEvent dse4;
 
     private int dse1Id;
+
     private int dse2Id;
 
     private Date start;
+
     private Date end;
 
     @Override
@@ -91,9 +95,10 @@ public class DataStatisticsEventStoreTest
         dataStatisticsEventStore.save( dse1 );
         dataStatisticsEventStore.save( dse4 );
 
-        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start, end );
+        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start,
+            end );
 
-        //Test for 3 objects because TOTAL_VIEWS is always present
+        // Test for 3 objects because TOTAL_VIEWS is always present
         assertTrue( dsList.size() == 3 );
     }
 
@@ -103,7 +108,8 @@ public class DataStatisticsEventStoreTest
         dataStatisticsEventStore.save( dse1 );
         dataStatisticsEventStore.save( dse4 );
 
-        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start, end );
+        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start,
+            end );
         double expected = 1.0;
         double firstActual = dsList.get( DataStatisticsEventType.REPORT_TABLE_VIEW );
         double secondActual = dsList.get( DataStatisticsEventType.DASHBOARD_VIEW );
@@ -119,8 +125,9 @@ public class DataStatisticsEventStoreTest
         dataStatisticsEventStore.save( dse4 );
         dataStatisticsEventStore.save( dse2 );
 
-        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start, end );
-        //Test for 4 objects, because TOTAL_VIEW is always present
+        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start,
+            end );
+        // Test for 4 objects, because TOTAL_VIEW is always present
         assertTrue( dsList.size() == 4 );
     }
 
@@ -131,8 +138,9 @@ public class DataStatisticsEventStoreTest
         dataStatisticsEventStore.save( dse4 );
         dataStatisticsEventStore.save( dse3 );
 
-        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start, end );
-        //Test for 3 objects because TOTAL_VIEW is always present
+        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start,
+            end );
+        // Test for 3 objects because TOTAL_VIEW is always present
         assertTrue( dsList.size() == 3 );
     }
 }

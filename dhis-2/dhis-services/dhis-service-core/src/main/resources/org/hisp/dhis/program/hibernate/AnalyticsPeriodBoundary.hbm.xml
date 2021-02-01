@@ -27,7 +27,7 @@
     
     <property name="offsetPeriods" />
     
-    <many-to-one name="offsetPeriodType" class="org.hisp.dhis.period.PeriodType" 
+    <many-to-one name="offsetPeriodType" class="org.hisp.dhis.period.PeriodType"
         column="offsetperiodtypeid" foreign-key="fk_periodboundary_periodtype" />
         
     <many-to-one name="programIndicator" class="org.hisp.dhis.program.ProgramIndicator" not-null="false"

@@ -1,7 +1,5 @@
-package org.hisp.dhis.fileresource.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,13 @@ package org.hisp.dhis.fileresource.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.fileresource.hibernate;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceStore;
@@ -42,8 +42,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Set;
+import com.google.common.collect.ImmutableSet;
 
 @Repository( "org.hisp.dhis.fileresource.FileResourceStore" )
 public class HibernateFileResourceStore
@@ -57,10 +56,9 @@ public class HibernateFileResourceStore
         .build();
 
     public HibernateFileResourceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
-        AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, FileResource.class, currentUserService, deletedObjectService, aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, FileResource.class, currentUserService, aclService, false );
     }
 
     @Override
@@ -76,7 +74,7 @@ public class HibernateFileResourceStore
                 "and dva.dataelementid in " +
                 "(select dataelementid from dataelement where valuetype = 'FILE_RESOURCE')) dva " +
                 "on dva.value = fr.uid " +
-                "where fr.isassigned = true; ", FileResource.class)
+                "where fr.isassigned = true; ", FileResource.class )
             .setParameter( "date", expires.toDate() )
             .getResultList();
 
@@ -86,10 +84,11 @@ public class HibernateFileResourceStore
     @Override
     public List<FileResource> getAllUnProcessedImages()
     {
-        return getQuery( "FROM FileResource fr WHERE fr.domain IN ( :domains ) AND fr.contentType IN ( :contentTypes ) AND hasMultipleStorageFiles = :hasMultipleStorageFiles" )
-            .setParameter( "domains", FileResourceDomain.getDomainForMultipleImages() )
-            .setParameter( "contentTypes", IMAGE_CONTENT_TYPES )
-            .setParameter( "hasMultipleStorageFiles", false )
-            .setMaxResults( 50 ).getResultList();
+        return getQuery(
+            "FROM FileResource fr WHERE fr.domain IN ( :domains ) AND fr.contentType IN ( :contentTypes ) AND hasMultipleStorageFiles = :hasMultipleStorageFiles" )
+                .setParameter( "domains", FileResourceDomain.getDomainForMultipleImages() )
+                .setParameter( "contentTypes", IMAGE_CONTENT_TYPES )
+                .setParameter( "hasMultipleStorageFiles", false )
+                .setMaxResults( 50 ).getResultList();
     }
 }

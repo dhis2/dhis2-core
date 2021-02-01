@@ -1,7 +1,5 @@
-package org.hisp.dhis.query;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.query;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query;
+
+import javax.persistence.criteria.Predicate;
 
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.QueryPath;
@@ -37,7 +38,8 @@ import org.hisp.dhis.query.planner.QueryPath;
 public class Restriction implements Criterion
 {
     /**
-     * Path to property you want to restrict only, one first-level properties are currently supported.
+     * Path to property you want to restrict only, one first-level properties
+     * are currently supported.
      */
     private String path;
 
@@ -50,6 +52,14 @@ public class Restriction implements Criterion
      * Query Path.
      */
     private QueryPath queryPath;
+
+    private Predicate predicate;
+
+    public Restriction( String path, Predicate predicate )
+    {
+        this.path = path;
+        this.predicate = predicate;
+    }
 
     public Restriction( String path, Operator operator )
     {
@@ -76,6 +86,16 @@ public class Restriction implements Criterion
     {
         this.queryPath = queryPath;
         return this;
+    }
+
+    public Predicate getPredicate()
+    {
+        return predicate;
+    }
+
+    public void setPredicate( Predicate predicate )
+    {
+        this.predicate = predicate;
     }
 
     public boolean haveQueryPath()

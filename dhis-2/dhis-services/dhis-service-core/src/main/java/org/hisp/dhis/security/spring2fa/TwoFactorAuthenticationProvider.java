@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.spring2fa;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.security.spring2fa;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.spring2fa;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,35 +36,38 @@ import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.SecurityUtils;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
-
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Henning Håkonsen
  */
 @Slf4j
-public class TwoFactorAuthenticationProvider
-    extends DaoAuthenticationProvider
+@Component
+public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
 {
+    @Autowired
     private UserService userService;
 
-    public void setUserService( UserService userService )
-    {
-        this.userService = userService;
-    }
-
+    @Autowired
     private SecurityService securityService;
 
-    public void setSecurityService( SecurityService securityService )
+    @Autowired
+    public TwoFactorAuthenticationProvider( @Qualifier( "userDetailsService" ) UserDetailsService detailsService,
+        PasswordEncoder passwordEncoder )
     {
-        this.securityService = securityService;
+        setUserDetailsService( detailsService );
+        setPasswordEncoder( passwordEncoder );
     }
 
     @Override
@@ -81,7 +85,8 @@ public class TwoFactorAuthenticationProvider
             throw new BadCredentialsException( "Invalid username or password" );
         }
 
-        // Initialize all required properties of user credentials since these will become detached
+        // Initialize all required properties of user credentials since these
+        // will become detached
 
         userCredentials.getAllAuthorities();
 
@@ -91,17 +96,18 @@ public class TwoFactorAuthenticationProvider
 
         if ( userCredentials.isTwoFA() )
         {
-            TwoFactorWebAuthenticationDetails authDetails =
-                (TwoFactorWebAuthenticationDetails) auth.getDetails();
+            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) auth.getDetails();
 
             // -------------------------------------------------------------------------
-            // Check whether account is locked due to multiple failed login attempts
+            // Check whether account is locked due to multiple failed login
+            // attempts
             // -------------------------------------------------------------------------
 
             if ( authDetails == null )
             {
                 log.info( "Missing authentication details in authentication request." );
-                throw new PreAuthenticatedCredentialsNotFoundException( "Missing authentication details in authentication request." );
+                throw new PreAuthenticatedCredentialsNotFoundException(
+                    "Missing authentication details in authentication request." );
             }
 
             String ip = authDetails.getIp();
@@ -116,14 +122,16 @@ public class TwoFactorAuthenticationProvider
 
             if ( !LongValidator.getInstance().isValid( code ) || !SecurityUtils.verify( userCredentials, code ) )
             {
-                log.info( String.format( "Two-factor authentication failure for user: %s", userCredentials.getUsername() ) );
+                log.info(
+                    String.format( "Two-factor authentication failure for user: %s", userCredentials.getUsername() ) );
 
                 throw new BadCredentialsException( "Invalid verification code" );
             }
         }
 
         // -------------------------------------------------------------------------
-        // Delegate authentication downstream, using UserCredentials as principal
+        // Delegate authentication downstream, using UserCredentials as
+        // principal
         // -------------------------------------------------------------------------
 
         Authentication result = super.authenticate( auth );
@@ -138,7 +146,8 @@ public class TwoFactorAuthenticationProvider
         userCredentials.isSuper();
         userCredentials.getAllAuthorities();
 
-        return new UsernamePasswordAuthenticationToken( userCredentials, result.getCredentials(), result.getAuthorities() );
+        return new UsernamePasswordAuthenticationToken( userCredentials, result.getCredentials(),
+            result.getAuthorities() );
     }
 
     @Override

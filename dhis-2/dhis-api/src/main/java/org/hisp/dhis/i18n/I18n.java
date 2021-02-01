@@ -1,7 +1,5 @@
-package org.hisp.dhis.i18n;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.i18n;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.i18n;
 
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -37,7 +36,7 @@ import java.util.ResourceBundle;
  * @author Anders Gjendem
  */
 public class I18n
-{    
+{
     private ResourceBundle globalResourceBundle;
 
     private ResourceBundle specificResourceBundle;
@@ -61,7 +60,7 @@ public class I18n
      *
      * @param key the key for a given translation
      * @return a translated String for a given key, or the key if no translation
-     *          is found.
+     *         is found.
      */
     public String getString( String key )
     {

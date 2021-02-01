@@ -1,7 +1,7 @@
 package org.hisp.dhis.aggregate;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,6 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -55,7 +54,6 @@ import static org.hamcrest.Matchers.*;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Disabled
 public class DataImportTest
     extends ApiTest
 {
@@ -89,7 +87,7 @@ public class DataImportTest
 
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "SUCCESS" ) )
-            .body( "conflicts", nullValue() )
+            .body( "conflicts", empty() )
             .body( "importCount", notNullValue() )
             .rootPath( "importCount" )
             .body( "ignored", not( greaterThan( 0 ) ) )
@@ -149,7 +147,7 @@ public class DataImportTest
 
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "SUCCESS" ) )
-            .body( "conflicts", nullValue() )
+            .body( "conflicts", empty() )
             .body( "importCount", notNullValue() )
             .rootPath( "importCount" )
             .body( "ignored", not( greaterThan( 0 ) ) )
@@ -190,7 +188,7 @@ public class DataImportTest
     public void cleanUp()
     {
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-        queryParamsBuilder.addAll( "importReportMode=FULL", "importStrategy=DELETE"  );
+        queryParamsBuilder.addAll( "importReportMode=FULL", "importStrategy=DELETE" );
 
         ApiResponse response = dataValueSetActions.postFile( new File( "src/test/resources/aggregate/dataValues_bulk.json" ),
             queryParamsBuilder );

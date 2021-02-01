@@ -1,7 +1,5 @@
-package org.hisp.dhis.mock.batchhandler;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.mock.batchhandler;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mock.batchhandler;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,15 +40,16 @@ public class MockBatchHandlerFactory
     implements BatchHandlerFactory
 {
     private Map<String, BatchHandler<?>> batchHandlers = new HashMap<>();
-    
-    public <T> BatchHandlerFactory registerBatchHandler( Class<? extends BatchHandler<T>> clazz, BatchHandler<T> batchHandler )
+
+    public <T> BatchHandlerFactory registerBatchHandler( Class<? extends BatchHandler<T>> clazz,
+        BatchHandler<T> batchHandler )
     {
         batchHandlers.put( clazz.getName(), batchHandler );
         return this;
     }
-    
+
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public <T> BatchHandler<T> createBatchHandler( Class<? extends BatchHandler<T>> clazz )
     {
         return (BatchHandler<T>) batchHandlers.get( clazz.getName() );

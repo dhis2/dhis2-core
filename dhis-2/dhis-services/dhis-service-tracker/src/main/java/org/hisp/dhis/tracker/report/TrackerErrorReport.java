@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.report;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,56 +25,108 @@ package org.hisp.dhis.tracker.report;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.report;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import static org.hisp.dhis.tracker.report.TrackerReportUtils.buildArgumentList;
+
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import lombok.Builder;
 import lombok.Data;
-import org.hisp.dhis.tracker.TrackerErrorCode;
-import org.hisp.dhis.tracker.TrackerErrorMessage;
+
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
+@Builder
 public class TrackerErrorReport
 {
-    @JsonProperty
-    private final Class<?> mainKlass;
+    private final String errorMessage;
 
-    private final TrackerErrorMessage message;
+    private final TrackerErrorCode errorCode;
 
-    @JsonProperty
-    private String mainId;
+    private final TrackerType trackerType;
 
-    @JsonProperty
-    private Class<?> errorKlass;
+    private final String uid;
 
-    @JsonProperty
-    private String errorProperty;
-
-    @JsonProperty
-    private Object value;
-
-    public TrackerErrorReport( Class<?> mainKlass, TrackerErrorCode errorCode, Object... args )
+    @JsonCreator
+    public TrackerErrorReport( @JsonProperty( "message" ) String errorMessage,
+        @JsonProperty( "errorCode" ) TrackerErrorCode errorCode,
+        @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
     {
-        this.mainKlass = mainKlass;
-        this.message = new TrackerErrorMessage( errorCode, args );
-    }
-
-    public TrackerErrorReport( Class<?> mainKlass, TrackerErrorMessage message )
-    {
-        this.mainKlass = mainKlass;
-        this.message = message;
+        this.errorMessage = errorMessage;
+        this.errorCode = errorCode;
+        this.trackerType = trackerType;
+        this.uid = uid;
     }
 
     @JsonProperty
     public TrackerErrorCode getErrorCode()
     {
-        return message.getErrorCode();
+        return errorCode;
     }
 
     @JsonProperty
     public String getMessage()
     {
-        return message.getMessage();
+        return errorMessage;
+    }
+
+    @JsonProperty
+    public TrackerType getTrackerType()
+    {
+        return trackerType;
+    }
+
+    @JsonProperty
+    public String getUid()
+    {
+        return uid;
+    }
+
+    public static class TrackerErrorReportBuilder
+    {
+        private final List<Object> arguments = new ArrayList<>();
+
+        public TrackerErrorReportBuilder addArg( Object arg )
+        {
+            this.arguments.add( arg );
+            return this;
+        }
+
+        public TrackerErrorReportBuilder addArgs( Object... args )
+        {
+            this.arguments.addAll( Arrays.asList( args ) );
+            return this;
+        }
+
+        public TrackerErrorReport build( TrackerBundle bundle )
+        {
+            return new TrackerErrorReport(
+                MessageFormat.format( errorCode.getMessage(),
+                    buildArgumentList( bundle, arguments ).toArray( new Object[0] ) ),
+                this.errorCode, this.trackerType, this.uid );
+        }
+    }
+
+    @Override
+    public String toString()
+    {
+        return "TrackerErrorReport{" +
+            "message=" + errorMessage +
+            ", errorCode=" + errorCode +
+            ", trackerEntityType=" + trackerType +
+            ", uid=" + uid +
+            '}';
     }
 }

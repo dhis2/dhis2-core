@@ -1,7 +1,7 @@
 package org.hisp.dhis.metadata.metadata_import;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -201,7 +201,6 @@ public class MetadataImportTest
         metadata.getAsJsonArray( "organisationUnits" ).get( 0 ).getAsJsonObject()
             .addProperty( "shortName", RandomStringUtils.random( 51 ) );
 
-
         // act
         ApiResponse response = metadataActions.post( metadata, queryParamsBuilder );
         response.validate()
@@ -244,7 +243,7 @@ public class MetadataImportTest
         // arrange
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder
-            .addAll( "async=false", "importReportMode=DEBUG" + "importStrategy=CREATE_AND_UPDATE" + "atomicMode=NONE" );
+            .addAll( "async=false", "importReportMode=DEBUG", "importStrategy=CREATE_AND_UPDATE", "atomicMode=NONE" );
 
         // import metadata so that we have references and can clean up
 
@@ -255,7 +254,7 @@ public class MetadataImportTest
         queryParamsBuilder.add( "async=true" );
 
         response = metadataActions.post( object, queryParamsBuilder );
-        
+
         response.validate()
             .statusCode( 200 )
             .body( "response", notNullValue() )
@@ -288,15 +287,17 @@ public class MetadataImportTest
     }
 
     @Test
-    public void shouldNotSkipSharing() {
+    public void shouldNotSkipSharing()
+    {
         JsonObject object = generateMetadataObjectWithInvalidSharing();
 
         ApiResponse response = metadataActions.post( object, new QueryParamsBuilder().add( "skipSharing=false" ) );
 
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "ERROR" ) )
-            .body( "stats.created", equalTo( 0) )
-            .body( "typeReports[0].objectReports[0].errorReports[0].message", stringContainsInOrder( "Invalid reference", "for association `userGroupAccesses`" ) );
+            .body( "stats.created", equalTo( 0 ) )
+            .body( "typeReports[0].objectReports[0].errorReports[0].message",
+                stringContainsInOrder( "Invalid reference", "for association `userGroupAccesses`" ) );
     }
 
     @Test
@@ -304,7 +305,7 @@ public class MetadataImportTest
     {
         JsonObject metadata = generateMetadataObjectWithInvalidSharing();
 
-        ApiResponse response =  metadataActions.post( metadata, new QueryParamsBuilder().add( "skipSharing=true" ));
+        ApiResponse response = metadataActions.post( metadata, new QueryParamsBuilder().add( "skipSharing=true" ) );
 
         response.validate().statusCode( 200 )
             .body( "status", isOneOf( "SUCCESS", "OK" ) )
@@ -312,21 +313,22 @@ public class MetadataImportTest
 
     }
 
-    private JsonObject generateMetadataObjectWithInvalidSharing() {
+    private JsonObject generateMetadataObjectWithInvalidSharing()
+    {
         JsonObject dataElementGroup = DataGenerator.generateObjectForEndpoint( "/dataElementGroup" );
         dataElementGroup.addProperty( "publicAccess", "rw------" );
 
-        JsonArray userGroupAccesses = new JsonArray(  );
+        JsonArray userGroupAccesses = new JsonArray();
         JsonObject userGroupAccess = new JsonObject();
         userGroupAccess.addProperty( "access", "rwrw----" );
-        userGroupAccess.addProperty( "userGroupUid", "non-existing-id " );
+        userGroupAccess.addProperty( "userGroupUid", "non-existing-id" );
         userGroupAccess.addProperty( "id", "non-existing-id" );
 
         userGroupAccesses.add( userGroupAccess );
 
         dataElementGroup.add( "userGroupAccesses", userGroupAccesses );
 
-        JsonArray array = new JsonArray(  );
+        JsonArray array = new JsonArray();
 
         array.add( dataElementGroup );
 

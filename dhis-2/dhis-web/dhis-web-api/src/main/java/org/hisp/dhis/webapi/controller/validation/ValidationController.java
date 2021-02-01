@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,16 @@ package org.hisp.dhis.webapi.controller.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.validation;
 
-import org.hisp.dhis.common.DhisApiVersion;
+import java.util.ArrayList;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -52,10 +56,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
 
 /**
  * @author Lars Helge Overland
@@ -86,7 +86,8 @@ public class ValidationController
     @RequestMapping( value = "/dataSet/{ds}", method = RequestMethod.GET )
     public @ResponseBody ValidationSummary validate( @PathVariable String ds, @RequestParam String pe,
         @RequestParam String ou, @RequestParam( required = false ) String aoc,
-        HttpServletResponse response, Model model ) throws WebMessageException
+        HttpServletResponse response, Model model )
+        throws WebMessageException
     {
         DataSet dataSet = dataSetService.getDataSet( ds );
 
@@ -118,23 +119,24 @@ public class ValidationController
 
         ValidationSummary summary = new ValidationSummary();
 
-
         ValidationAnalysisParams params = validationService.newParamsBuilder( dataSet, orgUnit, period )
             .withAttributeOptionCombo( attributeOptionCombo )
             .build();
 
         summary.setValidationRuleViolations( new ArrayList<>( validationService.validationAnalysis( params ) ) );
-        summary.setCommentRequiredViolations( validationService.validateRequiredComments( dataSet, period, orgUnit, attributeOptionCombo ) );
+        summary.setCommentRequiredViolations(
+            validationService.validateRequiredComments( dataSet, period, orgUnit, attributeOptionCombo ) );
 
         return summary;
     }
-
 
     @RequestMapping( value = "/sendNotifications", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     public void runValidationNotificationsTask( HttpServletResponse response, HttpServletRequest request )
     {
-        JobConfiguration validationResultNotification = new JobConfiguration("validation result notification from validation controller", JobType.VALIDATION_RESULTS_NOTIFICATION, "", null );
+        JobConfiguration validationResultNotification = new JobConfiguration(
+            "validation result notification from validation controller", JobType.VALIDATION_RESULTS_NOTIFICATION, "",
+            null );
 
         schedulingManager.executeJob( validationResultNotification );
 

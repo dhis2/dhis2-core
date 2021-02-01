@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,24 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
+import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -55,6 +68,7 @@ import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -64,6 +78,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationRule;
@@ -87,18 +102,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
-import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
+import com.google.common.collect.Sets;
 
 /**
  * @author Joao Antunes
@@ -162,9 +166,9 @@ public class DataAnalysisController
 
     @RequestMapping( value = "/validationRules", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
-    public @ResponseBody
-    List<ValidationResultView> performValidationRulesAnalysis(
-        @RequestBody ValidationRulesAnalysisParams validationRulesAnalysisParams, HttpSession session )
+    public @ResponseBody List<ValidationResultView> performValidationRulesAnalysis(
+        @RequestBody ValidationRulesAnalysisParams validationRulesAnalysisParams,
+        HttpSession session )
         throws WebMessageException
     {
         I18nFormat format = i18nManager.getI18nFormat();
@@ -192,7 +196,7 @@ public class DataAnalysisController
             .withMaxResults( ValidationService.MAX_INTERACTIVE_ALERTS )
             .build();
 
-        List<ValidationResult> validationResults = new ArrayList<>( validationService.validationAnalysis( params ) );
+        List<ValidationResult> validationResults = validationService.validationAnalysis( params );
 
         validationResults.sort( new ValidationResultComparator() );
 
@@ -204,9 +208,11 @@ public class DataAnalysisController
 
     @RequestMapping( value = "validationRulesExpression", method = RequestMethod.GET )
     @ResponseStatus( HttpStatus.OK )
-    public @ResponseBody
-    ValidationRuleExpressionDetails getValidationRuleExpressionDetials( @RequestParam String validationRuleId,
-        @RequestParam String periodId, @RequestParam String organisationUnitId )
+    public @ResponseBody ValidationRuleExpressionDetails getValidationRuleExpressionDetials(
+        @RequestParam String validationRuleId,
+        @RequestParam String periodId,
+        @RequestParam String organisationUnitId,
+        @RequestParam( required = false ) String attributeOptionComboId )
         throws WebMessageException
     {
         ValidationRule validationRule = validationRuleService.getValidationRule( validationRuleId );
@@ -229,20 +235,37 @@ public class DataAnalysisController
             throw new WebMessageException( WebMessageUtils.notFound( "Can't find Period with id =" + periodId ) );
         }
 
+        CategoryOptionCombo attributeOptionCombo;
+        if ( attributeOptionComboId == null )
+        {
+            attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+        }
+        else
+        {
+            attributeOptionCombo = categoryService.getCategoryOptionCombo( attributeOptionComboId );
+            if ( attributeOptionCombo == null )
+            {
+                throw new WebMessageException(
+                    WebMessageUtils.notFound( "Can't find AttributeOptionCombo with id = " + attributeOptionComboId ) );
+            }
+        }
+
         ValidationRuleExpressionDetails validationRuleExpressionDetails = new ValidationRuleExpressionDetails();
 
-        processLeftSideDetails( validationRuleExpressionDetails, validationRule, organisationUnit, period );
+        processLeftSideDetails( validationRuleExpressionDetails, validationRule, organisationUnit, period,
+            attributeOptionCombo );
 
-        processRightSideDetails( validationRuleExpressionDetails, validationRule, organisationUnit, period );
+        processRightSideDetails( validationRuleExpressionDetails, validationRule, organisationUnit, period,
+            attributeOptionCombo );
 
         return validationRuleExpressionDetails;
     }
 
     @RequestMapping( value = "/stdDevOutlier", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
-    public @ResponseBody
-    List<DeflatedDataValue> performStdDevOutlierAnalysis(
-        @RequestBody DataAnalysisParams stdDevOutlierAnalysisParams, HttpSession session )
+    public @ResponseBody List<DeflatedDataValue> performStdDevOutlierAnalysis(
+        @RequestBody DataAnalysisParams stdDevOutlierAnalysisParams,
+        HttpSession session )
         throws WebMessageException
     {
         I18nFormat format = i18nManager.getI18nFormat();
@@ -287,9 +310,9 @@ public class DataAnalysisController
 
     @RequestMapping( value = "/minMaxOutlier", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
-    public @ResponseBody
-    List<DeflatedDataValue> performMinMaxOutlierAnalysis(
-        @RequestBody DataAnalysisParams params, HttpSession session )
+    public @ResponseBody List<DeflatedDataValue> performMinMaxOutlierAnalysis(
+        @RequestBody DataAnalysisParams params,
+        HttpSession session )
         throws WebMessageException
     {
         I18nFormat format = i18nManager.getI18nFormat();
@@ -335,8 +358,7 @@ public class DataAnalysisController
 
     @RequestMapping( value = "/followup", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
-    public @ResponseBody
-    List<DeflatedDataValue> performFollowupAnalysis( @RequestBody DataAnalysisParams params,
+    public @ResponseBody List<DeflatedDataValue> performFollowupAnalysis( @RequestBody DataAnalysisParams params,
         HttpSession session )
         throws WebMessageException
     {
@@ -365,7 +387,9 @@ public class DataAnalysisController
 
         List<DeflatedDataValue> dataValues = new ArrayList<>( followupAnalysisService
             .getFollowupDataValues( Sets.newHashSet( organisationUnit ), dataElements,
-                periods, DataAnalysisService.MAX_OUTLIERS + 1 ) ); // +1 to detect overflow
+                periods, DataAnalysisService.MAX_OUTLIERS + 1 ) ); // +1 to
+                                                                   // detect
+                                                                   // overflow
 
         session.setAttribute( KEY_ANALYSIS_DATA_VALUES, dataValues );
         session.setAttribute( KEY_ORG_UNIT, organisationUnit );
@@ -496,8 +520,7 @@ public class DataAnalysisController
         @SuppressWarnings( "unchecked" )
         List<ValidationResult> results = (List<ValidationResult>) session.getAttribute( KEY_VALIDATION_RESULT );
         Grid grid = generateValidationRulesReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
-            KEY_ORG_UNIT )
-        );
+            KEY_ORG_UNIT ) );
 
         String filename = filenameEncode( grid.getTitle() ) + ".csv";
         contextUtils
@@ -508,13 +531,15 @@ public class DataAnalysisController
     }
 
     private void processLeftSideDetails( ValidationRuleExpressionDetails validationRuleExpressionDetails,
-        ValidationRule validationRule, OrganisationUnit organisationUnit, Period period )
+        ValidationRule validationRule, OrganisationUnit organisationUnit, Period period,
+        CategoryOptionCombo attributeOptionCombo )
     {
         for ( DataElementOperand operand : expressionService
             .getExpressionOperands( validationRule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION ) )
         {
             DataValue dataValue = dataValueService
-                .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
+                .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo(),
+                    attributeOptionCombo );
 
             String value = dataValue != null ? dataValue.getValue() : null;
 
@@ -523,13 +548,15 @@ public class DataAnalysisController
     }
 
     private void processRightSideDetails( ValidationRuleExpressionDetails validationRuleExpressionDetails,
-        ValidationRule validationRule, OrganisationUnit organisationUnit, Period period )
+        ValidationRule validationRule, OrganisationUnit organisationUnit, Period period,
+        CategoryOptionCombo attributeOptionCombo )
     {
         for ( DataElementOperand operand : expressionService
             .getExpressionOperands( validationRule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION ) )
         {
             DataValue dataValue = dataValueService
-                .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
+                .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo(),
+                    attributeOptionCombo );
 
             String value = dataValue != null ? dataValue.getValue() : null;
 
@@ -606,16 +633,17 @@ public class DataAnalysisController
             {
                 OrganisationUnit unit = validationResult.getOrganisationUnit();
                 Period period = validationResult.getPeriod();
+                Importance importance = validationResult.getValidationRule().getImportance();
+                Operator operator = validationResult.getValidationRule().getOperator();
 
                 grid.addRow();
                 grid.addValue( unit.getName() );
                 grid.addValue( format.formatPeriod( period ) );
                 grid.addValue( validationResult.getValidationRule().getName() );
-                grid.addValue(
-                    i18n.getString( validationResult.getValidationRule().getImportance().toString().toLowerCase() ) );
+                grid.addValue( i18n.getString( importance.toString().toLowerCase() ) );
                 grid.addValue( validationResult.getValidationRule().getLeftSide().getDescription() );
                 grid.addValue( String.valueOf( validationResult.getLeftsideValue() ) );
-                grid.addValue( i18n.getString( validationResult.getValidationRule().getOperator().toString() ) );
+                grid.addValue( i18n.getString( operator.toString() ) );
                 grid.addValue( String.valueOf( validationResult.getRightsideValue() ) );
                 grid.addValue( validationResult.getValidationRule().getRightSide().getDescription() );
             }
@@ -680,6 +708,13 @@ public class DataAnalysisController
             {
                 validationResultView.setPeriodId( period.getIsoDate() );
                 validationResultView.setPeriodDisplayName( format.formatPeriod( period ) );
+            }
+
+            CategoryOptionCombo attributeOptionCombo = validationResult.getAttributeOptionCombo();
+            if ( attributeOptionCombo != null )
+            {
+                validationResultView.setAttributeOptionComboId( attributeOptionCombo.getUid() );
+                validationResultView.setAttributeOptionComboDisplayName( attributeOptionCombo.getDisplayName() );
             }
 
             validationResultView.setLeftSideValue( validationResult.getLeftsideValue() );

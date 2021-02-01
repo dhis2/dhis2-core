@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics;
 
 import java.util.Date;
 import java.util.Objects;
@@ -48,8 +47,9 @@ public class AnalyticsTablePartition
     private AnalyticsTable masterTable;
 
     /**
-     * The year for which this partition may contain data. A zero value indicates
-     * the "latest" data stored since last full analytics table generation.
+     * The year for which this partition may contain data. A zero value
+     * indicates the "latest" data stored since last full analytics table
+     * generation.
      */
     private Integer year;
 
@@ -68,7 +68,8 @@ public class AnalyticsTablePartition
      */
     private boolean dataApproval;
 
-    public AnalyticsTablePartition( AnalyticsTable masterTable, Integer year, Date startDate, Date endDate, boolean dataApproval )
+    public AnalyticsTablePartition( AnalyticsTable masterTable, Integer year, Date startDate, Date endDate,
+        boolean dataApproval )
     {
         this.masterTable = masterTable;
         this.year = year;
