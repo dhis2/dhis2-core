@@ -133,8 +133,8 @@ public class EnrollmentTrackerConverterService
             programInstance.setUid( enrollment.getEnrollment() );
             programInstance.setCreated( now );
             programInstance.setCreatedAtClient( now );
-            programInstance.setLastUpdated( now );
-            programInstance.setLastUpdatedAtClient( now );
+            programInstance.setCreatedAtClient( DateUtils.fromInstant( enrollment.getCreatedAtClient() ) );
+            programInstance.setLastUpdatedAtClient( DateUtils.fromInstant( enrollment.getUpdatedAtClient() ) );
 
             Date enrollmentDate = DateUtils.fromInstant( enrollment.getEnrolledAt() );
             Date incidentDate = DateUtils.fromInstant( enrollment.getOccurredAt() );
