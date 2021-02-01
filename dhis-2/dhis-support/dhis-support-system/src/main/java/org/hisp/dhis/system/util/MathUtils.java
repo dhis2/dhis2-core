@@ -275,7 +275,7 @@ public class MathUtils
     }
 
     /**
-     * Returns true if the provided string argument is an integer in the inclusive
+     * Returns true if the provided string argument is a number in the inclusive
      * range of 0 to 100.
      *
      * @param value the value.
@@ -283,14 +283,14 @@ public class MathUtils
      */
     public static boolean isPercentage( String value )
     {
-        if ( !isInteger( value ) )
+        if ( !isNumeric( value ) )
         {
             return false;
         }
 
-        Integer integer = Integer.valueOf( value );
+        Double doubleValue = Double.valueOf( value );
 
-        return integer >= 0 && integer <= 100;
+        return doubleValue >= 0 && doubleValue <= 100;
     }
 
     /**
