@@ -73,13 +73,13 @@ public enum ProgramRuleActionType
      * Actions associated with {@link DataElement} or
      * {@link TrackedEntityAttribute}.
      */
-    public static final Set<ProgramRuleActionType> DATA_LINKED_TYPES = ImmutableSet.of(
+    public static final ImmutableSet<ProgramRuleActionType> DATA_LINKED_TYPES = ImmutableSet.of(
         HIDEFIELD, SETMANDATORYFIELD, HIDEOPTION, HIDEOPTIONGROUP, SHOWOPTIONGROUP );
 
     /**
      * Actions associated with {@link NotificationTemplate}.
      */
-    public static final Set<ProgramRuleActionType> NOTIFICATION_LINKED_TYPES = ImmutableSet.of(
+    public static final ImmutableSet<ProgramRuleActionType> NOTIFICATION_LINKED_TYPES = ImmutableSet.of(
         SENDMESSAGE, SCHEDULEMESSAGE );
 
     ProgramRuleActionType( String value )
