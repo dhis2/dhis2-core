@@ -95,13 +95,15 @@ public class HibernateProgramRuleStore
     }
 
     @Override
-    public List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types )
+    public List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> actionTypes )
     {
-        return getQuery(
-            "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes )" )
-                .setParameter( "programId", program )
-                .setParameter( "implementableTypes", types )
-                .getResultList();
+        final String hql = "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
+            "WHERE pr.program = :program AND pra.programRuleActionType IN ( :actionTypes )";
+
+        return getQuery( hql )
+            .setParameter( "program", program )
+            .setParameter( "actionTypes", actionTypes )
+            .getResultList();
     }
 
     @Override

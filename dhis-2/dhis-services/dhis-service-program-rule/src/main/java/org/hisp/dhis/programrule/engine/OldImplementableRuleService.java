@@ -53,7 +53,7 @@ public class OldImplementableRuleService implements ImplementableRuleService
     {
         List<ProgramRule> permittedRules;
 
-        permittedRules = programRuleService.getImplementableProgramRules( program,
+        permittedRules = programRuleService.getProgramRulesByActionTypes( program,
             ProgramRuleActionType.getNotificationLinkedTypes() );
 
         if ( permittedRules.isEmpty() )
@@ -61,7 +61,7 @@ public class OldImplementableRuleService implements ImplementableRuleService
             return permittedRules;
         }
 
-        return programRuleService.getImplementableProgramRules( program,
+        return programRuleService.getProgramRulesByActionTypes( program,
             ProgramRuleActionType.getImplementedActions() );
     }
 }
