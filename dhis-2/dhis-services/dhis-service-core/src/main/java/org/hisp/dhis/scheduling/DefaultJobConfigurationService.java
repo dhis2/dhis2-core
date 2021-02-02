@@ -40,6 +40,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -52,8 +54,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Henning Håkonsen
