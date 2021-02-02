@@ -65,6 +65,9 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerTrackedEntityCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.tracker.mapper.TrackerTrackedEntityCriteriaMapper;
+import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,6 +86,9 @@ public class TrackedEntityCriteriaMapper
     private final TrackedEntityTypeService trackedEntityTypeService;
 
     private final TrackedEntityAttributeService attributeService;
+
+    private static final TrackerTrackedEntityCriteriaMapper TRACKER_TRACKED_ENTITY_CRITERIA_MAPPER = Mappers
+        .getMapper( TrackerTrackedEntityCriteriaMapper.class );
 
     public TrackedEntityCriteriaMapper( CurrentUserService currentUserService,
         OrganisationUnitService organisationUnitService, ProgramService programService,
@@ -381,5 +387,15 @@ public class TrackedEntityCriteriaMapper
                 }
             }
         }
+    }
+
+    /**
+     * TODO: as mentioned in {@link TrackerTrackedEntityCriteriaMapper} this
+     * method should be removed when we will have services for new tracker
+     */
+    @Transactional( readOnly = true )
+    public TrackedEntityInstanceQueryParams map( TrackerTrackedEntityCriteria criteria )
+    {
+        return map( TRACKER_TRACKED_ENTITY_CRITERIA_MAPPER.toTrackedEntityInstanceCriteria( criteria ) );
     }
 }

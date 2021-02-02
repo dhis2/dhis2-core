@@ -51,7 +51,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.webrequest.EnrollmentCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEnrollmentCriteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -177,24 +177,24 @@ public class EnrollmentCriteriaMapper
     }
 
     @Transactional( readOnly = true )
-    public ProgramInstanceQueryParams getFromUrl( EnrollmentCriteria enrollmentCriteria )
+    public ProgramInstanceQueryParams getFromUrl( TrackerEnrollmentCriteria trackerEnrollmentCriteria )
     {
         return getFromUrl(
-            TextUtils.splitToArray( enrollmentCriteria.getOu(), TextUtils.SEMICOLON ),
-            enrollmentCriteria.getOuMode(),
-            enrollmentCriteria.getLastUpdated(),
-            enrollmentCriteria.getLastUpdatedDuration(),
-            enrollmentCriteria.getProgram(),
-            enrollmentCriteria.getProgramStatus(),
-            enrollmentCriteria.getProgramStartDate(),
-            enrollmentCriteria.getProgramEndDate(),
-            enrollmentCriteria.getTrackedEntityType(),
-            enrollmentCriteria.getTrackedEntityInstance(),
-            enrollmentCriteria.getFollowUp(),
-            enrollmentCriteria.getPage(),
-            enrollmentCriteria.getPageSize(),
-            enrollmentCriteria.isTotalPages(),
-            PagerUtils.isSkipPaging( enrollmentCriteria.getSkipPaging(), enrollmentCriteria.getPaging() ),
-            enrollmentCriteria.isIncludeDeleted() );
+            TextUtils.splitToArray( trackerEnrollmentCriteria.getOu(), TextUtils.SEMICOLON ),
+            trackerEnrollmentCriteria.getOuMode(),
+            trackerEnrollmentCriteria.getUpdatedAt(),
+            trackerEnrollmentCriteria.getUpdatedWithin(),
+            trackerEnrollmentCriteria.getProgram(),
+            trackerEnrollmentCriteria.getProgramStatus(),
+            trackerEnrollmentCriteria.getEnrolledAtFrom(),
+            trackerEnrollmentCriteria.getEnrolledAtTo(),
+            trackerEnrollmentCriteria.getTrackedEntityType(),
+            trackerEnrollmentCriteria.getTrackedEntity(),
+            trackerEnrollmentCriteria.getFollowUp(),
+            trackerEnrollmentCriteria.getPage(),
+            trackerEnrollmentCriteria.getPageSize(),
+            trackerEnrollmentCriteria.isTotalPages(),
+            PagerUtils.isSkipPaging( trackerEnrollmentCriteria.getSkipPaging(), trackerEnrollmentCriteria.getPaging() ),
+            trackerEnrollmentCriteria.isIncludeDeleted() );
     }
 }
