@@ -54,7 +54,8 @@ import com.google.common.collect.Lists;
  */
 @Slf4j
 @Service( "org.hisp.dhis.programrule.engine.ProgramRuleEngineService" )
-public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
+public class DefaultProgramRuleEngineService
+    implements ProgramRuleEngineService
 {
     // -------------------------------------------------------------------------
     // Dependencies
