@@ -47,6 +47,6 @@ public class vCompletedDate extends ProgramDateVariable
 
         return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
             null, "completeddate", visitor.getReportingStartDate(),
-            visitor.getReportingStartDate(), visitor.getProgramIndicator() );
+            visitor.getReportingEndDate(), visitor.getProgramIndicator() );
     }
 }
