@@ -59,7 +59,7 @@ public class UserGroupObjectBundleHook extends AbstractObjectBundleHook
         UserGroup userGroup = (UserGroup) object;
         UserGroup persistedUserGroup = (UserGroup) persistedObject;
 
-        userGroup.setUser( persistedUserGroup.getUser() );
-        bundle.getPreheat().put( bundle.getPreheatIdentifier(), persistedUserGroup.getUser() );
+        userGroup.setCreatedBy( persistedUserGroup.getCreatedBy() );
+        bundle.getPreheat().put( bundle.getPreheatIdentifier(), persistedUserGroup.getCreatedBy() );
     }
 }

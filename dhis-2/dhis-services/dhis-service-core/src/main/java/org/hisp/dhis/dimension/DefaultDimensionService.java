@@ -250,13 +250,13 @@ public class DefaultDimensionService
         {
             object.clear();
 
-            if ( object.getUser() != null )
+            if ( object.getCreatedBy() != null )
             {
-                object.setUser( idObjectManager.get( User.class, object.getUser().getUid() ) );
+                object.setCreatedBy( idObjectManager.get( User.class, object.getCreatedBy().getUid() ) );
             }
             else
             {
-                object.setUser( currentUserService.getCurrentUser() );
+                object.setCreatedBy( currentUserService.getCurrentUser() );
             }
 
             mergeDimensionalObjects( object, object.getColumns() );

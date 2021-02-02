@@ -66,7 +66,7 @@ public class UserKeyJsonValueStoreTest
         userKeyJsonValue.setValue( "{}" );
         userKeyJsonValue.setKey( "test" );
         userKeyJsonValue.setNamespace( "a" );
-        userKeyJsonValue.setUser( user );
+        userKeyJsonValue.setCreatedBy( user );
 
         userKeyJsonValueStore.save( userKeyJsonValue );
         long id = userKeyJsonValue.getId();
@@ -83,7 +83,7 @@ public class UserKeyJsonValueStoreTest
         userKeyJsonValueA.setValue( "{}" );
         userKeyJsonValueA.setNamespace( "test_a" );
         userKeyJsonValueA.setKey( "a" );
-        userKeyJsonValueA.setUser( user );
+        userKeyJsonValueA.setCreatedBy( user );
 
         userKeyJsonValueStore.save( userKeyJsonValueA );
 
@@ -92,7 +92,7 @@ public class UserKeyJsonValueStoreTest
         userKeyJsonValueB.setValue( "{}" );
         userKeyJsonValueB.setNamespace( "test_b" );
         userKeyJsonValueB.setKey( "b" );
-        userKeyJsonValueB.setUser( user );
+        userKeyJsonValueB.setCreatedBy( user );
 
         userKeyJsonValueStore.save( userKeyJsonValueB );
 
@@ -110,7 +110,7 @@ public class UserKeyJsonValueStoreTest
         userKeyJsonValueA.setValue( "{}" );
         userKeyJsonValueA.setNamespace( "a" );
         userKeyJsonValueA.setKey( "test_a" );
-        userKeyJsonValueA.setUser( user );
+        userKeyJsonValueA.setCreatedBy( user );
 
         userKeyJsonValueStore.save( userKeyJsonValueA );
 
@@ -119,7 +119,7 @@ public class UserKeyJsonValueStoreTest
         userKeyJsonValueB.setValue( "{}" );
         userKeyJsonValueB.setNamespace( "a" );
         userKeyJsonValueB.setKey( "test_b" );
-        userKeyJsonValueB.setUser( user );
+        userKeyJsonValueB.setCreatedBy( user );
 
         userKeyJsonValueStore.save( userKeyJsonValueB );
 

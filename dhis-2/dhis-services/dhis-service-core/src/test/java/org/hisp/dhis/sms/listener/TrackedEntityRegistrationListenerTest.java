@@ -255,6 +255,6 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         incomingSms = new IncomingSms();
         incomingSms.setText( SMS_TEXT );
         incomingSms.setOriginator( ORIGINATOR );
-        incomingSms.setUser( user );
+        incomingSms.setCreatedBy( user );
     }
 }

@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -52,7 +53,6 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.system.util.SchemaUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;

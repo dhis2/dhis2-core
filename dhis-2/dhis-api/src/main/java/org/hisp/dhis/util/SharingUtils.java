@@ -52,7 +52,7 @@ public class SharingUtils
     public static final Sharing generateSharingFromIdentifiableObject( IdentifiableObject object )
     {
         Sharing sharing = new Sharing();
-        sharing.setOwner( object.getUser() );
+        sharing.setOwner( object.getCreatedBy() );
         sharing.setExternal( object.getExternalAccess() );
         sharing.setPublicAccess( object.getPublicAccess() );
         sharing.setDtoUserGroupAccesses( object.getUserGroupAccesses() );
