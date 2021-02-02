@@ -33,8 +33,6 @@ import static org.hisp.dhis.scheduling.JobType.EVENT_IMPORT;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -1035,30 +1033,6 @@ public class EventController
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Map<String, String> getDataElementsFromOrder( String allOrders )
-    {
-        Map<String, String> dataElements = new HashMap<>();
-
-        if ( allOrders != null )
-        {
-            for ( String order : TextUtils.splitToArray( allOrders, TextUtils.SEMICOLON ) )
-            {
-                String[] orderParts = order.split( ":" );
-                DataElement de = dataElementService.getDataElement( orderParts[0] );
-                if ( de != null )
-                {
-                    String direction = "asc";
-                    if ( orderParts.length == 2 && orderParts[1].toLowerCase().equals( "desc" ) )
-                    {
-                        direction = "desc";
-                    }
-                    dataElements.put( de.getUid(), direction );
-                }
-            }
-        }
-        return dataElements;
-    }
-
     /**
      * Starts an asynchronous import task.
      *
@@ -1116,28 +1090,6 @@ public class EventController
         }
 
         return Collections.emptyList();
-    }
-
-    private List<String> getGridOrderParams( String order, Map<String, String> dataElementOrders )
-    {
-        List<String> dataElementOrderList = new ArrayList<>();
-
-        if ( !StringUtils.isEmpty( order ) && dataElementOrders != null && dataElementOrders.size() > 0 )
-        {
-            List<String> orders = Arrays.asList( order.split( ";" ) );
-
-            for ( String orderItem : orders )
-            {
-                String dataElementCandidate = orderItem.split( ":" )[0];
-                if ( dataElementOrders.keySet().contains( dataElementCandidate ) )
-                {
-                    dataElementOrderList
-                        .add( dataElementCandidate + ":" + dataElementOrders.get( dataElementCandidate ) );
-                }
-            }
-        }
-
-        return dataElementOrderList;
     }
 
     private Map<Object, Object> getMetaData( Program program )

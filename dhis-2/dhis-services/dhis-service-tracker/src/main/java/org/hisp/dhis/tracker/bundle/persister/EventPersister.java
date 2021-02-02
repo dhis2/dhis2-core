@@ -128,7 +128,6 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
         Date now = new Date();
         ProgramStageInstance programStageInstance = eventConverter.from( bundle.getPreheat(), event );
         programStageInstance.setLastUpdated( now );
-        programStageInstance.setLastUpdatedAtClient( now );
         programStageInstance.setLastUpdatedBy( bundle.getUser() );
         return programStageInstance;
     }

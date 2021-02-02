@@ -57,7 +57,7 @@ import com.google.api.client.util.Lists;
 import com.google.api.client.util.Sets;
 
 /**
- * Created by zubair@dhis2.org on 11.10.17.
+ * @author Zubair Asghar
  */
 @Slf4j
 public class ProgramRuleEngine
