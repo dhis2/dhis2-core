@@ -289,8 +289,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         handleAttributeValues( entities, fields );
 
-        // handleSharingAttributes( entities, fields );
-
         linkService.generatePagerLinks( pager, getEntityClass() );
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -576,8 +574,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         handleLinksAndAccess( entities, fields, true );
 
         handleAttributeValues( entities, fields );
-
-        // handleSharingAttributes( entities, fields );
 
         for ( T entity : entities )
         {
@@ -1443,27 +1439,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             attributeService.generateAttributes( entityList );
         }
     }
-
-    // protected void handleSharingAttributes( List<T> entityList, List<String>
-    // fields )
-    // {
-    // List<String> hasUser = fields.stream().filter( field -> field.contains(
-    // "user" ) || fields.contains( ":all" ) )
-    // .collect( Collectors.toList() );
-    //
-    // if ( !hasUser.isEmpty() )
-    // {
-    // entityList.forEach( entity -> {
-    // System.out.println( "entity.getSharing().getOwner() = " +
-    // entity.getSharing().getOwner() );
-    // User user = userService.getUser( entity.getSharing().getOwner() );
-    // System.out.println( "userService.getUser( entity.getSharing().getOwner()
-    // ) = " + user );
-    // entity.setUser( user );
-    // } );
-    // }
-    //
-    // }
 
     private InclusionStrategy.Include getInclusionStrategy( String inclusionStrategy )
     {

@@ -129,7 +129,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
         IOException
     {
         IncomingSms sms = renderService.fromJson( request.getInputStream(), IncomingSms.class );
-        sms.setUser( getUserByPhoneNumber( sms.getOriginator(), sms.getText() ) );
+        sms.setCreatedBy( getUserByPhoneNumber( sms.getOriginator(), sms.getText() ) );
 
         long smsId = incomingSMSService.save( sms );
 

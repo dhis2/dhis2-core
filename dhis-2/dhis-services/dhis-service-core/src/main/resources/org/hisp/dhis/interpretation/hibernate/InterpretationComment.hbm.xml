@@ -17,8 +17,8 @@
     
     <property name="mentions" type="jlbMentions" />
 
-    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid"
-		foreign-key="fk_interpretationcomment_userid" not-null="true" />
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
+                 foreign-key="fk_interpretationcomment_userid" not-null="true" />
 		
 	<property name="created" not-null="true" type="timestamp" />
 

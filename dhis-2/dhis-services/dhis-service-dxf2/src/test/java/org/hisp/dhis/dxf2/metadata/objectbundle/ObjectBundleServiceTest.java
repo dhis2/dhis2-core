@@ -912,7 +912,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         DataSet dataSet = dataSets.get( 0 );
         assertEquals( "Updated Data Set", dataSet.getName() );
         assertEquals( 2, dataSet.getSections().size() );
-        assertNotNull( dataSet.getUser() );
+        assertNotNull( dataSet.getCreatedBy() );
 
         section1 = manager.get( Section.class, "JwcV2ZifEQf" );
         assertNotNull( section1.getDataSet() );

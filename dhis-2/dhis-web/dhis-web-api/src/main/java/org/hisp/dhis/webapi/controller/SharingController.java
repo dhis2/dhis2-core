@@ -175,10 +175,10 @@ public class SharingController
             sharing.getObject().setPublicAccess( object.getPublicAccess() );
         }
 
-        if ( object.getUser() != null )
+        if ( object.getCreatedBy() != null )
         {
-            sharing.getObject().getUser().setId( object.getUser().getUid() );
-            sharing.getObject().getUser().setName( object.getUser().getDisplayName() );
+            sharing.getObject().getUser().setId( object.getCreatedBy().getUid() );
+            sharing.getObject().getUser().setName( object.getCreatedBy().getDisplayName() );
         }
 
         for ( org.hisp.dhis.user.UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
@@ -293,9 +293,9 @@ public class SharingController
             }
         }
 
-        if ( object.getUser() == null )
+        if ( object.getCreatedBy() == null )
         {
-            object.setUser( user );
+            object.setCreatedBy( user );
         }
 
         object.getSharing().getUserGroups().clear();
@@ -490,7 +490,7 @@ public class SharingController
         ProgramStage programStage = program.getProgramStages().iterator().next();
         AccessStringHelper.copySharing( program, programStage );
 
-        programStage.setUser( program.getUser() );
+        programStage.setCreatedBy( program.getCreatedBy() );
         manager.update( programStage );
     }
 

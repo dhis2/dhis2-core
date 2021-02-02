@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.tracker;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.tracker.preheat.mappers.FullUserMapper;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 /**
  * Specialized User Service for Tracker that executes User look-up in a

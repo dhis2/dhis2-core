@@ -477,7 +477,8 @@ public class DefaultMessageService
             return StringUtils.EMPTY;
         }
 
-        Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.UI_LOCALE, conversation.getUser() );
+        Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.UI_LOCALE,
+            conversation.getCreatedBy() );
 
         locale = ObjectUtils.firstNonNull( locale, LocaleManager.DEFAULT_LOCALE );
 

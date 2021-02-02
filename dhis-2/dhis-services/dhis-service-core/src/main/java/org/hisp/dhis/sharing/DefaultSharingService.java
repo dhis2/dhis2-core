@@ -241,7 +241,7 @@ public class DefaultSharingService implements SharingService
         ProgramStage programStage = program.getProgramStages().iterator().next();
         AccessStringHelper.copySharing( program, programStage );
 
-        programStage.setUser( program.getUser() );
+        programStage.setCreatedBy( program.getCreatedBy() );
         manager.update( programStage );
     }
 

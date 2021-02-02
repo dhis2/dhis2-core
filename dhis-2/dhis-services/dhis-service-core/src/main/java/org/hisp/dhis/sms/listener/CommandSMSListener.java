@@ -185,7 +185,7 @@ public abstract class CommandSMSListener
 
     protected User getUser( IncomingSms sms )
     {
-        return userService.getUser( sms.getUser().getUid() );
+        return userService.getUser( sms.getCreatedBy().getUid() );
     }
 
     protected boolean validateInputValues( Map<String, String> commandValuePairs, SMSCommand smsCommand,

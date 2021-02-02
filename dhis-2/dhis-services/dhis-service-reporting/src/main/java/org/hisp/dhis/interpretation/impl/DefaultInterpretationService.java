@@ -151,7 +151,7 @@ public class DefaultInterpretationService
 
         if ( user != null )
         {
-            interpretation.setUser( user );
+            interpretation.setCreatedBy( user );
         }
 
         if ( interpretation.getPeriod() != null )
@@ -411,7 +411,7 @@ public class DefaultInterpretationService
 
         if ( user != null )
         {
-            comment.setUser( user );
+            comment.setCreatedBy( user );
         }
 
         interpretation.addComment( comment );
