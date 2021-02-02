@@ -349,7 +349,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                 .collect( Collectors.toList() );
 
             sql += " join " + statementBuilder.literalLongLongTable( deIdList, cocIdList, "deo", "deid", "cocid" )
-                + " on deo.deid = dv.dataelementid and (deo.cocid is null or deo.cocid = dv.categoryoptioncomboid)";
+                + " on deo.deid = dv.dataelementid and (deo.cocid is null or deo.cocid::bigint = dv.categoryoptioncomboid)";
         }
         else if ( params.hasDataElements() )
         {

@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.programrule;
 
 import java.util.Optional;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -36,7 +37,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.tracker.domain.DataValue;
-import org.hisp.dhis.tracker.domain.Event;
 
 @Getter
 @RequiredArgsConstructor
@@ -44,7 +44,7 @@ import org.hisp.dhis.tracker.domain.Event;
 public class EventActionRule
     implements ActionRule
 {
-    private final Event event;
+    private final String event;
 
     private final String data;
 
@@ -53,6 +53,8 @@ public class EventActionRule
     private final AttributeType attributeType;
 
     private String content;
+
+    private Set<DataValue> dataValues;
 
     public String getValue()
     {
@@ -76,7 +78,7 @@ public class EventActionRule
     {
         if ( attributeType.equals( AttributeType.DATA_ELEMENT ) )
         {
-            return event.getDataValues()
+            return getDataValues()
                 .stream()
                 .filter( dv -> dv.getDataElement().equals( field ) )
                 .findAny();

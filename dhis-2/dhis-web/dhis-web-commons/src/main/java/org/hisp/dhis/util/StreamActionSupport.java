@@ -65,7 +65,7 @@ public abstract class StreamActionSupport
         log.debug( "Content type: " + contentType + ", disallow cache: " +
             disallowCache + ", filename: " + filename + ", attachment: " + attachment );
 
-        try (OutputStream out = response.getOutputStream())
+        try ( OutputStream out = response.getOutputStream() )
         {
             return execute( response, out );
         }

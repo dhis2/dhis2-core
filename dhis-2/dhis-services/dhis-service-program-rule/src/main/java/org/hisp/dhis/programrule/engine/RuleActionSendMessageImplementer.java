@@ -52,9 +52,8 @@ import org.springframework.transaction.annotation.Transactional;
  * <li>Log and entry in {@link ExternalNotificationLogEntry}</li>
  * </ol>
  *
- * Created by zubair@dhis2.org on 04.01.18.
+ * @author Zubair Asghar
  */
-
 @Component( "org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" )
 @Transactional
 public class RuleActionSendMessageImplementer extends NotificationRuleActionImplementer

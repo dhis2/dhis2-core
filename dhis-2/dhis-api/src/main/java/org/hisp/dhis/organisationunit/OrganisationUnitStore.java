@@ -35,6 +35,7 @@ import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.program.Program;
 
 /**
  * Defines methods for persisting OrganisationUnits.
@@ -77,6 +78,14 @@ public interface OrganisationUnitStore
      *         OrganisationUnitGroups.
      */
     List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
+
+    /**
+     * Returns OrganisationUnits which are associated with the given Program.
+     *
+     * @param program the {@link Program}.
+     * @return
+     */
+    List<OrganisationUnit> getOrganisationUnitsWithProgram( Program program );
 
     /**
      * Returns the count of OrganisationUnits which are part of the
@@ -122,25 +131,6 @@ public interface OrganisationUnitStore
      * @return a list of objects.
      */
     List<OrganisationUnit> getWithinCoordinateArea( double[] box );
-
-    // -------------------------------------------------------------------------
-    // OrganisationUnitHierarchy
-    // -------------------------------------------------------------------------
-
-    /**
-     * Get the OrganisationUnit hierarchy.
-     *
-     * @return a with OrganisationUnitRelationship entries.
-     */
-    OrganisationUnitHierarchy getOrganisationUnitHierarchy();
-
-    /**
-     * Updates the parent id of the organisation unit with the given id.
-     *
-     * @param organisationUnitId the child organisation unit identifier.
-     * @param parentId the parent organisation unit identifier.
-     */
-    void updateOrganisationUnitParent( long organisationUnitId, long parentId );
 
     void updatePaths();
 

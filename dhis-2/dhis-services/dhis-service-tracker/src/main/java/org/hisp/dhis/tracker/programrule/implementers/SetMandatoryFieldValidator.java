@@ -76,12 +76,12 @@ public class SetMandatoryFieldValidator
     }
 
     @Override
-    // TODO: review this logic. Check with Giuseppe
     List<ProgramRuleIssue> applyToEnrollments( Map.Entry<String, List<EnrollmentActionRule>> enrollmentActionRules,
         TrackerBundle bundle )
     {
         return enrollmentActionRules.getValue().stream()
-            .flatMap( actionRule -> checkMandatoryEnrollmentAttribute( actionRule.getEnrollment(),
+            .flatMap( actionRule -> checkMandatoryEnrollmentAttribute(
+                bundle.getEnrollment( actionRule.getEnrollment() ).get(),
                 enrollmentActionRules.getValue() ).stream() )
             .collect( Collectors.toList() );
     }

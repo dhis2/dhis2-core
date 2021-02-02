@@ -205,7 +205,7 @@ public class DatabasePoolUtils
     {
         Connection conn = dataSource.getConnection();
 
-        try (Statement stmt = conn.createStatement())
+        try ( Statement stmt = conn.createStatement() )
         {
             stmt.executeQuery( "select 'connection_test' as connection_test;" );
         }

@@ -142,6 +142,7 @@ public class HibernateReservedValueStoreTest
         int n = 10;
 
         for ( int i = 0; i < n; i++ )
+
         {
             values.add( String.format( "%03d", counter++ ) );
         }
@@ -153,36 +154,12 @@ public class HibernateReservedValueStoreTest
     }
 
     @Test
-    public void reserveValuesSingleValueAlreadyReserved()
-    {
-        int count = reservedValueStore.getCount();
-
-        List<ReservedValue> res = reservedValueStore
-            .reserveValuesJpa( reservedValueA, Lists.newArrayList( reservedValueA.getValue() ) );
-
-        assertEquals( 0, res.size() );
-        assertEquals( count, reservedValueStore.getCount() );
-    }
-
-    @Test
-    public void reserveValuesSingleValueAlreadyUsed()
-    {
-        int count = reservedValueStore.getCount();
-
-        List<ReservedValue> res = reservedValueStore
-            .reserveValuesJpa( reservedValueA, Lists.newArrayList( reservedValueA.getValue() ) );
-
-        assertEquals( 0, res.size() );
-        assertEquals( count, reservedValueStore.getCount() );
-    }
-
-    @Test
     public void reserveValuesMultipleValuesAlreadyReservedAndUsed()
     {
         int count = reservedValueStore.getCount();
 
         List<ReservedValue> res = reservedValueStore
-            .reserveValuesJpa( reservedValueA, Lists.newArrayList( "001", "002", "003", "004" ) );
+            .reserveValuesJpa( reservedValueA, Lists.newArrayList( "002", "003", "004" ) );
 
         assertEquals( 1, count );
         assertEquals( 3, res.size() );

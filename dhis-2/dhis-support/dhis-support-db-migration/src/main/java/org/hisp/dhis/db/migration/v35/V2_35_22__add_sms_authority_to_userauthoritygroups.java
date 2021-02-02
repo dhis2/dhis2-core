@@ -48,8 +48,8 @@ public class V2_35_22__add_sms_authority_to_userauthoritygroups
             +
             "NOT EXISTS (SELECT * FROM userroleauthorities WHERE userroleid=ura.userroleid AND authority='M_dhis-web-sms-configuration')";
 
-        try (final Statement stmt = context.getConnection().createStatement();
-            final ResultSet rs = stmt.executeQuery( sql ))
+        try ( final Statement stmt = context.getConnection().createStatement();
+            final ResultSet rs = stmt.executeQuery( sql ) )
         {
             while ( rs.next() )
             {
@@ -57,7 +57,7 @@ public class V2_35_22__add_sms_authority_to_userauthoritygroups
 
                 final String insertSql = "INSERT INTO userroleauthorities (userroleid, authority) VALUES (?, ?)";
 
-                try (final PreparedStatement ps = context.getConnection().prepareStatement( insertSql ))
+                try ( final PreparedStatement ps = context.getConnection().prepareStatement( insertSql ) )
                 {
                     ps.setLong( 1, id );
                     ps.setString( 2, "M_dhis-web-sms-configuration" );

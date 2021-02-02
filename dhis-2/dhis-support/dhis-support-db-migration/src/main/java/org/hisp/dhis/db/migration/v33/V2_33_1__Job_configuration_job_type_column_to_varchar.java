@@ -60,8 +60,8 @@ public class V2_33_1__Job_configuration_job_type_column_to_varchar extends BaseJ
         boolean continueWithMigration = false;
         String sql = "SELECT data_type FROM information_schema.columns " +
             "WHERE table_name = 'jobconfiguration' AND column_name = 'jobtype';";
-        try (Statement stmt = context.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery( sql );)
+        try ( Statement stmt = context.getConnection().createStatement();
+            ResultSet rs = stmt.executeQuery( sql ); )
         {
             if ( rs.next() && rs.getString( "data_type" ).equals( "bytea" ) )
             {
@@ -73,7 +73,7 @@ public class V2_33_1__Job_configuration_job_type_column_to_varchar extends BaseJ
         {
             // 2. Create a new JobType column of type VARCHAR in
             // jobconfiguration table
-            try (Statement stmt = context.getConnection().createStatement())
+            try ( Statement stmt = context.getConnection().createStatement() )
             {
                 stmt.executeUpdate(
                     "ALTER TABLE jobconfiguration ADD COLUMN IF NOT EXISTS jobtypevarchar VARCHAR(120)" );
@@ -83,8 +83,8 @@ public class V2_33_1__Job_configuration_job_type_column_to_varchar extends BaseJ
             // column
             Map<Integer, byte[]> jobTypeByteMap = new HashMap<>();
             sql = "SELECT jobconfigurationid, jobtype FROM jobconfiguration WHERE jobtype IS NOT NULL";
-            try (Statement stmt = context.getConnection().createStatement();
-                ResultSet rs = stmt.executeQuery( sql );)
+            try ( Statement stmt = context.getConnection().createStatement();
+                ResultSet rs = stmt.executeQuery( sql ); )
             {
                 while ( rs.next() )
                 {
@@ -101,8 +101,8 @@ public class V2_33_1__Job_configuration_job_type_column_to_varchar extends BaseJ
                     throw new FlywayException( "Parsing JobType byte array failed." );
                 }
 
-                try (PreparedStatement ps = context.getConnection().prepareStatement(
-                    "UPDATE jobconfiguration SET jobtypevarchar = ? WHERE jobconfigurationid = ?" ))
+                try ( PreparedStatement ps = context.getConnection().prepareStatement(
+                    "UPDATE jobconfiguration SET jobtypevarchar = ? WHERE jobconfigurationid = ?" ) )
                 {
                     ps.setObject( 1, jobType.name() );
                     ps.setInt( 2, id );
@@ -119,14 +119,14 @@ public class V2_33_1__Job_configuration_job_type_column_to_varchar extends BaseJ
 
             // 4. Delete old byte array column for JobType in jobconfiguration
             // table
-            try (Statement stmt = context.getConnection().createStatement())
+            try ( Statement stmt = context.getConnection().createStatement() )
             {
                 stmt.executeUpdate( "ALTER TABLE jobconfiguration DROP COLUMN jobtype" );
             }
 
             // 5. Rename new jobtypevarchar column to the name of the now
             // deleted column
-            try (Statement stmt = context.getConnection().createStatement())
+            try ( Statement stmt = context.getConnection().createStatement() )
             {
                 stmt.executeUpdate( "ALTER TABLE jobconfiguration RENAME COLUMN jobtypevarchar TO jobtype" );
             }

@@ -25,15 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oidc.provider;
+package org.hisp.dhis.webapi.controller.event.webrequest;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public abstract class DhisOidcProvider
+import java.util.Date;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.program.ProgramStatus;
+
+@Data
+@NoArgsConstructor
+public class EnrollmentCriteria extends PagingAndSortingCriteriaAdapter
 {
-    protected static final String DEFAULT_REDIRECT_TEMPLATE_URL = "{baseUrl}/oauth2/code/{registrationId}";
+    private String ou;
 
-    public static final String DEFAULT_MAPPING_CLAIM = "email";
+    private OrganisationUnitSelectionMode ouMode;
 
+    private String program;
+
+    private ProgramStatus programStatus;
+
+    private Boolean followUp;
+
+    private Date lastUpdated;
+
+    private String lastUpdatedDuration;
+
+    private Date programStartDate;
+
+    private Date programEndDate;
+
+    private String trackedEntityType;
+
+    private String trackedEntityInstance;
+
+    private String enrollment;
+
+    private boolean includeDeleted;
 }
