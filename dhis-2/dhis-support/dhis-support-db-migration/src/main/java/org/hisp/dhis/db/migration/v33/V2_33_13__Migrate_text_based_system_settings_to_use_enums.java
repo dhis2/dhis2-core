@@ -64,12 +64,12 @@ public class V2_33_13__Migrate_text_based_system_settings_to_use_enums extends B
         @Nonnull String settingName, @Nonnull Class<? extends Enum> enumClass )
         throws Exception
     {
-        try (final Statement stmt = context.getConnection().createStatement( ResultSet.TYPE_FORWARD_ONLY,
-            ResultSet.CONCUR_UPDATABLE ))
+        try ( final Statement stmt = context.getConnection().createStatement( ResultSet.TYPE_FORWARD_ONLY,
+            ResultSet.CONCUR_UPDATABLE ) )
         {
             final String query = "SELECT " + primaryKeyColumnName + ",name,value FROM " + tableName + " WHERE name='"
                 + settingName + "'";
-            try (final ResultSet rs = stmt.executeQuery( query ))
+            try ( final ResultSet rs = stmt.executeQuery( query ) )
             {
                 while ( rs.next() )
                 {

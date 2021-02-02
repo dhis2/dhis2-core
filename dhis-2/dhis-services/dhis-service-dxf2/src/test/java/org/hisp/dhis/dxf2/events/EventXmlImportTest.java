@@ -54,6 +54,7 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -146,6 +147,26 @@ public class EventXmlImportTest
         Events events = eventService.getEvents( new EventSearchParams().setProgram( programA ) );
         assertEquals( 1, events.getEvents().size() );
         assertTrue( events.getEvents().stream().allMatch( e -> e.getGeometry().getGeometryType().equals( "Point" ) ) );
+    }
+
+    @Test
+    public void testNoAccessEvent()
+        throws IOException
+    {
+        InputStream is = createEventXmlInputStream();
+        ImportSummaries importSummaries = eventService.addEventsXml( is, null );
+        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+
+        // Get by admin
+        Events events = eventService.getEvents( new EventSearchParams().setProgram( programA ) );
+        assertEquals( 1, events.getEvents().size() );
+
+        // Get by user without access
+        User user = createUser( "A" );
+        userService.addUser( user );
+        injectSecurityContext( user );
+        events = eventService.getEvents( new EventSearchParams().setProgram( programA ) );
+        assertEquals( 0, events.getEvents().size() );
     }
 
     private InputStream createEventXmlInputStream()

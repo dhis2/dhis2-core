@@ -159,22 +159,6 @@ public class ProgramServiceTest
     }
 
     @Test
-    public void testGetProgramsByType()
-    {
-        programService.addProgram( programA );
-        programService.addProgram( programB );
-
-        programC.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        programService.addProgram( programC );
-
-        List<Program> programs = programService.getPrograms( ProgramType.WITH_REGISTRATION );
-        assertTrue( equals( programs, programA, programB ) );
-
-        programs = programService.getPrograms( ProgramType.WITHOUT_REGISTRATION );
-        assertTrue( equals( programs, programC ) );
-    }
-
-    @Test
     public void testGetProgramByUid()
     {
         programService.addProgram( programA );

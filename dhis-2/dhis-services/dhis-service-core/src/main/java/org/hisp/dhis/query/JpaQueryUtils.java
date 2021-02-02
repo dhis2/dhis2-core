@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.query;
 
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -45,6 +47,7 @@ import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.user.User;
 import org.springframework.context.i18n.LocaleContextHolder;
 
 /**
@@ -325,7 +328,6 @@ public class JpaQueryUtils
      * @param builder
      * @param userGroupUids List of User Group Uids
      * @param access Access String
-     * @param <T>
      * @return JPA Predicate
      */
     public static <T> Function<Root<T>, Predicate> checkUserGroupsAccess( CriteriaBuilder builder,
@@ -356,6 +358,34 @@ public class JpaQueryUtils
                         builder.literal( groupUuIds ) ),
                     true ) );
         };
+    }
+
+    /**
+     * Return SQL query for checking sharing access for given user
+     *
+     * @param sharingColumn sharing column reference
+     * @param user User for sharing checking
+     * @param access The sharing access string for checking. Refer to
+     *        {@link org.hisp.dhis.security.acl.AccessStringHelper}
+     * @return SQL query
+     */
+    public static final String generateSQlQueryForSharingCheck( String sharingColumn, User user, String access )
+    {
+        List<Long> userGroupIds = getIdentifiers( user.getGroups() );
+
+        String groupsIds = CollectionUtils.isEmpty( userGroupIds ) ? null
+            : "{" + org.apache.commons.lang3.StringUtils.join( user.getGroups().stream().map( g -> g.getUid() )
+                .collect( Collectors.toList() ), "," ) + "}";
+
+        String sql = " ( %1$s->>'owner' is not null and %1$s->>'owner' = '%2$s') "
+            + " or %1$s->>'public' like '%4$s' or %1$s->>'public' is null "
+            + " or (" + JsonbFunctions.HAS_USER_ID + "( %1$s, '%2$s') = true "
+            + " and " + JsonbFunctions.CHECK_USER_ACCESS + "( %1$s, '%2$s', '%4$s' ) = true )  "
+            + (StringUtils.isEmpty( groupsIds ) ? ""
+                : " or ( " + JsonbFunctions.HAS_USER_GROUP_IDS + "( %1$s, '%3$s') = true "
+                    + " and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( %1$s, '%3$s', '%4$s') = true )");
+
+        return String.format( sql, sharingColumn, user.getUid(), groupsIds, access );
     }
 
     private static boolean isIgnoreCase( org.hisp.dhis.query.Order o )

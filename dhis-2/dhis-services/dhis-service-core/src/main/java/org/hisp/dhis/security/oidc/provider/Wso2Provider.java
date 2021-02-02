@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.security.oidc.provider;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_REDIRECT_URI;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_CLIENT_ID;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_CLIENT_SECRET;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_DISPLAY_ALIAS;
@@ -36,6 +37,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_SE
 
 import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -49,7 +51,7 @@ import com.google.common.collect.ImmutableMap;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class Wso2Provider extends DhisOidcProvider
+public class Wso2Provider extends AbstractOidcProvider
 {
     public static final String REGISTRATION_ID = "wso2";
 
@@ -63,24 +65,24 @@ public class Wso2Provider extends DhisOidcProvider
         Objects.requireNonNull( config, "DhisConfigurationProvider is missing!" );
 
         String wso2ClientId = config.getProperty( OIDC_PROVIDER_WSO2_CLIENT_ID );
+        String wso2ClientSecret = config.getProperty( OIDC_PROVIDER_WSO2_CLIENT_SECRET );
 
         if ( wso2ClientId.isEmpty() )
         {
             return null;
         }
 
-        String wso2ClientSecret = config.getProperty( OIDC_PROVIDER_WSO2_CLIENT_SECRET );
-        String wso2ClientMappingClaim = config.getProperty( OIDC_PROVIDER_WSO2_MAPPING_CLAIM );
-        String providerBaseUrl = config.getProperty( OIDC_PROVIDER_WSO2_SERVER_URL );
-        boolean supportLogout = Boolean.parseBoolean( config.getProperty( OIDC_PROVIDER_WSO2_ENABLE_LOGOUT ) );
-
         if ( wso2ClientSecret.isEmpty() )
         {
             throw new IllegalArgumentException( "WSO2 client secret is missing!" );
         }
 
-        ClientRegistration.Builder builder = ClientRegistration.withRegistrationId( Wso2Provider.REGISTRATION_ID );
+        String providerBaseUrl = config.getProperty( OIDC_PROVIDER_WSO2_SERVER_URL );
 
+        ClientRegistration.Builder builder = ClientRegistration.withRegistrationId( Wso2Provider.REGISTRATION_ID );
+        builder.clientName( wso2ClientId );
+        builder.clientId( wso2ClientId );
+        builder.clientSecret( wso2ClientSecret );
         builder.clientAuthenticationMethod( ClientAuthenticationMethod.BASIC );
         builder.authorizationGrantType( AuthorizationGrantType.AUTHORIZATION_CODE );
         builder.scope( "openid", "profile", DEFAULT_MAPPING_CLAIM );
@@ -88,14 +90,13 @@ public class Wso2Provider extends DhisOidcProvider
         builder.tokenUri( providerBaseUrl + "/oauth2/token" );
         builder.jwkSetUri( providerBaseUrl + "/oauth2/jwks" );
         builder.userInfoUri( providerBaseUrl + "/oauth2/userinfo" );
-        builder.clientName( wso2ClientId );
-        builder.clientId( wso2ClientId );
-        builder.clientSecret( wso2ClientSecret );
-        builder.redirectUri( DEFAULT_REDIRECT_TEMPLATE_URL );
+        builder.redirectUri( StringUtils.firstNonBlank(
+            config.getProperty( OIDC_PROVIDER_GOOGLE_REDIRECT_URI ),
+            DEFAULT_REDIRECT_TEMPLATE_URL ) );
         builder.userInfoAuthenticationMethod( AuthenticationMethod.HEADER );
         builder.userNameAttributeName( IdTokenClaimNames.SUB );
 
-        if ( supportLogout )
+        if ( Boolean.parseBoolean( config.getProperty( OIDC_PROVIDER_WSO2_ENABLE_LOGOUT ) ) )
         {
             builder.providerConfigurationMetadata( ImmutableMap
                 .of( "end_session_endpoint", providerBaseUrl + "/oidc/logout" ) );
@@ -105,7 +106,7 @@ public class Wso2Provider extends DhisOidcProvider
 
         return DhisOidcClientRegistration.builder()
             .clientRegistration( clientRegistration )
-            .mappingClaimKey( wso2ClientMappingClaim )
+            .mappingClaimKey( config.getProperty( OIDC_PROVIDER_WSO2_MAPPING_CLAIM ) )
             .loginIcon( "../security/wso2-logo.svg" )
             .loginIconPadding( "0px 1px" )
             .loginText( config.getProperty( OIDC_PROVIDER_WSO2_DISPLAY_ALIAS ) )

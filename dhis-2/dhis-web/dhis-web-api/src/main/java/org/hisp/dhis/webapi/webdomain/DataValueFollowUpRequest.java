@@ -25,48 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.webapi.webdomain;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import lombok.Data;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.junit.Test;
-
-import com.google.common.collect.Sets;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Lars Helge Overland
  */
-public class ProgramTest
+@Data
+public class DataValueFollowUpRequest
 {
-    @Test
-    public void testUpdateOrganisationUnits()
-    {
-        Program prA = new Program();
+    @JsonProperty
+    private String dataElement;
 
-        OrganisationUnit ouA = new OrganisationUnit( "ouA" );
-        OrganisationUnit ouB = new OrganisationUnit( "ouB" );
-        OrganisationUnit ouC = new OrganisationUnit( "ouC" );
-        OrganisationUnit ouD = new OrganisationUnit( "ouD" );
+    @JsonProperty
+    private String period;
 
-        prA.addOrganisationUnit( ouA );
-        prA.addOrganisationUnit( ouB );
+    @JsonProperty
+    private String orgUnit;
 
-        assertEquals( 2, prA.getOrganisationUnits().size() );
-        assertTrue( prA.getOrganisationUnits().containsAll( Sets.newHashSet( ouA, ouB ) ) );
-        assertTrue( ouA.getPrograms().contains( prA ) );
-        assertTrue( ouB.getPrograms().contains( prA ) );
-        assertTrue( ouC.getPrograms().isEmpty() );
-        assertTrue( ouD.getPrograms().isEmpty() );
+    @JsonProperty
+    private String categoryOptionCombo;
 
-        prA.updateOrganisationUnits( Sets.newHashSet( ouB, ouC ) );
+    @JsonProperty
+    private String attributeOptionCombo;
 
-        assertEquals( 2, prA.getOrganisationUnits().size() );
-        assertTrue( prA.getOrganisationUnits().containsAll( Sets.newHashSet( ouB, ouC ) ) );
-        assertTrue( ouA.getPrograms().isEmpty() );
-        assertTrue( ouB.getPrograms().contains( prA ) );
-        assertTrue( ouC.getPrograms().contains( prA ) );
-        assertTrue( ouD.getPrograms().isEmpty() );
-    }
+    @JsonProperty
+    private Boolean followup;
 }

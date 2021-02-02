@@ -261,7 +261,7 @@ public class JdbcAuditRepository implements AuditRepository
 
         byte[] result = data.getBytes( StandardCharsets.UTF_8 );
 
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream( data.length() ))
+        try ( ByteArrayOutputStream bos = new ByteArrayOutputStream( data.length() ) )
         {
             GZIPOutputStream gzip = new GZIPOutputStream( bos );
             gzip.write( data.getBytes( StandardCharsets.UTF_8 ) );
@@ -285,7 +285,7 @@ public class JdbcAuditRepository implements AuditRepository
 
         String result = null;
 
-        try (ByteArrayInputStream bin = new ByteArrayInputStream( data ))
+        try ( ByteArrayInputStream bin = new ByteArrayInputStream( data ) )
         {
             GZIPInputStream gzip = new GZIPInputStream( bin );
             byte[] bytes = IOUtils.toByteArray( gzip );

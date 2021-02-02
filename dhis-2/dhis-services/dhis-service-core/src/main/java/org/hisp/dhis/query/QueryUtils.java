@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -45,6 +46,8 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
@@ -417,6 +420,35 @@ public final class QueryUtils
             throw new QueryParserException( "`" + operator + "` is not a valid operator." );
         }
         }
+    }
+
+    /**
+     * converts the specified orders to OrderParams, filtered by schema
+     *
+     * @param orders the orderCriterias to convert.
+     * @param schema the schema to use to perform the conversion.
+     * @return the converted order.
+     */
+    @Nonnull
+    public static List<OrderParam> filteredBySchema( @Nullable Collection<OrderCriteria> orders,
+        @Nonnull Schema schema )
+    {
+        if ( orders == null )
+        {
+            return Collections.emptyList();
+        }
+
+        return orders.stream()
+            .filter( orderCriteria -> isValid( orderCriteria, schema ) )
+            .distinct()
+            .map( OrderCriteria::toOrderParam )
+            .collect( Collectors.toList() );
+    }
+
+    private static boolean isValid( OrderCriteria orderCriteria, Schema schema )
+    {
+        Property property = schema.getProperty( orderCriteria.getField() );
+        return schema.haveProperty( orderCriteria.getField() ) && validProperty( property );
     }
 
     /**

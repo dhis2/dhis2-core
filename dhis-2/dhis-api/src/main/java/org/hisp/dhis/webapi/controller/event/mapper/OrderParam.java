@@ -25,15 +25,59 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oidc.provider;
+package org.hisp.dhis.webapi.controller.event.mapper;
+
+import java.util.Arrays;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Order parameter container to use within services.
+ *
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public abstract class DhisOidcProvider
+@Data
+@Builder
+public class OrderParam
 {
-    protected static final String DEFAULT_REDIRECT_TEMPLATE_URL = "{baseUrl}/oauth2/code/{registrationId}";
+    private final String field;
 
-    public static final String DEFAULT_MAPPING_CLAIM = "email";
+    private final SortDirection direction;
 
+    @Getter
+    @AllArgsConstructor
+    public enum SortDirection
+    {
+        ASC( "asc", false ),
+        DESC( "desc", false ),
+        IASC( "iasc", true ),
+        IDESC( "idesc", true );
+
+        private static final SortDirection DEFAULT_SORTING_DIRECTION = ASC;
+
+        private final String value;
+
+        private final boolean ignoreCase;
+
+        public static SortDirection of( String value )
+        {
+            return of( value, DEFAULT_SORTING_DIRECTION );
+        }
+
+        public static SortDirection of( String value, SortDirection defaultSortingDirection )
+        {
+            return Arrays.stream( values() )
+                .filter( sortDirection -> sortDirection.getValue().equalsIgnoreCase( value ) )
+                .findFirst()
+                .orElse( defaultSortingDirection );
+        }
+
+        public boolean isAscending()
+        {
+            return this.equals( ASC ) || this.equals( IASC );
+        }
+    }
 }

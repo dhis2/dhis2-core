@@ -34,12 +34,10 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -52,7 +50,6 @@ import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -192,91 +189,6 @@ public class DefaultProgramInstanceService
     public void updateProgramInstance( ProgramInstance programInstance, User user )
     {
         programInstanceStore.update( programInstance, user );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode,
-        Date lastUpdated, String lastUpdatedDuration, String program, ProgramStatus programStatus,
-        Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance,
-        Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging,
-        boolean includeDeleted )
-    {
-        ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
-
-        Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
-
-        User user = currentUserService.getCurrentUser();
-
-        if ( user != null )
-        {
-            possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
-        }
-
-        if ( ou != null )
-        {
-            for ( String orgUnit : ou )
-            {
-                OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( orgUnit );
-
-                if ( organisationUnit == null )
-                {
-                    throw new IllegalQueryException( "Organisation unit does not exist: " + orgUnit );
-                }
-
-                if ( !organisationUnitService.isInUserHierarchy( organisationUnit.getUid(), possibleSearchOrgUnits ) )
-                {
-                    throw new IllegalQueryException( "Organisation unit is not part of the search scope: " + orgUnit );
-                }
-
-                params.getOrganisationUnits().add( organisationUnit );
-            }
-        }
-
-        Program pr = program != null ? programService.getProgram( program ) : null;
-
-        if ( program != null && pr == null )
-        {
-            throw new IllegalQueryException( "Program does not exist: " + program );
-        }
-
-        TrackedEntityType te = trackedEntityType != null
-            ? trackedEntityTypeService.getTrackedEntityType( trackedEntityType )
-            : null;
-
-        if ( trackedEntityType != null && te == null )
-        {
-            throw new IllegalQueryException( "Tracked entity does not exist: " + program );
-        }
-
-        TrackedEntityInstance tei = trackedEntityInstance != null
-            ? trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance )
-            : null;
-
-        if ( trackedEntityInstance != null && tei == null )
-        {
-            throw new IllegalQueryException( "Tracked entity instance does not exist: " + program );
-        }
-
-        params.setProgram( pr );
-        params.setProgramStatus( programStatus );
-        params.setFollowUp( followUp );
-        params.setLastUpdated( lastUpdated );
-        params.setLastUpdatedDuration( lastUpdatedDuration );
-        params.setProgramStartDate( programStartDate );
-        params.setProgramEndDate( programEndDate );
-        params.setTrackedEntityType( te );
-        params.setTrackedEntityInstanceUid(
-            Optional.ofNullable( tei ).map( BaseIdentifiableObject::getUid ).orElse( null ) );
-        params.setOrganisationUnitMode( ouMode );
-        params.setPage( page );
-        params.setPageSize( pageSize );
-        params.setTotalPages( totalPages );
-        params.setSkipPaging( skipPaging );
-        params.setIncludeDeleted( includeDeleted );
-        params.setUser( user );
-
-        return params;
     }
 
     // TODO consider security

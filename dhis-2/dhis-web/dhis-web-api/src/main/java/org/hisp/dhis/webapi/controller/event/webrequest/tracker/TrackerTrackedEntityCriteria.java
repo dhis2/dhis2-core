@@ -25,28 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event;
+package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.webapi.controller.tracker.export.TrackerTrackedEntitiesExportController;
 
 /**
- * @author Luciano Fiandesio
+ * This class represent a container to hold parameters from new tracker GET
+ * {@link TrackerTrackedEntitiesExportController}
+ *
+ * @author Giuseppe Nespolino
  */
 @Data
 @NoArgsConstructor
-public class TrackedEntityInstanceCriteria
+public class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapter
 {
     private String query;
 
@@ -85,47 +87,37 @@ public class TrackedEntityInstanceCriteria
     /**
      * Start date for last updated.
      */
-    private Date lastUpdatedStartDate;
+    private Date updatedAtFrom;
 
     /**
      * End date for last updated.
      */
-    private Date lastUpdatedEndDate;
+    private Date updatedAtTo;
 
     /**
      * The last updated duration filter.
      */
-    private String lastUpdatedDuration;
+    private String updatedAtWithin;
 
     /**
      * The given Program start date.
      */
-    private Date programStartDate;
+    private Date programEnrollmentFrom;
 
     /**
      * The given Program end date.
      */
-    private Date programEndDate;
-
-    /**
-     * Start date for enrollment in the given program.
-     */
-    private Date programEnrollmentStartDate;
-
-    /**
-     * End date for enrollment in the given program.
-     */
-    private Date programEnrollmentEndDate;
+    private Date programEnrollmentTo;
 
     /**
      * Start date for incident in the given program.
      */
-    private Date programIncidentStartDate;
+    private Date programIncidentFrom;
 
     /**
      * End date for incident in the given program.
      */
-    private Date programIncidentEndDate;
+    private Date programIncidentTo;
 
     /**
      * Only returns Tracked Entity Instances of this type.
@@ -135,7 +127,7 @@ public class TrackedEntityInstanceCriteria
     /**
      * Semicolon-delimited list of Tracked Entity Instance UIDs
      */
-    private String trackedEntityInstance;
+    private String trackedEntity;
 
     /**
      * Selection mode for user assignment of events.
@@ -162,43 +154,17 @@ public class TrackedEntityInstanceCriteria
     /**
      * Start date for Event for the given Program.
      */
-    private Date eventStartDate;
+    private Date eventOccurredAtFrom;
 
     /**
      * End date for Event for the given Program.
      */
-    private Date eventEndDate;
+    private Date eventOccurredAtTo;
 
     /**
      * Indicates whether not to include meta data in the response.
      */
     private boolean skipMeta;
-
-    /**
-     * Page number to return.
-     */
-    private Integer page;
-
-    /**
-     * Page size.
-     */
-    private Integer pageSize;
-
-    /**
-     * Indicates whether to include the total number of pages in the paging
-     * response.
-     */
-    private boolean totalPages;
-
-    /**
-     * Indicates whether paging should be skipped.
-     */
-    private Boolean skipPaging;
-
-    /**
-     * Indicated whether paging is enabled
-     */
-    private Boolean paging;
 
     /**
      * Indicates whether to include soft-deleted elements
@@ -211,36 +177,8 @@ public class TrackedEntityInstanceCriteria
     private boolean includeAllAttributes;
 
     /**
-     * TEI order params
-     */
-    private String order;
-
-    /**
      * The file name in case of exporting as file
      */
     private String attachment;
 
-    public Set<String> getOrgUnits()
-    {
-        return ou != null ? TextUtils.splitToArray( ou, TextUtils.SEMICOLON ) : new HashSet<>();
-    }
-
-    public Set<String> getAssignedUsers()
-    {
-        return assignedUser != null ? TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON ) : new HashSet<>();
-    }
-
-    public boolean hasTrackedEntityInstance()
-    {
-        return StringUtils.isNotEmpty( this.trackedEntityInstance );
-    }
-
-    public Set<String> getTrackedEntityInstances()
-    {
-        if ( hasTrackedEntityInstance() )
-        {
-            return TextUtils.splitToArray( trackedEntityInstance, TextUtils.SEMICOLON );
-        }
-        return new HashSet<>();
-    }
 }

@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.User;
 
 /**
@@ -242,6 +243,14 @@ public interface OrganisationUnitService
     List<OrganisationUnit> getOrganisationUnitsWithChildren( Collection<String> uids, Integer maxLevels );
 
     /**
+     * Returns OrganisationUnits which are associated with the given Program.
+     *
+     * @param program the {@link Program}.
+     * @return
+     */
+    List<OrganisationUnit> getOrganisationUnitsWithProgram( Program program );
+
+    /**
      * Returns all OrganisationUnits at a given hierarchical level. The root
      * OrganisationUnits are at level 1.
      *
@@ -323,8 +332,6 @@ public interface OrganisationUnitService
     Long getOrganisationUnitHierarchyMemberCount( OrganisationUnit parent, Object member, String collectionName );
 
     OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet( Integer maxlevels );
-
-    List<OrganisationUnit> getOrganisationUnitsBetweenByName( String name, int first, int max );
 
     /**
      * Returns the level of the given org unit level. The level parameter string
@@ -440,25 +447,6 @@ public interface OrganisationUnitService
     boolean isInUserSearchHierarchyCached( User user, OrganisationUnit organisationUnit );
 
     boolean isInUserSearchHierarchy( User user, OrganisationUnit organisationUnit );
-
-    // -------------------------------------------------------------------------
-    // OrganisationUnitHierarchy
-    // -------------------------------------------------------------------------
-
-    /**
-     * Get the OrganisationUnit hierarchy.
-     *
-     * @return a Collection with OrganisationUnitRelationship entries.
-     */
-    OrganisationUnitHierarchy getOrganisationUnitHierarchy();
-
-    /**
-     * Updates the parent id of the organisation unit with the given id.
-     *
-     * @param organisationUnitId the child organisation unit identifier.
-     * @param parentId the parent organisation unit identifier.
-     */
-    void updateOrganisationUnitParent( long organisationUnitId, long parentId );
 
     // -------------------------------------------------------------------------
     // OrganisationUnitLevel

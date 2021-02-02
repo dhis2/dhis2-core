@@ -95,8 +95,8 @@ public class V2_36_4__Remove_duplicate_mappings_from_categoryoption_to_usergroup
         long totalCount = 0;
 
         // 1. Check if there are duplicate mappings. If not simply return.
-        try (Statement stmt = context.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery( CHECK_DUPLICATE_CATOPT_USERGROUP_MAPPING );)
+        try ( Statement stmt = context.getConnection().createStatement();
+            ResultSet rs = stmt.executeQuery( CHECK_DUPLICATE_CATOPT_USERGROUP_MAPPING ); )
         {
             if ( rs.next() == false )
             {
@@ -131,9 +131,9 @@ public class V2_36_4__Remove_duplicate_mappings_from_categoryoption_to_usergroup
 
         // 2. Get ordered access strings for each categoryoptionid and
         // usergroupid combination
-        try (Statement stmt = context.getConnection().createStatement();
+        try ( Statement stmt = context.getConnection().createStatement();
             ResultSet rs = stmt.executeQuery( String.format( GET_ACCESS_STRING_FOR_CO_UG_COMBO, catOptIdsCommaSeparated,
-                userGroupIdsCommaSeparated ) );)
+                userGroupIdsCommaSeparated ) ); )
         {
             Pair<String, String> currentPair = null;
             while ( rs.next() )
@@ -156,7 +156,7 @@ public class V2_36_4__Remove_duplicate_mappings_from_categoryoption_to_usergroup
 
         String usrGrpAccessIdsCommaSeparated = StringUtils.join( deleteUserGroupAccessIds, "," );
 
-        try (Statement stmt = context.getConnection().createStatement();)
+        try ( Statement stmt = context.getConnection().createStatement(); )
         {
             // Delete redundant usergroupaccessid from
             // dataelementcategoryoptionusergroupaccesses table

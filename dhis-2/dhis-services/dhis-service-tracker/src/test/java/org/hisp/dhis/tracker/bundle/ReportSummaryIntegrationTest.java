@@ -202,6 +202,45 @@ public class ReportSummaryIntegrationTest
     }
 
     @Test
+    public void testStatsCountForOneCreatedEnrollmentAndUpdateSameEnrollment()
+        throws IOException
+    {
+        InputStream inputStream = new ClassPathResource( "tracker/single_tei.json" ).getInputStream();
+
+        TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
+        params.setUserId( userA.getUid() );
+        trackerImportService.importTracker( params );
+
+        inputStream = new ClassPathResource( "tracker/single_enrollment.json" ).getInputStream();
+        params = renderService.fromJson( inputStream, TrackerImportParams.class );
+        params.setUserId( userA.getUid() );
+        params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
+        TrackerImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( params );
+
+        assertNotNull( trackerImportEnrollmentReport );
+        assertEquals( TrackerStatus.OK, trackerImportEnrollmentReport.getStatus() );
+        assertTrue( trackerImportEnrollmentReport.getValidationReport().getErrorReports().isEmpty() );
+        assertEquals( 1, trackerImportEnrollmentReport.getStats().getCreated() );
+        assertEquals( 0, trackerImportEnrollmentReport.getStats().getUpdated() );
+        assertEquals( 0, trackerImportEnrollmentReport.getStats().getIgnored() );
+        assertEquals( 0, trackerImportEnrollmentReport.getStats().getDeleted() );
+
+        inputStream = new ClassPathResource( "tracker/single_enrollment.json" ).getInputStream();
+        params = renderService.fromJson( inputStream, TrackerImportParams.class );
+        params.setUserId( userA.getUid() );
+        params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
+        trackerImportEnrollmentReport = trackerImportService.importTracker( params );
+
+        assertNotNull( trackerImportEnrollmentReport );
+        assertEquals( TrackerStatus.OK, trackerImportEnrollmentReport.getStatus() );
+        assertTrue( trackerImportEnrollmentReport.getValidationReport().getErrorReports().isEmpty() );
+        assertEquals( 0, trackerImportEnrollmentReport.getStats().getCreated() );
+        assertEquals( 1, trackerImportEnrollmentReport.getStats().getUpdated() );
+        assertEquals( 0, trackerImportEnrollmentReport.getStats().getIgnored() );
+        assertEquals( 0, trackerImportEnrollmentReport.getStats().getDeleted() );
+    }
+
+    @Test
     public void testStatsCountForOneUpdateEnrollmentAndOneCreatedEnrollment()
         throws IOException
     {
