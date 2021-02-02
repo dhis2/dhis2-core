@@ -484,7 +484,7 @@ public class DataValueController
         DataValue dataValue = dataValueValidation.getAndValidateDataValue( request );
 
         if ( ( request.getFollowup() && !dataValue.isFollowup() ) ||
-            !request.getFollowup() && dataValue.isFollowup() )
+            ( !request.getFollowup() && dataValue.isFollowup() ) )
         {
             dataValue.setFollowup( request.getFollowup() );
             dataValueService.updateDataValue( dataValue );
