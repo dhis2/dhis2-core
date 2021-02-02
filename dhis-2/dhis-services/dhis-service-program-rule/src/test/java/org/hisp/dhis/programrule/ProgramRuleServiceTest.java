@@ -410,7 +410,7 @@ public class ProgramRuleServiceTest extends IntegrationTestBase
 
         // Get all the 3 rules for programB
         List<ProgramRule> rules = programRuleService.getProgramRulesByActionTypes( programB,
-            ProgramRuleActionType.getImplementedActions() );
+            ProgramRuleActionType.IMPLEMENTED_ACTIONS );
         assertEquals( 1, rules.size() );
         assertTrue( rules.contains( ruleD ) );
         assertFalse( rules.contains( ruleG ) );
