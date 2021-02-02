@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis;
 
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
@@ -44,14 +46,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.UserOrgUnitType;
@@ -180,11 +179,12 @@ import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
 import org.xml.sax.InputSource;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -2236,14 +2236,7 @@ public abstract class DhisConvenienceTest
         user.getUserCredentials().setUserInfo( user );
         userService.addUserCredentials( user.getUserCredentials() );
 
-        Set<GrantedAuthority> grantedAuths = authorities.stream().map( a -> new SimpleGrantedAuthority( a ) )
-            .collect( Collectors.toSet() );
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuths );
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuths );
-        SecurityContextHolder.getContext().setAuthentication( authentication );
+        injectSecurityContext( user );
 
         return user;
     }
@@ -2253,14 +2246,7 @@ public abstract class DhisConvenienceTest
         userService.addUser( user );
         userService.addUserCredentials( user.getUserCredentials() );
 
-        List<GrantedAuthority> grantedAuthorities = user.getUserCredentials().getAllAuthorities()
-            .stream().map( SimpleGrantedAuthority::new ).collect( Collectors.toList() );
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-        SecurityContextHolder.getContext().setAuthentication( authentication );
+        injectSecurityContext( user );
     }
 
     protected User createUser( String username, String... authorities )
@@ -2350,35 +2336,18 @@ public abstract class DhisConvenienceTest
     protected User createAndInjectAdminUser( String... authorities )
     {
         User user = createAdminUser( authorities );
-
-        List<GrantedAuthority> grantedAuthorities = user.getUserCredentials().getAllAuthorities()
-            .stream().map( SimpleGrantedAuthority::new ).collect( Collectors.toList() );
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication( authentication );
-        SecurityContextHolder.setContext( context );
-
+        injectSecurityContext( user );
         return user;
     }
 
     protected void injectSecurityContext( User user )
     {
-        List<GrantedAuthority> grantedAuthorities = user.getUserCredentials().getAllAuthorities()
-            .stream().map( SimpleGrantedAuthority::new ).collect( Collectors.toList() );
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication( authentication );
-        SecurityContextHolder.setContext( context );
+        UserCredentials credentials = user.getUserCredentials();
+        switchCurrentUserTo(
+            credentials.getUsername(),
+            credentials.getPassword(),
+            credentials.getAllAuthorities()
+                .stream().map( SimpleGrantedAuthority::new ).collect( toList() ) );
     }
 
     protected void clearSecurityContext()
@@ -2405,15 +2374,11 @@ public abstract class DhisConvenienceTest
     protected ProgramDataElementDimensionItem createProgramDataElement( char name )
     {
         Program pr = new Program();
-
         pr.setUid( "P123456789" + name );
-
         pr.setCode( "PCode" + name );
 
         DataElement de = new DataElement( "Name" + name );
-
         de.setUid( "D123456789" + name );
-
         de.setCode( "DCode" + name );
 
         return new ProgramDataElementDimensionItem( pr, de );
@@ -2433,31 +2398,15 @@ public abstract class DhisConvenienceTest
     @SuppressWarnings( "all" )
     protected void preCreateInjectAdminUserWithoutPersistence()
     {
-        List<GrantedAuthority> grantedAuthorities = ImmutableList.of( new SimpleGrantedAuthority( "ALL" ) );
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            DEFAULT_USERNAME, DEFAULT_ADMIN_PASSWORD, grantedAuthorities );
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication( authentication );
-        SecurityContextHolder.setContext( context );
+        switchCurrentUserTo( DEFAULT_USERNAME, DEFAULT_ADMIN_PASSWORD,
+            singletonList( new SimpleGrantedAuthority( "ALL" ) ) );
     }
 
     @SuppressWarnings( "all" )
     protected User preCreateInjectAdminUser()
     {
-        List<GrantedAuthority> grantedAuthorities = ImmutableList.of( new SimpleGrantedAuthority( "ALL" ) );
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            DEFAULT_USERNAME, DEFAULT_ADMIN_PASSWORD, grantedAuthorities );
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication( authentication );
-        SecurityContextHolder.setContext( context );
+        switchCurrentUserTo( DEFAULT_USERNAME, DEFAULT_ADMIN_PASSWORD,
+            singletonList( new SimpleGrantedAuthority( "ALL" ) ) );
 
         return createAndInjectAdminUser2( "ALL" );
     }
@@ -2466,18 +2415,22 @@ public abstract class DhisConvenienceTest
     {
         User user = createAdminUser( authorities );
 
-        List<GrantedAuthority> grantedAuthorities = user.getUserCredentials().getAllAuthorities()
-            .stream().map( SimpleGrantedAuthority::new ).collect( Collectors.toList() );
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-
-        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-        securityContext.setAuthentication( authentication );
-        SecurityContextHolder.setContext( securityContext );
+        UserCredentials credentials = user.getUserCredentials();
+        switchCurrentUserTo(
+            credentials.getUsername(),
+            credentials.getPassword(),
+            credentials.getAllAuthorities()
+                .stream().map( SimpleGrantedAuthority::new ).collect( toList() ) );
 
         return user;
+    }
+
+    protected void switchCurrentUserTo( String username, String password, List<GrantedAuthority> authorities )
+    {
+        UserDetails user = new org.springframework.security.core.userdetails.User( username, password, authorities );
+        Authentication authentication = new UsernamePasswordAuthenticationToken( user, "", authorities );
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication( authentication );
+        SecurityContextHolder.setContext( context );
     }
 }
