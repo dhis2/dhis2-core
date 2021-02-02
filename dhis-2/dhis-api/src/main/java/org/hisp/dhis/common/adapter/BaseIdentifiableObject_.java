@@ -25,32 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain;
-
-import lombok.Data;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+package org.hisp.dhis.common.adapter;
 
 /**
- * Class representing the unique properties of a data value.
- *
- * @author Lars Helge Overland
+ * This class defines metadata model property's names of
+ * {@link org.hisp.dhis.common.BaseIdentifiableObject} Those constants will help
+ * supporting type-safe queries with JPA Criteria API. TODO: This should be
+ * replaced with JPAMetaModelEntityProcessor's auto generated class
  */
-@Data
-public class DataValueRequest
+public class BaseIdentifiableObject_
 {
-    @JsonProperty
-    private String dataElement;
-
-    @JsonProperty
-    private String period;
-
-    @JsonProperty
-    private String orgUnit;
-
-    @JsonProperty
-    private String categoryOptionCombo;
-
-    @JsonProperty
-    private String attributeOptionCombo;
+    public static final String CREATED_BY = "createdBy";
 }

@@ -147,9 +147,9 @@ public class MapController
     {
         map.getMapViews().clear();
 
-        if ( newMap.getUser() == null )
+        if ( newMap.getCreatedBy() == null )
         {
-            map.setUser( null );
+            map.setCreatedBy( null );
         }
     }
 
@@ -238,13 +238,13 @@ public class MapController
 
     private void mergeMap( Map map )
     {
-        if ( map.getUser() != null )
+        if ( map.getCreatedBy() != null )
         {
-            map.setUser( userService.getUser( map.getUser().getUid() ) );
+            map.setCreatedBy( userService.getUser( map.getCreatedBy().getUid() ) );
         }
         else
         {
-            map.setUser( currentUserService.getCurrentUser() );
+            map.setCreatedBy( currentUserService.getCurrentUser() );
         }
 
         map.getMapViews().forEach( this::mergeMapView );

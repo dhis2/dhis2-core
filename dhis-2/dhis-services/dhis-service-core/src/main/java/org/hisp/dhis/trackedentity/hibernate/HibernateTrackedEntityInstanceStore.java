@@ -59,6 +59,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -197,15 +198,13 @@ public class HibernateTrackedEntityInstanceStore
 
     private String buildTrackedEntityInstanceCountHql( TrackedEntityInstanceQueryParams params )
     {
-        String orderQuery = getOrderClause( params );
-
         return buildTrackedEntityInstanceHql( params, false )
             .replaceFirst( SELECT_TEI, "select count(distinct tei) from" )
             .replaceFirst( "inner join fetch tei.programInstances", "inner join tei.programInstances" )
             .replaceFirst( "inner join fetch pi.programStageInstances", "inner join pi.programStageInstances" )
             .replaceFirst( "inner join fetch psi.assignedUser", "inner join psi.assignedUser" )
             .replaceFirst( "inner join fetch tei.programOwners", "inner join tei.programOwners" )
-            .replaceFirst( orderQuery, " " );
+            .replaceFirst( Pattern.quote( getOrderClause( params ) ), " " );
     }
 
     private String withProgram( TrackedEntityInstanceQueryParams params, SqlHelper hlp )
@@ -683,9 +682,7 @@ public class HibernateTrackedEntityInstanceStore
 
     private String getOrderClause( TrackedEntityInstanceQueryParams params )
     {
-        String orderQuery = params.hasProgram()
-            ? "order by case when pi.status = 'ACTIVE' then 1 when pi.status = 'COMPLETED' then 2 else 3 end asc, tei.lastUpdated desc "
-            : "order by tei.lastUpdated desc ";
+        String orderQuery = "order by tei.lastUpdated desc ";
 
         ArrayList<String> orderFields = new ArrayList<>();
 

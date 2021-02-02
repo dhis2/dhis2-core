@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.trackedentity.hibernate;
 
-import static org.springframework.util.StringUtils.quote;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +38,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 import org.hisp.dhis.hibernate.HibernateGenericStore;

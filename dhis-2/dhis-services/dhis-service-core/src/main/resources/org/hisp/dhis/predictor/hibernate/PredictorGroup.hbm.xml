@@ -28,7 +28,7 @@
                     foreign-key="fk_predictorgroup_predictorid" />
     </set>
 
-    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_predictorgroup_userid" />
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_predictorgroup_userid" />
 
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>

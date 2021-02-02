@@ -412,7 +412,7 @@ public class JdbcEventStore implements EventStore
                 }
             }
 
-            if ( !org.springframework.util.StringUtils.isEmpty( rowSet.getString( "psi_eventdatavalues" ) ) )
+            if ( !StringUtils.isEmpty( rowSet.getString( "psi_eventdatavalues" ) ) )
             {
                 Set<EventDataValue> eventDataValues = convertEventDataValueJsonIntoSet(
                     rowSet.getString( "psi_eventdatavalues" ) );
@@ -642,7 +642,7 @@ public class JdbcEventStore implements EventStore
                 eventRow.getAttributes().add( attribute );
             }
 
-            if ( !org.springframework.util.StringUtils.isEmpty( rowSet.getString( "psi_eventdatavalues" ) )
+            if ( !StringUtils.isEmpty( rowSet.getString( "psi_eventdatavalues" ) )
                 && !processedDataValues.containsKey( rowSet.getString( "psi_uid" ) ) )
             {
                 List<DataValue> dataValues = new ArrayList<>();

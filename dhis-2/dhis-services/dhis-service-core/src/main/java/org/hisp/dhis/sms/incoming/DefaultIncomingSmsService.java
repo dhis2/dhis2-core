@@ -110,7 +110,7 @@ public class DefaultIncomingSmsService
         sms.setText( message );
         sms.setOriginator( originator );
         sms.setGatewayId( gateway );
-        sms.setUser( user );
+        sms.setCreatedBy( user );
 
         if ( receivedTime != null )
         {

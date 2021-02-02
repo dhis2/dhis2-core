@@ -66,7 +66,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.webdomain.DataValueRequest;
+import org.hisp.dhis.webapi.webdomain.DataValueFollowUpRequest;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.Preconditions;
@@ -273,11 +273,11 @@ public class DataValidator
     /**
      * Validates and retrieves a data value.
      *
-     * @param dataValueRequest the {@link DataValueRequest}.
+     * @param dataValueRequest the {@link DataValueFollowUpRequest}.
      * @return a data value.
      * @throws IllegalQueryException if the validation fails.
      */
-    public DataValue getAndValidateDataValue( DataValueRequest dataValueRequest )
+    public DataValue getAndValidateDataValue( DataValueFollowUpRequest dataValueRequest )
     {
         DataElement dataElement = getAndValidateDataElement( dataValueRequest.getDataElement() );
         Period period = PeriodType.getPeriodFromIsoString( dataValueRequest.getPeriod() );

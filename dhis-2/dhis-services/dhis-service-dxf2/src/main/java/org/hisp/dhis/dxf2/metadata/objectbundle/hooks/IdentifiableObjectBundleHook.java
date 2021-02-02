@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Iterator;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -41,7 +42,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -66,9 +66,9 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         baseIdentifiableObject.setAutoFields();
         baseIdentifiableObject.setLastUpdatedBy( bundle.getUser() );
 
-        if ( baseIdentifiableObject.getUser() == null )
+        if ( baseIdentifiableObject.getCreatedBy() == null )
         {
-            baseIdentifiableObject.setUser( bundle.getUser() );
+            baseIdentifiableObject.setCreatedBy( bundle.getUser() );
         }
 
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( identifiableObject ) );
@@ -83,9 +83,14 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         baseIdentifiableObject.setAutoFields();
         baseIdentifiableObject.setLastUpdatedBy( bundle.getUser() );
 
-        if ( baseIdentifiableObject.getUser() == null )
+        if ( baseIdentifiableObject.getCreatedBy() == null && persistedObject.getCreatedBy() == null )
         {
-            baseIdentifiableObject.setUser( bundle.getUser() );
+            baseIdentifiableObject.setCreatedBy( bundle.getUser() );
+        }
+        else if ( persistedObject.getCreatedBy() != null )
+        {
+            // CreatedBy field is immutable
+            baseIdentifiableObject.setCreatedBy( persistedObject.getCreatedBy() );
         }
 
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );

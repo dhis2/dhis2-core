@@ -124,7 +124,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
     {
         User user = createAdminUser( "F_DATAELEMENT_PUBLIC_ADD" );
         DataElement dataElement = createDataElement( 'A' );
-        dataElement.setUser( user );
+        dataElement.setCreatedBy( user );
         dataElement.getSharing().setOwner( user );
         dataElement.setPublicAccess( AccessStringHelper.READ );
 
@@ -146,7 +146,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
     {
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         DataElement dataElement = createDataElement( 'A' );
-        dataElement.setUser( user );
+        dataElement.setCreatedBy( user );
         dataElement.getSharing().setOwner( user );
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
 
@@ -179,7 +179,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         Dashboard dashboard = new Dashboard( "Dashboard" );
         dashboard.setAutoFields();
-        dashboard.setUser( user );
+        dashboard.setCreatedBy( user );
         dashboard.getSharing().setOwner( user );
         dashboard.setPublicAccess( AccessStringHelper.DEFAULT );
 
@@ -202,7 +202,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         Visualization visualization = new Visualization( "Visualization" );
         visualization.setAutoFields();
-        visualization.setUser( user );
+        visualization.setCreatedBy( user );
         visualization.getSharing().setOwner( user );
         visualization.setType( VisualizationType.COLUMN );
         visualization.setPublicAccess( AccessStringHelper.DEFAULT );
@@ -226,7 +226,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         Map map = new Map();
         map.setAutoFields();
-        map.setUser( user );
+        map.setCreatedBy( user );
         map.getSharing().setOwner( user );
         map.setPublicAccess( AccessStringHelper.DEFAULT );
 
@@ -249,7 +249,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         EventChart eventChart = new EventChart();
         eventChart.setAutoFields();
-        eventChart.setUser( user );
+        eventChart.setCreatedBy( user );
         eventChart.getSharing().setOwner( user );
         eventChart.setPublicAccess( AccessStringHelper.DEFAULT );
 
@@ -272,7 +272,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         EventReport eventReport = new EventReport();
         eventReport.setAutoFields();
-        eventReport.setUser( user );
+        eventReport.setCreatedBy( user );
         eventReport.getSharing().setOwner( user );
         eventReport.setPublicAccess( AccessStringHelper.DEFAULT );
 
@@ -295,7 +295,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         LegendSet legendSet = new LegendSet();
         legendSet.setAutoFields();
-        legendSet.setUser( user );
+        legendSet.setCreatedBy( user );
         legendSet.getSharing().setOwner( user );
         legendSet.setPublicAccess( AccessStringHelper.DEFAULT );
 
@@ -424,7 +424,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         User user2 = createUser( "user2A9", "F_DATAELEMENT_PRIVATE_ADD" );
 
         DataElement dataElement = createDataElement( 'A' );
-        dataElement.setUser( user1 );
+        dataElement.setCreatedBy( user1 );
         dataElement.getSharing().setOwner( user1 );
         manager.save( dataElement );
 
@@ -452,7 +452,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         User user2 = createUser( "user22", "F_CATEGORY_OPTION_PRIVATE_ADD" );
 
         CategoryOption categoryOption = createCategoryOption( 'A' );
-        categoryOption.setUser( user1 );
+        categoryOption.setCreatedBy( user1 );
         categoryOption.getSharing().setOwner( user1 );
         manager.save( categoryOption );
 
@@ -484,7 +484,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         manager.save( user2 );
 
         Dashboard dashboard = new Dashboard( "Dashboard" );
-        dashboard.setUser( user1 );
+        dashboard.setCreatedBy( user1 );
         dashboard.getSharing().setOwner( user1 );
         dashboard.setAutoFields();
 
@@ -511,7 +511,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         manager.save( user2 );
 
         Dashboard dashboard = new Dashboard( "Dashboard" );
-        dashboard.setUser( user1 );
+        dashboard.setCreatedBy( user1 );
         dashboard.getSharing().setOwner( user1 );
         dashboard.setAutoFields();
 
@@ -543,7 +543,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         manager.save( user2 );
 
         Dashboard dashboard = new Dashboard( "Dashboard" );
-        dashboard.setUser( user1 );
+        dashboard.setCreatedBy( user1 );
         dashboard.getSharing().setOwner( user1 );
         dashboard.setAutoFields();
 
@@ -575,7 +575,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         manager.save( user2 );
 
         Dashboard dashboard = new Dashboard( "Dashboard" );
-        dashboard.setUser( user1 );
+        dashboard.setCreatedBy( user1 );
         dashboard.getSharing().setOwner( user1 );
         dashboard.setAutoFields();
 
@@ -608,7 +608,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         user2.getGroups().add( userGroup );
 
         Dashboard dashboard = new Dashboard( "Dashboard" );
-        dashboard.setUser( user1 );
+        dashboard.setCreatedBy( user1 );
         dashboard.getSharing().setOwner( user1 );
         manager.save( dashboard );
 
@@ -649,7 +649,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
-        dataElement.setUser( user1 );
+        dataElement.setCreatedBy( user1 );
         dataElement.getSharing().setOwner( user1 );
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ );
         dataElement.getSharing().addUserGroupAccess( userGroupAccess );
@@ -692,7 +692,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         DataElement dataElement = createDataElement( 'A' );
         dataElement.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
-        dataElement.setUser( user1 );
+        dataElement.setCreatedBy( user1 );
         dataElement.getSharing().setOwner( user1 );
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ_WRITE );
         dataElement.getSharing().addUserGroupAccess( userGroupAccess );
@@ -725,7 +725,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
-        dataElement.setUser( user1 );
+        dataElement.setCreatedBy( user1 );
         dataElement.getSharing().setOwner( user1 );
 
         assertTrue( aclService.canWrite( user1, dataElement ) );
@@ -745,7 +745,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
-        dataElement.setUser( user1 );
+        dataElement.setCreatedBy( user1 );
         dataElement.getSharing().setOwner( user1 );
 
         assertTrue( aclService.canWrite( user1, dataElement ) );
@@ -763,7 +763,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
-        dataElement.setUser( user1 );
+        dataElement.setCreatedBy( user1 );
         dataElement.getSharing().setOwner( user1 );
 
         Access access = aclService.getAccess( dataElement, user1 );
@@ -793,7 +793,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         Dashboard dashboard = new Dashboard( "Dashboard" );
         dashboard.setPublicAccess( AccessStringHelper.DEFAULT );
-        dashboard.setUser( user1 );
+        dashboard.setCreatedBy( user1 );
         dashboard.getSharing().setOwner( user1 );
 
         aclService.canWrite( user1, dashboard );
@@ -812,7 +812,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         Dashboard dashboard = new Dashboard( "Dashboard" );
         dashboard.setPublicAccess( AccessStringHelper.DEFAULT );
-        dashboard.setUser( user1 );
+        dashboard.setCreatedBy( user1 );
         dashboard.getSharing().setOwner( user1 );
 
         aclService.canWrite( user1, dashboard );
@@ -837,7 +837,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         DataElement dataElement = createDataElement( 'A' );
         dataElement.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
-        dataElement.setUser( user1 );
+        dataElement.setCreatedBy( user1 );
         dataElement.getSharing().setOwner( user1 );
 
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ_WRITE );
@@ -884,7 +884,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         User user = createUser( "user1A1", "F_PROGRAM_PRIVATE_ADD", "F_PROGRAMSTAGE_ADD" );
 
         Program program = createProgram( 'A' );
-        program.setUser( user );
+        program.setCreatedBy( user );
         program.getSharing().setOwner( user );
         program.setPublicAccess( AccessStringHelper.DEFAULT );
 
@@ -914,7 +914,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         Visualization visualization = new Visualization();
         visualization.setName( "RT" );
-        visualization.setUser( adminUser );
+        visualization.setCreatedBy( adminUser );
         visualization.getSharing().setOwner( adminUser );
         visualization.setAutoFields();
         visualization.setPublicAccess( AccessStringHelper.READ );
@@ -944,7 +944,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         Visualization visualization = new Visualization();
         visualization.setName( "RT" );
-        visualization.setUser( user1 );
+        visualization.setCreatedBy( user1 );
         visualization.getSharing().setOwner( user1 );
         visualization.setAutoFields();
         visualization.setExternalAccess( false );
@@ -973,7 +973,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         Visualization visualization = new Visualization();
         visualization.setName( "RT" );
-        visualization.setUser( user1 );
+        visualization.setCreatedBy( user1 );
         visualization.getSharing().setOwner( user1 );
         visualization.setAutoFields();
         visualization.setExternalAccess( false );
@@ -999,7 +999,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         injectSecurityContext( user1 );
 
         DataElement dataElement = createDataElement( 'A' );
-        dataElement.setUser( user1 );
+        dataElement.setCreatedBy( user1 );
         dataElement.getSharing().setOwner( user1 );
 
         Access access = aclService.getAccess( dataElement, user1 );
@@ -1038,7 +1038,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         injectSecurityContext( user1 );
 
         DataElement dataElement = createDataElement( 'A' );
-        dataElement.setUser( user1 );
+        dataElement.setCreatedBy( user1 );
         dataElement.getSharing().setOwner( user1 );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
 
@@ -1076,7 +1076,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         injectSecurityContext( user1 );
 
         DataElement dataElement = createDataElement( 'A' );
-        dataElement.setUser( user1 );
+        dataElement.setCreatedBy( user1 );
         dataElement.getSharing().setOwner( user1 );
 
         Access access = aclService.getAccess( dataElement, user1 );
@@ -1113,7 +1113,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         Visualization visualization = new Visualization();
         visualization.setAutoFields();
         visualization.setName( "FavA" );
-        visualization.setUser( userA );
+        visualization.setCreatedBy( userA );
         visualization.getSharing().setOwner( userA );
         visualization.setPublicAccess( AccessStringHelper.DEFAULT );
         visualization.setType( VisualizationType.COLUMN );
@@ -1148,7 +1148,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         Visualization visualization = new Visualization();
         visualization.setAutoFields();
         visualization.setName( "FavA" );
-        visualization.setUser( userA );
+        visualization.setCreatedBy( userA );
         visualization.getSharing().setOwner( userA );
         visualization.setPublicAccess( AccessStringHelper.DEFAULT );
         visualization.setType( VisualizationType.COLUMN );
@@ -1182,7 +1182,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         Visualization visualization = new Visualization();
         visualization.setAutoFields();
         visualization.setName( "FavA" );
-        visualization.setUser( userA );
+        visualization.setCreatedBy( userA );
         visualization.getSharing().setOwner( userA );
         visualization.setPublicAccess( AccessStringHelper.DEFAULT );
         visualization.setType( VisualizationType.COLUMN );
@@ -1222,7 +1222,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         categoryOption.setAutoFields();
         categoryOption.setName( "coA" );
         categoryOption.setPublicAccess( AccessStringHelper.DATA_READ );
-        categoryOption.setUser( user1 );
+        categoryOption.setCreatedBy( user1 );
         categoryOption.getSharing().setOwner( user1 );
         categoryOption.setPublicAccess( "rwrw----" );
 

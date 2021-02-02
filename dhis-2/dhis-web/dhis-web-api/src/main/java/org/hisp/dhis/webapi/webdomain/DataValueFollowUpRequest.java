@@ -25,41 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.transformer;
+package org.hisp.dhis.webapi.webdomain;
 
-import static org.junit.Assert.assertEquals;
+import lombok.Data;
 
-import java.util.UUID;
-
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
-import org.junit.Test;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-public class UserPropertyTransformerTest
+@Data
+public class DataValueFollowUpRequest
 {
-    private static final UUID uuid = UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" );
+    @JsonProperty
+    private String dataElement;
 
-    @Test
-    public void testUserTransform()
-    {
-        User user = new User();
-        UserCredentials userCredentials = new UserCredentials();
-        userCredentials.setUuid( uuid );
-        userCredentials.setCreatedBy( user );
-        userCredentials.setUsername( "test" );
-        userCredentials.setUserInfo( user );
+    @JsonProperty
+    private String period;
 
-        user.setUserCredentials( userCredentials );
-        user.setCreatedBy( user );
+    @JsonProperty
+    private String orgUnit;
 
-        UserPropertyTransformer transformer = new UserPropertyTransformer();
-        UserPropertyTransformer.UserDto userDto = (UserPropertyTransformer.UserDto) transformer.transform( user );
+    @JsonProperty
+    private String categoryOptionCombo;
 
-        // assertEquals( uuid.toString(), userDto.getId() );
-        assertEquals( user.getUid(), userDto.getId() );
-        assertEquals( "test", userDto.getUsername() );
-    }
+    @JsonProperty
+    private String attributeOptionCombo;
+
+    @JsonProperty
+    private Boolean followup;
 }
