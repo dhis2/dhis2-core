@@ -42,7 +42,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.mapper.TrackedEntityMapper;
 import org.hisp.dhis.tracker.domain.web.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
-import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerTrackedEntityCriteria;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.TrackedEntityInstanceSupportService;
 import org.mapstruct.factory.Mappers;
@@ -70,7 +70,7 @@ public class TrackerTrackedEntitiesExportController
     private final TrackedEntityInstanceSupportService trackedEntityInstanceSupportService;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
-    PagingWrapper<TrackedEntity> getInstances( TrackedEntityInstanceCriteria criteria )
+    PagingWrapper<TrackedEntity> getInstances( TrackerTrackedEntityCriteria criteria )
     {
         List<String> fields = contextService.getFieldsFromRequestOrAll();
 

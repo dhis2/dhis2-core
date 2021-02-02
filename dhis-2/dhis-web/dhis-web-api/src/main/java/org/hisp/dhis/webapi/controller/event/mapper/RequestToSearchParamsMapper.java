@@ -80,6 +80,9 @@ import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEventCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.tracker.mapper.TrackerEventCriteriaMapper;
+import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Component;
 
 /**
@@ -106,6 +109,9 @@ public class RequestToSearchParamsMapper
     private final InputUtils inputUtils;
 
     private final SchemaService schemaService;
+
+    private final static TrackerEventCriteriaMapper TRACKER_EVENT_CRITERIA_MAPPER = Mappers
+        .getMapper( TrackerEventCriteriaMapper.class );
 
     private Schema schema;
 
@@ -308,9 +314,9 @@ public class RequestToSearchParamsMapper
             eventCriteria.getEndDate(),
             eventCriteria.getDueDateStart(),
             eventCriteria.getDueDateEnd(),
-            eventCriteria.getLastUpdatedStartDate(),
-            eventCriteria.getLastUpdated() != null ? eventCriteria.getLastUpdatedEndDate()
+            eventCriteria.getLastUpdatedStartDate() != null ? eventCriteria.getLastUpdatedStartDate()
                 : eventCriteria.getLastUpdated(),
+            eventCriteria.getLastUpdatedEndDate(),
             eventCriteria.getLastUpdatedDuration(),
             eventCriteria.getStatus(),
             attributeOptionCombo,
@@ -372,5 +378,10 @@ public class RequestToSearchParamsMapper
             }
         }
         return dataElements;
+    }
+
+    public EventSearchParams map( TrackerEventCriteria eventCriteria )
+    {
+        return map( TRACKER_EVENT_CRITERIA_MAPPER.toEventCriteria( eventCriteria ) );
     }
 }
