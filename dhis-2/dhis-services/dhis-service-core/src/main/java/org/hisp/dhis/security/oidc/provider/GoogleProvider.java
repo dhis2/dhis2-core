@@ -30,9 +30,11 @@ package org.hisp.dhis.security.oidc.provider;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_ID;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_SECRET;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_REDIRECT_URI;
 
 import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
@@ -56,7 +58,6 @@ public class GoogleProvider extends AbstractOidcProvider
 
         String clientId = config.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_ID );
         String clientSecret = config.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_SECRET );
-        String mappingClaim = config.getProperty( OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM );
 
         if ( clientId.isEmpty() )
         {
@@ -68,15 +69,17 @@ public class GoogleProvider extends AbstractOidcProvider
             throw new IllegalArgumentException( "Google client secret is missing!" );
         }
 
-        ClientRegistration clientRegistration = CommonOAuth2Provider.GOOGLE.getBuilder( REGISTRATION_ID )
+        final ClientRegistration clientRegistration = CommonOAuth2Provider.GOOGLE.getBuilder( REGISTRATION_ID )
             .clientId( clientId )
             .clientSecret( clientSecret )
-            .redirectUri( DEFAULT_REDIRECT_TEMPLATE_URL )
+            .redirectUri( StringUtils.firstNonBlank(
+                config.getProperty( OIDC_PROVIDER_GOOGLE_REDIRECT_URI ),
+                DEFAULT_REDIRECT_TEMPLATE_URL ) )
             .build();
 
         return DhisOidcClientRegistration.builder()
             .clientRegistration( clientRegistration )
-            .mappingClaimKey( mappingClaim )
+            .mappingClaimKey( config.getProperty( OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM ) )
             .loginIcon( "../security/btn_google_light_normal_ios.svg" )
             .loginIconPadding( "0px 0px" )
             .loginText( "login_with_google" )

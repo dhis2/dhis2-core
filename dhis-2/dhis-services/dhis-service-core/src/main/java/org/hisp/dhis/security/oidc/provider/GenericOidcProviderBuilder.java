@@ -31,9 +31,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -82,20 +82,22 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
         builder.tokenUri( config.get( TOKEN_URI ) );
         builder.jwkSetUri( config.get( JWK_URI ) );
         builder.userInfoUri( config.get( USERINFO_URI ) );
-        builder
-            .redirectUri( Optional.ofNullable( config.get( REDIRECT_URL ) ).orElse( DEFAULT_REDIRECT_TEMPLATE_URL ) );
+        builder.redirectUri( StringUtils.defaultIfEmpty(
+            config.get( REDIRECT_URL ),
+            DEFAULT_REDIRECT_TEMPLATE_URL ) );
         builder.userInfoAuthenticationMethod( AuthenticationMethod.HEADER );
         builder.userNameAttributeName( IdTokenClaimNames.SUB );
-        builder.scope( ImmutableList.<String> builder().add( DEFAULT_SCOPE )
-            .add( Optional.ofNullable( config.get( SCOPES ) ).orElse( "" ).split( " " ) ).build() );
+        builder.scope( ImmutableList.<String> builder()
+            .add( DEFAULT_SCOPE )
+            .add( StringUtils.defaultIfEmpty( config.get( SCOPES ), "" ).split( " " ) ).build() );
         builder.providerConfigurationMetadata( parseMetaData( config ) );
 
         return DhisOidcClientRegistration.builder()
             .clientRegistration( builder.build() )
-            .mappingClaimKey( Optional.ofNullable( config.get( MAPPING_CLAIM ) ).orElse( DEFAULT_MAPPING_CLAIM ) )
-            .loginIcon( Optional.ofNullable( config.get( LOGO_IMAGE ) ).orElse( "" ) )
-            .loginIconPadding( Optional.ofNullable( config.get( LOGO_IMAGE_PADDING ) ).orElse( "0px 0px" ) )
-            .loginText( Optional.ofNullable( config.get( DISPLAY_ALIAS ) ).orElse( providerId ) )
+            .mappingClaimKey( StringUtils.defaultIfEmpty( config.get( MAPPING_CLAIM ), DEFAULT_MAPPING_CLAIM ) )
+            .loginIcon( StringUtils.defaultIfEmpty( config.get( LOGO_IMAGE ), "" ) )
+            .loginIconPadding( StringUtils.defaultIfEmpty( config.get( LOGO_IMAGE_PADDING ), "0px 0px" ) )
+            .loginText( StringUtils.defaultIfEmpty( config.get( DISPLAY_ALIAS ), providerId ) )
             .build();
     }
 
@@ -103,7 +105,7 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
     {
         final Map<String, Object> metadata = new HashMap<>();
 
-        String extraReqParams = Optional.ofNullable( config.get( EXTRA_REQUEST_PARAMETERS ) ).orElse( "" );
+        String extraReqParams = StringUtils.defaultIfEmpty( config.get( EXTRA_REQUEST_PARAMETERS ), "" );
 
         // Extra req. params has to be in this form: acr_value 4,test_param five
         // (PARAM1_NAME VALUE1,PARAM2_NAME VALUE2)
@@ -121,7 +123,7 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
         if ( Boolean.parseBoolean( config.get( ENABLE_LOGOUT ) ) )
         {
             metadata.put( END_SESSION_ENDPOINT,
-                Optional.ofNullable( config.get( END_SESSION_ENDPOINT ) ).orElse( "" ) );
+                StringUtils.defaultIfEmpty( config.get( END_SESSION_ENDPOINT ), "" ) );
         }
 
         if ( Boolean.parseBoolean( config.get( ENABLE_PKCE ) ) )
