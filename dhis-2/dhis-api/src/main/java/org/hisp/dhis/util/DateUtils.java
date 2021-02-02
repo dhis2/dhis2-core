@@ -729,6 +729,17 @@ public class DateUtils
         return convertOrNull( date, Date::toInstant );
     }
 
+    /**
+     * Null safe epoch to instant conversion
+     *
+     * @param epochMillis the date expressed as milliseconds from epoch
+     * @return an instant.
+     */
+    public static Instant instantFromEpoch( final Long epochMillis )
+    {
+        return convertOrNull( new Date( epochMillis ), Date::toInstant );
+    }
+
     public static Instant instantFromDateAsString( String dateAsString )
     {
         return convertOrNull( DateUtils.parseDate( dateAsString ), Date::toInstant );
