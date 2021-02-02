@@ -32,11 +32,13 @@ import static org.hisp.dhis.scheduling.JobType.values;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -50,6 +52,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Henning Håkonsen
@@ -177,6 +181,7 @@ public class DefaultJobConfigurationService
     }
 
     @Override
+    @Transactional
     public void refreshScheduling( JobConfiguration jobConfiguration )
     {
         if ( jobConfiguration.isEnabled() )
