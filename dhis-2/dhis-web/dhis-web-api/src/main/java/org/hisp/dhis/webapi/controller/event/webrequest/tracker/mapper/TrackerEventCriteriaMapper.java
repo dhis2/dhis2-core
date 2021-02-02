@@ -34,7 +34,7 @@ import org.mapstruct.Mapping;
 
 /**
  * TODO: It should be removed when we will implement new services.
- * 
+ *
  * Mapper to convert new tracker criteria to old one, to be used until we have
  * new services for new Tracker.
  */

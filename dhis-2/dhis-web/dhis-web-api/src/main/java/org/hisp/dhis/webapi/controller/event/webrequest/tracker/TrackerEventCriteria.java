@@ -30,14 +30,14 @@ package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
 import java.util.Date;
 import java.util.Set;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
-
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**

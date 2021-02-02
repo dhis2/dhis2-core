@@ -30,6 +30,9 @@ package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
 import java.util.Date;
 import java.util.Set;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
@@ -37,13 +40,10 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.tracker.export.TrackerTrackedEntitiesExportController;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 /**
  * This class represent a container to hold parameters from new tracker GET
  * {@link TrackerTrackedEntitiesExportController}
- * 
+ *
  * @author Giuseppe Nespolino
  */
 @Data
