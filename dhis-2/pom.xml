@@ -133,34 +133,24 @@
 
   <profiles>
     <profile>
-      <id>jdk9+</id>
-      <activation>
-        <jdk>[9,)</jdk>
-      </activation>
+      <!-- JDK 9+ -->
+      <id>jdk11</id>
       <properties>
         <maven.compiler.release>8</maven.compiler.release>
+        <surefireArgLine>-Xmx1024m --illegal-access=permit</surefireArgLine>
       </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>3.0.0-M5</version>
-            <configuration>
-              <trimStackTrace>false</trimStackTrace>
-              <argLine>-Xmx1024m</argLine>
-              <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
-            </configuration>
-            <dependencies>
-              <dependency>
-                <groupId>org.ow2.asm</groupId>
-                <artifactId>asm</artifactId>
-                <version>6.2</version>
-              </dependency>
-            </dependencies>
-          </plugin>
-        </plugins>
-      </build>
+    </profile>
+
+    <profile>
+      <!-- JDK 8 only -->
+      <id>jdk8</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+      </properties>
     </profile>
 
     <profile>
@@ -173,23 +163,25 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.21.0</version>
+            <version>${maven-surefire-plugin.version}</version>
             <configuration>
+              <skipTests>false</skipTests>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>-Xmx1024m</argLine>
+              <argLine>${surefireArgLine}</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
             </configuration>
             <dependencies>
               <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
-                <version>6.2</version>
+                <version>${ow2.asm.version}</version>
               </dependency>
             </dependencies>
           </plugin>
         </plugins>
       </build>
     </profile>
+    <!-- Integration test profile -->
     <profile>
       <id>integration</id>
       <build>
@@ -197,17 +189,18 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.21.0</version>
+            <version>${maven-surefire-plugin.version}</version>
             <configuration>
+              <skipTests>false</skipTests>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>-Xmx1024m</argLine>
+              <argLine>${surefireArgLine}</argLine>
               <groups>org.hisp.dhis.IntegrationTest</groups>
             </configuration>
             <dependencies>
               <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
-                <version>6.2</version>
+                <version>${ow2.asm.version}</version>
               </dependency>
             </dependencies>
           </plugin>
@@ -222,17 +215,25 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.21.0</version>
+            <version>${maven-surefire-plugin.version}</version>
             <configuration>
+              <skipTests>true</skipTests>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>${argLine} -Xmx1024m</argLine>
+              <argLine>${argLine}${surefireArgLine}</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
             </configuration>
+            <dependencies>
+              <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>${ow2.asm.version}</version>
+              </dependency>
+            </dependencies>
           </plugin>
           <plugin>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
-            <version>0.8.5</version>
+            <version>${jacoco-maven-plugin.version}</version>
             <executions>
               <execution>
                 <id>prepare-agent</id>
@@ -260,16 +261,25 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.21.0</version>
+            <version>${maven-surefire-plugin.version}</version>
             <configuration>
               <skipTests>true</skipTests>
+              <trimStackTrace>false</trimStackTrace>
+              <argLine>${surefireArgLine}</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
             </configuration>
+            <dependencies>
+              <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>${ow2.asm.version}</version>
+              </dependency>
+            </dependencies>
           </plugin>
           <plugin>
             <groupId>org.zeroturnaround</groupId>
             <artifactId>jrebel-maven-plugin</artifactId>
-            <version>1.1.6</version>
+            <version>${jrebel-x-maven-plugin.version}</version>
             <executions>
               <execution>
                 <configuration>
@@ -2088,5 +2098,10 @@
     <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     <sonar.organization>dhis2</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+    <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
+    <surefireArgLine>-Xmx1024m</surefireArgLine>
+    <ow2.asm.version>9.0</ow2.asm.version>
+    <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
+    <jrebel-x-maven-plugin.version>1.1.6</jrebel-x-maven-plugin.version>
   </properties>
 </project>
