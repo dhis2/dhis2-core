@@ -55,7 +55,5 @@ public interface ProgramRuleEngineService
      */
     List<RuleEffect> evaluateEventAndRunEffects( long event );
 
-    List<RuleEffect> evaluateEventAndRunEffects( String event );
-
     RuleValidationResult getDescription( String condition, String programId );
 }

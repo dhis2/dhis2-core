@@ -144,20 +144,6 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     }
 
     @Override
-    @Transactional
-    public List<RuleEffect> evaluateEventAndRunEffects( String event )
-    {
-        if ( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) )
-        {
-            return Lists.newArrayList();
-        }
-
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( event );
-
-        return evaluateEventAndRunEffects( psi );
-    }
-
-    @Override
     public RuleValidationResult getDescription( String condition, String programId )
     {
         Program program = programService.getProgram( programId );

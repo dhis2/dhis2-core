@@ -34,7 +34,7 @@ import org.springframework.context.ApplicationEvent;
  */
 public class StageScheduledEvaluationEvent extends ApplicationEvent
 {
-    private long programStageInstance;
+    private final long programStageInstance;
 
     public StageScheduledEvaluationEvent( Object source, long programStageInstance )
     {
