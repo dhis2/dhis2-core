@@ -25,43 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.webapi.controller.event.webrequest.tracker.mapper;
 
-import java.util.Date;
+import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEventCriteria;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.program.ProgramStatus;
-
-@Data
-@NoArgsConstructor
-public class EnrollmentCriteria extends PagingAndSortingCriteriaAdapter
+/**
+ * TODO: It should be removed when we will implement new services.
+ *
+ * Mapper to convert new tracker criteria to old one, to be used until we have
+ * new services for new Tracker.
+ */
+@Mapper
+public interface TrackerEventCriteriaMapper
 {
-    private String ou;
-
-    private OrganisationUnitSelectionMode ouMode;
-
-    private String program;
-
-    private ProgramStatus programStatus;
-
-    private Boolean followUp;
-
-    private Date lastUpdated;
-
-    private String lastUpdatedDuration;
-
-    private Date programStartDate;
-
-    private Date programEndDate;
-
-    private String trackedEntityType;
-
-    private String trackedEntityInstance;
-
-    private String enrollment;
-
-    private boolean includeDeleted;
+    @Mapping( source = "trackedEntity", target = "trackedEntityInstance" )
+    @Mapping( source = "ou", target = "orgUnit" )
+    @Mapping( source = "occurredAtFrom", target = "startDate" )
+    @Mapping( source = "occurredAtTo", target = "endDate" )
+    @Mapping( source = "scheduledAtFrom", target = "dueDateStart" )
+    @Mapping( source = "scheduledAtTo", target = "dueDateEnd" )
+    @Mapping( source = "updatedAtFrom", target = "lastUpdatedStartDate" )
+    @Mapping( source = "updatedAtTo", target = "lastUpdatedEndDate" )
+    @Mapping( source = "updatedAtWithin", target = "lastUpdatedDuration" )
+    EventCriteria toEventCriteria( TrackerEventCriteria from );
 }
