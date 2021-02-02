@@ -70,11 +70,16 @@ public enum ProgramRuleActionType
         .add( HIDEFIELD, SETMANDATORYFIELD, HIDEOPTION,
             HIDEOPTIONGROUP, SHOWOPTIONGROUP )
         .build(); // Actions associated with DataElement Or
-                  // TrackedEntityAttribute
+    // TrackedEntityAttribute
 
     private static final Set<ProgramRuleActionType> NOTIFICATION_LINKED_TYPES = new ImmutableSet.Builder<ProgramRuleActionType>()
         .add( SENDMESSAGE, SCHEDULEMESSAGE ).build(); // Actions associated with
-                                                      // NotificationTemplate
+    // NotificationTemplate
+
+    private static final Set<ProgramRuleActionType> NEW_TRACKER_TYPES = new ImmutableSet.Builder<ProgramRuleActionType>()
+        .add( SENDMESSAGE, SCHEDULEMESSAGE, SHOWERROR, SHOWWARNING,
+            ERRORONCOMPLETE, WARNINGONCOMPLETE, ASSIGN, SETMANDATORYFIELD )
+        .build();
 
     ProgramRuleActionType( String value )
     {
@@ -119,5 +124,10 @@ public enum ProgramRuleActionType
     public static Set<ProgramRuleActionType> getNotificationLinkedTypes()
     {
         return NOTIFICATION_LINKED_TYPES;
+    }
+
+    public static Set<ProgramRuleActionType> getNewTrackerTypes()
+    {
+        return NEW_TRACKER_TYPES;
     }
 }

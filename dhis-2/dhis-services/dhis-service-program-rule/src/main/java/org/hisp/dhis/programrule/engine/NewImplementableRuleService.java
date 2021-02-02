@@ -33,6 +33,7 @@ import java.util.List;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.springframework.stereotype.Component;
 
@@ -50,6 +51,6 @@ public class NewImplementableRuleService implements ImplementableRuleService
     @Override
     public List<ProgramRule> getImplementableRules( Program program )
     {
-        return programRuleService.getProgramRule( program );
+        return programRuleService.getImplementableProgramRules( program, ProgramRuleActionType.getNewTrackerTypes() );
     }
 }
