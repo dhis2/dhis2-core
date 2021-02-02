@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.Immutable;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.audit.AuditAttribute;
@@ -131,12 +132,14 @@ public class BaseIdentifiableObject
     /**
      * Access string for public access.
      */
-    protected String publicAccess;
+    protected transient String publicAccess;
 
     /**
-     * Owner of this object.
+     * User who created this object This field is immutable and must not be
+     * updated.
      */
-    protected User user;
+    @Immutable
+    protected User createdBy;
 
     /**
      * Access for user groups.
@@ -440,18 +443,35 @@ public class BaseIdentifiableObject
     @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
     @PropertyTransformer( UserPropertyTransformer.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public User getCreatedBy()
+    {
+        return createdBy;
+    }
+
+    @Override
+    @JsonProperty
+    @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
+    @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
+    @PropertyTransformer( UserPropertyTransformer.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public User getUser()
     {
-        return user;
+        return createdBy;
+    }
+
+    @Override
+    public void setCreatedBy( User createdBy )
+    {
+        this.createdBy = createdBy;
     }
 
     @Override
     public void setUser( User user )
     {
-        this.user = user;
-
-        // TODO remove this after implemented functions for using Owner property
-        this.setOwner( user != null ? user.getUid() : null );
+        // TODO remove this after implementing functions for using Owner
+        // property
+        setCreatedBy( createdBy == null ? user : createdBy );
+        setOwner( user != null ? user.getUid() : null );
     }
 
     public void setOwner( String userId )
@@ -485,7 +505,7 @@ public class BaseIdentifiableObject
         return sharing.isExternal();
     }
 
-    public void setExternalAccess( Boolean externalAccess )
+    public void setExternalAccess( boolean externalAccess )
     {
         getSharing().setExternal( externalAccess );
     }

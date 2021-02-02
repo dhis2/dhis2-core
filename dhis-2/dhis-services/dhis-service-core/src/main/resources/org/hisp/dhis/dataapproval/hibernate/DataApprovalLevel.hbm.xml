@@ -26,7 +26,7 @@
         column="categoryoptiongroupsetid" foreign-key="fK_dataapprovallevel_categoryoptiongroupsetid" not-null="false" />
     </properties>
 
-    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dataapprovallevel_userid" />
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dataapprovallevel_userid" />
 
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>

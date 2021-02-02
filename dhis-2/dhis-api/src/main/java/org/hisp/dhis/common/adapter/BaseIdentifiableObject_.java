@@ -25,41 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.transformer;
-
-import static org.junit.Assert.assertEquals;
-
-import java.util.UUID;
-
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
-import org.junit.Test;
+package org.hisp.dhis.common.adapter;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * This class defines metadata model property's names of
+ * {@link org.hisp.dhis.common.BaseIdentifiableObject} Those constants will help
+ * supporting type-safe queries with JPA Criteria API. TODO: This should be
+ * replaced with JPAMetaModelEntityProcessor's auto generated class
  */
-public class UserPropertyTransformerTest
+public class BaseIdentifiableObject_
 {
-    private static final UUID uuid = UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" );
-
-    @Test
-    public void testUserTransform()
-    {
-        User user = new User();
-        UserCredentials userCredentials = new UserCredentials();
-        userCredentials.setUuid( uuid );
-        userCredentials.setCreatedBy( user );
-        userCredentials.setUsername( "test" );
-        userCredentials.setUserInfo( user );
-
-        user.setUserCredentials( userCredentials );
-        user.setCreatedBy( user );
-
-        UserPropertyTransformer transformer = new UserPropertyTransformer();
-        UserPropertyTransformer.UserDto userDto = (UserPropertyTransformer.UserDto) transformer.transform( user );
-
-        // assertEquals( uuid.toString(), userDto.getId() );
-        assertEquals( user.getUid(), userDto.getId() );
-        assertEquals( "test", userDto.getUsername() );
-    }
+    public static final String CREATED_BY = "createdBy";
 }

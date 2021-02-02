@@ -194,7 +194,7 @@ public class PatchServiceTest
 
         Patch patch = new Patch()
             .addMutation( new Mutation( "name", "Updated Name" ) )
-            .addMutation( new Mutation( "user", user.getUid() ) )
+            .addMutation( new Mutation( "createdBy", user.getUid() ) )
             .addMutation( new Mutation( "domainType", "TRACKER" ) )
             .addMutation( new Mutation( "valueType", "BOOLEAN" ) );
 
@@ -202,7 +202,7 @@ public class PatchServiceTest
 
         assertEquals( DataElementDomain.TRACKER, dataElement.getDomainType() );
         assertEquals( ValueType.BOOLEAN, dataElement.getValueType() );
-        assertEquals( user.getUid(), dataElement.getUser().getUid() );
+        assertEquals( user.getUid(), dataElement.getCreatedBy().getUid() );
     }
 
     @Test
