@@ -78,15 +78,15 @@ public class DefaultSystemSettingManager
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private SystemSettingStore systemSettingStore;
+    private final SystemSettingStore systemSettingStore;
 
-    private PBEStringEncryptor pbeStringEncryptor;
+    private final PBEStringEncryptor pbeStringEncryptor;
 
-    private CacheProvider cacheProvider;
+    private final CacheProvider cacheProvider;
 
-    private Environment environment;
+    private final Environment environment;
 
-    private List<String> flags;
+    private final List<String> flags;
 
     public DefaultSystemSettingManager( SystemSettingStore systemSettingStore,
         @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor, CacheProvider cacheProvider,
@@ -241,15 +241,7 @@ public class DefaultSystemSettingManager
                 {
                     return SerializableOptional.of( pbeStringEncryptor.decrypt( (String) setting.getDisplayValue() ) );
                 }
-                catch ( EncryptionOperationNotPossibleException e ) // Most
-                                                                    // likely
-                                                                    // this
-                                                                    // means the
-                                                                    // value is
-                                                                    // not
-                                                                    // encrypted
-                                                                    // or not
-                                                                    // existing
+                catch ( EncryptionOperationNotPossibleException e )
                 {
                     log.warn( "Could not decrypt system setting '" + name + "'" );
                     return SerializableOptional.empty();
