@@ -71,9 +71,9 @@ public class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
 
     private Date occurredAtTo;
 
-    private Date deadlineAtFrom;
+    private Date scheduledAtFrom;
 
-    private Date deadlineAtTo;
+    private Date scheduledAtTo;
 
     private Date updatedAtFrom;
 
