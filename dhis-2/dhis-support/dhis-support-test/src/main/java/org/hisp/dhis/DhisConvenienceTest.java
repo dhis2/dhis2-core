@@ -52,6 +52,8 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.attribute.Attribute;
@@ -183,8 +185,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -2415,12 +2415,7 @@ public abstract class DhisConvenienceTest
     {
         User user = createAdminUser( authorities );
 
-        UserCredentials credentials = user.getUserCredentials();
-        switchCurrentUserTo(
-            credentials.getUsername(),
-            credentials.getPassword(),
-            credentials.getAllAuthorities()
-                .stream().map( SimpleGrantedAuthority::new ).collect( toList() ) );
+        injectSecurityContext( user );
 
         return user;
     }
