@@ -37,7 +37,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
  * Configures leaderManager that takes care of node leader elections.
@@ -49,7 +49,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 public class LeaderElectionConfiguration
 {
     @Autowired( required = false )
-    private RedisTemplate<String, ?> redisTemplate;
+    private StringRedisTemplate redisTemplate;
 
     @Autowired
     private DhisConfigurationProvider dhisConfigurationProvider;

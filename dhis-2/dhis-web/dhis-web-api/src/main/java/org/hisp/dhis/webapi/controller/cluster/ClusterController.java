@@ -48,6 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class ClusterController
 {
+    
     @Autowired
     private LeaderManager leaderManager;
 
