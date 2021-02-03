@@ -532,7 +532,7 @@ public abstract class AbstractEnrollmentService
 
         eventPublisher.publishEvent( new ProgramEnrollmentNotificationEvent( this, programInstance.getId() ) );
 
-        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance.getUid() ) );
+        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance.getId() ) );
 
         updateFeatureType( program, enrollment, programInstance );
         updateAttributeValues( enrollment, importOptions );

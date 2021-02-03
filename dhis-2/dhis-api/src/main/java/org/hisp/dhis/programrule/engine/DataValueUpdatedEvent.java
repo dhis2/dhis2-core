@@ -34,15 +34,15 @@ import org.springframework.context.ApplicationEvent;
  */
 public class DataValueUpdatedEvent extends ApplicationEvent
 {
-    private final String programStageInstance;
+    private final long programStageInstance;
 
-    public DataValueUpdatedEvent( Object source, String programStageInstance )
+    public DataValueUpdatedEvent( Object source, long programStageInstance )
     {
         super( source );
         this.programStageInstance = programStageInstance;
     }
 
-    public String getProgramStageInstance()
+    public long getProgramStageInstance()
     {
         return programStageInstance;
     }
