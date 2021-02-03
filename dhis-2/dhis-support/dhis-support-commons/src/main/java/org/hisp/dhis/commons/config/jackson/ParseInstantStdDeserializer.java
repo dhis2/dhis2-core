@@ -29,8 +29,8 @@ package org.hisp.dhis.commons.config.jackson;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.util.DateUtils;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -49,9 +49,9 @@ public class ParseInstantStdDeserializer extends StdDeserializer<Instant>
     public Instant deserialize( JsonParser parser, DeserializationContext context )
         throws IOException
     {
-        String valueAsString = tryGetValueAsString( parser );
+        String valueAsString = parser.getText();
 
-        if ( Objects.nonNull( valueAsString ) )
+        if ( StringUtils.isNotBlank( valueAsString ) )
         {
             try
             {
@@ -59,24 +59,16 @@ public class ParseInstantStdDeserializer extends StdDeserializer<Instant>
             }
             catch ( Exception e )
             {
+                if ( StringUtils.isNumeric( valueAsString ) )
+                {
+                    return DateUtils.instantFromEpoch( Long.valueOf( valueAsString ) );
+                }
                 throw new JsonParseException( parser,
                     String.format(
-                        "Invalid date format '%s', only '" + DateUtils.ISO8601_NO_TZ_PATTERN + "' format is supported.",
+                        "Invalid date format '%s', only '" + DateUtils.ISO8601_NO_TZ_PATTERN
+                            + "' format end epoch milliseconds are supported.",
                         valueAsString ) );
             }
-        }
-        return null;
-    }
-
-    private String tryGetValueAsString( JsonParser parser )
-    {
-        try
-        {
-            return parser.getValueAsString();
-        }
-        catch ( Exception e )
-        {
-            // intentionally empty
         }
         return null;
     }

@@ -62,7 +62,6 @@ public interface AclService
      */
     boolean isSupported( IdentifiableObject object );
 
-    @SuppressWarnings( { "rawtypes" } )
     <T extends IdentifiableObject> boolean isClassShareable( Class<T> klass );
 
     /**
@@ -73,7 +72,6 @@ public interface AclService
      */
     boolean isDataShareable( IdentifiableObject object );
 
-    @SuppressWarnings( { "rawtypes" } )
     <T extends IdentifiableObject> boolean isDataClassShareable( Class<T> klass );
 
     /**
