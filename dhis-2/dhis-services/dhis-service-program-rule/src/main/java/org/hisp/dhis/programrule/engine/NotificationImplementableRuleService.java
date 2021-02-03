@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 
 import org.hisp.dhis.program.Program;
@@ -38,19 +36,25 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.springframework.stereotype.Component;
 
 @Component
-public class NewImplementableRuleService implements ImplementableRuleService
+public class NotificationImplementableRuleService
+    extends ImplementableRuleService
 {
-    private final ProgramRuleService programRuleService;
-
-    public NewImplementableRuleService( ProgramRuleService programRuleService )
+    public NotificationImplementableRuleService( ProgramRuleService programRuleService )
     {
-        checkNotNull( programRuleService );
-        this.programRuleService = programRuleService;
+        super( programRuleService );
     }
 
     @Override
-    public List<ProgramRule> getImplementableRules( Program program )
+    public List<ProgramRule> getImplementableRules( Program program, String programStageUid )
     {
-        return programRuleService.getImplementableProgramRules( program, ProgramRuleActionType.getNewTrackerTypes() );
+        List<ProgramRule> permittedRules = getImplementableProgramRules( program,
+            ProgramRuleActionType.getNotificationLinkedTypes(), programStageUid );
+
+        if ( permittedRules.isEmpty() )
+        {
+            return permittedRules;
+        }
+
+        return getImplementableProgramRules( program, ProgramRuleActionType.getImplementedActions(), programStageUid );
     }
 }

@@ -27,22 +27,16 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -53,59 +47,31 @@ import org.hisp.dhis.rules.RuleEngineContext;
 import org.hisp.dhis.rules.RuleEngineIntent;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserAuthorityGroup;
 
 import com.google.api.client.util.Lists;
-import com.google.api.client.util.Maps;
 import com.google.api.client.util.Sets;
 
 /**
  * @author Zubair Asghar
  */
 @Slf4j
+@RequiredArgsConstructor
 public class ProgramRuleEngine
 {
-    private static final String USER = "USER";
-
-    private static final String REGEX = "d2:inOrgUnitGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|" +
-        "( *'[^']*'))*( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))* *\\)";
-
-    private static final Pattern PATTERN = Pattern.compile( REGEX );
-
+    @NonNull
     private final ProgramRuleEntityMapperService programRuleEntityMapperService;
 
+    @NonNull
     private final ProgramRuleVariableService programRuleVariableService;
 
-    private final OrganisationUnitGroupService organisationUnitGroupService;
-
-    private final CurrentUserService currentUserService;
-
+    @NonNull
     private final ConstantService constantService;
 
+    @NonNull
     private final ImplementableRuleService implementableRuleService;
 
-    public ProgramRuleEngine( ProgramRuleEntityMapperService programRuleEntityMapperService,
-        ProgramRuleVariableService programRuleVariableService,
-        OrganisationUnitGroupService organisationUnitGroupService,
-        CurrentUserService currentUserService,
-        ConstantService constantService,
-        ImplementableRuleService implementableRuleService )
-    {
-        checkNotNull( programRuleEntityMapperService );
-        checkNotNull( programRuleVariableService );
-        checkNotNull( organisationUnitGroupService );
-        checkNotNull( currentUserService );
-        checkNotNull( constantService );
-        checkNotNull( implementableRuleService );
-
-        this.programRuleEntityMapperService = programRuleEntityMapperService;
-        this.programRuleVariableService = programRuleVariableService;
-        this.organisationUnitGroupService = organisationUnitGroupService;
-        this.currentUserService = currentUserService;
-        this.constantService = constantService;
-        this.implementableRuleService = implementableRuleService;
-    }
+    @NonNull
+    private final SupplementaryDataProvider supplementaryDataProvider;
 
     public List<RuleEffect> evaluate( ProgramInstance enrollment, Set<ProgramStageInstance> events )
     {
@@ -143,7 +109,7 @@ public class ProgramRuleEngine
         String programStageUid = programStageInstance != null ? programStageInstance.getProgramStage().getUid() : null;
 
         List<ProgramRule> programRules = implementableRuleService
-            .getImplementableRules( program )
+            .getImplementableRules( program, programStageUid )
             .stream()
             .filter( rule -> Objects.isNull( rule.getProgramStage() ) ||
                 Objects.equals( rule.getProgramStage().getUid(), programStageUid ) )
@@ -223,33 +189,7 @@ public class ProgramRuleEngine
             .stream()
             .collect( Collectors.toMap( Map.Entry::getKey, v -> v.getValue().toString() ) );
 
-        List<String> orgUnitGroups = new ArrayList<>();
-
-        for ( ProgramRule programRule : programRules )
-        {
-
-            Matcher matcher = PATTERN.matcher( StringUtils.defaultIfBlank( programRule.getCondition(), "" ) );
-
-            while ( matcher.find() )
-            {
-                orgUnitGroups.add( StringUtils.replace( matcher.group( 1 ), "'", "" ) );
-            }
-        }
-
-        Map<String, List<String>> supplementaryData = Maps.newHashMap();
-
-        if ( !orgUnitGroups.isEmpty() )
-        {
-            supplementaryData = orgUnitGroups.stream().collect(
-                Collectors.toMap( g -> g, g -> organisationUnitGroupService.getOrganisationUnitGroup( g ).getMembers()
-                    .stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
-        }
-
-        if ( currentUserService.getCurrentUser() != null )
-        {
-            supplementaryData.put( USER, currentUserService.getCurrentUser().getUserCredentials()
-                .getUserAuthorityGroups().stream().map( UserAuthorityGroup::getUid ).collect( Collectors.toList() ) );
-        }
+        Map<String, List<String>> supplementaryData = supplementaryDataProvider.getSupplementaryData( programRules );
 
         return RuleEngineContext.builder()
             .supplementaryData( supplementaryData )
@@ -266,16 +206,8 @@ public class ProgramRuleEngine
             .stream()
             .collect( Collectors.toMap( Map.Entry::getKey, v -> v.getValue().toString() ) );
 
-        Map<String, List<String>> supplementaryData = organisationUnitGroupService.getAllOrganisationUnitGroups()
-            .stream()
-            .collect( Collectors.toMap( BaseIdentifiableObject::getUid,
-                g -> g.getMembers().stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
+        Map<String, List<String>> supplementaryData = supplementaryDataProvider.getSupplementaryData( programRules );
 
-        if ( currentUserService.getCurrentUser() != null )
-        {
-            supplementaryData.put( USER, currentUserService.getCurrentUser().getUserCredentials()
-                .getUserAuthorityGroups().stream().map( UserAuthorityGroup::getUid ).collect( Collectors.toList() ) );
-        }
         if ( RuleEngineIntent.DESCRIPTION == intent )
         {
             Map<String, DataItem> itemStore = programRuleEntityMapperService.getItemStore( programRuleVariables );

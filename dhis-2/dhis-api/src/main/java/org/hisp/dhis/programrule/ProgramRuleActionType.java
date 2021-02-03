@@ -76,7 +76,7 @@ public enum ProgramRuleActionType
         .add( SENDMESSAGE, SCHEDULEMESSAGE ).build(); // Actions associated with
     // NotificationTemplate
 
-    private static final Set<ProgramRuleActionType> NEW_TRACKER_TYPES = new ImmutableSet.Builder<ProgramRuleActionType>()
+    private static final Set<ProgramRuleActionType> SERVER_SUPPORTED_TYPES = new ImmutableSet.Builder<ProgramRuleActionType>()
         .add( SENDMESSAGE, SCHEDULEMESSAGE, SHOWERROR, SHOWWARNING,
             ERRORONCOMPLETE, WARNINGONCOMPLETE, ASSIGN, SETMANDATORYFIELD )
         .build();
@@ -126,8 +126,8 @@ public enum ProgramRuleActionType
         return NOTIFICATION_LINKED_TYPES;
     }
 
-    public static Set<ProgramRuleActionType> getNewTrackerTypes()
+    public static Set<ProgramRuleActionType> getServerSupportedTypes()
     {
-        return NEW_TRACKER_TYPES;
+        return SERVER_SUPPORTED_TYPES;
     }
 }

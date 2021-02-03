@@ -97,6 +97,9 @@ public interface ProgramRuleService
 
     List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types );
 
+    List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> serverSupportedTypes,
+        String programStageUid );
+
     /**
      * Get validation by {@link Program}
      *
