@@ -257,6 +257,16 @@ public class ImportSideEffectsTests
     }
 
     @Test
+    public void shouldBeSkippedWhenSkipRuleEngineFlag() {
+        JsonObject payload = trackerActions.buildEvent( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK" );
+        JsonObjectBuilder.jsonObject( payload ).addPropertyByJsonPath( "events[0].status", "COMPLETED" );
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( payload, new QueryParamsBuilder().add( "skipRuleEngine=true" ) );
+
+        response.validateSuccessfulImport();
+    }
+
+    @Test
     public void shouldImportWhenWarnings()
     {
         // arrange
