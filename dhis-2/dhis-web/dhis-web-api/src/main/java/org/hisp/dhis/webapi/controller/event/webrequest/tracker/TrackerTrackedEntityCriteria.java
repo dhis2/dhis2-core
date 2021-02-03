@@ -59,7 +59,7 @@ public class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapte
     /**
      * Semicolon-delimited list of Organizational Unit UIDs
      */
-    private String ou;
+    private String orgUnit;
 
     /**
      * Selection mode for the specified organisation units, default is
@@ -102,22 +102,22 @@ public class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapte
     /**
      * The given Program start date.
      */
-    private Date programEnrollmentFrom;
+    private Date enrolledAtFrom;
 
     /**
      * The given Program end date.
      */
-    private Date programEnrollmentTo;
+    private Date enrolledAtTo;
 
     /**
      * Start date for incident in the given program.
      */
-    private Date programIncidentFrom;
+    private Date occurredAtFrom;
 
     /**
      * End date for incident in the given program.
      */
-    private Date programIncidentTo;
+    private Date occurredAtTo;
 
     /**
      * Only returns Tracked Entity Instances of this type.
@@ -154,12 +154,12 @@ public class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapte
     /**
      * Start date for Event for the given Program.
      */
-    private Date eventOccurredAtFrom;
+    private Date eventExecutedAtFrom;
 
     /**
      * End date for Event for the given Program.
      */
-    private Date eventOccurredAtTo;
+    private Date eventExecutedAtTo;
 
     /**
      * Indicates whether not to include meta data in the response.
