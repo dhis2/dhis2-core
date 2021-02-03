@@ -100,7 +100,6 @@ public class DefaultAclService implements AclService
     }
 
     @Override
-    @SuppressWarnings( { "rawtypes" } )
     public <T extends IdentifiableObject> boolean isClassShareable( Class<T> klass )
     {
         Schema schema = schemaService.getSchema( klass );
@@ -115,7 +114,6 @@ public class DefaultAclService implements AclService
     }
 
     @Override
-    @SuppressWarnings( { "rawtypes" } )
     public <T extends IdentifiableObject> boolean isDataClassShareable( Class<T> klass )
     {
         Schema schema = schemaService.getSchema( klass );
