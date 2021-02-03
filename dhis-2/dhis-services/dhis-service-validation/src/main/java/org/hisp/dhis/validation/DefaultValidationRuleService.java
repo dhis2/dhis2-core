@@ -106,66 +106,77 @@ public class DefaultValidationRuleService
         validationRuleStore.delete( validationRule );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public ValidationRule getValidationRule( long id )
     {
         return validationRuleStore.get( id );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public ValidationRule getValidationRule( String uid )
     {
         return validationRuleStore.getByUid( uid );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public ValidationRule getValidationRuleByName( String name )
     {
         return validationRuleStore.getByName( name );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public List<ValidationRule> getAllValidationRules()
     {
         return validationRuleStore.getAll();
     }
 
+    @Transactional( readOnly = true )
     @Override
     public List<ValidationRule> getAllFormValidationRules()
     {
         return validationRuleStore.getAllFormValidationRules();
     }
 
+    @Transactional( readOnly = true )
     @Override
     public int getValidationRuleCount()
     {
         return validationRuleStore.getCount();
     }
 
+    @Transactional( readOnly = true )
     @Override
     public int getValidationRuleCountByName( String name )
     {
         return validationRuleStore.getCountLikeName( name );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public List<ValidationRule> getValidationRulesBetween( int first, int max )
     {
         return validationRuleStore.getAllOrderedName( first, max );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public List<ValidationRule> getValidationRulesBetweenByName( String name, int first, int max )
     {
         return validationRuleStore.getAllLikeName( name, first, max );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public List<ValidationRule> getValidationRulesByUid( Collection<String> uids )
     {
         return validationRuleStore.getByUid( uids );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public Collection<ValidationRule> getValidationRulesForDataSet( DataSet dataSet )
     {
@@ -206,6 +217,7 @@ public class DefaultValidationRuleService
         return rulesForDataSet;
     }
 
+    @Transactional( readOnly = true )
     @Override
     public Set<DataElement> getDataElements( ValidationRule validationRule )
     {
@@ -217,6 +229,7 @@ public class DefaultValidationRuleService
         return elements;
     }
 
+    @Transactional( readOnly = true )
     @Override
     public List<ValidationRule> getValidationRulesWithNotificationTemplates()
     {
@@ -247,48 +260,56 @@ public class DefaultValidationRuleService
         validationRuleGroupStore.update( validationRuleGroup );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public ValidationRuleGroup getValidationRuleGroup( long id )
     {
         return validationRuleGroupStore.get( id );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public ValidationRuleGroup getValidationRuleGroup( String uid )
     {
         return validationRuleGroupStore.getByUid( uid );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public List<ValidationRuleGroup> getAllValidationRuleGroups()
     {
         return validationRuleGroupStore.getAll();
     }
 
+    @Transactional( readOnly = true )
     @Override
     public ValidationRuleGroup getValidationRuleGroupByName( String name )
     {
         return validationRuleGroupStore.getByName( name );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public int getValidationRuleGroupCount()
     {
         return validationRuleGroupStore.getCount();
     }
 
+    @Transactional( readOnly = true )
     @Override
     public int getValidationRuleGroupCountByName( String name )
     {
         return validationRuleGroupStore.getCountLikeName( name );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public List<ValidationRuleGroup> getValidationRuleGroupsBetween( int first, int max )
     {
         return validationRuleGroupStore.getAllOrderedName( first, max );
     }
 
+    @Transactional( readOnly = true )
     @Override
     public List<ValidationRuleGroup> getValidationRuleGroupsBetweenByName( String name, int first, int max )
     {
