@@ -165,7 +165,7 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <version>${maven-surefire-plugin.version}</version>
             <configuration>
-              <skipTests>false</skipTests>
+              <skipTests>${skipTests}</skipTests>
               <trimStackTrace>false</trimStackTrace>
               <argLine>${surefireArgLine}</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
@@ -191,7 +191,7 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <version>${maven-surefire-plugin.version}</version>
             <configuration>
-              <skipTests>false</skipTests>
+              <skipTests>${skipTests}</skipTests>
               <trimStackTrace>false</trimStackTrace>
               <argLine>${surefireArgLine}</argLine>
               <groups>org.hisp.dhis.IntegrationTest</groups>
@@ -2103,5 +2103,6 @@
     <ow2.asm.version>9.0</ow2.asm.version>
     <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.1.6</jrebel-x-maven-plugin.version>
+    <skipTests>false</skipTests>
   </properties>
 </project>
