@@ -50,7 +50,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Zubair Asghar.
+ * @author Zubair Asghar
  */
 @Slf4j
 @RequiredArgsConstructor

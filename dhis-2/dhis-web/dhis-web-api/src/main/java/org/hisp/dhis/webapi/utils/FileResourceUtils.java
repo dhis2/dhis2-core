@@ -181,7 +181,7 @@ public class FileResourceUtils
             FileResourceDomain.DATA_VALUE );
         fileResource.setAssigned( false );
         fileResource.setCreated( new Date() );
-        fileResource.setUser( currentUserService.getCurrentUser() );
+        fileResource.setCreatedBy( currentUserService.getCurrentUser() );
         fileResource.setDomain( domain );
 
         File tmpFile = toTempFile( file );

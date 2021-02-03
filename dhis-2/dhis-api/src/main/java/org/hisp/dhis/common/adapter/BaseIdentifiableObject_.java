@@ -25,15 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oidc.provider;
+package org.hisp.dhis.common.adapter;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * This class defines metadata model property's names of
+ * {@link org.hisp.dhis.common.BaseIdentifiableObject} Those constants will help
+ * supporting type-safe queries with JPA Criteria API. TODO: This should be
+ * replaced with JPAMetaModelEntityProcessor's auto generated class
  */
-public abstract class DhisOidcProvider
+public class BaseIdentifiableObject_
 {
-    protected static final String DEFAULT_REDIRECT_TEMPLATE_URL = "{baseUrl}/oauth2/code/{registrationId}";
-
-    public static final String DEFAULT_MAPPING_CLAIM = "email";
-
+    public static final String CREATED_BY = "createdBy";
 }

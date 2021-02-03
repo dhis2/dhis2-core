@@ -25,32 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain;
+package org.hisp.dhis.webapi.controller.event.webrequest.tracker.mapper;
 
-import lombok.Data;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEventCriteria;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 /**
- * Class representing the unique properties of a data value.
+ * TODO: It should be removed when we will implement new services.
  *
- * @author Lars Helge Overland
+ * Mapper to convert new tracker criteria to old one, to be used until we have
+ * new services for new Tracker.
  */
-@Data
-public class DataValueRequest
+@Mapper
+public interface TrackerEventCriteriaMapper
 {
-    @JsonProperty
-    private String dataElement;
-
-    @JsonProperty
-    private String period;
-
-    @JsonProperty
-    private String orgUnit;
-
-    @JsonProperty
-    private String categoryOptionCombo;
-
-    @JsonProperty
-    private String attributeOptionCombo;
+    @Mapping( source = "trackedEntity", target = "trackedEntityInstance" )
+    @Mapping( source = "ou", target = "orgUnit" )
+    @Mapping( source = "occurredAtFrom", target = "startDate" )
+    @Mapping( source = "occurredAtTo", target = "endDate" )
+    @Mapping( source = "scheduledAtFrom", target = "dueDateStart" )
+    @Mapping( source = "scheduledAtTo", target = "dueDateEnd" )
+    @Mapping( source = "updatedAtFrom", target = "lastUpdatedStartDate" )
+    @Mapping( source = "updatedAtTo", target = "lastUpdatedEndDate" )
+    @Mapping( source = "updatedAtWithin", target = "lastUpdatedDuration" )
+    EventCriteria toEventCriteria( TrackerEventCriteria from );
 }

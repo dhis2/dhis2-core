@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -50,27 +51,15 @@ import com.google.common.collect.ImmutableMap;
  *         parse this.
  *         https://login.microsoftonline.com/"+tenant+"/v2.0/.well-known/openid-configuration
  */
-public class AzureAdProvider extends DhisOidcProvider
+public class AzureAdProvider extends AbstractOidcProvider
 {
     public static final int MAX_AZURE_TENANTS = 10;
 
     public static final String PROVIDER_PREFIX = "oidc.provider.azure.";
 
-    public static final String AZURE_TENANT = ".tenant";
+    public static final String AZURE_TENANT = "tenant";
 
-    public static final String AZURE_DISPLAY_ALIAS = ".display_alias";
-
-    public static final String AZURE_CLIENT_ID = ".client_id";
-
-    public static final String AZURE_CLIENT_SECRET = ".client_secret";
-
-    public static final String AZURE_REDIRECT_BASE_URL = ".redirect_baseurl";
-
-    public static final String AZURE_MAPPING_CLAIM = ".mapping_claim";
-
-    public static final String AZURE_SUPPORT_LOGOUT = ".support_logout";
-
-    public static final String PROVIDER_STATIC_BASE_URL = "https://login.microsoftonline.com/";
+    public static final String PROVIDER_STATIC_ISSUER_URI_START = "https://login.microsoftonline.com/";
 
     private AzureAdProvider()
     {
@@ -87,68 +76,78 @@ public class AzureAdProvider extends DhisOidcProvider
 
         for ( int i = 0; i < MAX_AZURE_TENANTS; i++ )
         {
-            String tenant = properties.getProperty( PROVIDER_PREFIX + i + AZURE_TENANT, "" );
+            String propertyPrefix = PROVIDER_PREFIX + i + '.';
 
+            String tenant = properties.getProperty( propertyPrefix + AZURE_TENANT, "" );
             if ( tenant.isEmpty() )
             {
                 continue;
             }
 
-            String clientId = properties.getProperty( PROVIDER_PREFIX + i + AZURE_CLIENT_ID, "" );
-            String clientSecret = config.getProperties().getProperty( PROVIDER_PREFIX + i + AZURE_CLIENT_SECRET );
-            boolean supportLogout = Boolean.parseBoolean( MoreObjects.firstNonNull( config.getProperties()
-                .getProperty( PROVIDER_PREFIX + i + AZURE_SUPPORT_LOGOUT ), "TRUE" ) );
-            String mappingClaims = MoreObjects
-                .firstNonNull( config.getProperties().getProperty( PROVIDER_PREFIX + i + AZURE_MAPPING_CLAIM ),
-                    DEFAULT_MAPPING_CLAIM );
-
-            if ( clientId.isEmpty() )
-            {
-                throw new IllegalArgumentException( "Azure client id is missing! tenant=" + tenant );
-            }
-
-            if ( clientSecret.isEmpty() )
-            {
-                throw new IllegalArgumentException( "Azure client secret is missing! tenant=" + tenant );
-            }
-
-            ClientRegistration.Builder builder = ClientRegistration.withRegistrationId( tenant );
-
-            String providerBaseUrl = PROVIDER_STATIC_BASE_URL + tenant;
-
-            builder.clientAuthenticationMethod( ClientAuthenticationMethod.BASIC );
-            builder.authorizationGrantType( AuthorizationGrantType.AUTHORIZATION_CODE );
-            builder.scope( "openid", "profile", DEFAULT_MAPPING_CLAIM );
-            builder.authorizationUri( providerBaseUrl + "/oauth2/v2.0/authorize" );
-            builder.tokenUri( providerBaseUrl + "/oauth2/v2.0/token" );
-            builder.jwkSetUri( providerBaseUrl + "/discovery/v2.0/keys" );
-            builder.userInfoUri( "https://graph.microsoft.com/oidc/userinfo" );
-            builder.clientName( tenant );
-            builder.clientId( clientId );
-            builder.clientSecret( clientSecret );
-            builder.redirectUri( DEFAULT_REDIRECT_TEMPLATE_URL );
-            builder.userInfoAuthenticationMethod( AuthenticationMethod.HEADER );
-            builder.userNameAttributeName( IdTokenClaimNames.SUB );
-
-            if ( supportLogout )
-            {
-                builder.providerConfigurationMetadata(
-                    ImmutableMap.of( "end_session_endpoint", providerBaseUrl + "/oauth2/v2.0/logout" ) );
-            }
-
-            ClientRegistration clientRegistration = builder.build();
+            ClientRegistration.Builder builder = makeBuilder( config, tenant, propertyPrefix );
 
             DhisOidcClientRegistration dhisOidcClientRegistration = DhisOidcClientRegistration.builder()
-                .clientRegistration( clientRegistration )
-                .mappingClaimKey( mappingClaims )
+                .clientRegistration( builder.build() )
+                .mappingClaimKey( MoreObjects.firstNonNull(
+                    properties.getProperty( propertyPrefix + MAPPING_CLAIM ),
+                    DEFAULT_MAPPING_CLAIM ) )
                 .loginIcon( "../security/btn_azure_login.svg" )
                 .loginIconPadding( "13px 13px" )
-                .loginText( properties.getProperty( PROVIDER_PREFIX + i + AZURE_DISPLAY_ALIAS, "login_with_azure" ) )
+                .loginText( properties.getProperty( propertyPrefix + DISPLAY_ALIAS, "login_with_azure" ) )
                 .build();
 
             clients.add( dhisOidcClientRegistration );
         }
 
         return clients.build();
+    }
+
+    private static ClientRegistration.Builder makeBuilder( DhisConfigurationProvider config, String tenant,
+        String propertyPrefix )
+    {
+        Properties properties = config.getProperties();
+
+        String clientId = properties.getProperty( propertyPrefix + CLIENT_ID, "" );
+        String clientSecret = properties.getProperty( propertyPrefix + CLIENT_SECRET );
+
+        if ( clientId.isEmpty() )
+        {
+            throw new IllegalArgumentException( "Azure client id is missing! tenant=" + tenant );
+        }
+
+        if ( clientSecret.isEmpty() )
+        {
+            throw new IllegalArgumentException( "Azure client secret is missing! tenant=" + tenant );
+        }
+
+        String tenantUriStart = PROVIDER_STATIC_ISSUER_URI_START + tenant;
+
+        ClientRegistration.Builder builder = ClientRegistration.withRegistrationId( tenant );
+        builder.clientName( tenant );
+        builder.clientId( clientId );
+        builder.clientSecret( clientSecret );
+        builder.clientAuthenticationMethod( ClientAuthenticationMethod.BASIC );
+        builder.authorizationGrantType( AuthorizationGrantType.AUTHORIZATION_CODE );
+        builder.scope( "openid", "profile", DEFAULT_MAPPING_CLAIM );
+        builder.authorizationUri( tenantUriStart + "/oauth2/v2.0/authorize" );
+        builder.tokenUri( tenantUriStart + "/oauth2/v2.0/token" );
+        builder.jwkSetUri( tenantUriStart + "/discovery/v2.0/keys" );
+        builder.userInfoUri( "https://graph.microsoft.com/oidc/userinfo" );
+        builder.redirectUri( StringUtils.firstNonBlank(
+            properties.getProperty( propertyPrefix + REDIRECT_URL ),
+            DEFAULT_REDIRECT_TEMPLATE_URL ) );
+        builder.userInfoAuthenticationMethod( AuthenticationMethod.HEADER );
+        builder.userNameAttributeName( IdTokenClaimNames.SUB );
+
+        boolean supportLogout = Boolean.parseBoolean( MoreObjects.firstNonNull(
+            properties.getProperty( propertyPrefix + ENABLE_LOGOUT ),
+            "TRUE" ) );
+        if ( supportLogout )
+        {
+            builder.providerConfigurationMetadata(
+                ImmutableMap.of( "end_session_endpoint", tenantUriStart + "/oauth2/v2.0/logout" ) );
+        }
+
+        return builder;
     }
 }

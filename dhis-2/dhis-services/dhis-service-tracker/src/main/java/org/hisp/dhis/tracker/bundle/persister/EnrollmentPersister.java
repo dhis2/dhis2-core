@@ -131,7 +131,6 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
         Date now = new Date();
         ProgramInstance programInstance = enrollmentConverter.from( bundle.getPreheat(), enrollment );
         programInstance.setLastUpdated( now );
-        programInstance.setLastUpdatedAtClient( now );
         programInstance.setLastUpdatedBy( bundle.getUser() );
         return programInstance;
     }

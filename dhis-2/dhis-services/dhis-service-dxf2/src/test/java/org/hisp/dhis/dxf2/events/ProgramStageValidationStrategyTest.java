@@ -161,7 +161,7 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
         org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( organisationUnitA );
         maleA.setTrackedEntityType( trackedEntityType );
         maleA.getSharing().addUserAccess( userAccess1 );
-        maleA.setUser( currentUser );
+        maleA.setCreatedBy( currentUser );
         manager.save( maleA, false );
 
         trackedEntityInstanceMaleA = trackedEntityInstanceService.getTrackedEntityInstance( maleA );

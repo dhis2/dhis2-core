@@ -91,7 +91,7 @@ public class MetadataExportServiceTest
         deg1.addDataElement( de2 );
         deg1.addDataElement( de3 );
 
-        deg1.setUser( user );
+        deg1.setCreatedBy( user );
         manager.save( deg1 );
 
         MetadataExportParams params = new MetadataExportParams();
@@ -122,7 +122,7 @@ public class MetadataExportServiceTest
         deg1.addDataElement( de2 );
         deg1.addDataElement( de3 );
 
-        deg1.setUser( user );
+        deg1.setCreatedBy( user );
         manager.save( deg1 );
 
         MetadataExportParams params = new MetadataExportParams();
@@ -157,7 +157,7 @@ public class MetadataExportServiceTest
         deg1.addDataElement( de2 );
         deg1.addDataElement( de3 );
 
-        deg1.setUser( user );
+        deg1.setCreatedBy( user );
         manager.save( deg1 );
 
         Query deQuery = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
@@ -203,7 +203,7 @@ public class MetadataExportServiceTest
 
         de1.setUserAccesses( Sets.newHashSet( new UserAccess( user, "rwrwrwrw" ) ) );
         de2.setPublicAccess( "rwrwrwrw" );
-        de3.setUser( user );
+        de3.setCreatedBy( user );
         de4.setUserGroupAccesses( Sets.newHashSet( new UserGroupAccess( group, "rwrwrwrw" ) ) );
         de5.setExternalAccess( true );
 

@@ -25,43 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
-
-import java.util.Date;
+package org.hisp.dhis.webapi.webdomain;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.program.ProgramStatus;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * @author Lars Helge Overland
+ */
 @Data
-@NoArgsConstructor
-public class EnrollmentCriteria extends PagingAndSortingCriteriaAdapter
+public class DataValueFollowUpRequest
 {
-    private String ou;
+    @JsonProperty
+    private String dataElement;
 
-    private OrganisationUnitSelectionMode ouMode;
+    @JsonProperty
+    private String period;
 
-    private String program;
+    @JsonProperty
+    private String orgUnit;
 
-    private ProgramStatus programStatus;
+    @JsonProperty
+    private String categoryOptionCombo;
 
-    private Boolean followUp;
+    @JsonProperty
+    private String attributeOptionCombo;
 
-    private Date lastUpdated;
-
-    private String lastUpdatedDuration;
-
-    private Date programStartDate;
-
-    private Date programEndDate;
-
-    private String trackedEntityType;
-
-    private String trackedEntityInstance;
-
-    private String enrollment;
-
-    private boolean includeDeleted;
+    @JsonProperty
+    private Boolean followup;
 }

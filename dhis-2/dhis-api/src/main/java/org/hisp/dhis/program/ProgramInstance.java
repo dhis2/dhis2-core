@@ -154,6 +154,11 @@ public class ProgramInstance
         setProgram( program );
     }
 
+    public boolean isCompleted()
+    {
+        return this.status == ProgramStatus.COMPLETED;
+    }
+
     public ProgramStageInstance getProgramStageInstanceByStage( int stage )
     {
         int count = 1;

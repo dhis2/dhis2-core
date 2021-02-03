@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.event.mapper;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isEnrollmentColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
 
 import java.util.Collections;
@@ -65,6 +66,9 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerTrackedEntityCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.tracker.mapper.TrackerTrackedEntityCriteriaMapper;
+import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,6 +87,9 @@ public class TrackedEntityCriteriaMapper
     private final TrackedEntityTypeService trackedEntityTypeService;
 
     private final TrackedEntityAttributeService attributeService;
+
+    private static final TrackerTrackedEntityCriteriaMapper TRACKER_TRACKED_ENTITY_CRITERIA_MAPPER = Mappers
+        .getMapper( TrackerTrackedEntityCriteriaMapper.class );
 
     public TrackedEntityCriteriaMapper( CurrentUserService currentUserService,
         OrganisationUnitService organisationUnitService, ProgramService programService,
@@ -125,10 +132,6 @@ public class TrackedEntityCriteriaMapper
 
         Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
             .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
-
-        List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );
-
-        validateOrderParams( orderParams, attributes );
 
         if ( criteria.getAttribute() != null )
         {
@@ -173,7 +176,13 @@ public class TrackedEntityCriteriaMapper
         {
             params.getOrganisationUnits().addAll( user.getOrganisationUnits() );
         }
+
         Program program = validateProgram( criteria );
+
+        List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );
+
+        validateOrderParams( program, orderParams, attributes );
+
         params.setQuery( queryFilter )
             .setProgram( program )
             .setProgramStage( validateProgramStage( criteria, program ) )
@@ -369,17 +378,33 @@ public class TrackedEntityCriteriaMapper
             .orElse( null );
     }
 
-    private void validateOrderParams( List<OrderParam> orderParams, Map<String, TrackedEntityAttribute> attributes )
+    private void validateOrderParams( Program program, List<OrderParam> orderParams,
+        Map<String, TrackedEntityAttribute> attributes )
     {
         if ( orderParams != null && !orderParams.isEmpty() )
         {
             for ( OrderParam orderParam : orderParams )
             {
-                if ( !isStaticColumn( orderParam.getField() ) && !attributes.containsKey( orderParam.getField() ) )
+                if ( isEnrollmentColumn( orderParam.getField() ) && Objects.isNull( program ) )
+                {
+                    throw new IllegalQueryException(
+                        "Invalid order property, program should be present: " + orderParam.getField() );
+                }
+                else if ( !isStaticColumn( orderParam.getField() ) && !attributes.containsKey( orderParam.getField() ) )
                 {
                     throw new IllegalQueryException( "Invalid order property: " + orderParam.getField() );
                 }
             }
         }
+    }
+
+    /**
+     * TODO: as mentioned in {@link TrackerTrackedEntityCriteriaMapper} this
+     * method should be removed when we will have services for new tracker
+     */
+    @Transactional( readOnly = true )
+    public TrackedEntityInstanceQueryParams map( TrackerTrackedEntityCriteria criteria )
+    {
+        return map( TRACKER_TRACKED_ENTITY_CRITERIA_MAPPER.toTrackedEntityInstanceCriteria( criteria ) );
     }
 }

@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -63,7 +64,7 @@ public class HibernateUserKeyJsonValueStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "user" ), user ) )
+            .addPredicate( root -> builder.equal( root.get( BaseIdentifiableObject_.CREATED_BY ), user ) )
             .addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) )
             .addPredicate( root -> builder.equal( root.get( "key" ), key ) ) );
     }
@@ -74,7 +75,7 @@ public class HibernateUserKeyJsonValueStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "user" ), user ) ) )
+            .addPredicate( root -> builder.equal( root.get( BaseIdentifiableObject_.CREATED_BY ), user ) ) )
                 .stream().map( UserKeyJsonValue::getNamespace ).distinct().collect( Collectors.toList() );
     }
 
@@ -91,7 +92,7 @@ public class HibernateUserKeyJsonValueStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "user" ), user ) )
+            .addPredicate( root -> builder.equal( root.get( BaseIdentifiableObject_.CREATED_BY ), user ) )
             .addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) ) );
     }
 }

@@ -28,7 +28,7 @@
       
     <property name="eventQueryCriteria" column="eventquerycriteria" type="jbEventQueryCriteria" />
 
-    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_programstageinstancefilter_userid" />
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_programstageinstancefilter_userid" />
 
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>

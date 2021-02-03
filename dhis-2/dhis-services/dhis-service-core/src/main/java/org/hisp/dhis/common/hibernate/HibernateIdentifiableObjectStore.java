@@ -161,14 +161,14 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
                 identifiableObject.getSharing().resetUserAccesses();
             }
 
-            if ( identifiableObject.getUser() == null )
+            if ( identifiableObject.getCreatedBy() == null )
             {
-                identifiableObject.setUser( user );
+                identifiableObject.setCreatedBy( user );
             }
 
-            if ( identifiableObject.getSharing().getOwner() == null && identifiableObject.getUser() != null )
+            if ( identifiableObject.getSharing().getOwner() == null )
             {
-                identifiableObject.getSharing().setOwner( user );
+                identifiableObject.getSharing().setOwner( identifiableObject.getCreatedBy() );
             }
         }
 
@@ -199,8 +199,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         }
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE );
-
-        getSession().save( object );
+        getSession().saveOrUpdate( object );
     }
 
     @Override
@@ -224,6 +223,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             if ( object.getSharing().getOwner() == null )
             {
                 object.getSharing().setOwner( user );
+            }
+
+            if ( object.getCreatedBy() == null )
+            {
+                object.setCreatedBy( user );
             }
         }
 

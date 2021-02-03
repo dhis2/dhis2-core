@@ -242,7 +242,7 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     private void setPrivateAccess( BaseIdentifiableObject object, UserGroup... userGroups )
     {
         object.getSharing().setPublicAccess( ACCESS_NONE );
-        object.setUser( userZ ); // Needed for sharing to work
+        object.setOwner( userZ.getUid() ); // Needed for sharing to work
         object.getSharing().setOwner( userZ );
 
         for ( UserGroup group : userGroups )
