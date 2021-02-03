@@ -41,7 +41,7 @@ import org.locationtech.jts.geom.Geometry;
 /**
  * @author Luciano Fiandesio
  */
-public class ImmutableEvent
+public class ImmutableEvent extends Event
 {
     private Event event;
 
