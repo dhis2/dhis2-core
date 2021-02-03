@@ -461,8 +461,8 @@
                 <file>${rootDir}/DHISFormatter.xml</file>
                 <version>4.9.0</version>
               </eclipse>
-              <trimTrailingWhitespace/>
-              <removeUnusedImports/>
+              <trimTrailingWhitespace />
+              <removeUnusedImports />
               <importOrder>
                 <order>
                   java,javax,org,com
@@ -497,15 +497,15 @@
               <goal>enforce</goal>
             </goals>
             <configuration>
-                <rules>
-                    <banDuplicatePomDependencyVersions/>
-                    <requireMavenVersion>
-                        <version>3.6.0</version>
-                    </requireMavenVersion>
-                    <requireJavaVersion>
-                        <version>1.8</version>
-                    </requireJavaVersion>
-                </rules>
+              <rules>
+                <banDuplicatePomDependencyVersions />
+                <requireMavenVersion>
+                  <version>3.6.0</version>
+                </requireMavenVersion>
+                <requireJavaVersion>
+                  <version>1.8</version>
+                </requireJavaVersion>
+              </rules>
             </configuration>
           </execution>
         </executions>
@@ -1733,8 +1733,8 @@
       </dependency>
 
       <dependency>
-          <groupId>org.apache.activemq</groupId>
-          <artifactId>activemq-artemis-native</artifactId>
+        <groupId>org.apache.activemq</groupId>
+        <artifactId>activemq-artemis-native</artifactId>
         <version>1.0.2</version>
         <exclusions>
           <exclusion>
@@ -2015,6 +2015,22 @@
         <artifactId>tree</artifactId>
         <version>0.2.5</version>
       </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers</artifactId>
+        <version>${testcontainers.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>${testcontainers.version}</version>
+      </dependency>
 
       <!-- Monitoring -->
       <dependency>
@@ -2103,6 +2119,7 @@
     <ow2.asm.version>9.0</ow2.asm.version>
     <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.1.6</jrebel-x-maven-plugin.version>
+    <testcontainers.version>1.15.1</testcontainers.version>
     <skipTests>false</skipTests>
   </properties>
 </project>
