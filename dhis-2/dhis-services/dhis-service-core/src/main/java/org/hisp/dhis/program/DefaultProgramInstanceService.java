@@ -459,7 +459,7 @@ public class DefaultProgramInstanceService
 
         eventPublisher.publishEvent( new ProgramEnrollmentNotificationEvent( this, programInstance.getId() ) );
 
-        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance.getId() ) );
+        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance.getUid() ) );
 
         // -----------------------------------------------------------------
         // Update ProgramInstance and TEI
@@ -510,7 +510,7 @@ public class DefaultProgramInstanceService
         eventPublisher
             .publishEvent( new ProgramEnrollmentCompletionNotificationEvent( this, programInstance.getId() ) );
 
-        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance.getId() ) );
+        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance.getUid() ) );
     }
 
     @Override

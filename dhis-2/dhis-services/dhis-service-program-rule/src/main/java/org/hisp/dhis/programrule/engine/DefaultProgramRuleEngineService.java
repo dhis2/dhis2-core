@@ -101,14 +101,14 @@ public class DefaultProgramRuleEngineService
 
     @Override
     @Transactional
-    public List<RuleEffect> evaluateEnrollmentAndRunEffects( long programInstanceId )
+    public List<RuleEffect> evaluateEnrollmentAndRunEffects( String enrollment )
     {
         if ( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) )
         {
             return Lists.newArrayList();
         }
 
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( programInstanceId );
+        ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment );
 
         if ( programInstance == null )
         {
@@ -132,14 +132,14 @@ public class DefaultProgramRuleEngineService
 
     @Override
     @Transactional
-    public List<RuleEffect> evaluateEventAndRunEffects( long programStageInstanceId )
+    public List<RuleEffect> evaluateEventAndRunEffects( String event )
     {
         if ( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) )
         {
             return Lists.newArrayList();
         }
 
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstanceId );
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( event );
 
         return evaluateEventAndRunEffects( psi );
     }

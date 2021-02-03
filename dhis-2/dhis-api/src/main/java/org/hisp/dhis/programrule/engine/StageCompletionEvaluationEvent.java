@@ -34,15 +34,15 @@ import org.springframework.context.ApplicationEvent;
  */
 public class StageCompletionEvaluationEvent extends ApplicationEvent
 {
-    private final long programStageInstance;
+    private final String programStageInstance;
 
-    public StageCompletionEvaluationEvent( Object source, long programStageInstance )
+    public StageCompletionEvaluationEvent( Object source, String programStageInstance )
     {
         super( source );
         this.programStageInstance = programStageInstance;
     }
 
-    public long getProgramStageInstance()
+    public String getProgramStageInstance()
     {
         return programStageInstance;
     }
