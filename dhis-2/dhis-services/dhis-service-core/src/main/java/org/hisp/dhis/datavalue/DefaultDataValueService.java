@@ -355,7 +355,7 @@ public class DefaultDataValueService
     {
         if ( params.isIncludeChildrenForOrganisationUnits() )
         {
-            throw new IllegalQueryException( ErrorCode.E2033 );
+            throw new IllegalQueryException( ErrorCode.E2034 );
         }
 
         return dataValueStore.getDeflatedDataValues( params );
