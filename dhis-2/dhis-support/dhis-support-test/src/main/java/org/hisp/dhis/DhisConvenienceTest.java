@@ -52,8 +52,6 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.attribute.Attribute;
@@ -186,6 +184,8 @@ import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Lars Helge Overland
  */
@@ -237,6 +237,8 @@ public abstract class DhisConvenienceTest
     protected CategoryService internalCategoryService;
 
     protected static CategoryService categoryService;
+
+    private char nextUserName = 'a';
 
     @PostConstruct
     protected void initServices()
@@ -2214,7 +2216,7 @@ public abstract class DhisConvenienceTest
 
         userService.addUserAuthorityGroup( group );
 
-        User user = createUser( 'A' );
+        User user = createUser( nextUserName++ );
 
         if ( organisationUnits != null )
         {

@@ -29,6 +29,7 @@ package org.hisp.dhis.dataapproval;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
+import static java.util.Collections.singleton;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -644,12 +645,8 @@ public class DataApprovalServiceTest
     @Test
     public void testAddDuplicateDataApproval()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitA );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        userService.addUser( currentUserService.getCurrentUser() );
-        setCurrentUserServiceDependencies( currentUserService );
+        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
+            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         Date date = new Date();
         DataApproval dataApprovalA = new DataApproval( level2, workflow12, periodA, organisationUnitB,
@@ -658,22 +655,15 @@ public class DataApprovalServiceTest
             defaultOptionCombo, NOT_ACCEPTED, date, userA ); // Same
 
         dataApprovalService.approveData( newArrayList( dataApprovalA ) );
-        dataApprovalService.approveData( newArrayList( dataApprovalB ) ); // Redundant,
-                                                                          // so
-                                                                          // call
-                                                                          // is
-                                                                          // ignored.
+        // Redundant, so call is ignored.
+        dataApprovalService.approveData( newArrayList( dataApprovalB ) );
     }
 
     @Test
     public void testAddDataApprovalWithWrongPeriodType()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitA );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        userService.addUser( currentUserService.getCurrentUser() );
-        setCurrentUserServiceDependencies( currentUserService );
+        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
+            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         Date date = new Date();
 
