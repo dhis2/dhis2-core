@@ -28,6 +28,7 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_PROGRAM_RULE_SERVER_EXECUTION;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
@@ -37,6 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -77,6 +79,9 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     private ProgramRuleEngine programRuleEngine;
 
     @Mock
+    private DhisConfigurationProvider config;
+
+    @Mock
     private RuleActionSendMessageImplementer ruleActionSendMessage;
 
     @Spy
@@ -111,6 +116,8 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         // stub for ruleActionSendMessage
         Mockito.lenient().when( ruleActionSendMessage.accept( any() ) ).thenReturn( true );
+
+        Mockito.when( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) ).thenReturn( false );
     }
 
     @Test

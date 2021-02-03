@@ -36,20 +36,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Sets;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.deletedobject.DeletedObjectStore;
 import org.hisp.dhis.program.*;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-
-import com.google.common.collect.Sets;
 
 public class ProgramRuleServiceTest
     extends IntegrationTestBase
@@ -92,9 +87,6 @@ public class ProgramRuleServiceTest
 
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
-
-    @Autowired
-    private SessionFactory sessionFactory;
 
     @Override
     public boolean emptyDatabaseAfterTest()
