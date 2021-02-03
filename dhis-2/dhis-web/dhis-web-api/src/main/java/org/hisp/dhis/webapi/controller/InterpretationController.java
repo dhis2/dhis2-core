@@ -350,7 +350,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             throw new WebMessageException( WebMessageUtils.notFound( "Interpretation does not exist: " + uid ) );
         }
 
-        if ( !currentUserService.getCurrentUser().equals( interpretation.getUser() )
+        if ( !currentUserService.getCurrentUser().equals( interpretation.getCreatedBy() )
             && !currentUserService.currentUserIsSuper() )
         {
             throw new AccessDeniedException( "You are not allowed to update this interpretation." );
@@ -370,7 +370,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             throw new WebMessageException( WebMessageUtils.notFound( "Interpretation does not exist: " + uid ) );
         }
 
-        if ( !currentUserService.getCurrentUser().equals( interpretation.getUser() )
+        if ( !currentUserService.getCurrentUser().equals( interpretation.getCreatedBy() )
             && !currentUserService.currentUserIsSuper() )
         {
             throw new AccessDeniedException( "You are not allowed to delete this interpretation." );
@@ -420,7 +420,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         {
             if ( comment.getUid().equals( cuid ) )
             {
-                if ( !currentUserService.getCurrentUser().equals( comment.getUser() )
+                if ( !currentUserService.getCurrentUser().equals( comment.getCreatedBy() )
                     && !currentUserService.currentUserIsSuper() )
                 {
                     throw new AccessDeniedException( "You are not allowed to update this comment." );
@@ -454,7 +454,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
             if ( comment.getUid().equals( cuid ) )
             {
-                if ( !currentUserService.getCurrentUser().equals( comment.getUser() )
+                if ( !currentUserService.getCurrentUser().equals( comment.getCreatedBy() )
                     && !currentUserService.currentUserIsSuper() )
                 {
                     throw new AccessDeniedException( "You are not allowed to delete this comment." );

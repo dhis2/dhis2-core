@@ -100,7 +100,7 @@
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid"
       foreign-key="fk_attribute_optionsetid" />
 
-    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_attribute_userid" />
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_attribute_userid" />
 
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>

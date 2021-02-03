@@ -45,16 +45,16 @@ public class NotificationImplementableRuleService
     }
 
     @Override
-    public List<ProgramRule> getImplementableRules( Program program, String programStageUid )
+    public List<ProgramRule> getProgramRulesByActionTypes( Program program, String programStageUid )
     {
-        List<ProgramRule> permittedRules = getImplementableProgramRules( program,
-            ProgramRuleActionType.getNotificationLinkedTypes(), programStageUid );
+        List<ProgramRule> permittedRules = getProgramRulesByActionTypes( program,
+            ProgramRuleActionType.NOTIFICATION_LINKED_TYPES, programStageUid );
 
         if ( permittedRules.isEmpty() )
         {
             return permittedRules;
         }
 
-        return getImplementableProgramRules( program, ProgramRuleActionType.getImplementedActions(), programStageUid );
+        return getProgramRulesByActionTypes( program, ProgramRuleActionType.IMPLEMENTED_ACTIONS, programStageUid );
     }
 }

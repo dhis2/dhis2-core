@@ -119,17 +119,17 @@ public class DefaultProgramRuleService
 
     @Override
     @Transactional( readOnly = true )
-    public List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types )
+    public List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> actionTypes )
     {
-        return programRuleStore.getImplementableProgramRules( program, types );
+        return programRuleStore.getProgramRulesByActionTypes( program, actionTypes );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<ProgramRule> getImplementableProgramRules( Program program,
+    public List<ProgramRule> getProgramRulesByActionTypes( Program program,
         Set<ProgramRuleActionType> serverSupportedTypes, String programStageUid )
     {
-        return programRuleStore.getImplementableProgramRules( program, serverSupportedTypes, programStageUid );
+        return programRuleStore.getProgramRulesByActionTypes( program, serverSupportedTypes, programStageUid );
     }
 
     @Override

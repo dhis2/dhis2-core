@@ -46,7 +46,7 @@ public class DefaultTranslateSystemSettingManager
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
     public DefaultTranslateSystemSettingManager( SystemSettingManager systemSettingManager )
     {

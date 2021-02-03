@@ -25,43 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.common.adapter;
 
-import java.util.Date;
-
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.program.ProgramStatus;
-
-@Data
-@NoArgsConstructor
-public class EnrollmentCriteria extends PagingAndSortingCriteriaAdapter
+/**
+ * This class defines metadata model property's names of
+ * {@link org.hisp.dhis.common.BaseIdentifiableObject} Those constants will help
+ * supporting type-safe queries with JPA Criteria API. TODO: This should be
+ * replaced with JPAMetaModelEntityProcessor's auto generated class
+ */
+public class BaseIdentifiableObject_
 {
-    private String ou;
-
-    private OrganisationUnitSelectionMode ouMode;
-
-    private String program;
-
-    private ProgramStatus programStatus;
-
-    private Boolean followUp;
-
-    private Date lastUpdated;
-
-    private String lastUpdatedDuration;
-
-    private Date programStartDate;
-
-    private Date programEndDate;
-
-    private String trackedEntityType;
-
-    private String trackedEntityInstance;
-
-    private String enrollment;
-
-    private boolean includeDeleted;
+    public static final String CREATED_BY = "createdBy";
 }

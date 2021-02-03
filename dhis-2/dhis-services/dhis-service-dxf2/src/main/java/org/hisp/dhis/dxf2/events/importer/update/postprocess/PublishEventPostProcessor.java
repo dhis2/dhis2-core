@@ -27,23 +27,18 @@
  */
 package org.hisp.dhis.dxf2.events.importer.update.postprocess;
 
-import java.util.Optional;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.events.importer.mapper.ProgramStageInstanceMapper;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
 
 /**
  * @author maikel arabori
  */
 public class PublishEventPostProcessor
-    implements
-    Processor
+    implements Processor
 {
     @Override
     public void process( final Event event, final WorkContext ctx )
@@ -69,15 +64,8 @@ public class PublishEventPostProcessor
 
         if ( !ctx.getImportOptions().isSkipNotifications() && isLinkedWithRuleVariable )
         {
-            ProgramStageInstance programStageInstance = getProgramStageInstance( ctx, event );
             ctx.getServiceDelegator().getApplicationEventPublisher().publishEvent(
-                new DataValueUpdatedEvent( this, programStageInstance.getUid() ) );
+                new DataValueUpdatedEvent( this, event.getId() ) );
         }
-    }
-
-    private ProgramStageInstance getProgramStageInstance( WorkContext ctx, Event event )
-    {
-        return Optional.ofNullable( ctx.getProgramStageInstanceMap().get( event.getUid() ) )
-            .orElseGet( () -> new ProgramStageInstanceMapper( ctx ).map( event ) );
     }
 }

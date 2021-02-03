@@ -32,12 +32,10 @@ import lombok.Data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Class representing the unique properties of a data value.
- *
  * @author Lars Helge Overland
  */
 @Data
-public class DataValueRequest
+public class DataValueFollowUpRequest
 {
     @JsonProperty
     private String dataElement;
@@ -53,4 +51,7 @@ public class DataValueRequest
 
     @JsonProperty
     private String attributeOptionCombo;
+
+    @JsonProperty
+    private Boolean followup;
 }

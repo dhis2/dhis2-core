@@ -95,9 +95,9 @@ public interface ProgramRuleService
 
     List<ProgramRule> getProgramRuleByProgram( Set<String> programs );
 
-    List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types );
+    List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> types );
 
-    List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> serverSupportedTypes,
+    List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> serverSupportedTypes,
         String programStageUid );
 
     /**

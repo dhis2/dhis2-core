@@ -91,7 +91,7 @@ public class HibernateMessageConversationStore
 
         String hql = "from MessageConversation mc " +
             "inner join mc.userMessages as um " +
-            "left join mc.user as ui " +
+            "left join mc.createdBy as ui " +
             "left join mc.lastSender as ls ";
 
         if ( status != null )

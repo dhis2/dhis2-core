@@ -109,11 +109,7 @@ public class ProgramRuleEngine
         String programStageUid = programStageInstance != null ? programStageInstance.getProgramStage().getUid() : null;
 
         List<ProgramRule> programRules = implementableRuleService
-            .getImplementableRules( program, programStageUid )
-            .stream()
-            .filter( rule -> Objects.isNull( rule.getProgramStage() ) ||
-                Objects.equals( rule.getProgramStage().getUid(), programStageUid ) )
-            .collect( Collectors.toList() );
+            .getProgramRulesByActionTypes( program, programStageUid );
 
         if ( programRules.isEmpty() )
         {

@@ -44,18 +44,18 @@ abstract class ImplementableRuleService
         this.programRuleService = programRuleService;
     }
 
-    abstract List<ProgramRule> getImplementableRules( Program program, String programStageUid );
+    abstract List<ProgramRule> getProgramRulesByActionTypes( Program program, String programStageUid );
 
-    protected List<ProgramRule> getImplementableProgramRules( Program program,
+    protected List<ProgramRule> getProgramRulesByActionTypes( Program program,
         Set<ProgramRuleActionType> types, String programStageUid )
     {
         if ( programStageUid == null )
         {
-            return programRuleService.getImplementableProgramRules( program, types );
+            return programRuleService.getProgramRulesByActionTypes( program, types );
         }
         else
         {
-            return programRuleService.getImplementableProgramRules( program, types, programStageUid );
+            return programRuleService.getProgramRulesByActionTypes( program, types, programStageUid );
         }
 
     }

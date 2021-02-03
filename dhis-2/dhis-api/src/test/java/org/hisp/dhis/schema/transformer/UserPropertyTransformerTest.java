@@ -48,12 +48,12 @@ public class UserPropertyTransformerTest
         User user = new User();
         UserCredentials userCredentials = new UserCredentials();
         userCredentials.setUuid( uuid );
-        userCredentials.setUser( user );
+        userCredentials.setCreatedBy( user );
         userCredentials.setUsername( "test" );
         userCredentials.setUserInfo( user );
 
         user.setUserCredentials( userCredentials );
-        user.setUser( user );
+        user.setCreatedBy( user );
 
         UserPropertyTransformer transformer = new UserPropertyTransformer();
         UserPropertyTransformer.UserDto userDto = (UserPropertyTransformer.UserDto) transformer.transform( user );

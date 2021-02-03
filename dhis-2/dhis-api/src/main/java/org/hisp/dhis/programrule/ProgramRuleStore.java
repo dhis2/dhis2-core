@@ -73,9 +73,9 @@ public interface ProgramRuleStore
      */
     List<ProgramRule> get( Program program, String key );
 
-    List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types );
+    List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> types );
 
-    List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> serverSupportedTypes,
+    List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> serverSupportedTypes,
         String programStageUid );
 
     List<ProgramRule> getProgramRulesWithNoCondition();

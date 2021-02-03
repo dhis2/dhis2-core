@@ -45,9 +45,9 @@ public class ServerSideImplementableRuleService
     }
 
     @Override
-    public List<ProgramRule> getImplementableRules( Program program, String programStageUid )
+    public List<ProgramRule> getProgramRulesByActionTypes( Program program, String programStageUid )
     {
-        return getImplementableProgramRules( program, ProgramRuleActionType.getServerSupportedTypes(),
+        return getProgramRulesByActionTypes( program, ProgramRuleActionType.SERVER_SUPPORTED_TYPES,
             programStageUid );
     }
 }
