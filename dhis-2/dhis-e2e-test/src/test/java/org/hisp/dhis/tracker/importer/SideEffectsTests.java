@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.importer;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
@@ -38,31 +37,27 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.ProgramStageActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class NotificationsTests
+public class SideEffectsTests
     extends ApiTest
 {
     private String trackerProgramStageId = "PaOOjwLVW23";
 
     private String trackerProgramId = Constants.TRACKER_PROGRAM_ID;
-
-    private String enrollmentId;
 
     private TrackerActions trackerActions;
 
@@ -76,61 +71,53 @@ public class NotificationsTests
         setupData();
     }
 
-    @Test
-    public void shouldSendNotificationOnProgramStageCompletion()
-        throws Exception
+    @ParameterizedTest
+    @ValueSource( strings = { "true", "false" } )
+    public void shouldSendNotificationIfNotSkipSideEffects( Boolean shouldSkipSideEffects )
     {
-        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/events/event.json" ) )
-            .replacePropertyValuesWithIds( "event" )
-            .replacePropertyValuesWith( "programStage", trackerProgramStageId )
-            .replacePropertyValuesWith( "program", trackerProgramId )
-            .replacePropertyValuesWith( "status", "COMPLETED" )
-            .replacePropertyValuesWith( "enrollment", enrollmentId )
-            .get( JsonObject.class );
+        JsonObject object = trackerActions
+            .buildTeiWithEnrollmentAndEvent( Constants.ORG_UNIT_IDS[0], trackerProgramId, trackerProgramStageId, "COMPLETED" );
 
         ApiResponse response = new RestApiActions( "/messageConversations" ).get( "", new QueryParamsBuilder().add( "fields=*" ) );
 
         int size = response.getBody().getAsJsonArray( "messageConversations" ).size();
 
-        trackerActions.postAndGetJobReport( object )
+        trackerActions.postAndGetJobReport( object, new QueryParamsBuilder().add( "skipSideEffects=" + shouldSkipSideEffects ) )
             .validateSuccessfulImport();
 
-        response = new RestApiActions( "/messageConversations?fields=*" ).get( "", new QueryParamsBuilder().add( "fields=*" ) );
+        int expectedCount = (shouldSkipSideEffects) ? size : size + 1;
+
+        response = waitForNotification( expectedCount );
 
         response
             .validate()
             .statusCode( 200 )
-            .body( "messageConversations", hasSize( greaterThanOrEqualTo( size + 1 ) ) )
-            .body( "messageConversations.subject", hasItem( "TA program stage completion" ) );
+            .body( "messageConversations", hasSize( expectedCount ) );
+
+        if ( shouldSkipSideEffects )
+        {
+            return;
+        }
+
+        response.validate().body( "messageConversations.subject", hasItem( "TA program stage completion" ) );
     }
 
-    @Test
-    @Disabled
-    public void shouldTriggerNotificationOnDueDates()
-        throws Exception
+    public ApiResponse waitForNotification( int expectedCount )
     {
-        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/events/event.json" ) )
-            .replacePropertyValuesWithIds( "event" )
-            .replacePropertyValuesWith( "scheduledAt", Instant.now().minus( 0, ChronoUnit.DAYS ).toString() )
-            .replacePropertyValuesWith( "programStage", trackerProgramStageId )
-            .replacePropertyValuesWith( "program", trackerProgramId )
-            .replacePropertyValuesWith( "status", "COMPLETED" )
-            .replacePropertyValuesWith( "enrollment", enrollmentId )
-            .get( JsonObject.class );
 
-        TrackerApiResponse trackerApiResponse = trackerActions.postAndGetJobReport( object );
-        trackerApiResponse.validateSuccessfulImport();
+        boolean isReceived = false;
+        int attemptCount = 10;
+        ApiResponse response = null;
+        while ( !isReceived && attemptCount > 0 )
+        {
+            response = new RestApiActions( "/messageConversations" )
+                .get( "", new QueryParamsBuilder().add( "fields=subject" ) );
 
-        trackerApiResponse.prettyPrint();
+            isReceived = (response.extractList( "messageConversations" ).size() == expectedCount);
+            attemptCount--;
+        }
 
-        ApiResponse response = new RestApiActions( "/messageConversations" )
-            .get( "", new QueryParamsBuilder().add( "fields=subject" ) );
-
-        response
-            .validate()
-            .statusCode( 200 )
-            .body( "messageConversations", not( Matchers.emptyArray() ) )
-            .body( "messageConversations.subject", hasItem( "TA program notification - due dates" ) );
+        return response;
     }
 
     private void setupData()
@@ -155,11 +142,6 @@ public class NotificationsTests
 
             programStageActions.get( trackerProgramStageId ).validate()
                 .body( "notificationTemplates.id", hasItem( programNotificationTemplate ) );
-
-            enrollmentId = trackerActions
-                .postAndGetJobReport( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollments.json" ) )
-                .validateSuccessfulImport()
-                .extractImportedEnrollments().get( 0 );
         } );
 
     }
