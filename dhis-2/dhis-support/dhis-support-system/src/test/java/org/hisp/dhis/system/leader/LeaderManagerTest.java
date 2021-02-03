@@ -25,63 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.leader.election;
+package org.hisp.dhis.system.leader;
 
-import org.hisp.dhis.scheduling.SchedulingManager;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.leader.election.LeaderManager;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Manages cluster leader node elections, renewals, revocations and to check
- * whether the current instance is the leader in the cluster.
- *
  * @author Ameen Mohamed
  */
-public interface LeaderManager
+public class LeaderManagerTest extends DhisSpringTest
 {
-    /**
-     * Extend the expiration time of leadership if this node is the current
-     * leader.
-     */
-    void renewLeader();
+    @Autowired
+    private LeaderManager leaderManager;
 
-    /**
-     * Attempt to become the leader.
-     */
-    void electLeader();
-
-    /**
-     * Check if the current instance is the leader.
-     *
-     * @return true if this instance is the leader, false otherwise.
-     */
-    boolean isLeader();
-
-    /**
-     * Setter to set the scheduling manager to gain access to systems scheduling
-     * mechanisms.
-     *
-     * @param schedulingManager the instantiated scheduling manager.
-     */
-    void setSchedulingManager( SchedulingManager schedulingManager );
-
-    /**
-     * Get the nodeID that was generated for the current instance.
-     *
-     * @return the nodeID
-     */
-    String getCurrentNodeUuid();
-
-    /**
-     * Get the nodeID for the current leader instance in the cluster.
-     *
-     * @return the nodeID of the leader instance.
-     */
-    String getLeaderNodeUuid();
-
-    /**
-     * Get the nodeID for the current leader instance in the cluster.
-     *
-     * @return the nodeID of the leader instance.
-     */
-    String getLeaderNodeId();
+    @Test
+    public void testNodeInfo()
+    {
+        assertNotNull( leaderManager.getCurrentNodeUuid() );
+        assertNotNull( leaderManager.getLeaderNodeUuid() );
+        assertEquals( leaderManager.getCurrentNodeUuid(), leaderManager.getLeaderNodeUuid() );
+        assertTrue( leaderManager.isLeader() );
+    }
 
 }

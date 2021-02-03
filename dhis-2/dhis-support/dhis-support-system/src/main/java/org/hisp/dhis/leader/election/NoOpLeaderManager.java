@@ -31,7 +31,6 @@ import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.scheduling.SchedulingManager;
@@ -46,18 +45,15 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 public class NoOpLeaderManager implements LeaderManager
 {
 
+    private String nodeUuid;
+
     private String nodeId;
 
     public NoOpLeaderManager( DhisConfigurationProvider dhisConfigurationProvider )
     {
         this.nodeId = dhisConfigurationProvider.getProperty( ConfigurationKey.NODE_ID );
-        if ( StringUtils.isEmpty( this.nodeId ) )
-        {
-            this.nodeId = UUID.randomUUID().toString();
-            log.info( "Explicit nodeId undefined in dhis.conf for this instance. Generated random nodeId=%s",
-                this.nodeId );
-        }
-        log.info( "Initialized NoOp leader manager with NodeId:" + nodeId );
+        this.nodeUuid = UUID.randomUUID().toString();
+        log.info( "Initialized NoOp leader manager with NodeUuid:%s and nodeId:%s", nodeUuid, nodeId );
     }
 
     @Override
@@ -85,9 +81,15 @@ public class NoOpLeaderManager implements LeaderManager
     }
 
     @Override
-    public String getCurrentNodeId()
+    public String getCurrentNodeUuid()
     {
-        return this.nodeId;
+        return this.nodeUuid;
+    }
+
+    @Override
+    public String getLeaderNodeUuid()
+    {
+        return this.nodeUuid;
     }
 
     @Override

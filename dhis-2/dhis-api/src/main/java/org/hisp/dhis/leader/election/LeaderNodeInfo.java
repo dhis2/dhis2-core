@@ -38,7 +38,13 @@ public class LeaderNodeInfo
     private String leaderNodeId;
 
     @JsonProperty
+    private String leaderNodeUuid;
+
+    @JsonProperty
     private String currentNodeId;
+
+    @JsonProperty
+    private String currentNodeUuid;
 
     @JsonProperty
     private boolean leader;

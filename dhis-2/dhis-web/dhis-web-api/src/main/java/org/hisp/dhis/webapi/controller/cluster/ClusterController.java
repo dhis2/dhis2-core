@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller.cluster;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.leader.election.LeaderNodeInfo;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -49,6 +51,9 @@ public class ClusterController
     @Autowired
     private LeaderManager leaderManager;
 
+    @Autowired
+    private DhisConfigurationProvider dhisConfigurationProvider;
+
     // -------------------------------------------------------------------------
     // Resources
     // -------------------------------------------------------------------------
@@ -59,9 +64,10 @@ public class ClusterController
     {
         LeaderNodeInfo leaderInfo = new LeaderNodeInfo();
 
-        leaderInfo.setLeaderNodeId( leaderManager.getLeaderNodeId() );
+        leaderInfo.setLeaderNodeId( leaderManager.getLeaderNodeUuid() );
         leaderInfo.setLeader( leaderManager.isLeader() );
-        leaderInfo.setCurrentNodeId( leaderManager.getCurrentNodeId() );
+        leaderInfo.setCurrentNodeUuid( leaderManager.getCurrentNodeUuid() );
+        leaderInfo.setCurrentNodeId( dhisConfigurationProvider.getProperty( ConfigurationKey.NODE_ID ) );
 
         return leaderInfo;
     }
