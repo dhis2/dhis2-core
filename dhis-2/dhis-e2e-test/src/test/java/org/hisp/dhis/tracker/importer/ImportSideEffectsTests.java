@@ -152,7 +152,7 @@ public class ImportSideEffectsTests
 
         response.validateErrorReport()
             .body( "errorCode", hasItem( "E1200" ) )
-            .body( "message", hasItem( stringContainsInOrder( "Mandatory DataElement", "is not present" ) ));
+            .body( "message", hasItem( stringContainsInOrder( "Mandatory DataElement", "is not present" ) ) );
     }
 
     @Test
@@ -257,11 +257,13 @@ public class ImportSideEffectsTests
     }
 
     @Test
-    public void shouldBeSkippedWhenSkipRuleEngineFlag() {
+    public void shouldBeSkippedWhenSkipRuleEngineFlag()
+    {
         JsonObject payload = trackerActions.buildEvent( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK" );
         JsonObjectBuilder.jsonObject( payload ).addPropertyByJsonPath( "events[0].status", "COMPLETED" );
 
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( payload, new QueryParamsBuilder().add( "skipRuleEngine=true" ) );
+        TrackerApiResponse response = trackerActions
+            .postAndGetJobReport( payload, new QueryParamsBuilder().add( "skipRuleEngine=true" ) );
 
         response.validateSuccessfulImport();
     }
