@@ -241,15 +241,7 @@ public class DefaultSystemSettingManager
                 {
                     return SerializableOptional.of( pbeStringEncryptor.decrypt( (String) setting.getDisplayValue() ) );
                 }
-                catch ( EncryptionOperationNotPossibleException e ) // Most
-                                                                    // likely
-                                                                    // this
-                                                                    // means the
-                                                                    // value is
-                                                                    // not
-                                                                    // encrypted
-                                                                    // or not
-                                                                    // existing
+                catch ( EncryptionOperationNotPossibleException e )
                 {
                     log.warn( "Could not decrypt system setting '" + name + "'" );
                     return SerializableOptional.empty();
