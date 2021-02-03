@@ -42,6 +42,7 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.types.Expiration;
+import org.terracotta.modules.ehcache.wan.IllegalConfigurationException;
 
 /**
  * Takes care of the leader election implementation backed by redis.
@@ -76,6 +77,13 @@ public class RedisLeaderManager implements LeaderManager
         log.info( "Setting up redis based leader manager on NodeId:" + this.nodeId );
         this.timeToLiveSeconds = timeToLiveMinutes * 60;
         this.redisTemplate = redisTemplate;
+
+        String existingLeaderNodeId = getLeaderNodeIdFromRedis();
+        if ( !StringUtils.isEmpty( existingLeaderNodeId ) && this.nodeId.equals( existingLeaderNodeId ) )
+        {
+            log.error( "A leader node with the provided nodeID=%s already exists", existingLeaderNodeId );
+            throw new IllegalConfigurationException( "Provided nodeID is being used by the current cluster leader" );
+        }
     }
 
     @Override

@@ -32,7 +32,7 @@ import lombok.Data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
-public class LeaderInfo
+public class LeaderNodeInfo
 {
     @JsonProperty
     private String leaderNodeId;

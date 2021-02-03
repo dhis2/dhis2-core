@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller.cluster;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.leader.election.LeaderInfo;
+import org.hisp.dhis.leader.election.LeaderNodeInfo;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,10 +54,10 @@ public class ClusterController
     // -------------------------------------------------------------------------
 
     @GetMapping( value = "/leader" )
-    public @ResponseBody LeaderInfo getLeaderInfo()
+    public @ResponseBody LeaderNodeInfo getLeaderInfo()
         throws WebMessageException
     {
-        LeaderInfo leaderInfo = new LeaderInfo();
+        LeaderNodeInfo leaderInfo = new LeaderNodeInfo();
 
         leaderInfo.setLeaderNodeId( leaderManager.getLeaderNodeId() );
         leaderInfo.setLeader( leaderManager.isLeader() );
