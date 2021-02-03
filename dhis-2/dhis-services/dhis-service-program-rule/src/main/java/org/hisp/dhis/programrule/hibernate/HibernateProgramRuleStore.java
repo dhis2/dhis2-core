@@ -86,22 +86,24 @@ public class HibernateProgramRuleStore
     @Override
     public List<ProgramRule> getByProgram( Set<String> programIds )
     {
+        final String jql = "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.program.uid in (:ids)";
+
         Session session = getSession();
-        return session.createQuery(
-            "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.program.uid in (:ids)",
-            ProgramRule.class )
+        return session.createQuery( jql, ProgramRule.class )
             .setParameterList( "ids", programIds )
             .getResultList();
     }
 
     @Override
-    public List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types )
+    public List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> actionTypes )
     {
-        return getQuery(
-            "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes )" )
-                .setParameter( "programId", program )
-                .setParameter( "implementableTypes", types )
-                .getResultList();
+        final String jql = "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
+            "WHERE pr.program = :program AND pra.programRuleActionType IN ( :actionTypes )";
+
+        return getQuery( jql )
+            .setParameter( "program", program )
+            .setParameter( "actionTypes", actionTypes )
+            .getResultList();
     }
 
     @Override
@@ -128,21 +130,24 @@ public class HibernateProgramRuleStore
     @Override
     public List<ProgramRule> getProgramRulesWithNoPriority()
     {
-        return getQuery(
-            "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.priority IS NULL AND pra.programRuleActionType = :actionType" )
-                .setParameter( "actionType", ProgramRuleActionType.ASSIGN )
-                .getResultList();
+        final String jql = "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
+            "WHERE pr.priority IS NULL AND pra.programRuleActionType = :actionType";
+
+        return getQuery( jql )
+            .setParameter( "actionType", ProgramRuleActionType.ASSIGN )
+            .getResultList();
     }
 
     @Override
     public List<ProgramRule> getProgramRulesByEvaluationTime( ProgramRuleActionEvaluationTime evaluationTime )
     {
         Session session = getSession();
-        session.clear();
+        session.clear(); // TODO Why?
 
-        String hql = "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pra.programRuleActionEvaluationTime = :defaultEvaluationTime OR pra.programRuleActionEvaluationTime = :evaluationTime";
+        final String jql = "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
+            "WHERE pra.programRuleActionEvaluationTime = :defaultEvaluationTime OR pra.programRuleActionEvaluationTime = :evaluationTime";
 
-        return getQuery( hql )
+        return getQuery( jql )
             .setParameter( "defaultEvaluationTime", ProgramRuleActionEvaluationTime.getDefault() )
             .setParameter( "evaluationTime", evaluationTime )
             .getResultList();
@@ -175,7 +180,9 @@ public class HibernateProgramRuleStore
     @Override
     public List<ProgramRule> getProgramRulesWithNoAction()
     {
-        return getQuery( "FROM ProgramRule pr WHERE pr.programRuleActions IS EMPTY" )
+        final String jql = "FROM ProgramRule pr WHERE pr.programRuleActions IS EMPTY";
+
+        return getQuery( jql )
             .getResultList();
     }
 }

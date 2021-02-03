@@ -73,7 +73,7 @@ public interface ProgramRuleStore
      */
     List<ProgramRule> get( Program program, String key );
 
-    List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types );
+    List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> types );
 
     List<ProgramRule> getProgramRulesWithNoCondition();
 

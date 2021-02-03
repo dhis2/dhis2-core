@@ -35,7 +35,6 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
@@ -104,13 +103,6 @@ public class JobConfigurationController
     @Override
     protected void postPatchEntity( JobConfiguration jobConfiguration )
     {
-        if ( !jobConfiguration.isEnabled() )
-        {
-            jobConfiguration.setJobStatus( JobStatus.DISABLED );
-        }
-
-        jobConfigurationService.addJobConfiguration( jobConfiguration );
-
         jobConfigurationService.refreshScheduling( jobConfiguration );
     }
 }
