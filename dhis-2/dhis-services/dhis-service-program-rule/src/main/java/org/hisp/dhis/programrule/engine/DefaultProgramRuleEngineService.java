@@ -47,9 +47,9 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Created by zubair@dhis2.org on 23.10.17.
@@ -57,7 +57,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service( "org.hisp.dhis.programrule.engine.ProgramRuleEngineService" )
-public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
+public class DefaultProgramRuleEngineService
+    implements ProgramRuleEngineService
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -107,14 +108,14 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
     @Override
     @Transactional
-    public List<RuleEffect> evaluateEnrollmentAndRunEffects( long programInstanceId )
+    public List<RuleEffect> evaluateEnrollmentAndRunEffects( long enrollment )
     {
         if ( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) )
         {
             return Lists.newArrayList();
         }
 
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( programInstanceId );
+        ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment );
 
         if ( programInstance == null )
         {
@@ -138,21 +139,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
     @Override
     @Transactional
-    public List<RuleEffect> evaluateEventAndRunEffects( long programStageInstanceId )
-    {
-        if ( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) )
-        {
-            return Lists.newArrayList();
-        }
-
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstanceId );
-
-        return evaluateEventAndRunEffects( psi );
-    }
-
-    @Override
-    @Transactional
-    public List<RuleEffect> evaluateEventAndRunEffects( String event )
+    public List<RuleEffect> evaluateEventAndRunEffects( long event )
     {
         if ( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) )
         {
@@ -182,7 +169,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         ProgramInstance programInstance = programInstanceService.getProgramInstance( psi.getProgramInstance().getId() );
 
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, psi,
-                programInstance.getProgramStageInstances() );
+            programInstance.getProgramStageInstances() );
 
         for ( RuleEffect effect : ruleEffects )
         {

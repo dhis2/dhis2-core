@@ -47,7 +47,7 @@ public interface ProgramRuleStore
      * @return ProgramRuleVariable list
      */
     List<ProgramRule> get( Program program );
-    
+
     /**
      * Returns a {@link ProgramRule}.
      *
@@ -66,7 +66,9 @@ public interface ProgramRuleStore
      */
     List<ProgramRule> get( Program program, String key );
 
-    List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types );
+    List<ProgramRule> getByProgram( Set<String> programIds );
+
+    List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> types );
 
     List<ProgramRule> getProgramRulesWithNoCondition();
 
