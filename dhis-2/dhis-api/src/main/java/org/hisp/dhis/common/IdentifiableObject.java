@@ -84,12 +84,38 @@ public interface IdentifiableObject
     // Sharing
     // -----------------------------------------------------------------------------
 
+    /**
+     * Return User who created this object This field is immutable and must not
+     * be updated
+     */
+    User getCreatedBy();
+
+    /**
+     * @deprecated This method is replaced by {@link #getCreatedBy()} Currently
+     *             it is only used for web api backward compatibility
+     */
+    @Deprecated
     User getUser();
 
+    void setCreatedBy( User createdBy );
+
+    /**
+     * @deprecated This method is replaced by {@link #setCreatedBy(User)} ()}
+     *             Currently it is only used for web api backward compatibility
+     */
+    @Deprecated
     void setUser( User user );
 
+    /**
+     * @deprecated PublicAccess property is replaced by
+     *             {@link Sharing#getPublicAccess()}
+     */
+    @Deprecated
     String getPublicAccess();
 
+    /**
+     * External property is replaced by {@link Sharing#isExternal()}
+     */
     boolean getExternalAccess();
 
     Set<UserGroupAccess> getUserGroupAccesses();
@@ -98,6 +124,11 @@ public interface IdentifiableObject
 
     Access getAccess();
 
+    /**
+     * Return all sharing settings of current object
+     *
+     * @return
+     */
     Sharing getSharing();
     // -----------------------------------------------------------------------------
     // Utility methods

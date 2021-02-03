@@ -2,9 +2,10 @@
   "enrollments": [
     {
       "enrollment": "TvctPPhpD8u",
-      "created": "2018-01-26T13:48:13.363",
-      "lastUpdated": "2018-01-26T13:48:13.363",
-      "createdAtClient": "2017-01-26T13:48:13.363",
+      "createdAt": "2018-01-26T13:48:13.363",
+      "updatedAt": "2018-01-26T17:48:13.363",
+      "createdAtClient": "2018-01-25T13:48:13.363",
+      "updatedAtClient": "2018-01-25T17:48:13.363",
       "trackedEntityType": "nEenWmSyUEp",
       "trackedEntity": "IOR1AXXl24H",
       "program": "BFcipDERJnf",

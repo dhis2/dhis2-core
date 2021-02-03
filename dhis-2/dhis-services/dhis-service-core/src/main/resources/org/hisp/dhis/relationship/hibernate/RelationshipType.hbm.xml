@@ -43,7 +43,7 @@
                      unique-key="relationshiptype_to_key"
                      cascade="all-delete-orphan"/>
 
-        <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_relationshiptype_userid" />
+        <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_relationshiptype_userid" />
 
         <!-- Sharing -->
         <property name="sharing" type="jsbObjectSharing"/>

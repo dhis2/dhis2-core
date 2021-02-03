@@ -1332,7 +1332,7 @@ public abstract class DhisConvenienceTest
         user.setUid( BASE_USER_UID + uniqueCharacter );
 
         credentials.setUserInfo( user );
-        credentials.setUser( user );
+        credentials.setCreatedBy( user );
         user.setUserCredentials( credentials );
 
         credentials.setUsername( "username" + uniqueCharacter );
@@ -2286,7 +2286,7 @@ public abstract class DhisConvenienceTest
 
         UserCredentials userCredentials = new UserCredentials();
         userCredentials.setCode( username );
-        userCredentials.setUser( user );
+        userCredentials.setCreatedBy( user );
         userCredentials.setUserInfo( user );
         userCredentials.setUsername( username );
         userCredentials.getUserAuthorityGroups().add( userAuthorityGroup );
@@ -2328,7 +2328,7 @@ public abstract class DhisConvenienceTest
         userCredentials.setUid( "KvMx6c1eoYo" );
         userCredentials.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
         userCredentials.setCode( username );
-        userCredentials.setUser( user );
+        userCredentials.setCreatedBy( user );
         userCredentials.setUserInfo( user );
         userCredentials.setUsername( username );
         userCredentials.getUserAuthorityGroups().add( userAuthorityGroup );

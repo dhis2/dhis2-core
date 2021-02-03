@@ -86,7 +86,7 @@ public class Map
         this.longitude = longitude;
         this.latitude = latitude;
         this.zoom = zoom;
-        this.setUser( user );
+        this.setCreatedBy( user );
     }
 
     // -------------------------------------------------------------------------

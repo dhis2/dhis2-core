@@ -38,6 +38,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -104,19 +105,19 @@ public class TrackedEntityTrackerConverterService
         TrackedEntityType trackedEntityType = preheat.get( TrackedEntityType.class,
             te.getTrackedEntityType() );
 
+        Date now = new Date();
+
         if ( isNewEntity( tei ) )
         {
-            Date now = new Date();
-
             tei = new TrackedEntityInstance();
             tei.setUid( te.getTrackedEntity() );
             tei.setCreated( now );
-            tei.setCreatedAtClient( now );
-            tei.setLastUpdated( now );
-            tei.setLastUpdatedAtClient( now );
             tei.setStoredBy( te.getStoredBy() );
         }
 
+        tei.setLastUpdated( now );
+        tei.setCreatedAtClient( DateUtils.fromInstant( te.getCreatedAtClient() ) );
+        tei.setLastUpdatedAtClient( DateUtils.fromInstant( te.getUpdatedAtClient() ) );
         tei.setOrganisationUnit( organisationUnit );
         tei.setTrackedEntityType( trackedEntityType );
         tei.setInactive( te.isInactive() );

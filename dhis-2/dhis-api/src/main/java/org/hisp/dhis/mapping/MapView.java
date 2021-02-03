@@ -234,7 +234,7 @@ public class MapView
         this.relativeOrganisationUnit = organisationUnit;
         this.organisationUnitsAtLevel = organisationUnitsAtLevel;
         this.organisationUnitsInGroups = organisationUnitsInGroups;
-        this.setUser( user );
+        this.setCreatedBy( user );
     }
 
     /**

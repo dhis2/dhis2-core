@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -51,6 +52,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceRetentionStrategy;
@@ -63,12 +65,15 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.webdomain.DataValueFollowUpRequest;
 import org.jclouds.rest.AuthorizationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -461,6 +466,24 @@ public class DataValueController
 
         setNoStore( response );
         return value;
+    }
+
+    // ---------------------------------------------------------------------
+    // Follow-up
+    // ---------------------------------------------------------------------
+
+    @PutMapping( value = "/followup" )
+    @ResponseStatus( value = HttpStatus.OK )
+    public void setDataValueFollowUp( @RequestBody DataValueFollowUpRequest request )
+    {
+        if ( request == null || request.getFollowup() == null )
+        {
+            throw new IllegalQueryException( ErrorCode.E2033 );
+        }
+
+        DataValue dataValue = dataValueValidation.getAndValidateDataValue( request );
+        dataValue.setFollowup( request.getFollowup() );
+        dataValueService.updateDataValue( dataValue );
     }
 
     // ---------------------------------------------------------------------
