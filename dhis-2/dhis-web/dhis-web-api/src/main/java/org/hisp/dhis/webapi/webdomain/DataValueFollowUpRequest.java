@@ -25,15 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oidc.provider;
+package org.hisp.dhis.webapi.webdomain;
+
+import lombok.Data;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Lars Helge Overland
  */
-public abstract class DhisOidcProvider
+@Data
+public class DataValueFollowUpRequest
 {
-    protected static final String DEFAULT_REDIRECT_TEMPLATE_URL = "{baseUrl}/oauth2/code/{registrationId}";
+    @JsonProperty
+    private String dataElement;
 
-    public static final String DEFAULT_MAPPING_CLAIM = "email";
+    @JsonProperty
+    private String period;
 
+    @JsonProperty
+    private String orgUnit;
+
+    @JsonProperty
+    private String categoryOptionCombo;
+
+    @JsonProperty
+    private String attributeOptionCombo;
+
+    @JsonProperty
+    private Boolean followup;
 }

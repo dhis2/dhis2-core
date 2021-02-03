@@ -1188,10 +1188,4 @@ public class OrganisationUnit
             }
         }
     }
-
-    public void removeProgram( Program program )
-    {
-        program.getOrganisationUnits().remove( this );
-        this.programs.remove( program );
-    }
 }

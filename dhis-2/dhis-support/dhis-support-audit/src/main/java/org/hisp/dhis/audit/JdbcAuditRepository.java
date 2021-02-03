@@ -41,13 +41,13 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -261,7 +261,7 @@ public class JdbcAuditRepository implements AuditRepository
 
         byte[] result = data.getBytes( StandardCharsets.UTF_8 );
 
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream( data.length() ))
+        try ( ByteArrayOutputStream bos = new ByteArrayOutputStream( data.length() ) )
         {
             GZIPOutputStream gzip = new GZIPOutputStream( bos );
             gzip.write( data.getBytes( StandardCharsets.UTF_8 ) );
@@ -285,7 +285,7 @@ public class JdbcAuditRepository implements AuditRepository
 
         String result = null;
 
-        try (ByteArrayInputStream bin = new ByteArrayInputStream( data ))
+        try ( ByteArrayInputStream bin = new ByteArrayInputStream( data ) )
         {
             GZIPInputStream gzip = new GZIPInputStream( bin );
             byte[] bytes = IOUtils.toByteArray( gzip );

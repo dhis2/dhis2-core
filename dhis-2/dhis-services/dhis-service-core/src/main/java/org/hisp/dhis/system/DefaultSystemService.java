@@ -193,7 +193,7 @@ public class DefaultSystemService
 
         if ( resource.isReadable() )
         {
-            try (InputStream in = resource.getInputStream())
+            try ( InputStream in = resource.getInputStream() )
             {
                 Properties properties = new Properties();
 

@@ -118,7 +118,8 @@ public class EnrollmentInExistingValidationHook
         // TODO: Create a dedicated sql query....?
         Set<Enrollment> activeAndCompleted = getAllEnrollments( reporter, program, tei.getUid() )
             .stream()
-            .filter( e -> EnrollmentStatus.ACTIVE == e.getStatus() || EnrollmentStatus.COMPLETED == e.getStatus() )
+            .filter( e -> !e.getEnrollment().equals( enrollment.getEnrollment() )
+                && (EnrollmentStatus.ACTIVE == e.getStatus() || EnrollmentStatus.COMPLETED == e.getStatus()) )
             .collect( Collectors.toSet() );
 
         if ( EnrollmentStatus.ACTIVE == enrollment.getStatus() )

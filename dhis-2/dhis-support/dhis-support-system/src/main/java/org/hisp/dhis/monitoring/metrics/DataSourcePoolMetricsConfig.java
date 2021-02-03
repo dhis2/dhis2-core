@@ -35,6 +35,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.monitoring.metrics.jdbc.C3p0MetadataProvider;
 import org.hisp.dhis.monitoring.metrics.jdbc.DataSourcePoolMetadataProvider;
@@ -43,7 +44,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.util.StringUtils;
 
 import com.google.common.collect.Lists;
 import com.mchange.v2.c3p0.ComboPooledDataSource;

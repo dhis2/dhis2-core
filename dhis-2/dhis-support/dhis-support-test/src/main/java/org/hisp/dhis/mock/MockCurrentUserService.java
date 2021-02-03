@@ -82,7 +82,7 @@ public class MockCurrentUserService
         user.setUserCredentials( credentials );
         user.setAutoFields();
         credentials.setUserInfo( user );
-        credentials.setUser( user );
+        credentials.setCreatedBy( user );
 
         this.currentUser = user;
     }

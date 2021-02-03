@@ -27,27 +27,49 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
+import java.util.function.Consumer;
 
-import org.hamcrest.Matchers;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.Stats;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -66,6 +88,9 @@ public class UserControllerTest
 
     @Mock
     private CurrentUserService currentUserService;
+
+    @Mock
+    private AclService aclService;
 
     @InjectMocks
     private UserController userController;
@@ -109,58 +134,43 @@ public class UserControllerTest
     @SuppressWarnings( "unchecked" )
     public void updateUserGroups()
     {
-        Mockito.when( userService.getUser( "def2" ) ).thenReturn( user );
+        when( userService.getUser( "def2" ) ).thenReturn( user );
 
-        final TypeReport typeReport = new TypeReport( User.class );
-        typeReport.getStats().incUpdated();
-        final ImportReport importReport = new ImportReport();
-        importReport.setStatus( Status.OK );
-        importReport.addTypeReport( typeReport );
-        if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
+        if ( isInStatusUpdatedOK( createReportWith( Status.OK, Stats::incUpdated ) ) )
         {
             userController.updateUserGroups( "def2", parsedUser, currentUser );
         }
 
-        Mockito.verifyNoInteractions( currentUserService );
-        Mockito.verify( userGroupService ).updateUserGroups( Mockito.same( user ),
-            (Collection<String>) argThat( Matchers.containsInAnyOrder( "abc1", "abc2" ) ),
-            Mockito.same( currentUser ) );
+        verifyNoInteractions( currentUserService );
+        verify( userGroupService ).updateUserGroups( same( user ),
+            (Collection<String>) argThat( containsInAnyOrder( "abc1", "abc2" ) ),
+            same( currentUser ) );
     }
 
     @Test
     public void updateUserGroupsNotOk()
     {
-        final TypeReport typeReport = new TypeReport( User.class );
-        typeReport.getStats().incUpdated();
-        final ImportReport importReport = new ImportReport();
-        importReport.setStatus( Status.ERROR );
-        importReport.addTypeReport( typeReport );
-        if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
+        if ( isInStatusUpdatedOK( createReportWith( Status.ERROR, Stats::incUpdated ) ) )
         {
             userController.updateUserGroups( "def2", parsedUser, currentUser );
         }
 
-        Mockito.verifyNoInteractions( currentUserService );
-        Mockito.verifyNoInteractions( userService );
-        Mockito.verifyNoInteractions( userGroupService );
+        verifyNoInteractions( currentUserService );
+        verifyNoInteractions( userService );
+        verifyNoInteractions( userGroupService );
     }
 
     @Test
     public void updateUserGroupsNotUpdated()
     {
-        final TypeReport typeReport = new TypeReport( User.class );
-        typeReport.getStats().incCreated();
-        final ImportReport importReport = new ImportReport();
-        importReport.setStatus( Status.OK );
-        importReport.addTypeReport( typeReport );
-        if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
+        if ( isInStatusUpdatedOK( createReportWith( Status.OK, Stats::incCreated ) ) )
         {
             userController.updateUserGroups( "def2", parsedUser, currentUser );
         }
 
-        Mockito.verifyNoInteractions( currentUserService );
-        Mockito.verifyNoInteractions( userService );
-        Mockito.verifyNoInteractions( userGroupService );
+        verifyNoInteractions( currentUserService );
+        verifyNoInteractions( userService );
+        verifyNoInteractions( userGroupService );
     }
 
     @Test
@@ -174,23 +184,149 @@ public class UserControllerTest
         currentUser2.setId( 1001 );
         currentUser2.setUid( "def2" );
 
-        Mockito.when( userService.getUser( "def2" ) ).thenReturn( user );
-        Mockito.when( currentUserService.getCurrentUser() ).thenReturn( currentUser2 );
+        when( userService.getUser( "def2" ) ).thenReturn( user );
+        when( currentUserService.getCurrentUser() ).thenReturn( currentUser2 );
 
-        final TypeReport typeReport = new TypeReport( User.class );
-        typeReport.getStats().incUpdated();
-        final ImportReport importReport = new ImportReport();
-        importReport.setStatus( Status.OK );
-        importReport.addTypeReport( typeReport );
-        if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
+        if ( isInStatusUpdatedOK( createReportWith( Status.OK, Stats::incUpdated ) ) )
         {
             userController.updateUserGroups( "def2", parsedUser, currentUser );
         }
 
-        Mockito.verify( currentUserService ).getCurrentUser();
-        Mockito.verifyNoMoreInteractions( currentUserService );
-        Mockito.verify( userGroupService ).updateUserGroups( Mockito.same( user ),
-            (Collection<String>) argThat( Matchers.containsInAnyOrder( "abc1", "abc2" ) ),
-            Mockito.same( currentUser2 ) );
+        verify( currentUserService ).getCurrentUser();
+        verifyNoMoreInteractions( currentUserService );
+        verify( userGroupService ).updateUserGroups( same( user ),
+            (Collection<String>) argThat( containsInAnyOrder( "abc1", "abc2" ) ), same( currentUser2 ) );
+    }
+
+    private ImportReport createReportWith( Status status, Consumer<Stats> operation )
+    {
+        TypeReport typeReport = new TypeReport( User.class );
+        operation.accept( typeReport.getStats() );
+        ImportReport report = new ImportReport();
+        report.setStatus( status );
+        report.addTypeReport( typeReport );
+        return report;
+    }
+
+    private boolean isInStatusUpdatedOK( ImportReport report )
+    {
+        return report.getStatus() == Status.OK && report.getStats().getUpdated() == 1;
+    }
+
+    private void setUpUserExpireScenarios()
+    {
+        addUserCredentialsTo( user );
+        addUserCredentialsTo( currentUser );
+        // make current user have ALL authority
+        setUpUserAuthority( currentUser, UserAuthorityGroup.AUTHORITY_ALL );
+        // allow any change
+        when( aclService.canUpdate( any(), any() ) ).thenReturn( true );
+        when( userService.canAddOrUpdateUser( any(), any() ) ).thenReturn( true );
+        // link user and current user to service methods
+        when( userService.getUser( eq( user.getUid() ) ) ).thenReturn( user );
+        when( currentUserService.getCurrentUser() ).thenReturn( currentUser );
+    }
+
+    @Test
+    public void expireUserInTheFutureDoesNotExpireSession()
+        throws Exception
+    {
+        setUpUserExpireScenarios();
+
+        Date inTheFuture = new Date( System.currentTimeMillis() + 1000 );
+        userController.expireUser( user.getUid(), inTheFuture );
+
+        assertUserCredentialsUpdatedWithAccountExpiry( inTheFuture );
+        verify( userService, never() ).expireActiveSessions( any() );
+    }
+
+    @Test
+    public void expireUserNowDoesExpireSession()
+        throws Exception
+    {
+        setUpUserExpireScenarios();
+        when( userService.isAccountExpired( same( user.getUserCredentials() ) ) ).thenReturn( true );
+
+        Date now = new Date();
+        userController.expireUser( user.getUid(), now );
+
+        assertUserCredentialsUpdatedWithAccountExpiry( now );
+        verify( userService, atLeastOnce() ).expireActiveSessions( same( user.getUserCredentials() ) );
+    }
+
+    @Test
+    public void unexpireUserDoesUpdateUserCredentials()
+        throws Exception
+    {
+        setUpUserExpireScenarios();
+
+        userController.unexpireUser( user.getUid() );
+
+        assertUserCredentialsUpdatedWithAccountExpiry( null );
+    }
+
+    @Test
+    public void updateUserExpireRequiresUserCredentialBasedAuthority()
+    {
+        setUpUserExpireScenarios();
+        // executing user has no authorities
+        currentUser.getUserCredentials().setUserAuthorityGroups( emptySet() );
+        // changed user does have an authority
+        setUpUserAuthority( user, "whatever" );
+
+        WebMessageException ex = assertThrows( WebMessageException.class,
+            () -> userController.expireUser( user.getUid(), new Date() ) );
+        assertEquals(
+            "You must have permissions to create user, or ability to manage at least one user group for the user.",
+            ex.getWebMessage().getMessage() );
+    }
+
+    @Test
+    public void updateUserExpireRequiresGroupBasedAuthority()
+    {
+        setUpUserExpireScenarios();
+        when( userService.canAddOrUpdateUser( any(), any() ) ).thenReturn( false );
+
+        WebMessageException ex = assertThrows( WebMessageException.class,
+            () -> userController.expireUser( user.getUid(), new Date() ) );
+        assertEquals(
+            "You must have permissions to create user, or ability to manage at least one user group for the user.",
+            ex.getWebMessage().getMessage() );
+    }
+
+    @Test
+    public void updateUserExpireRequiresShareBasedAuthority()
+    {
+        setUpUserExpireScenarios();
+        when( aclService.canUpdate( currentUser, user ) ).thenReturn( false );
+
+        Exception ex = assertThrows( UpdateAccessDeniedException.class,
+            () -> userController.expireUser( user.getUid(), new Date() ) );
+        assertEquals( "You don't have the proper permissions to update this object.", ex.getMessage() );
+    }
+
+    private void setUpUserAuthority( User user, String authority )
+    {
+        UserAuthorityGroup suGroup = new UserAuthorityGroup();
+        suGroup.setAuthorities( singleton( authority ) );
+        user.getUserCredentials().setUserAuthorityGroups( singleton( suGroup ) );
+    }
+
+    private void assertUserCredentialsUpdatedWithAccountExpiry( Date accountExpiry )
+    {
+        ArgumentCaptor<UserCredentials> credentials = ArgumentCaptor.forClass( UserCredentials.class );
+        verify( userService ).updateUserCredentials( credentials.capture() );
+        UserCredentials actual = credentials.getValue();
+        assertSame( "no user credentials update occurred", actual, user.getUserCredentials() );
+        assertEquals( "date was not updated", accountExpiry, actual.getAccountExpiry() );
+        verify( userService ).isAccountExpired( same( actual ) );
+    }
+
+    private static void addUserCredentialsTo( User user )
+    {
+        UserCredentials credentials = new UserCredentials();
+        credentials.setUser( user );
+        credentials.setUid( user.getUid() );
+        user.setUserCredentials( credentials );
     }
 }

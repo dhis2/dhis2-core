@@ -29,10 +29,8 @@ package org.hisp.dhis.program;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
@@ -127,33 +125,6 @@ public interface ProgramInstanceService
      * @return Set containing UIDs of existing PSIs (including deleted)
      */
     List<String> getProgramInstancesUidsIncludingDeleted( List<String> uids );
-
-    /**
-     * Returns a ProgramInstanceQueryParams based on the given input.
-     *
-     * @param ou the set of organisation unit identifiers.
-     * @param ouMode the OrganisationUnitSelectionMode.
-     * @param lastUpdated the last updated for PI.
-     * @param lastUpdatedDuration the last updated duration filter.
-     * @param program the Program identifier.
-     * @param programStatus the ProgramStatus in the given program.
-     * @param programStartDate the start date for enrollment in the given
-     *        Program.
-     * @param programEndDate the end date for enrollment in the given Program.
-     * @param trackedEntityType the TrackedEntityType uid.
-     * @param trackedEntityInstance the TrackedEntityInstance uid.
-     * @param followUp indicates follow up status in the given Program.
-     * @param page the page number.
-     * @param pageSize the page size.
-     * @param totalPages indicates whether to include the total number of pages.
-     * @param skipPaging whether to skip paging.
-     * @param includeDeleted whether to include soft deleted ones
-     * @return a ProgramInstanceQueryParams.
-     */
-    ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode, Date lastUpdated,
-        String lastUpdatedDuration, String program, ProgramStatus programStatus, Date programStartDate,
-        Date programEndDate, String trackedEntityType, String trackedEntityInstance, Boolean followUp, Integer page,
-        Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted );
 
     /**
      * Returns a list with program instance values based on the given

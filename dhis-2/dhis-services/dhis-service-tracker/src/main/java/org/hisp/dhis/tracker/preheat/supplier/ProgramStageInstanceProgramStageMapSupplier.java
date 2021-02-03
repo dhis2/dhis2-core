@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.preheat.supplier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -54,7 +55,7 @@ public class ProgramStageInstanceProgramStageMapSupplier
 
     private static final String PI_UID = "programInstanceUid";
 
-    private static final String SQL = "select ps.uid as " + PS_UID + ", pi.uid as " + PI_UID + " " +
+    private static final String SQL = "select DISTINCT ps.uid as " + PS_UID + ", pi.uid as " + PI_UID + " " +
         " from programstage AS ps " +
         " JOIN programinstance AS pi ON pi.programid = ps.programid " +
         " where exists( select programstageinstanceid from programstageinstance psi where  psi.deleted = false " +
@@ -75,7 +76,10 @@ public class ProgramStageInstanceProgramStageMapSupplier
             return;
         }
 
-        List<String> programStageUids = params.getEvents().stream().map( Event::getProgramStage )
+        List<String> programStageUids = params.getEvents().stream()
+            .map( Event::getProgramStage )
+            .filter( Objects::nonNull )
+            .distinct()
             .collect( Collectors.toList() );
 
         if ( !programStageUids.isEmpty() )

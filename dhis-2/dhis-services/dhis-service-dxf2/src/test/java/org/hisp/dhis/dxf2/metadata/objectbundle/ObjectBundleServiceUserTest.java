@@ -41,6 +41,7 @@ import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
@@ -110,8 +111,8 @@ public class ObjectBundleServiceUserTest
         List<User> users = manager.getAll( User.class );
         assertEquals( 4, users.size() );
 
-        User userA = manager.get( User.class, "sPWjoHSY03y" );
-        User userB = manager.get( User.class, "MwhEJUnTHkn" );
+        User userA = userService.getUser( "sPWjoHSY03y" );
+        User userB = userService.getUser( "MwhEJUnTHkn" );
 
         assertNotNull( userA );
         assertNotNull( userB );
@@ -123,12 +124,12 @@ public class ObjectBundleServiceUserTest
         assertEquals( "UserA", userA.getUserCredentials().getUserInfo().getUserCredentials().getUsername() );
         assertEquals( "UserB", userB.getUserCredentials().getUserInfo().getUserCredentials().getUsername() );
 
-        assertNotNull( userA.getUserCredentials().getUser() );
-        assertNotNull( userB.getUserCredentials().getUser() );
-        assertNotNull( userA.getUserCredentials().getUser().getUserCredentials() );
-        assertNotNull( userB.getUserCredentials().getUser().getUserCredentials() );
-        assertEquals( "admin", userA.getUserCredentials().getUser().getUserCredentials().getUsername() );
-        assertEquals( "admin", userB.getUserCredentials().getUser().getUserCredentials().getUsername() );
+        assertNotNull( userA.getUserCredentials().getCreatedBy() );
+        assertNotNull( userB.getUserCredentials().getCreatedBy() );
+        assertNotNull( userA.getUserCredentials().getCreatedBy().getUserCredentials() );
+        assertNotNull( userB.getUserCredentials().getCreatedBy().getUserCredentials() );
+        assertEquals( "admin", userA.getUserCredentials().getCreatedBy().getUserCredentials().getUsername() );
+        assertEquals( "admin", userB.getUserCredentials().getCreatedBy().getUserCredentials().getUsername() );
 
         assertEquals( 1, userA.getOrganisationUnits().size() );
         assertEquals( 1, userB.getOrganisationUnits().size() );
@@ -184,12 +185,12 @@ public class ObjectBundleServiceUserTest
         assertEquals( "UserAA", userA.getUserCredentials().getUserInfo().getUserCredentials().getUsername() );
         assertEquals( "UserBB", userB.getUserCredentials().getUserInfo().getUserCredentials().getUsername() );
 
-        assertNotNull( userA.getUserCredentials().getUser() );
-        assertNotNull( userB.getUserCredentials().getUser() );
-        assertNotNull( userA.getUserCredentials().getUser().getUserCredentials() );
-        assertNotNull( userB.getUserCredentials().getUser().getUserCredentials() );
-        assertEquals( "admin", userA.getUserCredentials().getUser().getUserCredentials().getUsername() );
-        assertEquals( "admin", userB.getUserCredentials().getUser().getUserCredentials().getUsername() );
+        assertNotNull( userA.getUserCredentials().getCreatedBy() );
+        assertNotNull( userB.getUserCredentials().getCreatedBy() );
+        assertNotNull( userA.getUserCredentials().getCreatedBy().getUserCredentials() );
+        assertNotNull( userB.getUserCredentials().getCreatedBy().getUserCredentials() );
+        assertEquals( "admin", userA.getUserCredentials().getCreatedBy().getUserCredentials().getUsername() );
+        assertEquals( "admin", userB.getUserCredentials().getCreatedBy().getUserCredentials().getUsername() );
     }
 
     @Test
@@ -301,7 +302,7 @@ public class ObjectBundleServiceUserTest
         userManagerRole.getSharing().resetUserAccesses();
         userManagerRole.getSharing().addUserAccess( new UserAccess( userB, "rw------" ) );
         userManagerRole.setPublicAccess( "--------" );
-        userManagerRole.setUser( userB );
+        userManagerRole.setCreatedBy( userB );
         manager.update( userManagerRole );
 
         SecurityContextHolder.clearContext();
@@ -323,5 +324,34 @@ public class ObjectBundleServiceUserTest
         assertEquals( 2, userA.getUserCredentials().getUserAuthorityGroups().size() );
         assertEquals( 2, userB.getUserCredentials().getUserAuthorityGroups().size() );
 
+    }
+
+    @Test
+    public void testCreateUserRoleWithCode()
+        throws IOException
+    {
+        createUserAndInjectSecurityContext( true );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/user_userrole_code.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setPreheatIdentifier( PreheatIdentifier.CODE );
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+
+        objectBundleService.commit( bundle );
+
+        User userA = manager.get( User.class, "sPWjoHSY03y" );
+        assertNotNull( userA );
+
+        assertEquals( 1, userA.getUserCredentials().getUserAuthorityGroups().size() );
+        assertEquals( 1, userA.getDataViewOrganisationUnits().size() );
+
+        UserAuthorityGroup userManagerRole = manager.get( UserAuthorityGroup.class, "xJZBzAHI88H" );
+        assertNotNull( userManagerRole );
     }
 }

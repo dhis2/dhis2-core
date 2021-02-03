@@ -28,13 +28,6 @@
 package org.hisp.dhis.feedback;
 
 /**
- * Error series:
- *
- * E2000 - E2999: Data E3000 - E3999: Security E4000 - E4999: Metadata
- * validation E5000 - E5999: Preheat E6000 - E6999: Metadata import E7000 -
- * E7099: Scheduling E7100 - E7199: Aggregate analytics E7200 - E7299: Event
- * analytics
- *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public enum ErrorCode
@@ -43,6 +36,14 @@ public enum ErrorCode
     E1000( "API query must be specified" ),
     E1001( "API query contains an illegal string" ),
     E1002( "API version is invalid" ),
+
+    /* Basic metadata */
+    E1100( "Data element not found or not accessible: `{0}`" ),
+    E1101( "Period is invalid: `{0}`" ),
+    E1102( "Organisation unit not found or not accessible: `{0}`" ),
+    E1103( "Category option combo not found or not accessible: `{0}`" ),
+    E1104( "Attribute option combo not found or not accessible: `{0}`" ),
+    E1105( "Data set not found or not accessible: `{0}`" ),
 
     /* Data */
     E2000( "Query parameters cannot be null" ),
@@ -62,6 +63,23 @@ public enum ErrorCode
     E2014( "Unable to parse filter `{0}`" ),
     E2015( "Unable to parse order param: `{0}`" ),
     E2016( "Unable to parse element `{0}` on filter `{1}`. The values available are: {2}" ),
+    E2017( "Data set is locked" ),
+    E2018( "Category option combo is required but not specified" ),
+    E2019( "Organisation unit is closed for the selected period: `{0}`" ),
+    E2020( "Organisation unit is not in the hierarchy of the current user: `{0}`" ),
+    E2021( "Data set: `{0}` does not contain data element: `{1}`" ),
+    E2022( "Period: `{0}` is after latest open future period: `{1}` for data element: `{2}`" ),
+    E2023( "Period: `{0}` is before start date: {1} for attribute option: `{2}`" ),
+    E2024( "Period: `{0}` is after start date: {1} for attribute option: `{2}`" ),
+    E2025( "Period: `{0}` is not open for data set: `{1}`" ),
+    E2026( "File resource already assigned or linked to a data value" ),
+    E2027( "File resource is invalid: `{0}`" ),
+    E2028( "Comment is invalid: `{0}`" ),
+    E2029( "Data value is not a valid option of the data element option set: `{0}`" ),
+    E2030( "Data value must match data element value type: `{0}`" ),
+    E2031( "User does not have write access to category option combo: `{0}`" ),
+    E2032( "Data value does not exist" ),
+    E2033( "Follow-up must be specified" ),
 
     /* Outlier detection */
     E2200( "At least one data element must be specified" ),

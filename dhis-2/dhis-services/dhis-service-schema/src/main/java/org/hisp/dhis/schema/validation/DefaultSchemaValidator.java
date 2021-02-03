@@ -34,6 +34,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.GenericValidator;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -47,7 +49,6 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -145,7 +146,7 @@ public class DefaultSchemaValidator implements SchemaValidator
 
         // TODO How should empty strings be handled? they are not valid color,
         // password, url, etc of course.
-        if ( !String.class.isInstance( propertyObject ) || StringUtils.isEmpty( propertyObject ) )
+        if ( !String.class.isInstance( propertyObject ) || ObjectUtils.isEmpty( propertyObject ) )
         {
             return errorReports;
         }

@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.fileresource;
 
-import static junit.framework.TestCase.*;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertNull;
+import static junit.framework.TestCase.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -87,18 +89,19 @@ public class FileResourceCleanUpJobTest
     @Autowired
     private ExternalFileResourceService externalFileResourceService;
 
-    public static Period PERIOD = createPeriod( PeriodType.getPeriodTypeByName( "Monthly" ), new Date(), new Date() );
-
     private DataValue dataValueA;
 
     private DataValue dataValueB;
 
     private byte[] content;
 
+    private Period period;
+
     @Before
     public void init()
     {
-        periodService.addPeriod( PERIOD );
+        period = createPeriod( PeriodType.getPeriodTypeByName( "Monthly" ), new Date(), new Date() );
+        periodService.addPeriod( period );
     }
 
     @Test
@@ -202,7 +205,7 @@ public class FileResourceCleanUpJobTest
         FileResource fileResource = createFileResource( uniqueChar, content );
         String uid = fileResourceService.saveFileResource( fileResource, content );
 
-        DataValue dataValue = createDataValue( fileElement, PERIOD, orgUnit, uid, null );
+        DataValue dataValue = createDataValue( fileElement, period, orgUnit, uid, null );
         fileResource.setAssigned( true );
         fileResource.setCreated( DateTime.now().minus( Days.ONE ).toDate() );
         fileResource.setStorageStatus( FileResourceStorageStatus.STORED );

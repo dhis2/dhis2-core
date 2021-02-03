@@ -64,7 +64,7 @@ public abstract class CompressionSMSListenerTest
         IncomingSms incomingSms = new IncomingSms();
         incomingSms.setText( smsText );
         incomingSms.setOriginator( ORIGINATOR );
-        incomingSms.setUser( user );
+        incomingSms.setCreatedBy( user );
 
         return incomingSms;
     }

@@ -274,7 +274,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
         // Mock for smsCommandService
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
 
-        incomingSms.setUser( user );
+        incomingSms.setCreatedBy( user );
 
         boolean result = subject.accept( incomingSms );
 
@@ -289,7 +289,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     public void testReceive()
     {
         mockServices();
-        incomingSms.setUser( user );
+        incomingSms.setCreatedBy( user );
         subject.receive( incomingSms );
 
         assertNotNull( updatedIncomingSms );
@@ -309,7 +309,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
         // Mock for smsCommandService
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
 
-        incomingSms.setUser( user );
+        incomingSms.setCreatedBy( user );
         when( dataSetService.isLocked( any(), any( DataSet.class ), any(), any(), any(), any() ) ).thenReturn( true );
         subject.receive( incomingSms );
 
@@ -329,7 +329,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
         // Mock for smsCommandService
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
 
-        incomingSms.setUser( userWithNoOu );
+        incomingSms.setCreatedBy( userWithNoOu );
         when( userService.getUser( anyString() ) ).thenReturn( userWithNoOu );
 
         subject.receive( incomingSms );
@@ -350,7 +350,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
         // Mock for smsCommandService
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
 
-        incomingSms.setUser( userwithMultipleOu );
+        incomingSms.setCreatedBy( userwithMultipleOu );
 
         when( userService.getUser( anyString() ) ).thenReturn( userwithMultipleOu );
         when( userService.getUsersByPhoneNumber( anyString() ) )
@@ -375,7 +375,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     {
         mockSmsSender();
         mockServices();
-        incomingSms.setUser( user );
+        incomingSms.setCreatedBy( user );
 
         when( userService.getUser( anyString() ) ).thenReturn( user );
         when( userService.getUsersByPhoneNumber( anyString() ) ).thenReturn( Arrays.asList( user, userB ) );
@@ -547,16 +547,16 @@ public class DataValueListenerTest extends DhisConvenienceTest
         incomingSms = new IncomingSms();
         incomingSms.setText( SMS_TEXT );
         incomingSms.setOriginator( ORIGINATOR );
-        incomingSms.setUser( user );
+        incomingSms.setCreatedBy( user );
 
         incomingSmsForCompulsoryCode = new IncomingSms();
         incomingSmsForCompulsoryCode.setText( SMS_TEXT_FOR_COMPULSORY );
         incomingSmsForCompulsoryCode.setOriginator( ORIGINATOR );
-        incomingSmsForCompulsoryCode.setUser( user );
+        incomingSmsForCompulsoryCode.setCreatedBy( user );
 
         incomingSmsForCustomSeparator = new IncomingSms();
         incomingSmsForCustomSeparator.setText( SMS_TEXT_FOR_CUSTOM_SEPARATOR );
         incomingSmsForCustomSeparator.setOriginator( ORIGINATOR );
-        incomingSmsForCustomSeparator.setUser( user );
+        incomingSmsForCustomSeparator.setCreatedBy( user );
     }
 }

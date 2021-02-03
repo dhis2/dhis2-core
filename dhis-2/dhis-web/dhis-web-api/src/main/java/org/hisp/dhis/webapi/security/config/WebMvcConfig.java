@@ -60,6 +60,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.FormHttpMessageConverter;
@@ -165,6 +166,12 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         converters.add( new FormHttpMessageConverter() );
 
         converters.add( renderServiceMessageConverter() );
+    }
+
+    @Override
+    protected void addFormatters( FormatterRegistry registry )
+    {
+        registry.addConverter( new StringToOrderCriteriaListConverter() );
     }
 
     @Primary

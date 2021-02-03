@@ -25,48 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.junit.Test;
-
-import com.google.common.collect.Sets;
+package org.hisp.dhis.common.adapter;
 
 /**
- * @author Lars Helge Overland
+ * This class defines metadata model property's names of
+ * {@link org.hisp.dhis.common.BaseIdentifiableObject} Those constants will help
+ * supporting type-safe queries with JPA Criteria API. TODO: This should be
+ * replaced with JPAMetaModelEntityProcessor's auto generated class
  */
-public class ProgramTest
+public class BaseIdentifiableObject_
 {
-    @Test
-    public void testUpdateOrganisationUnits()
-    {
-        Program prA = new Program();
-
-        OrganisationUnit ouA = new OrganisationUnit( "ouA" );
-        OrganisationUnit ouB = new OrganisationUnit( "ouB" );
-        OrganisationUnit ouC = new OrganisationUnit( "ouC" );
-        OrganisationUnit ouD = new OrganisationUnit( "ouD" );
-
-        prA.addOrganisationUnit( ouA );
-        prA.addOrganisationUnit( ouB );
-
-        assertEquals( 2, prA.getOrganisationUnits().size() );
-        assertTrue( prA.getOrganisationUnits().containsAll( Sets.newHashSet( ouA, ouB ) ) );
-        assertTrue( ouA.getPrograms().contains( prA ) );
-        assertTrue( ouB.getPrograms().contains( prA ) );
-        assertTrue( ouC.getPrograms().isEmpty() );
-        assertTrue( ouD.getPrograms().isEmpty() );
-
-        prA.updateOrganisationUnits( Sets.newHashSet( ouB, ouC ) );
-
-        assertEquals( 2, prA.getOrganisationUnits().size() );
-        assertTrue( prA.getOrganisationUnits().containsAll( Sets.newHashSet( ouB, ouC ) ) );
-        assertTrue( ouA.getPrograms().isEmpty() );
-        assertTrue( ouB.getPrograms().contains( prA ) );
-        assertTrue( ouC.getPrograms().contains( prA ) );
-        assertTrue( ouD.getPrograms().isEmpty() );
-    }
+    public static final String CREATED_BY = "createdBy";
 }

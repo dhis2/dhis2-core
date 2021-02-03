@@ -94,7 +94,6 @@ public class TrackedEntityPersister extends AbstractTrackerPersister<TrackedEnti
         Date now = new Date();
         TrackedEntityInstance tei = teConverter.from( bundle.getPreheat(), trackerDto );
         tei.setLastUpdated( now );
-        tei.setLastUpdatedAtClient( now );
         tei.setLastUpdatedBy( bundle.getUser() );
         return tei;
     }

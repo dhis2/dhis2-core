@@ -42,6 +42,8 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.INACT
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.LAST_UPDATED_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.getColumn;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
 import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
@@ -57,6 +59,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -86,6 +89,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -194,15 +198,13 @@ public class HibernateTrackedEntityInstanceStore
 
     private String buildTrackedEntityInstanceCountHql( TrackedEntityInstanceQueryParams params )
     {
-        String orderQuery = getOrderClause( params );
-
         return buildTrackedEntityInstanceHql( params, false )
             .replaceFirst( SELECT_TEI, "select count(distinct tei) from" )
             .replaceFirst( "inner join fetch tei.programInstances", "inner join tei.programInstances" )
             .replaceFirst( "inner join fetch pi.programStageInstances", "inner join pi.programStageInstances" )
             .replaceFirst( "inner join fetch psi.assignedUser", "inner join psi.assignedUser" )
             .replaceFirst( "inner join fetch tei.programOwners", "inner join tei.programOwners" )
-            .replaceFirst( orderQuery, " " );
+            .replaceFirst( Pattern.quote( getOrderClause( params ) ), " " );
     }
 
     private String withProgram( TrackedEntityInstanceQueryParams params, SqlHelper hlp )
@@ -680,30 +682,24 @@ public class HibernateTrackedEntityInstanceStore
 
     private String getOrderClause( TrackedEntityInstanceQueryParams params )
     {
-        String orderQuery = params.hasProgram()
-            ? "order by case when pi.status = 'ACTIVE' then 1 when pi.status = 'COMPLETED' then 2 else 3 end asc, tei.lastUpdated desc "
-            : "order by tei.lastUpdated desc ";
+        String orderQuery = "order by tei.lastUpdated desc ";
 
         ArrayList<String> orderFields = new ArrayList<>();
 
         if ( params.hasOrders() )
         {
-            for ( String order : params.getOrders() )
+            for ( OrderParam orderParam : params.getOrders() )
             {
-                String[] prop = getOrder( order );
-
-                if ( prop != null )
+                if ( isStaticColumn( orderParam.getField() ) )
                 {
-                    if ( params.getStaticOrderColumns().contains( prop[0] ) )
-                    {
-                        orderFields.add( params.getStaticOrderColumnValue( prop[0] ) + " " + prop[1] );
-                    }
-                    else
-                    {
-                        orderFields.add( "teav2.plainValue " + prop[1] );
-                        break; // currently we support only a single attribute
-                               // order
-                    }
+                    String columName = getColumn( orderParam.getField() );
+                    orderFields.add( columName + " " + orderParam.getDirection() );
+                }
+                else
+                {
+                    orderFields.add( "teav2.plainValue " + orderParam.getDirection() );
+                    break; // currently we support only a single attribute
+                           // order
                 }
             }
 
@@ -722,17 +718,16 @@ public class HibernateTrackedEntityInstanceStore
         {
             ArrayList<String> orderFields = new ArrayList<>();
 
-            for ( String order : params.getOrders() )
+            for ( OrderParam order : params.getOrders() )
             {
-                String[] prop = order.split( ":" );
-
-                if ( params.getStaticOrderColumns().contains( prop[0] ) )
+                if ( isStaticColumn( order.getField() ) )
                 {
-                    orderFields.add( prop[0] + " " + prop[1] );
+                    String columnName = TrackedEntityInstanceQueryParams.OrderColumn.getColumn( order.getField() );
+                    orderFields.add( columnName + " " + order.getDirection() );
                 }
-                else if ( isAttributeOrder( params, prop[0] ) )
+                else if ( isAttributeOrder( params, order.getField() ) )
                 {
-                    orderFields.add( statementBuilder.columnQuote( prop[0] ) + " " + prop[1] );
+                    orderFields.add( statementBuilder.columnQuote( order.getField() ) + " " + order.getDirection() );
                 }
             }
 
@@ -888,18 +883,6 @@ public class HibernateTrackedEntityInstanceStore
         hql += " psi.deleted=false ";
 
         return hql;
-    }
-
-    private String[] getOrder( String order )
-    {
-        String[] prop = order.split( ":" );
-
-        if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
-        {
-            return prop;
-        }
-
-        return null;
     }
 
     @Override
