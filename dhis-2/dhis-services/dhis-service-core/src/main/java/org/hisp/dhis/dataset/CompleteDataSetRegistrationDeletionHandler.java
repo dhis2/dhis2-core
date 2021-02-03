@@ -28,14 +28,14 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -50,7 +50,7 @@ public class CompleteDataSetRegistrationDeletionHandler
     // -------------------------------------------------------------------------
 
     private CompleteDataSetRegistrationService completeDataSetRegistrationService;
-    
+
     private JdbcTemplate jdbcTemplate;
 
     public CompleteDataSetRegistrationDeletionHandler(
@@ -96,8 +96,9 @@ public class CompleteDataSetRegistrationDeletionHandler
     @Override
     public String allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
-        String sql = "SELECT COUNT(*) FROM completedatasetregistration where attributeoptioncomboid=" + optionCombo.getId();
-        
+        String sql = "SELECT COUNT(*) FROM completedatasetregistration where attributeoptioncomboid="
+            + optionCombo.getId();
+
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
 }

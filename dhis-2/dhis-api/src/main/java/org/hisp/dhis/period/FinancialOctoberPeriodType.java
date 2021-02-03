@@ -28,9 +28,9 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.calendar.DateTimeUnit;
-
 import java.util.Calendar;
+
+import org.hisp.dhis.calendar.DateTimeUnit;
 
 /**
  * @author Chau Thu Tran

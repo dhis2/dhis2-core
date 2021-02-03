@@ -35,6 +35,8 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 import java.util.Date;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -47,8 +49,6 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -114,7 +114,7 @@ public class EventCategoryOptValidationHook
 
             if ( option.getEndDate() != null && eventDate.compareTo( option.getEndDate() ) > 0 )
             {
-                addError( reporter, E1057, eventDate, option.getEndDate(),  categoryOptionCombo );
+                addError( reporter, E1057, eventDate, option.getEndDate(), categoryOptionCombo );
             }
         }
     }

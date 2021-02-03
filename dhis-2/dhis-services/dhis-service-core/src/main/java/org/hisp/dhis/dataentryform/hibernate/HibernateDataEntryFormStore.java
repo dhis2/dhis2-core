@@ -49,8 +49,9 @@ public class HibernateDataEntryFormStore
     extends HibernateIdentifiableObjectStore<DataEntryForm>
     implements DataEntryFormStore
 {
-    public HibernateDataEntryFormStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher,
-         CurrentUserService currentUserService, AclService aclService )
+    public HibernateDataEntryFormStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher,
+        CurrentUserService currentUserService, AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, publisher, DataEntryForm.class, currentUserService, aclService, false );
     }

@@ -28,14 +28,15 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Objects;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 
-import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Stian Sandvold
@@ -111,9 +112,11 @@ public class RelationshipItem
 
         return (trackedEntityInstance != null && that.trackedEntityInstance != null &&
             Objects.equals( trackedEntityInstance.getTrackedEntityInstance(),
-                that.trackedEntityInstance.getTrackedEntityInstance() )) ||
+                that.trackedEntityInstance.getTrackedEntityInstance() ))
+            ||
             (enrollment != null && that.enrollment != null &&
-                Objects.equals( enrollment.getEnrollment(), that.enrollment.getEnrollment() )) ||
+                Objects.equals( enrollment.getEnrollment(), that.enrollment.getEnrollment() ))
+            ||
             (event != null && that.event != null &&
                 Objects.equals( event.getEvent(), that.event.getEvent() ));
     }

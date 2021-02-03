@@ -30,6 +30,8 @@ package org.hisp.dhis.analytics.hibernate;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookStore;
@@ -43,8 +45,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Lars Helge Overland
  */
@@ -54,10 +54,12 @@ public class HibernateAnalyticsTableHookStore
     extends HibernateIdentifiableObjectStore<AnalyticsTableHook>
     implements AnalyticsTableHookStore
 {
-    public HibernateAnalyticsTableHookStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher,
+    public HibernateAnalyticsTableHookStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher,
         CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, AnalyticsTableHook.class, currentUserService, aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, AnalyticsTableHook.class, currentUserService, aclService,
+            false );
     }
 
     @Override
@@ -70,21 +72,25 @@ public class HibernateAnalyticsTableHookStore
     }
 
     @Override
-    public List<AnalyticsTableHook> getByPhaseAndResourceTableType( AnalyticsTablePhase phase, ResourceTableType resourceTableType )
+    public List<AnalyticsTableHook> getByPhaseAndResourceTableType( AnalyticsTablePhase phase,
+        ResourceTableType resourceTableType )
     {
-        return getQuery( "from AnalyticsTableHook h where h.phase = :phase and h.resourceTableType = :resourceTableType" )
-            .setParameter( "phase", phase )
-            .setParameter( "resourceTableType", resourceTableType )
-            .getResultList();
+        return getQuery(
+            "from AnalyticsTableHook h where h.phase = :phase and h.resourceTableType = :resourceTableType" )
+                .setParameter( "phase", phase )
+                .setParameter( "resourceTableType", resourceTableType )
+                .getResultList();
     }
 
     @Override
-    public List<AnalyticsTableHook> getByPhaseAndAnalyticsTableType( AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType )
+    public List<AnalyticsTableHook> getByPhaseAndAnalyticsTableType( AnalyticsTablePhase phase,
+        AnalyticsTableType analyticsTableType )
     {
-        return getQuery( "from AnalyticsTableHook h where h.phase = :phase and h.analyticsTableType = :analyticsTableType" )
-            .setParameter( "phase", phase )
-            .setParameter( "analyticsTableType", analyticsTableType )
-            .getResultList();
+        return getQuery(
+            "from AnalyticsTableHook h where h.phase = :phase and h.analyticsTableType = :analyticsTableType" )
+                .setParameter( "phase", phase )
+                .setParameter( "analyticsTableType", analyticsTableType )
+                .getResultList();
     }
 
     @Override

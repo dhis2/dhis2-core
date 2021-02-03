@@ -28,10 +28,10 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.regex.Pattern;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
-
-import java.util.regex.Pattern;
 
 /**
  * Created by zubair on 08.03.17.
@@ -42,6 +42,7 @@ public class DigitPatternValidationRule implements PasswordValidationRule
     private static final Pattern DIGIT_PATTERN = Pattern.compile( ".*\\d.*" );
 
     public static final String ERROR = "Password must have at least one digit";
+
     private static final String I18_ERROR = "password_digit_validation";
 
     @Override

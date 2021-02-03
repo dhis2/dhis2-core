@@ -28,16 +28,17 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.feedback;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -50,9 +51,9 @@ public class ObjectBundleValidationReport
     {
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Utility Methods
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     public List<ErrorReport> getErrorReportsByCode( Class<?> klass, ErrorCode errorCode )
     {
@@ -80,7 +81,8 @@ public class ObjectBundleValidationReport
 
     public void addTypeReport( TypeReport report )
     {
-        if ( report == null ) return;
+        if ( report == null )
+            return;
 
         if ( !typeReportMap.containsKey( report.getKlass() ) )
         {
@@ -92,9 +94,9 @@ public class ObjectBundleValidationReport
         typeReport.merge( typeReport );
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Getters and Setters
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     public boolean isEmpty()
     {

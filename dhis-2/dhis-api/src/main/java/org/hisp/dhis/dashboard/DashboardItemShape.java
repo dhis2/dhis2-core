@@ -33,5 +33,7 @@ package org.hisp.dhis.dashboard;
  */
 public enum DashboardItemShape
 {
-    NORMAL, DOUBLE_WIDTH, FULL_WIDTH
+    NORMAL,
+    DOUBLE_WIDTH,
+    FULL_WIDTH
 }

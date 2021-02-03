@@ -28,15 +28,19 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
-
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.partition.PartitionManager;
@@ -64,12 +68,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.util.Assert;
 
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
@@ -94,6 +94,7 @@ public abstract class AbstractJdbcTableManager
     protected static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
 
     public static final String PREFIX_ORGUNITGROUPSET = "ougs_";
+
     public static final String PREFIX_ORGUNITLEVEL = "uidlevel";
 
     protected IdentifiableObjectManager idObjectManager;
@@ -169,11 +170,12 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Removes data which was updated or deleted between the last successful analytics table update
-     * and the start of this analytics table update process, excluding data which was created during
-     * that time span.
+     * Removes data which was updated or deleted between the last successful
+     * analytics table update and the start of this analytics table update process,
+     * excluding data which was created during that time span.
      *
-     * Override in order to remove updated and deleted data for "latest" partition update.
+     * Override in order to remove updated and deleted data for "latest" partition
+     * update.
      */
     @Override
     public void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
@@ -191,7 +193,7 @@ public abstract class AbstractJdbcTableManager
     @Async
     public Future<?> createIndexesAsync( ConcurrentLinkedQueue<AnalyticsIndex> indexes )
     {
-        taskLoop : while ( true )
+        taskLoop: while ( true )
         {
             AnalyticsIndex inx = indexes.poll();
 
@@ -204,7 +206,8 @@ public abstract class AbstractJdbcTableManager
             final String indexType = inx.hasType() ? " using " + inx.getType() : "";
             final String indexColumns = StringUtils.join( inx.getColumns(), "," );
 
-            final String sql = "create index " + indexName + " on " + inx.getTable() + indexType + " (" + indexColumns + ")";
+            final String sql = "create index " + indexName + " on " + inx.getTable() + indexType + " (" + indexColumns
+                + ")";
 
             log.debug( "Create index: " + indexName + " SQL: " + sql );
 
@@ -222,7 +225,8 @@ public abstract class AbstractJdbcTableManager
         boolean tableExists = partitionManager.tableExists( table.getTableName() );
         boolean skipMasterTable = params.isPartialUpdate() && tableExists;
 
-        log.info( String.format( "Swapping table, master table exists: %b, skip master table: %b", tableExists, skipMasterTable ) );
+        log.info( String.format( "Swapping table, master table exists: %b, skip master table: %b", tableExists,
+            skipMasterTable ) );
 
         table.getTablePartitions().stream().forEach( p -> swapTable( p.getTempTableName(), p.getTableName() ) );
 
@@ -232,7 +236,8 @@ public abstract class AbstractJdbcTableManager
         }
         else
         {
-            table.getTablePartitions().stream().forEach( p -> swapInheritance( p.getTableName(),table.getTempTableName(), table.getTableName() ) );
+            table.getTablePartitions().stream()
+                .forEach( p -> swapInheritance( p.getTableName(), table.getTempTableName(), table.getTableName() ) );
             dropTempTable( table );
         }
     }
@@ -265,7 +270,8 @@ public abstract class AbstractJdbcTableManager
 
     @Override
     @Async
-    public Future<?> populateTablesAsync( AnalyticsTableUpdateParams params, ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
+    public Future<?> populateTablesAsync( AnalyticsTableUpdateParams params,
+        ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
     {
         taskLoop: while ( true )
         {
@@ -286,7 +292,8 @@ public abstract class AbstractJdbcTableManager
     public int invokeAnalyticsTableSqlHooks()
     {
         AnalyticsTableType type = getAnalyticsTableType();
-        List<AnalyticsTableHook> hooks = tableHookService.getByPhaseAndAnalyticsTableType( AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, type );
+        List<AnalyticsTableHook> hooks = tableHookService
+            .getByPhaseAndAnalyticsTableType( AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, type );
         tableHookService.executeAnalyticsTableSqlHooks( hooks );
         return hooks.size();
     }
@@ -353,8 +360,8 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Executes a SQL statement. Ignores existing tables/indexes when attempting
-     * to create new.
+     * Executes a SQL statement. Ignores existing tables/indexes when attempting to
+     * create new.
      *
      * @param sql the SQL statement.
      */
@@ -439,14 +446,16 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Creates a {@link AnalyticsTable} with partitions based on a list of years with data.
+     * Creates a {@link AnalyticsTable} with partitions based on a list of years
+     * with data.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @param dataYears the list of years with data.
      * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
      * @param valueColumns the list of value {@link AnalyticsTableColumn}.
      */
-    protected AnalyticsTable getRegularAnalyticsTable( AnalyticsTableUpdateParams params, List<Integer> dataYears, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
+    protected AnalyticsTable getRegularAnalyticsTable( AnalyticsTableUpdateParams params, List<Integer> dataYears,
+        List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
         Calendar calendar = PeriodType.getCalendar();
 
@@ -456,28 +465,34 @@ public abstract class AbstractJdbcTableManager
 
         for ( Integer year : dataYears )
         {
-            table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ), PartitionUtils.getEndDate( calendar, year ) );
+            table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ),
+                PartitionUtils.getEndDate( calendar, year ) );
         }
 
         return table;
     }
 
     /**
-     * Creates a {@link AnalyticsTable} with a partition for the "latest" data. The start date
-     * of the partition is the time of the last successful full analytics table update. The
-     * end date of the partition is the start time of this analytics table update process.
+     * Creates a {@link AnalyticsTable} with a partition for the "latest" data. The
+     * start date of the partition is the time of the last successful full analytics
+     * table update. The end date of the partition is the start time of this
+     * analytics table update process.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
      * @param valueColumns the list of value {@link AnalyticsTableColumn}.
      */
-    protected AnalyticsTable getLatestAnalyticsTable( AnalyticsTableUpdateParams params, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
+    protected AnalyticsTable getLatestAnalyticsTable( AnalyticsTableUpdateParams params,
+        List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
-        Date lastFullTableUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
-        Date lastLatestPartitionUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
+        Date lastFullTableUpdate = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
+        Date lastLatestPartitionUpdate = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
         Date lastAnyTableUpdate = DateUtils.getLatest( lastLatestPartitionUpdate, lastFullTableUpdate );
 
-        Assert.notNull( lastFullTableUpdate, "A full analytics table update process must be run prior to a latest partition update process" );
+        Assert.notNull( lastFullTableUpdate,
+            "A full analytics table update process must be run prior to a latest partition update process" );
 
         Date startDate = lastFullTableUpdate;
         Date endDate = params.getStartTime();
@@ -488,11 +503,13 @@ public abstract class AbstractJdbcTableManager
         if ( hasUpdatedData )
         {
             table.addPartitionTable( AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate );
-            log.info( String.format( "Added latest analytics partition with start: '%s' and end: '%s'", getLongDateString( startDate ), getLongDateString( endDate ) ) );
+            log.info( String.format( "Added latest analytics partition with start: '%s' and end: '%s'",
+                getLongDateString( startDate ), getLongDateString( endDate ) ) );
         }
         else
         {
-            log.info( String.format( "No updated latest data found with start: '%s' and end: '%s", getLongDateString( lastAnyTableUpdate ), getLongDateString( endDate ) ) );
+            log.info( String.format( "No updated latest data found with start: '%s' and end: '%s",
+                getLongDateString( lastAnyTableUpdate ), getLongDateString( endDate ) ) );
         }
 
         return table;
@@ -517,21 +534,22 @@ public abstract class AbstractJdbcTableManager
 
         boolean columnsAreUnique = duplicates.isEmpty();
 
-        Preconditions.checkArgument( columnsAreUnique, String.format( "Analytics table dimensions contain duplicates: %s", duplicates ) );
+        Preconditions.checkArgument( columnsAreUnique,
+            String.format( "Analytics table dimensions contain duplicates: %s", duplicates ) );
     }
 
     /**
-     * Filters out analytics table columns which were created after the
-     * time of the last successful resource table update. This so that
-     * the the create table query does not refer to columns not present
-     * in resource tables.
+     * Filters out analytics table columns which were created after the time of the
+     * last successful resource table update. This so that the the create table
+     * query does not refer to columns not present in resource tables.
      *
      * @param columns the analytics table columns.
      * @return a list of {@link AnalyticsTableColumn}.
      */
     protected List<AnalyticsTableColumn> filterDimensionColumns( List<AnalyticsTableColumn> columns )
     {
-        Date lastResourceTableUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE );
+        Date lastResourceTableUpdate = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE );
 
         if ( lastResourceTableUpdate == null )
         {
@@ -544,7 +562,7 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Executes the given  SQL statement. Logs and times the operation.
+     * Executes the given SQL statement. Logs and times the operation.
      *
      * @param sql the SQL statement.
      * @param logMessage the custom log message to include in the log statement.
@@ -561,12 +579,13 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Collects all the {@link PeriodType} as a list of {@link AnalyticsTableColumn}.
+     * Collects all the {@link PeriodType} as a list of
+     * {@link AnalyticsTableColumn}.
      *
      * @param prefix the prefix to use for the column name
      * @return a List of {@link AnalyticsTableColumn}
      */
-    protected List<AnalyticsTableColumn> addPeriodColumns(String prefix)
+    protected List<AnalyticsTableColumn> addPeriodColumns( String prefix )
     {
         return PeriodType.getAvailablePeriodTypes().stream()
             .map( pt -> {
@@ -577,7 +596,8 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Collects all the {@link OrganisationUnitLevel} as a list of {@link AnalyticsTableColumn}.
+     * Collects all the {@link OrganisationUnitLevel} as a list of
+     * {@link AnalyticsTableColumn}.
      *
      * @return a List of {@link AnalyticsTableColumn}
      */
@@ -592,7 +612,8 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Collects all the {@link OrganisationUnitGroupSet} as a list of {@link AnalyticsTableColumn}.
+     * Collects all the {@link OrganisationUnitGroupSet} as a list of
+     * {@link AnalyticsTableColumn}.
      *
      * @return a List of {@link AnalyticsTableColumn}
      */
@@ -601,7 +622,8 @@ public abstract class AbstractJdbcTableManager
         return idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class ).stream()
             .map( ougs -> {
                 String column = quote( ougs.getUid() );
-                return new AnalyticsTableColumn( column, CHARACTER_11, "ougs." + column ).withCreated( ougs.getCreated() );
+                return new AnalyticsTableColumn( column, CHARACTER_11, "ougs." + column )
+                    .withCreated( ougs.getCreated() );
             } )
             .collect( Collectors.toList() );
     }
@@ -619,16 +641,15 @@ public abstract class AbstractJdbcTableManager
      */
     private void swapTable( String tempTableName, String realTableName )
     {
-        final String sql =
-            "drop table if exists " + realTableName + " cascade; " +
+        final String sql = "drop table if exists " + realTableName + " cascade; " +
             "alter table " + tempTableName + " rename to " + realTableName + ";";
 
         executeSilently( sql );
     }
 
     /**
-     * Updates table inheritance of a table partition from the temp master table
-     * to the real master table.
+     * Updates table inheritance of a table partition from the temp master table to
+     * the real master table.
      *
      * @param partitionTableName the partition table name.
      * @param tempMasterTableName the temporary master table name.
@@ -636,8 +657,7 @@ public abstract class AbstractJdbcTableManager
      */
     private void swapInheritance( String partitionTableName, String tempMasterTableName, String realMasterTableName )
     {
-        final String sql =
-            "alter table " + partitionTableName + " inherit " + realMasterTableName + ";" +
+        final String sql = "alter table " + partitionTableName + " inherit " + realMasterTableName + ";" +
             "alter table " + partitionTableName + " no inherit " + tempMasterTableName + ";";
 
         executeSilently( sql );

@@ -64,7 +64,7 @@ public class EventGeometryCheck implements Checker
         return success();
     }
 
-    private boolean programStageFeatureCompatibleWithEventGeometry(ImmutableEvent event, ProgramStage programStage )
+    private boolean programStageFeatureCompatibleWithEventGeometry( ImmutableEvent event, ProgramStage programStage )
     {
         return programStage.getFeatureType().equals( FeatureType.NONE )
             || !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() );

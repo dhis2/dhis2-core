@@ -231,7 +231,7 @@ public abstract class AbstractTrackerDtoValidationHook
         while ( iterPs.hasNext() )
         {
             Enrollment ps = iterPs.next();
-            final ValidationErrorReporter reporter = validateEnrollment(context, ps);
+            final ValidationErrorReporter reporter = validateEnrollment( context, ps );
             context.getRootReporter().merge( reporter );
             if ( removeOnError() && didNotPassValidation( reporter, ps.getEnrollment() ) )
             {

@@ -84,12 +84,11 @@ public class RelationshipTrackerConverterService
     private RelationshipItem convertRelationshipType( org.hisp.dhis.relationship.RelationshipItem from )
     {
         RelationshipItem relationshipItem = new RelationshipItem();
-        relationshipItem.setEnrollment( from.getProgramInstance() != null ?
-            from.getProgramInstance().getUid() : null );
-        relationshipItem.setEvent( from.getProgramStageInstance() != null ?
-            from.getProgramStageInstance().getUid() : null );
-        relationshipItem.setTrackedEntity( from.getTrackedEntityInstance() != null ?
-            from.getTrackedEntityInstance().getUid() : null );
+        relationshipItem.setEnrollment( from.getProgramInstance() != null ? from.getProgramInstance().getUid() : null );
+        relationshipItem
+            .setEvent( from.getProgramStageInstance() != null ? from.getProgramStageInstance().getUid() : null );
+        relationshipItem.setTrackedEntity(
+            from.getTrackedEntityInstance() != null ? from.getTrackedEntityInstance().getUid() : null );
         return relationshipItem;
     }
 

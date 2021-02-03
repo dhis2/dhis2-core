@@ -61,9 +61,9 @@ public class AnalyticsCacheSettings
     /**
      * Returns true if the analytics cache mode, at application level, is set to
      * PROGRESSIVE. If enabled, it overrides the fixed predefined settings.
-     * 
+     *
      * @see AnalyticsCacheTtlMode#PROGRESSIVE
-     * 
+     *
      * @return true if the current cache is enabled and set to PROGRESSIVE, false
      *         otherwise.
      */
@@ -78,9 +78,9 @@ public class AnalyticsCacheSettings
     /**
      * Returns true if the analytics cache mode, at application level, is correctly
      * set to FIXED.
-     * 
+     *
      * @see AnalyticsCacheTtlMode#FIXED
-     * 
+     *
      * @return true if the current cache mode is set to FIXED, false otherwise.
      */
     public boolean isFixedCachingEnabled()
@@ -96,10 +96,10 @@ public class AnalyticsCacheSettings
     /**
      * Encapsulates the calculation of the progressive expiration time for the
      * analytics caching at application level, if the PROGRESSIVE mode is set.
-     * 
+     *
      * @param dateBeforeToday the date to be used during the calculation of the
      *        progressive expiration time.
-     * 
+     *
      * @return the expiration time computed based on the given "dateBeforeToday".
      */
     public long progressiveExpirationTimeOrDefault( final Date dateBeforeToday )
@@ -110,9 +110,9 @@ public class AnalyticsCacheSettings
     /**
      * Retrieves the expiration time in seconds based on the system settings defined
      * by the {@link org.hisp.dhis.setting.SettingKey#CACHE_STRATEGY}
-     * 
+     *
      * @see CacheStrategy
-     * 
+     *
      * @return the predefined expiration time set or 0 (ZERO) if nothing is set.
      */
     public long fixedExpirationTimeOrDefault()

@@ -30,6 +30,8 @@ package org.hisp.dhis.dxf2.metadata.jobs;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -38,8 +40,6 @@ import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.springframework.context.annotation.Scope;
 import org.springframework.retry.RetryContext;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Defines retry mechanism for metadata sync scheduling
@@ -75,7 +75,8 @@ public class MetadataRetryContext
         }
     }
 
-    public void updateRetryContext( String stepKey, String message, MetadataVersion version, MetadataSyncSummary summary )
+    public void updateRetryContext( String stepKey, String message, MetadataVersion version,
+        MetadataSyncSummary summary )
     {
         updateRetryContext( stepKey, message, version );
 
@@ -85,9 +86,9 @@ public class MetadataRetryContext
         }
     }
 
-    //----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
     // Private Methods
-    //----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
 
     private void setupImportReport( ImportReport importReport )
     {

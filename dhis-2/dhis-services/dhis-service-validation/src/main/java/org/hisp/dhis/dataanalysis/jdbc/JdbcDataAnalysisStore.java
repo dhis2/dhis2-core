@@ -38,6 +38,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.collection.PaginatedList;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -55,8 +57,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -149,11 +149,14 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
         String periodIds = getCommaDelimitedString( getIdentifiers( periods ) );
         String categoryOptionComboIds = getCommaDelimitedString( getIdentifiers( categoryOptionCombos ) );
 
-        String sql = "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
+        String sql = "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, "
+            +
             "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, " +
-            "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue " +
+            "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue "
+            +
             "from datavalue dv " +
-            "left join minmaxdataelement mm on dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid " +
+            "left join minmaxdataelement mm on dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid "
+            +
             "inner join dataelement de on dv.dataelementid = de.dataelementid " +
             "inner join period pe on dv.periodid = pe.periodid " +
             "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
@@ -209,7 +212,8 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
     {
         String periodIds = TextUtils.getCommaDelimitedString( getIdentifiers( periods ) );
 
-        String sql = "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
+        String sql = "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, "
+            +
             "dv.created, dv.comment, dv.followup, ou.name as sourcename, " +
             "? as dataelementname, pt.name as periodtypename, pe.startdate, pe.enddate, " +
             "? as categoryoptioncomboname " +
@@ -224,8 +228,10 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
         for ( Long orgUnitUid : organisationUnits )
         {
             sql += "(dv.sourceid = " + orgUnitUid + " " +
-                "and (cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) < " + lowerBoundMap.get( orgUnitUid ) + " " +
-                "or cast(dv.value as " + statementBuilder.getDoubleColumnType() + ") > " + upperBoundMap.get( orgUnitUid ) + ")) or ";
+                "and (cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) < "
+                + lowerBoundMap.get( orgUnitUid ) + " " +
+                "or cast(dv.value as " + statementBuilder.getDoubleColumnType() + ") > "
+                + upperBoundMap.get( orgUnitUid ) + ")) or ";
         }
 
         sql = TextUtils.removeLastOr( sql ) + ") ";
@@ -253,11 +259,14 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
         String periodIds = getCommaDelimitedString( getIdentifiers( periods ) );
         String categoryOptionComboIds = getCommaDelimitedString( getIdentifiers( categoryOptionCombos ) );
 
-        String sql = "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
+        String sql = "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, "
+            +
             "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, " +
-            "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue " +
+            "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue "
+            +
             "from datavalue dv " +
-            "left join minmaxdataelement mm on (dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid) " +
+            "left join minmaxdataelement mm on (dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid) "
+            +
             "inner join dataelement de on dv.dataelementid = de.dataelementid " +
             "inner join period pe on dv.periodid = pe.periodid " +
             "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid " +

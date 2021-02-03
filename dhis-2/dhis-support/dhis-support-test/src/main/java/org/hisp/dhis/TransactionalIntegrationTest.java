@@ -29,6 +29,7 @@ package org.hisp.dhis;
  */
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.hisp.dhis.config.IntegrationTestConfig;

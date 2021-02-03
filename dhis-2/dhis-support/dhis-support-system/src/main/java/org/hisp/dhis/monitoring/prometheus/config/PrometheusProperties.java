@@ -31,6 +31,7 @@ package org.hisp.dhis.monitoring.prometheus.config;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+
 /**
  * Configuration Properties for configuring metrics export to Prometheus.
  *

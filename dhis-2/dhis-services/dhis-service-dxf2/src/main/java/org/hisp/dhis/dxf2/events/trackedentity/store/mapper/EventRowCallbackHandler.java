@@ -56,7 +56,8 @@ public class EventRowCallbackHandler
     }
 
     @Override
-    String getKeyColumn() {
+    String getKeyColumn()
+    {
         return "enruid";
     }
 

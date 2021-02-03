@@ -28,7 +28,12 @@ package org.hisp.dhis.deletedobject.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostInsertEvent;
@@ -40,10 +45,6 @@ import org.hisp.dhis.deletedobject.DeletedObject;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @Component
 @Slf4j

@@ -60,7 +60,8 @@ public class HibernateVisualizationStore
 {
     private enum VisualizationSet
     {
-        CHART, PIVOT_TABLE
+        CHART,
+        PIVOT_TABLE
     }
 
     public HibernateVisualizationStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,

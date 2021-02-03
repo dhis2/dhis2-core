@@ -28,9 +28,9 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.sharing.UserGroupAccess;
-
 import java.util.List;
+
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

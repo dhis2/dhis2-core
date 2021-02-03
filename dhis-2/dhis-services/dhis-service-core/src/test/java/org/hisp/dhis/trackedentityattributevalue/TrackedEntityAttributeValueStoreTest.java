@@ -28,7 +28,11 @@ package org.hisp.dhis.trackedentityattributevalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -41,10 +45,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
 
 /**
  * @author Chau Thu Tran
@@ -216,17 +217,20 @@ public class TrackedEntityAttributeValueStoreTest
         attributeValueStore.saveVoid( attributeValueA );
         attributeValueStore.saveVoid( attributeValueB );
 
-        TrackedEntityAttributeValueAudit auditA = new TrackedEntityAttributeValueAudit( attributeValueA, renderService.toJsonAsString( attributeValueA ),
+        TrackedEntityAttributeValueAudit auditA = new TrackedEntityAttributeValueAudit( attributeValueA,
+            renderService.toJsonAsString( attributeValueA ),
             "userA", AuditType.UPDATE );
 
-        TrackedEntityAttributeValueAudit auditB = new TrackedEntityAttributeValueAudit( attributeValueB, renderService.toJsonAsString( attributeValueB ),
+        TrackedEntityAttributeValueAudit auditB = new TrackedEntityAttributeValueAudit( attributeValueB,
+            renderService.toJsonAsString( attributeValueB ),
             "userA", AuditType.UPDATE );
 
         attributeValueAuditStore.addTrackedEntityAttributeValueAudit( auditA );
         attributeValueAuditStore.addTrackedEntityAttributeValueAudit( auditB );
 
         assertEquals( 1, attributeValueAuditStore.getTrackedEntityAttributeValueAudits(
-            Lists.newArrayList( attributeValueA.getAttribute() ), Lists.newArrayList( attributeValueA.getEntityInstance() ), AuditType.UPDATE ).size() );
+            Lists.newArrayList( attributeValueA.getAttribute() ),
+            Lists.newArrayList( attributeValueA.getEntityInstance() ), AuditType.UPDATE ).size() );
         assertEquals( 2, attributeValueAuditStore.getTrackedEntityAttributeValueAudits(
             null, Lists.newArrayList( entityInstanceA ), AuditType.UPDATE ).size() );
     }

@@ -28,19 +28,16 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -49,15 +46,20 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Ken Haase
  */
 @JacksonXmlRootElement( localName = "Predictor", namespace = DxfNamespaces.DXF_2_0 )
 public class Predictor
-    extends BaseNameableObject implements MetadataObject
+    extends BaseNameableObject
+    implements MetadataObject
 {
     /**
      * The data element into which the predictor writes
@@ -80,8 +82,8 @@ public class Predictor
     private PeriodType periodType;
 
     /**
-     * When non-empty, this is a boolean valued generator which
-     * indicates when this rule should be skipped
+     * When non-empty, this is a boolean valued generator which indicates when this
+     * rule should be skipped
      */
     private Expression sampleSkipTest;
 
@@ -91,24 +93,23 @@ public class Predictor
     private Set<OrganisationUnitLevel> organisationUnitLevels;
 
     /**
-     * The number of sequential periods from which to collect samples
-     * to average (Monitoring-type rules only). Sequential periods are those
-     * immediately preceding (or immediately following in previous years) the
-     * selected period.
+     * The number of sequential periods from which to collect samples to average
+     * (Monitoring-type rules only). Sequential periods are those immediately
+     * preceding (or immediately following in previous years) the selected period.
      */
     private Integer sequentialSampleCount;
 
     /**
-     * The number of annual periods from which to collect samples to
-     * average (Monitoring-type rules only). Annual periods are from previous
-     * years. Samples collected from previous years can also include sequential
-     * periods adjacent to the equivalent period in previous years.
+     * The number of annual periods from which to collect samples to average
+     * (Monitoring-type rules only). Annual periods are from previous years. Samples
+     * collected from previous years can also include sequential periods adjacent to
+     * the equivalent period in previous years.
      */
     private Integer annualSampleCount;
 
     /**
-     * The number of immediate sequential periods to skip (in the current year)
-     * when collecting samples for aggregate functions
+     * The number of immediate sequential periods to skip (in the current year) when
+     * collecting samples for aggregate functions
      */
     private Integer sequentialSkipCount;
 
@@ -130,8 +131,8 @@ public class Predictor
     // -------------------------------------------------------------------------
 
     /**
-     * Gets the predictor description, but returns the predictor
-     * name if there is no description.
+     * Gets the predictor description, but returns the predictor name if there is no
+     * description.
      *
      * @return the description (or name).
      */

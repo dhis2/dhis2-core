@@ -32,6 +32,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsListener;
@@ -41,10 +43,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
-@Component( "org.hisp.dhis.sms.SmsConsumerThread")
+@Component( "org.hisp.dhis.sms.SmsConsumerThread" )
 public class SmsConsumerThread
 {
     private List<IncomingSmsListener> listeners;
@@ -66,7 +66,6 @@ public class SmsConsumerThread
         this.smsSender = smsSender;
         this.incomingSmsService = incomingSmsService;
     }
-    
 
     public void spawnSmsConsumer()
     {
@@ -75,7 +74,7 @@ public class SmsConsumerThread
         while ( message != null )
         {
             log.info( "Received SMS: " + message.getText() );
-            
+
             try
             {
                 for ( IncomingSmsListener listener : listeners )

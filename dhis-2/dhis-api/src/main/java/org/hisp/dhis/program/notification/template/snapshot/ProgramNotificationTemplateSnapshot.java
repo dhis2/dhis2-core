@@ -30,15 +30,15 @@ package org.hisp.dhis.program.notification.template.snapshot;
 
 import java.util.Set;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 @Data
-@EqualsAndHashCode(callSuper=true)
+@EqualsAndHashCode( callSuper = true )
 public class ProgramNotificationTemplateSnapshot extends IdentifiableObjectSnapshot
 {
 

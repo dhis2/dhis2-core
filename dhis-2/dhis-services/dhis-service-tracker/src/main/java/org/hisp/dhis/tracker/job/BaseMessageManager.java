@@ -28,15 +28,16 @@ package org.hisp.dhis.tracker.job;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+
+import javax.jms.JMSException;
+import javax.jms.TextMessage;
+
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.stereotype.Component;
-
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
-import java.io.IOException;
 
 /**
  * @author Zubair Asghar
@@ -77,7 +78,8 @@ public abstract class BaseMessageManager
     }
 
     public TrackerSideEffectDataBundle toBundle( TextMessage message )
-        throws JMSException, IOException
+        throws JMSException,
+        IOException
     {
         String payload = message.getText();
 

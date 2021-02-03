@@ -28,10 +28,10 @@ package org.hisp.dhis.attribute;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
-
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -46,9 +46,10 @@ public interface AttributeValueStore
     List<AttributeValue> getAllByAttributeAndValue( Attribute attribute, String value );
 
     /**
-     * Is attribute value unique, the value must either not exist, or just exist in given object.
+     * Is attribute value unique, the value must either not exist, or just exist in
+     * given object.
      *
-     * @param object         Object
+     * @param object Object
      * @param attributeValue AV to check for
      * @return true/false depending on uniqueness of AV
      */

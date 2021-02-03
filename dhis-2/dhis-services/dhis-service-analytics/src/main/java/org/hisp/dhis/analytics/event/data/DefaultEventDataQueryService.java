@@ -34,11 +34,11 @@ import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_EVENT_DAT
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_INCIDENT_DATE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_CODE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_NAME;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.Date;
 import java.util.List;
@@ -91,7 +91,9 @@ public class DefaultEventDataQueryService
     implements EventDataQueryService
 {
     private static final String COL_NAME_EVENTDATE = "executiondate";
+
     private static final String COL_NAME_ENROLLMENTDATE = "enrollmentdate";
+
     private static final String COL_NAME_INCIDENTDATE = "incidentdate";
 
     private static final ImmutableSet<String> SORTABLE_ITEMS = ImmutableSet.of(
@@ -280,7 +282,8 @@ public class DefaultEventDataQueryService
             }
             else
             {
-                params.addItem( getQueryItem( dimension.getDimension(), dimension.getFilter(), object.getProgram(), object.getOutputType() ) );
+                params.addItem( getQueryItem( dimension.getDimension(), dimension.getFilter(), object.getProgram(),
+                    object.getOutputType() ) );
             }
         }
 
@@ -295,7 +298,8 @@ public class DefaultEventDataQueryService
             }
             else
             {
-                params.addItemFilter( getQueryItem( filter.getDimension(), filter.getFilter(), object.getProgram(), object.getOutputType() ) );
+                params.addItemFilter( getQueryItem( filter.getDimension(), filter.getFilter(), object.getProgram(),
+                    object.getOutputType() ) );
             }
         }
 

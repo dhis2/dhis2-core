@@ -44,14 +44,16 @@ public interface AnalyticsTableManager
     String TABLE_TEMP_SUFFIX = "_temp";
 
     /**
-     * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
+     * Returns the {@link AnalyticsTableType} of analytics table which this manager
+     * handles.
      *
      * @return type of analytics table.
      */
     AnalyticsTableType getAnalyticsTableType();
 
     /**
-     * Returns a {@link AnalyticsTable} with a list of yearly {@link AnalyticsTablePartition}.
+     * Returns a {@link AnalyticsTable} with a list of yearly
+     * {@link AnalyticsTablePartition}.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @return the analytics table with partitions.
@@ -66,7 +68,8 @@ public interface AnalyticsTableManager
     Set<String> getExistingDatabaseTables();
 
     /**
-     * Checks if the database content is in valid state for analytics table generation.
+     * Checks if the database content is in valid state for analytics table
+     * generation.
      *
      * @return null if valid, a descriptive string if invalid.
      */
@@ -95,8 +98,8 @@ public interface AnalyticsTableManager
     void createTable( AnalyticsTable table );
 
     /**
-     * Creates single indexes on the given columns of the analytics table with
-     * the given name.
+     * Creates single indexes on the given columns of the analytics table with the
+     * given name.
      *
      * @param indexes the analytics indexes.
      * @return a future representing the asynchronous task.
@@ -117,14 +120,15 @@ public interface AnalyticsTableManager
     void swapTable( AnalyticsTableUpdateParams params, AnalyticsTable table );
 
     /**
-     * Copies and denormalizes rows from data value table into analytics table.
-     * The data range is based on the start date of the data value row.
+     * Copies and denormalizes rows from data value table into analytics table. The
+     * data range is based on the start date of the data value row.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @param tablePartitions the analytics table partitions.
      * @return a future representing the asynchronous task.
      */
-    Future<?> populateTablesAsync( AnalyticsTableUpdateParams params, ConcurrentLinkedQueue<AnalyticsTablePartition> tablePartitions );
+    Future<?> populateTablesAsync( AnalyticsTableUpdateParams params,
+        ConcurrentLinkedQueue<AnalyticsTablePartition> tablePartitions );
 
     /**
      * Invokes analytics table SQL hooks for the table type.
@@ -163,11 +167,12 @@ public interface AnalyticsTableManager
 
     /**
      * Applies aggregation level logic to the analytics table by setting the
-     * organisation unit level column values to null for the levels above the
-     * given aggregation level.
+     * organisation unit level column values to null for the levels above the given
+     * aggregation level.
      *
      * @param partitions the analytics table partitions.
-     * @param dataElements the data element identifiers to apply aggregation levels for.
+     * @param dataElements the data element identifiers to apply aggregation levels
+     *        for.
      * @param aggregationLevel the aggregation level.
      * @return a future representing the asynchronous task.
      */

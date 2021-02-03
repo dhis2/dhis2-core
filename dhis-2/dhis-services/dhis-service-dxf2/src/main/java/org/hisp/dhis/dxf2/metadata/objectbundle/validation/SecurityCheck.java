@@ -102,7 +102,7 @@ public class SecurityCheck
                         identifier.getIdentifiersWithName( bundle.getUser() ),
                         identifier.getIdentifiersWithName( object ) );
 
-                    ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle);
+                    ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle );
                     ctx.markForRemoval( object );
                     continue;
                 }
@@ -119,7 +119,7 @@ public class SecurityCheck
                             identifier.getIdentifiersWithName( bundle.getUser() ),
                             identifier.getIdentifiersWithName( object ) );
 
-                        ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle);
+                        ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle );
                         ctx.markForRemoval( object );
                         continue;
                     }
@@ -132,7 +132,7 @@ public class SecurityCheck
                             identifier.getIdentifiersWithName( bundle.getUser() ),
                             identifier.getIdentifiersWithName( object ) );
 
-                        ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle);
+                        ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle );
 
                         ctx.markForRemoval( object );
                         continue;
@@ -145,7 +145,8 @@ public class SecurityCheck
                 User user = (User) object;
                 List<ErrorReport> errorReports = ctx.getUserService().validateUser( user, bundle.getUser() );
 
-                if ( !errorReports.isEmpty() ) {
+                if ( !errorReports.isEmpty() )
+                {
 
                     addObjectReports( errorReports, typeReport, object, bundle );
                     ctx.markForRemoval( object );
@@ -163,6 +164,5 @@ public class SecurityCheck
 
         return typeReport;
     }
-
 
 }

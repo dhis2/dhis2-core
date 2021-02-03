@@ -28,15 +28,16 @@ package org.hisp.dhis.dxf2.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.query.QueryUtils;
-import org.hisp.dhis.schema.Schema;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
+import org.hisp.dhis.query.Order;
+import org.hisp.dhis.query.QueryUtils;
+import org.hisp.dhis.schema.Schema;
+
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

@@ -28,9 +28,9 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.JobConfiguration;
-
 import javax.annotation.Nullable;
+
+import org.hisp.dhis.scheduling.JobConfiguration;
 
 /**
  * Interface responsible for generating analytics tables. Will look for and

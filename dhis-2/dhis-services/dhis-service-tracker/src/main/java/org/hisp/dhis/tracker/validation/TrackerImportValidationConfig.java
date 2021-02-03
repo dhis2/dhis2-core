@@ -42,8 +42,8 @@ import org.hisp.dhis.tracker.validation.hooks.*;
 import com.google.common.collect.ImmutableList;
 
 /**
- * Configuration class for the tracker importer validation hook ordering.
- * The Hooks will be run in the same order they apear in this class.
+ * Configuration class for the tracker importer validation hook ordering. The
+ * Hooks will be run in the same order they apear in this class.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -57,8 +57,7 @@ public class TrackerImportValidationConfig
     protected static final List<Class<? extends TrackerValidationHook>> RULE_ENGINE_VALIDATION_HOOKS = ImmutableList.of(
 
         EnrollmentRuleValidationHook.class,
-        EventRuleValidationHook.class
-    );
+        EventRuleValidationHook.class );
 
     protected static final List<Class<? extends TrackerValidationHook>> VALIDATION_ORDER = ImmutableList.of(
 
@@ -88,12 +87,13 @@ public class TrackerImportValidationConfig
         AssignedUserValidationHook.class,
 
         RepeatedEventsValidationHook.class // This validation must be run after all the Event validations
-        // because it needs to consider all and only the valid events
+    // because it needs to consider all and only the valid events
     );
 
     /**
-     * Map structure to hold the index (int) of each element in the VALIDATION_ORDER as the value and the class as key.
-     * This map is used for sorting a list of TrackerValidationHooks classes.
+     * Map structure to hold the index (int) of each element in the VALIDATION_ORDER
+     * as the value and the class as key. This map is used for sorting a list of
+     * TrackerValidationHooks classes.
      */
     protected static final Map<Class<? extends TrackerValidationHook>, Integer> VALIDATION_ORDER_MAP = IntStream
         .range( 0, VALIDATION_ORDER.size() )
@@ -101,13 +101,14 @@ public class TrackerImportValidationConfig
         .collect( toMap( VALIDATION_ORDER::get, Function.identity() ) );
 
     /**
-     * Sort the hooks in the order they are represented in the above VALIDATION_ORDER list.
+     * Sort the hooks in the order they are represented in the above
+     * VALIDATION_ORDER list.
      *
      * @param hooks list to sort
      */
     public static List<TrackerValidationHook> sortValidationHooks( List<TrackerValidationHook> hooks )
     {
-        //TODO: Make some tests to check this is correctly configured
+        // TODO: Make some tests to check this is correctly configured
         return hooks
             .stream().filter( h -> VALIDATION_ORDER.contains( h.getClass() ) )
             .sorted( Comparator.comparingInt( o -> VALIDATION_ORDER_MAP.get( o.getClass() ) ) )

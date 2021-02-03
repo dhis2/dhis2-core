@@ -65,9 +65,9 @@ public interface EventChecking
 
         /**
          * Validates the events using the supplied list of validators.
-         * 
+         *
          * Only returns the ImportSummary for Events that *did* not pass validation
-         * 
+         *
          * @param validators List of classes implementing the {@see Checker} interface
          * @return returns the ImportSummary for Events that did not pass validation
          */

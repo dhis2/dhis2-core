@@ -28,26 +28,26 @@ package org.hisp.dhis.dxf2.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.user.User;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.PostConstruct;
+
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.user.User;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Lars Helge Overland
@@ -87,16 +87,16 @@ public class InputUtils
     }
 
     /**
-     * Validates and retrieves the attribute option combo. 409 conflict as
-     * status code along with a textual message will be set on the response in
-     * case of invalid input. The response is cached.
+     * Validates and retrieves the attribute option combo. 409 conflict as status
+     * code along with a textual message will be set on the response in case of
+     * invalid input. The response is cached.
      *
      * @param cc the category combo identifier.
      * @param cp the category and option query string.
      * @param skipFallback whether to skip fallback to default option combo if
      *        attribute option combo is not found.
-     * @return the attribute option combo identified from the given input, or
-     *         null. if the input was invalid.
+     * @return the attribute option combo identified from the given input, or null.
+     *         if the input was invalid.
      */
     public CategoryOptionCombo getAttributeOptionCombo( String cc, String cp, boolean skipFallback )
     {
@@ -131,7 +131,8 @@ public class InputUtils
 
         if ( (cc == null && opts != null || (cc != null && opts == null)) )
         {
-            throw new IllegalQueryException( "Both or none of category combination and category options must be present" );
+            throw new IllegalQueryException(
+                "Both or none of category combination and category options must be present" );
         }
 
         CategoryCombo categoryCombo = null;
@@ -155,33 +156,34 @@ public class InputUtils
     }
 
     /**
-     * Validates and retrieves the attribute option combo. 409 conflict as
-     * status code along with a textual message will be set on the response in
-     * case of invalid input.
+     * Validates and retrieves the attribute option combo. 409 conflict as status
+     * code along with a textual message will be set on the response in case of
+     * invalid input.
      *
      * @param categoryCombo the category combo.
      * @param opts list of category option uid.
-     * @return the attribute option combo identified from the given input, or
-     *         null if the input was invalid.
+     * @return the attribute option combo identified from the given input, or null
+     *         if the input was invalid.
      */
-    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> opts, IdScheme idScheme )
+    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> opts,
+        IdScheme idScheme )
     {
         return getAttributeOptionCombo( categoryCombo, opts, null, idScheme );
     }
 
     /**
-     * Validates and retrieves the attribute option combo. 409 conflict as
-     * status code along with a textual message will be set on the response in
-     * case of invalid input.
+     * Validates and retrieves the attribute option combo. 409 conflict as status
+     * code along with a textual message will be set on the response in case of
+     * invalid input.
      *
      * @param categoryCombo the category combo.
      * @param opts list of category option uid.
-     * @param attributeOptionCombo the explicit attribute option combo
-     *        identifier.
-     * @return the attribute option combo identified from the given input, or
-     *         null if the input was invalid.
+     * @param attributeOptionCombo the explicit attribute option combo identifier.
+     * @return the attribute option combo identified from the given input, or null
+     *         if the input was invalid.
      */
-    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> opts, String attributeOptionCombo, IdScheme idScheme )
+    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> opts,
+        String attributeOptionCombo, IdScheme idScheme )
     {
         if ( categoryCombo == null )
         {
@@ -214,7 +216,8 @@ public class InputUtils
 
             if ( attrOptCombo == null )
             {
-                throw new IllegalQueryException( "Attribute option combo does not exist for given category combo and category options" );
+                throw new IllegalQueryException(
+                    "Attribute option combo does not exist for given category combo and category options" );
             }
         }
         else if ( attributeOptionCombo != null )
@@ -240,8 +243,8 @@ public class InputUtils
     }
 
     /**
-     * Checks if user is authorized to force data input.
-     * Having just the authority is not enough. User has to explicitly ask for it.
+     * Checks if user is authorized to force data input. Having just the authority
+     * is not enough. User has to explicitly ask for it.
      *
      * @param currentUser the user attempting to force data input
      * @param force request to force data input

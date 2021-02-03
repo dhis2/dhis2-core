@@ -30,6 +30,8 @@ package org.hisp.dhis.scheduling;
 
 import java.util.Date;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
@@ -37,8 +39,6 @@ import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.Preconditions;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Henning Håkonsen
@@ -56,12 +56,13 @@ public class DefaultJobInstance
 
     private LeaderManager leaderManager;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings( "unused" )
     private DefaultJobInstance()
     {
     }
 
-    public DefaultJobInstance( SchedulingManager schedulingManager, MessageService messageService, LeaderManager leaderManager )
+    public DefaultJobInstance( SchedulingManager schedulingManager, MessageService messageService,
+        LeaderManager leaderManager )
     {
         this.schedulingManager = schedulingManager;
         this.messageService = messageService;
@@ -82,7 +83,8 @@ public class DefaultJobInstance
 
         if ( jobConfiguration.isLeaderOnlyJob() && !leaderManager.isLeader() )
         {
-            log.debug( String.format( NOT_LEADER_SKIP_LOG, jobConfiguration.getJobType(), jobConfiguration.getName() ) );
+            log.debug(
+                String.format( NOT_LEADER_SKIP_LOG, jobConfiguration.getJobType(), jobConfiguration.getName() ) );
             return;
         }
 
@@ -130,8 +132,8 @@ public class DefaultJobInstance
     }
 
     /**
-     * Set status properties of job after finish. If the job was executed manually and the job is disabled we want
-     * to set the status back to DISABLED.
+     * Set status properties of job after finish. If the job was executed manually
+     * and the job is disabled we want to set the status back to DISABLED.
      *
      * @param clock Clock for keeping track of time usage.
      * @param jobConfiguration the job configuration.
@@ -160,8 +162,8 @@ public class DefaultJobInstance
     }
 
     /**
-     * Method which calls the execute method in the job. The job will run in this thread and finish,
-     * either with success or with an exception.
+     * Method which calls the execute method in the job. The job will run in this
+     * thread and finish, either with success or with an exception.
      *
      * @param jobConfiguration the configuration to execute.
      * @param clock refers to start time.
@@ -172,6 +174,7 @@ public class DefaultJobInstance
 
         schedulingManager.getJob( jobConfiguration.getJobType() ).execute( jobConfiguration );
 
-        log.debug( String.format( "Job executed successfully: '%s'. Time used: '%s'", jobConfiguration.getName(), clock.time() ) );
+        log.debug( String.format( "Job executed successfully: '%s'. Time used: '%s'", jobConfiguration.getName(),
+            clock.time() ) );
     }
 }

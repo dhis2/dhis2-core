@@ -1,10 +1,10 @@
 package org.hisp.dhis.message;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.user.User;
-
 import java.util.Collection;
 import java.util.List;
+
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.user.User;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -42,14 +42,15 @@ public interface MessageConversationStore
 {
     /**
      * Returns a list of MessageConversations.
-     * 
-     * @param user the User for which the MessageConversations are sent to, or
-     *        all if null.
+     *
+     * @param user the User for which the MessageConversations are sent to, or all
+     *        if null.
      * @param first the first record number to return, or all if null.
      * @param max the max number of records to return, or all if null.
      * @return a list of MessageConversations.
      */
-    List<MessageConversation> getMessageConversations( User user, MessageConversationStatus status, boolean followUpOnly, boolean unreadOnly, Integer first, Integer max );
+    List<MessageConversation> getMessageConversations( User user, MessageConversationStatus status,
+        boolean followUpOnly, boolean unreadOnly, Integer first, Integer max );
 
     /**
      * Returns the MessageConversations given by the supplied UIDs.
@@ -58,14 +59,14 @@ public interface MessageConversationStore
      * @return a collection of MessageConversations.
      */
     List<MessageConversation> getMessageConversations( Collection<String> messageConversationUids );
-    
+
     long getUnreadUserMessageConversationCount( User user );
-    
+
     int deleteMessages( User sender );
-    
+
     int deleteUserMessages( User user );
-    
+
     int removeUserFromMessageConversations( User lastSender );
-    
+
     List<UserMessage> getLastRecipients( User user, Integer first, Integer max );
 }

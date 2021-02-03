@@ -33,8 +33,7 @@ import org.testcontainers.containers.PostgisContainerProvider;
 import org.testcontainers.utility.DockerImageName;
 
 /**
- * Custom PostgisContainerProvider to create
- * {@link DhisPostgreSQLContainer}
+ * Custom PostgisContainerProvider to create {@link DhisPostgreSQLContainer}
  *
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
@@ -43,6 +42,7 @@ public class DhisPostgisContainerProvider
     extends PostgisContainerProvider
 {
     private static final String DEFAULT_TAG = "10";
+
     private static final String DEFAULT_IMAGE = "mdillon/postgis";
 
     @Override

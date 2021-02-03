@@ -80,17 +80,19 @@ public class HibernateProgramRuleActionStore
     @Override
     public List<ProgramRuleAction> getProgramActionsWithNoDataObject()
     {
-        return getQuery( "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN (:dataTypes ) AND pra.dataElement IS NULL AND pra.attribute IS NULL" )
-            .setParameter( "dataTypes", ProgramRuleActionType.getDataLinkedTypes() )
-            .getResultList();
+        return getQuery(
+            "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN (:dataTypes ) AND pra.dataElement IS NULL AND pra.attribute IS NULL" )
+                .setParameter( "dataTypes", ProgramRuleActionType.getDataLinkedTypes() )
+                .getResultList();
     }
 
     @Override
     public List<ProgramRuleAction> getProgramActionsWithNoNotification()
     {
-        return getQuery( "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN ( :notificationTypes ) AND pra.templateUid IS NULL" )
-            .setParameter( "notificationTypes", ProgramRuleActionType.getNotificationLinkedTypes() )
-            .getResultList();
+        return getQuery(
+            "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN ( :notificationTypes ) AND pra.templateUid IS NULL" )
+                .setParameter( "notificationTypes", ProgramRuleActionType.getNotificationLinkedTypes() )
+                .getResultList();
     }
 
     @Override

@@ -32,10 +32,10 @@ import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import java.io.Serializable;
 
+import lombok.Data;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
-import lombok.Data;
 
 /**
  * This class represents a line in the axis. See {@link AxisV2}}.

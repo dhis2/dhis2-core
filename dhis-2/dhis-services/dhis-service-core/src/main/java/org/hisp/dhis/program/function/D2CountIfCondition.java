@@ -28,12 +28,12 @@ package org.hisp.dhis.program.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-
 import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
 import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
 import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 /**
  * Program indicator function: d2 count if condition
@@ -73,8 +73,8 @@ public class D2CountIfCondition
     // -------------------------------------------------------------------------
 
     /**
-     * Gets a complete expression that is used to test a condition (e.g. "<5")
-     * by putting a "0" in front to get a complete expression (e.g., "0<5").
+     * Gets a complete expression that is used to test a condition (e.g. "<5") by
+     * putting a "0" in front to get a complete expression (e.g., "0<5").
      *
      * @param ctx the expression context
      * @return the complete expression

@@ -42,12 +42,14 @@ public class UserSettingKeyTest
     @Test
     public void getAsRealClassEnum()
     {
-        Assert.assertSame( DisplayProperty.SHORTNAME, UserSettingKey.getAsRealClass( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY.getName(), "shortName" ) );
+        Assert.assertSame( DisplayProperty.SHORTNAME,
+            UserSettingKey.getAsRealClass( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY.getName(), "shortName" ) );
     }
 
     @Test
     public void getAsRealClassOther()
     {
-        Assert.assertSame( "Test Layout", UserSettingKey.getAsRealClass( UserSettingKey.TRACKER_DASHBOARD_LAYOUT.getName(), "Test Layout" ) );
+        Assert.assertSame( "Test Layout",
+            UserSettingKey.getAsRealClass( UserSettingKey.TRACKER_DASHBOARD_LAYOUT.getName(), "Test Layout" ) );
     }
 }

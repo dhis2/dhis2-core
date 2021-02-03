@@ -28,16 +28,16 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.lessThan;
+
+import java.beans.PropertyDescriptor;
+
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.schema.Property;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.beans.PropertyDescriptor;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.lessThan;
 
 /**
  * Unit tests for {@link Order}.
@@ -57,12 +57,14 @@ public class OrderTest
     private Order orderDesc;
 
     @Before
-    public void setUp() throws Exception
+    public void setUp()
+        throws Exception
     {
         object1 = new TestObject();
         object2 = new TestObject();
         PropertyDescriptor propertyDescriptor = PropertyUtils.getPropertyDescriptor( object1, "value" );
-        valueProperty = new Property( String.class, propertyDescriptor.getReadMethod(), propertyDescriptor.getWriteMethod() );
+        valueProperty = new Property( String.class, propertyDescriptor.getReadMethod(),
+            propertyDescriptor.getWriteMethod() );
         valueProperty.setName( "value" );
         orderAsc = new Order( valueProperty, Direction.ASCENDING );
         orderDesc = new Order( valueProperty, Direction.DESCENDING );

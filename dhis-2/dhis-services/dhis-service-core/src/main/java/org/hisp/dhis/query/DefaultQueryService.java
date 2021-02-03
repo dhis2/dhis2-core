@@ -28,17 +28,18 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Default implementation of QueryService which works with IdObjects.
@@ -108,19 +109,24 @@ public class DefaultQueryService
     }
 
     @Override
-    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination) throws QueryParserException
+    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination )
+        throws QueryParserException
     {
         return getQueryFromUrl( klass, filters, orders, pagination, DEFAULT_JUNCTION_TYPE );
     }
 
     @Override
-    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination, Junction.Type rootJunction ) throws QueryParserException
+    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination,
+        Junction.Type rootJunction )
+        throws QueryParserException
     {
         return getQueryFromUrl( klass, filters, orders, pagination, rootJunction, false );
     }
 
     @Override
-    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination, Junction.Type rootJunction, boolean restrictToCaptureScope ) throws QueryParserException
+    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination,
+        Junction.Type rootJunction, boolean restrictToCaptureScope )
+        throws QueryParserException
     {
         Query query = queryParser.parse( klass, filters, rootJunction, restrictToCaptureScope );
         query.addOrders( orders );
@@ -134,14 +140,15 @@ public class DefaultQueryService
     }
 
     @Override
-    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders ) throws QueryParserException
+    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders )
+        throws QueryParserException
     {
         return getQueryFromUrl( klass, filters, orders, new Pagination(), DEFAULT_JUNCTION_TYPE );
     }
 
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     // Helper methods
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
 
     private long countObjects( Query query )
     {

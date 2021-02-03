@@ -41,13 +41,14 @@ import org.hisp.dhis.i18n.I18nFormat;
  * class works as helper for LegendSet when it comes to drawing the actual
  * legend using java graphics. A legend has a height, but the actual width is
  * not defined.
- * 
+ *
  * @author Kristin Simonsen <krissimo@ifi.uio.no>
  * @author Kjetil Andresen <kjetil.andrese@gmail.com>
  */
 public class Legend
 {
     public static final Font TITLE_FONT = new Font( "title", Font.BOLD, 12 );
+
     public static final Font PLAIN_FONT = new Font( "plain", Font.PLAIN, 11 );
 
     private InternalMapLayer mapLayer;
@@ -82,7 +83,7 @@ public class Legend
             g.translate( 0, legendItem.getHeight() );
         }
     }
-    
+
     public int getHeight()
     {
         int height = 0;

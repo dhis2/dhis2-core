@@ -101,7 +101,8 @@ public class HibernateKeyJsonValueStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) ) );
+        return getList( builder,
+            newJpaParameters().addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) ) );
     }
 
     @Override

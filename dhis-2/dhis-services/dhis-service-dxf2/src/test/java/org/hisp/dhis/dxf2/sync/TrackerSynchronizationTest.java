@@ -209,10 +209,14 @@ public class TrackerSynchronizationTest extends DhisSpringTest
 
         CurrentUserService currentUserService = new MockCurrentUserService( user );
 
-        subject = new JacksonTrackedEntityInstanceService( teiService, trackedEntityAttributeService, _relationshipService, relationshipService, relationshipTypeService,
-            trackedEntityAttributeValueService, manager, _userService, dbmsManager, enrollmentService, programInstanceService, currentUserService,
-            schemaService, queryService, reservedValueService, trackerAccessManager, fileResourceService, trackerOwnershipAccessManager,
-            trackedEntityInstanceAggregate, trackedEntityAttributeStore, trackedEntityInstanceAuditService, trackedEntityTypeService, notifier, jsonMapper,
+        subject = new JacksonTrackedEntityInstanceService( teiService, trackedEntityAttributeService,
+            _relationshipService, relationshipService, relationshipTypeService,
+            trackedEntityAttributeValueService, manager, _userService, dbmsManager, enrollmentService,
+            programInstanceService, currentUserService,
+            schemaService, queryService, reservedValueService, trackerAccessManager, fileResourceService,
+            trackerOwnershipAccessManager,
+            trackedEntityInstanceAggregate, trackedEntityAttributeStore, trackedEntityInstanceAuditService,
+            trackedEntityTypeService, notifier, jsonMapper,
             xmlMapper );
 
         prepareSyncParams();
@@ -232,14 +236,16 @@ public class TrackerSynchronizationTest extends DhisSpringTest
 
     @Test
     @Ignore
-    /* TODO: fails in H2
-     with newer AbstractTrackedEntityInstanceService::getTrackedEntityInstances because of
-     some custom postgresql syntax/function. We should find a way to test this in a
-     different way */
+    /*
+     * TODO: fails in H2 with newer
+     * AbstractTrackedEntityInstanceService::getTrackedEntityInstances because of
+     * some custom postgresql syntax/function. We should find a way to test this in
+     * a different way
+     */
     public void testSkipSyncFunctionality()
     {
-        List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis =
-            subject.getTrackedEntityInstances( queryParams, params, true );
+        List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis = subject
+            .getTrackedEntityInstances( queryParams, params, true );
 
         assertEquals( 1, fetchedTeis.get( 0 ).getAttributes().size() );
     }

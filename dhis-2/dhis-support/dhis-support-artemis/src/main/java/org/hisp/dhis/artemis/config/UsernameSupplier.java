@@ -28,11 +28,11 @@ package org.hisp.dhis.artemis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.function.Supplier;
+
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio

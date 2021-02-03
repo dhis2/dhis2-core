@@ -71,7 +71,7 @@ public class H2StatementBuilder
     }
 
     @Override
-    public String getRegexpWordStart() //TODO test
+    public String getRegexpWordStart() // TODO test
     {
         return "[[:<:]]";
     }
@@ -115,6 +115,6 @@ public class H2StatementBuilder
     @Override
     public String getNumberOfColumnsInPrimaryKey( String table )
     {
-        return "select 0 as c"; //TODO fix
+        return "select 0 as c"; // TODO fix
     }
 }

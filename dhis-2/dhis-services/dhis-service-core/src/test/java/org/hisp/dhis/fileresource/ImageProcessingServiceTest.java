@@ -28,6 +28,14 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -36,21 +44,15 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.core.io.ClassPathResource;
 
-import javax.imageio.ImageIO;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.Map;
-
-import static org.junit.Assert.*;
-
 /**
  * @Author Zubair Asghar.
  */
 public class ImageProcessingServiceTest
 {
     private static final int SMALL_IMAGE_WIDTH = 256;
+
     private static final int MEDIUM_IMAGE_WIDTH = 512;
+
     private static final int LARGE_IMAGE_WIDTH = 1024;
 
     @Rule
@@ -73,7 +75,8 @@ public class ImageProcessingServiceTest
     }
 
     @Test
-    public void test_create_images_with_wrong_file_content_type() throws IOException
+    public void test_create_images_with_wrong_file_content_type()
+        throws IOException
     {
         FileResource fileResource = new FileResource();
         fileResource.setName( "test" );
@@ -89,7 +92,8 @@ public class ImageProcessingServiceTest
     }
 
     @Test
-    public void test_create_image() throws IOException
+    public void test_create_image()
+        throws IOException
     {
         FileResource fileResource = new FileResource();
         fileResource.setName( "test" );

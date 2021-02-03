@@ -28,9 +28,9 @@ package org.hisp.dhis.email;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-
 import java.util.Set;
+
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
@@ -39,7 +39,7 @@ public interface EmailService
 {
     /**
      * Indicates whether email is configured.
-     * 
+     *
      * @return true if email is configured.
      */
     boolean emailConfigured();
@@ -62,18 +62,18 @@ public interface EmailService
     OutboundMessageResponse sendEmail( String subject, String message, Set<String> recipients );
 
     /**
-     * Sends an automatically generated email message to the current user.
-     * Useful for testing the SMTP configuration of the system.
-     * 
+     * Sends an automatically generated email message to the current user. Useful
+     * for testing the SMTP configuration of the system.
+     *
      * @return the {@link OutboundMessageResponse}.
      */
     OutboundMessageResponse sendTestEmail();
-    
+
     /**
      * Sends an email using the system notification email as recipient. Requires
-     * that a valid system notification email address has been specified. Only
-     * the subject and text properties of the given email are read.
-     * 
+     * that a valid system notification email address has been specified. Only the
+     * subject and text properties of the given email are read.
+     *
      * @param email the email to send.
      * @return the {@link OutboundMessageResponse}.
      */

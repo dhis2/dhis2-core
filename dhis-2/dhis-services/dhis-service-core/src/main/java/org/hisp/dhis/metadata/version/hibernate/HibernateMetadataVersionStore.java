@@ -51,7 +51,7 @@ import org.springframework.stereotype.Repository;
 @Repository( "org.hisp.dhis.metadata.version.MetadataVersionStore" )
 public class HibernateMetadataVersionStore
     extends HibernateIdentifiableObjectStore<MetadataVersion>
-        implements MetadataVersionStore
+    implements MetadataVersionStore
 {
     public HibernateMetadataVersionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )

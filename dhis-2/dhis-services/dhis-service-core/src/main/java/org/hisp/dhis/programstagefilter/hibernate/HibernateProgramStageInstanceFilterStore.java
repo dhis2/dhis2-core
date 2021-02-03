@@ -53,7 +53,8 @@ public class HibernateProgramStageInstanceFilterStore
     public HibernateProgramStageInstanceFilterStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramStageInstanceFilter.class, currentUserService, aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, ProgramStageInstanceFilter.class, currentUserService,
+            aclService, false );
     }
 
     @Override

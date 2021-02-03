@@ -69,7 +69,7 @@ public class EmailConfiguration
             .add( "Port", port )
             .add( "TLS", tls ).toString();
     }
-    
+
     public boolean isOk()
     {
         return hostName != null && username != null && password != null;

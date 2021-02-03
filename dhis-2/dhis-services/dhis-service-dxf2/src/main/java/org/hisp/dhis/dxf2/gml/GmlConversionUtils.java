@@ -28,14 +28,15 @@ package org.hisp.dhis.dxf2.gml;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.math3.util.Precision;
-
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Locale;
 
+import org.apache.commons.math3.util.Precision;
+
 /**
  * Methods to parse various GML coordinate formats and output GeoJSON strings.
+ *
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
 public class GmlConversionUtils
@@ -62,7 +63,7 @@ public class GmlConversionUtils
             String[] point = coordinate.split( "," );
 
             String lat = parseCoordinate( point[0], nDecimals, NF ),
-                   lon = parseCoordinate( point[1], nDecimals, NF );
+                lon = parseCoordinate( point[1], nDecimals, NF );
 
             sb.append( "[" ).append( lat ).append( "," ).append( lon ).append( "]," );
         }
@@ -85,13 +86,13 @@ public class GmlConversionUtils
 
         String[] c = pos.trim().split( "\\s", 2 );
 
-        if( c.length != 2 )
+        if ( c.length != 2 )
         {
             return "";
         }
 
         String lat = parseCoordinate( c[0], nDecimals, NF ),
-               lon = parseCoordinate( c[1], nDecimals, NF );
+            lon = parseCoordinate( c[1], nDecimals, NF );
 
         return "[" + lat + "," + lon + "]";
     }
@@ -113,17 +114,17 @@ public class GmlConversionUtils
 
         String[] c = posList.trim().split( "\\s" );
 
-        if( c.length % 2 != 0 )
+        if ( c.length % 2 != 0 )
         {
             return ""; // Badly formed gml:posList
         }
 
-        for( int i = 0 ; i <  c.length ; i += 2 )
+        for ( int i = 0; i < c.length; i += 2 )
         {
             String lat = parseCoordinate( c[i], nDecimals, NF ),
-                   lon = parseCoordinate( c[i + 1], nDecimals, NF );
+                lon = parseCoordinate( c[i + 1], nDecimals, NF );
 
-            sb.append( "[" ).append( lat ).append(",").append( lon ).append( "]," );
+            sb.append( "[" ).append( lat ).append( "," ).append( lon ).append( "]," );
         }
 
         return sb.length() > 0 ? sb.deleteCharAt( sb.length() - 1 ).toString() : "";
@@ -132,6 +133,6 @@ public class GmlConversionUtils
     private static String parseCoordinate( String number, int precision, NumberFormat nf )
         throws ParseException
     {
-        return Double.toString( Precision.round(nf.parse(number).doubleValue(), precision ) );
+        return Double.toString( Precision.round( nf.parse( number ).doubleValue(), precision ) );
     }
 }

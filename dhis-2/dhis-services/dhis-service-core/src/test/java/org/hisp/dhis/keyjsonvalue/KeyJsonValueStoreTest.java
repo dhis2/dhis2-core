@@ -28,13 +28,13 @@ package org.hisp.dhis.keyjsonvalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.*;
 
 import java.util.List;
 
-import static org.junit.Assert.*;
+import org.hisp.dhis.DhisSpringTest;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Stian Sandvold.
@@ -126,11 +126,10 @@ public class KeyJsonValueStoreTest extends DhisSpringTest
         keyJsonValueC.setKey( "3" );
         keyJsonValueStore.save( keyJsonValueC );
 
-
         List<KeyJsonValue> list = keyJsonValueStore.getKeyJsonValueByNamespace( "A" );
 
-        assertTrue(list.contains( keyJsonValueA ));
-        assertTrue(list.contains( keyJsonValueB ));
-        assertTrue(list.contains( keyJsonValueC ));
+        assertTrue( list.contains( keyJsonValueA ) );
+        assertTrue( list.contains( keyJsonValueB ) );
+        assertTrue( list.contains( keyJsonValueC ) );
     }
 }

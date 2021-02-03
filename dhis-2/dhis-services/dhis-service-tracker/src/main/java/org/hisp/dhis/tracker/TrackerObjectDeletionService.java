@@ -31,13 +31,12 @@ package org.hisp.dhis.tracker;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 
-
 /**
  * @author Zubair Asghar
  */
 public interface TrackerObjectDeletionService
 {
-    TrackerTypeReport deleteEnrollments(TrackerBundle bundle, TrackerType trackerType );
+    TrackerTypeReport deleteEnrollments( TrackerBundle bundle, TrackerType trackerType );
 
     TrackerTypeReport deleteEvents( TrackerBundle bundle, TrackerType trackerType );
 

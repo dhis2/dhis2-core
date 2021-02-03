@@ -28,10 +28,10 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
-
-import java.util.List;
 
 /**
  * @author Chau Thu Tran
@@ -43,16 +43,17 @@ public interface ProgramStageStore
     /**
      * Retrieve a program stage by name and a program
      *
-     * @param name    Name of program stage
-     * @param program Specify a {@link Program} for retrieving a program stage.
-     *                The system allows the name of program stages are duplicated on
-     *                different programs
+     * @param name Name of program stage
+     * @param program Specify a {@link Program} for retrieving a program stage. The
+     *        system allows the name of program stages are duplicated on different
+     *        programs
      * @return ProgramStage
      */
     ProgramStage getByNameAndProgram( String name, Program program );
 
     /**
      * Get all ProgramStages associated with the given DataEntryForm.
+     *
      * @param dataEntryForm the DataEntryForm.
      * @return a list of ProgramStages.
      */

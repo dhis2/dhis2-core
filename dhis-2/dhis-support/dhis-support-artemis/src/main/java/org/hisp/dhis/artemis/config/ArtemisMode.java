@@ -33,5 +33,6 @@ package org.hisp.dhis.artemis.config;
  */
 public enum ArtemisMode
 {
-    EMBEDDED, NATIVE
+    EMBEDDED,
+    NATIVE
 }

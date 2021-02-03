@@ -34,7 +34,6 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.preheat.mappers.RelationshipTypeMapper;
-import org.hisp.dhis.tracker.preheat.mappers.TrackedEntityTypeMapper;
 import org.springframework.stereotype.Component;
 
 /**

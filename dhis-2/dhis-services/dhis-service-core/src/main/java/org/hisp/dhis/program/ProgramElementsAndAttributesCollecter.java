@@ -28,17 +28,17 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.antlr.ExpressionBaseListener;
-
-import java.util.Set;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.parser.expression.ParserUtils.*;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
+import java.util.Set;
+
+import org.hisp.dhis.parser.expression.antlr.ExpressionBaseListener;
+
 /**
- * Traverse the ANTLR4 parse tree for a program expression to collect the
- * UIDs for data elements and program attributes.
+ * Traverse the ANTLR4 parse tree for a program expression to collect the UIDs
+ * for data elements and program attributes.
  * <p/>
  * Uses the ANTLR4 listener pattern.
  *
@@ -78,33 +78,33 @@ public class ProgramElementsAndAttributesCollecter
 
         switch ( ctx.it.getType() )
         {
-            case HASH_BRACE:
-                assumeStageElementSyntax( ctx );
+        case HASH_BRACE:
+            assumeStageElementSyntax( ctx );
 
-                String programStageId = ctx.uid0.getText();
-                String dataElementId = ctx.uid1.getText();
+            String programStageId = ctx.uid0.getText();
+            String dataElementId = ctx.uid1.getText();
 
-                if ( AnalyticsType.ENROLLMENT.equals( analyticsType ) )
-                {
-                    items.add( programStageId + "_" + dataElementId );
-                }
-                else
-                {
-                    items.add( dataElementId );
-                }
-                break;
+            if ( AnalyticsType.ENROLLMENT.equals( analyticsType ) )
+            {
+                items.add( programStageId + "_" + dataElementId );
+            }
+            else
+            {
+                items.add( dataElementId );
+            }
+            break;
 
-            case A_BRACE:
-                assumeProgramExpressionProgramAttribute( ctx );
+        case A_BRACE:
+            assumeProgramExpressionProgramAttribute( ctx );
 
-                String attributeId = ctx.uid0.getText();
+            String attributeId = ctx.uid0.getText();
 
-                items.add( attributeId );
+            items.add( attributeId );
 
-                break;
+            break;
 
-            default:
-                break;
+        default:
+            break;
         }
     }
 }

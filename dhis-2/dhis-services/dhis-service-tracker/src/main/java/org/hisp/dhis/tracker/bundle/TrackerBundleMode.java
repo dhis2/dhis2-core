@@ -34,8 +34,7 @@ package org.hisp.dhis.tracker.bundle;
 public enum TrackerBundleMode
 {
     /**
-     * If bundle is valid, commit the bundle to the database.
-     * Commits at intervals.
+     * If bundle is valid, commit the bundle to the database. Commits at intervals.
      */
     COMMIT,
 

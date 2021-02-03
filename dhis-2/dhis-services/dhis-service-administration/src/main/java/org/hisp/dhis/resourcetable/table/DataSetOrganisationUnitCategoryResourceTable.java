@@ -81,12 +81,12 @@ public class DataSetOrganisationUnitCategoryResourceTable
     }
 
     /**
-     * Iterate over data sets and associated organisation units. If data set
-     * has a category combination and the organisation unit has category options,
-     * find the intersection of the category option combinations linked to the
-     * organisation unit through its category options, and the category option
-     * combinations linked to the data set through its category combination. If
-     * not, use the default category option combo.
+     * Iterate over data sets and associated organisation units. If data set has a
+     * category combination and the organisation unit has category options, find the
+     * intersection of the category option combinations linked to the organisation
+     * unit through its category options, and the category option combinations
+     * linked to the data set through its category combination. If not, use the
+     * default category option combo.
      */
     @Override
     public Optional<List<Object[]>> getPopulateTempTableContent()
@@ -111,10 +111,13 @@ public class DataSetOrganisationUnitCategoryResourceTable
 
                             if ( orgUnitOptions.containsAll( optionComboOptions ) )
                             {
-                                Date startDate = DateUtils.min( optionComboOptions.stream().map( co -> co.getStartDate() ).collect( Collectors.toSet() ) );
-                                Date endDate = DateUtils.max( optionComboOptions.stream().map( co -> co.getAdjustedEndDate( dataSet ) ).collect( Collectors.toSet() ) );
+                                Date startDate = DateUtils.min( optionComboOptions.stream()
+                                    .map( co -> co.getStartDate() ).collect( Collectors.toSet() ) );
+                                Date endDate = DateUtils.max( optionComboOptions.stream()
+                                    .map( co -> co.getAdjustedEndDate( dataSet ) ).collect( Collectors.toSet() ) );
 
-                                List<Object> values = Lists.newArrayList( dataSet.getId(), orgUnit.getId(), optionCombo.getId(), startDate, endDate );
+                                List<Object> values = Lists.newArrayList( dataSet.getId(), orgUnit.getId(),
+                                    optionCombo.getId(), startDate, endDate );
 
                                 batchArgs.add( values.toArray() );
                             }
@@ -123,7 +126,8 @@ public class DataSetOrganisationUnitCategoryResourceTable
                 }
                 else
                 {
-                    List<Object> values = Lists.newArrayList( dataSet.getId(), orgUnit.getId(), defaultOptionCombo.getId(), null, null );
+                    List<Object> values = Lists.newArrayList( dataSet.getId(), orgUnit.getId(),
+                        defaultOptionCombo.getId(), null, null );
 
                     batchArgs.add( values.toArray() );
                 }

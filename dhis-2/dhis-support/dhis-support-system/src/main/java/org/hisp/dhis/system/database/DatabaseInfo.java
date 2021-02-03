@@ -1,12 +1,14 @@
 package org.hisp.dhis.system.database;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.lang.reflect.InvocationTargetException;
+
+import javax.annotation.Nonnull;
+
 import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 
-import javax.annotation.Nonnull;
-import java.lang.reflect.InvocationTargetException;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo

@@ -45,9 +45,9 @@ public interface HibernateConfigurationProvider
         throws HibernateException;
 
     List<Resource> getJarResources();
-    
+
     List<Resource> getDirectoryResources();
-    
+
     List<String> getClusterHostnames();
 
     Object getConnectionProperty( String key );

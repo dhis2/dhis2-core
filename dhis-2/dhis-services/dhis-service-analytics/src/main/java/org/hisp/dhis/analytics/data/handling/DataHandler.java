@@ -116,6 +116,8 @@ import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.SerializationUtils;
@@ -152,8 +154,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * This component is responsible for handling and retrieving data based on the
@@ -374,7 +374,7 @@ public class DataHandler
      * This method will replace the headers in the current grid by the event grid
      * IF, and only IF, there is a mismatch between the current grid and the event
      * grid headers.
-     * 
+     *
      * @param grid the current/actual grid
      * @param eventGrid the event grid
      */
@@ -665,7 +665,8 @@ public class DataHandler
      *        {@link #getAggregatedCompletenessTargetMap(DataQueryParams)).
      * @param target the current value of the respective key ("dataRow"). See
      *        {@link #getAggregatedCompletenessTargetMap(DataQueryParams).
-     * @param queryPt the filter period in the current "dataRow". See {@link PeriodType#getPeriodTypeFromIsoString}.
+     * @param queryPt the filter period in the current "dataRow". See
+     *        {@link PeriodType#getPeriodTypeFromIsoString}.
      * @param dataSetPt the dataset period.
      * @param filterPeriods the filter "pe" in the params.
      *

@@ -28,6 +28,14 @@ package org.hisp.dhis.reservedvalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.Objects;
@@ -40,14 +48,6 @@ import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
 
 /**
  * @author Stian Sandvold
@@ -112,8 +112,7 @@ public class HibernateReservedValueStore
                 reservedValue.getOwnerUid(),
                 reservedValue.getKey(),
                 value,
-                reservedValue.getExpiryDate()
-            );
+                reservedValue.getExpiryDate() );
 
             rv.setCreated( reservedValue.getCreated() );
 
@@ -122,7 +121,6 @@ public class HibernateReservedValueStore
 
         return generatedValues;
     }
-
 
     @Override
     public List<ReservedValue> getIfReservedValues( ReservedValue reservedValue,
@@ -148,20 +146,19 @@ public class HibernateReservedValueStore
             .setParameter( "key", reservedValue.getKey() )
             .getSingleResult();
 
-
         if ( Objects.valueOf( reservedValue.getOwnerObject() ).equals( TRACKEDENTITYATTRIBUTE ) )
         {
             Query<Long> attrQuery = getTypedQuery(
-            "SELECT count(*) " +
-                "FROM TrackedEntityAttributeValue " +
-                "WHERE attribute = " +
-                "( FROM TrackedEntityAttribute " +
-                "WHERE uid = :uid ) " +
-                "AND value LIKE :value " );
+                "SELECT count(*) " +
+                    "FROM TrackedEntityAttributeValue " +
+                    "WHERE attribute = " +
+                    "( FROM TrackedEntityAttribute " +
+                    "WHERE uid = :uid ) " +
+                    "AND value LIKE :value " );
 
             count += attrQuery.setParameter( "uid", reservedValue.getOwnerUid() )
-            .setParameter( "value", reservedValue.getValue() )
-            .getSingleResult();
+                .setParameter( "value", reservedValue.getValue() )
+                .getSingleResult();
         }
 
         return count.intValue();
@@ -228,9 +225,9 @@ public class HibernateReservedValueStore
         {
             values.removeAll( getUntypedSqlQuery(
                 "SELECT value FROM trackedentityattributevalue WHERE trackedentityattributeid = (SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid = :uid) AND value IN :values" )
-                .setParameter( "uid", reservedValue.getOwnerUid() )
-                .setParameter( "values", values )
-                .list() );
+                    .setParameter( "uid", reservedValue.getOwnerUid() )
+                    .setParameter( "values", values )
+                    .list() );
         }
 
         return values;

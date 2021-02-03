@@ -37,14 +37,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -131,7 +131,7 @@ public class DefaultGatewayAdministrationService
                 return true;
             }
 
-            config.setUid( CodeGenerator.generateCode( 10 )  );
+            config.setUid( CodeGenerator.generateCode( 10 ) );
 
             SmsConfiguration smsConfiguration = getSmsConfiguration();
 
@@ -199,7 +199,7 @@ public class DefaultGatewayAdministrationService
                 .stream().filter( GenericGatewayParameter::isConfidential )
                 .collect( Collectors.toList() );
 
-            for ( GenericGatewayParameter p: updatedList )
+            for ( GenericGatewayParameter p : updatedList )
             {
                 if ( !isPresent( persistedList, p ) )
                 {
@@ -236,9 +236,9 @@ public class DefaultGatewayAdministrationService
             {
                 smsConfiguration.getGateways().remove( gateway );
 
-                if( gateway.isDefault() )
+                if ( gateway.isDefault() )
                 {
-                    if (  !smsConfiguration.getGateways().isEmpty() )
+                    if ( !smsConfiguration.getGateways().isEmpty() )
                     {
                         smsConfiguration.getGateways().get( 0 ).setDefault( true );
                     }
@@ -278,7 +278,7 @@ public class DefaultGatewayAdministrationService
     {
         List<SmsGatewayConfig> list = getSmsConfiguration().getGateways();
 
-        if (  !list.isEmpty() )
+        if ( !list.isEmpty() )
         {
             for ( SmsGatewayConfig gw : list )
             {
@@ -385,7 +385,6 @@ public class DefaultGatewayAdministrationService
 
         loadGatewayConfigurationMap( smsConfiguration );
     }
-
 
     private boolean isPresent( List<GenericGatewayParameter> parameters, GenericGatewayParameter parameter )
     {

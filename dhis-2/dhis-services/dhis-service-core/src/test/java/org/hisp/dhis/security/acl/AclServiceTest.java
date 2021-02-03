@@ -28,7 +28,11 @@ package org.hisp.dhis.security.acl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.*;
+
+import java.util.HashSet;
+import java.util.List;
+
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -44,20 +48,17 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashSet;
-import java.util.List;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -83,7 +84,8 @@ public class AclServiceTest extends TransactionalIntegrationTest
     }
 
     @Override
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
         userService = _userService;
     }
@@ -521,7 +523,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         assertTrue( aclService.canDelete( user1, dashboard ) );
         assertTrue( aclService.canManage( user1, dashboard ) );
 
-        UserAccess userAccess = new UserAccess(  );
+        UserAccess userAccess = new UserAccess();
         userAccess.setUser( user2 );
         userAccess.setAccess( AccessStringHelper.READ_WRITE );
         dashboard.getSharing().addUserAccess( userAccess );
@@ -553,7 +555,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         assertTrue( aclService.canDelete( user1, dashboard ) );
         assertTrue( aclService.canManage( user1, dashboard ) );
 
-        UserAccess userAccess = new UserAccess(  );
+        UserAccess userAccess = new UserAccess();
         userAccess.setUser( user2 );
         userAccess.setAccess( AccessStringHelper.READ );
         dashboard.getSharing().addUserAccess( userAccess );
@@ -653,7 +655,6 @@ public class AclServiceTest extends TransactionalIntegrationTest
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.READ );
         dataElement.getSharing().addUserGroupAccess( userGroupAccess );
         manager.save( dataElement, false );
-
 
         assertTrue( aclService.canWrite( user1, dataElement ) );
         assertTrue( aclService.canUpdate( user1, dataElement ) );
@@ -1201,7 +1202,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCanDataOrMetadataRead() 
+    public void testCanDataOrMetadataRead()
     {
         User user1 = createUser( "user1A8", "F_CATEGORY_OPTION_GROUP_SET_PUBLIC_ADD" );
         manager.save( user1 );
@@ -1220,13 +1221,13 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         CategoryOption categoryOption = new CategoryOption();
         categoryOption.setAutoFields();
-        categoryOption.setName( "coA");
+        categoryOption.setName( "coA" );
         categoryOption.setPublicAccess( AccessStringHelper.DATA_READ );
         categoryOption.setUser( user1 );
         categoryOption.getSharing().setOwner( user1 );
-        categoryOption.setPublicAccess("rwrw----");
+        categoryOption.setPublicAccess( "rwrw----" );
 
-        manager.save( categoryOption , false);
+        manager.save( categoryOption, false );
 
         assertTrue( aclService.canDataOrMetadataRead( user1, categoryOption ) );
     }

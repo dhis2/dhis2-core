@@ -28,13 +28,13 @@ package org.hisp.dhis.reservedvalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Stian Sandvold

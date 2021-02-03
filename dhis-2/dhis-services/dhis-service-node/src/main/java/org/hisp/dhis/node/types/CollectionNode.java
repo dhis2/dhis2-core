@@ -28,11 +28,12 @@ package org.hisp.dhis.node.types;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import java.util.Objects;
+
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.NodeType;
 
-import java.util.Objects;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

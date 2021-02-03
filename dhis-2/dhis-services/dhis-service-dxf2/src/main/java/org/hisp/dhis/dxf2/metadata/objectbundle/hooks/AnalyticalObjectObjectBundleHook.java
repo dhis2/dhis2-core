@@ -54,7 +54,8 @@ public class AnalyticalObjectObjectBundleHook
     @Override
     public void preCreate( IdentifiableObject object, ObjectBundle bundle )
     {
-        if ( !AnalyticalObject.class.isInstance( object ) ) return;
+        if ( !AnalyticalObject.class.isInstance( object ) )
+            return;
         BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( analyticalObject ) );
         Session session = sessionFactory.getCurrentSession();
@@ -65,7 +66,8 @@ public class AnalyticalObjectObjectBundleHook
     @Override
     public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
     {
-        if ( !AnalyticalObject.class.isInstance( object ) ) return;
+        if ( !AnalyticalObject.class.isInstance( object ) )
+            return;
 
         BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
 

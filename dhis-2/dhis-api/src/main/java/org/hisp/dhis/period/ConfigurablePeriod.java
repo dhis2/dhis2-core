@@ -46,7 +46,7 @@ public class ConfigurablePeriod
         this.setStartDate( new Date() );
         this.setEndDate( new Date() );
     }
-    
+
     @Override
     public String getIsoDate()
     {

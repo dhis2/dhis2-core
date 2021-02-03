@@ -30,7 +30,8 @@ package org.hisp.dhis.common;
 
 public enum SortProperty
 {
-    NAME( "name" ), SHORT_NAME( "shortName" );
+    NAME( "name" ),
+    SHORT_NAME( "shortName" );
 
     private String name;
 

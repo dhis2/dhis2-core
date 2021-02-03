@@ -28,7 +28,8 @@ package org.hisp.dhis.sms.command.code;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
+import java.io.Serializable;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
@@ -38,8 +39,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-import java.io.Serializable;
+import com.google.common.base.MoreObjects;
 
 @JacksonXmlRootElement( localName = "smscode", namespace = DxfNamespaces.DXF_2_0 )
 public class SMSCode
@@ -56,7 +56,7 @@ public class SMSCode
     private int optionId;
 
     private String formula;
-    
+
     private boolean compulsory = false;
 
     public SMSCode( String code, DataElement dataElement, int optionId )
@@ -74,7 +74,7 @@ public class SMSCode
 
     public SMSCode()
     {
-        
+
     }
 
     public boolean hasTrackedEntityAttribute()
@@ -103,7 +103,7 @@ public class SMSCode
     {
         return code;
     }
-    
+
     public void setCode( String code )
     {
         this.code = code;
@@ -158,7 +158,7 @@ public class SMSCode
     {
         this.formula = formula;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty
     public boolean isCompulsory()

@@ -28,6 +28,8 @@ package org.hisp.dhis.tracker.preprocess;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.Collections.*;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -39,8 +41,6 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
-
-import static java.util.Collections.*;
 
 /**
  * This preprocessor is responsible for setting the TrackedEntityInstance UID on
@@ -83,7 +83,8 @@ public class EventDefaultEnrollmentPreProcessor implements BundlePreProcessor
             .map( e -> {
                 if ( e.getEntityInstance() != null )
                 {
-                    // The Tracked Entity has to be added to the preheat, otherwise validation will fail downstream
+                    // The Tracked Entity has to be added to the preheat, otherwise validation will
+                    // fail downstream
                     preheat.putTrackedEntities( TrackerIdScheme.UID, singletonList( e.getEntityInstance() ) );
                     return e.getEntityInstance().getUid();
                 }

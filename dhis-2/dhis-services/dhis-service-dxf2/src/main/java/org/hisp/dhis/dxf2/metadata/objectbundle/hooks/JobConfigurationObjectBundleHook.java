@@ -37,6 +37,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -45,8 +47,6 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.*;
 import org.springframework.scheduling.support.CronSequenceGenerator;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Henning Håkonsen
@@ -99,7 +99,7 @@ public class JobConfigurationObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
-        if ( !( object instanceof JobConfiguration ) )
+        if ( !(object instanceof JobConfiguration) )
         {
             return;
         }
@@ -177,19 +177,24 @@ public class JobConfigurationObjectBundleHook
     // -------------------------------------------------------------------------
 
     /*
-     *  Validates that there are no other jobs of the same job type which are scheduled with the same cron expression.
+     * Validates that there are no other jobs of the same job type which are
+     * scheduled with the same cron expression.
      */
-    private void validateCronExpressionWithinJobType( List<ErrorReport> errorReports, JobConfiguration jobConfiguration )
+    private void validateCronExpressionWithinJobType( List<ErrorReport> errorReports,
+        JobConfiguration jobConfiguration )
     {
         Set<JobConfiguration> jobConfigs = jobConfigurationService.getAllJobConfigurations().stream()
-            .filter( jobConfig -> jobConfig.getJobType().equals( jobConfiguration.getJobType() ) && !Objects.equals( jobConfig.getUid(), jobConfiguration.getUid() ) )
+            .filter( jobConfig -> jobConfig.getJobType().equals( jobConfiguration.getJobType() )
+                && !Objects.equals( jobConfig.getUid(), jobConfiguration.getUid() ) )
             .collect( Collectors.toSet() );
 
         for ( JobConfiguration jobConfig : jobConfigs )
         {
-            if ( jobConfig.hasCronExpression() && jobConfig.getCronExpression().equals( jobConfiguration.getCronExpression() ) )
+            if ( jobConfig.hasCronExpression()
+                && jobConfig.getCronExpression().equals( jobConfiguration.getCronExpression() ) )
             {
-                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7000, jobConfig.getCronExpression() ) );
+                errorReports
+                    .add( new ErrorReport( JobConfiguration.class, ErrorCode.E7000, jobConfig.getCronExpression() ) );
             }
         }
     }
@@ -198,9 +203,11 @@ public class JobConfigurationObjectBundleHook
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
-        // Check whether jobConfiguration already exists in the system and if so validate it
+        // Check whether jobConfiguration already exists in the system and if so
+        // validate it
 
-        JobConfiguration persistedJobConfiguration = jobConfigurationService.getJobConfigurationByUid( jobConfiguration.getUid() );
+        JobConfiguration persistedJobConfiguration = jobConfigurationService
+            .getJobConfigurationByUid( jobConfiguration.getUid() );
 
         final JobConfiguration tempJobConfiguration = validatePersistedAndPrepareTempJobConfiguration( errorReports,
             jobConfiguration, persistedJobConfiguration );
@@ -216,11 +223,13 @@ public class JobConfigurationObjectBundleHook
         }
         else
         {
-            // Report error if JobType requires JobParameters, but it does not exist in JobConfiguration
+            // Report error if JobType requires JobParameters, but it does not exist in
+            // JobConfiguration
 
             if ( tempJobConfiguration.getJobType().hasJobParameters() )
             {
-                errorReports.add( new ErrorReport( this.getClass(), ErrorCode.E4029, tempJobConfiguration.getJobType() ) );
+                errorReports
+                    .add( new ErrorReport( this.getClass(), ErrorCode.E4029, tempJobConfiguration.getJobType() ) );
             }
         }
 
@@ -236,7 +245,8 @@ public class JobConfigurationObjectBundleHook
         {
             if ( persistedJobConfiguration.hasNonConfigurableJobChanges( jobConfiguration ) )
             {
-                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7003, jobConfiguration.getJobType() ) );
+                errorReports
+                    .add( new ErrorReport( JobConfiguration.class, ErrorCode.E7003, jobConfiguration.getJobType() ) );
             }
             else
             {
@@ -255,7 +265,8 @@ public class JobConfigurationObjectBundleHook
         {
             if ( jobConfiguration.getCronExpression() == null )
             {
-                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7004, jobConfiguration.getUid() ) );
+                errorReports
+                    .add( new ErrorReport( JobConfiguration.class, ErrorCode.E7004, jobConfiguration.getUid() ) );
             }
             else if ( !CronSequenceGenerator.isValidExpression( jobConfiguration.getCronExpression() ) )
             {
@@ -275,10 +286,13 @@ public class JobConfigurationObjectBundleHook
         Job job = schedulingManager.getJob( jobConfiguration.getJobType() );
         ErrorReport jobValidation = job.validate();
 
-        if ( jobValidation != null && ( jobValidation.getErrorCode() != ErrorCode.E7010 || persistedJobConfiguration == null || jobConfiguration.isConfigurable() ))
+        if ( jobValidation != null && (jobValidation.getErrorCode() != ErrorCode.E7010
+            || persistedJobConfiguration == null || jobConfiguration.isConfigurable()) )
         {
-            // If the error is caused by the environment and the job is a non-configurable job that already exists,
-            // then the error can be ignored as the job has the issue with and without updating it.
+            // If the error is caused by the environment and the job is a non-configurable
+            // job that already exists,
+            // then the error can be ignored as the job has the issue with and without
+            // updating it.
 
             errorReports.add( jobValidation );
         }

@@ -39,9 +39,9 @@ public enum Defaults
     INCLUDE,
 
     /**
-     * Remove defaults from nodes. Roots will not be included, collections
-     * which contains default will have them removed, 1-to-1 mappings will have
-     * them set to null.
+     * Remove defaults from nodes. Roots will not be included, collections which
+     * contains default will have them removed, 1-to-1 mappings will have them set
+     * to null.
      */
     EXCLUDE
 }

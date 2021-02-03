@@ -38,5 +38,6 @@ public interface Serializer<T>
 {
     List<String> contentTypes();
 
-    void serialize( T object, OutputStream outputStream ) throws Exception;
+    void serialize( T object, OutputStream outputStream )
+        throws Exception;
 }

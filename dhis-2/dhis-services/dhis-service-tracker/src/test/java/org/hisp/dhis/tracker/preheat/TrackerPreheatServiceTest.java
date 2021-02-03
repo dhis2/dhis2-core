@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.api.client.util.Maps;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -56,6 +55,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.api.client.util.Maps;
 import com.google.common.collect.Lists;
 
 /**
@@ -166,7 +166,7 @@ public class TrackerPreheatServiceTest extends TrackerTest
     public void testPreheatValidation()
         throws IOException
     {
-        TrackerImportParams params = fromJson(  "tracker/event_events.json" );
+        TrackerImportParams params = fromJson( "tracker/event_events.json" );
 
         assertTrue( params.getTrackedEntities().isEmpty() );
         assertTrue( params.getEnrollments().isEmpty() );
@@ -179,7 +179,7 @@ public class TrackerPreheatServiceTest extends TrackerTest
     {
         setUpMetadata( "tracker/event_metadata.json" );
 
-        TrackerImportParams params = fromJson(  "tracker/event_events.json" );
+        TrackerImportParams params = fromJson( "tracker/event_events.json" );
 
         assertTrue( params.getTrackedEntities().isEmpty() );
         assertTrue( params.getEnrollments().isEmpty() );

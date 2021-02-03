@@ -28,11 +28,12 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Sets;
+import java.util.Set;
+
 import org.hisp.dhis.common.DxfNamespaces;
 
-import java.util.Set;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Sets;
 
 /**
  * @author Enrico Colasante
@@ -64,8 +65,8 @@ public enum ProgramRuleActionEvaluationEnvironment
     }
 
     /**
-     * By default, actions should be run in all environments, and its up to the client
-     * to decide which actions are unsuited to be run or not.
+     * By default, actions should be run in all environments, and its up to the
+     * client to decide which actions are unsuited to be run or not.
      *
      * @return Default environments where the actions should be run
      */

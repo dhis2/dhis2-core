@@ -28,12 +28,13 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -55,10 +56,13 @@ public class RelationshipTypeSchemaDescriptor implements SchemaDescriptor
 
         schema.setDataShareable( true );
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_RELATIONSHIPTYPE_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_RELATIONSHIPTYPE_PRIVATE_ADD" ) ) );
+        schema.getAuthorities()
+            .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_RELATIONSHIPTYPE_PUBLIC_ADD" ) ) );
+        schema.getAuthorities().add(
+            new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_RELATIONSHIPTYPE_PRIVATE_ADD" ) ) );
 
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_RELATIONSHIPTYPE_DELETE" ) ) );
+        schema.getAuthorities()
+            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_RELATIONSHIPTYPE_DELETE" ) ) );
 
         return schema;
     }

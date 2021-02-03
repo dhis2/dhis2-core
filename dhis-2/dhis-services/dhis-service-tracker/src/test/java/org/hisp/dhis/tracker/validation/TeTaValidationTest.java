@@ -37,8 +37,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.hisp.dhis.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;

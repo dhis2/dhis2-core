@@ -132,4 +132,3 @@ public class VisualizationStoreTest
         assertNull( vB.getFontStyle() );
     }
 }
-

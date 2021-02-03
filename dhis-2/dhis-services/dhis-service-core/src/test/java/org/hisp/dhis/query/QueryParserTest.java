@@ -28,6 +28,12 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.List;
+
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.mock.MockCurrentUserService;
@@ -43,12 +49,6 @@ import org.hisp.dhis.user.User;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -56,10 +56,10 @@ public class QueryParserTest
     extends IntegrationTestBase
 {
     private QueryParser queryParser;
-    
+
     @Autowired
     private OrganisationUnitService organisationUnitService;
-    
+
     @Autowired
     private SchemaService schemaService;
 
@@ -74,21 +74,24 @@ public class QueryParserTest
         throws Exception
     {
 
-        OrganisationUnit orgUnitA =  createOrganisationUnit( 'A' ) ;
-        organisationUnitService.addOrganisationUnit( orgUnitA ); 
+        OrganisationUnit orgUnitA = createOrganisationUnit( 'A' );
+        organisationUnitService.addOrganisationUnit( orgUnitA );
         User user = createUser( 'A' );
         user.addOrganisationUnit( orgUnitA );
-        queryParser = new DefaultJpaQueryParser( schemaService, new MockCurrentUserService( user ), organisationUnitService );
+        queryParser = new DefaultJpaQueryParser( schemaService, new MockCurrentUserService( user ),
+            organisationUnitService );
     }
 
     @Test( expected = QueryParserException.class )
-    public void failedFilters() throws QueryParserException
+    public void failedFilters()
+        throws QueryParserException
     {
         queryParser.parse( DataElement.class, Arrays.asList( "id", "name" ) );
     }
 
     @Test
-    public void eqOperator() throws QueryParserException
+    public void eqOperator()
+        throws QueryParserException
     {
         Query query = queryParser.parse( DataElement.class, Arrays.asList( "id:eq:1", "id:eq:2" ) );
         assertEquals( 2, query.getCriterions().size() );
@@ -105,9 +108,11 @@ public class QueryParserTest
     }
 
     @Test
-    public void eqOperatorDeepPath1() throws QueryParserException
+    public void eqOperatorDeepPath1()
+        throws QueryParserException
     {
-        Query query = queryParser.parse( DataElement.class, Arrays.asList( "dataElementGroups.id:eq:1", "dataElementGroups.id:eq:2" ) );
+        Query query = queryParser.parse( DataElement.class,
+            Arrays.asList( "dataElementGroups.id:eq:1", "dataElementGroups.id:eq:2" ) );
         assertEquals( 2, query.getCriterions().size() );
 
         Restriction restriction = (Restriction) query.getCriterions().get( 0 );
@@ -122,15 +127,18 @@ public class QueryParserTest
     }
 
     @Test( expected = QueryParserException.class )
-    public void eqOperatorDeepPathFail() throws QueryParserException
+    public void eqOperatorDeepPathFail()
+        throws QueryParserException
     {
-        queryParser.parse( DataElement.class, Arrays.asList( "dataElementGroups.id.name:eq:1", "dataElementGroups.id.abc:eq:2" ) );
+        queryParser.parse( DataElement.class,
+            Arrays.asList( "dataElementGroups.id.name:eq:1", "dataElementGroups.id.abc:eq:2" ) );
     }
-    
+
     @Test
     public void restrictToCaptureScopeCriterions()
     {
-        Query query = queryParser.parse( Program.class, Arrays.asList( "name:eq:1", "name:eq:2" ), Junction.Type.AND, true );
+        Query query = queryParser.parse( Program.class, Arrays.asList( "name:eq:1", "name:eq:2" ), Junction.Type.AND,
+            true );
         assertEquals( 3, query.getCriterions().size() );
 
         Restriction restriction = (Restriction) query.getCriterions().get( 0 );
@@ -142,13 +150,13 @@ public class QueryParserTest
         assertEquals( "name", restriction.getPath() );
         assertEquals( "2", restriction.getOperator().getArgs().get( 0 ) );
         assertTrue( restriction.getOperator() instanceof EqualOperator );
-        
+
         Disjunction disjunction = (Disjunction) query.getCriterions().get( 2 );
         assertEquals( 2, disjunction.getCriterions().size() );
 
         restriction = (Restriction) disjunction.getCriterions().get( 0 );
         assertEquals( "organisationUnits.id", restriction.getPath() );
-        assertEquals( "ouabcdefghA", ((List)restriction.getOperator().getCollectionArgs().get( 0 )).get( 0 ) );
+        assertEquals( "ouabcdefghA", ((List) restriction.getOperator().getCollectionArgs().get( 0 )).get( 0 ) );
         assertTrue( restriction.getOperator() instanceof InOperator );
 
         restriction = (Restriction) disjunction.getCriterions().get( 1 );
@@ -157,7 +165,8 @@ public class QueryParserTest
     }
 
     @Test
-    public void nullOperator() throws QueryParserException
+    public void nullOperator()
+        throws QueryParserException
     {
         Query query = queryParser.parse( DataElement.class, Arrays.asList( "id:null", "name:null" ) );
         assertEquals( 2, query.getCriterions().size() );

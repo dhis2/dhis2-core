@@ -46,9 +46,11 @@ public class vValueCount
 
         for ( String uid : visitor.getDataElementAndAttributeIdentifiers() )
         {
-            sql += "case when " + visitor.getStatementBuilder().columnQuote( uid ) + " is not null then 1 else 0 end + ";
+            sql += "case when " + visitor.getStatementBuilder().columnQuote( uid )
+                + " is not null then 1 else 0 end + ";
         }
 
-        return TextUtils.removeLast( sql, "+" ).trim() + ") as " + visitor.getStatementBuilder().getDoubleColumnType() + "),0)";
+        return TextUtils.removeLast( sql, "+" ).trim() + ") as " + visitor.getStatementBuilder().getDoubleColumnType()
+            + "),0)";
     }
 }

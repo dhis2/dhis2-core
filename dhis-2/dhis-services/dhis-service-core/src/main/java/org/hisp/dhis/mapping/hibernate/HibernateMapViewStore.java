@@ -48,7 +48,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository( "org.hisp.dhis.mapping.MapViewStore" )
 public class HibernateMapViewStore
-    extends HibernateAnalyticalObjectStore<MapView> implements MapViewStore
+    extends HibernateAnalyticalObjectStore<MapView>
+    implements MapViewStore
 {
     public HibernateMapViewStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
@@ -57,7 +58,7 @@ public class HibernateMapViewStore
     }
 
     @Override
-    public List<MapView> getByOrganisationUnitGroupSet(OrganisationUnitGroupSet groupSet )
+    public List<MapView> getByOrganisationUnitGroupSet( OrganisationUnitGroupSet groupSet )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 

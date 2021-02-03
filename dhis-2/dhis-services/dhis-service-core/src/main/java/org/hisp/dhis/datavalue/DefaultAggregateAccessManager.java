@@ -28,6 +28,8 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -48,8 +50,6 @@ import org.hisp.dhis.user.User;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
@@ -58,7 +58,7 @@ public class DefaultAggregateAccessManager
     implements AggregateAccessManager
 {
     private static Cache<List<String>> CAN_DATA_WRITE_COC_CACHE;
-    
+
     private final AclService aclService;
 
     private final Environment env;

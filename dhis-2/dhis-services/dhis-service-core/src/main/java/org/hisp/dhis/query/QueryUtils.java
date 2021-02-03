@@ -28,18 +28,6 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Enums;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.util.DateUtils;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -48,6 +36,20 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.persistence.TypedQuery;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.util.DateUtils;
+
+import com.google.common.base.Enums;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -197,7 +199,8 @@ public final class QueryUtils
         else
         {
             Object[] possibleValues = klass.getEnumConstants();
-            throw new QueryParserException( "Unable to parse `" + value + "` as `" + klass + "`, available values are: " + Arrays.toString( possibleValues ) );
+            throw new QueryParserException( "Unable to parse `" + value + "` as `" + klass + "`, available values are: "
+                + Arrays.toString( possibleValues ) );
         }
     }
 
@@ -246,9 +249,9 @@ public final class QueryUtils
         }
     }
 
-
     /**
-     * Converts a String with JSON format [x,y,z] into an SQL query collection format (x,y,z).
+     * Converts a String with JSON format [x,y,z] into an SQL query collection
+     * format (x,y,z).
      *
      * @param value a string contains a collection with JSON format [x,y,z].
      * @return a string contains a collection with SQL query format (x,y,z).
@@ -287,11 +290,10 @@ public final class QueryUtils
         return str;
     }
 
-
     /**
      * Converts a filter operator into an SQL operator.
      * <p>
-     * Example: {@code parseFilterOperator('eq', 5)}  will return "=5".
+     * Example: {@code parseFilterOperator('eq', 5)} will return "=5".
      *
      * @param operator the filter operator.
      * @param value value of the current SQL query condition.
@@ -419,7 +421,8 @@ public final class QueryUtils
     }
 
     /**
-     * Converts the specified string orders (e.g. <code>name:asc</code>) to order objects.
+     * Converts the specified string orders (e.g. <code>name:asc</code>) to order
+     * objects.
      *
      * @param orders the order strings that should be converted.
      * @param schema the schema that should be used to perform the conversion.
@@ -452,7 +455,6 @@ public final class QueryUtils
             String propertyName = split[0];
             Property property = schema.getProperty( propertyName );
 
-
             if ( result.containsKey( propertyName ) || !schema.haveProperty( propertyName )
                 || !validProperty( property ) || !validDirection( direction ) )
             {
@@ -477,8 +479,8 @@ public final class QueryUtils
     }
 
     /**
-     * Returns a single result from the given {@link TypedQuery}. Returns null
-     * if no objects could be found (without throwing an exception).
+     * Returns a single result from the given {@link TypedQuery}. Returns null if no
+     * objects could be found (without throwing an exception).
      *
      * @param query the query.
      * @return an object.

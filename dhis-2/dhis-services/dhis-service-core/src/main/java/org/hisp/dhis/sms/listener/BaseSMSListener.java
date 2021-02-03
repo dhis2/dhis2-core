@@ -32,6 +32,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.function.Consumer;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsListener;
@@ -41,8 +43,6 @@ import org.hisp.dhis.smscompression.SmsResponse;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableMap;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Transactional

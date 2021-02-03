@@ -46,7 +46,9 @@ public class SystemSettingStoreTest
     private SystemSettingStore systemSettingStore;
 
     private SystemSetting settingA;
+
     private SystemSetting settingB;
+
     private SystemSetting settingC;
 
     @Override
@@ -95,15 +97,15 @@ public class SystemSettingStoreTest
         long id = settingA.getId();
 
         settingA = systemSettingStore.get( id );
-        
+
         assertEquals( "Value1", settingA.getDisplayValue() );
-        
+
         settingA.setDisplayValue( "Value2" );
-        
+
         systemSettingStore.update( settingA );
 
         settingA = systemSettingStore.get( id );
-        
+
         assertEquals( "Value2", settingA.getDisplayValue() );
     }
 

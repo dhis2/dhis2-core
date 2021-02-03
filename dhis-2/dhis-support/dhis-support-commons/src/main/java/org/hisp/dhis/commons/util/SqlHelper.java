@@ -89,8 +89,8 @@ public class SqlHelper
     }
 
     /**
-     * Returns the empty string the first time it is invoked, then "and" for subsequent
-     * invocations.
+     * Returns the empty string the first time it is invoked, then "and" for
+     * subsequent invocations.
      *
      * @return empty string or "and".
      */
@@ -104,8 +104,8 @@ public class SqlHelper
     }
 
     /**
-     * Returns the empty string the first time it is invoked, then "or" for subsequent
-     * invocations.
+     * Returns the empty string the first time it is invoked, then "or" for
+     * subsequent invocations.
      *
      * @return empty string or "or".
      */
@@ -119,8 +119,8 @@ public class SqlHelper
     }
 
     /**
-     * Returns the empty string the first time it is invoked, then "or" for subsequent
-     * invocations.
+     * Returns the empty string the first time it is invoked, then "or" for
+     * subsequent invocations.
      *
      * @return empty or "or".
      */

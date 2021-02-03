@@ -51,8 +51,8 @@ import com.google.common.base.MoreObjects;
 public class AnalyticsTableUpdateParams
 {
     /**
-     * Number of last years for which to update tables. A zero value indicates
-     * the "latest" data stored since last full analytics table generation.
+     * Number of last years for which to update tables. A zero value indicates the
+     * "latest" data stored since last full analytics table generation.
      */
     private Integer lastYears;
 
@@ -85,7 +85,6 @@ public class AnalyticsTableUpdateParams
      * Current date, only used for testing
      */
     private Date today;
-
 
     private AnalyticsTableUpdateParams()
     {
@@ -127,9 +126,9 @@ public class AnalyticsTableUpdateParams
     }
 
     /**
-     * Indicates whether this is a partial update of analytics tables, i.e.
-     * if only certain partitions are to be updated and not all partitions
-     * including the main analytics tables.
+     * Indicates whether this is a partial update of analytics tables, i.e. if only
+     * certain partitions are to be updated and not all partitions including the
+     * main analytics tables.
      */
     public boolean isPartialUpdate()
     {
@@ -160,8 +159,8 @@ public class AnalyticsTableUpdateParams
     }
 
     /**
-     * Returns the from date based on the last years property, i.e. the first
-     * day of year relative to the last years property.
+     * Returns the from date based on the last years property, i.e. the first day of
+     * year relative to the last years property.
      *
      * @return the from date based on the last years property.
      */
@@ -278,7 +277,8 @@ public class AnalyticsTableUpdateParams
          *
          * @param date A mock Date
          */
-        public Builder withToday( Date date ) {
+        public Builder withToday( Date date )
+        {
 
             this.params.today = date;
             return this;

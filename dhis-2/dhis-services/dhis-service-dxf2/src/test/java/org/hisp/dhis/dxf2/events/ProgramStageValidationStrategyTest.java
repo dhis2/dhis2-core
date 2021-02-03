@@ -28,12 +28,11 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertEquals;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -131,7 +130,7 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
     @Override
     protected void setUpTest()
     {
-        final int testYear = Calendar.getInstance().get(Calendar.YEAR) - 1;
+        final int testYear = Calendar.getInstance().get( Calendar.YEAR ) - 1;
         userService = _userService;
 
         createUserAndInjectSecurityContext( false, "F_TRACKED_ENTITY_DATAVALUE_ADD",
@@ -652,6 +651,7 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
 
     @Autowired
     private SessionFactory sessionFactory;
+
     private ProgramStageInstance getPsi( String event )
     {
         sessionFactory.getCurrentSession().clear();
@@ -661,7 +661,7 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
     private void assertDataValuesOnPsi( String event, DataValueAsserter... dataValues )
     {
         final ProgramStageInstance psi = getPsi( event );
-        assertEquals( print(psi, dataValues) , dataValues.length, psi.getEventDataValues().size() );
+        assertEquals( print( psi, dataValues ), dataValues.length, psi.getEventDataValues().size() );
 
         for ( DataValueAsserter dataValue : dataValues )
         {

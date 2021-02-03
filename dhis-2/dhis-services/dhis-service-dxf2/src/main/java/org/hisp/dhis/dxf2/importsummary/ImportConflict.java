@@ -44,7 +44,7 @@ public class ImportConflict
     public ImportConflict()
     {
     }
-    
+
     public ImportConflict( String object, String value )
     {
         this.object = object;
@@ -87,7 +87,7 @@ public class ImportConflict
     public int hashCode()
     {
         int result = object != null ? object.hashCode() : 0;
-        result = 31 * result + ( value != null ? value.hashCode() : 0 );
+        result = 31 * result + (value != null ? value.hashCode() : 0);
 
         return result;
     }

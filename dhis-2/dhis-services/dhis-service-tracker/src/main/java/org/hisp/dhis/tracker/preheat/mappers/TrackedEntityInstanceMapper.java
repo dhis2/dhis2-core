@@ -63,10 +63,9 @@ public interface TrackedEntityInstanceMapper extends PreheatMapper<TrackedEntity
     TrackedEntityInstance map( TrackedEntityInstance trackedEntityInstance );
 
     @Named( "userGroupAccesses" )
-    Set<UserGroupAccess> userGroupAccesses(Set<UserGroupAccess> userGroupAccesses );
+    Set<UserGroupAccess> userGroupAccesses( Set<UserGroupAccess> userGroupAccesses );
 
     @Named( "userAccesses" )
-    Set<UserAccess> mapUserAccessProgramInstance(Set<UserAccess> userAccesses );
-
+    Set<UserAccess> mapUserAccessProgramInstance( Set<UserAccess> userAccesses );
 
 }

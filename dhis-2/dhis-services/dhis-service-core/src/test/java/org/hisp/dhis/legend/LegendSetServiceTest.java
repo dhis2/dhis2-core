@@ -28,12 +28,12 @@ package org.hisp.dhis.legend;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 /**
  * @author Lars Helge Overland
@@ -45,6 +45,7 @@ public class LegendSetServiceTest
     private LegendSetService legendSetService;
 
     private Legend legendA;
+
     private Legend legendB;
 
     private LegendSet legendSetA;

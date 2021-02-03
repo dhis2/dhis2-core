@@ -29,6 +29,7 @@ package org.hisp.dhis.security;
  */
 
 import javax.servlet.http.HttpServletRequest;
+
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 

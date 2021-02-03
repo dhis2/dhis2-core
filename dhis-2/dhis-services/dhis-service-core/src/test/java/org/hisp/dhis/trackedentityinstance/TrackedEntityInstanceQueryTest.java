@@ -44,13 +44,13 @@ public class TrackedEntityInstanceQueryTest
 {
     @Autowired
     private TrackedEntityInstanceService instanceService;
-    
+
     @Test
     public void testValidateNoOrgUnitsModeAll()
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        TrackedEntityType trackedEntityTypeA = createTrackedEntityType(  'A' );
-        params.setTrackedEntityType( trackedEntityTypeA );        
+        TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
+        params.setTrackedEntityType( trackedEntityTypeA );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         instanceService.validate( params );
     }

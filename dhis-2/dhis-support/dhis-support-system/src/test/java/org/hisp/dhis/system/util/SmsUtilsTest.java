@@ -28,19 +28,12 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.sms.command.SMSCommand;
-import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.parse.ParserType;
-import org.hisp.dhis.sms.parse.SMSParserException;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -54,13 +47,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNull;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.sms.command.SMSCommand;
+import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.sms.parse.ParserType;
+import org.hisp.dhis.sms.parse.SMSParserException;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
+import org.junit.Before;
+import org.junit.Test;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * @author Robert White <robert.white.13@ucl.ac.uk>
@@ -68,13 +68,21 @@ import static org.junit.Assert.assertNull;
 public class SmsUtilsTest
 {
     private User userA;
+
     private User userB;
+
     private OrganisationUnit organisationUnitA;
+
     private OrganisationUnit organisationUnitB;
+
     private OrganisationUnit organisationUnitC;
+
     private IncomingSms incomingSms;
+
     private SMSCommand keyValueCommand;
+
     private String phoneNumber;
+
     private String email;
 
     @Before
@@ -149,28 +157,33 @@ public class SmsUtilsTest
     public void testGetBytes()
     {
         incomingSms.setText( "0b976c484577437bbba6794d0e7ebde0" );
-        assertArrayEquals( Base64.getDecoder().decode( "0b976c484577437bbba6794d0e7ebde0" ), SmsUtils.getBytes( incomingSms ) );
+        assertArrayEquals( Base64.getDecoder().decode( "0b976c484577437bbba6794d0e7ebde0" ),
+            SmsUtils.getBytes( incomingSms ) );
         incomingSms.setText( "50be58982413465f91b9aced950fc3ab" );
-        assertArrayEquals( Base64.getDecoder().decode( "50be58982413465f91b9aced950fc3ab" ), SmsUtils.getBytes( incomingSms ) );
+        assertArrayEquals( Base64.getDecoder().decode( "50be58982413465f91b9aced950fc3ab" ),
+            SmsUtils.getBytes( incomingSms ) );
         incomingSms.setText( "e1809673dbf3482d8f84e493c65f74d9" );
-        assertArrayEquals( Base64.getDecoder().decode( "e1809673dbf3482d8f84e493c65f74d9" ), SmsUtils.getBytes( incomingSms ) );
+        assertArrayEquals( Base64.getDecoder().decode( "e1809673dbf3482d8f84e493c65f74d9" ),
+            SmsUtils.getBytes( incomingSms ) );
     }
 
     @Test
     public void testGetOrganisationUnitsByPhoneNumber()
     {
         Collection<User> params = Collections.singleton( userA );
-        Map<String, Set<OrganisationUnit>> expected = ImmutableMap.of( userA.getUid(), ImmutableSet.of( organisationUnitA ) );
+        Map<String, Set<OrganisationUnit>> expected = ImmutableMap.of( userA.getUid(),
+            ImmutableSet.of( organisationUnitA ) );
         assertEquals( expected, SmsUtils.getOrganisationUnitsByPhoneNumber( "sender", params ) );
     }
 
     @Test
-    public void testLookForDate() throws ParseException
+    public void testLookForDate()
+        throws ParseException
     {
         GregorianCalendar gc = new GregorianCalendar( 2019, 12, 31 );
         SimpleDateFormat format = new SimpleDateFormat( "dd/MM/yyyy" );
         Date reference = format.parse( "31/12/2019" );
-        if (reference.equals( gc.getTime() ))
+        if ( reference.equals( gc.getTime() ) )
         {
             // test 1...
             Date d = SmsUtils.lookForDate( "000 3112 XXX" );

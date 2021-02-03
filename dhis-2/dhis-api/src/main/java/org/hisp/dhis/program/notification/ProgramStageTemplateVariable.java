@@ -28,32 +28,34 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.notification.TemplateVariable;
-
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.notification.TemplateVariable;
+
 /**
- * Defines the variable expression names for a {@link ProgramNotificationTemplate}
- * on a {@link org.hisp.dhis.program.ProgramStage ProgramStage}.
+ * Defines the variable expression names for a
+ * {@link ProgramNotificationTemplate} on a
+ * {@link org.hisp.dhis.program.ProgramStage ProgramStage}.
  *
  * The supported variable names are:
  *
  * <ul>
- *     <li>program_name</li>
- *     <li>program_stage_name</li>
- *     <li>org_unit_name</li>
- *     <li>due_date</li>
- *     <li>days_since_due_date</li>
- *     <li>days_until_due_date</li>
- *     <li>current_date</li>
+ * <li>program_name</li>
+ * <li>program_stage_name</li>
+ * <li>org_unit_name</li>
+ * <li>due_date</li>
+ * <li>days_since_due_date</li>
+ * <li>days_until_due_date</li>
+ * <li>current_date</li>
  * </ul>
  *
  * @author Halvdan Hoem Grelland
  */
 public enum ProgramStageTemplateVariable
-    implements TemplateVariable
+    implements
+    TemplateVariable
 {
     PROGRAM_NAME( "program_name" ),
     PROGRAM_STAGE_NAME( "program_stage_name" ),
@@ -63,9 +65,9 @@ public enum ProgramStageTemplateVariable
     DAYS_UNTIL_DUE_DATE( "days_until_due_date" ),
     CURRENT_DATE( "current_date" );
 
-    private static final Map<String, ProgramStageTemplateVariable> variableNameMap =
-        EnumSet.allOf( ProgramStageTemplateVariable.class ).stream()
-            .collect( Collectors.toMap( ProgramStageTemplateVariable::getVariableName, e -> e ) );
+    private static final Map<String, ProgramStageTemplateVariable> variableNameMap = EnumSet
+        .allOf( ProgramStageTemplateVariable.class ).stream()
+        .collect( Collectors.toMap( ProgramStageTemplateVariable::getVariableName, e -> e ) );
 
     private final String variableName;
 

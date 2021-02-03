@@ -37,7 +37,8 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 
 /**
- * This interface is implemented by classes that can validate an {@see ObjectBundle}
+ * This interface is implemented by classes that can validate an
+ * {@see ObjectBundle}
  *
  * @author Luciano Fiandesio
  */
@@ -52,7 +53,7 @@ public interface ValidationCheck
      * @param nonPersistedObjects a List of IdentifiableObject
      * @param importStrategy the {@link ImportStrategy}
      * @param context a {@link ValidationContext} containing the services required
-     *         for validation
+     *        for validation
      *
      * @return a {@link TypeReport}
      */

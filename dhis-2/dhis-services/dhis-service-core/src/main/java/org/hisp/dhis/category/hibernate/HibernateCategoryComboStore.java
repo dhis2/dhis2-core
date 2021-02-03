@@ -51,7 +51,8 @@ public class HibernateCategoryComboStore
     extends HibernateIdentifiableObjectStore<CategoryCombo>
     implements CategoryComboStore
 {
-    public HibernateCategoryComboStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher,
+    public HibernateCategoryComboStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher,
         CurrentUserService currentUserService, AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, publisher, CategoryCombo.class, currentUserService, aclService, true );
@@ -62,7 +63,7 @@ public class HibernateCategoryComboStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder,  newJpaParameters()
+        return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
             .addPredicate( root -> builder.equal( root.get( "name" ), "default" ) ) );
     }

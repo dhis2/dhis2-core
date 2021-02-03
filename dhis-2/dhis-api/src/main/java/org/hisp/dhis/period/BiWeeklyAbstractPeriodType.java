@@ -1,6 +1,5 @@
 package org.hisp.dhis.period;
 
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -29,16 +28,17 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.calendar.DateTimeUnit;
-
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Kristian Wærstad
@@ -145,8 +145,8 @@ public class BiWeeklyAbstractPeriodType
     }
 
     /**
-     * Generates the last 26 bi-weeks where the last one is the week which the
-     * given date is inside.
+     * Generates the last 26 bi-weeks where the last one is the week which the given
+     * date is inside.
      */
     @Override
     public List<Period> generateRollingPeriods( DateTimeUnit end, Calendar calendar )

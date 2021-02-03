@@ -52,9 +52,11 @@ public abstract class AbstractStatementBuilder
     implements StatementBuilder
 {
     static final String AZaz = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
     static final String AZaz09 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
     static final String AZaz_QUOTED = QUOTE + AZaz + QUOTE;
+
     static final String AZaz09_QUOTED = QUOTE + AZaz09 + QUOTE;
 
     @Override
@@ -80,7 +82,7 @@ public abstract class AbstractStatementBuilder
     {
         String qte = getColumnQuote();
 
-        column = column.replaceAll( qte, ( qte + qte ) );
+        column = column.replaceAll( qte, (qte + qte) );
 
         return qte + column + qte;
     }
@@ -119,7 +121,7 @@ public abstract class AbstractStatementBuilder
     public String getUid()
     {
         return concatenate(
-            getCharAt( AZaz_QUOTED , "1 + " + getRandom( AZaz.length() ) ),
+            getCharAt( AZaz_QUOTED, "1 + " + getRandom( AZaz.length() ) ),
             getCharAt( AZaz09_QUOTED, "1 + " + getRandom( AZaz09.length() ) ),
             getCharAt( AZaz09_QUOTED, "1 + " + getRandom( AZaz09.length() ) ),
             getCharAt( AZaz09_QUOTED, "1 + " + getRandom( AZaz09.length() ) ),
@@ -135,16 +137,15 @@ public abstract class AbstractStatementBuilder
     @Override
     public String getNumberOfColumnsInPrimaryKey( String table )
     {
-        return
-            "select count(cu.column_name) from information_schema.key_column_usage cu " +
-                "inner join information_schema.table_constraints tc  " +
-                "on cu.constraint_catalog=tc.constraint_catalog " +
-                "and cu.constraint_schema=tc.constraint_schema " +
-                "and cu.constraint_name=tc.constraint_name " +
-                "and cu.table_schema=tc.table_schema " +
-                "and cu.table_name=tc.table_name " +
-                "where tc.constraint_type='PRIMARY KEY' " +
-                "and cu.table_name='" + table + "';";
+        return "select count(cu.column_name) from information_schema.key_column_usage cu " +
+            "inner join information_schema.table_constraints tc  " +
+            "on cu.constraint_catalog=tc.constraint_catalog " +
+            "and cu.constraint_schema=tc.constraint_schema " +
+            "and cu.constraint_name=tc.constraint_name " +
+            "and cu.table_schema=tc.table_schema " +
+            "and cu.table_name=tc.table_name " +
+            "where tc.constraint_type='PRIMARY KEY' " +
+            "and cu.table_name='" + table + "';";
     }
 
     @Override
@@ -180,9 +181,8 @@ public abstract class AbstractStatementBuilder
     /**
      * Generates a derived table containing one column of literal strings.
      *
-     * The generic implementation, which works in all supported database
-     * types, returns a subquery in the following form:
-     * <code>
+     * The generic implementation, which works in all supported database types,
+     * returns a subquery in the following form: <code>
      *     (select 's1' as column
      *      union select 's2'
      *      union select 's3') table
@@ -209,16 +209,15 @@ public abstract class AbstractStatementBuilder
             after = "'";
         }
 
-        return sb.append(") ").append( table ).toString();
+        return sb.append( ") " ).append( table ).toString();
     }
 
     /**
-     * Generates a derived table containing literals in two columns: integer
-     * and string.
+     * Generates a derived table containing literals in two columns: integer and
+     * string.
      *
-     * The generic implementation, which works in all supported database
-     * types, returns a subquery in the following form:
-     * <code>
+     * The generic implementation, which works in all supported database types,
+     * returns a subquery in the following form: <code>
      *     (select i1 as intColumn, 's1' as stringColumn
      *      union select i2, 's2'
      *      union select i3, 's3') table
@@ -254,8 +253,8 @@ public abstract class AbstractStatementBuilder
     }
 
     /**
-     * Generates a derived table containing literals in two columns: integer
-     * and integer.
+     * Generates a derived table containing literals in two columns: integer and
+     * integer.
      *
      * @param long1Values (non-empty) 1st integer column values for the table
      * @param long2Values (same size) 2nd integer column values for the table
@@ -264,9 +263,8 @@ public abstract class AbstractStatementBuilder
      * @param long2Column the desired 2nd integer column name
      * @return the derived literal table
      *
-     * The generic implementation, which works in all supported database
-     * types, returns a subquery in the following form:
-     * <code>
+     *         The generic implementation, which works in all supported database
+     *         types, returns a subquery in the following form: <code>
      *     (select i1_1 as int1Column, i2_1 as int2Column
      *      union select i1_2, i2_2
      *      union select i1_3, i2_3) table
@@ -301,11 +299,12 @@ public abstract class AbstractStatementBuilder
     }
 
     @Override
-    public String getProgramIndicatorDataValueSelectSql( String programStageUid, String dataElementUid, Date reportingStartDate,
+    public String getProgramIndicatorDataValueSelectSql( String programStageUid, String dataElementUid,
+        Date reportingStartDate,
         Date reportingEndDate, ProgramIndicator programIndicator )
     {
         String columnName = this.columnQuote( dataElementUid );
-        if ( programIndicator.getAnalyticsType().equals( AnalyticsType.ENROLLMENT )  )
+        if ( programIndicator.getAnalyticsType().equals( AnalyticsType.ENROLLMENT ) )
         {
             return getProgramIndicatorEventColumnSql( programStageUid, columnName,
                 reportingStartDate, reportingEndDate, programIndicator );
@@ -318,9 +317,9 @@ public abstract class AbstractStatementBuilder
 
     @Override
     public String getProgramIndicatorEventColumnSql( String programStageUid, String columnName, Date reportingStartDate,
-    Date reportingEndDate, ProgramIndicator programIndicator )
+        Date reportingEndDate, ProgramIndicator programIndicator )
     {
-        if ( programIndicator.getAnalyticsType().equals( AnalyticsType.ENROLLMENT )  )
+        if ( programIndicator.getAnalyticsType().equals( AnalyticsType.ENROLLMENT ) )
         {
             return getProgramIndicatorEventInEnrollmentSelectSql( columnName, programStageUid,
                 reportingStartDate, reportingEndDate, programIndicator );
@@ -331,8 +330,9 @@ public abstract class AbstractStatementBuilder
         }
     }
 
-    private String getProgramIndicatorEventInEnrollmentSelectSql( String columnName, String programStageUid, Date reportingStartDate,
-    Date reportingEndDate, ProgramIndicator programIndicator )
+    private String getProgramIndicatorEventInEnrollmentSelectSql( String columnName, String programStageUid,
+        Date reportingStartDate,
+        Date reportingEndDate, ProgramIndicator programIndicator )
     {
         String programStageCondition = "";
         if ( programStageUid != null && programStageUid.length() == 11 )
@@ -343,16 +343,24 @@ public abstract class AbstractStatementBuilder
         String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
         return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
             ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and " + columnName + " is not null " +
-            ( programIndicator.getEndEventBoundary() != null ? ("and " +
-                getBoundaryCondition( programIndicator.getEndEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) +
-            " ") : "" ) + ( programIndicator.getStartEventBoundary() != null ? ( "and " +
-                getBoundaryCondition( programIndicator.getStartEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) +
-            " ") : "" ) + programStageCondition + "order by executiondate " + "desc limit 1 )";
+            (programIndicator.getEndEventBoundary() != null ? ("and " +
+                getBoundaryCondition( programIndicator.getEndEventBoundary(), programIndicator, reportingStartDate,
+                    reportingEndDate )
+                +
+                " ") : "")
+            + (programIndicator.getStartEventBoundary() != null ? ("and " +
+                getBoundaryCondition( programIndicator.getStartEventBoundary(), programIndicator, reportingStartDate,
+                    reportingEndDate )
+                +
+                " ") : "")
+            + programStageCondition + "order by executiondate " + "desc limit 1 )";
     }
 
-    private String getProgramIndicatorEventInProgramStageSql(ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate )
+    private String getProgramIndicatorEventInProgramStageSql( ProgramIndicator programIndicator,
+        Date reportingStartDate, Date reportingEndDate )
     {
-        Assert.isTrue( programIndicator.hasEventDateCohortBoundary(), "Can not get event date cohort boundaries for program indicator:" + programIndicator.getUid() );
+        Assert.isTrue( programIndicator.hasEventDateCohortBoundary(),
+            "Can not get event date cohort boundaries for program indicator:" + programIndicator.getUid() );
 
         Map<String, Set<AnalyticsPeriodBoundary>> map = programIndicator.getEventDateCohortBoundaryByProgramStage();
 
@@ -365,13 +373,15 @@ public abstract class AbstractStatementBuilder
             Set<AnalyticsPeriodBoundary> boundaries = map.get( programStage );
 
             String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
-            sql +=  " (select count(*) from " + eventTableName + " where " + eventTableName +
+            sql += " (select count(*) from " + eventTableName + " where " + eventTableName +
                 ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and executiondate is not null ";
 
             for ( AnalyticsPeriodBoundary boundary : boundaries )
             {
-                sql += " and executiondate " + ( boundary.getAnalyticsPeriodBoundaryType().isStartBoundary() ? ">=" : "<" ) +
-                    " cast( '" + format.format( boundary.getBoundaryDate( reportingStartDate, reportingEndDate ) ) + "' as date )";
+                sql += " and executiondate "
+                    + (boundary.getAnalyticsPeriodBoundaryType().isStartBoundary() ? ">=" : "<") +
+                    " cast( '" + format.format( boundary.getBoundaryDate( reportingStartDate, reportingEndDate ) )
+                    + "' as date )";
             }
 
             sql += ") > 0";
@@ -380,33 +390,44 @@ public abstract class AbstractStatementBuilder
         return sql;
     }
 
-    private String getBoundaryElementColumnSql( AnalyticsPeriodBoundary boundary, Date reportingStartDate, Date reportingEndDate, ProgramIndicator programIndicator )
+    private String getBoundaryElementColumnSql( AnalyticsPeriodBoundary boundary, Date reportingStartDate,
+        Date reportingEndDate, ProgramIndicator programIndicator )
     {
         String columnSql = null;
         if ( boundary.isDataElementCohortBoundary() )
         {
-            Matcher matcher = AnalyticsPeriodBoundary.COHORT_HAVING_DATA_ELEMENT_PATTERN.matcher( boundary.getBoundaryTarget() );
-            Assert.isTrue( matcher.find(), "Can not parse data element pattern for analyticsPeriodBoundary " + boundary.getUid() + " - unknown boundaryTarget: " + boundary.getBoundaryTarget() );
+            Matcher matcher = AnalyticsPeriodBoundary.COHORT_HAVING_DATA_ELEMENT_PATTERN
+                .matcher( boundary.getBoundaryTarget() );
+            Assert.isTrue( matcher.find(), "Can not parse data element pattern for analyticsPeriodBoundary "
+                + boundary.getUid() + " - unknown boundaryTarget: " + boundary.getBoundaryTarget() );
             String programStage = matcher.group( AnalyticsPeriodBoundary.PROGRAM_STAGE_REGEX_GROUP );
-            Assert.isTrue( programStage != null, "Can not find programStage for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
+            Assert.isTrue( programStage != null, "Can not find programStage for analyticsPeriodBoundary "
+                + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
             String dataElement = matcher.group( AnalyticsPeriodBoundary.DATA_ELEMENT_REGEX_GROUP );
-            Assert.isTrue( dataElement != null, "Can not find data element for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
-            columnSql =  getCastToDate( getProgramIndicatorDataValueSelectSql( programStage, dataElement, reportingStartDate, reportingEndDate, programIndicator ) );
+            Assert.isTrue( dataElement != null, "Can not find data element for analyticsPeriodBoundary "
+                + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
+            columnSql = getCastToDate( getProgramIndicatorDataValueSelectSql( programStage, dataElement,
+                reportingStartDate, reportingEndDate, programIndicator ) );
         }
         else if ( boundary.isAttributeCohortBoundary() )
         {
-            Matcher matcher = AnalyticsPeriodBoundary.COHORT_HAVING_ATTRIBUTE_PATTERN.matcher( boundary.getBoundaryTarget() );
-            Assert.isTrue( matcher.find(), "Can not parse attribute pattern for analyticsPeriodBoundary " + boundary.getUid() + " - unknown boundaryTarget: " + boundary.getBoundaryTarget() );
+            Matcher matcher = AnalyticsPeriodBoundary.COHORT_HAVING_ATTRIBUTE_PATTERN
+                .matcher( boundary.getBoundaryTarget() );
+            Assert.isTrue( matcher.find(), "Can not parse attribute pattern for analyticsPeriodBoundary "
+                + boundary.getUid() + " - unknown boundaryTarget: " + boundary.getBoundaryTarget() );
             String attribute = matcher.group( AnalyticsPeriodBoundary.ATTRIBUTE_REGEX_GROUP );
-            Assert.isTrue( attribute != null, "Can not find attribute for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
-            columnSql =  getCastToDate( this.columnQuote( attribute ) );
+            Assert.isTrue( attribute != null, "Can not find attribute for analyticsPeriodBoundary " + boundary.getUid()
+                + " - boundaryTarget: " + boundary.getBoundaryTarget() );
+            columnSql = getCastToDate( this.columnQuote( attribute ) );
         }
-        Assert.isTrue( columnSql != null, "Can not determine boundary type for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
+        Assert.isTrue( columnSql != null, "Can not determine boundary type for analyticsPeriodBoundary "
+            + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
         return columnSql;
     }
 
     @Override
-    public String getBoundaryCondition( ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate, SqlHelper sqlHelper )
+    public String getBoundaryCondition( ProgramIndicator programIndicator, Date reportingStartDate,
+        Date reportingEndDate, SqlHelper sqlHelper )
     {
         String sql = "";
 
@@ -414,13 +435,15 @@ public abstract class AbstractStatementBuilder
         {
             if ( boundary.isCohortDateBoundary() && !boundary.isEnrollmentHavingEventDateCohortBoundary() )
             {
-                sql += sqlHelper.whereAnd() + " " + getBoundaryCondition( boundary, programIndicator, reportingStartDate, reportingEndDate );
+                sql += sqlHelper.whereAnd() + " "
+                    + getBoundaryCondition( boundary, programIndicator, reportingStartDate, reportingEndDate );
             }
         }
 
         if ( programIndicator.hasEventDateCohortBoundary() )
         {
-            sql += sqlHelper.whereAnd() + " " + getProgramIndicatorEventInProgramStageSql( programIndicator, reportingStartDate, reportingEndDate );
+            sql += sqlHelper.whereAnd() + " "
+                + getProgramIndicatorEventInProgramStageSql( programIndicator, reportingStartDate, reportingEndDate );
         }
 
         return sql;
@@ -430,14 +453,16 @@ public abstract class AbstractStatementBuilder
     public String getBoundaryCondition( AnalyticsPeriodBoundary boundary, ProgramIndicator programIndicator,
         Date reportingStartDate, Date reportingEndDate )
     {
-        String column = boundary.isEventDateBoundary() ? AnalyticsPeriodBoundary.DB_EVENT_DATE :
-            boundary.isEnrollmentDateBoundary() ? AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE :
-            boundary.isIncidentDateBoundary() ? AnalyticsPeriodBoundary.DB_INCIDENT_DATE :
-            this.getBoundaryElementColumnSql( boundary, reportingStartDate, reportingEndDate, programIndicator );
+        String column = boundary.isEventDateBoundary() ? AnalyticsPeriodBoundary.DB_EVENT_DATE
+            : boundary.isEnrollmentDateBoundary() ? AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE
+                : boundary.isIncidentDateBoundary() ? AnalyticsPeriodBoundary.DB_INCIDENT_DATE
+                    : this.getBoundaryElementColumnSql( boundary, reportingStartDate, reportingEndDate,
+                        programIndicator );
 
         final SimpleDateFormat format = new SimpleDateFormat();
         format.applyPattern( Period.DEFAULT_DATE_FORMAT );
-        return column + " " + ( boundary.getAnalyticsPeriodBoundaryType().isEndBoundary() ? "<" : ">=" ) +
-            " cast( '" + format.format( boundary.getBoundaryDate( reportingStartDate, reportingEndDate ) ) + "' as date )";
+        return column + " " + (boundary.getAnalyticsPeriodBoundaryType().isEndBoundary() ? "<" : ">=") +
+            " cast( '" + format.format( boundary.getBoundaryDate( reportingStartDate, reportingEndDate ) )
+            + "' as date )";
     }
 }

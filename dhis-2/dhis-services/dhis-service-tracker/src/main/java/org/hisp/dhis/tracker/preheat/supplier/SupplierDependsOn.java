@@ -63,7 +63,7 @@ public @interface SupplierDependsOn
 {
     /**
      * The {@link PreheatSupplier} subclass the supplier annotated with depends on
-     * 
+     *
      */
     Class<?> value();
 }

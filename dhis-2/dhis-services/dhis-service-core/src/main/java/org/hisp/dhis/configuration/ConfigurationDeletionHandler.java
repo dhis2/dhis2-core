@@ -28,8 +28,9 @@ package org.hisp.dhis.configuration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang3.StringUtils;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -38,8 +39,6 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
@@ -76,15 +75,18 @@ public class ConfigurationDeletionHandler
     {
         UserGroup feedbackRecipients = configService.getConfiguration().getFeedbackRecipients();
 
-        return ( feedbackRecipients != null && feedbackRecipients.equals( userGroup ) ) ? StringUtils.EMPTY : null;
+        return (feedbackRecipients != null && feedbackRecipients.equals( userGroup )) ? StringUtils.EMPTY : null;
     }
 
     @Override
     public String allowDeleteDataElementGroup( DataElementGroup dataElementGroup )
     {
-        DataElementGroup infrastructuralDataElements = configService.getConfiguration().getInfrastructuralDataElements();
+        DataElementGroup infrastructuralDataElements = configService.getConfiguration()
+            .getInfrastructuralDataElements();
 
-        return ( infrastructuralDataElements != null && infrastructuralDataElements.equals( dataElementGroup ) ) ? StringUtils.EMPTY : null;
+        return (infrastructuralDataElements != null && infrastructuralDataElements.equals( dataElementGroup ))
+            ? StringUtils.EMPTY
+            : null;
     }
 
     @Override
@@ -92,7 +94,9 @@ public class ConfigurationDeletionHandler
     {
         IndicatorGroup infrastructuralIndicators = configService.getConfiguration().getInfrastructuralIndicators();
 
-        return ( infrastructuralIndicators != null && infrastructuralIndicators.equals( indicatorGroup ) ) ? StringUtils.EMPTY : null;
+        return (infrastructuralIndicators != null && infrastructuralIndicators.equals( indicatorGroup ))
+            ? StringUtils.EMPTY
+            : null;
     }
 
     @Override
@@ -100,7 +104,7 @@ public class ConfigurationDeletionHandler
     {
         OrganisationUnitLevel offlineLevel = configService.getConfiguration().getOfflineOrganisationUnitLevel();
 
-        return ( offlineLevel != null && offlineLevel.equals( level ) ) ? StringUtils.EMPTY : null;
+        return (offlineLevel != null && offlineLevel.equals( level )) ? StringUtils.EMPTY : null;
     }
 
     @Override
@@ -108,7 +112,7 @@ public class ConfigurationDeletionHandler
     {
         OrganisationUnit selfRegOrgUnit = configService.getConfiguration().getSelfRegistrationOrgUnit();
 
-        return ( selfRegOrgUnit != null && selfRegOrgUnit.equals( organisationUnit ) ) ? StringUtils.EMPTY : null;
+        return (selfRegOrgUnit != null && selfRegOrgUnit.equals( organisationUnit )) ? StringUtils.EMPTY : null;
     }
 
     @Override
@@ -116,6 +120,6 @@ public class ConfigurationDeletionHandler
     {
         UserAuthorityGroup selfRegRole = configService.getConfiguration().getSelfRegistrationRole();
 
-        return ( selfRegRole != null && selfRegRole.equals( userAuthorityGroup ) ) ? StringUtils.EMPTY : null;
+        return (selfRegRole != null && selfRegRole.equals( userAuthorityGroup )) ? StringUtils.EMPTY : null;
     }
 }

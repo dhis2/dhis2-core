@@ -28,15 +28,15 @@ package org.hisp.dhis.artemis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.jms.support.destination.DestinationResolver;
-import org.springframework.stereotype.Component;
-
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Queue;
 import javax.jms.QueueSession;
 import javax.jms.Session;
 import javax.jms.TopicSession;
+
+import org.springframework.jms.support.destination.DestinationResolver;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio

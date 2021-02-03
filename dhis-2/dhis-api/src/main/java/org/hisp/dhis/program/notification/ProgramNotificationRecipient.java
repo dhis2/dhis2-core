@@ -34,7 +34,8 @@ import org.hisp.dhis.notification.NotificationRecipient;
  * @author Halvdan Hoem Grelland
  */
 public enum ProgramNotificationRecipient
-    implements NotificationRecipient
+    implements
+    NotificationRecipient
 {
     TRACKED_ENTITY_INSTANCE( true ),
     ORGANISATION_UNIT_CONTACT( true ),

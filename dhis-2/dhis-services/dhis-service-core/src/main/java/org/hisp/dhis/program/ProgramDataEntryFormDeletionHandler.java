@@ -28,14 +28,14 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Set;
 
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
@@ -79,11 +79,11 @@ public class ProgramDataEntryFormDeletionHandler
         if ( dataEntryForm != null )
         {
             boolean flag = false;
-            
+
             Set<ProgramStage> programStages = programStage.getProgram().getProgramStages();
-            
+
             programStages.remove( programStage );
-            
+
             for ( ProgramStage stage : programStages )
             {
                 if ( stage.getDataEntryForm() != null )

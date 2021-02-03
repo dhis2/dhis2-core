@@ -28,9 +28,10 @@ package org.hisp.dhis.metadata.version;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericStore;
 import java.util.Date;
 import java.util.List;
+
+import org.hisp.dhis.common.GenericStore;
 
 /**
  * Define MetadataStore to interact with the database.
@@ -44,7 +45,8 @@ public interface MetadataVersionStore
 
     /**
      * @param id Key to lookup.
-     * @return MetadataVersion Value that matched key, or null if there was no match.
+     * @return MetadataVersion Value that matched key, or null if there was no
+     *         match.
      */
     MetadataVersion getVersionByKey( long id );
 

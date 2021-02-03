@@ -28,6 +28,11 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MapMap;
@@ -38,11 +43,6 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Expressions are mathematical formulas and can contain references to various
@@ -57,10 +57,13 @@ public interface ExpressionService
     String ID = ExpressionService.class.getName();
 
     String DAYS_DESCRIPTION = "[Number of days]";
+
     String SYMBOL_DAYS = "[days]";
+
     String SYMBOL_WILDCARD = "*";
 
     String UID_EXPRESSION = "[a-zA-Z]\\w{10}";
+
     String INT_EXPRESSION = "^(0|-?[1-9]\\d*)$";
 
     // -------------------------------------------------------------------------
@@ -128,8 +131,8 @@ public interface ExpressionService
     Set<OrganisationUnitGroup> getIndicatorOrgUnitGroups( Collection<Indicator> indicators );
 
     /**
-     * Generates the calculated value for the given parameters based on the
-     * values in the given maps.
+     * Generates the calculated value for the given parameters based on the values
+     * in the given maps.
      *
      * @param indicator the indicator for which to calculate the value.
      * @param periods a List of periods for which to calculate the value.
@@ -143,8 +146,8 @@ public interface ExpressionService
         Map<String, Integer> orgUnitCountMap );
 
     /**
-     * Substitutes any constants and org unit group member counts in the
-     * numerator and denominator on all indicators in the given collection.
+     * Substitutes any constants and org unit group member counts in the numerator
+     * and denominator on all indicators in the given collection.
      *
      * @param indicators the set of indicators.
      */
@@ -174,11 +177,11 @@ public interface ExpressionService
     String getExpressionDescription( String expression, ParseType parseType );
 
     /**
-     * Returns UIDs of Data Elements and associated Option Combos (if any)
-     * found in the Data Element Operands an expression.
+     * Returns UIDs of Data Elements and associated Option Combos (if any) found in
+     * the Data Element Operands an expression.
      * <p/>
-     * If the Data Element Operand consists of just a Data Element, or if
-     * the Option Combo is a wildcard "*", returns just dataElementUID.
+     * If the Data Element Operand consists of just a Data Element, or if the Option
+     * Combo is a wildcard "*", returns just dataElementUID.
      * <p/>
      * If an Option Combo is present, returns dataElementUID.optionComboUID.
      *
@@ -189,9 +192,9 @@ public interface ExpressionService
     Set<String> getExpressionElementAndOptionComboIds( String expression, ParseType parseType );
 
     /**
-     * Returns all data elements found in the given expression string,
-     * including those found in data element operands.
-     * Returns an empty set if the given expression is null.
+     * Returns all data elements found in the given expression string, including
+     * those found in data element operands. Returns an empty set if the given
+     * expression is null.
      *
      * @param expression the expression string.
      * @param parseType the type of expression to parse.
@@ -200,9 +203,9 @@ public interface ExpressionService
     Set<DataElement> getExpressionDataElements( String expression, ParseType parseType );
 
     /**
-     * Returns, in data element operand format, all data elements and all
-     * data element operands found in an expression. Returns an empty set
-     * if the expression is null.
+     * Returns, in data element operand format, all data elements and all data
+     * element operands found in an expression. Returns an empty set if the
+     * expression is null.
      *
      * @param expression The expression string.
      * @param parseType the type of expression to parse.
@@ -211,9 +214,9 @@ public interface ExpressionService
     Set<DataElementOperand> getExpressionOperands( String expression, ParseType parseType );
 
     /**
-     * Returns all CategoryOptionCombo uids in the given expression string
-     * that are used as a data element operand categoryOptionCombo or
-     * attributeOptionCombo. Returns an empty set if the expression is null.
+     * Returns all CategoryOptionCombo uids in the given expression string that are
+     * used as a data element operand categoryOptionCombo or attributeOptionCombo.
+     * Returns an empty set if the expression is null.
      *
      * @param expression the expression string.
      * @param parseType the type of expression to parse.
@@ -231,8 +234,8 @@ public interface ExpressionService
     Set<DimensionalItemObject> getExpressionDimensionalItemObjects( String expression, ParseType parseType );
 
     /**
-     * Returns all dimensional item objects in the given expression,
-     * returning separately the items to be sampled inside any vector functions.
+     * Returns all dimensional item objects in the given expression, returning
+     * separately the items to be sampled inside any vector functions.
      *
      * @param expression the expression to parse.
      * @param parseType the type of expression to parse.
@@ -279,8 +282,8 @@ public interface ExpressionService
      * @param constantMap map of constants to use for calculation.
      * @param orgUnitCountMap the map of organisation unit group member counts.
      * @param days the number of days to use in the calculation.
-     * @param missingValueStrategy the strategy to use when data values are
-     *        missing when calculating the expression.
+     * @param missingValueStrategy the strategy to use when data values are missing
+     *        when calculating the expression.
      * @return the calculated value as a double.
      */
     Double getExpressionValue( String expression, ParseType parseType,
@@ -297,8 +300,8 @@ public interface ExpressionService
      * @param constantMap map of constants to use for calculation.
      * @param orgUnitCountMap the map of organisation unit group member counts.
      * @param days the number of days to use in the calculation.
-     * @param missingValueStrategy the strategy to use when data values are
-     *        missing when calculating the expression.
+     * @param missingValueStrategy the strategy to use when data values are missing
+     *        when calculating the expression.
      * @param samplePeriods periods for samples to aggregate.
      * @param periodValueMap values for aggregate functions by period.
      * @return the calculated value.

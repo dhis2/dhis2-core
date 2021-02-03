@@ -27,12 +27,13 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import java.io.IOException;
+import java.util.*;
+
 import org.hibernate.HibernateException;
 import org.hisp.dhis.programrule.ProgramRuleActionEvaluationEnvironment;
 
-import java.io.IOException;
-import java.util.*;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
  * @author Enrico Colasante
@@ -65,7 +66,8 @@ public class JsonProgramRuleEvaluationEnvironmentSetBinaryType
     }
 
     @Override
-    public Object deepCopy( Object value ) throws HibernateException
+    public Object deepCopy( Object value )
+        throws HibernateException
     {
         String json = convertObjectToJson( value );
         return convertJsonToObject( json );
@@ -83,8 +85,8 @@ public class JsonProgramRuleEvaluationEnvironmentSetBinaryType
     {
         try
         {
-            Set<ProgramRuleActionEvaluationEnvironment> environments =
-                object == null ? Collections.emptySet() : (Set<ProgramRuleActionEvaluationEnvironment>) object;
+            Set<ProgramRuleActionEvaluationEnvironment> environments = object == null ? Collections.emptySet()
+                : (Set<ProgramRuleActionEvaluationEnvironment>) object;
 
             return writer.writeValueAsString( environments );
         }

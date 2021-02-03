@@ -40,19 +40,19 @@ public interface ResourceTableService
      * OrganisationUnit.
      */
     void generateOrganisationUnitStructures();
-    
+
     /**
-     * Generates a resource table containing data sets and organisation units 
-     * with their associated attribute option combinations.
+     * Generates a resource table containing data sets and organisation units with
+     * their associated attribute option combinations.
      */
     void generateDataSetOrganisationUnitCategoryTable();
-    
+
     /**
-     * Generates a resource table containing id and a derived name for
-     * all CategoryOptionCombos.
+     * Generates a resource table containing id and a derived name for all
+     * CategoryOptionCombos.
      */
     void generateCategoryOptionComboNames();
-    
+
     /**
      * Generates a resource table for all data elements.
      */
@@ -62,19 +62,19 @@ public interface ResourceTableService
      * Generates a resource table for all indicators.
      */
     void generateIndicatorGroupSetTable();
-    
+
     /**
-     * Generates a resource table for all organisation units 
+     * Generates a resource table for all organisation units
      */
     void generateOrganisationUnitGroupSetTable();
 
     /**
      * Generates a resource table for all category option combos.
-     * 
+     *
      * Depends on the category option combo names table.
      */
     void generateCategoryTable();
-    
+
     /**
      * Generates a resource table for all data elements.
      */
@@ -84,15 +84,15 @@ public interface ResourceTableService
      * Generates a resource table for dates and associated periods.
      */
     void generateDatePeriodTable();
-    
+
     /**
      * Generates a resource table for all periods.
      */
     void generatePeriodTable();
-    
+
     /**
-     * Generates a resource table for all data elements and relevant category
-     * option combinations.
+     * Generates a resource table for all data elements and relevant category option
+     * combinations.
      */
     void generateCategoryOptionComboTable();
 
@@ -110,7 +110,7 @@ public interface ResourceTableService
      * Create all SQL views.
      */
     void createAllSqlViews();
-    
+
     /**
      * Drop all SQL views.
      */

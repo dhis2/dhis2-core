@@ -28,13 +28,13 @@ package org.hisp.dhis.schema.transformer;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
+import org.junit.Test;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

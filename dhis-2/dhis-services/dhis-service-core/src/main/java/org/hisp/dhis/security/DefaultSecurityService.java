@@ -28,9 +28,23 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableSet;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+
+import javax.annotation.PostConstruct;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -60,19 +74,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
@@ -83,7 +86,9 @@ public class DefaultSecurityService
     implements SecurityService
 {
     private static final String RESTORE_PATH = "/dhis-web-commons/security/";
+
     private static final Pattern INVITE_USERNAME_PATTERN = Pattern.compile( "^invite\\-(.+?)\\-(\\w{11})$" );
+
     private static final String TBD_NAME = "(TBD)";
 
     private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
@@ -93,6 +98,7 @@ public class DefaultSecurityService
     private static final int RESTORE_TOKEN_LENGTH_BYTES = 32;
 
     private static final int LOGIN_MAX_FAILED_ATTEMPTS = 5;
+
     private static final int LOGIN_LOCKOUT_MINS = 15;
 
     public static final int RECOVERY_LOCKOUT_MINS = 15;
@@ -102,6 +108,7 @@ public class DefaultSecurityService
     private static final String RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
 
     private Cache<Integer> userFailedLoginAttemptCache;
+
     private Cache<Integer> userAccountRecoverAttemptCache;
     // -------------------------------------------------------------------------
     // Dependencies
@@ -170,7 +177,6 @@ public class DefaultSecurityService
     // -------------------------------------------------------------------------
     // Initialization
     // -------------------------------------------------------------------------
-
 
     @PostConstruct
     public void init()
@@ -386,8 +392,8 @@ public class DefaultSecurityService
     {
         RestoreType restoreType = restoreOptions.getRestoreType();
 
-        String restoreToken =
-            restoreOptions.getTokenPrefix() + CodeGenerator.getRandomSecureToken( RESTORE_TOKEN_LENGTH_BYTES );
+        String restoreToken = restoreOptions.getTokenPrefix()
+            + CodeGenerator.getRandomSecureToken( RESTORE_TOKEN_LENGTH_BYTES );
 
         String hashedRestoreToken = passwordManager.encode( restoreToken );
 
@@ -462,7 +468,7 @@ public class DefaultSecurityService
      * error string is returned.
      *
      * @param credentials the user credentials.
-     * @param token       the user supplied token.
+     * @param token the user supplied token.
      * @param restoreType the restore type.
      * @return null if restore is valid, a descriptive error string otherwise.
      */
@@ -508,9 +514,9 @@ public class DefaultSecurityService
      * <li>restore_token_does_not_match_supplied_token</li>
      * </ul>
      *
-     * @param credentials  the user credentials.
+     * @param credentials the user credentials.
      * @param restoreToken the token.
-     * @param restoreType  type of restore operation.
+     * @param restoreType type of restore operation.
      * @return null if success, otherwise error string.
      */
     @Override

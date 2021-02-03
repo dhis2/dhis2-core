@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryOptionGroup;
@@ -57,6 +56,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -201,7 +201,7 @@ public class CategoryOptionGroupResolverTest
 
         // split resolved expression into a List of Strings
         List<String> expressionList = Arrays.asList( expression.split( "\\+" ) );
-        assertEquals( COCS_IN_COG , expressionList.size() );
+        assertEquals( COCS_IN_COG, expressionList.size() );
 
         collectionsHaveIdenticalValuesIgnoreOrder( expressionList, buildExpectedExpression( elem1, elem2, cocs1 ) );
     }
@@ -210,19 +210,19 @@ public class CategoryOptionGroupResolverTest
     public void verifySecondElementIsCocThirdElementIsAoc()
     {
         DimensionalItemId dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, elem1,
-                elem2, elem3 );
+            elem2, elem3 );
 
         // #{DEUID.COCUID.AOCUID}
         String exp = createIndicatorExp();
 
         when( expressionService.getExpressionDimensionalItemIds( exp, INDICATOR_EXPRESSION ) )
-                .thenReturn( Sets.newHashSet( dimensionalItemId ) );
+            .thenReturn( Sets.newHashSet( dimensionalItemId ) );
 
         String expression = resolver.resolve( exp );
 
         // split resolved expression into a List of Strings
         List<String> expressionList = Arrays.asList( expression.split( "\\+" ) );
-        assertEquals( 1 , expressionList.size() );
+        assertEquals( 1, expressionList.size() );
 
         // original expression is returned
         collectionsHaveIdenticalValuesIgnoreOrder( expressionList, Lists.newArrayList( exp ) );
@@ -237,13 +237,13 @@ public class CategoryOptionGroupResolverTest
         String exp = "#{" + elem1 + "}";
 
         when( expressionService.getExpressionDimensionalItemIds( exp, INDICATOR_EXPRESSION ) )
-                .thenReturn( Sets.newHashSet( dimensionalItemId ) );
+            .thenReturn( Sets.newHashSet( dimensionalItemId ) );
 
         String expression = resolver.resolve( exp );
 
         // split resolved expression into a List of Strings
         List<String> expressionList = Arrays.asList( expression.split( "\\+" ) );
-        assertEquals( 1 , expressionList.size() );
+        assertEquals( 1, expressionList.size() );
 
         // original expression is returned
         collectionsHaveIdenticalValuesIgnoreOrder( expressionList, Lists.newArrayList( exp ) );

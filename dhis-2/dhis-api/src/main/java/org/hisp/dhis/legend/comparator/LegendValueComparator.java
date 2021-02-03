@@ -36,15 +36,15 @@ public class LegendValueComparator
     implements Comparator<Legend>
 {
     public static final LegendValueComparator INSTANCE = new LegendValueComparator();
-    
+
     @Override
     public int compare( Legend o1, Legend o2 )
-    {        
+    {
         if ( o1.getStartValue().compareTo( o2.getStartValue() ) != 0 )
         {
             return o1.getStartValue().compareTo( o2.getStartValue() );
         }
-        
-        return o1.getEndValue().compareTo( o2.getEndValue() );            
+
+        return o1.getEndValue().compareTo( o2.getEndValue() );
     }
 }

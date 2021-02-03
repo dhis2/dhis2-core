@@ -28,10 +28,11 @@ package org.hisp.dhis.deduplication;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 @Service( "org.hisp.dhis.deduplication.DeduplicationService" )
 public class DefaultDeduplicationService
     implements DeduplicationService

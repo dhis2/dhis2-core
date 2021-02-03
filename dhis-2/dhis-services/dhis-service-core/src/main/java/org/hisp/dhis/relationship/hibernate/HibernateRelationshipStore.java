@@ -71,10 +71,9 @@ public class HibernateRelationshipStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root ->
-                builder.or(
-                    builder.equal( root.join( "from" ).get( "trackedEntityInstance" ), tei )
-                    ,builder.equal( root.join( "to" ).get( "trackedEntityInstance" ), tei ) ) ) );
+            .addPredicate( root -> builder.or(
+                builder.equal( root.join( "from" ).get( "trackedEntityInstance" ), tei ),
+                builder.equal( root.join( "to" ).get( "trackedEntityInstance" ), tei ) ) ) );
     }
 
     @Override
@@ -83,10 +82,9 @@ public class HibernateRelationshipStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root ->
-                builder.or(
-                    builder.equal( root.join( "from" ).get( "programInstance" ), pi )
-                    ,builder.equal( root.join( "to" ).get( "programInstance" ), pi ) ) ) );
+            .addPredicate( root -> builder.or(
+                builder.equal( root.join( "from" ).get( "programInstance" ), pi ),
+                builder.equal( root.join( "to" ).get( "programInstance" ), pi ) ) ) );
     }
 
     @Override
@@ -95,10 +93,9 @@ public class HibernateRelationshipStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root ->
-                builder.or(
-                    builder.equal( root.join( "from" ).get( "programStageInstance" ), psi )
-                    ,builder.equal( root.join( "to" ).get( "programStageInstance" ), psi ) ) ) );
+            .addPredicate( root -> builder.or(
+                builder.equal( root.join( "from" ).get( "programStageInstance" ), psi ),
+                builder.equal( root.join( "to" ).get( "programStageInstance" ), psi ) ) ) );
     }
 
     @Override
@@ -120,8 +117,8 @@ public class HibernateRelationshipStore
         Root<Relationship> root = criteriaQuery.from( Relationship.class );
 
         criteriaQuery.where( builder.and(
-            getFromOrToPredicate("from", builder, root, relationship),
-            getFromOrToPredicate("to", builder, root, relationship),
+            getFromOrToPredicate( "from", builder, root, relationship ),
+            getFromOrToPredicate( "to", builder, root, relationship ),
             builder.equal( root.join( "relationshipType" ), relationship.getRelationshipType() ) ) );
 
         try
@@ -135,7 +132,9 @@ public class HibernateRelationshipStore
 
     }
 
-    private Predicate getFromOrToPredicate(String direction, CriteriaBuilder builder, Root<Relationship> root, Relationship relationship) {
+    private Predicate getFromOrToPredicate( String direction, CriteriaBuilder builder, Root<Relationship> root,
+        Relationship relationship )
+    {
 
         RelationshipItem relationshipItemDirection = getItem( direction, relationship );
 

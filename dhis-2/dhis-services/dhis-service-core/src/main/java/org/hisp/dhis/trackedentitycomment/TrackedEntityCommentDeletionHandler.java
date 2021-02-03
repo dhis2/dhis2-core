@@ -60,7 +60,7 @@ public class TrackedEntityCommentDeletionHandler
     @Override
     public void deleteProgramInstance( ProgramInstance programInstance )
     {
-        for( TrackedEntityComment comment : programInstance.getComments())
+        for ( TrackedEntityComment comment : programInstance.getComments() )
         {
             commentService.deleteTrackedEntityComment( comment );
         }
@@ -69,7 +69,7 @@ public class TrackedEntityCommentDeletionHandler
     @Override
     public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
-        for( TrackedEntityComment comment : programStageInstance.getComments())
+        for ( TrackedEntityComment comment : programStageInstance.getComments() )
         {
             commentService.deleteTrackedEntityComment( comment );
         }

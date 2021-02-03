@@ -61,6 +61,6 @@ public class LeaderRenewalJob extends AbstractJob
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-       leaderManager.renewLeader();
+        leaderManager.renewLeader();
     }
 }

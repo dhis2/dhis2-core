@@ -51,7 +51,7 @@ public class TrackedEntityInstanceCheck implements Checker
         Program program = ctx.getProgramsMap().get( event.getProgram() );
         final Optional<TrackedEntityInstance> trackedEntityInstance = ctx.getTrackedEntityInstance( event.getUid() );
 
-        if ( program.isRegistration() && !trackedEntityInstance.isPresent()  )
+        if ( program.isRegistration() && !trackedEntityInstance.isPresent() )
         {
             return new ImportSummary( ImportStatus.ERROR,
                 "Event.trackedEntityInstance does not point to a valid tracked entity instance: "

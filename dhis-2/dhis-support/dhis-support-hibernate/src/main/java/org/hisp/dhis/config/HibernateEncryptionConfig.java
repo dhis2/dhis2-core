@@ -28,7 +28,8 @@ package org.hisp.dhis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
@@ -41,7 +42,7 @@ import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Luciano Fiandesio
@@ -60,7 +61,8 @@ public class HibernateEncryptionConfig
         password = (String) getConnectionProperty( "encryption.password", "J7GhAs287hsSQlKd9g5" );
     }
 
-    // Used only for SystemSettings (due to bug with JCE policy restrictions in Jasypt)
+    // Used only for SystemSettings (due to bug with JCE policy restrictions in
+    // Jasypt)
     @Bean( "tripleDesStringEncryptor" )
     public PooledPBEStringEncryptor tripleDesStringEncryptor()
     {

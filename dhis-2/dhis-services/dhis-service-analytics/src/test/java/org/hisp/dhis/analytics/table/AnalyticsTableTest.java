@@ -56,7 +56,8 @@ public class AnalyticsTableTest
         Program program = new Program( "ProgramA", "DescriptionA" );
         program.setUid( "UIDA" );
 
-        AnalyticsTable tableA = new AnalyticsTable( AnalyticsTableType.EVENT, Lists.newArrayList(), Lists.newArrayList(), program );
+        AnalyticsTable tableA = new AnalyticsTable( AnalyticsTableType.EVENT, Lists.newArrayList(),
+            Lists.newArrayList(), program );
 
         assertEquals( "analytics_event_uida", tableA.getTableName() );
     }
@@ -70,7 +71,8 @@ public class AnalyticsTableTest
         Period periodA = new YearlyPeriodType().createPeriod( new DateTime( 2014, 1, 1, 0, 0 ).toDate() );
         Period periodB = new YearlyPeriodType().createPeriod( new DateTime( 2015, 1, 1, 0, 0 ).toDate() );
 
-        AnalyticsTable tableA = new AnalyticsTable( AnalyticsTableType.EVENT, Lists.newArrayList(), Lists.newArrayList(), program );
+        AnalyticsTable tableA = new AnalyticsTable( AnalyticsTableType.EVENT, Lists.newArrayList(),
+            Lists.newArrayList(), program );
 
         tableA.addPartitionTable( 2014, periodA.getStartDate(), periodA.getEndDate() );
         tableA.addPartitionTable( 2015, periodB.getStartDate(), periodB.getEndDate() );
@@ -91,8 +93,10 @@ public class AnalyticsTableTest
     @Test
     public void testEquals()
     {
-        AnalyticsTable tableA = new AnalyticsTable( AnalyticsTableType.DATA_VALUE, Lists.newArrayList(), Lists.newArrayList() );
-        AnalyticsTable tableB = new AnalyticsTable( AnalyticsTableType.DATA_VALUE, Lists.newArrayList(), Lists.newArrayList() );
+        AnalyticsTable tableA = new AnalyticsTable( AnalyticsTableType.DATA_VALUE, Lists.newArrayList(),
+            Lists.newArrayList() );
+        AnalyticsTable tableB = new AnalyticsTable( AnalyticsTableType.DATA_VALUE, Lists.newArrayList(),
+            Lists.newArrayList() );
 
         List<AnalyticsTable> uniqueList = new UniqueArrayList<>();
         uniqueList.add( tableA );

@@ -28,8 +28,9 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -57,7 +58,8 @@ public enum PropertyType
 
     public boolean isSimple()
     {
-        return IDENTIFIER == this || TEXT == this || NUMBER == this || INTEGER == this || EMAIL == this || PASSWORD == this || URL == this
+        return IDENTIFIER == this || TEXT == this || NUMBER == this || INTEGER == this || EMAIL == this
+            || PASSWORD == this || URL == this
             || DATE == this || PHONENUMBER == this || GEOLOCATION == this || COLOR == this || CONSTANT == this;
     }
 }

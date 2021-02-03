@@ -51,20 +51,20 @@ public enum DimensionType
     VALIDATION_RULE,
     STATIC,
     ORGANISATION_UNIT_LEVEL;
-    
+
     private static final int LAST_ORDER = 999;
-    
+
     private int order = LAST_ORDER;
-    
+
     DimensionType()
     {
     }
-    
+
     DimensionType( int order )
     {
         this.order = order;
     }
-    
+
     public int getOrder()
     {
         return order;

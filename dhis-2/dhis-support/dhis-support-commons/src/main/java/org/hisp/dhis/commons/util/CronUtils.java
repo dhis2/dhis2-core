@@ -65,12 +65,12 @@ public class CronUtils
             String.valueOf( hours ),
             "*/1",
             null,
-            null
-        );
+            null );
     }
 
     /**
-     * Generates a cron pattern that will execute every week at the dayOfWeek at hour:minute
+     * Generates a cron pattern that will execute every week at the dayOfWeek at
+     * hour:minute
      *
      * @param minutes
      * @param hours
@@ -90,7 +90,8 @@ public class CronUtils
     }
 
     /**
-     * Generates a cron pattern that will execute every month at the dayOfMonth at hour:minute
+     * Generates a cron pattern that will execute every month at the dayOfMonth at
+     * hour:minute
      *
      * @param minutes
      * @param hours
@@ -105,8 +106,7 @@ public class CronUtils
             String.valueOf( hours ),
             String.valueOf( dayOfMonth ),
             "*/1",
-            null
-        );
+            null );
     }
 
     /**
@@ -114,9 +114,9 @@ public class CronUtils
      *
      * @param seconds a valid cron segment
      * @param minutes a valid cron segment
-     * @param hours   a valid cron segment
-     * @param days    a valid cron segment
-     * @param months  a valid cron segment
+     * @param hours a valid cron segment
+     * @param days a valid cron segment
+     * @param months a valid cron segment
      * @param weekday a valid cron segment (MON-SUN)
      * @return a cron pattern
      */
@@ -129,7 +129,6 @@ public class CronUtils
             (hours == null ? "*" : hours),
             (days == null ? "*" : days),
             (months == null ? "*" : months),
-            (weekday == null ? "*" : weekday)
-        );
+            (weekday == null ? "*" : weekday) );
     }
 }

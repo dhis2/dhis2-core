@@ -28,6 +28,8 @@ package org.hisp.dhis.resourcetable.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.system.util.SqlUtils.quote;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -37,8 +39,6 @@ import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
-
-import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 /**
  * @author Lars Helge Overland
@@ -80,23 +80,24 @@ public class IndicatorGroupSetResourceTable
     @Override
     public Optional<String> getPopulateTempTableStatement()
     {
-        String sql =
-            "insert into " + getTempTableName() + " " +
-             "select i.indicatorid as indicatorid, i.name as indicatorname, ";
+        String sql = "insert into " + getTempTableName() + " " +
+            "select i.indicatorid as indicatorid, i.name as indicatorname, ";
 
         for ( IndicatorGroupSet groupSet : objects )
         {
             sql += "(" +
                 "select ig.name from indicatorgroup ig " +
                 "inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid " +
-                "inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = " + groupSet.getId() + " " +
+                "inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = "
+                + groupSet.getId() + " " +
                 "where igm.indicatorid = i.indicatorid " +
                 "limit 1) as " + quote( groupSet.getName() ) + ", ";
 
             sql += "(" +
                 "select ig.uid from indicatorgroup ig " +
                 "inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid " +
-                "inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = " + groupSet.getId() + " " +
+                "inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = "
+                + groupSet.getId() + " " +
                 "where igm.indicatorid = i.indicatorid " +
                 "limit 1) as " + quote( groupSet.getUid() ) + ", ";
         }

@@ -28,16 +28,17 @@ package org.hisp.dhis.system.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.locationtech.jts.geom.Geometry;
 import org.hisp.dhis.commons.filter.Filter;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.util.GeoUtils;
+import org.locationtech.jts.geom.Geometry;
 
 public class OrganisationUnitPolygonCoveringCoordinateFilter
     implements Filter<OrganisationUnit>
 {
     private double longitude;
+
     private double latitude;
 
     public OrganisationUnitPolygonCoveringCoordinateFilter( double longitude, double latitude )
@@ -50,7 +51,7 @@ public class OrganisationUnitPolygonCoveringCoordinateFilter
     public boolean retain( OrganisationUnit unit )
     {
         Geometry geometry = unit.getGeometry();
-        return geometry != null && FeatureType.getTypeFromName(geometry.getGeometryType()) == FeatureType.POLYGON
+        return geometry != null && FeatureType.getTypeFromName( geometry.getGeometryType() ) == FeatureType.POLYGON
             && GeoUtils.checkPointWithMultiPolygon( longitude, latitude, unit.getGeometry() );
     }
 }

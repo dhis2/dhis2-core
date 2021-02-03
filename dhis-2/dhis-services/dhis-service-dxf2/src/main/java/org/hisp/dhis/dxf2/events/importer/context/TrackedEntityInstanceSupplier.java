@@ -99,7 +99,8 @@ public class TrackedEntityInstanceSupplier extends AbstractSupplier<Map<String, 
         Map<String, Pair<TrackedEntityInstance, Boolean>> result = new HashMap<>();
 
         //
-        // Return a map containing a Pair where key is the Tei and value is the boolean, can the TEI be updated
+        // Return a map containing a Pair where key is the Tei and value is the boolean,
+        // can the TEI be updated
         // by current user
         //
         for ( String event : teiMap.keySet() )

@@ -28,6 +28,8 @@ package org.hisp.dhis.version.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.version.Version;
@@ -36,14 +38,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-
 @Repository( "org.hisp.dhis.version.VersionStore" )
 public class HibernateVersionStore
     extends HibernateGenericStore<Version>
     implements VersionStore
 {
-    public HibernateVersionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
+    public HibernateVersionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher )
     {
         super( sessionFactory, jdbcTemplate, publisher, Version.class, true );
     }
@@ -53,6 +54,7 @@ public class HibernateVersionStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "key" ), key ) ) );
+        return getSingleResult( builder,
+            newJpaParameters().addPredicate( root -> builder.equal( root.get( "key" ), key ) ) );
     }
 }

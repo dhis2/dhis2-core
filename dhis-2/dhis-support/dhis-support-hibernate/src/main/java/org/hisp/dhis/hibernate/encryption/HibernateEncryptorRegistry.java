@@ -28,15 +28,17 @@ package org.hisp.dhis.hibernate.encryption;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Maps;
+import java.util.Map;
+
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 
-import java.util.Map;
+import com.google.common.collect.Maps;
 
 /**
  * Singleton registry for all (named) Hibernate Encryptors.
- * {@link org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType EncryptedStringUserType}
- * depends on this singleton to access the appropriate encryptor(s).
+ * {@link org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType
+ * EncryptedStringUserType} depends on this singleton to access the appropriate
+ * encryptor(s).
  *
  * @author Halvdan Hoem Grelland
  */
@@ -47,7 +49,7 @@ public final class HibernateEncryptorRegistry
     private final Map<String, PBEStringEncryptor> encryptors = Maps.newHashMap();
 
     private HibernateEncryptorRegistry()
-    {   
+    {
     }
 
     /**

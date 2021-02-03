@@ -52,7 +52,8 @@ public interface DataSetReportStore
      *        <dim-id>:<dim-item>;<dim-item>
      * @return a mapping from dimensional identifiers to aggregated values.
      */
-    Map<String, Object> getAggregatedValues( DataSet dataSet, Period period, OrganisationUnit unit, Set<String> filters );
+    Map<String, Object> getAggregatedValues( DataSet dataSet, Period period, OrganisationUnit unit,
+        Set<String> filters );
 
     /**
      * Get a mapping from dimensional identifiers to aggregated sub-total values.
@@ -62,9 +63,11 @@ public interface DataSetReportStore
      * @param unit the organisation unit.
      * @param filters the filters on the analytics dimension format, e.g.
      *        <dim-id>:<dim-item>;<dim-item>
-     * @return a mapping from dimensional identifiers to aggregated sub-total values.
+     * @return a mapping from dimensional identifiers to aggregated sub-total
+     *         values.
      */
-    Map<String, Object> getAggregatedSubTotals( DataSet dataSet, Period period, OrganisationUnit unit, Set<String> filters );
+    Map<String, Object> getAggregatedSubTotals( DataSet dataSet, Period period, OrganisationUnit unit,
+        Set<String> filters );
 
     /**
      * Get a mapping from dimensional identifiers to aggregated total values.
@@ -76,7 +79,8 @@ public interface DataSetReportStore
      *        <dim-id>:<dim-item>;<dim-item>
      * @return a mapping from dimensional identifiers to aggregated total values.
      */
-    Map<String, Object> getAggregatedTotals( DataSet dataSet, Period period, OrganisationUnit unit, Set<String> filters );
+    Map<String, Object> getAggregatedTotals( DataSet dataSet, Period period, OrganisationUnit unit,
+        Set<String> filters );
 
     /**
      * Get a mapping from dimensional identifiers to aggregated indicator values.
@@ -86,7 +90,9 @@ public interface DataSetReportStore
      * @param unit the organisation unit.
      * @param filters the filters on the analytics dimension format, e.g.
      *        <dim-id>:<dim-item>;<dim-item>
-     * @return a mapping from dimensional identifiers to aggregated indicator values.
+     * @return a mapping from dimensional identifiers to aggregated indicator
+     *         values.
      */
-    Map<String, Object> getAggregatedIndicatorValues( DataSet dataSet, Period period, OrganisationUnit unit, Set<String> filters );
+    Map<String, Object> getAggregatedIndicatorValues( DataSet dataSet, Period period, OrganisationUnit unit,
+        Set<String> filters );
 }

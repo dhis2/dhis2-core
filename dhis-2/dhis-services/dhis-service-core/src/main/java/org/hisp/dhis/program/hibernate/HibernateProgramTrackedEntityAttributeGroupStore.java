@@ -44,7 +44,7 @@ import org.springframework.stereotype.Repository;
 @Repository( "org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" )
 public class HibernateProgramTrackedEntityAttributeGroupStore
     extends HibernateIdentifiableObjectStore<ProgramTrackedEntityAttributeGroup>
-        implements ProgramTrackedEntityAttributeGroupStore
+    implements ProgramTrackedEntityAttributeGroupStore
 {
     public HibernateProgramTrackedEntityAttributeGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )

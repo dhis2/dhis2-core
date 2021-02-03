@@ -28,10 +28,10 @@ package org.hisp.dhis.jdbc.statementbuilder;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.*;
+
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -42,9 +42,9 @@ public class StatementBuilderTest
     public void testStatementBuilder()
     {
         StatementBuilder builder = new PostgreSQLStatementBuilder();
-                
+
         String autoIncrement = builder.getAutoIncrementValue();
-        
+
         assertEquals( "nextval('hibernate_sequence')", autoIncrement );
     }
 }

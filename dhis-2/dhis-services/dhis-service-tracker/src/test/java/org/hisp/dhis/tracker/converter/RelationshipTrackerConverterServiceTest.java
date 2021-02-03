@@ -153,27 +153,25 @@ public class RelationshipTrackerConverterServiceTest
         assertNotNull( from );
         assertEquals( 2, from.size() );
 
-        from.forEach( relationship ->
+        from.forEach( relationship -> {
+            if ( MOTHER_TO_CHILD_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
             {
-                if ( MOTHER_TO_CHILD_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
-                {
-                    assertEquals( MOTHER, relationship.getFrom().getTrackedEntityInstance().getUid() );
-                    assertEquals( CHILD, relationship.getTo().getTrackedEntityInstance().getUid() );
-                }
-                else if ( CHILD_TO_MOTHER_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
-                {
-                    assertEquals( CHILD, relationship.getFrom().getTrackedEntityInstance().getUid() );
-                    assertEquals( MOTHER, relationship.getTo().getTrackedEntityInstance().getUid() );
-                }
-                else
-                {
-                    fail( "Unexpected relationshipType found." );
-                }
-
-                assertNotNull( relationship.getFrom() );
-                assertNotNull( relationship.getTo() );
+                assertEquals( MOTHER, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                assertEquals( CHILD, relationship.getTo().getTrackedEntityInstance().getUid() );
             }
-        );
+            else if ( CHILD_TO_MOTHER_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
+            {
+                assertEquals( CHILD, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                assertEquals( MOTHER, relationship.getTo().getTrackedEntityInstance().getUid() );
+            }
+            else
+            {
+                fail( "Unexpected relationshipType found." );
+            }
+
+            assertNotNull( relationship.getFrom() );
+            assertNotNull( relationship.getTo() );
+        } );
     }
 
     @Test
@@ -187,26 +185,24 @@ public class RelationshipTrackerConverterServiceTest
         assertNotNull( to );
         assertEquals( 2, to.size() );
 
-        from.forEach( relationship ->
+        from.forEach( relationship -> {
+            if ( MOTHER_TO_CHILD_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
             {
-                if ( MOTHER_TO_CHILD_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
-                {
-                    assertEquals( MOTHER, relationship.getFrom().getTrackedEntityInstance().getUid() );
-                    assertEquals( CHILD, relationship.getTo().getTrackedEntityInstance().getUid() );
-                }
-                else if ( CHILD_TO_MOTHER_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
-                {
-                    assertEquals( CHILD, relationship.getFrom().getTrackedEntityInstance().getUid() );
-                    assertEquals( MOTHER, relationship.getTo().getTrackedEntityInstance().getUid() );
-                }
-                else
-                {
-                    fail( "Unexpected relationshipType found." );
-                }
-
-                assertNotNull( relationship.getFrom() );
-                assertNotNull( relationship.getTo() );
+                assertEquals( MOTHER, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                assertEquals( CHILD, relationship.getTo().getTrackedEntityInstance().getUid() );
             }
-        );
+            else if ( CHILD_TO_MOTHER_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
+            {
+                assertEquals( CHILD, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                assertEquals( MOTHER, relationship.getTo().getTrackedEntityInstance().getUid() );
+            }
+            else
+            {
+                fail( "Unexpected relationshipType found." );
+            }
+
+            assertNotNull( relationship.getFrom() );
+            assertNotNull( relationship.getTo() );
+        } );
     }
 }

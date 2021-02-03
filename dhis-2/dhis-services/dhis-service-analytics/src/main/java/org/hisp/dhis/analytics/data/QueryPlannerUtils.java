@@ -28,8 +28,11 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.AggregationType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
@@ -42,10 +45,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.util.ObjectUtils;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Utilities for analytics query planning.
@@ -93,7 +92,8 @@ public class QueryPlannerUtils
      *
      * @param dataElements list of data elements.
      */
-    public static ListMap<DataType, DimensionalItemObject> getDataTypeDataElementMap( List<DimensionalItemObject> dataElements )
+    public static ListMap<DataType, DimensionalItemObject> getDataTypeDataElementMap(
+        List<DimensionalItemObject> dataElements )
     {
         ListMap<DataType, DimensionalItemObject> map = new ListMap<>();
 
@@ -105,7 +105,7 @@ public class QueryPlannerUtils
 
             // Both text and date types are recognized as DataType.TEXT
 
-            DataType dataType = ( valueType.isText() || valueType.isDate() ) ? DataType.TEXT : DataType.NUMERIC;
+            DataType dataType = (valueType.isText() || valueType.isDate()) ? DataType.TEXT : DataType.NUMERIC;
 
             map.putValue( dataType, dataElement );
         }
@@ -145,8 +145,8 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Creates a mapping between the number of days in the period interval and periods
-     * for the given periods.
+     * Creates a mapping between the number of days in the period interval and
+     * periods for the given periods.
      *
      * @param periods
      */
@@ -165,15 +165,17 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Returns the {@link AnalyticsAggregationType} according to the given value type,
-     * aggregation type, value type aggregation period type and data period type.
+     * Returns the {@link AnalyticsAggregationType} according to the given value
+     * type, aggregation type, value type aggregation period type and data period
+     * type.
      *
      * @param aggregationType the aggregation type.
      * @param valueType the value type.
      * @param aggregationPeriodType the aggregation period type.
      * @param dataPeriodType the data period type.
      */
-    public static AnalyticsAggregationType getAggregationType( AnalyticsAggregationType aggregationType, ValueType valueType,
+    public static AnalyticsAggregationType getAggregationType( AnalyticsAggregationType aggregationType,
+        ValueType valueType,
         PeriodType aggregationPeriodType, PeriodType dataPeriodType )
     {
         DataType dataType = DataType.fromValueType( valueType );
@@ -184,14 +186,15 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Indicates whether disaggregation is allowed for the given input. Disaggregation
-     * implies that the frequency order of the aggregation period type is lower than
-     * the data period type.
+     * Indicates whether disaggregation is allowed for the given input.
+     * Disaggregation implies that the frequency order of the aggregation period
+     * type is lower than the data period type.
      *
      * @param aggregationPeriodType the aggregation period type.
      * @param dataPeriodType the data period type.
      */
-    public static boolean isDisaggregation( AnalyticsAggregationType aggregationType, PeriodType aggregationPeriodType, PeriodType dataPeriodType )
+    public static boolean isDisaggregation( AnalyticsAggregationType aggregationType, PeriodType aggregationPeriodType,
+        PeriodType dataPeriodType )
     {
         if ( dataPeriodType == null || aggregationPeriodType == null )
         {
@@ -218,8 +221,8 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Creates a mapping between the period type and data elements for the
-     * given list of data elements.
+     * Creates a mapping between the period type and data elements for the given
+     * list of data elements.
      *
      * @param dataElements the list of data elements.
      */

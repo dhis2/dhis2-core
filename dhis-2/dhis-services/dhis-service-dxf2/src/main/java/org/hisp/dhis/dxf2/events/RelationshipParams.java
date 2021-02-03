@@ -33,13 +33,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class RelationshipParams
 {
     public static final RelationshipParams TRUE = new RelationshipParams( true, true );
+
     public static final RelationshipParams FALSE = new RelationshipParams( false, false );
 
     private boolean includeFrom;
 
     private boolean includeTo;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings( "unused" )
     private RelationshipParams()
     {
     }

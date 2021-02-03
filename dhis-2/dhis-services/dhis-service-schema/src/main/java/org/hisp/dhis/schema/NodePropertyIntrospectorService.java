@@ -38,6 +38,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -49,8 +51,6 @@ import org.springframework.util.StringUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -79,6 +79,7 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
 
         return property;
     }
+
     @Override
     protected Map<String, Property> scanClass( Class<?> klass )
     {
@@ -221,7 +222,8 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
         {
             property.setName( nodeCollection.itemName() );
         }
-        else // if itemName is not set, check to see if itemKlass have a @RootNode with a name
+        else // if itemName is not set, check to see if itemKlass have a @RootNode with a
+             // name
         {
             if ( property.getItemKlass() != null && property.getItemKlass().isAnnotationPresent( NodeRoot.class ) )
             {
@@ -254,7 +256,8 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
         {
             try
             {
-                Method method = includeType ? klass.getMethod( prefix + name, field.getType() ) : klass.getMethod( prefix + name );
+                Method method = includeType ? klass.getMethod( prefix + name, field.getType() )
+                    : klass.getMethod( prefix + name );
 
                 if ( method != null )
                 {
@@ -266,7 +269,8 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
             }
         }
 
-        // TODO should we just return null in this case? if this happens, its clearly a mistake
+        // TODO should we just return null in this case? if this happens, its clearly a
+        // mistake
         if ( methods.size() > 1 )
         {
             log.error( "More than one method found for field " + field.getName() + " on class " + klass.getName()

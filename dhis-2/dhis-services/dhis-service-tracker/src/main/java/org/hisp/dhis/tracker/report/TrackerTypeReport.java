@@ -33,14 +33,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
+
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.Data;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -63,9 +63,10 @@ public class TrackerTypeReport
     {
         this.trackerType = trackerType;
     }
-    
+
     @JsonCreator
-    public TrackerTypeReport( @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "stats" ) TrackerStats stats,
+    public TrackerTypeReport( @JsonProperty( "trackerType" ) TrackerType trackerType,
+        @JsonProperty( "stats" ) TrackerStats stats,
         @JsonProperty( "sideEffectDataBundles" ) List<TrackerSideEffectDataBundle> sideEffectDataBundles,
         @JsonProperty( "objectReports" ) List<TrackerObjectReport> objectReports )
     {
@@ -88,9 +89,9 @@ public class TrackerTypeReport
         return new ArrayList<>( objectReportMap.values() );
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Utility Methods
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     /**
      * Are there any errors present?

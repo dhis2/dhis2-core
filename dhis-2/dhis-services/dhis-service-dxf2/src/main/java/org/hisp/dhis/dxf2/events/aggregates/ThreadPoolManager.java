@@ -41,7 +41,8 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  */
 public class ThreadPoolManager
 {
-    // Thread factory that sets a user-defined thread name (useful for debugging purposes)
+    // Thread factory that sets a user-defined thread name (useful for debugging
+    // purposes)
 
     private final static ThreadFactory threadFactory = new ThreadFactoryBuilder()
         .setNameFormat( "TRACKER-TEI-FETCH-%d" )

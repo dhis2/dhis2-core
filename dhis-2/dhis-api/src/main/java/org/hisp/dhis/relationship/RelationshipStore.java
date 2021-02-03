@@ -52,14 +52,13 @@ public interface RelationshipStore
     List<Relationship> getByRelationshipType( RelationshipType relationshipType );
 
     /**
-     * Fetches a {@link Relationship} based on a relationship identifying attributes:
-     * - relationship type
-     * - from
-     * - to
+     * Fetches a {@link Relationship} based on a relationship identifying
+     * attributes: - relationship type - from - to
      *
      * @param relationship A valid Relationship
      *
-     * @return a {@link Relationship} or null if no Relationship is found matching the identifying criterias
+     * @return a {@link Relationship} or null if no Relationship is found matching
+     *         the identifying criterias
      */
     Relationship getByRelationship( Relationship relationship );
 }

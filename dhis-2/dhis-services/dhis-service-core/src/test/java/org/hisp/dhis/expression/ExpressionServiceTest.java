@@ -37,20 +37,20 @@ import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS_ON_TIME;
 import static org.hisp.dhis.common.ReportingRateMetric.EXPECTED_REPORTS;
 import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE;
 import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE_ON_TIME;
-import static org.hisp.dhis.expression.ParseType.*;
 import static org.hisp.dhis.expression.ExpressionValidationOutcome.*;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
 import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING;
+import static org.hisp.dhis.expression.ParseType.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -73,7 +73,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
@@ -85,6 +84,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 
 /**
  * @author Jim Grace
@@ -118,36 +118,57 @@ public class ExpressionServiceTest
 
     @Autowired
     private ConstantService constantService;
+
     private OrganisationUnit orgUnitA;
+
     private OrganisationUnit orgUnitB;
+
     private OrganisationUnit orgUnitC;
+
     private OrganisationUnit orgUnitD;
+
     private OrganisationUnit orgUnitE;
+
     private OrganisationUnit orgUnitF;
+
     private OrganisationUnit orgUnitG;
+
     private OrganisationUnit orgUnitH;
+
     private OrganisationUnit orgUnitI;
+
     private OrganisationUnit orgUnitJ;
+
     private OrganisationUnit orgUnitK;
+
     private OrganisationUnit orgUnitL;
 
     private OrganisationUnitGroup orgUnitGroupA;
+
     private OrganisationUnitGroup orgUnitGroupB;
+
     private OrganisationUnitGroup orgUnitGroupC;
 
     private DataSet dataSetA;
+
     private DataSet dataSetB;
 
     private static DataElement dataElementA;
+
     private static DataElement dataElementB;
+
     private static DataElement dataElementC;
+
     private static DataElement dataElementD;
+
     private static DataElement dataElementE;
 
     private static IndicatorType indicatorTypeB;
+
     private static Indicator indicatorA;
 
     private static CategoryOption categoryOptionA;
+
     private static CategoryOption categoryOptionB;
 
     private static Category categoryA;
@@ -155,35 +176,51 @@ public class ExpressionServiceTest
     private static CategoryCombo categoryComboA;
 
     private static CategoryOptionCombo categoryOptionComboA;
+
     private static CategoryOptionCombo categoryOptionComboB;
 
     private static DataElementOperand dataElementOperandA;
+
     private static DataElementOperand dataElementOperandB;
+
     private static DataElementOperand dataElementOperandC;
+
     private static DataElementOperand dataElementOperandD;
+
     private static DataElementOperand dataElementOperandE;
+
     private static DataElementOperand dataElementOperandF;
 
     private static ProgramDataElementDimensionItem programDataElementA;
+
     private static ProgramDataElementDimensionItem programDataElementB;
 
     private static Program programA;
+
     private static Program programB;
 
     private static ProgramIndicator programIndicatorA;
+
     private static ProgramIndicator programIndicatorB;
 
     private static TrackedEntityAttribute trackedEntityAttributeA;
+
     private static TrackedEntityAttribute trackedEntityAttributeB;
 
     private static ProgramTrackedEntityAttributeDimensionItem programAttributeA;
+
     private static ProgramTrackedEntityAttributeDimensionItem programAttributeB;
 
     private static ReportingRate reportingRateA;
+
     private static ReportingRate reportingRateB;
+
     private static ReportingRate reportingRateC;
+
     private static ReportingRate reportingRateD;
+
     private static ReportingRate reportingRateE;
+
     private static ReportingRate reportingRateF;
 
     private static IndicatorType indicatorTypeA;
@@ -194,13 +231,13 @@ public class ExpressionServiceTest
 
     private Map<String, Constant> constantMap;
 
-    private static final Map<String, Integer> ORG_UNIT_COUNT_MAP =
-        new ImmutableMap.Builder<String, Integer>()
+    private static final Map<String, Integer> ORG_UNIT_COUNT_MAP = new ImmutableMap.Builder<String, Integer>()
         .put( "orgUnitGrpA", 1000000 )
         .put( "orgUnitGrpB", 2000000 )
         .build();
 
     private static final Period samplePeriod1 = PeriodType.getPeriodFromIsoString( "20200101" );
+
     private static final Period samplePeriod2 = PeriodType.getPeriodFromIsoString( "20200102" );
 
     private static final List<Period> TEST_SAMPLE_PERIODS = Lists.newArrayList( samplePeriod1, samplePeriod2 );
@@ -236,11 +273,11 @@ public class ExpressionServiceTest
         dataElementC.setDomainType( DataElementDomain.TRACKER );
         dataElementD.setDomainType( DataElementDomain.TRACKER );
 
-        dataElementA.setName( "DeA");
-        dataElementB.setName( "DeB");
-        dataElementC.setName( "DeC");
-        dataElementD.setName( "DeD");
-        dataElementE.setName( "DeE");
+        dataElementA.setName( "DeA" );
+        dataElementB.setName( "DeB" );
+        dataElementC.setName( "DeC" );
+        dataElementD.setName( "DeD" );
+        dataElementE.setName( "DeE" );
 
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
@@ -255,7 +292,7 @@ public class ExpressionServiceTest
         indicatorA.setUid( "mindicatorA" );
 
         indicatorService.addIndicator( indicatorA );
-        
+
         categoryOptionA = createCategoryOption( 'A' );
         categoryOptionB = createCategoryOption( 'B' );
 
@@ -289,12 +326,12 @@ public class ExpressionServiceTest
         dataElementOperandE = new DataElementOperand( dataElementA, null, categoryOptionComboB );
         dataElementOperandF = new DataElementOperand( dataElementB, null, categoryOptionComboA );
 
-        dataElementOperandA.setName( "DeoA");
-        dataElementOperandA.setName( "DeoB");
-        dataElementOperandA.setName( "DeoC");
-        dataElementOperandA.setName( "DeoD");
-        dataElementOperandA.setName( "DeoE");
-        dataElementOperandA.setName( "DeoF");
+        dataElementOperandA.setName( "DeoA" );
+        dataElementOperandA.setName( "DeoB" );
+        dataElementOperandA.setName( "DeoC" );
+        dataElementOperandA.setName( "DeoD" );
+        dataElementOperandA.setName( "DeoE" );
+        dataElementOperandA.setName( "DeoF" );
 
         programA = createProgram( 'A' );
         programB = createProgram( 'B' );
@@ -317,8 +354,8 @@ public class ExpressionServiceTest
         trackedEntityAttributeA = createTrackedEntityAttribute( 'A', ValueType.NUMBER );
         trackedEntityAttributeB = createTrackedEntityAttribute( 'B', ValueType.NUMBER );
 
-        trackedEntityAttributeA.setUid( "trakEntAttA");
-        trackedEntityAttributeB.setUid( "trakEntAttB");
+        trackedEntityAttributeA.setUid( "trakEntAttA" );
+        trackedEntityAttributeB.setUid( "trakEntAttB" );
 
         trackedEntityAttributeA.setName( "TeaA" );
         trackedEntityAttributeB.setName( "TeaB" );
@@ -500,7 +537,7 @@ public class ExpressionServiceTest
             .put( reportingRateE, 405.0 )
             .put( reportingRateF, 406.0 )
 
-            .put ( indicatorA, 88.0)
+            .put( indicatorA, 88.0 )
 
             .build();
 
@@ -521,9 +558,9 @@ public class ExpressionServiceTest
     // -------------------------------------------------------------------------
 
     /**
-     * Evaluates a test expression, against getExpressionDimensionalItemObjects
-     * and getExpressionValue. Returns a string containing first the returned
-     * value from getExpressionValue, and then the items returned from
+     * Evaluates a test expression, against getExpressionDimensionalItemObjects and
+     * getExpressionValue. Returns a string containing first the returned value from
+     * getExpressionValue, and then the items returned from
      * getExpressionDimensionalItemObjects, if any, separated by spaces.
      *
      * @param expr expression to evaluate
@@ -553,9 +590,9 @@ public class ExpressionServiceTest
     }
 
     /**
-     * Evaluates a test expression, against getExpressionDimensionalItemObjects
-     * and getExpressionValue. Returns a string containing first the returned
-     * value from getExpressionValue, and then the items returned from
+     * Evaluates a test expression, against getExpressionDimensionalItemObjects and
+     * getExpressionValue. Returns a string containing first the returned value from
+     * getExpressionValue, and then the items returned from
      * getExpressionDimensionalItemObjects, if any, separated by spaces.
      *
      * @param expr expression to evaluate
@@ -568,10 +605,11 @@ public class ExpressionServiceTest
     }
 
     /**
-     * Evaluates a test predictor expression, against getExpressionDimensionalItemObjects
-     * and getExpressionValue. Returns a string containing first the returned
-     * value from getExpressionValue, and then the items returned from
-     * getExpressionDimensionalItemObjects, if any, separated by spaces.
+     * Evaluates a test predictor expression, against
+     * getExpressionDimensionalItemObjects and getExpressionValue. Returns a string
+     * containing first the returned value from getExpressionValue, and then the
+     * items returned from getExpressionDimensionalItemObjects, if any, separated by
+     * spaces.
      *
      * @param expr expression to evaluate
      * @param missingValueStrategy strategy to use if item value is missing
@@ -610,11 +648,11 @@ public class ExpressionServiceTest
         }
         else if ( value instanceof Double )
         {
-            double d = (double)value;
+            double d = (double) value;
 
-            if ( d == (int) d)
+            if ( d == (int) d )
             {
-                valueString = Integer.toString((int) d);
+                valueString = Integer.toString( (int) d );
             }
             else
             {
@@ -630,7 +668,8 @@ public class ExpressionServiceTest
             valueString = "Class " + value.getClass().getName() + " " + value.toString();
         }
 
-        List<String> itemNames = items.stream().map(IdentifiableObject::getName).sorted().collect( Collectors.toList() );
+        List<String> itemNames = items.stream().map( IdentifiableObject::getName ).sorted()
+            .collect( Collectors.toList() );
 
         String itemsString = String.join( " ", itemNames );
 
@@ -672,13 +711,14 @@ public class ExpressionServiceTest
      */
     private String getOrgUnitGroups( String expr )
     {
-        Set<OrganisationUnitGroup> orgUnitGroups = expressionService.getExpressionOrgUnitGroups( expr, INDICATOR_EXPRESSION );
+        Set<OrganisationUnitGroup> orgUnitGroups = expressionService.getExpressionOrgUnitGroups( expr,
+            INDICATOR_EXPRESSION );
 
         List<String> orgUnitGroupNames = orgUnitGroups.stream()
-            .map(BaseIdentifiableObject::getName)
-            .sorted().collect(Collectors.toList());
+            .map( BaseIdentifiableObject::getName )
+            .sorted().collect( Collectors.toList() );
 
-        return String.join( ", " , orgUnitGroupNames );
+        return String.join( ", ", orgUnitGroupNames );
     }
 
     /**
@@ -804,23 +844,23 @@ public class ExpressionServiceTest
 
         // Logarithms
 
-        assertEquals( "3.912023005428146", eval( "log(50)") );
-        assertEquals( "1", eval( "log(2.718281828459045)") );
-        assertEquals( "-Infinity", eval( "log(0)") );
-        assertEquals( "NaN", eval( "log(-1)") );
+        assertEquals( "3.912023005428146", eval( "log(50)" ) );
+        assertEquals( "1", eval( "log(2.718281828459045)" ) );
+        assertEquals( "-Infinity", eval( "log(0)" ) );
+        assertEquals( "NaN", eval( "log(-1)" ) );
 
-        assertEquals( "3.5608767950073115", eval( "log(50,3)") );
+        assertEquals( "3.5608767950073115", eval( "log(50,3)" ) );
         assertEquals( "3", eval( "log(8,2)" ) );
-        assertEquals( "-Infinity", eval( "log(0,3)") );
-        assertEquals( "NaN", eval( "log(-1,3)") );
-        assertEquals( "0", eval( "log(50,0)") );
-        assertEquals( "NaN", eval( "log(50,-3)") );
-        assertEquals( "NaN", eval( "log(-50,-3)") );
+        assertEquals( "-Infinity", eval( "log(0,3)" ) );
+        assertEquals( "NaN", eval( "log(-1,3)" ) );
+        assertEquals( "0", eval( "log(50,0)" ) );
+        assertEquals( "NaN", eval( "log(50,-3)" ) );
+        assertEquals( "NaN", eval( "log(-50,-3)" ) );
 
-        assertEquals( "1.6989700043360187", eval( "log10(50)") );
-        assertEquals( "3", eval( "log10(1000)") );
-        assertEquals( "-Infinity", eval( "log10(0)") );
-        assertEquals( "NaN", eval( "log10(-1)") );
+        assertEquals( "1.6989700043360187", eval( "log10(50)" ) );
+        assertEquals( "3", eval( "log10(1000)" ) );
+        assertEquals( "-Infinity", eval( "log10(0)" ) );
+        assertEquals( "NaN", eval( "log10(-1)" ) );
 
         // Comparisons (left-to-right)
 
@@ -1084,9 +1124,12 @@ public class ExpressionServiceTest
         assertEquals( "3 DeA", eval( "firstNonNull( #{dataElemenA} )", NEVER_SKIP ) );
         assertEquals( "3 DeA DeE", eval( "firstNonNull( #{dataElemenA}, #{dataElemenE} )", NEVER_SKIP ) );
         assertEquals( "3 DeA DeE", eval( "firstNonNull( #{dataElemenE}, #{dataElemenA} )", NEVER_SKIP ) );
-        assertEquals( "3 DeA DeC DeE", eval( "firstNonNull( #{dataElemenA}, #{dataElemenC}, #{dataElemenE} )", NEVER_SKIP ) );
-        assertEquals( "3 DeA DeC DeE", eval( "firstNonNull( #{dataElemenC}, #{dataElemenE}, #{dataElemenA} )", NEVER_SKIP ) );
-        assertEquals( "3 DeA DeC DeE", eval( "firstNonNull( #{dataElemenE}, #{dataElemenA}, #{dataElemenC} )", NEVER_SKIP ) );
+        assertEquals( "3 DeA DeC DeE",
+            eval( "firstNonNull( #{dataElemenA}, #{dataElemenC}, #{dataElemenE} )", NEVER_SKIP ) );
+        assertEquals( "3 DeA DeC DeE",
+            eval( "firstNonNull( #{dataElemenC}, #{dataElemenE}, #{dataElemenA} )", NEVER_SKIP ) );
+        assertEquals( "3 DeA DeC DeE",
+            eval( "firstNonNull( #{dataElemenE}, #{dataElemenA}, #{dataElemenC} )", NEVER_SKIP ) );
 
         // Greatest
 
@@ -1104,14 +1147,18 @@ public class ExpressionServiceTest
     {
         assertEquals( "3 DeA", eval( "#{dataElemenA}", SKIP_IF_ANY_VALUE_MISSING ) );
         assertEquals( "16 DeA DeB", eval( "#{dataElemenA} + #{dataElemenB}", SKIP_IF_ANY_VALUE_MISSING ) );
-        assertEquals( "null DeA DeB DeC", eval( "#{dataElemenA} + #{dataElemenB} + #{dataElemenC}", SKIP_IF_ANY_VALUE_MISSING ) );
-        assertEquals( "null DeC DeD DeE", eval( "#{dataElemenC} + #{dataElemenD} + #{dataElemenE}", SKIP_IF_ANY_VALUE_MISSING ) );
+        assertEquals( "null DeA DeB DeC",
+            eval( "#{dataElemenA} + #{dataElemenB} + #{dataElemenC}", SKIP_IF_ANY_VALUE_MISSING ) );
+        assertEquals( "null DeC DeD DeE",
+            eval( "#{dataElemenC} + #{dataElemenD} + #{dataElemenE}", SKIP_IF_ANY_VALUE_MISSING ) );
         assertEquals( "null DeE", eval( "#{dataElemenE}", SKIP_IF_ANY_VALUE_MISSING ) );
 
         assertEquals( "3 DeA", eval( "#{dataElemenA}", SKIP_IF_ALL_VALUES_MISSING ) );
         assertEquals( "16 DeA DeB", eval( "#{dataElemenA} + #{dataElemenB}", SKIP_IF_ALL_VALUES_MISSING ) );
-        assertEquals( "16 DeA DeB DeC", eval( "#{dataElemenA} + #{dataElemenB} + #{dataElemenC}", SKIP_IF_ALL_VALUES_MISSING ) );
-        assertEquals( "null DeC DeD DeE", eval( "#{dataElemenC} + #{dataElemenD} + #{dataElemenE}", SKIP_IF_ALL_VALUES_MISSING ) );
+        assertEquals( "16 DeA DeB DeC",
+            eval( "#{dataElemenA} + #{dataElemenB} + #{dataElemenC}", SKIP_IF_ALL_VALUES_MISSING ) );
+        assertEquals( "null DeC DeD DeE",
+            eval( "#{dataElemenC} + #{dataElemenD} + #{dataElemenE}", SKIP_IF_ALL_VALUES_MISSING ) );
         assertEquals( "null DeE", eval( "#{dataElemenE}", SKIP_IF_ALL_VALUES_MISSING ) );
 
         assertEquals( "3 DeA", eval( "#{dataElemenA}", NEVER_SKIP ) );
@@ -1125,12 +1172,15 @@ public class ExpressionServiceTest
     public void testExpressionPredictorMissingValueStrategy()
     {
         assertEquals( "null DeA", evalPredictor( "sum(#{dataElemenA} + #{dataElemenA})", SKIP_IF_ANY_VALUE_MISSING ) );
-        assertEquals( "null DeA DeB", evalPredictor( "sum(#{dataElemenA} + #{dataElemenB})", SKIP_IF_ANY_VALUE_MISSING ) );
+        assertEquals( "null DeA DeB",
+            evalPredictor( "sum(#{dataElemenA} + #{dataElemenB})", SKIP_IF_ANY_VALUE_MISSING ) );
         assertEquals( "4 DeB DeC", evalPredictor( "sum(#{dataElemenB} + #{dataElemenC})", SKIP_IF_ANY_VALUE_MISSING ) );
 
         assertEquals( "null DeA", evalPredictor( "sum(#{dataElemenA} + #{dataElemenA})", SKIP_IF_ALL_VALUES_MISSING ) );
-        assertEquals( "1 DeA DeB", evalPredictor( "sum(#{dataElemenA} + #{dataElemenB})", SKIP_IF_ALL_VALUES_MISSING ) );
-        assertEquals( "6 DeB DeC", evalPredictor( "sum(#{dataElemenB} + #{dataElemenC})", SKIP_IF_ALL_VALUES_MISSING ) );
+        assertEquals( "1 DeA DeB",
+            evalPredictor( "sum(#{dataElemenA} + #{dataElemenB})", SKIP_IF_ALL_VALUES_MISSING ) );
+        assertEquals( "6 DeB DeC",
+            evalPredictor( "sum(#{dataElemenB} + #{dataElemenC})", SKIP_IF_ALL_VALUES_MISSING ) );
 
         assertEquals( "0 DeA", evalPredictor( "sum(#{dataElemenA} + #{dataElemenA})", NEVER_SKIP ) );
         assertEquals( "1 DeA DeB", evalPredictor( "sum(#{dataElemenA} + #{dataElemenB})", NEVER_SKIP ) );
@@ -1142,21 +1192,24 @@ public class ExpressionServiceTest
     {
         assertEquals( "", getOrgUnitGroups( "#{dataElemenA} " ) );
         assertEquals( "OugA", getOrgUnitGroups( "OUG{orgUnitGrpA}" ) );
-        assertEquals( "OugA, OugB, OugC", getOrgUnitGroups( "OUG{orgUnitGrpA} + OUG{orgUnitGrpB} + OUG{orgUnitGrpC}" ) );
+        assertEquals( "OugA, OugB, OugC",
+            getOrgUnitGroups( "OUG{orgUnitGrpA} + OUG{orgUnitGrpB} + OUG{orgUnitGrpC}" ) );
     }
 
     @Test
     public void testGetExpressionDescription()
     {
-        assertEquals( "DeA", desc("#{dataElemenA}") );
-        assertEquals( "( DeA - DeB ) / DeC ^ DeD", desc("( #{dataElemenA} - #{dataElemenB} ) / #{dataElemenC} ^ #{dataElemenD}" ) );
-        assertEquals( "PA DeC*PB DeD", desc("D{programUidA.dataElemenC}*D{programUidB.dataElemenD}") );
-        assertEquals( "PA TeaA / PB TeaB", desc("A{programUidA.trakEntAttA} / A{programUidB.trakEntAttB}") );
-        assertEquals( "PiA % PiB", desc("I{programIndA} % I{programIndB}") );
-        assertEquals( "DsA Reporting rate ^ DsB Actual reports", desc("R{dataSetUidA.REPORTING_RATE} ^ R{dataSetUidB.ACTUAL_REPORTS}") );
-        assertEquals( "One half + One quarter", desc("C{xxxxxxxxx05} + C{xxxxxxxx025}") );
-        assertEquals( "OugA - OugB", desc("OUG{orgUnitGrpA} - OUG{orgUnitGrpB}") );
-        assertEquals( "1 + [Number of days]", desc("1 + [days]") );
+        assertEquals( "DeA", desc( "#{dataElemenA}" ) );
+        assertEquals( "( DeA - DeB ) / DeC ^ DeD",
+            desc( "( #{dataElemenA} - #{dataElemenB} ) / #{dataElemenC} ^ #{dataElemenD}" ) );
+        assertEquals( "PA DeC*PB DeD", desc( "D{programUidA.dataElemenC}*D{programUidB.dataElemenD}" ) );
+        assertEquals( "PA TeaA / PB TeaB", desc( "A{programUidA.trakEntAttA} / A{programUidB.trakEntAttB}" ) );
+        assertEquals( "PiA % PiB", desc( "I{programIndA} % I{programIndB}" ) );
+        assertEquals( "DsA Reporting rate ^ DsB Actual reports",
+            desc( "R{dataSetUidA.REPORTING_RATE} ^ R{dataSetUidB.ACTUAL_REPORTS}" ) );
+        assertEquals( "One half + One quarter", desc( "C{xxxxxxxxx05} + C{xxxxxxxx025}" ) );
+        assertEquals( "OugA - OugB", desc( "OUG{orgUnitGrpA} - OUG{orgUnitGrpB}" ) );
+        assertEquals( "1 + [Number of days]", desc( "1 + [days]" ) );
     }
 
     @Test
@@ -1186,7 +1239,7 @@ public class ExpressionServiceTest
         Indicator indicatorD = createIndicator( 'D', indicatorTypeB, "30" );
         Indicator indicatorE = createIndicator( 'E', indicatorTypeB, "N{mindicatorC}*N{mindicatorB}-N{mindicatorD}" );
 
-        List<Indicator> indicators = singletonList(indicatorE);
+        List<Indicator> indicators = singletonList( indicatorE );
 
         Set<DimensionalItemObject> items = expressionService.getIndicatorDimensionalItemObjects( indicators );
         assertThat( items, hasSize( 3 ) );
@@ -1210,7 +1263,7 @@ public class ExpressionServiceTest
         Set<DimensionalItemObject> items = expressionService.getIndicatorDimensionalItemObjects( indicators );
 
         assertEquals( 4, items.size() );
-        List<String> nameList = items.stream().map(IdentifiableObject::getName)
+        List<String> nameList = items.stream().map( IdentifiableObject::getName )
             .sorted()
             .collect( Collectors.toList() );
 
@@ -1236,7 +1289,8 @@ public class ExpressionServiceTest
 
         assertEquals( 3, items.size() );
 
-        List<String> nameList = items.stream().map(BaseIdentifiableObject::getName).sorted().collect( Collectors.toList() );
+        List<String> nameList = items.stream().map( BaseIdentifiableObject::getName ).sorted()
+            .collect( Collectors.toList() );
 
         String names = String.join( ",", nameList );
 
@@ -1298,27 +1352,39 @@ public class ExpressionServiceTest
     @Test
     public void testIndicatorExpressionIsValid()
     {
-        assertEquals( VALID, expressionService.expressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}", INDICATOR_EXPRESSION ) );
-        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.expressionIsValid( "stddev(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})", INDICATOR_EXPRESSION ) );
-        assertEquals( VALID, expressionService.expressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})", INDICATOR_EXPRESSION ) );
-        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.expressionIsValid( "1*", INDICATOR_EXPRESSION ) );
+        assertEquals( VALID,
+            expressionService.expressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}", INDICATOR_EXPRESSION ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService
+            .expressionIsValid( "stddev(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})", INDICATOR_EXPRESSION ) );
+        assertEquals( VALID, expressionService.expressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})",
+            INDICATOR_EXPRESSION ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED,
+            expressionService.expressionIsValid( "1*", INDICATOR_EXPRESSION ) );
     }
 
     @Test
     public void testValidationRuleExpressionIsValid()
     {
-        assertEquals( VALID, expressionService.expressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}", VALIDATION_RULE_EXPRESSION ) );
-        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.expressionIsValid( "stddev(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})", VALIDATION_RULE_EXPRESSION ) );
-        assertEquals( VALID, expressionService.expressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})", VALIDATION_RULE_EXPRESSION ) );
-        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.expressionIsValid( "1*", VALIDATION_RULE_EXPRESSION ) );
+        assertEquals( VALID, expressionService.expressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}",
+            VALIDATION_RULE_EXPRESSION ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService
+            .expressionIsValid( "stddev(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})", VALIDATION_RULE_EXPRESSION ) );
+        assertEquals( VALID, expressionService.expressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})",
+            VALIDATION_RULE_EXPRESSION ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED,
+            expressionService.expressionIsValid( "1*", VALIDATION_RULE_EXPRESSION ) );
     }
 
     @Test
     public void testPredictorExpressionIsValid()
     {
-        assertEquals( VALID, expressionService.expressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}", PREDICTOR_EXPRESSION ) );
-        assertEquals( VALID, expressionService.expressionIsValid( "stddev(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})", PREDICTOR_EXPRESSION ) );
-        assertEquals( VALID, expressionService.expressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})", PREDICTOR_EXPRESSION ) );
-        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.expressionIsValid( "1*", PREDICTOR_EXPRESSION ) );
+        assertEquals( VALID,
+            expressionService.expressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}", PREDICTOR_EXPRESSION ) );
+        assertEquals( VALID, expressionService.expressionIsValid( "stddev(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})",
+            PREDICTOR_EXPRESSION ) );
+        assertEquals( VALID, expressionService.expressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})",
+            PREDICTOR_EXPRESSION ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED,
+            expressionService.expressionIsValid( "1*", PREDICTOR_EXPRESSION ) );
     }
 }

@@ -35,19 +35,19 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement( localName = "dataApprovalPermissions", namespace = DxfNamespaces.DXF_2_0 )
 public class DataApprovalPermissions
-{   
+{
     private boolean mayApprove;
-    
+
     private boolean mayUnapprove;
-    
+
     private boolean mayAccept;
 
     private boolean mayUnaccept;
 
     private boolean mayReadData;
-    
+
     private transient String state;
-    
+
     public DataApprovalPermissions()
     {
     }
@@ -130,11 +130,11 @@ public class DataApprovalPermissions
     public String toString()
     {
         return "DataApprovalPermissions{" +
-                "mayApprove=" + mayApprove +
-                ", mayUnapprove=" + mayUnapprove +
-                ", mayAccept=" + mayAccept +
-                ", mayUnaccept=" + mayUnaccept +
-                ", mayReadData=" + mayReadData +
-                '}';
+            "mayApprove=" + mayApprove +
+            ", mayUnapprove=" + mayUnapprove +
+            ", mayAccept=" + mayAccept +
+            ", mayUnaccept=" + mayUnaccept +
+            ", mayReadData=" + mayReadData +
+            '}';
     }
 }

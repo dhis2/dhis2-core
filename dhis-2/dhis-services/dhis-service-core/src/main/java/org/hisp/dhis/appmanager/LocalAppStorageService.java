@@ -38,6 +38,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.FileUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.external.location.LocationManager;
@@ -51,13 +53,12 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Stian Sandvold
  *
- * NB! This class is mostly code from pre 2.28's DefaultAppManager. This is to support apps
- * installed before 2.28. post 2.28, all installations using DHIS2 will use JCloudsAppStorageService.
+ *         NB! This class is mostly code from pre 2.28's DefaultAppManager. This
+ *         is to support apps installed before 2.28. post 2.28, all
+ *         installations using DHIS2 will use JCloudsAppStorageService.
  */
 @Slf4j
 @Service( "org.hisp.dhis.appmanager.LocalAppStorageService" )
@@ -171,12 +172,11 @@ public class LocalAppStorageService
                 apps.put( app.getUrlFriendlyName(), app );
 
                 log.info( "Discovered app '" + app.getName() + "' from local storage " );
-            }
-        );
+            } );
 
         if ( appList.isEmpty() )
         {
-            log.info( "No apps found during local discovery.");
+            log.info( "No apps found during local discovery." );
         }
 
         return appMap;
@@ -191,7 +191,8 @@ public class LocalAppStorageService
     @Override
     public App installApp( File file, String fileName, Cache<App> appCache )
     {
-        throw new UnsupportedOperationException( "LocalAppStorageService.installApp is deprecated and should no longer be used." );
+        throw new UnsupportedOperationException(
+            "LocalAppStorageService.installApp is deprecated and should no longer be used." );
     }
 
     @Override
@@ -245,8 +246,7 @@ public class LocalAppStorageService
     {
         List<Resource> locations = Lists.newArrayList(
             resourceLoader.getResource( "file:" + getAppFolderPath() + "/" + app.getFolderName() + "/" ),
-            resourceLoader.getResource( "classpath*:/apps/" + app.getFolderName() + "/" )
-        );
+            resourceLoader.getResource( "classpath*:/apps/" + app.getFolderName() + "/" ) );
 
         for ( Resource location : locations )
         {

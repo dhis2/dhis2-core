@@ -28,8 +28,19 @@ package org.hisp.dhis.dxf2.events.relationship;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.relationship.RelationshipEntity.*;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -65,18 +76,8 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.relationship.RelationshipEntity.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 
 public abstract class AbstractRelationshipService
     implements RelationshipService
@@ -161,7 +162,8 @@ public abstract class AbstractRelationshipService
         List<Relationship> update = new ArrayList<>();
         List<Relationship> delete = new ArrayList<>();
 
-        //TODO: Logic "delete relationships missing in the payload" is missing. Has to be implemented later.
+        // TODO: Logic "delete relationships missing in the payload" is missing. Has to
+        // be implemented later.
 
         if ( importOptions.getImportStrategy().isCreate() )
         {
@@ -553,7 +555,8 @@ public abstract class AbstractRelationshipService
     }
 
     /**
-     * Checks the relationship for any conflicts, like missing or invalid references.
+     * Checks the relationship for any conflicts, like missing or invalid
+     * references.
      */
     private List<ImportConflict> checkRelationship( Relationship relationship )
     {
@@ -583,7 +586,8 @@ public abstract class AbstractRelationshipService
 
         if ( relationship.getFrom().equals( relationship.getTo() ) )
         {
-            conflicts.add( new ImportConflict( relationship.getRelationship(), "Self-referencing relationships are not allowed." ) );
+            conflicts.add( new ImportConflict( relationship.getRelationship(),
+                "Self-referencing relationships are not allowed." ) );
         }
 
         if ( !conflicts.isEmpty() )
@@ -610,9 +614,9 @@ public abstract class AbstractRelationshipService
     /**
      * Finds and returns any conflicts between relationship and relationship type
      *
-     * @param constraint       the constraint to check
+     * @param constraint the constraint to check
      * @param relationshipItem the relationshipItem to check
-     * @param relationshipUid  the uid of the relationship
+     * @param relationshipUid the uid of the relationship
      * @return a list of conflicts
      */
     private List<ImportConflict> getRelationshipConstraintConflicts( RelationshipConstraint constraint,

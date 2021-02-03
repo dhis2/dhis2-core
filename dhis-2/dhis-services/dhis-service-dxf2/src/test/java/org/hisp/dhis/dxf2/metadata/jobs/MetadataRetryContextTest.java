@@ -63,7 +63,9 @@ public class MetadataRetryContextTest
     MetadataRetryContext metadataRetryContext;
 
     private MetadataVersion mockVersion;
+
     private String testKey = "testKey";
+
     private String testMessage = "testMessage";
 
     @Before

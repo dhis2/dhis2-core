@@ -28,6 +28,9 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collections;
+import java.util.List;
+
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -38,9 +41,6 @@ import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Unit test of {@link OptionObjectBundleHook}.
@@ -88,7 +88,8 @@ public class OptionObjectBundleHookTest
 
         ObjectBundleParams objectBundleParams = new ObjectBundleParams();
         objectBundleParams.setPreheatIdentifier( PreheatIdentifier.UID );
-        ObjectBundle bundle = new ObjectBundle( objectBundleParams, preheat, Collections.singletonMap( OptionSet.class, Collections.singletonList( optionSet ) ) );
+        ObjectBundle bundle = new ObjectBundle( objectBundleParams, preheat,
+            Collections.singletonMap( OptionSet.class, Collections.singletonList( optionSet ) ) );
         hook.preCreate( option, bundle );
 
         Assert.assertEquals( 0, persistedOptionSet.getOptions().size() );

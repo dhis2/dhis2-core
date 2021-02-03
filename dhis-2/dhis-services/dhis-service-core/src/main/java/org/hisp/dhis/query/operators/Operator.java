@@ -28,6 +28,15 @@ package org.hisp.dhis.query.operators;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import org.hibernate.criterion.Criterion;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.QueryParserException;
@@ -35,14 +44,6 @@ import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -102,7 +103,8 @@ public abstract class Operator<T extends Comparable<? super T>>
         {
             if ( !isValid( arg.getClass() ) )
             {
-                throw new QueryParserException( "Value `" + args.get( 0 ) + "` of type `" + arg.getClass().getSimpleName() + "` is not supported by this operator." );
+                throw new QueryParserException( "Value `" + args.get( 0 ) + "` of type `"
+                    + arg.getClass().getSimpleName() + "` is not supported by this operator." );
             }
         }
     }

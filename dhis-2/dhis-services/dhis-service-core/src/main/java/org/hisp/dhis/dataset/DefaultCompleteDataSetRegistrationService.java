@@ -28,7 +28,13 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.MapMap;
@@ -47,12 +53,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -156,7 +157,7 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CompleteDataSetRegistration getCompleteDataSetRegistration( DataSet dataSet, Period period,
         OrganisationUnit source, CategoryOptionCombo attributeOptionCombo )
     {
@@ -165,7 +166,7 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<CompleteDataSetRegistration> getAllCompleteDataSetRegistrations()
     {
         return completeDataSetRegistrationStore.getAllCompleteDataSetRegistrations();
@@ -186,7 +187,7 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataElementOperand> getMissingCompulsoryFields( DataSet dataSet, Period period,
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
     {
@@ -226,7 +227,8 @@ public class DefaultCompleteDataSetRegistrationService
                 {
                     Map<Long, Boolean> deDataPresent = ouDataPresent.get( deo.getDataElement().getId() );
 
-                    if ( deDataPresent != null && ( deo.getCategoryOptionCombo() == null || deDataPresent.get( deo.getCategoryOptionCombo().getId() ) != null ) )
+                    if ( deDataPresent != null && (deo.getCategoryOptionCombo() == null
+                        || deDataPresent.get( deo.getCategoryOptionCombo().getId() ) != null) )
                     {
                         continue;
                     }
@@ -240,7 +242,7 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getCompleteDataSetCountLastUpdatedAfter( Date lastUpdated )
     {
         return completeDataSetRegistrationStore.getCompleteDataSetCountLastUpdatedAfter( lastUpdated );

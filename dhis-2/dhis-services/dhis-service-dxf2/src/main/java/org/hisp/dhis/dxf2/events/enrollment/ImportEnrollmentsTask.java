@@ -28,11 +28,11 @@ package org.hisp.dhis.dxf2.events.enrollment;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.SecurityContextRunnable;
-
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -48,7 +48,8 @@ public class ImportEnrollmentsTask
 
     private final JobConfiguration id;
 
-    public ImportEnrollmentsTask( List<Enrollment> enrollments, EnrollmentService enrollmentService, ImportOptions importOptions, JobConfiguration id )
+    public ImportEnrollmentsTask( List<Enrollment> enrollments, EnrollmentService enrollmentService,
+        ImportOptions importOptions, JobConfiguration id )
     {
         super();
         this.enrollments = enrollments;

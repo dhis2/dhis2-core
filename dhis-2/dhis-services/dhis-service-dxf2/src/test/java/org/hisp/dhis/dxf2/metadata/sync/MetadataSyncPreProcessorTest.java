@@ -84,10 +84,12 @@ public class MetadataSyncPreProcessorTest
 
     private final MetadataSyncJobParameters metadataSyncJobParameters = new MetadataSyncJobParameters();
 
-    // TODO: Do not assert for methods to be executed. Assert for the result not on how it happens.
+    // TODO: Do not assert for methods to be executed. Assert for the result not on
+    // how it happens.
 
     @Test
-    public void testHandleDataPushShouldCallDataPush() throws Exception
+    public void testHandleDataPushShouldCallDataPush()
+        throws Exception
     {
         MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
@@ -123,7 +125,8 @@ public class MetadataSyncPreProcessorTest
         doNothing().when( metadataSyncPreProcessor ).handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
 
         metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
-        verify( metadataSyncPreProcessor, times( 1 ) ).handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
+        verify( metadataSyncPreProcessor, times( 1 ) ).handleDataValuePush( mockRetryContext,
+            metadataSyncJobParameters );
     }
 
     @Test
@@ -146,7 +149,8 @@ public class MetadataSyncPreProcessorTest
         listOfVersions.add( newVersion );
 
         when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) ).thenReturn( listOfVersions );
-        List<MetadataVersion> expectedListOfVersions = metadataSyncPreProcessor.handleMetadataVersionsList( mockRetryContext, currentVersion );
+        List<MetadataVersion> expectedListOfVersions = metadataSyncPreProcessor
+            .handleMetadataVersionsList( mockRetryContext, currentVersion );
         assertEquals( listOfVersions.size(), expectedListOfVersions.size() );
         assertEquals( expectedListOfVersions, listOfVersions );
     }
@@ -185,7 +189,8 @@ public class MetadataSyncPreProcessorTest
         List<MetadataVersion> listOfVersions = new ArrayList<>();
 
         when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) ).thenReturn( listOfVersions );
-        List<MetadataVersion> expectedListOfVersions = metadataSyncPreProcessor.handleMetadataVersionsList( mockRetryContext, currentVersion );
+        List<MetadataVersion> expectedListOfVersions = metadataSyncPreProcessor
+            .handleMetadataVersionsList( mockRetryContext, currentVersion );
         assertEquals( 0, expectedListOfVersions.size() );
     }
 
@@ -204,7 +209,8 @@ public class MetadataSyncPreProcessorTest
         List<MetadataVersion> listOfVersions = new ArrayList<>();
         listOfVersions.add( currentVersion );
 
-        when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) ).thenThrow( new MetadataSyncServiceException( "test_message" ) );
+        when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) )
+            .thenThrow( new MetadataSyncServiceException( "test_message" ) );
         metadataSyncPreProcessor.handleMetadataVersionsList( mockRetryContext, currentVersion );
     }
 
@@ -252,9 +258,9 @@ public class MetadataSyncPreProcessorTest
         metadataVersionList.add( version3 );
         metadataVersionList.add( version4 );
 
-
         when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) ).thenReturn( metadataVersionList );
-        List<MetadataVersion> expectedListOfVersions = metadataSyncPreProcessor.handleMetadataVersionsList( mockRetryContext, currentVersion );
+        List<MetadataVersion> expectedListOfVersions = metadataSyncPreProcessor
+            .handleMetadataVersionsList( mockRetryContext, currentVersion );
         verify( systemSettingManager ).saveSystemSetting( SettingKey.REMOTE_METADATA_VERSION, version4.getName() );
         assertEquals( 3, expectedListOfVersions.size() );
     }

@@ -56,8 +56,7 @@ public interface PartitionManager
     boolean tableExists( String table );
 
     /**
-     * Filters the set of integers for which a database partition table
-     * exists.
+     * Filters the set of integers for which a database partition table exists.
      *
      * @param partitions the partitions.
      * @param tableName the table name.

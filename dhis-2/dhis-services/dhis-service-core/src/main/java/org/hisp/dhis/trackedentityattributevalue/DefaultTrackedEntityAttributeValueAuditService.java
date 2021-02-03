@@ -50,7 +50,9 @@ public class DefaultTrackedEntityAttributeValueAuditService
     implements TrackedEntityAttributeValueAuditService
 {
     private final TrackedEntityAttributeValueAuditStore trackedEntityAttributeValueAuditStore;
+
     private final TrackedEntityAttributeService trackedEntityAttributeService;
+
     private final CurrentUserService currentUserService;
 
     public DefaultTrackedEntityAttributeValueAuditService(
@@ -83,7 +85,8 @@ public class DefaultTrackedEntityAttributeValueAuditService
     }
 
     @Override
-    public List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits( List<TrackedEntityAttribute> trackedEntityAttributes,
+    public List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits(
+        List<TrackedEntityAttribute> trackedEntityAttributes,
         List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType, int first, int max )
     {
         return aclFilter( trackedEntityAttributeValueAuditStore.getTrackedEntityAttributeValueAudits(
@@ -94,7 +97,8 @@ public class DefaultTrackedEntityAttributeValueAuditService
         List<TrackedEntityAttributeValueAudit> trackedEntityAttributeValueAudits )
     {
         // Fetch all the Tracked Entity Instance Attributes this user has access to
-        // (only store UIDs) - not a very efficient solution, but at the moment we do not
+        // (only store UIDs) - not a very efficient solution, but at the moment we do
+        // not
         // have ACL api to check TEI Attributes
         Set<String> allUserReadableTrackedEntityAttributes = trackedEntityAttributeService
             .getAllUserReadableTrackedEntityAttributes( currentUserService.getCurrentUser() ).stream()
@@ -109,7 +113,8 @@ public class DefaultTrackedEntityAttributeValueAuditService
     public int countTrackedEntityAttributeValueAudits( List<TrackedEntityAttribute> trackedEntityAttributes,
         List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType )
     {
-        return trackedEntityAttributeValueAuditStore.countTrackedEntityAttributeValueAudits( trackedEntityAttributes, trackedEntityInstances, auditType );
+        return trackedEntityAttributeValueAuditStore.countTrackedEntityAttributeValueAudits( trackedEntityAttributes,
+            trackedEntityInstances, auditType );
     }
 
     @Override

@@ -35,10 +35,10 @@ public interface DataDimensionalItemObject
     extends DimensionalItemObject
 {
     String getAggregateExportCategoryOptionCombo();
-    
+
     boolean hasAggregateExportCategoryOptionCombo();
-    
+
     String getAggregateExportAttributeOptionCombo();
-    
+
     boolean hasAggregateExportAttributeOptionCombo();
 }

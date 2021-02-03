@@ -43,7 +43,8 @@ public class DataSetNotificationTemplateObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
-        if ( !DataSetNotificationTemplate.class.isInstance( object ) ) return;
+        if ( !DataSetNotificationTemplate.class.isInstance( object ) )
+            return;
 
         DataSetNotificationTemplate template = (DataSetNotificationTemplate) object;
 
@@ -53,7 +54,8 @@ public class DataSetNotificationTemplateObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
     {
-        if ( !DataSetNotificationTemplate.class.isInstance( object ) ) return;
+        if ( !DataSetNotificationTemplate.class.isInstance( object ) )
+            return;
 
         DataSetNotificationTemplate template = (DataSetNotificationTemplate) object;
 
@@ -63,7 +65,8 @@ public class DataSetNotificationTemplateObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
     {
-        if ( !DataSetNotificationTemplate.class.isInstance( persistedObject ) ) return;
+        if ( !DataSetNotificationTemplate.class.isInstance( persistedObject ) )
+            return;
 
         DataSetNotificationTemplate template = (DataSetNotificationTemplate) persistedObject;
 
@@ -73,7 +76,8 @@ public class DataSetNotificationTemplateObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
     {
-        if ( !DataSetNotificationTemplate.class.isInstance( persistedObject ) ) return;
+        if ( !DataSetNotificationTemplate.class.isInstance( persistedObject ) )
+            return;
 
         DataSetNotificationTemplate template = (DataSetNotificationTemplate) persistedObject;
 

@@ -28,6 +28,13 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
+
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -42,13 +49,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import java.util.Optional;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 /**
  * @author David Katuscak
@@ -125,11 +125,12 @@ public class TrackedEntityAttributeServiceTest
     {
         when( trackedEntityAttributeStore
             .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
-            .thenReturn( Optional.of( identicalTeiUid ) );
+                .thenReturn( Optional.of( identicalTeiUid ) );
 
         String teaValue = "Firstname";
 
-        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue, teiPassedInPayload, orgUnit );
+        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue,
+            teiPassedInPayload, orgUnit );
         assertNull( result );
     }
 
@@ -138,11 +139,12 @@ public class TrackedEntityAttributeServiceTest
     {
         when( trackedEntityAttributeStore
             .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
-            .thenReturn( Optional.of( differentTeiUid ) );
+                .thenReturn( Optional.of( differentTeiUid ) );
 
         String teaValue = "Firstname";
 
-        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue, teiPassedInPayload, orgUnit );
+        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue,
+            teiPassedInPayload, orgUnit );
         assertNotNull( result );
     }
 
@@ -151,11 +153,12 @@ public class TrackedEntityAttributeServiceTest
     {
         when( trackedEntityAttributeStore
             .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
-            .thenReturn( Optional.empty() );
+                .thenReturn( Optional.empty() );
 
         String teaValue = "Firstname";
 
-        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue, teiPassedInPayload, orgUnit );
+        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue,
+            teiPassedInPayload, orgUnit );
         assertNull( result );
     }
 

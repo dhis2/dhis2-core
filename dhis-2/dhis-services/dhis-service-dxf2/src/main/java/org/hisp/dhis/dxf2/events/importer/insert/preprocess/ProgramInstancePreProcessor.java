@@ -84,13 +84,15 @@ public class ProgramInstancePreProcessor implements Processor
                 program, ProgramStatus.ACTIVE );
 
             // the "original" event import code creates a Program Instance, if none is found
-            // but this is no longer needed, since a Program POST-CREATION hook takes care of that
+            // but this is no longer needed, since a Program POST-CREATION hook takes care
+            // of that
             if ( programInstances.size() == 1 )
             {
                 event.setEnrollment( programInstances.get( 0 ).getUid() );
                 ctx.getProgramInstanceMap().put( event.getUid(), programInstances.get( 0 ) );
             }
-            // If more than one Program Instance is present, the validation will detect it later
+            // If more than one Program Instance is present, the validation will detect it
+            // later
         }
     }
 
@@ -98,8 +100,8 @@ public class ProgramInstancePreProcessor implements Processor
         ProgramStatus status )
     {
         final String sql = "select pi.programinstanceid, pi.programid, pi.uid "
-                + "from programinstance pi "
-                + "where pi.programid = ? and pi.status = ?";
+            + "from programinstance pi "
+            + "where pi.programid = ? and pi.status = ?";
 
         return jdbcTemplate.query( sql, new Object[] { program.getId(), status.name() }, ( ResultSet rs ) -> {
             List<ProgramInstance> results = new ArrayList<>();

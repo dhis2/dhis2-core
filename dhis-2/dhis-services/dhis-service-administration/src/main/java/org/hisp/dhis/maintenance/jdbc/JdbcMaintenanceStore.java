@@ -28,6 +28,12 @@ package org.hisp.dhis.maintenance.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.AuditableEntity;
@@ -38,12 +44,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -121,8 +121,8 @@ public class JdbcMaintenanceStore
             + piSelect + " )";
 
         /*
-         * Delete event values, event value audits, event comments, events,
-         * enrollment comments, enrollments
+         * Delete event values, event value audits, event comments, events, enrollment
+         * comments, enrollments
          *
          */
         String[] sqlStmts = new String[] {
@@ -146,7 +146,7 @@ public class JdbcMaintenanceStore
     public int deleteSoftDeletedTrackedEntityInstances()
     {
         /*
-         *  Get all soft deleted TEIs before they are hard deleted from database
+         * Get all soft deleted TEIs before they are hard deleted from database
          */
         List<String> deletedTeiUids = new ArrayList<>();
 
@@ -175,8 +175,7 @@ public class JdbcMaintenanceStore
 
         /*
          * Delete event values, event audits, event comments, events, enrollment
-         * comments, enrollments, tei attribtue values, tei attribtue value
-         * audits, teis
+         * comments, enrollments, tei attribtue values, tei attribtue value audits, teis
          *
          */
         String[] sqlStmts = new String[] {
@@ -219,8 +218,8 @@ public class JdbcMaintenanceStore
                 .createdAt( LocalDateTime.now() )
                 .object( tei )
                 .uid( teiUid )
-                .auditableEntity( new AuditableEntity( TrackedEntityInstance.class, tei  ) )
+                .auditableEntity( new AuditableEntity( TrackedEntityInstance.class, tei ) )
                 .build() );
-        });
+        } );
     }
 }

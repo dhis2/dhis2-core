@@ -78,7 +78,7 @@ public class SqlViewServiceTest
         + "FROM dataelement AS de, datavalue AS dv, period AS p " + "WHERE de.dataelementid=dv.dataelementid "
         + "AND dv.periodid=p.periodid LIMIT 10";
 
-    private String sqlE = "WITH foo as (SELECT * FROM organisationunit) SELECT * FROM foo LIMIT 2; " ;
+    private String sqlE = "WITH foo as (SELECT * FROM organisationunit) SELECT * FROM foo LIMIT 2; ";
 
     // -------------------------------------------------------------------------
     // Supportive methods
@@ -193,7 +193,7 @@ public class SqlViewServiceTest
     public void testValidateIllegalKeywordsCTE()
     {
         SqlView sqlView = getSqlView( "WITH foo as (delete FROM dataelement returning *) SELECT * FROM foo;" );
-        
+
         assertIllegalQueryEx(
             assertThrows( IllegalQueryException.class, () -> sqlViewService.validateSqlView( sqlView, null, null ) ),
             ErrorCode.E4311 );
@@ -370,7 +370,8 @@ public class SqlViewServiceTest
         Map<String, String> variables = new HashMap<>();
         variables.put( "ten", "10" );
 
-        SqlView sqlView = new SqlView( "Name", "select '${_current_username}', ${_current_user_id}, ${ten}", SqlViewType.QUERY );
+        SqlView sqlView = new SqlView( "Name", "select '${_current_username}', ${_current_user_id}, ${ten}",
+            SqlViewType.QUERY );
 
         Grid grid = sqlViewService.getSqlViewGrid( sqlView, null, variables, null, null );
 
@@ -379,7 +380,7 @@ public class SqlViewServiceTest
             "[Mary, 47, 10]\n" +
             "]" );
     }
-    
+
     private SqlView getSqlView( String sqlViewString )
     {
         return new SqlView( "Name", sqlViewString, SqlViewType.QUERY );

@@ -28,14 +28,14 @@ package org.hisp.dhis.indicator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
+
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -100,42 +100,42 @@ public class DefaultIndicatorService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Indicator getIndicator( long id )
     {
         return indicatorStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Indicator getIndicator( String uid )
     {
         return indicatorStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Indicator> getAllIndicators()
     {
         return indicatorStore.getAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Indicator> getIndicatorsWithGroupSets()
     {
         return indicatorStore.getIndicatorsWithGroupSets();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Indicator> getIndicatorsWithoutGroups()
     {
         return indicatorStore.getIndicatorsWithoutGroups();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Indicator> getIndicatorsWithDataSets()
     {
         return indicatorStore.getIndicatorsWithDataSets();
@@ -169,21 +169,21 @@ public class DefaultIndicatorService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public IndicatorType getIndicatorType( long id )
     {
         return indicatorTypeStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public IndicatorType getIndicatorType( String uid )
     {
         return indicatorTypeStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<IndicatorType> getAllIndicatorTypes()
     {
         return indicatorTypeStore.getAll();
@@ -217,21 +217,21 @@ public class DefaultIndicatorService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public IndicatorGroup getIndicatorGroup( long id )
     {
         return indicatorGroupStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public IndicatorGroup getIndicatorGroup( String uid )
     {
         return indicatorGroupStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<IndicatorGroup> getAllIndicatorGroups()
     {
         return indicatorGroupStore.getAll();
@@ -265,21 +265,21 @@ public class DefaultIndicatorService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public IndicatorGroupSet getIndicatorGroupSet( long id )
     {
         return indicatorGroupSetStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public IndicatorGroupSet getIndicatorGroupSet( String uid )
     {
         return indicatorGroupSetStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<IndicatorGroupSet> getAllIndicatorGroupSets()
     {
         return indicatorGroupSetStore.getAll();

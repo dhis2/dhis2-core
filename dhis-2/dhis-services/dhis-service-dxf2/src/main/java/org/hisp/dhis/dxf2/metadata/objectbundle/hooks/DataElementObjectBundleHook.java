@@ -28,6 +28,9 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -36,9 +39,6 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.textpattern.TextPatternParser;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 public class DataElementObjectBundleHook
     extends AbstractObjectBundleHook
@@ -46,7 +46,7 @@ public class DataElementObjectBundleHook
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
-        List<ErrorReport> errors = new ArrayList<>(  );
+        List<ErrorReport> errors = new ArrayList<>();
 
         if ( object != null && object.getClass().isInstance( DataElement.class ) )
         {
@@ -60,7 +60,8 @@ public class DataElementObjectBundleHook
                 }
                 catch ( TextPatternParser.TextPatternParsingException ex )
                 {
-                    errors.add( new ErrorReport( DataElement.class, ErrorCode.E4019, dataElement.getFieldMask(), "Not a valid TextPattern 'TEXT' segment" ) );
+                    errors.add( new ErrorReport( DataElement.class, ErrorCode.E4019, dataElement.getFieldMask(),
+                        "Not a valid TextPattern 'TEXT' segment" ) );
                 }
             }
 

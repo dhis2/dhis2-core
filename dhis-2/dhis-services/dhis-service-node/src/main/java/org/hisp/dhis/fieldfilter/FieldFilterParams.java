@@ -28,10 +28,10 @@ package org.hisp.dhis.fieldfilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.User;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -41,8 +41,7 @@ public final class FieldFilterParams
     private User user;
 
     /**
-     * List of object(s) to filter through. If more than one, a wrapper
-     * is required.
+     * List of object(s) to filter through. If more than one, a wrapper is required.
      */
     private List<?> objects = new ArrayList<>();
 

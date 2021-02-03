@@ -28,6 +28,11 @@ package org.hisp.dhis.dxf2.adx;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.xerces.util.XMLChar;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -35,18 +40,13 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 /**
  * @author bobj
  */
 public class AdxDataSetMetadata
 {
     // Lookup category options per cat option combo
-    
+
     private final Map<Long, Map<String, String>> categoryOptionMap;
 
     AdxDataSetMetadata( DataSet dataSet )
@@ -57,7 +57,7 @@ public class AdxDataSetMetadata
         Set<CategoryCombo> catCombos = new HashSet<>();
 
         catCombos.add( dataSet.getCategoryCombo() );
-        
+
         for ( DataSetElement element : dataSet.getDataSetElements() )
         {
             catCombos.add( element.getResolvedCategoryCombo() );
@@ -82,7 +82,7 @@ public class AdxDataSetMetadata
             for ( Category category : coc.getCategoryCombo().getCategories() )
             {
                 String categoryCode = category.getCode();
-                
+
                 if ( categoryCode == null || !XMLChar.isValidName( categoryCode ) )
                 {
                     throw new AdxException(
@@ -90,7 +90,7 @@ public class AdxDataSetMetadata
                 }
 
                 String catOptCode = category.getCategoryOption( coc ).getCode();
-                
+
                 if ( catOptCode == null || catOptCode.isEmpty() )
                 {
                     throw new AdxException(

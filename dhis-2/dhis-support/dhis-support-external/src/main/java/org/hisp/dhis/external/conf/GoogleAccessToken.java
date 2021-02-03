@@ -34,18 +34,18 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
-* @author Lars Helge Overland
-*/
+ * @author Lars Helge Overland
+ */
 public class GoogleAccessToken
 {
     private String accessToken;
-    
+
     private String clientId;
 
     private long expiresInSeconds;
-    
+
     private LocalDateTime expiresOn;
-    
+
     public GoogleAccessToken()
     {
     }
@@ -71,7 +71,7 @@ public class GoogleAccessToken
     {
         this.clientId = clientId;
     }
-    
+
     @JsonProperty( value = "expires_in" )
     public long getExpiresInSeconds()
     {

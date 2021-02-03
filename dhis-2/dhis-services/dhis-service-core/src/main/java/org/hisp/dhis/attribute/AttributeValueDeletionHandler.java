@@ -28,13 +28,14 @@ package org.hisp.dhis.attribute;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Lists;
 
 @Component( "org.hisp.dhis.attribute.AttributeValueDeletionHandler" )
 public class AttributeValueDeletionHandler
@@ -58,15 +59,16 @@ public class AttributeValueDeletionHandler
     @Override
     public String getClassName()
     {
-        return supportedClassName  + "." +  AttributeValue.class.getSimpleName();
+        return supportedClassName + "." + AttributeValue.class.getSimpleName();
     }
 
     @Override
     public String allowDeleteAttribute( Attribute attribute )
     {
-        for (  Class<? extends IdentifiableObject> supportedClass : attribute.getSupportedClasses() )
+        for ( Class<? extends IdentifiableObject> supportedClass : attribute.getSupportedClasses() )
         {
-            if ( identifiableObjectManager.countAllValuesByAttributes( supportedClass, Lists.newArrayList( attribute ) ) > 0 )
+            if ( identifiableObjectManager.countAllValuesByAttributes( supportedClass,
+                Lists.newArrayList( attribute ) ) > 0 )
             {
                 supportedClassName = supportedClass.getSimpleName();
                 return ERROR;

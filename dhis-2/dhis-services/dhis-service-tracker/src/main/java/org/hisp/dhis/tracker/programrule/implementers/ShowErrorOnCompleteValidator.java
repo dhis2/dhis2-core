@@ -28,16 +28,15 @@ package org.hisp.dhis.tracker.programrule.implementers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
+
 import org.hisp.dhis.rules.models.RuleActionErrorOnCompletion;
-import org.hisp.dhis.rules.models.RuleActionMessage;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.springframework.stereotype.Component;
 
-import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
-
 /**
- * This implementer show errors on a completed enrollment  or event calculated by Rule
- * Engine.
+ * This implementer show errors on a completed enrollment or event calculated by
+ * Rule Engine.
  *
  * @Author Enrico Colasante
  */

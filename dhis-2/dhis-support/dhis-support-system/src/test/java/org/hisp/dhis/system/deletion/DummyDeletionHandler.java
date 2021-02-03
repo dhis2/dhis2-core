@@ -29,6 +29,7 @@ package org.hisp.dhis.system.deletion;
  */
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.dataelement.DataElement;
 
 /**
@@ -44,7 +45,7 @@ public class DummyDeletionHandler
     {
         return Object.class.getSimpleName();
     }
-    
+
     @Override
     public void deleteDataElement( DataElement dataElement )
     {

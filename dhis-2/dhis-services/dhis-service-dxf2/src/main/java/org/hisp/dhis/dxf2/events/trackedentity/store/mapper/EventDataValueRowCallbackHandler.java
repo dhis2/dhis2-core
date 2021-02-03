@@ -44,8 +44,9 @@ import com.google.gson.Gson;
 /**
  * @author Luciano Fiandesio
  */
-public class EventDataValueRowCallbackHandler implements
-        RowCallbackHandler
+public class EventDataValueRowCallbackHandler
+    implements
+    RowCallbackHandler
 
 {
     private Map<String, List<DataValue>> dataValues;
@@ -71,7 +72,7 @@ public class EventDataValueRowCallbackHandler implements
         List<DataValue> dataValues = new ArrayList<>();
 
         PGobject values = (PGobject) rs.getObject( "eventdatavalues" );
-        Map<String, ?> eventDataValuesJson = gson.fromJson( values.getValue(), Map.class  );
+        Map<String, ?> eventDataValuesJson = gson.fromJson( values.getValue(), Map.class );
 
         for ( String dataElementUid : eventDataValuesJson.keySet() )
         {

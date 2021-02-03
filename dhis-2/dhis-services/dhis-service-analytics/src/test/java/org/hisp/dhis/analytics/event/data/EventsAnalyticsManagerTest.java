@@ -98,16 +98,19 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     private ArgumentCaptor<String> sql;
 
     private final static String TABLE_NAME = "analytics_event";
+
     private final static String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode";
 
     @Before
     public void setUp()
     {
         StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
-        ProgramIndicatorService programIndicatorService = mock(ProgramIndicatorService.class);
-        DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder( programIndicatorService );
+        ProgramIndicatorService programIndicatorService = mock( ProgramIndicatorService.class );
+        DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder(
+            programIndicatorService );
 
-        subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
+        subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
+            programIndicatorSubqueryBuilder );
 
         when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );
     }
@@ -123,10 +126,11 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expected = "select psi,ps,executiondate,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode,ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
-                + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) limit 101";
+        String expected = "select psi,ps,executiondate,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode,ax.\"monthly\",ax.\"ou\"  from "
+            + getTable( programA.getUid() )
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) limit 101";
 
-        assertThat( sql.getValue(), is(expected) );
+        assertThat( sql.getValue(), is( expected ) );
     }
 
     @Test
@@ -134,7 +138,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     {
         mockEmptyRowSet();
 
-        DataElement dataElement = createDataElement('a');
+        DataElement dataElement = createDataElement( 'a' );
         QueryItem queryItem = new QueryItem( dataElement, this.programA, null,
             ValueType.ORGANISATION_UNIT, AggregationType.SUM, null );
 
@@ -142,13 +146,15 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expected = "select psi,ps,executiondate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) " +
-                "as geometry,longitude,latitude,ouname,oucode,ax.\"monthly\",ax.\"ou\",\"" + dataElement.getUid() + "_name" + "\"  " +
-                "from " + getTable( programA.getUid() ) + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) limit 101";
+        String expected = "select psi,ps,executiondate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) "
+            +
+            "as geometry,longitude,latitude,ouname,oucode,ax.\"monthly\",ax.\"ou\",\"" + dataElement.getUid() + "_name"
+            + "\"  " +
+            "from " + getTable( programA.getUid() )
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) limit 101";
 
-        assertThat( sql.getValue(), is(expected) );
+        assertThat( sql.getValue(), is( expected ) );
     }
-
 
     @Test
     public void verifyGetEventSqlWithProgram()
@@ -171,7 +177,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
         mockEmptyRowSet();
 
         subject.getEvents( createRequestParams( programStage ), createGrid(),
-                100 );
+            100 );
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
@@ -188,7 +194,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
         mockEmptyRowSet();
 
         subject.getEvents( createRequestParams( programStage, ValueType.INTEGER ), createGrid(),
-                100 );
+            100 );
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
@@ -205,7 +211,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
         mockEmptyRowSet();
 
         subject.getEvents( createRequestParamsWithFilter( programStage, ValueType.INTEGER ), createGrid(),
-                100 );
+            100 );
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
@@ -216,14 +222,13 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
         assertSql( expected, sql.getValue() );
     }
 
-
     @Test
     public void verifyGetEventsWithProgramStageAndTextDataElement()
     {
         mockEmptyRowSet();
 
         subject.getEvents( createRequestParams( programStage, ValueType.TEXT ), createGrid(),
-                100 );
+            100 );
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
@@ -257,7 +262,8 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         when( rowSet.getString( "fWIAEtYVEGk" ) ).thenReturn( "2000" );
 
-        Grid resultGrid = subject.getAggregatedEventData( createRequestParams( programStage, ValueType.INTEGER ), createGrid(),
+        Grid resultGrid = subject.getAggregatedEventData( createRequestParams( programStage, ValueType.INTEGER ),
+            createGrid(),
             200000 );
 
         assertThat( resultGrid.getRows(), hasSize( 1 ) );
@@ -269,7 +275,8 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expected = "select count(ax.\"psi\") as value,ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from " + getTable( programA.getUid() )
+        String expected = "select count(ax.\"psi\") as value,ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from "
+            + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
             + programStage.getUid() + "' group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
 
@@ -277,27 +284,30 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    public void verifyGetAggregatedEventQueryWithFilter() {
+    public void verifyGetAggregatedEventQueryWithFilter()
+    {
 
-        when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+        when( rowSet.getString( "fWIAEtYVEGk" ) ).thenReturn( "2000" );
 
         mockRowSet();
 
-        Grid resultGrid = subject.getAggregatedEventData(createRequestParamsWithFilter(programStage, ValueType.TEXT), createGrid(),
-                200000);
+        Grid resultGrid = subject.getAggregatedEventData( createRequestParamsWithFilter( programStage, ValueType.TEXT ),
+            createGrid(),
+            200000 );
 
-        assertThat(resultGrid.getRows(), hasSize(1));
-        assertThat(resultGrid.getRow(0), hasSize(4));
-        assertThat(resultGrid.getRow(0).get(0), is("2000"));
-        assertThat(resultGrid.getRow(0).get(1), is("201701"));
-        assertThat(resultGrid.getRow(0).get(2), is("Sierra Leone"));
-        assertThat(resultGrid.getRow(0).get(3), is(100));
+        assertThat( resultGrid.getRows(), hasSize( 1 ) );
+        assertThat( resultGrid.getRow( 0 ), hasSize( 4 ) );
+        assertThat( resultGrid.getRow( 0 ).get( 0 ), is( "2000" ) );
+        assertThat( resultGrid.getRow( 0 ).get( 1 ), is( "201701" ) );
+        assertThat( resultGrid.getRow( 0 ).get( 2 ), is( "Sierra Leone" ) );
+        assertThat( resultGrid.getRow( 0 ).get( 3 ), is( 100 ) );
 
-        verify(jdbcTemplate).queryForRowSet(sql.capture());
-        String expected = "select count(ax.\"psi\") as value,ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from " + getTable(programA.getUid())
-                + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
-                + programStage.getUid()
-                + "' and lower(ax.\"fWIAEtYVEGk\") > '10' group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+        String expected = "select count(ax.\"psi\") as value,ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from "
+            + getTable( programA.getUid() )
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
+            + programStage.getUid()
+            + "' and lower(ax.\"fWIAEtYVEGk\") > '10' group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
         assertThat( sql.getValue(), is( expected ) );
     }
 
@@ -327,12 +337,13 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
         Period peA = PeriodType.getPeriodFromIsoString( "201501" );
 
         DataElement deA = createDataElement( 'A' );
-        deA.setUid( "ZE4cgllb2P");
+        deA.setUid( "ZE4cgllb2P" );
 
         DataQueryParams params = DataQueryParams.newBuilder().withDataType( DataType.NUMERIC )
             .withTableName( "analytics" ).withPeriodType( QuarterlyPeriodType.NAME )
             .withAggregationType( AnalyticsAggregationType.fromAggregationType( AggregationType.DEFAULT ) )
-            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.PROGRAM_INDICATOR, getList( piA, piB ) ) )
+            .addDimension(
+                new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.PROGRAM_INDICATOR, getList( piA, piB ) ) )
             .addFilter( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.DATA_X, getList( peA ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) ).build();
@@ -385,7 +396,8 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     private Grid createGrid()
     {
         Grid grid = new ListGrid();
-        grid.addHeader( new GridHeader( "fWIAEtYVEGk", "Mode of discharge", ValueType.TEXT, "java.lang.String", false, true ) );
+        grid.addHeader(
+            new GridHeader( "fWIAEtYVEGk", "Mode of discharge", ValueType.TEXT, "java.lang.String", false, true ) );
         grid.addHeader( new GridHeader( "pe", "Period", ValueType.TEXT, "java.lang.String", false, true ) );
         grid.addHeader( new GridHeader( "value", "Value", ValueType.NUMBER, "java.lang.Double", false, true ) );
         return grid;

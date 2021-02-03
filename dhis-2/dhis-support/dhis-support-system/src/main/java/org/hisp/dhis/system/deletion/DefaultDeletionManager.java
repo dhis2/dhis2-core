@@ -28,7 +28,12 @@ package org.hisp.dhis.system.deletion;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -36,15 +41,12 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Component;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * TODO: Add support for failed allow tests on "transitive" deletion handlers which
- * are called as part of delete methods.
+ * TODO: Add support for failed allow tests on "transitive" deletion handlers
+ * which are called as part of delete methods.
  *
  * @author Lars Helge Overland
  */
@@ -54,13 +56,14 @@ public class DefaultDeletionManager
     implements DeletionManager
 {
     private static final String DELETE_METHOD_PREFIX = "delete";
+
     private static final String ALLOW_METHOD_PREFIX = "allowDelete";
 
     /**
      * Deletion handlers registered in context are subscribed to deletion
      * notifications through auto-wiring.
      */
-    @Autowired(required = false)
+    @Autowired( required = false )
     private List<DeletionHandler> deletionHandlers;
 
     // -------------------------------------------------------------------------
@@ -71,10 +74,10 @@ public class DefaultDeletionManager
     @EventListener( condition = "#event.shouldRollBack" )
     public void objectDeletionListener( ObjectDeletionRequestedEvent event )
     {
-       deleteObjects( event );
+        deleteObjects( event );
     }
 
-    @Transactional ( noRollbackFor = DeleteNotAllowedException.class )
+    @Transactional( noRollbackFor = DeleteNotAllowedException.class )
     @EventListener( condition = "!#event.shouldRollBack" )
     public void objectDeletionListenerNoRollBack( ObjectDeletionRequestedEvent event )
     {
@@ -120,7 +123,7 @@ public class DefaultDeletionManager
                 if ( allow != null )
                 {
                     String hint = String.valueOf( allow );
-                    hint = hint.isEmpty() ? hint : ( " (" + hint + ")" );
+                    hint = hint.isEmpty() ? hint : (" (" + hint + ")");
                     String argument = handler.getClassName() + hint;
 
                     ErrorMessage errorMessage = new ErrorMessage( ErrorCode.E4030, argument );
@@ -138,12 +141,14 @@ public class DefaultDeletionManager
         }
         catch ( IllegalAccessException ex )
         {
-            log.error( "Method '" + allowMethodName + "' can not be invoked on DeletionHandler '" + currentHandler + "'", ex );
+            log.error(
+                "Method '" + allowMethodName + "' can not be invoked on DeletionHandler '" + currentHandler + "'", ex );
             return;
         }
         catch ( InvocationTargetException ex )
         {
-            log.error( "Method '" + allowMethodName + "' threw exception on DeletionHandler '" + currentHandler + "'", ex );
+            log.error( "Method '" + allowMethodName + "' threw exception on DeletionHandler '" + currentHandler + "'",
+                ex );
             return;
         }
 
@@ -168,7 +173,8 @@ public class DefaultDeletionManager
         }
         catch ( Exception ex )
         {
-            log.error( "Failed to invoke method " + deleteMethodName + " on DeletionHandler '" + currentHandler + "'", ex );
+            log.error( "Failed to invoke method " + deleteMethodName + " on DeletionHandler '" + currentHandler + "'",
+                ex );
             return;
         }
 

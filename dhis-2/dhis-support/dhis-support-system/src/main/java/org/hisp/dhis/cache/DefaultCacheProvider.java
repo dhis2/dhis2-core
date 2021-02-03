@@ -27,12 +27,12 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Map;
+
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 /**
  * Provides cache builder to build instances.
@@ -54,9 +54,9 @@ public class DefaultCacheProvider implements CacheProvider
     }
 
     @Override
-    public  <K,V> ExtendedCacheBuilder<Map<K,V>> newCacheBuilder( Class<K> keyType, Class<V> valueType )
+    public <K, V> ExtendedCacheBuilder<Map<K, V>> newCacheBuilder( Class<K> keyType, Class<V> valueType )
     {
-        return new ExtendedCacheBuilder<Map<K,V>>( redisTemplate, configurationProvider );
+        return new ExtendedCacheBuilder<Map<K, V>>( redisTemplate, configurationProvider );
     }
 
     @Autowired

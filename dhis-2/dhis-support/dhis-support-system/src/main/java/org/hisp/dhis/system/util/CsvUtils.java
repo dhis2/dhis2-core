@@ -28,6 +28,7 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
@@ -38,7 +39,6 @@ import org.springframework.core.io.ClassPathResource;
 
 import com.csvreader.CsvReader;
 import com.csvreader.CsvWriter;
-import java.io.IOException;
 
 /**
  * @author Lars Helge Overland
@@ -59,8 +59,8 @@ public class CsvUtils
     }
 
     /**
-     * Returns the CSV file represented by the given file path as a
-     * list of string arrays. The file must exist on the class path.
+     * Returns the CSV file represented by the given file path as a list of string
+     * arrays. The file must exist on the class path.
      *
      * @param filePath the file path on the class path.
      * @param ignoreFirstRow whether to ignore the first row.
@@ -75,8 +75,8 @@ public class CsvUtils
     }
 
     /**
-     * Returns the CSV file represented by the given input stream as a
-     * list of string arrays.
+     * Returns the CSV file represented by the given input stream as a list of
+     * string arrays.
      *
      * @param in the {@link InputStream} representing the CSV file.
      * @param ignoreFirstRow whether to ignore the first row.

@@ -141,20 +141,19 @@ public abstract class AbstractStore
     {
         return ctx.isSuperUser() ? sql : sql + " AND " + aclSql;
     }
-    
+
     protected String applySortOrder( String sql, String sortOrderIds, String idColumn )
     {
         StringBuilder qb = new StringBuilder();
         qb.append( "select * from (" );
-        qb.append(sql);
+        qb.append( sql );
         qb.append( ") as t JOIN unnest('{" );
-        qb.append( sortOrderIds);
-        qb.append("}'::bigint[]) WITH ORDINALITY s(");
-        qb.append(idColumn);
-        qb.append(", sortorder) USING (");
-        qb.append(idColumn);
-        qb.append(")ORDER  BY s.sortorder")
-        ;
+        qb.append( sortOrderIds );
+        qb.append( "}'::bigint[]) WITH ORDINALITY s(" );
+        qb.append( idColumn );
+        qb.append( ", sortorder) USING (" );
+        qb.append( idColumn );
+        qb.append( ")ORDER  BY s.sortorder" );
         return qb.toString();
     }
 
@@ -162,7 +161,8 @@ public abstract class AbstractStore
      * Execute a SELECT statement and maps the results to the specified Mapper
      *
      * @param sql The SELECT statement to execute
-     * @param handler the {@see RowCallbackHandler} to use for mapping a Resultset to an object
+     * @param handler the {@see RowCallbackHandler} to use for mapping a Resultset
+     *        to an object
      * @param ids the list of primary keys mapped to the :ids parameter
      *
      * @return a Multimap where the keys are of the same type as the specified

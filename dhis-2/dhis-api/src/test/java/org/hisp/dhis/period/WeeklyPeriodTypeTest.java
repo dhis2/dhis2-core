@@ -28,16 +28,16 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.*;
+
+import java.util.GregorianCalendar;
+import java.util.List;
+
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.GregorianCalendar;
-import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Bob Jolliffe
@@ -64,7 +64,6 @@ public class WeeklyPeriodTypeTest
 
         assertFalse( "start date after given date", startDate.isAfter( p.getStartDate().getTime() ) );
         assertFalse( "end date before given date", endDate.isAfter( p.getEndDate().getTime() ) );
-
 
         assertTrue( startDate.getDayOfWeek() == DateTimeConstants.MONDAY );
         assertTrue( endDate.getDayOfWeek() == DateTimeConstants.SUNDAY );
@@ -130,16 +129,20 @@ public class WeeklyPeriodTypeTest
     {
         DateTime testDate = new DateTime( 2012, 12, 31, 0, 0 );
 
-        assertEquals( "2013W1", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2013W1",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2012, 12, 30, 0, 0 );
-        assertEquals( "2012W52", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2012W52",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2009, 12, 29, 0, 0 );
-        assertEquals( "2009W53", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2009W53",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2010, 1, 4, 0, 0 );
-        assertEquals( "2010W1", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2010W1",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
     }
 
     @Test
@@ -148,19 +151,24 @@ public class WeeklyPeriodTypeTest
         periodType = new WeeklyWednesdayPeriodType();
 
         DateTime testDate = new DateTime( 2017, 5, 4, 0, 0 );
-        assertEquals( "2017WedW18", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017WedW18",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 3, 0, 0 );
-        assertEquals( "2017WedW18", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017WedW18",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 4, 0, 0 );
-        assertEquals( "2017WedW18", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017WedW18",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 2, 0, 0 );
-        assertEquals( "2017WedW17", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017WedW17",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 1, 0, 0 );
-        assertEquals( "2017WedW17", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017WedW17",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         Period period = periodType.createPeriod( "2017WedW17" );
         assertNotNull( period );
@@ -177,25 +185,32 @@ public class WeeklyPeriodTypeTest
         periodType = new WeeklyThursdayPeriodType();
 
         DateTime testDate = new DateTime( 2017, 5, 7, 0, 0 );
-        assertEquals( "2017ThuW19", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017ThuW19",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 6, 0, 0 );
-        assertEquals( "2017ThuW19", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017ThuW19",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 5, 0, 0 );
-        assertEquals( "2017ThuW19", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017ThuW19",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 4, 0, 0 );
-        assertEquals( "2017ThuW19", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017ThuW19",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 3, 0, 0 );
-        assertEquals( "2017ThuW18", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017ThuW18",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 2, 0, 0 );
-        assertEquals( "2017ThuW18", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017ThuW18",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 1, 0, 0 );
-        assertEquals( "2017ThuW18", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017ThuW18",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         Period period = periodType.createPeriod( "2017ThuW17" );
         assertNotNull( period );
@@ -212,25 +227,32 @@ public class WeeklyPeriodTypeTest
         periodType = new WeeklySaturdayPeriodType();
 
         DateTime testDate = new DateTime( 2017, 5, 7, 0, 0 );
-        assertEquals( "2017SatW19", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017SatW19",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 6, 0, 0 );
-        assertEquals( "2017SatW19", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017SatW19",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 5, 0, 0 );
-        assertEquals( "2017SatW18", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017SatW18",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 4, 0, 0 );
-        assertEquals( "2017SatW18", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017SatW18",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 3, 0, 0 );
-        assertEquals( "2017SatW18", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017SatW18",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 2, 0, 0 );
-        assertEquals( "2017SatW18", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017SatW18",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 1, 0, 0 );
-        assertEquals( "2017SatW18", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017SatW18",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         Period period = periodType.createPeriod( "2017SatW17" );
         assertNotNull( period );
@@ -247,31 +269,40 @@ public class WeeklyPeriodTypeTest
         periodType = new WeeklySundayPeriodType();
 
         DateTime testDate = new DateTime( 2017, 5, 7, 0, 0 );
-        assertEquals( "2017SunW19", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017SunW19",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 6, 0, 0 );
-        assertEquals( "2017SunW18", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017SunW18",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 5, 0, 0 );
-        assertEquals( "2017SunW18", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017SunW18",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 4, 0, 0 );
-        assertEquals( "2017SunW18", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017SunW18",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 3, 0, 0 );
-        assertEquals( "2017SunW18", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017SunW18",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 2, 0, 0 );
-        assertEquals( "2017SunW18", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017SunW18",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 5, 1, 0, 0 );
-        assertEquals( "2017SunW18", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017SunW18",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 1, 8, 0, 0 );
-        assertEquals( "2017SunW2", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017SunW2",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         testDate = new DateTime( 2017, 1, 1, 0, 0 );
-        assertEquals( "2017SunW1", periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
+        assertEquals( "2017SunW1",
+            periodType.getIsoDate( new Period( periodType, testDate.toDate(), testDate.toDate() ) ) );
 
         Period period = periodType.createPeriod( "2017SunW17" );
         assertNotNull( period );

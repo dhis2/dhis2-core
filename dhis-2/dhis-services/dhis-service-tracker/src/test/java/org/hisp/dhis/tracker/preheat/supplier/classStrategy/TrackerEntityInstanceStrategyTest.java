@@ -116,10 +116,11 @@ public class TrackerEntityInstanceStrategyTest
 
         when( trackedEntityInstanceStore.getIncludingDeleted( rootUids ) ).thenReturn( Lists.newArrayList(
             new TrackedEntityInstance()
-            {{
-                setUid( trackedEntities.get( 0 ).getTrackedEntity() );
-            }}
-        ) );
+            {
+                {
+                    setUid( trackedEntities.get( 0 ).getTrackedEntity() );
+                }
+            } ) );
 
         // when
         strategy.add( params, uids, preheat );

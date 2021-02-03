@@ -28,12 +28,12 @@ package org.hisp.dhis.relationship;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Abyot Asalefew
@@ -66,21 +66,21 @@ public class DefaultRelationshipTypeService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<RelationshipType> getAllRelationshipTypes()
     {
         return relationshipTypeStore.getAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public RelationshipType getRelationshipType( long id )
     {
         return relationshipTypeStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public RelationshipType getRelationshipType( String uid )
     {
         return relationshipTypeStore.getByUid( uid );
@@ -102,7 +102,7 @@ public class DefaultRelationshipTypeService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public RelationshipType getRelationshipType( String aIsToB, String bIsToA )
     {
         return relationshipTypeStore.getRelationshipType( aIsToB, bIsToA );

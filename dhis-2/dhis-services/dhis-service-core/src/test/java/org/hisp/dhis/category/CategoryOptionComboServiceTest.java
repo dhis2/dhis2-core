@@ -28,28 +28,24 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.junit.Assert.*;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.ValueType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -64,18 +60,25 @@ public class CategoryOptionComboServiceTest
     private AttributeService attributeService;
 
     private Category categoryA;
+
     private Category categoryB;
 
     private CategoryCombo categoryComboA;
+
     private CategoryCombo categoryComboB;
 
     private CategoryOption categoryOptionA;
+
     private CategoryOption categoryOptionB;
+
     private CategoryOption categoryOptionC;
+
     private CategoryOption categoryOptionD;
 
     private CategoryOptionCombo categoryOptionComboA;
+
     private CategoryOptionCombo categoryOptionComboB;
+
     private CategoryOptionCombo categoryOptionComboC;
 
     // -------------------------------------------------------------------------
@@ -359,8 +362,7 @@ public class CategoryOptionComboServiceTest
         categoryService.addCategoryOptionCombo( categoryOptionComboB );
         categoryService.addCategoryOptionCombo( categoryOptionComboC );
 
-        List<CategoryOptionCombo> categoryOptionCombos =
-            categoryService.getAllCategoryOptionCombos();
+        List<CategoryOptionCombo> categoryOptionCombos = categoryService.getAllCategoryOptionCombos();
 
         assertNotNull( categoryOptionCombos );
         assertEquals( 4, categoryOptionCombos.size() ); // Including default category option combo

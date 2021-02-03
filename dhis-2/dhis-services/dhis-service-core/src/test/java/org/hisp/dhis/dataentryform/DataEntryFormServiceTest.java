@@ -28,6 +28,10 @@ package org.hisp.dhis.dataentryform;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.*;
+
+import java.util.List;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -41,10 +45,6 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Bharath
@@ -75,7 +75,6 @@ public class DataEntryFormServiceTest
     private String dataElementUid;
 
     private String categoryOptionComboUid;
-
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -216,10 +215,14 @@ public class DataEntryFormServiceTest
     @Test
     public void testPrepareForEdit()
     {
-        String html = "<table><tr><td><input id=\"" + dataElementUid + "-" + categoryOptionComboUid + "-val\" style=\"width:4em;text-align:center\" title=\"\" value=\"\" /></td></tr></table>";
-        String title = "" + dataElementUid + " - " + dataElement.getName() + " - " + categoryOptionComboUid + " - " + categoryOptionCombo.getName() + " - " + dataElement.getValueType();
+        String html = "<table><tr><td><input id=\"" + dataElementUid + "-" + categoryOptionComboUid
+            + "-val\" style=\"width:4em;text-align:center\" title=\"\" value=\"\" /></td></tr></table>";
+        String title = "" + dataElementUid + " - " + dataElement.getName() + " - " + categoryOptionComboUid + " - "
+            + categoryOptionCombo.getName() + " - " + dataElement.getValueType();
         String value = "[ " + dataElement.getName() + " " + categoryOptionCombo.getName() + " ]";
-        String expected = "<table><tr><td><input id=\"" + dataElementUid + "-" + categoryOptionComboUid + "-val\" style=\"width:4em;text-align:center\" title=\"" + title + "\" value=\"" + value + "\" /></td></tr></table>";
+        String expected = "<table><tr><td><input id=\"" + dataElementUid + "-" + categoryOptionComboUid
+            + "-val\" style=\"width:4em;text-align:center\" title=\"" + title + "\" value=\"" + value
+            + "\" /></td></tr></table>";
 
         DataSet dsA = createDataSet( 'A', null );
         DataEntryForm dfA = createDataEntryForm( 'A', html );

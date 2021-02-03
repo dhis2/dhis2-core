@@ -28,12 +28,12 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
-import org.hisp.dhis.metadata.version.MetadataVersion;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.metadata.version.MetadataVersion;
 
 /**
  * Defines the structure of metadata sync params

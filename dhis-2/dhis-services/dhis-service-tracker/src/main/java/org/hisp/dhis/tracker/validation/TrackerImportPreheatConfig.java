@@ -30,6 +30,8 @@ package org.hisp.dhis.tracker.validation;
 
 import java.util.List;
 
+import lombok.experimental.UtilityClass;
+
 import org.hisp.dhis.tracker.preheat.supplier.ClassBasedSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.FileResourceSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.PeriodTypeSupplier;
@@ -43,8 +45,6 @@ import org.hisp.dhis.tracker.preheat.supplier.UniqueAttributesSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.UserSupplier;
 
 import com.google.common.collect.ImmutableList;
-
-import lombok.experimental.UtilityClass;
 
 /**
  * Configuration class for the pre-heat stage. This class holds the list of

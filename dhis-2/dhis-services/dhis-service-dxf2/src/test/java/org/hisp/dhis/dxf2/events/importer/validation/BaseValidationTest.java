@@ -28,10 +28,10 @@ package org.hisp.dhis.dxf2.events.importer.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hisp.dhis.dxf2.events.importer.EventTestUtils.createBaseEvent;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
@@ -120,7 +120,8 @@ public abstract class BaseValidationTest
         assertThat( summary.getDescription(), is( description ) );
     }
 
-    protected void assertHasConflict( ImportSummary summary, Event event, String conflict ) {
+    protected void assertHasConflict( ImportSummary summary, Event event, String conflict )
+    {
 
         final Set<ImportConflict> conflicts = summary.getConflicts();
         for ( ImportConflict importConflict : conflicts )
@@ -130,7 +131,7 @@ public abstract class BaseValidationTest
                 return;
             }
         }
-        fail( "Conflict string [" + conflict +"] not found" );
+        fail( "Conflict string [" + conflict + "] not found" );
     }
 
     protected DataElement addToDataElementMap( DataElement de )

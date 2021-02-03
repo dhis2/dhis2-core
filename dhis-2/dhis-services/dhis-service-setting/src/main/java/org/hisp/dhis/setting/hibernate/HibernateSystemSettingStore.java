@@ -28,6 +28,8 @@ package org.hisp.dhis.setting.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.setting.SystemSetting;
@@ -37,16 +39,16 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.criteria.CriteriaBuilder;
-
 /**
  * @author Lars Helge Overland
  */
 @Repository( "org.hisp.dhis.setting.SystemSettingStore" )
 public class HibernateSystemSettingStore
-    extends HibernateGenericStore<SystemSetting> implements SystemSettingStore
+    extends HibernateGenericStore<SystemSetting>
+    implements SystemSettingStore
 {
-    public HibernateSystemSettingStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
+    public HibernateSystemSettingStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher )
     {
         super( sessionFactory, jdbcTemplate, publisher, SystemSetting.class, true );
     }
@@ -64,6 +66,6 @@ public class HibernateSystemSettingStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "name" ), name ) ));
+            .addPredicate( root -> builder.equal( root.get( "name" ), name ) ) );
     }
 }

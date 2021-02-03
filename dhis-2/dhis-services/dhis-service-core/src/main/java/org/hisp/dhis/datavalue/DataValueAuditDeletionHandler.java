@@ -28,15 +28,15 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElement;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @Component( "org.hisp.dhis.datavalue.DataValueAuditDeletionHandler" )
 public class DataValueAuditDeletionHandler
@@ -63,36 +63,37 @@ public class DataValueAuditDeletionHandler
     {
         return DataValueAudit.class.getSimpleName();
     }
-    
+
     @Override
     public String allowDeleteDataElement( DataElement dataElement )
     {
         String sql = "SELECT COUNT(*) FROM datavalueaudit where dataelementid=" + dataElement.getId();
-        
+
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
-    
+
     @Override
     public String allowDeletePeriod( Period period )
     {
         String sql = "SELECT COUNT(*) FROM datavalueaudit where periodid=" + period.getId();
-        
+
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
-    
+
     @Override
     public String allowDeleteOrganisationUnit( OrganisationUnit unit )
     {
         String sql = "SELECT COUNT(*) FROM datavalueaudit where organisationunitid=" + unit.getId();
-        
+
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
-    
+
     @Override
     public String allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
-        String sql = "SELECT COUNT(*) FROM datavalueaudit where categoryoptioncomboid=" + optionCombo.getId() + " or attributeoptioncomboid=" + optionCombo.getId();
-        
+        String sql = "SELECT COUNT(*) FROM datavalueaudit where categoryoptioncomboid=" + optionCombo.getId()
+            + " or attributeoptioncomboid=" + optionCombo.getId();
+
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
 }

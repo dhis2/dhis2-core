@@ -28,7 +28,11 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.addIssuesToReporter;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
@@ -37,11 +41,7 @@ import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.addIssuesToReporter;
+import com.google.common.collect.Lists;
 
 /**
  * @author Enrico Colasante

@@ -57,7 +57,8 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     extends HibernateIdentifiableObjectStore<T>
     implements AnalyticalObjectStore<T>
 {
-    public HibernateAnalyticalObjectStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher,
+    public HibernateAnalyticalObjectStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher,
         Class<T> clazz, CurrentUserService currentUserService, AclService aclService,
         boolean cacheable )
     {

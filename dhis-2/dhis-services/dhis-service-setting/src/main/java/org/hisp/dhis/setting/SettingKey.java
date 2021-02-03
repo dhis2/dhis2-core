@@ -62,7 +62,8 @@ public enum SettingKey
     UI_LOCALE( "keyUiLocale", LocaleManager.DEFAULT_LOCALE, Locale.class ),
     DB_LOCALE( "keyDbLocale", Locale.class ),
     ANALYSIS_DISPLAY_PROPERTY( "keyAnalysisDisplayProperty", DisplayProperty.NAME, DisplayProperty.class ),
-    ANALYSIS_DIGIT_GROUP_SEPARATOR( "keyAnalysisDigitGroupSeparator", DigitGroupSeparator.SPACE, DigitGroupSeparator.class ),
+    ANALYSIS_DIGIT_GROUP_SEPARATOR( "keyAnalysisDigitGroupSeparator", DigitGroupSeparator.SPACE,
+        DigitGroupSeparator.class ),
     CURRENT_DOMAIN_TYPE( "keyCurrentDomainType" ),
     TRACKER_DASHBOARD_LAYOUT( "keyTrackerDashboardLayout" ),
     APPLICATION_TITLE( "applicationTitle", "DHIS 2", String.class, false, true ),
@@ -85,8 +86,10 @@ public enum SettingKey
     SMS_CONFIG( "keySmsSetting", new SmsConfiguration(), SmsConfiguration.class ),
     CACHE_STRATEGY( "keyCacheStrategy", CacheStrategy.CACHE_1_MINUTE, CacheStrategy.class ),
     CACHEABILITY( "keyCacheability", Cacheability.PUBLIC, Cacheability.class ),
-    //CACHE_ANALYTICS_DATA_YEAR_THRESHOLD( "keyCacheAnalyticsDataYearThreshold", 0, Integer.class ),
-    ANALYTICS_FINANCIAL_YEAR_START( "analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER, AnalyticsFinancialYearStartKey.class ),
+    // CACHE_ANALYTICS_DATA_YEAR_THRESHOLD( "keyCacheAnalyticsDataYearThreshold", 0,
+    // Integer.class ),
+    ANALYTICS_FINANCIAL_YEAR_START( "analyticsFinancialYearStart",
+        AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER, AnalyticsFinancialYearStartKey.class ),
     PHONE_NUMBER_AREA_CODE( "phoneNumberAreaCode" ),
     MULTI_ORGANISATION_UNIT_FORMS( "multiOrganisationUnitForms", Boolean.FALSE, Boolean.class ),
     CONFIGURATION( "keyConfig", Configuration.class ),
@@ -102,8 +105,10 @@ public enum SettingKey
     IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD( "keyIgnoreAnalyticsApprovalYearThreshold", -1, Integer.class ),
     ANALYTICS_MAX_LIMIT( "keyAnalyticsMaxLimit", 100000, Integer.class ),
     SQL_VIEW_MAX_LIMIT( "keySqlViewMaxLimit", -1, Integer.class ),
-    RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT( "keyRespectMetaDataStartEndDatesInAnalyticsTableExport", Boolean.FALSE, Boolean.class ),
-    SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT( "keySkipDataTypeValidationInAnalyticsTableExport", Boolean.FALSE, Boolean.class ),
+    RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT(
+        "keyRespectMetaDataStartEndDatesInAnalyticsTableExport", Boolean.FALSE, Boolean.class ),
+    SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT( "keySkipDataTypeValidationInAnalyticsTableExport",
+        Boolean.FALSE, Boolean.class ),
     CUSTOM_LOGIN_PAGE_LOGO( "keyCustomLoginPageLogo", Boolean.FALSE, Boolean.class ),
     CUSTOM_TOP_MENU_LOGO( "keyCustomTopMenuLogo", Boolean.FALSE, Boolean.class ),
     ANALYTICS_MAINTENANCE_MODE( "keyAnalyticsMaintenanceMode", Boolean.FALSE, Boolean.class ),
@@ -113,7 +118,8 @@ public enum SettingKey
     LAST_MONITORING_RUN( "keyLastMonitoringRun", Date.class ),
     LAST_SUCCESSFUL_DATA_VALUE_SYNC( "keyLastSuccessfulDataSynch", new Date( 0 ), Date.class ),
     LAST_SUCCESSFUL_EVENT_DATA_SYNC( "keyLastSuccessfulEventsDataSynch", new Date( 0 ), Date.class ),
-    LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC( "keyLastCompleteDataSetRegistrationSyncSuccess", new Date( 0 ), Date.class ),
+    LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC( "keyLastCompleteDataSetRegistrationSyncSuccess", new Date( 0 ),
+        Date.class ),
     SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE( "syncSkipSyncForDataChangedBefore", new Date( 0 ), Date.class ),
     LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE( "keyLastSuccessfulAnalyticsTablesUpdate", Date.class ),
     LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE( "keyLastSuccessfulLatestAnalyticsPartitionUpdate", Date.class ),
@@ -121,22 +127,29 @@ public enum SettingKey
     LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH( "keyLastSuccessfulSystemMonitoringPush", Date.class ),
     LAST_SUCCESSFUL_MONITORING( "keyLastSuccessfulMonitoring", Date.class ),
     NEXT_ANALYTICS_TABLE_UPDATE( "keyNextAnalyticsTableUpdate", Date.class ),
-    HELP_PAGE_LINK( "helpPageLink", "https://dhis2.github.io/dhis2-docs/master/en/user/html/dhis2_user_manual_en.html", String.class ),
+    HELP_PAGE_LINK( "helpPageLink", "https://dhis2.github.io/dhis2-docs/master/en/user/html/dhis2_user_manual_en.html",
+        String.class ),
     ACCEPTANCE_REQUIRED_FOR_APPROVAL( "keyAcceptanceRequiredForApproval", Boolean.FALSE, Boolean.class ),
     SYSTEM_NOTIFICATIONS_EMAIL( "keySystemNotificationsEmail" ),
-    ANALYSIS_RELATIVE_PERIOD( "keyAnalysisRelativePeriod", RelativePeriodEnum.LAST_12_MONTHS, RelativePeriodEnum.class ),
+    ANALYSIS_RELATIVE_PERIOD( "keyAnalysisRelativePeriod", RelativePeriodEnum.LAST_12_MONTHS,
+        RelativePeriodEnum.class ),
     REQUIRE_ADD_TO_VIEW( "keyRequireAddToView", Boolean.FALSE, Boolean.class ),
     ALLOW_OBJECT_ASSIGNMENT( "keyAllowObjectAssignment", Boolean.FALSE, Boolean.class ),
     USE_CUSTOM_LOGO_FRONT( "keyUseCustomLogoFront", Boolean.FALSE, Boolean.class ),
     USE_CUSTOM_LOGO_BANNER( "keyUseCustomLogoBanner", Boolean.FALSE, Boolean.class ),
-    METADATA_REPO_URL( "keyMetaDataRepoUrl", "https://raw.githubusercontent.com/dhis2/dhis2-metadata-repo/master/repo/221/index.json", String.class ),
+    METADATA_REPO_URL( "keyMetaDataRepoUrl",
+        "https://raw.githubusercontent.com/dhis2/dhis2-metadata-repo/master/repo/221/index.json", String.class ),
     DATA_IMPORT_STRICT_PERIODS( "keyDataImportStrictPeriods", Boolean.FALSE, Boolean.class ),
     DATA_IMPORT_STRICT_DATA_ELEMENTS( "keyDataImportStrictDataElements", Boolean.FALSE, Boolean.class ),
-    DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS( "keyDataImportStrictCategoryOptionCombos", Boolean.FALSE, Boolean.class ),
+    DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS( "keyDataImportStrictCategoryOptionCombos", Boolean.FALSE,
+        Boolean.class ),
     DATA_IMPORT_STRICT_ORGANISATION_UNITS( "keyDataImportStrictOrganisationUnits", Boolean.FALSE, Boolean.class ),
-    DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS( "keyDataImportStrictAttributeOptionCombos", Boolean.FALSE, Boolean.class ),
-    DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO( "keyDataImportRequireCategoryOptionCombo", Boolean.FALSE, Boolean.class ),
-    DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO( "keyDataImportRequireAttributeOptionCombo", Boolean.FALSE, Boolean.class ),
+    DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS( "keyDataImportStrictAttributeOptionCombos", Boolean.FALSE,
+        Boolean.class ),
+    DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO( "keyDataImportRequireCategoryOptionCombo", Boolean.FALSE,
+        Boolean.class ),
+    DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO( "keyDataImportRequireAttributeOptionCombo", Boolean.FALSE,
+        Boolean.class ),
     CUSTOM_JS( "keyCustomJs" ),
     CUSTOM_CSS( "keyCustomCss" ),
     CALENDAR( "keyCalendar", "iso8601", String.class ),
@@ -146,7 +159,8 @@ public enum SettingKey
     REMOTE_INSTANCE_USERNAME( "keyRemoteInstanceUsername", "", String.class ),
     REMOTE_INSTANCE_PASSWORD( "keyRemoteInstancePassword", "", String.class, true, false ),
     GOOGLE_MAPS_API_KEY( "keyGoogleMapsApiKey", "AIzaSyBjlDmwuON9lJbPMDlh_LI3zGpGtpK9erc", String.class ),
-    BING_MAPS_API_KEY( "keyBingMapsApiKey", "AoifMs0zqvpAEuI6OX5Kk93rEM-oLrvQIJe_xdCv1BF4J3yquFnUozze-M7gEf0b", String.class ),
+    BING_MAPS_API_KEY( "keyBingMapsApiKey", "AoifMs0zqvpAEuI6OX5Kk93rEM-oLrvQIJe_xdCv1BF4J3yquFnUozze-M7gEf0b",
+        String.class ),
     LAST_SUCCESSFUL_METADATA_SYNC( "keyLastMetaDataSyncSuccess", Date.class ),
     METADATAVERSION_ENABLED( "keyVersionEnabled", Boolean.FALSE, Boolean.class ),
     METADATA_FAILED_VERSION( "keyMetadataFailedVersion", String.class ),
@@ -262,7 +276,7 @@ public enum SettingKey
         return Optional.empty();
     }
 
-    @SuppressWarnings( {"unchecked", "rawtypes"} )
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
     public static Serializable getAsRealClass( String name, String value )
     {
         Optional<SettingKey> setting = getByName( name );
@@ -315,7 +329,7 @@ public enum SettingKey
                 return Enum.valueOf( (Class<? extends Enum>) settingClazz, value.toUpperCase() );
             }
 
-            //TODO handle Dates
+            // TODO handle Dates
         }
 
         return value;
@@ -367,7 +381,8 @@ public enum SettingKey
         return translatable;
     }
 
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return new StringJoiner( ", ", SettingKey.class.getSimpleName() + "[", "]" )
             .add( "name='" + name + "'" )

@@ -28,11 +28,6 @@ package org.hisp.dhis.commons.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.commons.collection.ListUtils;
-
-import com.google.common.collect.Lists;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,6 +39,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.commons.collection.ListUtils;
+
+import com.google.common.collect.Lists;
+
 /**
  * Utility class with methods for managing strings.
  *
@@ -52,19 +52,26 @@ import java.util.stream.Collectors;
 public class TextUtils
 {
     public static final TextUtils INSTANCE = new TextUtils();
+
     public static final String EMPTY = "";
+
     public static final String SPACE = " ";
+
     public static final String SEP = "-";
+
     public static final String LN = System.getProperty( "line.separator" );
+
     public static final String SEMICOLON = ";";
 
     private static final Pattern LINK_PATTERN = Pattern.compile( "((http://|https://|www\\.).+?)($|\\n|\\r|\\r\\n| )" );
+
     private static final String DELIMITER = ", ";
+
     private static final String OPTION_SEP = ";";
 
     /**
-     * Performs the htmlNewline(String) and htmlLinks(String) methods against
-     * the given text.
+     * Performs the htmlNewline(String) and htmlLinks(String) methods against the
+     * given text.
      *
      * @param text the text to substitute.
      * @return the substituted text.
@@ -78,8 +85,9 @@ public class TextUtils
 
     /**
      * Substitutes links in the given text with valid HTML mark-up. For instance,
-     * http://dhis2.org is replaced with <a href="http://dhis2.org">http://dhis2.org</a>,
-     * and www.dhis2.org is replaced with <a href="http://dhis2.org">www.dhis2.org</a>.
+     * http://dhis2.org is replaced with
+     * <a href="http://dhis2.org">http://dhis2.org</a>, and www.dhis2.org is
+     * replaced with <a href="http://dhis2.org">www.dhis2.org</a>.
      *
      * @param text the text to substitute links for.
      * @return the substituted text.
@@ -111,8 +119,8 @@ public class TextUtils
     }
 
     /**
-     * Replaces common newline characters like \n, \r, \r\n to the HTML line
-     * break tag br.
+     * Replaces common newline characters like \n, \r, \r\n to the HTML line break
+     * tag br.
      *
      * @param text the text to substitute.
      * @return the substituted text.
@@ -144,9 +152,9 @@ public class TextUtils
     }
 
     /**
-     * Gets the sub string of the given string. If the beginIndex is larger than
-     * the length of the string, the empty string is returned. If the beginIndex +
-     * the length is larger than the length of the string, the part of the string
+     * Gets the sub string of the given string. If the beginIndex is larger than the
+     * length of the string, the empty string is returned. If the beginIndex + the
+     * length is larger than the length of the string, the part of the string
      * following the beginIndex is returned. Method is out-of-range safe.
      *
      * @param string the string.
@@ -163,7 +171,7 @@ public class TextUtils
 
         final int endIndex = beginIndex + length;
 
-        if ( beginIndex >= string.length()  )
+        if ( beginIndex >= string.length() )
         {
             return EMPTY;
         }
@@ -177,8 +185,8 @@ public class TextUtils
     }
 
     /**
-     * Removes the last occurrence of the word "or" from the given string,
-     * including potential trailing spaces, case-insensitive.
+     * Removes the last occurrence of the word "or" from the given string, including
+     * potential trailing spaces, case-insensitive.
      *
      * @param string the string.
      * @return the chopped string.
@@ -205,8 +213,8 @@ public class TextUtils
     }
 
     /**
-     * Removes the last occurrence of comma (",") from the given string,
-     * including potential trailing spaces.
+     * Removes the last occurrence of comma (",") from the given string, including
+     * potential trailing spaces.
      *
      * @param string the string.
      * @return the chopped string.
@@ -230,7 +238,7 @@ public class TextUtils
     {
         string = StringUtils.stripEnd( string, " " );
 
-        return StringUtils.removeEndIgnoreCase( string,  remove );
+        return StringUtils.removeEndIgnoreCase( string, remove );
     }
 
     /**
@@ -263,8 +271,8 @@ public class TextUtils
     }
 
     /**
-     * Returns an empty string if the given argument is true, the string
-     * otherwise. This is a convenience method.
+     * Returns an empty string if the given argument is true, the string otherwise.
+     * This is a convenience method.
      *
      * @param string the string.
      * @param emptyString whether to return an empty string.
@@ -276,8 +284,8 @@ public class TextUtils
     }
 
     /**
-     * Joins the elements of the provided array into a single String containing
-     * the provided list of elements.
+     * Joins the elements of the provided array into a single String containing the
+     * provided list of elements.
      *
      * @param <T> type.
      * @param list the list of objects to join.
@@ -304,6 +312,7 @@ public class TextUtils
 
     /**
      * Joins the given elements with a {@code -} character as separator.
+     *
      * @param elements the elements to join.
      * @return the joined string.
      */
@@ -364,8 +373,8 @@ public class TextUtils
     }
 
     /**
-     * Transforms a collection of strings into a comma delimited string, where
-     * each component is single-quoted.
+     * Transforms a collection of strings into a comma delimited string, where each
+     * component is single-quoted.
      *
      * @param elements the collection of Integers
      * @return a comma delimited String.
@@ -400,8 +409,8 @@ public class TextUtils
     }
 
     /**
-     * Returns the string value of the given boolean. Returns null if argument
-     * is null.
+     * Returns the string value of the given boolean. Returns null if argument is
+     * null.
      *
      * @param value the boolean.
      * @return the string value.
@@ -412,8 +421,8 @@ public class TextUtils
     }
 
     /**
-     * Returns the boolean value of the given string. Returns null if argument
-     * is null.
+     * Returns the boolean value of the given string. Returns null if argument is
+     * null.
      *
      * @param value the string value.
      * @return the boolean.
@@ -472,8 +481,8 @@ public class TextUtils
     }
 
     /**
-     * Returns the empty string if the given string is equal to the given test,
-     * the string if not.
+     * Returns the empty string if the given string is equal to the given test, the
+     * string if not.
      *
      * @param string the string.
      * @param test the test to check the string for equality.
@@ -497,8 +506,8 @@ public class TextUtils
     }
 
     /**
-     * Invokes append tail on matcher with the given string buffer, and returns
-     * the string buffer as a string.
+     * Invokes append tail on matcher with the given string buffer, and returns the
+     * string buffer as a string.
      *
      * @param matcher the matcher.
      * @param sb the string buffer.
@@ -566,9 +575,9 @@ public class TextUtils
     }
 
     /**
-     * Gets the string at the given index of the array produced by splitting
-     * the given string on the given separator. Returns null if the given string
-     * is null or if the given index is out of bounds of the array.
+     * Gets the string at the given index of the array produced by splitting the
+     * given string on the given separator. Returns null if the given string is null
+     * or if the given index is out of bounds of the array.
      *
      * @param string the string to split.
      * @param separator the character to split on.
@@ -593,8 +602,8 @@ public class TextUtils
     }
 
     /**
-     * Indicates whether the given string contains any of the given search
-     * strings. The operation ignores case and leading and trailing blanks.
+     * Indicates whether the given string contains any of the given search strings.
+     * The operation ignores case and leading and trailing blanks.
      *
      * @param string the string to check, can be null.
      * @param searchStrings the strings to check against.
@@ -639,8 +648,8 @@ public class TextUtils
     }
 
     /**
-     * Replaces the first n matches of the given regular expression starting
-     * from the beginning of the given string.
+     * Replaces the first n matches of the given regular expression starting from
+     * the beginning of the given string.
      *
      * @param string the string to replace matches.
      * @param regex the regular expression to match the string against.
@@ -648,7 +657,8 @@ public class TextUtils
      * @param occurrences the number of matches to replace.
      * @return the replaced string.
      */
-    public static String replaceFirst( String string, final String regex, final String replacement, final int occurrences )
+    public static String replaceFirst( String string, final String regex, final String replacement,
+        final int occurrences )
     {
         StringBuffer sb = new StringBuffer();
         Matcher matcher = Pattern.compile( regex ).matcher( string );
@@ -664,9 +674,9 @@ public class TextUtils
     }
 
     /**
-     * Replaces all occurrences of the given symbols with the
-     * given replacements in the given string. Note that the replacement
-     * will match the symbol as is, i.e. no regular expression matching.
+     * Replaces all occurrences of the given symbols with the given replacements in
+     * the given string. Note that the replacement will match the symbol as is, i.e.
+     * no regular expression matching.
      *
      * @param string the string to replace.
      * @param symbolReplacementPairs the pairs of symbols and replacements.
@@ -680,7 +690,7 @@ public class TextUtils
 
         for ( int i = 0; i < pairs.size(); i += 2 )
         {
-            String symbol = Pattern.quote( pairs.get(i ) );
+            String symbol = Pattern.quote( pairs.get( i ) );
             String replacement = pairs.get( i + 1 );
 
             replaced = replaced.replaceAll( symbol, replacement );
@@ -742,8 +752,8 @@ public class TextUtils
     }
 
     /**
-     * Returns the given string as a list of lines. Splits the
-     * string on newline characters (UNIX and Windows).
+     * Returns the given string as a list of lines. Splits the string on newline
+     * characters (UNIX and Windows).
      *
      * @param string the string.
      * @return a list of lines.

@@ -33,6 +33,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.List;
 import java.util.Optional;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
@@ -43,8 +45,6 @@ import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -142,7 +142,8 @@ public class JdbcResourceTableStore
         // ---------------------------------------------------------------------
 
         List<AnalyticsTableHook> hooks = analyticsTableHookService
-            .getByPhaseAndResourceTableType( AnalyticsTablePhase.RESOURCE_TABLE_POPULATED, resourceTable.getTableType() );
+            .getByPhaseAndResourceTableType( AnalyticsTablePhase.RESOURCE_TABLE_POPULATED,
+                resourceTable.getTableType() );
 
         if ( !hooks.isEmpty() )
         {
@@ -188,7 +189,8 @@ public class JdbcResourceTableStore
 
         log.debug( String.format( "Analyzed resource table: '%s'", resourceTable.getTableName() ) );
 
-        log.info( String.format( "Resource table '%s' update done: '%s'", resourceTable.getTableName(), clock.time() ) );
+        log.info(
+            String.format( "Resource table '%s' update done: '%s'", resourceTable.getTableName(), clock.time() ) );
     }
 
     @Override

@@ -87,9 +87,9 @@ public class DimensionItem
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a string key for dimension items in the given list. The key is
-     * a concatenation of the dimension items separated by the dimension separator.
-     * If no items are given or items is null, an empty string is returned.
+     * Returns a string key for dimension items in the given list. The key is a
+     * concatenation of the dimension items separated by the dimension separator. If
+     * no items are given or items is null, an empty string is returned.
      */
     public static String asItemKey( List<DimensionItem> items )
     {
@@ -109,8 +109,8 @@ public class DimensionItem
     }
 
     /**
-     * Returns an array of identifiers of the dimension items in the given list.
-     * If no items are given or items are null, an empty array is returned.
+     * Returns an array of identifiers of the dimension items in the given list. If
+     * no items are given or items are null, an empty array is returned.
      */
     public static String[] getItemIdentifiers( List<DimensionItem> items )
     {
@@ -128,9 +128,9 @@ public class DimensionItem
     }
 
     /**
-     * Returns the period dimension item object from the given list of
-     * dimension items. If no items are given, items are null or there are no
-     * period dimension, null is returned.
+     * Returns the period dimension item object from the given list of dimension
+     * items. If no items are given, items are null or there are no period
+     * dimension, null is returned.
      */
     public static DimensionalItemObject getPeriodItem( List<DimensionItem> items )
     {
@@ -150,8 +150,8 @@ public class DimensionItem
 
     /**
      * Returns the organisation unit dimension item object from the given list of
-     * dimension items. If no items are given, items are null or there are no
-     * period dimension, null is returned.
+     * dimension items. If no items are given, items are null or there are no period
+     * dimension, null is returned.
      */
     public static DimensionalItemObject getOrganisationUnitItem( List<DimensionItem> items )
     {
@@ -178,8 +178,8 @@ public class DimensionItem
     {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ( ( dimension == null ) ? 0 : dimension.hashCode() );
-        result = prime * result + ( ( item == null ) ? 0 : item.hashCode() );
+        result = prime * result + ((dimension == null) ? 0 : dimension.hashCode());
+        result = prime * result + ((item == null) ? 0 : item.hashCode());
         return result;
     }
 

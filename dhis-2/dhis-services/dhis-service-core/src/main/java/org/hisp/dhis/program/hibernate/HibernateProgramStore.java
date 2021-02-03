@@ -73,7 +73,7 @@ public class HibernateProgramStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-               .addPredicate( root ->  builder.equal( root.get( "programType" ), type )));
+            .addPredicate( root -> builder.equal( root.get( "programType" ), type ) ) );
     }
 
     @Override
@@ -82,7 +82,8 @@ public class HibernateProgramStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.join( "organisationUnits" ).get( "id" ), organisationUnit.getId() ) ) );
+            .addPredicate(
+                root -> builder.equal( root.join( "organisationUnits" ).get( "id" ), organisationUnit.getId() ) ) );
     }
 
     @Override

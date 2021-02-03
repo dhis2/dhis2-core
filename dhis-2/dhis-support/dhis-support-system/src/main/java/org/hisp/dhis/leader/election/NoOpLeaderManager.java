@@ -29,12 +29,15 @@ package org.hisp.dhis.leader.election;
  */
 
 import java.util.UUID;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.scheduling.SchedulingManager;
 
 /**
- * No operation leader election implementation which will be used when redis is not configured.
- * 
+ * No operation leader election implementation which will be used when redis is
+ * not configured.
+ *
  * @author Ameen Mohamed
  */
 @Slf4j
@@ -49,13 +52,13 @@ public class NoOpLeaderManager implements LeaderManager
     @Override
     public void renewLeader()
     {
-        //No operation
+        // No operation
     }
 
     @Override
     public void electLeader()
     {
-      //No operation
+        // No operation
     }
 
     @Override
@@ -67,7 +70,7 @@ public class NoOpLeaderManager implements LeaderManager
     @Override
     public void setSchedulingManager( SchedulingManager schedulingManager )
     {
-      //No operation
+        // No operation
     }
 
 }

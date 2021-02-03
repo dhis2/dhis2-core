@@ -28,8 +28,11 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -38,10 +41,8 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -50,14 +51,19 @@ public class CategoryServiceTest
     extends DhisSpringTest
 {
     private DataElement deA;
+
     private DataElement deB;
 
     private CategoryOption categoryOptionA;
+
     private CategoryOption categoryOptionB;
+
     private CategoryOption categoryOptionC;
 
     private Category categoryA;
+
     private Category categoryB;
+
     private Category categoryC;
 
     private CategoryCombo ccA;

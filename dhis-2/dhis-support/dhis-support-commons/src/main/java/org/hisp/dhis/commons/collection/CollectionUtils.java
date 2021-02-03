@@ -47,8 +47,8 @@ public class CollectionUtils
     /**
      * Returns the intersection of the given Collections.
      *
-     * @param c1  the first Collection.
-     * @param c2  the second Collection.
+     * @param c1 the first Collection.
+     * @param c2 the second Collection.
      * @param <T> the type.
      * @return the intersection of the Collections.
      */
@@ -60,11 +60,11 @@ public class CollectionUtils
     }
 
     /**
-     * Searches for and returns the first string which starts with the given
-     * prefix. Removes the match from the collection.
+     * Searches for and returns the first string which starts with the given prefix.
+     * Removes the match from the collection.
      *
      * @param collection the collection.
-     * @param prefix     the string prefix.
+     * @param prefix the string prefix.
      * @return a string, or null if no matches.
      */
     public static String popStartsWith( Collection<String> collection, String prefix )
@@ -86,8 +86,8 @@ public class CollectionUtils
     }
 
     /**
-     * Applies the given consumer to each item in the given collection after filtering
-     * out null items.
+     * Applies the given consumer to each item in the given collection after
+     * filtering out null items.
      *
      * @param collection the collection.
      * @param consumer the consumer.

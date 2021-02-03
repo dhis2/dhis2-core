@@ -30,12 +30,12 @@ package org.hisp.dhis.datastatistics;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Yrjan A. F. Fraschetti

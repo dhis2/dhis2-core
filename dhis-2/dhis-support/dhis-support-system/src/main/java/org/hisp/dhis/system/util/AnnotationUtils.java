@@ -49,7 +49,7 @@ public class AnnotationUtils
      * Returns methods on the given target object which are annotated with the
      * annotation of the given class.
      *
-     * @param target         the target object.
+     * @param target the target object.
      * @param annotationType the annotation class type.
      * @return a list of methods annotated with the given annotation.
      */
@@ -64,7 +64,8 @@ public class AnnotationUtils
 
         for ( Method method : target.getClass().getMethods() )
         {
-            Annotation annotation = org.springframework.core.annotation.AnnotationUtils.findAnnotation( method, annotationType );
+            Annotation annotation = org.springframework.core.annotation.AnnotationUtils.findAnnotation( method,
+                annotationType );
 
             if ( annotation != null )
             {
@@ -76,9 +77,10 @@ public class AnnotationUtils
     }
 
     /**
-     * Returns Map of fields and their getter methods on the given class and its parents (if any)
-     * which are annotated with the annotation of the given annotationType.
-     * The annotation can be applied to either field or getter method.
+     * Returns Map of fields and their getter methods on the given class and its
+     * parents (if any) which are annotated with the annotation of the given
+     * annotationType. The annotation can be applied to either field or getter
+     * method.
      *
      * @param klass
      * @param annotationType
@@ -102,9 +104,9 @@ public class AnnotationUtils
                 return;
             }
 
-            if ( field.isAnnotationPresent( annotationType )  || getter.isAnnotationPresent( annotationType ) )
+            if ( field.isAnnotationPresent( annotationType ) || getter.isAnnotationPresent( annotationType ) )
             {
-               mapFields.put( field, getter );
+                mapFields.put( field, getter );
             }
         } );
 
@@ -112,9 +114,10 @@ public class AnnotationUtils
     }
 
     /**
-     * Scan through all fields and getters of given class and return those with {@link Translatable} marked.
-     * Return Map<String,String> with key is fieldName and value is translation key.
-     * This translation key is used for storing translation values in JsonB format.
+     * Scan through all fields and getters of given class and return those with
+     * {@link Translatable} marked. Return Map<String,String> with key is fieldName
+     * and value is translation key. This translation key is used for storing
+     * translation values in JsonB format.
      */
     public static Map<String, String> getTranslatableAnnotatedFields( Class<?> klass )
     {
@@ -132,7 +135,8 @@ public class AnnotationUtils
 
             if ( translatableAnnotation != null )
             {
-                mapFields.put( translatableAnnotation.translationProperty().getName(), translatableAnnotation.translationProperty().toString() );
+                mapFields.put( translatableAnnotation.translationProperty().getName(),
+                    translatableAnnotation.translationProperty().toString() );
             }
         } );
 
@@ -140,9 +144,10 @@ public class AnnotationUtils
     }
 
     /**
-     * Check to see if annotation is present on a given Class, take into account class hierarchy.
+     * Check to see if annotation is present on a given Class, take into account
+     * class hierarchy.
      *
-     * @param klass          Class
+     * @param klass Class
      * @param annotationType Annotation
      * @return true/false depending on if annotation is present
      */
@@ -152,9 +157,10 @@ public class AnnotationUtils
     }
 
     /**
-     * Check to see if annotation is present on a given Method, take into account class hierarchy.
+     * Check to see if annotation is present on a given Method, take into account
+     * class hierarchy.
      *
-     * @param method         Method
+     * @param method Method
      * @param annotationType Annotation
      * @return true/false depending on if annotation is present
      */
@@ -166,7 +172,7 @@ public class AnnotationUtils
     /**
      * Gets annotation on a given Class, takes into account class hierarchy.
      *
-     * @param klass          Class
+     * @param klass Class
      * @param annotationType Annotation
      * @return Annotation instance on Class
      */
@@ -178,7 +184,7 @@ public class AnnotationUtils
     /**
      * Gets annotation on a given Method, takes into account class hierarchy.
      *
-     * @param method         Method
+     * @param method Method
      * @param annotationType Annotation
      * @return Annotation instance on Method
      */

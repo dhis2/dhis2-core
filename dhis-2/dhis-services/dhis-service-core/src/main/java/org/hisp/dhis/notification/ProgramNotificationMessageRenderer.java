@@ -28,20 +28,21 @@ package org.hisp.dhis.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.notification.ProgramTemplateVariable;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.springframework.stereotype.Component;
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.notification.ProgramTemplateVariable;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.springframework.stereotype.Component;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -50,18 +51,17 @@ import java.util.stream.Collectors;
 public class ProgramNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<ProgramInstance>
 {
-    private static final ImmutableMap<TemplateVariable, Function<ProgramInstance, String>> VARIABLE_RESOLVERS =
-        new ImmutableMap.Builder<TemplateVariable, Function<ProgramInstance, String>>()
-            .put( ProgramTemplateVariable.PROGRAM_NAME,                 pi -> pi.getProgram().getDisplayName() )
-            .put( ProgramTemplateVariable.ORG_UNIT_NAME,                pi -> pi.getOrganisationUnit().getDisplayName() )
-            .put( ProgramTemplateVariable.CURRENT_DATE,                 pi -> formatDate( new Date() ) )
-            .put( ProgramTemplateVariable.ENROLLMENT_DATE,              pi -> formatDate( pi.getEnrollmentDate() ) )
-            .put( ProgramTemplateVariable.INCIDENT_DATE,                pi -> formatDate( pi.getIncidentDate() ) )
-            .put( ProgramTemplateVariable.DAYS_SINCE_ENROLLMENT_DATE,   pi -> daysSince( pi.getEnrollmentDate() ) )
-            .build();
+    private static final ImmutableMap<TemplateVariable, Function<ProgramInstance, String>> VARIABLE_RESOLVERS = new ImmutableMap.Builder<TemplateVariable, Function<ProgramInstance, String>>()
+        .put( ProgramTemplateVariable.PROGRAM_NAME, pi -> pi.getProgram().getDisplayName() )
+        .put( ProgramTemplateVariable.ORG_UNIT_NAME, pi -> pi.getOrganisationUnit().getDisplayName() )
+        .put( ProgramTemplateVariable.CURRENT_DATE, pi -> formatDate( new Date() ) )
+        .put( ProgramTemplateVariable.ENROLLMENT_DATE, pi -> formatDate( pi.getEnrollmentDate() ) )
+        .put( ProgramTemplateVariable.INCIDENT_DATE, pi -> formatDate( pi.getIncidentDate() ) )
+        .put( ProgramTemplateVariable.DAYS_SINCE_ENROLLMENT_DATE, pi -> daysSince( pi.getEnrollmentDate() ) )
+        .build();
 
-    private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES =
-        ImmutableSet.of( ExpressionType.TRACKED_ENTITY_ATTRIBUTE, ExpressionType.VARIABLE );
+    private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES = ImmutableSet
+        .of( ExpressionType.TRACKED_ENTITY_ATTRIBUTE, ExpressionType.VARIABLE );
 
     // -------------------------------------------------------------------------
     // Overrides
@@ -74,7 +74,8 @@ public class ProgramNotificationMessageRenderer
     }
 
     @Override
-    protected Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys, ProgramInstance entity )
+    protected Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys,
+        ProgramInstance entity )
     {
         if ( attributeKeys.isEmpty() )
         {
@@ -83,7 +84,8 @@ public class ProgramNotificationMessageRenderer
 
         return entity.getEntityInstance().getTrackedEntityAttributeValues().stream()
             .filter( av -> attributeKeys.contains( av.getAttribute().getUid() ) )
-            .collect( Collectors.toMap( av -> av.getAttribute().getUid(), ProgramNotificationMessageRenderer::filterValue ) );
+            .collect(
+                Collectors.toMap( av -> av.getAttribute().getUid(), ProgramNotificationMessageRenderer::filterValue ) );
     }
 
     @Override

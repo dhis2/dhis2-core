@@ -28,13 +28,14 @@ package org.hisp.dhis.external.conf;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import org.hisp.dhis.encryption.EncryptionStatus;
-
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+
+import org.hisp.dhis.encryption.EncryptionStatus;
+
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 
 /**
  * Interface which provides access to the DHIS 2 configuration specified through
@@ -52,9 +53,9 @@ public interface DhisConfigurationProvider
     Properties getProperties();
 
     /**
-     * Get the property value for the given key, or the default value as
-     * specified in the {@link ConfigurationKey#getDefaultValue()} for the
-     * configuration key if not exists.
+     * Get the property value for the given key, or the default value as specified
+     * in the {@link ConfigurationKey#getDefaultValue()} for the configuration key
+     * if not exists.
      *
      * @param key the configuration key.
      * @return the property value.
@@ -62,18 +63,17 @@ public interface DhisConfigurationProvider
     String getProperty( ConfigurationKey key );
 
     /**
-     * Get the property value for the given key, or the default value if not
-     * exists.
+     * Get the property value for the given key, or the default value if not exists.
      *
-     * @param key          the configuration key.
+     * @param key the configuration key.
      * @param defaultValue the default value.
      * @return the property value.
      */
     String getPropertyOrDefault( ConfigurationKey key, String defaultValue );
 
     /**
-     * Indicates whether it exists a value which is not null or blank for the
-     * given key.
+     * Indicates whether it exists a value which is not null or blank for the given
+     * key.
      *
      * @param key the configuration key.
      * @return true if a value exists.
@@ -92,7 +92,7 @@ public interface DhisConfigurationProvider
      * Returns value as boolean, will return false if value is null.
      *
      * @param key the configuration key.
-     * @return Will  return true if the value is "true" or "TRUE"
+     * @return Will return true if the value is "true" or "TRUE"
      */
     boolean getBoolean( ConfigurationKey key );
 
@@ -112,8 +112,8 @@ public interface DhisConfigurationProvider
     Optional<GoogleCredential> getGoogleCredential();
 
     /**
-     * Returns a GoogleAccessToken. Returns empty if no Google service account
-     * has been configured, or if no refresh token could be retrieved.
+     * Returns a GoogleAccessToken. Returns empty if no Google service account has
+     * been configured, or if no refresh token could be retrieved.
      *
      * @return a GoogleAccessToken.
      * @throws IllegalStateException if an error occurred while retrieving a token.

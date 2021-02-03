@@ -68,7 +68,8 @@ public class AnalyticsTablePartition
      */
     private boolean dataApproval;
 
-    public AnalyticsTablePartition( AnalyticsTable masterTable, Integer year, Date startDate, Date endDate, boolean dataApproval )
+    public AnalyticsTablePartition( AnalyticsTable masterTable, Integer year, Date startDate, Date endDate,
+        boolean dataApproval )
     {
         this.masterTable = masterTable;
         this.year = year;

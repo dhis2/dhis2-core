@@ -33,5 +33,10 @@ package org.hisp.dhis.audit;
  */
 public enum AuditType
 {
-    CREATE, READ, UPDATE, DELETE, SEARCH, SECURITY
+    CREATE,
+    READ,
+    UPDATE,
+    DELETE,
+    SEARCH,
+    SECURITY
 }

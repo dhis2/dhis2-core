@@ -28,6 +28,10 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.*;
+
+import java.util.Date;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.merge.Simple;
@@ -41,10 +45,6 @@ import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Date;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -132,7 +132,8 @@ public class MergeServiceTest
         OrganisationUnitGroupSet organisationUnitGroupSetA = createOrganisationUnitGroupSet( 'A' );
         organisationUnitGroupSetA.addOrganisationUnitGroup( organisationUnitGroupA );
 
-        mergeService.merge( new MergeParams<>( organisationUnitGroupA, organisationUnitGroupB ).setMergeMode( MergeMode.REPLACE ) );
+        mergeService.merge(
+            new MergeParams<>( organisationUnitGroupA, organisationUnitGroupB ).setMergeMode( MergeMode.REPLACE ) );
 
         assertFalse( organisationUnitGroupB.getMembers().isEmpty() );
         assertEquals( 4, organisationUnitGroupB.getMembers().size() );
@@ -158,13 +159,15 @@ public class MergeServiceTest
         OrganisationUnitGroupSet organisationUnitGroupSetB = createOrganisationUnitGroupSet( 'B' );
         organisationUnitGroupSetA.addOrganisationUnitGroup( organisationUnitGroupA );
 
-        mergeService.merge( new MergeParams<>( organisationUnitGroupSetA, organisationUnitGroupSetB ).setMergeMode( MergeMode.REPLACE ) );
+        mergeService.merge( new MergeParams<>( organisationUnitGroupSetA, organisationUnitGroupSetB )
+            .setMergeMode( MergeMode.REPLACE ) );
 
         assertFalse( organisationUnitGroupSetB.getOrganisationUnitGroups().isEmpty() );
         assertEquals( organisationUnitGroupSetA.getName(), organisationUnitGroupSetB.getName() );
         assertEquals( organisationUnitGroupSetA.getDescription(), organisationUnitGroupSetB.getDescription() );
         assertEquals( organisationUnitGroupSetA.isCompulsory(), organisationUnitGroupSetB.isCompulsory() );
-        assertEquals( organisationUnitGroupSetA.isIncludeSubhierarchyInAnalytics(), organisationUnitGroupSetB.isIncludeSubhierarchyInAnalytics() );
+        assertEquals( organisationUnitGroupSetA.isIncludeSubhierarchyInAnalytics(),
+            organisationUnitGroupSetB.isIncludeSubhierarchyInAnalytics() );
         assertEquals( 1, organisationUnitGroupSetB.getOrganisationUnitGroups().size() );
     }
 

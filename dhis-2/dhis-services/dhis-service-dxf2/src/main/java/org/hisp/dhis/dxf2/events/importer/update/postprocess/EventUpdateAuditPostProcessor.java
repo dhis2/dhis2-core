@@ -28,10 +28,10 @@ package org.hisp.dhis.dxf2.events.importer.update.postprocess;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.Getter;
+
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.dxf2.events.importer.audit.AbstractEventAuditPostProcessor;
-
-import lombok.Getter;
 
 public class EventUpdateAuditPostProcessor extends AbstractEventAuditPostProcessor
 {

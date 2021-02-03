@@ -191,12 +191,13 @@ public class ProgramInstancePreProcessorTest extends BasePreProcessTest
         assertThat( event.getEnrollment(), is( programInstance.getUid() ) );
         assertThat( programInstanceMap.get( event.getUid() ).getUid(), is( programInstance.getUid() ) );
         assertThat( programInstanceMap.get( event.getUid() ).getProgram().getUid(), is( programWithoutReg.getUid() ) );
-        assertThat( sql.getValue(), is( "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?" ) );
+        assertThat( sql.getValue(), is(
+            "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?" ) );
     }
 
     @Test
     public void verifyEnrollmentIsNotSetWithProgramWithoutRegistrationAndMultipleProgramStageInstances()
-            throws SQLException
+        throws SQLException
     {
         // crete a Program "without registration"
         Program programWithoutReg = createProgram( 'W' );
@@ -223,7 +224,8 @@ public class ProgramInstancePreProcessorTest extends BasePreProcessTest
         // simulate 2 records returned from query
         //
         when( mockResultSet.next() ).thenReturn( true ).thenReturn( true ).thenReturn( false );
-        when( mockResultSet.getLong( "programinstanceid" ) ).thenReturn( programInstance1.getId(), programInstance2.getId() );
+        when( mockResultSet.getLong( "programinstanceid" ) ).thenReturn( programInstance1.getId(),
+            programInstance2.getId() );
         when( mockResultSet.getString( "uid" ) ).thenReturn( programInstance1.getUid(), programInstance2.getUid() );
 
         // Mock jdbc call
@@ -235,7 +237,8 @@ public class ProgramInstancePreProcessorTest extends BasePreProcessTest
         subject.process( event, workContext );
 
         assertThat( event.getEnrollment(), is( nullValue() ) );
-        assertThat( sql.getValue(), is( "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?" ) );
+        assertThat( sql.getValue(), is(
+            "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?" ) );
     }
 
     public void mockResultSetExtractor( ResultSet resultSetMock )

@@ -35,14 +35,14 @@ import org.hisp.dhis.common.IdentifiableObject;
 
 /**
  * A DHIS2 metadata cache implementation to reduce db lookups during pre-heat
- * 
+ *
  * @author Luciano Fiandesio
  */
 public interface PreheatCacheService
 {
     /**
      * Fetches an object from the pre-heat cache.
-     * 
+     *
      * @param cacheKey the full class name of the object being cached
      * @param id the identifier of the object to retrieve
      *
@@ -51,7 +51,7 @@ public interface PreheatCacheService
 
     /**
      * Check whether a class type is part of the cache
-     * 
+     *
      * @param cacheKey the full class name of a metadata object
      *
      */
@@ -59,7 +59,7 @@ public interface PreheatCacheService
 
     /**
      * Fetch all the cached entries for the given class type key
-     * 
+     *
      * @param cacheKey the full class name of a metadata object
      *
      */

@@ -87,10 +87,11 @@ public class HibernateProgramRuleStore
     @Override
     public List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types )
     {
-        return getQuery( "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes )" )
-            .setParameter( "programId", program )
-            .setParameter( "implementableTypes", types )
-            .getResultList();
+        return getQuery(
+            "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes )" )
+                .setParameter( "programId", program )
+                .setParameter( "implementableTypes", types )
+                .getResultList();
     }
 
     @Override
@@ -100,7 +101,8 @@ public class HibernateProgramRuleStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
-            .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "name" ), key, JpaQueryUtils.StringSearchMode.ANYWHERE ) )
+            .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "name" ), key,
+                JpaQueryUtils.StringSearchMode.ANYWHERE ) )
             .addOrder( root -> builder.asc( root.get( "name" ) ) ) );
     }
 
@@ -116,9 +118,10 @@ public class HibernateProgramRuleStore
     @Override
     public List<ProgramRule> getProgramRulesWithNoPriority()
     {
-        return getQuery( "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.priority IS NULL AND pra.programRuleActionType = :actionType" )
-            .setParameter( "actionType", ProgramRuleActionType.ASSIGN )
-            .getResultList();
+        return getQuery(
+            "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.priority IS NULL AND pra.programRuleActionType = :actionType" )
+                .setParameter( "actionType", ProgramRuleActionType.ASSIGN )
+                .getResultList();
     }
 
     @Override
@@ -136,13 +139,14 @@ public class HibernateProgramRuleStore
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public List<ProgramRule> getProgramRulesByEvaluationEnvironment(
         ProgramRuleActionEvaluationEnvironment environment )
     {
         List<BigInteger> bigIntegerList = getSession().createNativeQuery(
-            "select pra.programruleactionid from programrule pr JOIN programruleaction pra ON pr.programruleid=pra.programruleid " +
-                "where environments@> '[\"" + environment + "\"]';")
+            "select pra.programruleactionid from programrule pr JOIN programruleaction pra ON pr.programruleid=pra.programruleid "
+                +
+                "where environments@> '[\"" + environment + "\"]';" )
             .list();
         List<Long> idList = bigIntegerList
             .stream()
@@ -152,7 +156,8 @@ public class HibernateProgramRuleStore
         Session session = getSession();
         session.clear();
         return session.createQuery(
-            "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pra.id in (:ids)", ProgramRule.class )
+            "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pra.id in (:ids)",
+            ProgramRule.class )
             .setParameterList( "ids", idList )
             .getResultList();
     }

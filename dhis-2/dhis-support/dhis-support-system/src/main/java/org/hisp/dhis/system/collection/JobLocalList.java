@@ -28,12 +28,12 @@ package org.hisp.dhis.system.collection;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.JobConfiguration;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.hisp.dhis.scheduling.JobConfiguration;
 
 /**
  * @author Lars Helge Overland
@@ -41,12 +41,12 @@ import java.util.Map;
 public class JobLocalList<T>
 {
     private final Map<JobConfiguration, List<T>> internalMap;
-    
+
     public JobLocalList()
     {
         this.internalMap = new HashMap<>();
     }
-    
+
     public List<T> get( JobConfiguration id )
     {
         return internalMap.computeIfAbsent( id, k -> new ArrayList<>() );

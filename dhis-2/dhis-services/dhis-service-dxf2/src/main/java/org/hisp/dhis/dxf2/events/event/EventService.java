@@ -60,28 +60,38 @@ public interface EventService
 
     Event getEvent( ProgramStageInstance programStageInstance );
 
-    Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery, boolean skipOwnershipCheck );
+    Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
+        boolean skipOwnershipCheck );
 
     // TODO remove these 2 methods and move the logic to the front-end
-    List<Event> getEventsXml( InputStream inputStream ) throws IOException;
+    List<Event> getEventsXml( InputStream inputStream )
+        throws IOException;
 
-    List<Event> getEventsJson( InputStream inputStream ) throws IOException;
+    List<Event> getEventsJson( InputStream inputStream )
+        throws IOException;
 
     /**
-     * Returns the count of anonymous event that are ready for synchronization (lastUpdated > lastSynchronized)
+     * Returns the count of anonymous event that are ready for synchronization
+     * (lastUpdated > lastSynchronized)
      *
-     * @param skipChangedBefore the point in time specifying which events will be synchronized and which not
-     * @return the count of anonymous event that are ready for synchronization (lastUpdated > lastSynchronized)
+     * @param skipChangedBefore the point in time specifying which events will be
+     *        synchronized and which not
+     * @return the count of anonymous event that are ready for synchronization
+     *         (lastUpdated > lastSynchronized)
      */
     int getAnonymousEventReadyForSynchronizationCount( Date skipChangedBefore );
 
     /**
-     * Returns the anonymous events that are supposed to be synchronized (lastUpdated > lastSynchronized)
+     * Returns the anonymous events that are supposed to be synchronized
+     * (lastUpdated > lastSynchronized)
      *
      * @param pageSize Specifies the max number for the events returned.
-     * @param skipChangedBefore the point in time specifying which events will be synchronized and which not
-     * @param psdesWithSkipSyncTrue Holds information about PSDEs for which the data should not be synchronized
-     * @return the anonymous events that are supposed to be synchronized (lastUpdated > lastSynchronized)
+     * @param skipChangedBefore the point in time specifying which events will be
+     *        synchronized and which not
+     * @param psdesWithSkipSyncTrue Holds information about PSDEs for which the data
+     *        should not be synchronized
+     * @return the anonymous events that are supposed to be synchronized
+     *         (lastUpdated > lastSynchronized)
      */
     Events getAnonymousEventsForSync( int pageSize, Date skipChangedBefore,
         Map<String, Set<String>> psdesWithSkipSyncTrue );
@@ -96,9 +106,11 @@ public interface EventService
 
     ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
 
-    ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;
+    ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions )
+        throws IOException;
 
-    ImportSummaries addEventsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException;
+    ImportSummaries addEventsJson( InputStream inputStream, ImportOptions importOptions )
+        throws IOException;
 
     // -------------------------------------------------------------------------
     // UPDATE
@@ -135,7 +147,8 @@ public interface EventService
     /**
      * Updates a last sync timestamp on specified Events
      *
-     * @param eventsUIDs UIDs of Events where the lastSynchronized flag should be updated
+     * @param eventsUIDs UIDs of Events where the lastSynchronized flag should be
+     *        updated
      * @param lastSynchronized The date of last successful sync
      */
     void updateEventsSyncTimestamp( List<String> eventsUIDs, Date lastSynchronized );

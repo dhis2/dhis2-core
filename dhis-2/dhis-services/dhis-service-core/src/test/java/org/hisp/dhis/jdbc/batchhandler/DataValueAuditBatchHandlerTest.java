@@ -28,10 +28,14 @@ package org.hisp.dhis.jdbc.batchhandler;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.*;
+
+import java.util.List;
+
 import org.hisp.dhis.DhisTest;
-import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;
@@ -48,10 +52,6 @@ import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -89,17 +89,23 @@ public class DataValueAuditBatchHandlerTest
     private PeriodType periodTypeA;
 
     private Period periodA;
+
     private Period periodB;
 
     private OrganisationUnit unitA;
+
     private OrganisationUnit unitB;
 
     private DataValue dataValueA;
+
     private DataValue dataValueB;
 
     private DataValueAudit auditA;
+
     private DataValueAudit auditB;
+
     private DataValueAudit auditC;
+
     private DataValueAudit auditD;
 
     private String storedBy = "johndoe";

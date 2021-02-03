@@ -28,13 +28,14 @@ package org.hisp.dhis.outboundmessage;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
+import org.hisp.dhis.common.DxfNamespaces;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.List;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -44,7 +45,7 @@ import java.util.List;
 public class BatchResponseStatus
 {
     private List<OutboundMessageResponseSummary> summaries;
-    
+
     public BatchResponseStatus( List<OutboundMessageResponseSummary> summaries )
     {
         this.summaries = summaries;

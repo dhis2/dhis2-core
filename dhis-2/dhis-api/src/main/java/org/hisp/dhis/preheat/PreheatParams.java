@@ -1,16 +1,17 @@
 package org.hisp.dhis.preheat;
 
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.user.User;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.user.User;
+
+import com.google.common.base.MoreObjects;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -127,7 +128,7 @@ public class PreheatParams
         this.objects = objects;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public PreheatParams addObject( IdentifiableObject object )
     {
         if ( object == null )

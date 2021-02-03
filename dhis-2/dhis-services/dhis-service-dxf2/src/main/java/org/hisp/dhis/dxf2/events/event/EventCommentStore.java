@@ -41,7 +41,7 @@ public interface EventCommentStore
      * Inserts non-empty comments from a List {@see ProgramStageInstance}
      *
      * @param programStageInstances a List of {@see ProgramStageInstance}
-     * 
+     *
      */
     void saveAllComments( List<ProgramStageInstance> programStageInstances );
 

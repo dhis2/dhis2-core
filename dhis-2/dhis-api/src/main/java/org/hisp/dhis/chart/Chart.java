@@ -28,10 +28,13 @@ package org.hisp.dhis.chart;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -45,19 +48,18 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement( localName = "chart", namespace = DxfNamespaces.DXF_2_0 )
 public class Chart
-    extends BaseChart implements MetadataObject
+    extends BaseChart
+    implements MetadataObject
 {
     private String series;
 
@@ -190,9 +192,9 @@ public class Chart
     /**
      * Sets all dimensions for this chart.
      *
-     * @param series   the series dimension.
+     * @param series the series dimension.
      * @param category the category dimension.
-     * @param filter   the filter dimension.
+     * @param filter the filter dimension.
      */
     public void setDimensions( String series, String category, String filter )
     {
@@ -269,7 +271,7 @@ public class Chart
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     @Description( "The name of this Object. Required and unique." )
-    @PropertyRange( min = 1, max = 230)
+    @PropertyRange( min = 1, max = 230 )
     @Property( required = TRUE )
     public String getName()
     {

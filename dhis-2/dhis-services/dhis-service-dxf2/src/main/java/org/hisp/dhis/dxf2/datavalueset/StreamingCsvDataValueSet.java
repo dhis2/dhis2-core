@@ -43,13 +43,13 @@ public class StreamingCsvDataValueSet
     extends DataValueSet
 {
     private CsvWriter writer;
-    
+
     private CsvReader reader;
-    
+
     public StreamingCsvDataValueSet( CsvWriter writer )
     {
         this.writer = writer;
-        
+
         try
         {
             this.writer.writeRecord( StreamingCsvDataValue.getHeaders() ); // Write headers
@@ -59,12 +59,12 @@ public class StreamingCsvDataValueSet
             throw new RuntimeException( "Failed to write CSV headers", ex );
         }
     }
-    
+
     public StreamingCsvDataValueSet( CsvReader reader )
     {
         this.reader = reader;
     }
-    
+
     @Override
     public boolean hasNextDataValue()
     {
@@ -104,10 +104,10 @@ public class StreamingCsvDataValueSet
         {
             writer.close();
         }
-        
+
         if ( reader != null )
         {
             reader.close();
         }
-    }    
+    }
 }

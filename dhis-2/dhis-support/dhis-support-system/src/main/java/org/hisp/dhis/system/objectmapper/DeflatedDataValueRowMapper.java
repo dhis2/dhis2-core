@@ -31,8 +31,8 @@ package org.hisp.dhis.system.objectmapper;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.hisp.quick.mapper.RowMapper;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.quick.mapper.RowMapper;
 
 /**
  * @author Lars Helge Overland
@@ -46,7 +46,7 @@ public class DeflatedDataValueRowMapper
         throws SQLException
     {
         final DeflatedDataValue value = new DeflatedDataValue();
-        
+
         value.setDataElementId( resultSet.getLong( "dataelementid" ) );
         value.setPeriodId( resultSet.getLong( "periodid" ) );
         value.setSourceId( resultSet.getLong( "sourceid" ) );
@@ -56,7 +56,7 @@ public class DeflatedDataValueRowMapper
         value.setCreated( resultSet.getTimestamp( "created" ) );
         value.setLastUpdated( resultSet.getTimestamp( "lastupdated" ) );
         value.setComment( resultSet.getString( "comment" ) );
-        
+
         return value;
     }
 

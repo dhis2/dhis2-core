@@ -166,7 +166,6 @@ public class TrackerPreheatTest
 
         assertFalse( preheat.isEmpty() );
 
-
         assertEquals( de1.getUid(), preheat.get( DataElement.class, de1.getUid() ).getUid() );
         assertEquals( de2.getUid(), preheat.get( DataElement.class, de2.getUid() ).getUid() );
         assertEquals( de3.getUid(), preheat.get( DataElement.class, de3.getUid() ).getUid() );
@@ -220,7 +219,7 @@ public class TrackerPreheatTest
         assertEquals( de2.getUid(), preheat.get( DataElement.class, de2.getUid() ).getUid() );
         assertEquals( de3.getUid(), preheat.get( DataElement.class, de3.getUid() ).getUid() );
     }
-    
+
     @Test
     public void testReferenceInvalidation()
     {

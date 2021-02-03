@@ -121,10 +121,15 @@ public class DataElementResourceTable
     public List<String> getCreateIndexStatements()
     {
         return Lists.newArrayList(
-            "create unique index in_dataelementstructure_dataelementuid_" + getRandomSuffix() + " on " + getTempTableName() + "(dataelementuid);",
-            "create index in_dataelementstructure_datasetid_" + getRandomSuffix() + " on " + getTempTableName() + "(datasetid);",
-            "create index in_dataelementstructure_datasetuid_" + getRandomSuffix() + " on " + getTempTableName() + "(datasetuid);",
-            "create index in_dataelementstructure_periodtypeid_" + getRandomSuffix() + " on " + getTempTableName() + "(periodtypeid);",
-            "create index in_dataelementstructure_workflowid_" + getRandomSuffix() + " on " + getTempTableName() + "(workflowid);" );
+            "create unique index in_dataelementstructure_dataelementuid_" + getRandomSuffix() + " on "
+                + getTempTableName() + "(dataelementuid);",
+            "create index in_dataelementstructure_datasetid_" + getRandomSuffix() + " on " + getTempTableName()
+                + "(datasetid);",
+            "create index in_dataelementstructure_datasetuid_" + getRandomSuffix() + " on " + getTempTableName()
+                + "(datasetuid);",
+            "create index in_dataelementstructure_periodtypeid_" + getRandomSuffix() + " on " + getTempTableName()
+                + "(periodtypeid);",
+            "create index in_dataelementstructure_workflowid_" + getRandomSuffix() + " on " + getTempTableName()
+                + "(workflowid);" );
     }
 }

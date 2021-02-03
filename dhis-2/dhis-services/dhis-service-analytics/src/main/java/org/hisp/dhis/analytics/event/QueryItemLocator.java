@@ -33,28 +33,28 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.program.Program;
 
 /**
- * This class is responsible for parsing a String containing a dimension definition and
- * returning a {@see QueryItem} containing the element matching the dimension
- * 
+ * This class is responsible for parsing a String containing a dimension
+ * definition and returning a {@see QueryItem} containing the element matching
+ * the dimension
+ *
  * @author Luciano Fiandesio
  */
 public interface QueryItemLocator
 {
     /**
-     * This method accepts a dimension definition and transforms it into a {@see QueryItem}
+     * This method accepts a dimension definition and transforms it into a
+     * {@see QueryItem}
      *
      * The dimension definition String can be composed of the following elements:
      *
-     * - Data Element [{de uid}]
-     * - Data Element + Legendset [{de uid}-{legendset uid}]
-     * - Program Stage + Data Element [{ps uid}.{de uid}]
-     * - Program Stage + Data Element + Legendset [{ps uid}.{de uid}-{legendset uid}]
-     * - Tracked Entity Instance [{tei uid}]
-     * - Program Indicator [{pi uid}]
-     * - Relationship Type + Program Indicator [{rt uid}.{pi uid}]
+     * - Data Element [{de uid}] - Data Element + Legendset [{de uid}-{legendset
+     * uid}] - Program Stage + Data Element [{ps uid}.{de uid}] - Program Stage +
+     * Data Element + Legendset [{ps uid}.{de uid}-{legendset uid}] - Tracked Entity
+     * Instance [{tei uid}] - Program Indicator [{pi uid}] - Relationship Type +
+     * Program Indicator [{rt uid}.{pi uid}]
      *
-     * If the provided dimension String is not matching any of the above elements, then a {@see IllegalQueryException}
-     * is thrown
+     * If the provided dimension String is not matching any of the above elements,
+     * then a {@see IllegalQueryException} is thrown
      *
      * @param dimension a valid dimension
      * @param program a Program

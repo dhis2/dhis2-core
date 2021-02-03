@@ -32,6 +32,8 @@ import java.io.File;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
@@ -44,8 +46,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @Author Zubair Asghar.
  */
@@ -57,7 +57,7 @@ public class FileResourceEventListener
 
     private final FileResourceContentStore fileResourceContentStore;
 
-    public FileResourceEventListener(FileResourceService fileResourceService, FileResourceContentStore contentStore )
+    public FileResourceEventListener( FileResourceService fileResourceService, FileResourceContentStore contentStore )
     {
         this.fileResourceService = fileResourceService;
         this.fileResourceContentStore = contentStore;
@@ -131,11 +131,13 @@ public class FileResourceEventListener
             return;
         }
 
-        if ( FileResource.IMAGE_CONTENT_TYPES.contains( deleteFileEvent.getContentType() ) && FileResourceDomain.getDomainForMultipleImages().contains( deleteFileEvent.getDomain() ) )
+        if ( FileResource.IMAGE_CONTENT_TYPES.contains( deleteFileEvent.getContentType() )
+            && FileResourceDomain.getDomainForMultipleImages().contains( deleteFileEvent.getDomain() ) )
         {
             String storageKey = deleteFileEvent.getStorageKey();
 
-            Stream.of( ImageFileDimension.values() ).forEach(d -> fileResourceContentStore.deleteFileResourceContent( StringUtils.join( storageKey, d.getDimension() ) ) );
+            Stream.of( ImageFileDimension.values() ).forEach( d -> fileResourceContentStore
+                .deleteFileResourceContent( StringUtils.join( storageKey, d.getDimension() ) ) );
         }
         else
         {
@@ -151,6 +153,7 @@ public class FileResourceEventListener
             return;
         }
 
-        log.info( String.format( "File stored with key: %s'. Upload finished in %s", storageId, timeDiff.toString( PeriodFormat.getDefault() ) ) );
+        log.info( String.format( "File stored with key: %s'. Upload finished in %s", storageId,
+            timeDiff.toString( PeriodFormat.getDefault() ) ) );
     }
 }

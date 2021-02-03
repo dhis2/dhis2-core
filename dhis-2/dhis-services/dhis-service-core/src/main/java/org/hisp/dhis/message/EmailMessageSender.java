@@ -37,6 +37,8 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.EmailException;
@@ -69,8 +71,6 @@ import org.springframework.util.concurrent.ListenableFuture;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Lars Helge Overland
  */
@@ -81,8 +81,11 @@ public class EmailMessageSender
     implements MessageSender
 {
     private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
+
     private static final String LB = System.getProperty( "line.separator" );
+
     private static final String MESSAGE_EMAIL_TEMPLATE = "message_email";
+
     private static final String HOST = "Host: ";
 
     // -------------------------------------------------------------------------
@@ -112,7 +115,8 @@ public class EmailMessageSender
     // -------------------------------------------------------------------------
 
     @Override
-    public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend )
+    public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender,
+        Set<User> users, boolean forceSend )
     {
         EmailConfiguration emailConfig = getEmailConfiguration();
         OutboundMessageResponse status = new OutboundMessageResponse();
@@ -129,7 +133,8 @@ public class EmailMessageSender
 
         String serverBaseUrl = configurationProvider.getServerBaseUrl();
         String plainContent = renderPlainContent( text, sender );
-        String htmlContent = renderHtmlContent( text, footer, serverBaseUrl != null ? HOST + serverBaseUrl : "", sender );
+        String htmlContent = renderHtmlContent( text, footer, serverBaseUrl != null ? HOST + serverBaseUrl : "",
+            sender );
 
         try
         {
@@ -153,7 +158,8 @@ public class EmailMessageSender
                         email.addBcc( user.getEmail() );
                         hasRecipients = true;
 
-                        log.info( "Sending email to user: " + user.getUsername() + " with email address: " + user.getEmail() );
+                        log.info( "Sending email to user: " + user.getUsername() + " with email address: "
+                            + user.getEmail() );
                     }
                     else
                     {
@@ -167,7 +173,8 @@ public class EmailMessageSender
             {
                 email.send();
 
-                log.info( "Email sent using host: " + emailConfig.getHostName() + ":" + emailConfig.getPort() + " with TLS: " + emailConfig.isTls() );
+                log.info( "Email sent using host: " + emailConfig.getHostName() + ":" + emailConfig.getPort()
+                    + " with TLS: " + emailConfig.isTls() );
                 status = new OutboundMessageResponse( "Email sent", EmailResponse.SENT, true );
             }
             else
@@ -186,10 +193,11 @@ public class EmailMessageSender
 
     @Async
     @Override
-    public Future<OutboundMessageResponse> sendMessageAsync( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend )
+    public Future<OutboundMessageResponse> sendMessageAsync( String subject, String text, String footer, User sender,
+        Set<User> users, boolean forceSend )
     {
         OutboundMessageResponse response = sendMessage( subject, text, footer, sender, users, forceSend );
-        return new AsyncResult<>(response);
+        return new AsyncResult<>( response );
     }
 
     @Override
@@ -237,7 +245,8 @@ public class EmailMessageSender
             {
                 email.send();
 
-                log.info( "Email sent using host: " + emailConfig.getHostName() + ":" + emailConfig.getPort() + " with TLS: " + emailConfig.isTls() );
+                log.info( "Email sent using host: " + emailConfig.getHostName() + ":" + emailConfig.getPort()
+                    + " with TLS: " + emailConfig.isTls() );
                 return new OutboundMessageResponse( "Email sent", EmailResponse.SENT, true );
             }
             else
@@ -288,7 +297,8 @@ public class EmailMessageSender
     // -------------------------------------------------------------------------
 
     private HtmlEmail getHtmlEmail( String hostName, int port, String username, String password, boolean tls,
-        String sender ) throws EmailException
+        String sender )
+        throws EmailException
     {
         HtmlEmail email = new HtmlEmail();
         email.setHostName( hostName );
@@ -330,7 +340,7 @@ public class EmailMessageSender
 
         if ( !Strings.isNullOrEmpty( serverBaseUrl ) )
         {
-            content.put("serverBaseUrl", serverBaseUrl );
+            content.put( "serverBaseUrl", serverBaseUrl );
         }
 
         if ( sender != null )
@@ -365,7 +375,8 @@ public class EmailMessageSender
     private String getEmailName()
     {
         String appTitle = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
-        appTitle = ObjectUtils.firstNonNull( StringUtils.trimToNull( emailNameEncode( appTitle ) ), DEFAULT_APPLICATION_TITLE );
+        appTitle = ObjectUtils.firstNonNull( StringUtils.trimToNull( emailNameEncode( appTitle ) ),
+            DEFAULT_APPLICATION_TITLE );
         return appTitle + " message [No reply]";
     }
 

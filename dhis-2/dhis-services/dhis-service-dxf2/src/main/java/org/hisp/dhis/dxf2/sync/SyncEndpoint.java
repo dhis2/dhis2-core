@@ -44,6 +44,7 @@ public enum SyncEndpoint
     DATA_VALUE_SETS( "/api/dataValueSets", ImportSummary.class );
 
     private String path;
+
     private Class<? extends AbstractWebMessageResponse> klass;
 
     SyncEndpoint( String path, Class<? extends AbstractWebMessageResponse> klass )

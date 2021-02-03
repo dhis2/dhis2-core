@@ -28,17 +28,19 @@ package org.hisp.dhis.monitoring.metrics.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.function.Function;
+
+import javax.sql.DataSource;
+
+import org.springframework.util.Assert;
+import org.springframework.util.ConcurrentReferenceHashMap;
+
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.binder.MeterBinder;
-import org.springframework.util.Assert;
-import org.springframework.util.ConcurrentReferenceHashMap;
-
-import javax.sql.DataSource;
-import java.util.Collection;
-import java.util.Map;
-import java.util.function.Function;
 
 /**
  * @author Jon Schneider

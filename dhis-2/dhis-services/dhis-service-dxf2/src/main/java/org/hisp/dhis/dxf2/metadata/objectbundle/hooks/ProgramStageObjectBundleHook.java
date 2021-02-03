@@ -75,7 +75,7 @@ public class ProgramStageObjectBundleHook
             return new ArrayList<>();
         }
 
-        ProgramStage programStage = ( ProgramStage ) object;
+        ProgramStage programStage = (ProgramStage) object;
 
         List<ErrorReport> errors = new ArrayList<>();
 
@@ -105,7 +105,7 @@ public class ProgramStageObjectBundleHook
             return;
         }
 
-        ProgramStage programStage = ( ProgramStage ) object;
+        ProgramStage programStage = (ProgramStage) object;
 
         Session session = sessionFactory.getCurrentSession();
 
@@ -171,7 +171,8 @@ public class ProgramStageObjectBundleHook
 
             if ( dataElement == null || !aclService.canRead( bundle.getUser(), de ) )
             {
-                errors.add( new ErrorReport( DataElement.class, ErrorCode.E3012, identifier.getIdentifiersWithName( bundle.getUser() ),
+                errors.add( new ErrorReport( DataElement.class, ErrorCode.E3012,
+                    identifier.getIdentifiersWithName( bundle.getUser() ),
                     identifier.getIdentifiersWithName( de ) ) );
             }
         } );

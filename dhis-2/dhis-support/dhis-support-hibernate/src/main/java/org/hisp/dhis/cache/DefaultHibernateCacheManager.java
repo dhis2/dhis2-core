@@ -29,6 +29,7 @@ package org.hisp.dhis.cache;
  */
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
@@ -61,7 +62,7 @@ public class DefaultHibernateCacheManager
     {
         sessionFactory.getCache().evictEntityData();
         sessionFactory.getCache().evictCollectionData();
-     }
+    }
 
     @Override
     public void clearQueryCache()

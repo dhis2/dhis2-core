@@ -28,14 +28,16 @@ package org.hisp.dhis.commons.config.jackson.geometry;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.bedatadriven.jackson.datatype.jts.parsers.BaseParser;
-import com.bedatadriven.jackson.datatype.jts.parsers.GeometryParser;
-import com.fasterxml.jackson.databind.JsonNode;
-import org.locationtech.jts.geom.Geometry;
 import lombok.extern.slf4j.Slf4j;
+
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
+
+import com.bedatadriven.jackson.datatype.jts.parsers.BaseParser;
+import com.bedatadriven.jackson.datatype.jts.parsers.GeometryParser;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Enrico Colasante

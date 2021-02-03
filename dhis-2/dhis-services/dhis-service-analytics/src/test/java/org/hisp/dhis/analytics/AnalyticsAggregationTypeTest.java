@@ -28,12 +28,12 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.junit.Test;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hisp.dhis.analytics.AggregationType.*;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.junit.Assert.*;
+
+import org.junit.Test;
 
 /**
  * @author Luciano Fiandesio

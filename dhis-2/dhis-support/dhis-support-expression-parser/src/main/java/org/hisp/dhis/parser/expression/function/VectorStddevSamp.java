@@ -28,10 +28,10 @@ package org.hisp.dhis.parser.expression.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Vector function: stddevSamp (sample standard deviation)

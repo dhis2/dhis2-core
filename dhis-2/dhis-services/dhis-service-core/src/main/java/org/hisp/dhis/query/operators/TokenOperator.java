@@ -28,15 +28,15 @@ package org.hisp.dhis.query.operators;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 /**
  * @author Henning Håkonsen
@@ -60,7 +60,8 @@ public class TokenOperator<T extends Comparable<? super T>>
     {
         String value = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
 
-        return Restrictions.sqlRestriction( "c_." + queryPath.getPath() + " ~* '" + TokenUtils.createRegex( value ) + "'" );
+        return Restrictions
+            .sqlRestriction( "c_." + queryPath.getPath() + " ~* '" + TokenUtils.createRegex( value ) + "'" );
     }
 
     @Override
@@ -68,8 +69,9 @@ public class TokenOperator<T extends Comparable<? super T>>
     {
         String value = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
 
-        return builder.equal( builder.function( JsonbFunctions.REGEXP_SEARCH, Boolean.class, root.get( queryPath.getPath() ),
-            builder.literal( TokenUtils.createRegex( value ).toString() ) ), true );
+        return builder
+            .equal( builder.function( JsonbFunctions.REGEXP_SEARCH, Boolean.class, root.get( queryPath.getPath() ),
+                builder.literal( TokenUtils.createRegex( value ).toString() ) ), true );
     }
 
     @Override

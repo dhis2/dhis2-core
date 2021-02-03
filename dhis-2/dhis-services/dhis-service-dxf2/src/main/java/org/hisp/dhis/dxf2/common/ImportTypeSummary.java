@@ -28,17 +28,18 @@ package org.hisp.dhis.dxf2.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -53,9 +54,10 @@ public class ImportTypeSummary extends ImportSummary
     private List<ImportConflict> importConflicts = new ArrayList<>();
 
     /**
-     * This will always have the UID of the latest imported object. This is used for cases where you are only importing a single
-     * object, and want to return the Location header etc to the user. We might extend this in the future, so that we can get all
-     * UIDs of imported objects.
+     * This will always have the UID of the latest imported object. This is used for
+     * cases where you are only importing a single object, and want to return the
+     * Location header etc to the user. We might extend this in the future, so that
+     * we can get all UIDs of imported objects.
      */
     private String lastImported;
 
@@ -120,9 +122,9 @@ public class ImportTypeSummary extends ImportSummary
         this.lastImported = lastImported;
     }
 
-    //-------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // Helpers
-    //-------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
     @Override
     public ImportTypeSummary incrementImported()

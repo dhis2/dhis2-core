@@ -32,13 +32,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.UUID;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ConfigurationPopulator

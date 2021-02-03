@@ -28,15 +28,16 @@ package org.hisp.dhis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.time.LocalDateTime;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.junit.Test;
 
-import java.time.LocalDateTime;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -79,7 +80,8 @@ public class AuditTest
         LocalDateTime dateFrom = LocalDateTime.of( 2010, 4, 6, 12, 0, 0 );
         LocalDateTime dateTo = dateFrom.plusYears( 4 );
 
-        // TODO should we add bean validation in AuditQuery so we know the from is before to
+        // TODO should we add bean validation in AuditQuery so we know the from is
+        // before to
         assertTrue( dateFrom.isBefore( dateTo ) );
 
         AuditQuery query = AuditQuery.builder()

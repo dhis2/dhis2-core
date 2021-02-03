@@ -68,7 +68,6 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
     @Autowired
     private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
 
-
     @Override
     protected void mockCurrentUserService()
     {
@@ -100,7 +99,7 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-                .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false );
 
         assertThat( trackedEntityInstances, hasSize( 0 ) );
     }
@@ -115,9 +114,11 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
             trackedEntityTypeZ.setName( "TrackedEntityTypeZ" + trackedEntityTypeZ.getUid() );
             trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeZ );
 
-            // When saving the trackedEntityType using addTrackedEntityType, the public access value is ignored
+            // When saving the trackedEntityType using addTrackedEntityType, the public
+            // access value is ignored
             // therefore we need to update the previously saved TeiType
-            final TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeZ.getUid());
+            final TrackedEntityType trackedEntityType = trackedEntityTypeService
+                .getTrackedEntityType( trackedEntityTypeZ.getUid() );
             trackedEntityType.setPublicAccess( DATA_READ );
             trackedEntityTypeService.updateTrackedEntityType( trackedEntityType );
 
@@ -134,7 +135,7 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-                .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false );
 
         assertThat( trackedEntityInstances, hasSize( 2 ) );
     }

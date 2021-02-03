@@ -28,6 +28,13 @@ package org.hisp.dhis.query.operators;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
+import java.util.Date;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.QueryException;
@@ -36,12 +43,6 @@ import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
 import org.hisp.dhis.schema.Property;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.util.Collection;
-import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -64,7 +65,8 @@ public class LessEqualOperator<T extends Comparable<? super T>> extends Operator
 
             if ( value == null )
             {
-                throw new QueryException( "Left-side is collection, and right-side is not a valid integer, so can't compare by size." );
+                throw new QueryException(
+                    "Left-side is collection, and right-side is not a valid integer, so can't compare by size." );
             }
 
             return Restrictions.sizeLe( queryPath.getPath(), value );
@@ -84,7 +86,8 @@ public class LessEqualOperator<T extends Comparable<? super T>> extends Operator
 
             if ( value == null )
             {
-                throw new QueryException( "Left-side is collection, and right-side is not a valid integer, so can't compare by size." );
+                throw new QueryException(
+                    "Left-side is collection, and right-side is not a valid integer, so can't compare by size." );
             }
 
             return builder.lessThanOrEqualTo( builder.size( root.get( queryPath.getPath() ) ), value );

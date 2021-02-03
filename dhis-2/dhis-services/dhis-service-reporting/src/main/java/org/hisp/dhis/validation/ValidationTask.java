@@ -28,10 +28,10 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-import java.util.List;
 
 public interface ValidationTask
     extends Runnable

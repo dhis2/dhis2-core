@@ -28,6 +28,12 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
@@ -40,12 +46,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class AuditManagerTest
 {
@@ -72,7 +72,8 @@ public class AuditManagerTest
     @Before
     public void setUp()
     {
-        auditManager = new AuditManager( auditProducerSupplier, auditScheduler, AuditProducerConfiguration.builder().build(),
+        auditManager = new AuditManager( auditProducerSupplier, auditScheduler,
+            AuditProducerConfiguration.builder().build(),
             auditMatrix, auditObjectFactory, usernameSupplier );
     }
 
@@ -89,7 +90,7 @@ public class AuditManagerTest
 
         Map<String, Object> map = new HashMap<>();
         map.put( "name", dataElement.getName() );
-        map.put( "uid" , dataElement.getUid() );
+        map.put( "uid", dataElement.getUid() );
         map.put( "code", "CODEA" );
 
         attributes = auditManager.collectAuditAttributes( map, DataElement.class );

@@ -38,34 +38,36 @@ import com.google.common.collect.Sets;
  */
 
 /**
- * Utilities for SQL operations, compatible with PostgreSQL
- * and H2 database platforms.
+ * Utilities for SQL operations, compatible with PostgreSQL and H2 database
+ * platforms.
  *
  * @author Lars Helge Overland
  */
 public class SqlUtils
 {
     public static final String QUOTE = "\"";
+
     public static final String SEPARATOR = ".";
+
     public static final String OPTION_SEP = ".";
 
     /**
-     * Quotes the given relation (typically a column). Quotes part of
-     * the given relation are encoded (replaced by double quotes that is).
+     * Quotes the given relation (typically a column). Quotes part of the given
+     * relation are encoded (replaced by double quotes that is).
      *
      * @param relation the relation (typically a column).
      * @return the quoted relation.
      */
     public static String quote( String relation )
     {
-        String rel = relation.replaceAll( QUOTE, ( QUOTE + QUOTE ) );
+        String rel = relation.replaceAll( QUOTE, (QUOTE + QUOTE) );
 
         return QUOTE + rel + QUOTE;
     }
 
     /**
-     * Quotes and qualifies the given relation (typically a column). Quotes part
-     * of the given relation are encoded (replaced by double quotes that is). The
+     * Quotes and qualifies the given relation (typically a column). Quotes part of
+     * the given relation are encoded (replaced by double quotes that is). The
      * column name is qualified by the given alias.
      *
      * @param relation the relation (typically a column).
@@ -80,8 +82,8 @@ public class SqlUtils
     }
 
     /**
-     * Returns a string set for the given result set and column. Assumes
-     * that the SQL type is an array of text values.
+     * Returns a string set for the given result set and column. Assumes that the
+     * SQL type is an array of text values.
      *
      * @param rs the result set.
      * @param columnLabel the column label.
@@ -110,6 +112,5 @@ public class SqlUtils
     {
         return "lower(" + value + ")";
     }
-
 
 }

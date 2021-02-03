@@ -29,6 +29,7 @@ package org.hisp.dhis.outlierdetection.service;
  */
 
 import static org.junit.Assert.assertEquals;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -83,11 +84,13 @@ public class OutlierDetectionServiceZScoreTest
     private OutlierDetectionService subject;
 
     private DataElement deA;
+
     private DataElement deB;
 
     private Period m01, m02, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
 
     private CategoryOptionCombo coc;
@@ -220,11 +223,16 @@ public class OutlierDetectionServiceZScoreTest
 
         assertEquals( 5, csvLines.size() );
 
-        assertEquals( "de,deName,pe,ou,ouName,coc,cocName,aoc,lastUpdated,value,mean", csvLines.get( 0 ).substring( 0, endIndex ) );
-        assertEquals( "deabcdefghA,DataElementA,202006,ouabcdefghA,OrganisationUnitA", csvLines.get( 1 ).substring( 0, endIndex ) );
-        assertEquals( "deabcdefghB,DataElementB,202012,ouabcdefghA,OrganisationUnitA", csvLines.get( 2 ).substring( 0, endIndex ) );
-        assertEquals( "deabcdefghA,DataElementA,202012,ouabcdefghA,OrganisationUnitA", csvLines.get( 3 ).substring( 0, endIndex ) );
-        assertEquals( "deabcdefghB,DataElementB,202011,ouabcdefghA,OrganisationUnitA", csvLines.get( 4 ).substring( 0, endIndex ) );
+        assertEquals( "de,deName,pe,ou,ouName,coc,cocName,aoc,lastUpdated,value,mean",
+            csvLines.get( 0 ).substring( 0, endIndex ) );
+        assertEquals( "deabcdefghA,DataElementA,202006,ouabcdefghA,OrganisationUnitA",
+            csvLines.get( 1 ).substring( 0, endIndex ) );
+        assertEquals( "deabcdefghB,DataElementB,202012,ouabcdefghA,OrganisationUnitA",
+            csvLines.get( 2 ).substring( 0, endIndex ) );
+        assertEquals( "deabcdefghA,DataElementA,202012,ouabcdefghA,OrganisationUnitA",
+            csvLines.get( 3 ).substring( 0, endIndex ) );
+        assertEquals( "deabcdefghB,DataElementB,202011,ouabcdefghA,OrganisationUnitA",
+            csvLines.get( 4 ).substring( 0, endIndex ) );
     }
 
     @Test
@@ -239,8 +247,8 @@ public class OutlierDetectionServiceZScoreTest
         double stdDev = stats.populationStandardDeviation();
         double zScore = Math.abs( outlierValue - mean ) / stdDev;
         double meanAbsDev = Math.abs( outlierValue - mean );
-        double lowerBound = mean - ( stdDev * threshold );
-        double upperBound = mean + ( stdDev * threshold );
+        double lowerBound = mean - (stdDev * threshold);
+        double upperBound = mean + (stdDev * threshold);
 
         assertEquals( 42.666, mean, DELTA );
         assertEquals( 17.365, stdDev, DELTA );
@@ -293,4 +301,3 @@ public class OutlierDetectionServiceZScoreTest
         Stream.of( dataValues ).forEach( dataValueService::addDataValue );
     }
 }
-

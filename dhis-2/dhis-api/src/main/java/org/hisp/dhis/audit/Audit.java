@@ -28,13 +28,14 @@ package org.hisp.dhis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRawValue;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
 import lombok.Builder;
 import lombok.Data;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRawValue;
 
 /**
  * Class for Audit message persistence, meant to be a complete replacement for
@@ -61,8 +62,8 @@ public class Audit implements Serializable
     private final AuditScope auditScope;
 
     /**
-     * When audit was done. Necessary since there might be delayed from when the Audit
-     * is put on the queue, to when its actually persisted.
+     * When audit was done. Necessary since there might be delayed from when the
+     * Audit is put on the queue, to when its actually persisted.
      */
     @JsonProperty
     private final LocalDateTime createdAt;
@@ -99,7 +100,8 @@ public class Audit implements Serializable
     private AuditAttributes attributes = new AuditAttributes();
 
     /**
-     * GZipped payload. Exposed as raw json, make sure that the payload is decompressed first.
+     * GZipped payload. Exposed as raw json, make sure that the payload is
+     * decompressed first.
      */
     @JsonRawValue
     private final String data;

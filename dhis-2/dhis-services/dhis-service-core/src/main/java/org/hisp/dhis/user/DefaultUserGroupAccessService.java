@@ -28,6 +28,8 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.List;
 
 import org.hisp.dhis.common.GenericStore;
@@ -35,8 +37,6 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -49,8 +49,9 @@ public class DefaultUserGroupAccessService implements UserGroupAccessService
     // -------------------------------------------------------------------------
 
     private GenericStore<UserGroupAccess> userGroupAccessStore;
-    
-    public DefaultUserGroupAccessService( @Qualifier( "org.hisp.dhis.user.UserGroupAccessStore" ) GenericStore<UserGroupAccess> userGroupAccessStore )
+
+    public DefaultUserGroupAccessService(
+        @Qualifier( "org.hisp.dhis.user.UserGroupAccessStore" ) GenericStore<UserGroupAccess> userGroupAccessStore )
     {
         checkNotNull( userGroupAccessStore );
 
@@ -83,7 +84,7 @@ public class DefaultUserGroupAccessService implements UserGroupAccessService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<UserGroupAccess> getAllUserGroupAccesses()
     {
         return userGroupAccessStore.getAll();

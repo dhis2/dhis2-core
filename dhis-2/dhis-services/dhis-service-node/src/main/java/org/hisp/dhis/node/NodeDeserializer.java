@@ -28,10 +28,10 @@ package org.hisp.dhis.node;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.node.types.RootNode;
-
 import java.io.InputStream;
 import java.util.List;
+
+import org.hisp.dhis.node.types.RootNode;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -42,5 +42,6 @@ public interface NodeDeserializer extends Deserializer<RootNode>
     List<String> contentTypes();
 
     @Override
-    RootNode deserialize( InputStream inputStream ) throws Exception;
+    RootNode deserialize( InputStream inputStream )
+        throws Exception;
 }

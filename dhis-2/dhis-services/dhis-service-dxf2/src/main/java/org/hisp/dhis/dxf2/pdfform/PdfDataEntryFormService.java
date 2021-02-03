@@ -28,10 +28,11 @@ package org.hisp.dhis.dxf2.pdfform;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.i18n.I18nFormat;
+
 import com.lowagie.text.Document;
 import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.PdfWriter;
-import org.hisp.dhis.i18n.I18nFormat;
 
 /**
  * @author James Chang

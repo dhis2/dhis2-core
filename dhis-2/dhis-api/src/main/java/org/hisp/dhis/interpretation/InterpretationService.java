@@ -28,13 +28,13 @@ package org.hisp.dhis.interpretation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.visualization.Visualization;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+
+import org.hisp.dhis.mapping.Map;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.Visualization;
 
 /**
  * @author Lars Helge Overland
@@ -71,19 +71,18 @@ public interface InterpretationService
 
     /**
      * Adds a like to the given interpretation for the current user. This method
-     * will have a "repeatable read" transaction isolation level to ensure an
-     * atomic increment of the like count interpretation property.
+     * will have a "repeatable read" transaction isolation level to ensure an atomic
+     * increment of the like count interpretation property.
      *
      * @param id the interpretation id.
-     * @return true if the current user had not already liked the
-     *         interpretation.
+     * @return true if the current user had not already liked the interpretation.
      */
     boolean likeInterpretation( long id );
 
     /**
      * Removes a like from the given interpretation for the current user. This
-     * method will have a "repeatable read" transaction isolation level to
-     * ensure an atomic decrease of the like count interpretation property.
+     * method will have a "repeatable read" transaction isolation level to ensure an
+     * atomic decrease of the like count interpretation property.
      *
      * @param id the interpretation id.
      * @return true if the current user had previously liked the interpretation.

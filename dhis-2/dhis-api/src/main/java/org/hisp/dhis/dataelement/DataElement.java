@@ -28,13 +28,17 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -60,16 +64,13 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.joda.time.DateTime;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 /**
  * A DataElement is a definition (meta-information about) of the entities that
@@ -86,7 +87,8 @@ import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
 public class DataElement extends BaseDimensionalItemObject
     implements MetadataObject, ValueTypedDimensionalItemObject
 {
-    public static final String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName(), TranslationProperty.SHORT_NAME.getName(),
+    public static final String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName(),
+        TranslationProperty.SHORT_NAME.getName(),
         TranslationProperty.DESCRIPTION.getName(), TranslationProperty.FORM_NAME.getName() };
 
     /**
@@ -106,9 +108,9 @@ public class DataElement extends BaseDimensionalItemObject
     private DataElementDomain domainType;
 
     /**
-     * A combination of categories to capture data for this data element. Note
-     * that this category combination could be overridden by data set elements
-     * which this data element is part of, see {@link DataSetElement}.
+     * A combination of categories to capture data for this data element. Note that
+     * this category combination could be overridden by data set elements which this
+     * data element is part of, see {@link DataSetElement}.
      */
     private CategoryCombo categoryCombo;
 
@@ -154,8 +156,8 @@ public class DataElement extends BaseDimensionalItemObject
     private ObjectStyle style;
 
     /**
-     * Field mask represent how the value should be formatted during input. This string will
-     * be validated as a TextPatternSegment of type TEXT.
+     * Field mask represent how the value should be formatted during input. This
+     * string will be validated as a TextPatternSegment of type TEXT.
      */
     private String fieldMask;
 
@@ -210,14 +212,14 @@ public class DataElement extends BaseDimensionalItemObject
 
     /**
      * Returns the resolved category combinations by joining the category
-     * combinations of the data set elements of which this data element is part
-     * of and the category combination linked directly with this data element.
-     * The returned set is immutable, will never be null and will contain at
-     * least one item.
+     * combinations of the data set elements of which this data element is part of
+     * and the category combination linked directly with this data element. The
+     * returned set is immutable, will never be null and will contain at least one
+     * item.
      */
     public Set<CategoryCombo> getCategoryCombos()
     {
-        return ImmutableSet.<CategoryCombo>builder()
+        return ImmutableSet.<CategoryCombo> builder()
             .addAll( dataSetElements.stream()
                 .filter( DataSetElement::hasCategoryCombo )
                 .map( DataSetElement::getCategoryCombo )
@@ -226,9 +228,9 @@ public class DataElement extends BaseDimensionalItemObject
     }
 
     /**
-     * Returns the category combination of the data set element matching the
-     * given data set for this data element. If not present, returns the
-     * category combination for this data element.
+     * Returns the category combination of the data set element matching the given
+     * data set for this data element. If not present, returns the category
+     * combination for this data element.
      */
     public CategoryCombo getDataElementCategoryCombo( DataSet dataSet )
     {
@@ -245,8 +247,8 @@ public class DataElement extends BaseDimensionalItemObject
 
     /**
      * Returns the category option combinations of the resolved category
-     * combinations of this data element. The returned set is immutable, will
-     * never be null and will contain at least one item.
+     * combinations of this data element. The returned set is immutable, will never
+     * be null and will contain at least one item.
      */
     public Set<CategoryOptionCombo> getCategoryOptionCombos()
     {
@@ -258,8 +260,8 @@ public class DataElement extends BaseDimensionalItemObject
 
     /**
      * Returns the sorted category option combinations of the resolved category
-     * combinations of this data element. The returned list is immutable, will
-     * never be null and will contain at least one item.
+     * combinations of this data element. The returned list is immutable, will never
+     * be null and will contain at least one item.
      */
     public List<CategoryOptionCombo> getSortedCategoryOptionCombos()
     {
@@ -277,7 +279,8 @@ public class DataElement extends BaseDimensionalItemObject
     }
 
     /**
-     * Indicates whether the value type of this data element is a file (externally stored resource)
+     * Indicates whether the value type of this data element is a file (externally
+     * stored resource)
      */
     public boolean isFileType()
     {
@@ -285,9 +288,8 @@ public class DataElement extends BaseDimensionalItemObject
     }
 
     /**
-     * Returns the data set of this data element. If this data element has
-     * multiple data sets, the data set with the highest collection frequency is
-     * returned.
+     * Returns the data set of this data element. If this data element has multiple
+     * data sets, the data set with the highest collection frequency is returned.
      */
     public DataSet getDataSet()
     {
@@ -297,9 +299,9 @@ public class DataElement extends BaseDimensionalItemObject
     }
 
     /**
-     * Returns the data set of this data element. If this data element has
-     * multiple data sets, the data set with approval enabled, then the highest
-     * collection frequency, is returned.
+     * Returns the data set of this data element. If this data element has multiple
+     * data sets, the data set with approval enabled, then the highest collection
+     * frequency, is returned.
      */
     public DataSet getApprovalDataSet()
     {
@@ -309,9 +311,9 @@ public class DataElement extends BaseDimensionalItemObject
     }
 
     /**
-     * Note that this method returns an immutable set and can not be used to
-     * modify the model. Returns an immutable set of data sets associated with
-     * this data element.
+     * Note that this method returns an immutable set and can not be used to modify
+     * the model. Returns an immutable set of data sets associated with this data
+     * element.
      */
     public Set<DataSet> getDataSets()
     {
@@ -320,8 +322,8 @@ public class DataElement extends BaseDimensionalItemObject
     }
 
     /**
-     * Returns the attribute category options combinations associated with the
-     * data sets of this data element.
+     * Returns the attribute category options combinations associated with the data
+     * sets of this data element.
      */
     public Set<CategoryOptionCombo> getDataSetCategoryOptionCombos()
     {
@@ -376,9 +378,9 @@ public class DataElement extends BaseDimensionalItemObject
     }
 
     /**
-     * Number of periods in the future to open for data capture, 0 means capture
-     * not allowed for current period. Based on the data sets of which this data
-     * element is a member.
+     * Number of periods in the future to open for data capture, 0 means capture not
+     * allowed for current period. Based on the data sets of which this data element
+     * is a member.
      */
     public int getOpenFuturePeriods()
     {
@@ -393,8 +395,8 @@ public class DataElement extends BaseDimensionalItemObject
     }
 
     /**
-     * Returns the latest period which is open for data input. Returns null if
-     * data element is not associated with any data sets.
+     * Returns the latest period which is open for data input. Returns null if data
+     * element is not associated with any data sets.
      *
      * @return the latest period which is open for data input.
      */
@@ -430,9 +432,8 @@ public class DataElement extends BaseDimensionalItemObject
     }
 
     /**
-     * Tests whether a PeriodType can be defined for the DataElement, which
-     * requires that the DataElement is registered for DataSets with the same
-     * PeriodType.
+     * Tests whether a PeriodType can be defined for the DataElement, which requires
+     * that the DataElement is registered for DataSets with the same PeriodType.
      */
     public boolean periodTypeIsValid()
     {
@@ -501,19 +502,20 @@ public class DataElement extends BaseDimensionalItemObject
     }
 
     /**
-     * Indicates whether the given period is considered expired for the end date
-     * of the given date based on the expiry days of the data sets associated
-     * with this data element.
+     * Indicates whether the given period is considered expired for the end date of
+     * the given date based on the expiry days of the data sets associated with this
+     * data element.
      *
      * @param period the period.
-     * @param now    the date used as basis.
+     * @param now the date used as basis.
      * @return true or false.
      */
     public boolean isExpired( Period period, Date now )
     {
         int expiryDays = getExpiryDays();
 
-        return expiryDays != DataSet.NO_EXPIRY && new DateTime( period.getEndDate() ).plusDays( expiryDays ).isBefore( new DateTime( now ) );
+        return expiryDays != DataSet.NO_EXPIRY
+            && new DateTime( period.getEndDate() ).plusDays( expiryDays ).isBefore( new DateTime( now ) );
     }
 
     /**
@@ -551,7 +553,7 @@ public class DataElement extends BaseDimensionalItemObject
     // DimensionalItemObject
     // -------------------------------------------------------------------------
 
-    //TODO can also be dimension
+    // TODO can also be dimension
 
     @Override
     public DimensionItemType getDimensionItemType()
@@ -579,7 +581,7 @@ public class DataElement extends BaseDimensionalItemObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ValueType getValueType()
     {
-        //TODO return optionSet != null ? optionSet.getValueType() : valueType;
+        // TODO return optionSet != null ? optionSet.getValueType() : valueType;
         return valueType;
     }
 
@@ -718,11 +720,13 @@ public class DataElement extends BaseDimensionalItemObject
     }
 
     /**
-     * Checks if the combination of period and date is allowed for any of the dataSets associated with the dataElement
+     * Checks if the combination of period and date is allowed for any of the
+     * dataSets associated with the dataElement
      *
      * @param period period to check
-     * @param date   date to check
-     * @return true if no dataSets exists, or at least one dataSet has a valid DataInputPeriod for the period and date.
+     * @param date date to check
+     * @return true if no dataSets exists, or at least one dataSet has a valid
+     *         DataInputPeriod for the period and date.
      */
     public boolean isDataInputAllowedForPeriodAndDate( Period period, Date date )
     {

@@ -28,6 +28,8 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.text.MessageFormat.*;
+
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
@@ -41,8 +43,6 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.util.ObjectUtils;
-
-import static java.text.MessageFormat.*;
 
 /**
  * @author Luciano Fiandesio

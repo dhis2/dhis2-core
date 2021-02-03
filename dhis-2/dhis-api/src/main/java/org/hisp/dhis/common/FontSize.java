@@ -33,5 +33,7 @@ package org.hisp.dhis.common;
  */
 public enum FontSize
 {
-    LARGE, NORMAL, SMALL
+    LARGE,
+    NORMAL,
+    SMALL
 }

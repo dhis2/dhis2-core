@@ -33,11 +33,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.Getter;
+
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import com.google.common.base.Preconditions;
 
-import lombok.Getter;
+import com.google.common.base.Preconditions;
 
 /**
  * Encapsulation of an outlier detection request.
@@ -146,4 +147,3 @@ public class OutlierDetectionRequest
         }
     }
 }
-

@@ -28,13 +28,13 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * PeriodType for daily Periods. A valid daily Period has equal startDate and
@@ -127,8 +127,7 @@ public class DailyPeriodType
     }
 
     /**
-     * Generates the last 365 days where the last one is the day of the given
-     * date.
+     * Generates the last 365 days where the last one is the day of the given date.
      */
     @Override
     public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )

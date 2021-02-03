@@ -28,9 +28,9 @@ package org.hisp.dhis.validation.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.validation.ValidationResult;
-
 import java.util.Set;
+
+import org.hisp.dhis.validation.ValidationResult;
 
 /**
  * @author Halvdan Hoem Grelland

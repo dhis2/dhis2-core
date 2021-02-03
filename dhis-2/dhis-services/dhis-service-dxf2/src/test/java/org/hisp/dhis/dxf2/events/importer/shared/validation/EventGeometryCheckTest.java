@@ -16,7 +16,6 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.

@@ -28,11 +28,10 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-import org.springframework.stereotype.Component;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.springframework.stereotype.Component;
 
 /**
  * @Author Zubair Asghar.
@@ -48,7 +47,7 @@ public class RuleVariableInMemoryMap
         variables.put( key, value );
     }
 
-    public Map<String, String> get ( String key )
+    public Map<String, String> get( String key )
     {
         return variables.getOrDefault( key, new HashMap<>() );
     }

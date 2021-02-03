@@ -86,14 +86,14 @@ public class DefaultPeriodService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Period getPeriod( long id )
     {
         return periodStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Period getPeriod( String isoPeriod )
     {
         Period period = PeriodType.getPeriodFromIsoString( isoPeriod );
@@ -107,63 +107,63 @@ public class DefaultPeriodService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Period getPeriod( Date startDate, Date endDate, PeriodType periodType )
     {
         return periodStore.getPeriod( startDate, endDate, periodType );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Period> getAllPeriods()
     {
         return periodStore.getAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Period> getPeriodsByPeriodType( PeriodType periodType )
     {
         return periodStore.getPeriodsByPeriodType( periodType );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Period> getPeriodsBetweenDates( Date startDate, Date endDate )
     {
         return periodStore.getPeriodsBetweenDates( startDate, endDate );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Period> getPeriodsBetweenDates( PeriodType periodType, Date startDate, Date endDate )
     {
         return periodStore.getPeriodsBetweenDates( periodType, startDate, endDate );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Period> getPeriodsBetweenOrSpanningDates( Date startDate, Date endDate )
     {
         return periodStore.getPeriodsBetweenOrSpanningDates( startDate, endDate );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Period> getIntersectingPeriodsByPeriodType( PeriodType periodType, Date startDate, Date endDate )
     {
         return periodStore.getIntersectingPeriodsByPeriodType( periodType, startDate, endDate );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Period> getIntersectingPeriods( Date startDate, Date endDate )
     {
         return periodStore.getIntersectingPeriods( startDate, endDate );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Period> getIntersectionPeriods( Collection<Period> periods )
     {
         Set<Period> intersecting = new HashSet<>();
@@ -177,7 +177,7 @@ public class DefaultPeriodService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Period> getBoundaryPeriods( Period period, Collection<Period> periods )
     {
         List<Period> immutablePeriods = new ArrayList<>( periods );
@@ -199,7 +199,7 @@ public class DefaultPeriodService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Period> getInclusivePeriods( Period period, Collection<Period> periods )
     {
         List<Period> immutablePeriods = new ArrayList<>( periods );
@@ -235,7 +235,7 @@ public class DefaultPeriodService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Period> getPeriods( Period lastPeriod, int historyLength )
     {
         List<Period> periods = new ArrayList<>( historyLength );
@@ -259,7 +259,7 @@ public class DefaultPeriodService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Period> namePeriods( Collection<Period> periods, I18nFormat format )
     {
         for ( Period period : periods )
@@ -271,7 +271,7 @@ public class DefaultPeriodService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Period getPeriodFromDates( Date startDate, Date endDate, PeriodType periodType )
     {
         return periodStore.getPeriodFromDates( startDate, endDate, periodType );
@@ -285,13 +285,13 @@ public class DefaultPeriodService
     }
 
     /**
-     * Fix issue DHIS2-7539
-     * If period doesn't exist in cache and database.
-     * Need to add and sync with database right away in a separate session/transaction.
-     * Otherwise will get foreign key constraint error in subsequence calls of batch.flush()
+     * Fix issue DHIS2-7539 If period doesn't exist in cache and database. Need to
+     * add and sync with database right away in a separate session/transaction.
+     * Otherwise will get foreign key constraint error in subsequence calls of
+     * batch.flush()
      **/
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Period reloadIsoPeriodInStatelessSession( String isoPeriod )
     {
         Period period = PeriodType.getPeriodFromIsoString( isoPeriod );
@@ -342,25 +342,28 @@ public class DefaultPeriodService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public PeriodHierarchy getPeriodHierarchy( Collection<Period> periods )
     {
         PeriodHierarchy hierarchy = new PeriodHierarchy();
 
         for ( Period period : periods )
         {
-            hierarchy.getIntersectingPeriods().put( period.getId(), new HashSet<>( getIdentifiers( getIntersectingPeriods( period.getStartDate(), period.getEndDate() ) ) ) );
-            hierarchy.getPeriodsBetween().put( period.getId(), new HashSet<>( getIdentifiers( getPeriodsBetweenDates( period.getStartDate(), period.getEndDate() ) ) ) );
+            hierarchy.getIntersectingPeriods().put( period.getId(), new HashSet<>(
+                getIdentifiers( getIntersectingPeriods( period.getStartDate(), period.getEndDate() ) ) ) );
+            hierarchy.getPeriodsBetween().put( period.getId(), new HashSet<>(
+                getIdentifiers( getPeriodsBetweenDates( period.getStartDate(), period.getEndDate() ) ) ) );
         }
 
         return hierarchy;
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getDayInPeriod( Period period, Date date )
     {
-        int days = (int) TimeUnit.DAYS.convert( date.getTime() - period.getStartDate().getTime(), TimeUnit.MILLISECONDS );
+        int days = (int) TimeUnit.DAYS.convert( date.getTime() - period.getStartDate().getTime(),
+            TimeUnit.MILLISECONDS );
 
         return Math.min( Math.max( 0, days ), period.getDaysInPeriod() );
     }
@@ -370,35 +373,35 @@ public class DefaultPeriodService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public PeriodType getPeriodType( int id )
     {
         return periodStore.getPeriodType( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<PeriodType> getAllPeriodTypes()
     {
         return PeriodType.getAvailablePeriodTypes();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public PeriodType getPeriodTypeByName( String name )
     {
         return PeriodType.getPeriodTypeByName( name );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public PeriodType getPeriodTypeByClass( Class<? extends PeriodType> periodType )
     {
         return periodStore.getPeriodType( periodType );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public PeriodType reloadPeriodType( PeriodType periodType )
     {
         return periodStore.reloadPeriodType( periodType );

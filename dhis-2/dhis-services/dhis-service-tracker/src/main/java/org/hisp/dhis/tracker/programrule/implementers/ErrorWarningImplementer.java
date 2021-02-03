@@ -28,7 +28,12 @@ package org.hisp.dhis.tracker.programrule.implementers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Lists;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.rules.models.*;
@@ -38,14 +43,11 @@ import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import com.google.api.client.util.Lists;
 
 /**
- * This implementer check if there are errors or warnings the {@link TrackerBundle}
+ * This implementer check if there are errors or warnings the
+ * {@link TrackerBundle}
  *
  * @Author Enrico Colasante
  */

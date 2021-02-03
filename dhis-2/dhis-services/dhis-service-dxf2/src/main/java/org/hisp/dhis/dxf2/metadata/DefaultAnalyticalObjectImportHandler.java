@@ -28,7 +28,9 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Preconditions;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hibernate.Session;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
@@ -42,8 +44,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.base.Preconditions;
 
 @Component
 public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImportHandler
@@ -57,7 +58,8 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
     }
 
     @Override
-    public void handleAnalyticalObject( Session session, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle )
+    public void handleAnalyticalObject( Session session, Schema schema, BaseAnalyticalObject analyticalObject,
+        ObjectBundle bundle )
     {
         handleDataDimensionItems( session, schema, analyticalObject, bundle );
         handleCategoryDimensions( session, schema, analyticalObject, bundle );
@@ -66,9 +68,11 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
         handleProgramIndicatorDimensions( session, schema, analyticalObject, bundle );
     }
 
-    private void handleDataDimensionItems( Session session, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle )
+    private void handleDataDimensionItems( Session session, Schema schema, BaseAnalyticalObject analyticalObject,
+        ObjectBundle bundle )
     {
-        if ( !schema.havePersistedProperty( "dataDimensionItems" ) ) return;
+        if ( !schema.havePersistedProperty( "dataDimensionItems" ) )
+            return;
 
         for ( DataDimensionItem dataDimensionItem : analyticalObject.getDataDimensionItems() )
         {
@@ -77,34 +81,42 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
                 continue;
             }
 
-            dataDimensionItem.setDataElement( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getDataElement() ) );
-            dataDimensionItem.setIndicator( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getIndicator() ) );
-            dataDimensionItem.setProgramIndicator( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getProgramIndicator() ) );
+            dataDimensionItem.setDataElement(
+                bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getDataElement() ) );
+            dataDimensionItem.setIndicator(
+                bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getIndicator() ) );
+            dataDimensionItem.setProgramIndicator(
+                bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getProgramIndicator() ) );
 
             if ( dataDimensionItem.getDataElementOperand() != null )
             {
-                preheatService.connectReferences( dataDimensionItem.getDataElementOperand(), bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                preheatService.connectReferences( dataDimensionItem.getDataElementOperand(), bundle.getPreheat(),
+                    bundle.getPreheatIdentifier() );
             }
 
             if ( dataDimensionItem.getReportingRate() != null )
             {
                 dataDimensionItem.getReportingRate().setDataSet( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
-                        dataDimensionItem.getReportingRate().getDataSet() ) );
+                    dataDimensionItem.getReportingRate().getDataSet() ) );
             }
 
             if ( dataDimensionItem.getProgramDataElement() != null )
             {
-                dataDimensionItem.getProgramDataElement().setProgram( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
+                dataDimensionItem.getProgramDataElement()
+                    .setProgram( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
                         dataDimensionItem.getProgramDataElement().getProgram() ) );
-                dataDimensionItem.getProgramDataElement().setDataElement( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
+                dataDimensionItem.getProgramDataElement()
+                    .setDataElement( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
                         dataDimensionItem.getProgramDataElement().getDataElement() ) );
             }
 
             if ( dataDimensionItem.getProgramAttribute() != null )
             {
-                dataDimensionItem.getProgramAttribute().setProgram( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
+                dataDimensionItem.getProgramAttribute()
+                    .setProgram( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
                         dataDimensionItem.getProgramAttribute().getProgram() ) );
-                dataDimensionItem.getProgramAttribute().setAttribute( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
+                dataDimensionItem.getProgramAttribute()
+                    .setAttribute( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
                         dataDimensionItem.getProgramAttribute().getAttribute() ) );
             }
 
@@ -113,9 +125,11 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
         }
     }
 
-    private void handleCategoryDimensions( Session session, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle )
+    private void handleCategoryDimensions( Session session, Schema schema, BaseAnalyticalObject analyticalObject,
+        ObjectBundle bundle )
     {
-        if ( !schema.havePersistedProperty( "categoryDimensions" ) ) return;
+        if ( !schema.havePersistedProperty( "categoryDimensions" ) )
+            return;
 
         for ( CategoryDimension categoryDimension : analyticalObject.getCategoryDimensions() )
         {
@@ -124,14 +138,15 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
                 continue;
             }
 
-            categoryDimension.setDimension( bundle.getPreheat().get( bundle.getPreheatIdentifier(), categoryDimension.getDimension() ) );
+            categoryDimension.setDimension(
+                bundle.getPreheat().get( bundle.getPreheatIdentifier(), categoryDimension.getDimension() ) );
             List<CategoryOption> categoryOptions = new ArrayList<>( categoryDimension.getItems() );
             categoryDimension.getItems().clear();
 
-            categoryOptions.forEach( co ->
-            {
+            categoryOptions.forEach( co -> {
                 CategoryOption categoryOption = bundle.getPreheat().get( bundle.getPreheatIdentifier(), co );
-                if ( categoryOption != null ) categoryDimension.getItems().add( categoryOption );
+                if ( categoryOption != null )
+                    categoryDimension.getItems().add( categoryOption );
             } );
 
             preheatService.connectReferences( categoryDimension, bundle.getPreheat(), bundle.getPreheatIdentifier() );
@@ -139,9 +154,11 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
         }
     }
 
-    private void handleDataElementDimensions( Session session, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle )
+    private void handleDataElementDimensions( Session session, Schema schema, BaseAnalyticalObject analyticalObject,
+        ObjectBundle bundle )
     {
-        if ( !schema.havePersistedProperty( "dataElementDimensions" ) ) return;
+        if ( !schema.havePersistedProperty( "dataElementDimensions" ) )
+            return;
 
         for ( TrackedEntityDataElementDimension dataElementDimension : analyticalObject.getDataElementDimensions() )
         {
@@ -150,18 +167,24 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
                 continue;
             }
 
-            dataElementDimension.setDataElement( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataElementDimension.getDataElement() ) );
-            dataElementDimension.setLegendSet( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataElementDimension.getLegendSet() ) );
-            dataElementDimension.setProgramStage( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataElementDimension.getProgramStage() ) );
+            dataElementDimension.setDataElement(
+                bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataElementDimension.getDataElement() ) );
+            dataElementDimension.setLegendSet(
+                bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataElementDimension.getLegendSet() ) );
+            dataElementDimension.setProgramStage(
+                bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataElementDimension.getProgramStage() ) );
 
-            preheatService.connectReferences( dataElementDimension, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+            preheatService.connectReferences( dataElementDimension, bundle.getPreheat(),
+                bundle.getPreheatIdentifier() );
             session.save( dataElementDimension );
         }
     }
 
-    private void handleAttributeDimensions( Session session, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle )
+    private void handleAttributeDimensions( Session session, Schema schema, BaseAnalyticalObject analyticalObject,
+        ObjectBundle bundle )
     {
-        if ( !schema.havePersistedProperty( "attributeDimensions" ) ) return;
+        if ( !schema.havePersistedProperty( "attributeDimensions" ) )
+            return;
 
         for ( TrackedEntityAttributeDimension attributeDimension : analyticalObject.getAttributeDimensions() )
         {
@@ -170,8 +193,10 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
                 continue;
             }
 
-            attributeDimension.setAttribute( bundle.getPreheat().get( bundle.getPreheatIdentifier(), attributeDimension.getAttribute() ) );
-            attributeDimension.setLegendSet( bundle.getPreheat().get( bundle.getPreheatIdentifier(), attributeDimension.getLegendSet() ) );
+            attributeDimension.setAttribute(
+                bundle.getPreheat().get( bundle.getPreheatIdentifier(), attributeDimension.getAttribute() ) );
+            attributeDimension.setLegendSet(
+                bundle.getPreheat().get( bundle.getPreheatIdentifier(), attributeDimension.getLegendSet() ) );
 
             preheatService.connectReferences( attributeDimension, bundle.getPreheat(), bundle.getPreheatIdentifier() );
 
@@ -179,21 +204,27 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
         }
     }
 
-    private void handleProgramIndicatorDimensions( Session session, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle )
+    private void handleProgramIndicatorDimensions( Session session, Schema schema,
+        BaseAnalyticalObject analyticalObject, ObjectBundle bundle )
     {
-        if ( !schema.havePersistedProperty( "programIndicatorDimensions" ) ) return;
+        if ( !schema.havePersistedProperty( "programIndicatorDimensions" ) )
+            return;
 
-        for ( TrackedEntityProgramIndicatorDimension programIndicatorDimension : analyticalObject.getProgramIndicatorDimensions() )
+        for ( TrackedEntityProgramIndicatorDimension programIndicatorDimension : analyticalObject
+            .getProgramIndicatorDimensions() )
         {
             if ( programIndicatorDimension == null )
             {
                 continue;
             }
 
-            programIndicatorDimension.setProgramIndicator( bundle.getPreheat().get( bundle.getPreheatIdentifier(), programIndicatorDimension.getProgramIndicator() ) );
-            programIndicatorDimension.setLegendSet( bundle.getPreheat().get( bundle.getPreheatIdentifier(), programIndicatorDimension.getLegendSet() ) );
+            programIndicatorDimension.setProgramIndicator( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
+                programIndicatorDimension.getProgramIndicator() ) );
+            programIndicatorDimension.setLegendSet(
+                bundle.getPreheat().get( bundle.getPreheatIdentifier(), programIndicatorDimension.getLegendSet() ) );
 
-            preheatService.connectReferences( programIndicatorDimension, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+            preheatService.connectReferences( programIndicatorDimension, bundle.getPreheat(),
+                bundle.getPreheatIdentifier() );
             session.save( programIndicatorDimension );
         }
     }

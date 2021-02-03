@@ -40,7 +40,7 @@ public enum AnalyticsMetaDataKey
     PAGER( "pager" ),
     ORG_UNIT_HIERARCHY( "ouHierarchy" ),
     ORG_UNIT_NAME_HIERARCHY( "ouNameHierarchy" ),
-    ORG_UNIT_ANCESTORS( "ouAncestors");
+    ORG_UNIT_ANCESTORS( "ouAncestors" );
 
     private String key;
 

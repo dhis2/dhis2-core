@@ -32,11 +32,10 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
 
-import org.postgis.PGgeometry;
+import lombok.experimental.UtilityClass;
 
 import org.locationtech.jts.geom.Geometry;
-
-import lombok.experimental.UtilityClass;
+import org.postgis.PGgeometry;
 
 @UtilityClass
 class JdbcEventSupport
@@ -47,7 +46,8 @@ class JdbcEventSupport
         return date != null ? new Timestamp( date.getTime() ) : null;
     }
 
-    PGgeometry toGeometry( Geometry geometry ) throws SQLException
+    PGgeometry toGeometry( Geometry geometry )
+        throws SQLException
     {
         return geometry != null ? new PGgeometry( geometry.toText() ) : null;
     }

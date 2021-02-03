@@ -102,6 +102,7 @@ public class ProgramSqlGeneratorVariablesTest
     private CommonExpressionVisitor subject;
 
     private ProgramIndicator eventIndicator;
+
     private ProgramIndicator enrollmentIndicator;
 
     @Before
@@ -134,7 +135,8 @@ public class ProgramSqlGeneratorVariablesTest
     {
         String sql = castString( test( "V{creation_date}", new DefaultLiteral(), enrollmentIndicator ) );
         assertThat( sql,
-            is( "(select created from analytics_event_" + enrollmentIndicator.getProgram().getUid() + " where analytics_event_"
+            is( "(select created from analytics_event_" + enrollmentIndicator.getProgram().getUid()
+                + " where analytics_event_"
                 + enrollmentIndicator.getProgram().getUid()
                 + ".pi = ax.pi and created is not null order by executiondate desc limit 1 )" ) );
     }
@@ -149,9 +151,10 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testCompletedDateForEnrollment()
     {
-        String sql =  castString( test( "V{completed_date}", new DefaultLiteral(), enrollmentIndicator ) );
+        String sql = castString( test( "V{completed_date}", new DefaultLiteral(), enrollmentIndicator ) );
         assertThat( sql,
-            is( "(select completeddate from analytics_event_" + enrollmentIndicator.getProgram().getUid() + " where analytics_event_"
+            is( "(select completeddate from analytics_event_" + enrollmentIndicator.getProgram().getUid()
+                + " where analytics_event_"
                 + enrollmentIndicator.getProgram().getUid()
                 + ".pi = ax.pi and completeddate is not null order by executiondate desc limit 1 )" ) );
     }
@@ -245,7 +248,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testProgramStageName()
     {
-        String sql =  castString( test( "V{program_stage_name}", new DefaultLiteral(), eventIndicator ) );
+        String sql = castString( test( "V{program_stage_name}", new DefaultLiteral(), eventIndicator ) );
         assertThat( sql, is( "(select name from programstage where uid = ps)" ) );
     }
 

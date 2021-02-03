@@ -28,17 +28,18 @@ package org.hisp.dhis.reporttable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.Serializable;
+
+import org.hisp.dhis.common.DxfNamespaces;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.io.Serializable;
 
 /**
- * The ReportParams object represents report parameters for a ReportTable. Report
- * parameters are meant to make ReportTables more generic, as it can avoid having
- * dynamic, selectable parameters rather than static.
+ * The ReportParams object represents report parameters for a ReportTable.
+ * Report parameters are meant to make ReportTables more generic, as it can
+ * avoid having dynamic, selectable parameters rather than static.
  *
  * @author Lars Helge Overland
  * @version $Id$
@@ -52,7 +53,7 @@ public class ReportParams
      */
     private static final long serialVersionUID = 2509958165452862235L;
 
-    private boolean paramReportingMonth; //TODO rename to paramReportingPeriod
+    private boolean paramReportingMonth; // TODO rename to paramReportingPeriod
 
     private boolean paramGrandParentOrganisationUnit;
 

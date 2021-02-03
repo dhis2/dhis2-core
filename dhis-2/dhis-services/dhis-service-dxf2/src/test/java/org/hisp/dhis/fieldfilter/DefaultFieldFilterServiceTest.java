@@ -28,6 +28,15 @@ package org.hisp.dhis.fieldfilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.beans.PropertyDescriptor;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -46,15 +55,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import java.beans.PropertyDescriptor;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Unit tests for {@link DefaultFieldFilterService}.
@@ -81,13 +81,16 @@ public class DefaultFieldFilterServiceTest
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Before
-    public void setUp() throws Exception
+    public void setUp()
+        throws Exception
     {
-        service = new DefaultFieldFilterService( fieldParser, schemaService, aclService, currentUserService, attributeService, new HashSet<>() );
+        service = new DefaultFieldFilterService( fieldParser, schemaService, aclService, currentUserService,
+            attributeService, new HashSet<>() );
     }
 
     @Test
-    public void toCollectionNodeSkipSharingNoFields() throws Exception
+    public void toCollectionNodeSkipSharingNoFields()
+        throws Exception
     {
         final Attribute attribute = new Attribute();
         final Map<String, Property> propertyMap = new HashMap<>();
@@ -105,7 +108,8 @@ public class DefaultFieldFilterServiceTest
         final Schema booleanSchema = new Schema( boolean.class, "boolean", "booleans" );
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( boolean.class ) ) ).thenReturn( booleanSchema );
 
-        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( attribute ), Collections.emptyList(), Defaults.INCLUDE, true );
+        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( attribute ),
+            Collections.emptyList(), Defaults.INCLUDE, true );
 
         CollectionNode node = service.toCollectionNode( Attribute.class, params );
         Assert.assertEquals( 1, node.getChildren().size() );
@@ -119,7 +123,8 @@ public class DefaultFieldFilterServiceTest
     }
 
     @Test
-    public void toCollectionNodeSkipSharingOwner() throws Exception
+    public void toCollectionNodeSkipSharingOwner()
+        throws Exception
     {
         final Attribute attribute = new Attribute();
         final Map<String, Property> propertyMap = new HashMap<>();
@@ -140,7 +145,8 @@ public class DefaultFieldFilterServiceTest
         final Schema booleanSchema = new Schema( boolean.class, "boolean", "booleans" );
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( boolean.class ) ) ).thenReturn( booleanSchema );
 
-        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( attribute ), Collections.singletonList( ":owner" ), Defaults.INCLUDE, true );
+        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( attribute ),
+            Collections.singletonList( ":owner" ), Defaults.INCLUDE, true );
 
         CollectionNode node = service.toCollectionNode( Attribute.class, params );
         Assert.assertEquals( 1, node.getChildren().size() );
@@ -159,7 +165,8 @@ public class DefaultFieldFilterServiceTest
         return nodes.stream().map( Node::getName ).collect( Collectors.toSet() );
     }
 
-    private static Property addProperty( Map<String, Property> propertyMap, Object bean, String property ) throws Exception
+    private static Property addProperty( Map<String, Property> propertyMap, Object bean, String property )
+        throws Exception
     {
         PropertyDescriptor pd = PropertyUtils.getPropertyDescriptor( bean, property );
         Property p = new Property( pd.getPropertyType(), pd.getReadMethod(), pd.getWriteMethod() );

@@ -28,16 +28,16 @@ package org.hisp.dhis.node.transformers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
+
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.schema.Property;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -61,11 +61,13 @@ public class IsNotEmptyNodeTransformer implements NodeTransformer
 
         if ( property.isCollection() )
         {
-            return new SimpleNode( property.getCollectionName(), !node.getChildren().isEmpty(), property.isAttribute() );
+            return new SimpleNode( property.getCollectionName(), !node.getChildren().isEmpty(),
+                property.isAttribute() );
         }
         else if ( property.isSimple() )
         {
-            return new SimpleNode( property.getName(), !StringUtils.isEmpty( ((SimpleNode) node).getValue() ), property.isAttribute() );
+            return new SimpleNode( property.getName(), !StringUtils.isEmpty( ((SimpleNode) node).getValue() ),
+                property.isAttribute() );
         }
 
         return node;

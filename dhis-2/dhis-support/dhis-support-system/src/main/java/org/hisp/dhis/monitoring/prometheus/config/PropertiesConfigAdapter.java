@@ -28,10 +28,10 @@ package org.hisp.dhis.monitoring.prometheus.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.util.Assert;
-
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import org.springframework.util.Assert;
 
 /**
  * Base class for properties to config adapters.

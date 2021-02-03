@@ -74,7 +74,6 @@ public class DuplicateRelationshipsPreProcessorTest
         this.preProcessor = new DuplicateRelationshipsPreProcessor();
     }
 
-
     @Test
     public void test_relationshipIsIgnored_on_null_relType()
     {
@@ -115,9 +114,9 @@ public class DuplicateRelationshipsPreProcessorTest
 
     /*
      * Verifies that:
-     * 
+     *
      * - given 2 identical relationships
-     * 
+     *
      * - one is removed
      */
     @Test
@@ -253,7 +252,7 @@ public class DuplicateRelationshipsPreProcessorTest
      * Verifies that:
      *
      * - given 2 identical relationships having identical but "inverted" data
-     * 
+     *
      * - and relationship type's bidirectional property = true
      *
      * - none is removed

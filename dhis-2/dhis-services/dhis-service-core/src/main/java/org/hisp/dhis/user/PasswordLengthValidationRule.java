@@ -41,6 +41,7 @@ import org.springframework.stereotype.Component;
 public class PasswordLengthValidationRule implements PasswordValidationRule
 {
     public static final String ERROR = "Password must have at least %d, and at most %d characters";
+
     private static final String I18_ERROR = "password_length_validation";
 
     private final SystemSettingManager systemSettingManager;
@@ -72,7 +73,7 @@ public class PasswordLengthValidationRule implements PasswordValidationRule
 
         return new PasswordValidationResult( true );
     }
-    
+
     @Override
     public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
     {

@@ -48,7 +48,8 @@ public class vProgramStageName
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
-        return AnalyticsType.EVENT == visitor.getProgramIndicator().getAnalyticsType() ?
-            "(select name from programstage where uid = ps)" : "''";
+        return AnalyticsType.EVENT == visitor.getProgramIndicator().getAnalyticsType()
+            ? "(select name from programstage where uid = ps)"
+            : "''";
     }
 }

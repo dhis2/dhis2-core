@@ -36,6 +36,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.Session;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
@@ -57,8 +59,6 @@ import org.hisp.dhis.tracker.report.TrackerObjectReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.springframework.util.StringUtils;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Luciano Fiandesio
  */
@@ -79,7 +79,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     /**
      * Template method that can be used by classes extending this class to execute
      * the persistence flow of Tracker entities
-     * 
+     *
      * @param session a valid Hibernate Session
      * @param bundle the Bundle to persist
      * @return a {@link TrackerTypeReport}
@@ -167,11 +167,12 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 
                 if ( bundle.getAtomicMode().equals( AtomicMode.ALL ) )
                 {
-                    throw new PersistenceException( msg , e );
+                    throw new PersistenceException( msg, e );
                 }
                 else
                 {
-                    // TODO currently we do not keep track of the failed entity in the TrackerObjectReport
+                    // TODO currently we do not keep track of the failed entity in the
+                    // TrackerObjectReport
 
                     log.warn( msg + "\nThe Import process will process remaining entities.", e );
 
@@ -216,15 +217,14 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     protected abstract void persistComments( V entity );
 
     /**
-     * Execute the persistence of Data values linked to the entity
-     * being processed
+     * Execute the persistence of Data values linked to the entity being processed
      */
     protected abstract void updateDataValues( Session session, TrackerPreheat preheat,
         T trackerDto, V hibernateEntity );
 
     /**
-     * Execute the persistence of Attribute values linked to the entity
-     * being processed
+     * Execute the persistence of Attribute values linked to the entity being
+     * processed
      */
     protected abstract void updateAttributes( Session session, TrackerPreheat preheat,
         T trackerDto, V hibernateEntity );
@@ -328,7 +328,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 "Attribute should never be NULL here if validation is enforced before commit." );
 
             TrackedEntityAttributeValue attributeValue = attributeValueDBMap.get( at.getAttribute() );
-            
+
             if ( attributeValue == null )
             {
                 attributeValue = new TrackedEntityAttributeValue();

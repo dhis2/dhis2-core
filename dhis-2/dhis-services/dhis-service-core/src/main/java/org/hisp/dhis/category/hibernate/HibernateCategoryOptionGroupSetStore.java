@@ -51,14 +51,17 @@ public class HibernateCategoryOptionGroupSetStore
     extends HibernateIdentifiableObjectStore<CategoryOptionGroupSet>
     implements CategoryOptionGroupSetStore
 {
-    public HibernateCategoryOptionGroupSetStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher,
+    public HibernateCategoryOptionGroupSetStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher,
         CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, CategoryOptionGroupSet.class, currentUserService, aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, CategoryOptionGroupSet.class, currentUserService, aclService,
+            true );
     }
 
     @Override
-    public List<CategoryOptionGroupSet> getCategoryOptionGroupSetsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension )
+    public List<CategoryOptionGroupSet> getCategoryOptionGroupSetsNoAcl( DataDimensionType dataDimensionType,
+        boolean dataDimension )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 

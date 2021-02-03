@@ -44,7 +44,8 @@ public class AbstractNodeTest
     public void createSingleChild()
     {
         final SimpleNode simpleNode = new SimpleNode( "id", "My Test" );
-        final TestNode testNode = new TestNode( "tests", NodeType.COMPLEX, new Property( TestClass.class ), simpleNode );
+        final TestNode testNode = new TestNode( "tests", NodeType.COMPLEX, new Property( TestClass.class ),
+            simpleNode );
         Assert.assertEquals( "tests", testNode.getName() );
         Assert.assertEquals( NodeType.COMPLEX, testNode.nodeType );
         Assert.assertEquals( TestClass.class, testNode.getProperty().getKlass() );

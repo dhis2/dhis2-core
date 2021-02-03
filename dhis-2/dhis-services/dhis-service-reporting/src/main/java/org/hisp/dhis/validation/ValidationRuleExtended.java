@@ -37,14 +37,14 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 /**
  * Holds information for each validation rule that is needed during a validation
  * run (either interactive or a scheduled run).
- * 
+ *
  * By computing these values once at the start of a validation run, we avoid the
  * overhead of having to compute them during the processing of every
  * organisation unit. For some of these properties this is also important
  * because they should be copied from Hibernate lazy collections before the
  * multi-threaded part of the run starts, otherwise the threads may not be able
  * to access these values.
- * 
+ *
  * @author Jim Grace
  */
 public class ValidationRuleExtended

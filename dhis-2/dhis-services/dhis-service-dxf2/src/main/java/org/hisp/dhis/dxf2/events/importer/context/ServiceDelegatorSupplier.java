@@ -30,6 +30,9 @@ package org.hisp.dhis.dxf2.events.importer.context;
 
 import java.util.function.Supplier;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.dxf2.events.importer.EventImporterUserService;
 import org.hisp.dhis.dxf2.events.importer.ServiceDelegator;
@@ -42,9 +45,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Luciano Fiandesio

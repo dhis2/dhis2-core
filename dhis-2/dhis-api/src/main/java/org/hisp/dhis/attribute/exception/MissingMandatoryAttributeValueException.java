@@ -28,10 +28,10 @@ package org.hisp.dhis.attribute.exception;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.attribute.Attribute;
-
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.hisp.dhis.attribute.Attribute;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

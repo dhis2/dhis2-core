@@ -28,6 +28,13 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
@@ -43,43 +50,57 @@ import org.hisp.dhis.query.Order;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 /**
  * @author Lars Helge Overland
  */
 public class EventSearchParams
 {
     public static final String EVENT_ID = "event";
+
     public static final String EVENT_ENROLLMENT_ID = "enrollment";
+
     public static final String EVENT_CREATED_ID = "created";
+
     public static final String EVENT_CREATED_BY_USER_INFO_ID = "createdbyuserinfo";
+
     public static final String EVENT_LAST_UPDATED_ID = "lastUpdated";
+
     public static final String EVENT_LAST_UPDATED_BY_USER_INFO_ID = "lastUpdatedbyuserinfo";
+
     public static final String EVENT_STORED_BY_ID = "storedBy";
+
     public static final String EVENT_COMPLETED_BY_ID = "completedBy";
+
     public static final String EVENT_COMPLETED_DATE_ID = "completedDate";
+
     public static final String EVENT_DUE_DATE_ID = "dueDate";
+
     public static final String EVENT_EXECUTION_DATE_ID = "eventDate";
+
     public static final String EVENT_ORG_UNIT_ID = "orgUnit";
+
     public static final String EVENT_ORG_UNIT_NAME = "orgUnitName";
+
     public static final String EVENT_STATUS_ID = "status";
+
     public static final String EVENT_LONGITUDE_ID = "longitude";
+
     public static final String EVENT_LATITUDE_ID = "latitude";
+
     public static final String EVENT_PROGRAM_STAGE_ID = "programStage";
+
     public static final String EVENT_PROGRAM_ID = "program";
+
     public static final String EVENT_ATTRIBUTE_OPTION_COMBO_ID = "attributeOptionCombo";
+
     public static final String EVENT_DELETED = "deleted";
+
     public static final String EVENT_GEOMETRY = "geometry";
 
     public static final String PAGER_META_KEY = "pager";
 
     public static final int DEFAULT_PAGE = 1;
+
     public static final int DEFAULT_PAGE_SIZE = 50;
 
     private Program program;
@@ -164,7 +185,8 @@ public class EventSearchParams
     private boolean synchronizationQuery;
 
     /**
-     * Indicates a point in the time used to decide the data that should not be synchronized
+     * Indicates a point in the time used to decide the data that should not be
+     * synchronized
      */
     private Date skipChangedBefore;
 
@@ -212,12 +234,12 @@ public class EventSearchParams
 
     public boolean hasProgram()
     {
-    	return program != null;
+        return program != null;
     }
 
     public boolean hasProgramStage()
     {
-    	return programStage != null;
+        return programStage != null;
     }
 
     /**

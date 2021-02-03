@@ -45,7 +45,7 @@ import org.springframework.util.StringUtils;
 public class ProgramStageCheck implements Checker
 {
     @Override
-    public ImportSummary check(ImmutableEvent event, WorkContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         IdScheme programStageIdScheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
         // Get the program stage id from the event.

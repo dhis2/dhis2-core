@@ -28,13 +28,15 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
+import java.util.Date;
+import java.util.Objects;
+
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.system.util.ReflectionUtils;
 
-import javax.annotation.Nonnull;
-import java.util.Date;
-import java.util.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -94,7 +96,8 @@ public class Order
             return 0;
         }
 
-        // for null values use the same order like PostgreSQL in order to have same effect like DB ordering
+        // for null values use the same order like PostgreSQL in order to have same
+        // effect like DB ordering
         // (NULLs are greater than other values)
         if ( o1 == null || o2 == null )
         {
@@ -134,7 +137,8 @@ public class Order
         }
         else if ( Enum.class.isInstance( o1 ) && Enum.class.isInstance( o2 ) )
         {
-            return isAscending() ? String.valueOf( o1 ).compareTo( String.valueOf( o2 ) ) : String.valueOf( o2 ).compareTo( String.valueOf( o1 ) );
+            return isAscending() ? String.valueOf( o1 ).compareTo( String.valueOf( o2 ) )
+                : String.valueOf( o2 ).compareTo( String.valueOf( o1 ) );
         }
 
         return 0;
@@ -164,16 +168,16 @@ public class Order
     {
         switch ( direction )
         {
-            case "asc":
-                return Order.asc( property );
-            case "iasc":
-                return Order.iasc( property );
-            case "desc":
-                return Order.desc( property );
-            case "idesc":
-                return Order.idesc( property );
-            default:
-                return Order.asc( property );
+        case "asc":
+            return Order.asc( property );
+        case "iasc":
+            return Order.iasc( property );
+        case "desc":
+            return Order.desc( property );
+        case "idesc":
+            return Order.idesc( property );
+        default:
+            return Order.asc( property );
         }
     }
 

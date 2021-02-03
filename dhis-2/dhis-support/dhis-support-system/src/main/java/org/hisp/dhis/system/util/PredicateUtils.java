@@ -28,20 +28,21 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObject;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.function.Predicate;
 
+import org.hisp.dhis.common.IdentifiableObject;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class PredicateUtils
 {
-    public static final Predicate<Field> idObjectCollections = new CollectionWithTypePredicate( IdentifiableObject.class );
+    public static final Predicate<Field> idObjectCollections = new CollectionWithTypePredicate(
+        IdentifiableObject.class );
 
     private static class CollectionPredicate
         implements Predicate<Field>

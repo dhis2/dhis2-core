@@ -59,7 +59,7 @@ public class RedisConfiguration
     public LettuceConnectionFactory lettuceConnectionFactory()
     {
         LettuceClientConfigurationBuilder builder = LettuceClientConfiguration.builder();
-        if(Boolean.parseBoolean( (String) redisSslEnabled().getObject()))
+        if ( Boolean.parseBoolean( (String) redisSslEnabled().getObject() ) )
         {
             builder.useSsl();
         }

@@ -28,12 +28,12 @@ package org.hisp.dhis.security.oauth2;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -81,28 +81,28 @@ public class DefaultOAuth2ClientService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public OAuth2Client getOAuth2Client( int id )
     {
         return oAuth2ClientStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public OAuth2Client getOAuth2Client( String uid )
     {
         return oAuth2ClientStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public OAuth2Client getOAuth2ClientByClientId( String cid )
     {
         return oAuth2ClientStore.getByClientId( cid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Collection<OAuth2Client> getOAuth2Clients()
     {
         return oAuth2ClientStore.getAll();

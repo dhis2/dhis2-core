@@ -93,7 +93,8 @@ public class RedisCache<V> implements Cache<V>
         {
             redisTemplate.expire( redisKey, expiryInSeconds, SECONDS );
         }
-        return Optional.ofNullable( Optional.ofNullable( redisTemplate.boundValueOps( redisKey ).get() ).orElse( defaultValue ) );
+        return Optional
+            .ofNullable( Optional.ofNullable( redisTemplate.boundValueOps( redisKey ).get() ).orElse( defaultValue ) );
     }
 
     @Override

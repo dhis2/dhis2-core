@@ -33,5 +33,6 @@ package org.hisp.dhis.analytics;
  */
 public enum AnalyticsCacheTtlMode
 {
-    FIXED, PROGRESSIVE
+    FIXED,
+    PROGRESSIVE
 }

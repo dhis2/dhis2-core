@@ -28,8 +28,12 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
-import com.google.common.primitives.Primitives;
+import static org.hisp.dhis.schema.PropertyType.*;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.Set;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
@@ -37,11 +41,8 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.springframework.util.Assert;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.Set;
-
-import static org.hisp.dhis.schema.PropertyType.*;
+import com.google.common.collect.Sets;
+import com.google.common.primitives.Primitives;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -64,19 +65,23 @@ public final class SchemaUtils
 
         if ( property.isWritable() )
         {
-            if ( AnnotationUtils.isAnnotationPresent( property.getGetterMethod(), org.hisp.dhis.schema.annotation.Property.class ) )
+            if ( AnnotationUtils.isAnnotationPresent( property.getGetterMethod(),
+                org.hisp.dhis.schema.annotation.Property.class ) )
             {
-                org.hisp.dhis.schema.annotation.Property pAnnotation = AnnotationUtils.getAnnotation( property.getGetterMethod(), org.hisp.dhis.schema.annotation.Property.class );
+                org.hisp.dhis.schema.annotation.Property pAnnotation = AnnotationUtils
+                    .getAnnotation( property.getGetterMethod(), org.hisp.dhis.schema.annotation.Property.class );
                 property.setPropertyType( pAnnotation.value() );
 
                 if ( pAnnotation.required() != org.hisp.dhis.schema.annotation.Property.Value.DEFAULT )
                 {
-                    property.setRequired( pAnnotation.required() == org.hisp.dhis.schema.annotation.Property.Value.TRUE );
+                    property
+                        .setRequired( pAnnotation.required() == org.hisp.dhis.schema.annotation.Property.Value.TRUE );
                 }
 
                 if ( pAnnotation.persisted() != org.hisp.dhis.schema.annotation.Property.Value.DEFAULT )
                 {
-                    property.setPersisted( pAnnotation.persisted() == org.hisp.dhis.schema.annotation.Property.Value.TRUE );
+                    property
+                        .setPersisted( pAnnotation.persisted() == org.hisp.dhis.schema.annotation.Property.Value.TRUE );
                 }
 
                 if ( pAnnotation.owner() != org.hisp.dhis.schema.annotation.Property.Value.DEFAULT )
@@ -97,18 +102,21 @@ public final class SchemaUtils
 
             if ( AnnotationUtils.isAnnotationPresent( property.getGetterMethod(), PropertyTransformer.class ) )
             {
-                PropertyTransformer propertyTransformer = AnnotationUtils.getAnnotation( property.getGetterMethod(), PropertyTransformer.class );
+                PropertyTransformer propertyTransformer = AnnotationUtils.getAnnotation( property.getGetterMethod(),
+                    PropertyTransformer.class );
                 property.setPropertyTransformer( propertyTransformer.value() );
             }
 
             if ( AnnotationUtils.isAnnotationPresent( property.getGetterMethod(), PropertyRange.class ) )
             {
-                PropertyRange propertyRange = AnnotationUtils.getAnnotation( property.getGetterMethod(), PropertyRange.class );
+                PropertyRange propertyRange = AnnotationUtils.getAnnotation( property.getGetterMethod(),
+                    PropertyRange.class );
 
                 double max = propertyRange.max();
                 double min = propertyRange.min();
 
-                if ( property.is( PropertyType.INTEGER ) || property.is( PropertyType.TEXT ) || property.is( PropertyType.COLLECTION ) )
+                if ( property.is( PropertyType.INTEGER ) || property.is( PropertyType.TEXT )
+                    || property.is( PropertyType.COLLECTION ) )
                 {
                     if ( max > Integer.MAX_VALUE )
                     {
@@ -121,13 +129,15 @@ public final class SchemaUtils
                     min = 0d;
                 }
 
-                //Max will be applied from PropertyRange annotation only if it is more restrictive than hibernate max (or its a collection)
+                // Max will be applied from PropertyRange annotation only if it is more
+                // restrictive than hibernate max (or its a collection)
                 if ( property.getMax() == null || max < property.getMax() || property.is( PropertyType.COLLECTION ) )
                 {
                     property.setMax( max );
                 }
 
-                //Min is not set by hibernate (always 0) hence the min from PropertyRange will always be applied.
+                // Min is not set by hibernate (always 0) hence the min from PropertyRange will
+                // always be applied.
                 property.setMin( min );
             }
 
@@ -200,7 +210,8 @@ public final class SchemaUtils
             return PropertyType.COLLECTION;
         }
 
-        // if klass is primitive (but unknown), fall back to text, if its not then assume reference
+        // if klass is primitive (but unknown), fall back to text, if its not then
+        // assume reference
         return Primitives.isWrapperType( klass ) ? PropertyType.TEXT : PropertyType.COMPLEX;
     }
 

@@ -49,6 +49,7 @@ public class vZeroPosValueCount
             sql += "case when " + visitor.getStatementBuilder().columnQuote( uid ) + " >= 0 then 1 else 0 end + ";
         }
 
-        return TextUtils.removeLast( sql, "+" ).trim() + ") as " + visitor.getStatementBuilder().getDoubleColumnType() + "),0)";
+        return TextUtils.removeLast( sql, "+" ).trim() + ") as " + visitor.getStatementBuilder().getDoubleColumnType()
+            + "),0)";
     }
 }

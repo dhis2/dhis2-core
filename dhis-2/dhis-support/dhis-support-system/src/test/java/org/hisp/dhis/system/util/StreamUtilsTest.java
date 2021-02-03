@@ -60,7 +60,7 @@ public class StreamUtilsTest
         zipStream = new BufferedInputStream( classLoader.getResourceAsStream( "dxfA.zip" ) );
 
         gzipStream = new BufferedInputStream( classLoader.getResourceAsStream( "Export.xml.gz" ) );
-        
+
         plainStream = new BufferedInputStream( classLoader.getResourceAsStream( "Export.xml" ) );
     }
 
@@ -71,7 +71,7 @@ public class StreamUtilsTest
         zipStream.close();
 
         gzipStream.close();
-        
+
         plainStream.close();
     }
 
@@ -81,7 +81,7 @@ public class StreamUtilsTest
         assertTrue( StreamUtils.isZip( zipStream ) );
 
         assertFalse( StreamUtils.isGZip( zipStream ) );
-        
+
         assertFalse( StreamUtils.isZip( plainStream ) );
     }
 
@@ -91,16 +91,16 @@ public class StreamUtilsTest
         assertTrue( StreamUtils.isGZip( gzipStream ) );
 
         assertFalse( StreamUtils.isZip( gzipStream ) );
-        
+
         assertFalse( StreamUtils.isGZip( plainStream ) );
     }
-    
+
     @Test
     public void testWrapAndCheckZip()
         throws Exception
     {
         Reader reader = new InputStreamReader( StreamUtils.wrapAndCheckCompressionFormat( zipStream ) );
-        
+
         assertEquals( '<', reader.read() );
         assertEquals( '?', reader.read() );
         assertEquals( 'x', reader.read() );

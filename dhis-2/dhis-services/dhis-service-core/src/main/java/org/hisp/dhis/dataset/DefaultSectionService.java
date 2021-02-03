@@ -28,12 +28,12 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Tri
@@ -51,7 +51,8 @@ public class DefaultSectionService
 
     private DataSetService dataSetService;
 
-    public DefaultSectionService(SectionStore sectionStore, DataSetService dataSetService) {
+    public DefaultSectionService( SectionStore sectionStore, DataSetService dataSetService )
+    {
 
         checkNotNull( sectionStore );
         checkNotNull( dataSetService );
@@ -81,28 +82,28 @@ public class DefaultSectionService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Section> getAllSections()
     {
         return sectionStore.getAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Section getSection( long id )
     {
         return sectionStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Section getSection( String uid )
     {
         return sectionStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Section getSectionByName( String name, Integer dataSetId )
     {
         return sectionStore.getSectionByName( name, dataSetService.getDataSet( dataSetId ) );

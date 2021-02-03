@@ -42,14 +42,15 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "analyticsTableHook", namespace = DxfNamespaces.DXF_2_0 )
 public class AnalyticsTableHook
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     private AnalyticsTablePhase phase;
-    
+
     private ResourceTableType resourceTableType;
-    
+
     private AnalyticsTableType analyticsTableType;
-    
+
     private String sql;
 
     // -------------------------------------------------------------------------
@@ -67,8 +68,9 @@ public class AnalyticsTableHook
         this.resourceTableType = resourceTableType;
         this.sql = sql;
     }
-    
-    public AnalyticsTableHook( String name, AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType, String sql )
+
+    public AnalyticsTableHook( String name, AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType,
+        String sql )
     {
         this.name = name;
         this.phase = phase;

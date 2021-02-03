@@ -29,6 +29,7 @@ package org.hisp.dhis.deletedobject.hibernate;
  */
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostDeleteEvent;
@@ -68,7 +69,7 @@ public class DeletedObjectPostDeleteEventListener implements PostCommitDeleteEve
             }
             catch ( Exception ex )
             {
-                log.error( "Failed to save DeletedObject: "+ deletedObject );
+                log.error( "Failed to save DeletedObject: " + deletedObject );
                 session.getTransaction().rollback();
             }
             finally

@@ -28,10 +28,17 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.Date;
+
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
 import org.hisp.dhis.email.EmailService;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.junit.Before;
@@ -42,13 +49,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.retry.RetryContext;
-
-import java.util.Date;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author aamerm
@@ -65,13 +65,15 @@ public class MetadataSyncPostProcessorTest
     private MetadataSyncPostProcessor metadataSyncPostProcessor;
 
     private MetadataVersion dataVersion;
+
     private MetadataSyncSummary metadataSyncSummary;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Before
-    public void setUp() {
+    public void setUp()
+    {
 
         dataVersion = new MetadataVersion();
         dataVersion.setType( VersionType.BEST_EFFORT );
@@ -89,7 +91,8 @@ public class MetadataSyncPostProcessorTest
         metadataSyncSummary.setMetadataVersion( dataVersion );
         MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
 
-        boolean status = metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary, mockRetryContext, dataVersion );
+        boolean status = metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary,
+            mockRetryContext, dataVersion );
 
         assertFalse( status );
     }
@@ -102,7 +105,8 @@ public class MetadataSyncPostProcessorTest
         metadataSyncSummary.setMetadataVersion( dataVersion );
         MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
 
-        boolean status = metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary, mockRetryContext, dataVersion );
+        boolean status = metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary,
+            mockRetryContext, dataVersion );
 
         assertFalse( status );
 
@@ -118,7 +122,8 @@ public class MetadataSyncPostProcessorTest
         RetryContext mockRetryContext = mock( RetryContext.class );
 
         when( mockMetadataRetryContext.getRetryContext() ).thenReturn( mockRetryContext );
-        boolean status = metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary, mockMetadataRetryContext, dataVersion );
+        boolean status = metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary,
+            mockMetadataRetryContext, dataVersion );
 
         assertTrue( status );
     }
@@ -133,7 +138,8 @@ public class MetadataSyncPostProcessorTest
         metadataSyncSummary.setMetadataVersion( dataVersion );
         MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
 
-        boolean status = metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary, mockRetryContext, dataVersion );
+        boolean status = metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary,
+            mockRetryContext, dataVersion );
 
         assertFalse( status );
     }

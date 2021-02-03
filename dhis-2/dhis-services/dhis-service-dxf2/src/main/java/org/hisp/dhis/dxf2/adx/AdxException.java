@@ -32,7 +32,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 
 /**
  * Simple class for ADX checked exceptions which can wrap an ImportConflict.
- * 
+ *
  * @author bobj
  */
 public class AdxException
@@ -48,7 +48,7 @@ public class AdxException
     public AdxException()
     {
     }
-    
+
     public AdxException( String msg )
     {
         super( msg );

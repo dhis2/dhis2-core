@@ -28,20 +28,20 @@ package org.hisp.dhis.message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Stian Sandvold
@@ -92,7 +92,7 @@ public class MessageConversationStoreTest
 
         conversationIds = new HashSet<>();
 
-        conversationA = messageService.sendPrivateMessage( usersA,"Subject1", "Text", "Meta", null );
+        conversationA = messageService.sendPrivateMessage( usersA, "Subject1", "Text", "Meta", null );
         MessageConversation mc = messageService.getMessageConversation( conversationA );
         mc.markRead( userC );
         messageService.updateMessageConversation( mc );

@@ -28,12 +28,6 @@ package org.hisp.dhis.db.migration.base;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.flywaydb.core.api.migration.BaseJavaMigration;
-import org.flywaydb.core.api.migration.Context;
-import org.hisp.dhis.db.migration.helper.JdbcSqlFileExecutor;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -41,10 +35,16 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.migration.Context;
+import org.hisp.dhis.db.migration.helper.JdbcSqlFileExecutor;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+
 /**
  * Java based migration class that populates base dhis2 schema if the db is
  * empty.
- * 
+ *
  * @author Ameen Mohamed
  *
  */
@@ -52,14 +52,15 @@ public class V2_30_0__Populate_dhis2_schema_if_empty_database extends BaseJavaMi
 {
 
     private static final String CHECK_EMPTY_DB_QUERY = "SELECT EXISTS( SELECT * FROM information_schema.tables  WHERE table_name = 'organisationunit');";
+
     private final static String BASE_SCHEMA_SQL_LOCATION = "/org/hisp/dhis/db/base/dhis2_base_schema.sql";
 
     public void migrate( Context context )
         throws Exception
     {
-        try ( Statement select = context.getConnection().createStatement() )
+        try (Statement select = context.getConnection().createStatement())
         {
-            try ( ResultSet rows = select.executeQuery( CHECK_EMPTY_DB_QUERY ) )
+            try (ResultSet rows = select.executeQuery( CHECK_EMPTY_DB_QUERY ))
             {
                 if ( rows.next() )
                 {

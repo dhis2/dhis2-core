@@ -151,5 +151,4 @@ public class EventNoteValidationHookTest
         assertThat( event.getNotes(), hasSize( 5 ) );
     }
 
-
 }

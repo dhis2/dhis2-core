@@ -89,7 +89,7 @@ public class HibernatePotentialDuplicateStore
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public boolean exists( PotentialDuplicate potentialDuplicate )
     {
         NativeQuery<BigInteger> query;

@@ -373,7 +373,8 @@ public class DefaultOrganisationUnitService
     public List<OrganisationUnit> getOrganisationUnitsAtOrgUnitLevels( Collection<OrganisationUnitLevel> levels,
         Collection<OrganisationUnit> parents )
     {
-        return getOrganisationUnitsAtLevels( levels.stream().map( OrganisationUnitLevel::getLevel ).collect( Collectors.toList() ),
+        return getOrganisationUnitsAtLevels(
+            levels.stream().map( OrganisationUnitLevel::getLevel ).collect( Collectors.toList() ),
             parents );
     }
 

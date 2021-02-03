@@ -28,10 +28,11 @@ package org.hisp.dhis.monitoring.metrics.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
+import java.sql.SQLException;
+
 import lombok.extern.slf4j.Slf4j;
 
-import java.sql.SQLException;
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 /**
  * @author Luciano Fiandesio

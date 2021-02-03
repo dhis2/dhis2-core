@@ -28,16 +28,16 @@ package org.hisp.dhis.option;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.ValueType;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.ValueType;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
@@ -57,17 +57,23 @@ public class OptionServiceTest
     private OptionSet optionSetC = new OptionSet( "OptionSetC", ValueType.TEXT );
 
     private OptionGroup optionGroupA;
+
     private OptionGroup optionGroupB;
+
     private OptionGroup optionGroupC;
 
     private OptionGroupSet optionGroupSetA;
+
     private OptionGroupSet optionGroupSetB;
+
     private OptionGroupSet optionGroupSetC;
 
-
     private Option option1;
+
     private Option option2;
+
     private Option option3;
+
     private Option option4;
 
     @Override

@@ -48,7 +48,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository( "org.hisp.dhis.document.DocumentStore" )
 public class HibernateDocumentStore
-    extends HibernateIdentifiableObjectStore<Document> implements DocumentStore
+    extends HibernateIdentifiableObjectStore<Document>
+    implements DocumentStore
 {
     public HibernateDocumentStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )

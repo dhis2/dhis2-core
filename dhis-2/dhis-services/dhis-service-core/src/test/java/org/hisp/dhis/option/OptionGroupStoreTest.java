@@ -28,14 +28,13 @@ package org.hisp.dhis.option;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.*;
 
 import java.util.Collection;
 
-import static org.junit.Assert.*;
-
+import org.hisp.dhis.DhisSpringTest;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -74,9 +73,9 @@ public class OptionGroupStoreTest
         store.save( optionGroupC );
         long idC = optionGroupC.getId();
 
-        assertEquals( optionGroupA, store.get( idA ));
-        assertEquals( optionGroupB, store.get( idB ));
-        assertEquals( optionGroupC, store.get( idC ));
+        assertEquals( optionGroupA, store.get( idA ) );
+        assertEquals( optionGroupB, store.get( idB ) );
+        assertEquals( optionGroupC, store.get( idC ) );
     }
 
     @Test

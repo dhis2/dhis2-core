@@ -28,8 +28,9 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Luciano Fiandesio
@@ -37,5 +38,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 @JacksonXmlRootElement( localName = "userOrgUnitType", namespace = DxfNamespaces.DXF_2_0 )
 public enum UserOrgUnitType
 {
-    DATA_CAPTURE, DATA_OUTPUT, TEI_SEARCH
+    DATA_CAPTURE,
+    DATA_OUTPUT,
+    TEI_SEARCH
 }

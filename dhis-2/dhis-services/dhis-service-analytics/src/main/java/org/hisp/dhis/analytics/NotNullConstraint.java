@@ -29,11 +29,12 @@ package org.hisp.dhis.analytics;
  */
 
 /**
-* @author Lars Helge Overland
-*/
+ * @author Lars Helge Overland
+ */
 public enum NotNullConstraint
 {
-    NULL, NOT_NULL;
+    NULL,
+    NOT_NULL;
 
     public boolean isNotNull()
     {

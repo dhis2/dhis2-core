@@ -258,7 +258,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
         assertThrows( "Required DataElement(" + dataElement.getUid() + ") was not found.", RuntimeException.class,
             () -> subject.toMappedRuleEvent( programStageInstanceA ) );
-        
+
     }
 
     @Test
@@ -349,7 +349,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
         when( constantService.getAllConstants() ).thenReturn( constants );
         when( i18nManager.getI18n() ).thenReturn( i18n );
-        when ( i18n.getString( anyString() ) ).thenReturn( env_variable );
+        when( i18n.getString( anyString() ) ).thenReturn( env_variable );
 
         Map<String, DataItem> itemStore = subject.getItemStore( ListUtils.newList( programRuleVariableA,
             programRuleVariableB, programRuleVariableC ) );
@@ -357,17 +357,19 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         assertNotNull( itemStore );
         assertTrue( itemStore.containsKey( programRuleVariableA.getName() ) );
         assertEquals( itemStore.get( programRuleVariableA.getName() ).getDisplayName(),
-                ObjectUtils.firstNonNull( programRuleVariableA.getDisplayName(), programRuleVariableA.getName() ) );
+            ObjectUtils.firstNonNull( programRuleVariableA.getDisplayName(), programRuleVariableA.getName() ) );
 
         assertTrue( itemStore.containsKey( programRuleVariableB.getName() ) );
         assertEquals( itemStore.get( programRuleVariableB.getName() ).getDisplayName(),
-              ObjectUtils.firstNonNull( programRuleVariableB.getAttribute().getDisplayName(), programRuleVariableB.getAttribute().getDisplayFormName(),
-              programRuleVariableB.getAttribute().getName() ) );
+            ObjectUtils.firstNonNull( programRuleVariableB.getAttribute().getDisplayName(),
+                programRuleVariableB.getAttribute().getDisplayFormName(),
+                programRuleVariableB.getAttribute().getName() ) );
 
         assertTrue( itemStore.containsKey( programRuleVariableC.getName() ) );
         assertEquals( itemStore.get( programRuleVariableC.getName() ).getDisplayName(),
-             ObjectUtils.firstNonNull( programRuleVariableC.getDataElement().getDisplayFormName(),
-             programRuleVariableC.getDataElement().getFormName(), programRuleVariableC.getDataElement().getName() ) );
+            ObjectUtils.firstNonNull( programRuleVariableC.getDataElement().getDisplayFormName(),
+                programRuleVariableC.getDataElement().getFormName(),
+                programRuleVariableC.getDataElement().getName() ) );
 
         assertTrue( itemStore.containsKey( constant.getUid() ) );
         assertEquals( itemStore.get( constant.getUid() ).getDisplayName(), "Gravity" );

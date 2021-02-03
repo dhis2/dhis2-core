@@ -52,8 +52,8 @@ class MetadataCallables
 
     private final IdentifiableObjectCallable<Period> periodCallable;
 
-    MetadataCallables(ImportConfig config, IdentifiableObjectManager idObjManager, PeriodService periodService,
-                      CategoryService categoryService )
+    MetadataCallables( ImportConfig config, IdentifiableObjectManager idObjManager, PeriodService periodService,
+        CategoryService categoryService )
     {
         dataSetCallable = new IdentifiableObjectCallable<>( idObjManager, DataSet.class, config.getDsScheme(), null );
         orgUnitCallable = new IdentifiableObjectCallable<>( idObjManager, OrganisationUnit.class, config.getOuScheme(),

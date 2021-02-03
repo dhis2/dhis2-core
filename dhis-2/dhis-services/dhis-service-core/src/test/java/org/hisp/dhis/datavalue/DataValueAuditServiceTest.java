@@ -28,6 +28,11 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -40,11 +45,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by Halvdan Hoem Grelland
@@ -171,8 +171,10 @@ public class DataValueAuditServiceTest
     @Test
     public void testAddDataValueAudit()
     {
-        DataValueAudit dataValueAuditA = new DataValueAudit( dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), AuditType.UPDATE );
-        DataValueAudit dataValueAuditB = new DataValueAudit( dataValueB, dataValueB.getValue(), dataValueB.getStoredBy(), AuditType.UPDATE );
+        DataValueAudit dataValueAuditA = new DataValueAudit( dataValueA, dataValueA.getValue(),
+            dataValueA.getStoredBy(), AuditType.UPDATE );
+        DataValueAudit dataValueAuditB = new DataValueAudit( dataValueB, dataValueB.getValue(),
+            dataValueB.getStoredBy(), AuditType.UPDATE );
 
         dataValueAuditService.addDataValueAudit( dataValueAuditA );
         dataValueAuditService.addDataValueAudit( dataValueAuditB );
@@ -185,8 +187,10 @@ public class DataValueAuditServiceTest
     @Test
     public void testGetDataValueAudit()
     {
-        DataValueAudit dataValueAuditA = new DataValueAudit( dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), AuditType.UPDATE );
-        DataValueAudit dataValueAuditB = new DataValueAudit( dataValueB, dataValueB.getValue(), dataValueB.getStoredBy(), AuditType.UPDATE );
+        DataValueAudit dataValueAuditA = new DataValueAudit( dataValueA, dataValueA.getValue(),
+            dataValueA.getStoredBy(), AuditType.UPDATE );
+        DataValueAudit dataValueAuditB = new DataValueAudit( dataValueB, dataValueB.getValue(),
+            dataValueB.getStoredBy(), AuditType.UPDATE );
 
         dataValueAuditService.addDataValueAudit( dataValueAuditA );
         dataValueAuditService.addDataValueAudit( dataValueAuditB );
@@ -213,8 +217,10 @@ public class DataValueAuditServiceTest
     @Test
     public void testGetDataValueAuditNoResult()
     {
-        DataValueAudit dataValueAuditA = new DataValueAudit( dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), AuditType.UPDATE );
-        DataValueAudit dataValueAuditB = new DataValueAudit( dataValueB, dataValueB.getValue(), dataValueB.getStoredBy(), AuditType.UPDATE );
+        DataValueAudit dataValueAuditA = new DataValueAudit( dataValueA, dataValueA.getValue(),
+            dataValueA.getStoredBy(), AuditType.UPDATE );
+        DataValueAudit dataValueAuditB = new DataValueAudit( dataValueB, dataValueB.getValue(),
+            dataValueB.getStoredBy(), AuditType.UPDATE );
 
         dataValueAuditService.addDataValueAudit( dataValueAuditA );
         dataValueAuditService.addDataValueAudit( dataValueAuditB );

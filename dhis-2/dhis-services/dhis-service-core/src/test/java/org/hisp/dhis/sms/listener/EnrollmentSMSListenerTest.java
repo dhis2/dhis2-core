@@ -354,8 +354,9 @@ public class EnrollmentSMSListenerTest
         user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
 
         trackedEntityAttribute = createTrackedEntityAttribute( 'A', ValueType.TEXT );
-        final ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute(program, trackedEntityAttribute);
-        program.getProgramAttributes().add(programTrackedEntityAttribute);
+        final ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute(
+            program, trackedEntityAttribute );
+        program.getProgramAttributes().add( programTrackedEntityAttribute );
         program.getOrganisationUnits().add( organisationUnit );
         program.setTrackedEntityType( trackedEntityType );
         HashSet<ProgramStage> stages = new HashSet<>();

@@ -28,20 +28,21 @@ package org.hisp.dhis.security.oidc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_LOGOUT_REDIRECT_URL;
+
+import java.io.IOException;
+
+import javax.annotation.PostConstruct;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_LOGOUT_REDIRECT_URL;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -69,7 +70,8 @@ public class DhisOidcLogoutSuccessHandler
     @Override
     public void onLogoutSuccess( HttpServletRequest request, HttpServletResponse response,
         Authentication authentication )
-        throws IOException, ServletException
+        throws IOException,
+        ServletException
     {
         handler.onLogoutSuccess( request, response, authentication );
     }

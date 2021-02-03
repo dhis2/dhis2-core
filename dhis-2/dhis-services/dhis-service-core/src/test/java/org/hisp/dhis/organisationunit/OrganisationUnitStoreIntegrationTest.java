@@ -40,9 +40,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import org.locationtech.jts.geom.Geometry;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Luciano Fiandesio
@@ -62,7 +61,9 @@ public class OrganisationUnitStoreIntegrationTest extends TransactionalIntegrati
     private IdentifiableObjectManager manager;
 
     @Test
-    public void verifyGetOrgUnitsWithinAGeoBox() throws IOException {
+    public void verifyGetOrgUnitsWithinAGeoBox()
+        throws IOException
+    {
 
         // https://gist.github.com/luciano-fiandesio/ea682cd4b9a37c5b4bef93e3918b8cda
 
@@ -81,15 +82,14 @@ public class OrganisationUnitStoreIntegrationTest extends TransactionalIntegrati
         manager.save( ouB );
         manager.save( ouC );
         manager.save( ouD );
-        List<OrganisationUnit> ous = getOUsFromPointToDistance(point, _150KM);
-        assertContainsOnly(ous, ouA);
+        List<OrganisationUnit> ous = getOUsFromPointToDistance( point, _150KM );
+        assertContainsOnly( ous, ouA );
 
-        ous = getOUsFromPointToDistance(point, _190KM);
-        assertContainsOnly(ous, ouA, ouC);
+        ous = getOUsFromPointToDistance( point, _190KM );
+        assertContainsOnly( ous, ouA, ouC );
 
-        ous = getOUsFromPointToDistance(point, _250KM);
-        assertContainsOnly(ous, ouA, ouB, ouC, ouD);
-
+        ous = getOUsFromPointToDistance( point, _250KM );
+        assertContainsOnly( ous, ouA, ouB, ouC, ouD );
 
     }
 
@@ -99,7 +99,8 @@ public class OrganisationUnitStoreIntegrationTest extends TransactionalIntegrati
         return organisationUnitStore.getWithinCoordinateArea( box );
     }
 
-    private void assertContainsOnly(List<OrganisationUnit> ous, OrganisationUnit ... ou) {
+    private void assertContainsOnly( List<OrganisationUnit> ous, OrganisationUnit... ou )
+    {
 
         List<String> ouNames = ous.stream().map( BaseIdentifiableObject::getName ).collect( Collectors.toList() );
         for ( OrganisationUnit organisationUnit : ou )

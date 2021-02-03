@@ -38,24 +38,24 @@ public class IdSchemesTest
     public void testGetIdScheme()
     {
         IdSchemes schemes = new IdSchemes();
-        
+
         schemes.setDataElementIdScheme( IdScheme.UID.name() );
         schemes.setIdScheme( IdScheme.CODE.name() );
-        
+
         assertEquals( IdScheme.UID, schemes.getDataElementIdScheme() );
         assertEquals( IdScheme.CODE, schemes.getOrgUnitIdScheme() );
-        assertEquals( IdScheme.CODE, schemes.getIdScheme() );        
+        assertEquals( IdScheme.CODE, schemes.getIdScheme() );
     }
-    
+
     @Test
     public void testFrom()
     {
         IdScheme schemeA = IdScheme.from( IdScheme.ATTR_ID_SCHEME_PREFIX + "abcdefghijA" );
         IdScheme schemeB = IdScheme.from( "CODE" );
-        
+
         assertEquals( IdentifiableProperty.ATTRIBUTE, schemeA.getIdentifiableProperty() );
         assertEquals( "abcdefghijA", schemeA.getAttribute() );
-        
+
         assertEquals( IdentifiableProperty.CODE, schemeB.getIdentifiableProperty() );
     }
 }

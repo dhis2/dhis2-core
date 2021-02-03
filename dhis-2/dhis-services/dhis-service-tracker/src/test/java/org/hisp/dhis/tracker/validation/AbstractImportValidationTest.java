@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -91,7 +92,9 @@ public abstract class AbstractImportValidationTest
     }
 
     @Override
-    protected void initTest() throws IOException {
+    protected void initTest()
+        throws IOException
+    {
     }
 
     protected void printReport( TrackerValidationReport report )

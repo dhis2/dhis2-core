@@ -28,8 +28,17 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.attribute.Attribute;
@@ -53,17 +62,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -90,7 +90,8 @@ public class PreheatServiceTest
     }
 
     @Override
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
         renderService = _renderService;
     }
@@ -211,7 +212,8 @@ public class PreheatServiceTest
 
         dataElementGroup.setUser( user );
 
-        Map<Class<? extends IdentifiableObject>, Set<String>> references = preheatService.collectReferences( dataElementGroup )
+        Map<Class<? extends IdentifiableObject>, Set<String>> references = preheatService
+            .collectReferences( dataElementGroup )
             .get( PreheatIdentifier.CODE );
 
         assertTrue( references.containsKey( DataElement.class ) );
@@ -429,7 +431,8 @@ public class PreheatServiceTest
         assertTrue( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, de1.getCode() ) );
         assertTrue( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, de2.getCode() ) );
         assertFalse( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, de3.getCode() ) );
-        assertFalse( preheat.containsKey( PreheatIdentifier.CODE, DataElementGroup.class, dataElementGroup.getCode() ) );
+        assertFalse(
+            preheat.containsKey( PreheatIdentifier.CODE, DataElementGroup.class, dataElementGroup.getCode() ) );
         assertTrue( preheat.containsKey( PreheatIdentifier.CODE, User.class, user.getCode() ) );
     }
 
@@ -500,9 +503,9 @@ public class PreheatServiceTest
 
         List<DataElement> members = new ArrayList<>( dataElementGroup.getMembers() );
 
-        assertContains(members, "DataElementA", "DataElementCodeA");
-        assertContains(members, "DataElementB", "DataElementCodeB");
-        assertContains(members, "DataElementC", "DataElementCodeC");
+        assertContains( members, "DataElementA", "DataElementCodeA" );
+        assertContains( members, "DataElementB", "DataElementCodeB" );
+        assertContains( members, "DataElementC", "DataElementCodeC" );
 
         assertEquals( "FirstNameA", dataElementGroup.getUser().getFirstName() );
         assertEquals( "SurnameA", dataElementGroup.getUser().getSurname() );
@@ -526,9 +529,9 @@ public class PreheatServiceTest
 
         List<DataElement> members = new ArrayList<>( dataElementGroup.getMembers() );
 
-        assertContains(members, "DataElementA", "DataElementCodeA");
-        assertContains(members, "DataElementB", "DataElementCodeB");
-        assertContains(members, "DataElementC", "DataElementCodeC");
+        assertContains( members, "DataElementA", "DataElementCodeA" );
+        assertContains( members, "DataElementB", "DataElementCodeB" );
+        assertContains( members, "DataElementC", "DataElementCodeC" );
 
         assertEquals( "FirstNameA", dataElementGroup.getUser().getFirstName() );
         assertEquals( "SurnameA", dataElementGroup.getUser().getSurname() );
@@ -552,26 +555,27 @@ public class PreheatServiceTest
 
         List<DataElement> members = new ArrayList<>( dataElementGroup.getMembers() );
 
-        assertContains(members, "DataElementA", "DataElementCodeA");
-        assertContains(members, "DataElementB", "DataElementCodeB");
-        assertContains(members, "DataElementC", "DataElementCodeC");
+        assertContains( members, "DataElementA", "DataElementCodeA" );
+        assertContains( members, "DataElementB", "DataElementCodeB" );
+        assertContains( members, "DataElementC", "DataElementCodeC" );
 
         // TODO Fix this
-//        assertEquals( "FirstNameA", dataElementGroup.getUser().getFirstName() );
-//        assertEquals( "SurnameA", dataElementGroup.getUser().getSurname() );
-//        assertEquals( "UserCodeA", dataElementGroup.getUser().getCode() );
+        // assertEquals( "FirstNameA", dataElementGroup.getUser().getFirstName() );
+        // assertEquals( "SurnameA", dataElementGroup.getUser().getSurname() );
+        // assertEquals( "UserCodeA", dataElementGroup.getUser().getCode() );
     }
 
     /**
-     * Fails with:
-     * java.lang.ClassCastException: java.util.HashMap cannot be cast to java.util.Set
-     * at org.hisp.dhis.preheat.PreheatServiceTest.testPreheatWithAttributeValues(PreheatServiceTest.java:597)
+     * Fails with: java.lang.ClassCastException: java.util.HashMap cannot be cast to
+     * java.util.Set at
+     * org.hisp.dhis.preheat.PreheatServiceTest.testPreheatWithAttributeValues(PreheatServiceTest.java:597)
      *
      * @throws IOException
      */
     @Ignore
     @Test
-    public void testPreheatWithAttributeValues() throws IOException
+    public void testPreheatWithAttributeValues()
+        throws IOException
     {
         defaultSetupWithAttributes();
 

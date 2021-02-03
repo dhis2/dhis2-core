@@ -28,17 +28,18 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hibernate.HibernateException;
-import org.hisp.dhis.attribute.AttributeValue;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.hibernate.HibernateException;
+import org.hisp.dhis.attribute.AttributeValue;
+
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JsonAttributeValueBinaryType
     extends JsonBinaryType
@@ -52,7 +53,7 @@ public class JsonAttributeValueBinaryType
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public String convertObjectToJson( Object object )
     {
         try
@@ -80,7 +81,8 @@ public class JsonAttributeValueBinaryType
     }
 
     @Override
-    public Object deepCopy( Object value ) throws HibernateException
+    public Object deepCopy( Object value )
+        throws HibernateException
     {
         String json = convertObjectToJson( value );
         return convertJsonToObject( json );
@@ -100,8 +102,6 @@ public class JsonAttributeValueBinaryType
             throw new RuntimeException( e );
         }
     }
-
-
 
     private static Set<AttributeValue> convertAttributeValueMapIntoSet( Map<String, AttributeValue> data )
     {

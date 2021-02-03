@@ -28,6 +28,10 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.document.Document;
@@ -40,17 +44,15 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
-
 /**
  * @author Kristian Wærstad <kristian@dhis2.com>
  */
 @Component
-public class DocumentObjectBundleHook extends AbstractObjectBundleHook {
+public class DocumentObjectBundleHook extends AbstractObjectBundleHook
+{
 
-    private static final Pattern URL_PATTERN = Pattern.compile("^https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
+    private static final Pattern URL_PATTERN = Pattern
+        .compile( "^https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]" );
 
     @Autowired
     private FileResourceService fileResourceService;
@@ -59,7 +61,7 @@ public class DocumentObjectBundleHook extends AbstractObjectBundleHook {
     private IdentifiableObjectManager idObjectManager;
 
     @Override
-    public List<ErrorReport> validate (IdentifiableObject object, ObjectBundle bundle)
+    public List<ErrorReport> validate( IdentifiableObject object, ObjectBundle bundle )
     {
         if ( !Document.class.isInstance( object ) )
         {

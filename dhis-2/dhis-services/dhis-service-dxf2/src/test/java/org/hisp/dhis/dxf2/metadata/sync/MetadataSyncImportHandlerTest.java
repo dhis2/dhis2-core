@@ -156,7 +156,8 @@ public class MetadataSyncImportHandlerTest
     }
 
     @Test
-    public void testShouldImportMetadataWhenBestEffortWithWarnings() {
+    public void testShouldImportMetadataWhenBestEffortWithWarnings()
+    {
         syncParams.setImportParams( new MetadataImportParams() );
         syncParams.setVersion( metadataVersion );
         MetadataSyncSummary metadataSyncSummary = new MetadataSyncSummary();

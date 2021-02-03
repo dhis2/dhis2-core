@@ -28,12 +28,12 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
@@ -45,7 +45,7 @@ public class TrackedEntityInstanceDeletionHandler
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-    
+
     private final JdbcTemplate jdbcTemplate;
 
     public TrackedEntityInstanceDeletionHandler( JdbcTemplate jdbcTemplate )
@@ -69,12 +69,14 @@ public class TrackedEntityInstanceDeletionHandler
     {
         String sql = "select count(*) from trackedentityinstance where organisationunitid = " + unit.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;    }
-    
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
+
     @Override
     public String allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        String sql = "select count(*) from trackedentityinstance where trackedentitytypeid = " + trackedEntityType.getId();
+        String sql = "select count(*) from trackedentityinstance where trackedentitytypeid = "
+            + trackedEntityType.getId();
 
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }

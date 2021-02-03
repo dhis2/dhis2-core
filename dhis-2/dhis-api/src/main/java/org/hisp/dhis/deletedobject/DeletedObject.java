@@ -28,17 +28,8 @@ package org.hisp.dhis.deletedobject;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
-
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
+import java.io.Serializable;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -49,16 +40,25 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
-import java.io.Serializable;
-import java.util.Date;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Entity
-@Table( name = "deletedobject",
-uniqueConstraints = {
-    @UniqueConstraint(name = "key_deleted_object_klass_uid",columnNames={"klass", "uid"}) })
+@Table( name = "deletedobject", uniqueConstraints = {
+    @UniqueConstraint( name = "key_deleted_object_klass_uid", columnNames = { "klass", "uid" } ) } )
 @JacksonXmlRootElement( localName = "deletedObject", namespace = DxfNamespaces.DXF_2_0 )
 public class DeletedObject
     implements Serializable
@@ -67,7 +67,7 @@ public class DeletedObject
      * The database internal identifier for this Object.
      */
     @Id
-    @Column( name = "deletedobjectid")
+    @Column( name = "deletedobjectid" )
     @GeneratedValue( generator = "deletedobject_sequence" )
     @SequenceGenerator( name = "deletedobject_sequence", sequenceName = "deletedobject_sequence", allocationSize = 1 )
     private long id;
@@ -81,7 +81,7 @@ public class DeletedObject
     /**
      * The Unique Identifier for this Object.
      */
-    @Column( nullable =  false )
+    @Column( nullable = false )
     private String uid;
 
     /**
@@ -190,8 +190,10 @@ public class DeletedObject
     @Override
     public boolean equals( Object o )
     {
-        if ( this == o ) return true;
-        if ( o == null || getClass() != o.getClass() ) return false;
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
 
         DeletedObject that = (DeletedObject) o;
 
@@ -206,7 +208,6 @@ public class DeletedObject
     {
         return Objects.hashCode( klass, uid, code, deletedAt );
     }
-
 
     @Override
     public String toString()

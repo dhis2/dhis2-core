@@ -36,8 +36,8 @@ import java.util.List;
 import javax.sql.DataSource;
 
 /**
- * A {@link DataSourcePoolMetadataProvider} implementation that returns the first
- * {@link DataSourcePoolMetadata} that is found by one of its delegate.
+ * A {@link DataSourcePoolMetadataProvider} implementation that returns the
+ * first {@link DataSourcePoolMetadata} that is found by one of its delegate.
  *
  * @author Stephane Nicoll
  * @since 2.0.0

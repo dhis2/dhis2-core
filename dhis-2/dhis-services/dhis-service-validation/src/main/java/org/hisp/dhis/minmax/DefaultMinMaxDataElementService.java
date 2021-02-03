@@ -28,16 +28,16 @@ package org.hisp.dhis.minmax;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
@@ -56,7 +56,7 @@ public class DefaultMinMaxDataElementService
 
     public DefaultMinMaxDataElementService( MinMaxDataElementStore minMaxDataElementStore )
     {
-        checkNotNull(minMaxDataElementStore);
+        checkNotNull( minMaxDataElementStore );
 
         this.minMaxDataElementStore = minMaxDataElementStore;
     }
@@ -92,13 +92,15 @@ public class DefaultMinMaxDataElementService
     }
 
     @Override
-    public MinMaxDataElement getMinMaxDataElement( OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo )
+    public MinMaxDataElement getMinMaxDataElement( OrganisationUnit source, DataElement dataElement,
+        CategoryOptionCombo optionCombo )
     {
         return minMaxDataElementStore.get( source, dataElement, optionCombo );
     }
 
     @Override
-    public List<MinMaxDataElement> getMinMaxDataElements( OrganisationUnit source, Collection<DataElement> dataElements )
+    public List<MinMaxDataElement> getMinMaxDataElements( OrganisationUnit source,
+        Collection<DataElement> dataElements )
     {
         return minMaxDataElementStore.get( source, dataElements );
     }
@@ -139,5 +141,3 @@ public class DefaultMinMaxDataElementService
         minMaxDataElementStore.delete( dataElements, parent );
     }
 }
-
-

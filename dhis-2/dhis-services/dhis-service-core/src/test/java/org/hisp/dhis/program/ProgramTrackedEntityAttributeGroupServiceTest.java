@@ -28,18 +28,18 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static junit.framework.TestCase.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import static junit.framework.TestCase.assertNotNull;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -56,12 +56,14 @@ public class ProgramTrackedEntityAttributeGroupServiceTest
     private Program prA;
 
     private TrackedEntityAttribute teaA;
+
     private TrackedEntityAttribute teaB;
 
     private ProgramTrackedEntityAttribute attrA;
-    private ProgramTrackedEntityAttribute attrB;
-    private ProgramTrackedEntityAttributeGroup group;
 
+    private ProgramTrackedEntityAttribute attrB;
+
+    private ProgramTrackedEntityAttributeGroup group;
 
     @Override
     public void setUpTest()
@@ -102,7 +104,8 @@ public class ProgramTrackedEntityAttributeGroupServiceTest
 
         service.updateProgramTrackedEntityAttributeGroup( group );
 
-        assertEquals( "updatedShortName", service.getProgramTrackedEntityAttributeGroup( group.getUid() ).getShortName() );
+        assertEquals( "updatedShortName",
+            service.getProgramTrackedEntityAttributeGroup( group.getUid() ).getShortName() );
 
     }
 

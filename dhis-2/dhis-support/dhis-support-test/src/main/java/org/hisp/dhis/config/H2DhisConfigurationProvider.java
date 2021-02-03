@@ -28,16 +28,6 @@ package org.hisp.dhis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.encryption.EncryptionStatus;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.external.conf.GoogleAccessToken;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
@@ -46,6 +36,18 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.encryption.EncryptionStatus;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.external.conf.GoogleAccessToken;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
+
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
@@ -53,6 +55,7 @@ import java.util.stream.Stream;
 public class H2DhisConfigurationProvider implements DhisConfigurationProvider
 {
     private static final String DEFAULT_CONFIGURATION_FILE_NAME = "h2TestConfig.conf";
+
     private Properties properties;
 
     private EncryptionStatus encryptionStatus = EncryptionStatus.OK;
@@ -82,7 +85,8 @@ public class H2DhisConfigurationProvider implements DhisConfigurationProvider
     @Override
     public String getServerBaseUrl()
     {
-        return this.properties.getProperty( ConfigurationKey.SERVER_BASE_URL.getKey(), ConfigurationKey.SERVER_BASE_URL.getDefaultValue() );
+        return this.properties.getProperty( ConfigurationKey.SERVER_BASE_URL.getKey(),
+            ConfigurationKey.SERVER_BASE_URL.getDefaultValue() );
     }
 
     @Override
@@ -151,7 +155,7 @@ public class H2DhisConfigurationProvider implements DhisConfigurationProvider
         return encryptionStatus;
     }
 
-    public void setEncryptionStatus(EncryptionStatus status)
+    public void setEncryptionStatus( EncryptionStatus status )
     {
         this.encryptionStatus = status;
     }
@@ -160,8 +164,8 @@ public class H2DhisConfigurationProvider implements DhisConfigurationProvider
     public Map<String, Serializable> getConfigurationsAsMap()
     {
         return Stream.of( ConfigurationKey.values() )
-            .collect( Collectors.toMap( ConfigurationKey::getKey, v -> v.isConfidential() ? "" :
-                getPropertyOrDefault( v, v.getDefaultValue() != null ? v.getDefaultValue() : "" ) ) );
+            .collect( Collectors.toMap( ConfigurationKey::getKey, v -> v.isConfidential() ? ""
+                : getPropertyOrDefault( v, v.getDefaultValue() != null ? v.getDefaultValue() : "" ) ) );
     }
 
     private Properties getPropertiesFromFile( String fileName )

@@ -28,16 +28,16 @@ package org.hisp.dhis.query.operators;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -86,12 +86,14 @@ public class LikeOperator<T extends Comparable<? super T>> extends Operator<T>
     {
         if ( caseSensitive )
         {
-            return JpaQueryUtils.stringPredicateCaseSensitive( builder, root.get( queryPath.getPath() ), String.valueOf( args.get( 0 ) ).replace( "%", ""),
+            return JpaQueryUtils.stringPredicateCaseSensitive( builder, root.get( queryPath.getPath() ),
+                String.valueOf( args.get( 0 ) ).replace( "%", "" ),
                 jpaMatchMode );
         }
         else
         {
-            return JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( queryPath.getPath() ), String.valueOf( args.get( 0 ) ).replace( "%", ""),
+            return JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( queryPath.getPath() ),
+                String.valueOf( args.get( 0 ) ).replace( "%", "" ),
                 jpaMatchMode );
         }
     }
@@ -113,14 +115,14 @@ public class LikeOperator<T extends Comparable<? super T>> extends Operator<T>
 
             switch ( jpaMatchMode )
             {
-                case EQUALS:
-                    return s2.equals( s1 );
-                case STARTING_LIKE:
-                    return s2.startsWith( s1 );
-                case ENDING_LIKE:
-                    return s2.endsWith( s1 );
-                case ANYWHERE:
-                    return s2.contains( s1 );
+            case EQUALS:
+                return s2.equals( s1 );
+            case STARTING_LIKE:
+                return s2.startsWith( s1 );
+            case ENDING_LIKE:
+                return s2.endsWith( s1 );
+            case ANYWHERE:
+                return s2.contains( s1 );
             }
         }
 

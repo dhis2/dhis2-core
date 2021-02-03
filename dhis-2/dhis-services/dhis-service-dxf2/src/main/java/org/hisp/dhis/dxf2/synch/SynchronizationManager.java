@@ -42,7 +42,8 @@ public interface SynchronizationManager
      *
      * @return an {@link ImportSummary}.
      */
-    ImportSummary executeDataValuePush() throws WebMessageParseException;
+    ImportSummary executeDataValuePush()
+        throws WebMessageParseException;
 
     /**
      * Executes a meta data pull operation from remote server.

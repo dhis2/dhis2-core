@@ -28,13 +28,13 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.node.annotation.NodeSimple;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import org.hisp.dhis.node.annotation.NodeSimple;
+import org.junit.Before;
+import org.junit.Test;
 
 class SimpleFields
 {

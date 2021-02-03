@@ -99,8 +99,8 @@ public class DataSetTest
 
         Indicator indicatorA = new Indicator();
         Indicator indicatorB = new Indicator();
-        indicatorA.setName( "Indicator A");
-        indicatorB.setName( "Indicator B");
+        indicatorA.setName( "Indicator A" );
+        indicatorB.setName( "Indicator B" );
 
         dsA.addIndicator( indicatorA );
 

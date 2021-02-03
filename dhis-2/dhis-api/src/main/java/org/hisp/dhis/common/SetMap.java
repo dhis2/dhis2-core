@@ -43,11 +43,11 @@ public class SetMap<T, V>
     {
         super();
     }
-    
+
     public SetMap( SetMap<T, V> setMap )
     {
         super( setMap );
-    }    
+    }
 
     public Set<V> putValue( T key, V value )
     {
@@ -71,9 +71,9 @@ public class SetMap<T, V>
     }
 
     /**
-     * Produces a SetMap based on the given set of values. The key for
-     * each entry is produced by applying the given keyMapper function.
-     * 
+     * Produces a SetMap based on the given set of values. The key for each entry is
+     * produced by applying the given keyMapper function.
+     *
      * @param values the values of the map.
      * @param keyMapper the function producing the key for each entry.
      * @return a SetMap.

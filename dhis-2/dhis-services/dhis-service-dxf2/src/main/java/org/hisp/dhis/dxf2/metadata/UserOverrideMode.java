@@ -33,5 +33,7 @@ package org.hisp.dhis.dxf2.metadata;
  */
 public enum UserOverrideMode
 {
-    NONE, CURRENT, SELECTED
+    NONE,
+    CURRENT,
+    SELECTED
 }

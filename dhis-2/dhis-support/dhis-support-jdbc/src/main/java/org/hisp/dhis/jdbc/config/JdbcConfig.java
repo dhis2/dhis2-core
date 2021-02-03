@@ -28,7 +28,6 @@ package org.hisp.dhis.jdbc.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
@@ -43,6 +42,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -69,7 +70,8 @@ public class JdbcConfig
     @Bean( initMethod = "init" )
     public StatementDialectFactoryBean statementDialect()
     {
-        return new StatementDialectFactoryBean( dhisConfigurationProvider.getProperty( ConfigurationKey.CONNECTION_DIALECT ) );
+        return new StatementDialectFactoryBean(
+            dhisConfigurationProvider.getProperty( ConfigurationKey.CONNECTION_DIALECT ) );
     }
 
     @Bean( initMethod = "init" )

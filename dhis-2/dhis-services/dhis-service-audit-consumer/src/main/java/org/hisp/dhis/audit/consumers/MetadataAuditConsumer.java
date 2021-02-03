@@ -28,7 +28,8 @@ package org.hisp.dhis.audit.consumers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.jms.TextMessage;
+
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.audit.AbstractAuditConsumer;
 import org.hisp.dhis.audit.AuditService;
@@ -37,7 +38,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-import javax.jms.TextMessage;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * A MetadataAudit object consumer.

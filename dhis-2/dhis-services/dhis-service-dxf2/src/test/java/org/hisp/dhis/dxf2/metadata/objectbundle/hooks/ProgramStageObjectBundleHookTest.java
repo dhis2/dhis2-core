@@ -28,6 +28,9 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collections;
+import java.util.List;
+
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -49,9 +52,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import java.util.Collections;
-import java.util.List;
 
 public class ProgramStageObjectBundleHookTest
 {
@@ -106,7 +106,6 @@ public class ProgramStageObjectBundleHookTest
         objectBundleParams.setUser( user );
         ObjectBundle bundle = new ObjectBundle( objectBundleParams, preheat, Collections
             .singletonMap( OptionSet.class, Collections.singletonList( programStage ) ) );
-
 
         List<ErrorReport> errors = subject.validate( programStage, bundle );
         Assert.assertEquals( 1, errors.size() );

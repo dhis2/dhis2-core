@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -61,8 +63,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Abyot Asalefew
@@ -241,14 +241,18 @@ public class DefaultProgramInstanceService
             throw new IllegalQueryException( "Program does not exist: " + program );
         }
 
-        TrackedEntityType te = trackedEntityType != null ? trackedEntityTypeService.getTrackedEntityType( trackedEntityType ) : null;
+        TrackedEntityType te = trackedEntityType != null
+            ? trackedEntityTypeService.getTrackedEntityType( trackedEntityType )
+            : null;
 
         if ( trackedEntityType != null && te == null )
         {
             throw new IllegalQueryException( "Tracked entity does not exist: " + program );
         }
 
-        TrackedEntityInstance tei = trackedEntityInstance != null ? trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance ) : null;
+        TrackedEntityInstance tei = trackedEntityInstance != null
+            ? trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance )
+            : null;
 
         if ( trackedEntityInstance != null && tei == null )
         {
@@ -351,24 +355,32 @@ public class DefaultProgramInstanceService
         {
             if ( !aclService.canDataRead( params.getUser(), params.getProgram() ) )
             {
-                throw new IllegalQueryException( "Current user is not authorized to read data from selected program:  " + params.getProgram().getUid() );
+                throw new IllegalQueryException( "Current user is not authorized to read data from selected program:  "
+                    + params.getProgram().getUid() );
             }
 
-            if ( params.getProgram().getTrackedEntityType() != null && !aclService.canDataRead( params.getUser(), params.getProgram().getTrackedEntityType() ) )
+            if ( params.getProgram().getTrackedEntityType() != null
+                && !aclService.canDataRead( params.getUser(), params.getProgram().getTrackedEntityType() ) )
             {
-                throw new IllegalQueryException( "Current user is not authorized to read data from selected program's tracked entity type:  " + params.getProgram().getTrackedEntityType().getUid() );
+                throw new IllegalQueryException(
+                    "Current user is not authorized to read data from selected program's tracked entity type:  "
+                        + params.getProgram().getTrackedEntityType().getUid() );
             }
 
         }
 
-        if ( params.hasTrackedEntityType() && !aclService.canDataRead( params.getUser(), params.getTrackedEntityType() ) )
+        if ( params.hasTrackedEntityType()
+            && !aclService.canDataRead( params.getUser(), params.getTrackedEntityType() ) )
         {
-            throw new IllegalQueryException( "Current user is not authorized to read data from selected tracked entity type:  " + params.getTrackedEntityType().getUid() );
+            throw new IllegalQueryException(
+                "Current user is not authorized to read data from selected tracked entity type:  "
+                    + params.getTrackedEntityType().getUid() );
         }
     }
 
     @Override
-    public void validate( ProgramInstanceQueryParams params ) throws IllegalQueryException
+    public void validate( ProgramInstanceQueryParams params )
+        throws IllegalQueryException
     {
         String violation = null;
 
@@ -379,12 +391,14 @@ public class DefaultProgramInstanceService
 
         User user = params.getUser();
 
-        if ( !params.hasOrganisationUnits() && !(params.isOrganisationUnitMode( ALL ) || params.isOrganisationUnitMode( ACCESSIBLE )) )
+        if ( !params.hasOrganisationUnits()
+            && !(params.isOrganisationUnitMode( ALL ) || params.isOrganisationUnitMode( ACCESSIBLE )) )
         {
             violation = "At least one organisation unit must be specified";
         }
 
-        if ( params.isOrganisationUnitMode( ACCESSIBLE ) && (user == null || !user.hasDataViewOrganisationUnitWithFallback()) )
+        if ( params.isOrganisationUnitMode( ACCESSIBLE )
+            && (user == null || !user.hasDataViewOrganisationUnitWithFallback()) )
         {
             violation = "Current user must be associated with at least one organisation unit when selection mode is ACCESSIBLE";
         }
@@ -448,7 +462,8 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional( readOnly = true )
-    public List<ProgramInstance> getProgramInstances( TrackedEntityInstance entityInstance, Program program, ProgramStatus status )
+    public List<ProgramInstance> getProgramInstances( TrackedEntityInstance entityInstance, Program program,
+        ProgramStatus status )
     {
         return programInstanceStore.get( entityInstance, program, status );
     }
@@ -456,11 +471,14 @@ public class DefaultProgramInstanceService
     @Override
     @Transactional
     public ProgramInstance prepareProgramInstance( TrackedEntityInstance trackedEntityInstance, Program program,
-        ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid )
+        ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit,
+        String uid )
     {
-        if ( program.getTrackedEntityType() != null && !program.getTrackedEntityType().equals( trackedEntityInstance.getTrackedEntityType() ) )
+        if ( program.getTrackedEntityType() != null
+            && !program.getTrackedEntityType().equals( trackedEntityInstance.getTrackedEntityType() ) )
         {
-            throw new IllegalQueryException( "Tracked entity instance must have same tracked entity as program: " + program.getUid() );
+            throw new IllegalQueryException(
+                "Tracked entity instance must have same tracked entity as program: " + program.getUid() );
         }
 
         ProgramInstance programInstance = new ProgramInstance();
@@ -509,7 +527,8 @@ public class DefaultProgramInstanceService
         // Add program instance
         // ---------------------------------------------------------------------
 
-        ProgramInstance programInstance = prepareProgramInstance( trackedEntityInstance, program, ProgramStatus.ACTIVE, enrollmentDate,
+        ProgramInstance programInstance = prepareProgramInstance( trackedEntityInstance, program, ProgramStatus.ACTIVE,
+            enrollmentDate,
             incidentDate, organisationUnit, uid );
         addProgramInstance( programInstance );
 
@@ -518,7 +537,6 @@ public class DefaultProgramInstanceService
         // ---------------------------------------------------------------------
 
         trackerOwnershipAccessManager.assignOwnership( trackedEntityInstance, program, organisationUnit, true, true );
-
 
         // -----------------------------------------------------------------
         // Send enrollment notifications (if any)
@@ -574,7 +592,8 @@ public class DefaultProgramInstanceService
         // Send sms-message after program completion
         // ---------------------------------------------------------------------
 
-        eventPublisher.publishEvent( new ProgramEnrollmentCompletionNotificationEvent( this, programInstance.getId() ) );
+        eventPublisher
+            .publishEvent( new ProgramEnrollmentCompletionNotificationEvent( this, programInstance.getId() ) );
 
         eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance.getId() ) );
     }
@@ -626,7 +645,8 @@ public class DefaultProgramInstanceService
         {
             log.warn( "Program has another active enrollment going on. Not possible to incomplete" );
 
-            throw new IllegalQueryException( "Program has another active enrollment going on. Not possible to incomplete" );
+            throw new IllegalQueryException(
+                "Program has another active enrollment going on. Not possible to incomplete" );
         }
 
         // -----------------------------------------------------------------

@@ -28,6 +28,9 @@ package org.hisp.dhis.attribute;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -36,9 +39,6 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -50,6 +50,7 @@ public class AttributeStoreTest
     private AttributeStore attributeStore;
 
     private Attribute atA;
+
     private Attribute atB;
 
     @Override
@@ -129,7 +130,6 @@ public class AttributeStoreTest
         attributeStore.save( attribute );
 
         assertEquals( 1, attributeStore.getUniqueAttributes( DataElement.class ).size() );
-
 
     }
 }

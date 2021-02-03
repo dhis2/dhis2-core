@@ -45,16 +45,25 @@ public interface ReportService
     String ID = ReportService.class.getName();
 
     String REPORTTYPE_PDF = "pdf";
+
     String REPORTTYPE_XLS = "xls";
 
     String PARAM_RELATIVE_PERIODS = "periods";
+
     String PARAM_RELATIVE_ISO_PERIODS = "periods_iso";
+
     String PARAM_ORG_UNITS = "organisationunits";
+
     String PARAM_ORG_UNITS_UID = "organisationunits_uid";
+
     String PARAM_ORGANISATIONUNIT_LEVEL = "organisationunit_level";
+
     String PARAM_ORGANISATIONUNIT_LEVEL_COLUMN = "organisationunit_level_column";
+
     String PARAM_ORGANISATIONUNIT_UID_LEVEL_COLUMN = "organisationunit_uid_level_column";
+
     String PARAM_ORGANISATIONUNIT_COLUMN_NAME = "organisationunit_name";
+
     String PARAM_PERIOD_NAME = "period_name";
 
     /**
@@ -62,19 +71,18 @@ public interface ReportService
      * <p/>
      * Will make the following params available:
      * <p/>
-     * "periods" String of relative period ids (String)
-     * "organisationunits" String of selected organisation unit ids (String)
-     * "period_name" Name of the selected period (String)
-     * "organisationunit_name" Name of the selected organisation unit (String)
-     * "organisationunit_level" Level of the selected organisation unit (int)
-     * "organisationunit_level_column" Name of the relevant level column in
-     * table _orgunitstructure (String)
+     * "periods" String of relative period ids (String) "organisationunits" String
+     * of selected organisation unit ids (String) "period_name" Name of the selected
+     * period (String) "organisationunit_name" Name of the selected organisation
+     * unit (String) "organisationunit_level" Level of the selected organisation
+     * unit (int) "organisationunit_level_column" Name of the relevant level column
+     * in table _orgunitstructure (String)
      *
-     * @param out                 the OutputStream to write the report to.
-     * @param reportUid           the uid of the report to render.
-     * @param period              the period to use as parameter.
+     * @param out the OutputStream to write the report to.
+     * @param reportUid the uid of the report to render.
+     * @param period the period to use as parameter.
      * @param organisationUnitUid the uid of the org unit to use as parameter.
-     * @param type                the type of the report, can be "xls" and "pdf".
+     * @param type the type of the report, can be "xls" and "pdf".
      */
     JasperPrint renderReport( OutputStream out, String reportUid, Period period,
         String organisationUnitUid, String type );

@@ -28,9 +28,9 @@ package org.hisp.dhis.commons.collection;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.*;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Utility methods for list operations.
@@ -83,8 +83,8 @@ public class ListUtils
     }
 
     /**
-     * Returns a sublist of the given list with the elements at the given
-     * indexes. Does not modify the given list of elements.
+     * Returns a sublist of the given list with the elements at the given indexes.
+     * Does not modify the given list of elements.
      *
      * @param <T> type.
      * @param list the list to select from.
@@ -132,8 +132,8 @@ public class ListUtils
     }
 
     /**
-     * Returns the duplicates in the given list. List entries are compared
-     * using the given comparator.
+     * Returns the duplicates in the given list. List entries are compared using the
+     * given comparator.
      *
      * @param <T> type.
      * @param list the list.
@@ -198,8 +198,8 @@ public class ListUtils
     }
 
     /**
-     * Returns the sub list of the given list avoiding exceptions, starting on
-     * the given start index and returning at maximum the given max number of items.
+     * Returns the sub list of the given list avoiding exceptions, starting on the
+     * given start index and returning at maximum the given max number of items.
      *
      * @param <T> type.
      * @param list the list.
@@ -260,8 +260,8 @@ public class ListUtils
     }
 
     /**
-     * Returns a contiguous list of Integers starting on and including a, ending
-     * on and excluding b.
+     * Returns a contiguous list of Integers starting on and including a, ending on
+     * and excluding b.
      *
      * @param a start, inclusive.
      * @param b end, exclusive.

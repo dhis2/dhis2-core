@@ -30,7 +30,7 @@ package org.hisp.dhis.query;
 
 /**
  * Simple POJO containing the pagination directive from the HTTP Request
- * 
+ *
  * @author Luciano Fiandesio
  */
 public class Pagination
@@ -43,7 +43,7 @@ public class Pagination
 
     public Pagination( int firstResult, int size )
     {
-        assert ( size > 0 );
+        assert (size > 0);
         this.firstResult = firstResult;
         this.size = size;
         this.hasPagination = true;

@@ -39,9 +39,9 @@ public class HelpContent
     private String content;
 
     public HelpContent()
-    {   
+    {
     }
-    
+
     public String getHeader()
     {
         return header;

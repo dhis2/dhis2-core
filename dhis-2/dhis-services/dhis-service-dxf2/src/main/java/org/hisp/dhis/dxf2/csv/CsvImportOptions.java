@@ -37,9 +37,9 @@ public class CsvImportOptions
 
     private boolean firstRowIsHeader;
 
-    //---------------------------------------------------
-    //  Constructor
-    //---------------------------------------------------
+    // ---------------------------------------------------
+    // Constructor
+    // ---------------------------------------------------
 
     public CsvImportOptions()
     {
@@ -51,9 +51,9 @@ public class CsvImportOptions
         this.firstRowIsHeader = firstRowIsHeader;
     }
 
-    //---------------------------------------------------
-    //  Getter & Setter
-    //---------------------------------------------------
+    // ---------------------------------------------------
+    // Getter & Setter
+    // ---------------------------------------------------
 
     public CsvImportClass getImportClass()
     {

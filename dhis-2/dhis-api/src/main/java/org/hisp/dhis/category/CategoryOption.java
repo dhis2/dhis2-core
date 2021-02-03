@@ -28,11 +28,10 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -47,16 +46,19 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.TranslationProperty;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Abyot Asalefew
  */
 @JacksonXmlRootElement( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
 public class CategoryOption
-    extends BaseDimensionalItemObject implements SystemDefaultMetadataObject, OrganisationUnitAssignable
+    extends BaseDimensionalItemObject
+    implements SystemDefaultMetadataObject, OrganisationUnitAssignable
 {
     public static final String DEFAULT_NAME = "default";
 
@@ -171,8 +173,8 @@ public class CategoryOption
     }
 
     /**
-     * Gets an adjusted end date, adjusted if this data set has
-     * open periods after the end date.
+     * Gets an adjusted end date, adjusted if this data set has open periods after
+     * the end date.
      *
      * @param dataSet the data set to adjust for
      * @return the adjusted end date
@@ -188,9 +190,9 @@ public class CategoryOption
     }
 
     /**
-     * Gets an adjusted end date, adjusted if a data element belongs
-     * to any data sets that have open periods after the end date.
-     * If so, it chooses the latest end date.
+     * Gets an adjusted end date, adjusted if a data element belongs to any data
+     * sets that have open periods after the end date. If so, it chooses the latest
+     * end date.
      *
      * @param dataElement the data element to adjust for
      * @return the adjusted end date
@@ -218,8 +220,8 @@ public class CategoryOption
     }
 
     /**
-     * Gets an adjusted end date for a data set or, if that is not present,
-     * a data element.
+     * Gets an adjusted end date for a data set or, if that is not present, a data
+     * element.
      *
      * @param dataSet the data set to adjust for
      * @param dataElement the data element to adjust for

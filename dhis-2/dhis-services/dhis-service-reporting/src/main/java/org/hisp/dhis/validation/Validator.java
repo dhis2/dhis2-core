@@ -28,19 +28,20 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.springframework.context.ApplicationContext;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.context.ApplicationContext;
+
+import com.google.common.collect.Lists;
 
 /**
  * Evaluates validation rules.
@@ -51,12 +52,12 @@ public class Validator
 {
     /**
      * Evaluates validation rules for a collection of organisation units. This
-     * method breaks the job down by organisation unit. It assigns the
-     * evaluation for each organisation unit to a task that can be evaluated
-     * independently in a multi-threaded environment.
+     * method breaks the job down by organisation unit. It assigns the evaluation
+     * for each organisation unit to a task that can be evaluated independently in a
+     * multi-threaded environment.
      * <p/>
-     * Return early with no results if there are no organisation units
-     * or no validation rules.
+     * Return early with no results if there are no organisation units or no
+     * validation rules.
      *
      * @return a collection of any validations that were found
      */
@@ -74,7 +75,8 @@ public class Validator
 
         ExecutorService executor = Executors.newFixedThreadPool( threadPoolSize );
 
-        List<List<OrganisationUnit>> orgUnitLists = Lists.partition( context.getOrgUnits(), ValidationRunContext.ORG_UNITS_PER_TASK );
+        List<List<OrganisationUnit>> orgUnitLists = Lists.partition( context.getOrgUnits(),
+            ValidationRunContext.ORG_UNITS_PER_TASK );
 
         for ( List<OrganisationUnit> orgUnits : orgUnitLists )
         {

@@ -28,15 +28,16 @@ package org.hisp.dhis.dxf2.dataset.streaming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonGenerator;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.commons.compress.utils.IOUtils;
 import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrations;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.concurrent.atomic.AtomicBoolean;
+import com.fasterxml.jackson.core.JsonGenerator;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -78,9 +79,9 @@ public class StreamingJsonCompleteDataSetRegistrations
         return new StreamingJsonCompleteDataSetRegistration( jsonGenerator );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Logic
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     public void open()
@@ -137,9 +138,9 @@ public class StreamingJsonCompleteDataSetRegistrations
         }
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Setters
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     public void setDataSetIdScheme( String dataSetIdScheme )

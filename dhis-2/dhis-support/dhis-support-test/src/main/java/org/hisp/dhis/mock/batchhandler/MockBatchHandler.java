@@ -28,11 +28,11 @@ package org.hisp.dhis.mock.batchhandler;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.quick.BatchHandler;
-import org.hisp.quick.JdbcConfiguration;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.JdbcConfiguration;
 
 /**
  * @author Lars Helge Overland
@@ -41,21 +41,23 @@ public class MockBatchHandler<T>
     implements BatchHandler<T>
 {
     private List<T> inserts = new ArrayList<>();
+
     private List<T> updates = new ArrayList<>();
+
     private List<T> deletes = new ArrayList<>();
-    
+
     private boolean findSelf = false;
-    
+
     public MockBatchHandler()
     {
     }
-    
+
     public MockBatchHandler<T> withFindSelf( boolean findSelf )
     {
         this.findSelf = findSelf;
         return this;
     }
-    
+
     @Override
     public BatchHandler<T> init()
     {
@@ -85,17 +87,17 @@ public class MockBatchHandler<T>
     {
         return findSelf ? arg : null;
     }
-    
+
     @Override
     public void updateObject( T object )
     {
-        updates.add( object );        
+        updates.add( object );
     }
 
     @Override
     public void deleteObject( T object )
     {
-        deletes.add( object );        
+        deletes.add( object );
     }
 
     @Override

@@ -28,9 +28,8 @@ package org.hisp.dhis.analytics.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Grid;
-
 import org.hisp.dhis.analytics.Rectangle;
+import org.hisp.dhis.common.Grid;
 
 /**
  * @author Lars Helge Overland

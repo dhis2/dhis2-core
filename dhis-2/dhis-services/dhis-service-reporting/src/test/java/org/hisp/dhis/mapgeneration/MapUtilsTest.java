@@ -37,26 +37,26 @@ import org.junit.Test;
  * Lars Helge Overland
  */
 public class MapUtilsTest
-{    
+{
     @Test
     public void testGetWidthHeight()
     {
         assertEquals( 150, getWidthHeight( 200, 300, 0, 0, 0.5 )[0] );
-        assertEquals( 300, getWidthHeight( 200, 300, 0, 0,  0.5 )[1] );
-        assertEquals( 200, getWidthHeight( 200, 300, 0, 0,  2 )[0] );
-        assertEquals( 100, getWidthHeight( 200, 300, 0, 0,  2 )[1] );
-        assertEquals( 300, getWidthHeight( 600, 300, 0, 0,  1d )[0] );
-        assertEquals( 300, getWidthHeight( 600, 300, 0, 0,  1d )[1] );
+        assertEquals( 300, getWidthHeight( 200, 300, 0, 0, 0.5 )[1] );
+        assertEquals( 200, getWidthHeight( 200, 300, 0, 0, 2 )[0] );
+        assertEquals( 100, getWidthHeight( 200, 300, 0, 0, 2 )[1] );
+        assertEquals( 300, getWidthHeight( 600, 300, 0, 0, 1d )[0] );
+        assertEquals( 300, getWidthHeight( 600, 300, 0, 0, 1d )[1] );
 
-        assertEquals( 200, getWidthHeight( 200, null, 0, 0,  0.5 )[0] );
-        assertEquals( 400, getWidthHeight( 200, null, 0, 0,  0.5 )[1] );
-        assertEquals( 200, getWidthHeight( 200, null, 0, 0,  2 )[0] );
-        assertEquals( 100, getWidthHeight( 200, null, 0, 0,  2 )[1] );
+        assertEquals( 200, getWidthHeight( 200, null, 0, 0, 0.5 )[0] );
+        assertEquals( 400, getWidthHeight( 200, null, 0, 0, 0.5 )[1] );
+        assertEquals( 200, getWidthHeight( 200, null, 0, 0, 2 )[0] );
+        assertEquals( 100, getWidthHeight( 200, null, 0, 0, 2 )[1] );
 
-        assertEquals( 150, getWidthHeight( null, 300, 0, 0,  0.5 )[0] );
-        assertEquals( 300, getWidthHeight( null, 300, 0, 0,  0.5 )[1] );
-        assertEquals( 600, getWidthHeight( null, 300, 0, 0,  2 )[0] );
-        assertEquals( 300, getWidthHeight( null, 300, 0, 0,  2 )[1] );
+        assertEquals( 150, getWidthHeight( null, 300, 0, 0, 0.5 )[0] );
+        assertEquals( 300, getWidthHeight( null, 300, 0, 0, 0.5 )[1] );
+        assertEquals( 600, getWidthHeight( null, 300, 0, 0, 2 )[0] );
+        assertEquals( 300, getWidthHeight( null, 300, 0, 0, 2 )[1] );
     }
 
     @Test( expected = IllegalArgumentException.class )
@@ -64,5 +64,5 @@ public class MapUtilsTest
     {
         getWidthHeight( null, null, 0, 0, 0.5 );
     }
-    
+
 }

@@ -29,6 +29,7 @@ package org.hisp.dhis;
  */
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.hibernate.FlushMode;
@@ -69,16 +70,16 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
     protected static JdbcTemplate jdbcTemplate;
 
     /*
-       Flag that determines if the IntegrationTestData annotation has
-       been running the database init script. We only want to run
-       the init script once per unit test
-    */
+     * Flag that determines if the IntegrationTestData annotation has been running
+     * the database init script. We only want to run the init script once per unit
+     * test
+     */
     public static boolean dataInit = false;
 
     protected abstract boolean emptyDatabaseAfterTest();
 
     /*
-    "Special" setter to allow setting JdbcTemplate as static field
+     * "Special" setter to allow setting JdbcTemplate as static field
      */
     @Autowired
     public static void setJdbcTemplate( JdbcTemplate jdbcTemplate )
@@ -212,7 +213,8 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
     protected void unbindSession()
     {
         SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean( "sessionFactory" );
-        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.unbindResource( sessionFactory );
+        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager
+            .unbindResource( sessionFactory );
 
         SessionFactoryUtils.closeSession( sessionHolder.getSession() );
     }

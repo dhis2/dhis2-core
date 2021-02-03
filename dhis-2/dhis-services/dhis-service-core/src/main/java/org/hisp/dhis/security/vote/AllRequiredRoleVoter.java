@@ -40,9 +40,9 @@ import org.springframework.security.core.GrantedAuthority;
  * be granted authorities, given that the ConfigAttributes have the specified
  * prefix ("ROLE_" by default). If there are no supported ConfigAttributes it
  * abstains from voting.
- * 
+ *
  * @see org.springframework.security.access.vote.RoleVoter
- * 
+ *
  * @author Torgeir Lorange Ostby
  * @version $Id: AllRequiredRoleVoter.java 6070 2008-10-28 17:49:23Z larshelg $
  */

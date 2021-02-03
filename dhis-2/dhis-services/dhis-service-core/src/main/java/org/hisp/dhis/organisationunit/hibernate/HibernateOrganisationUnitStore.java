@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -62,8 +64,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Kristian Nordal
  */
@@ -76,7 +76,8 @@ public class HibernateOrganisationUnitStore
     private final DbmsManager dbmsManager;
 
     public HibernateOrganisationUnitStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService, DbmsManager dbmsManager )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
+        DbmsManager dbmsManager )
     {
         super( sessionFactory, jdbcTemplate, publisher, OrganisationUnit.class, currentUserService, aclService, true );
 
@@ -110,10 +111,9 @@ public class HibernateOrganisationUnitStore
     @Override
     public Long getOrganisationUnitHierarchyMemberCount( OrganisationUnit parent, Object member, String collectionName )
     {
-        final String hql =
-            "select count(*) from OrganisationUnit o " +
-                "where o.path like :path " +
-                "and :object in elements(o." + collectionName + ")";
+        final String hql = "select count(*) from OrganisationUnit o " +
+            "where o.path like :path " +
+            "and :object in elements(o." + collectionName + ")";
 
         Query<Long> query = getTypedQuery( hql );
         query.setParameter( "path", parent.getPath() + "%" )
@@ -218,7 +218,8 @@ public class HibernateOrganisationUnitStore
     }
 
     @Override
-    public Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap( Collection<OrganisationUnit> organisationUnits, Collection<DataSet> dataSets )
+    public Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap(
+        Collection<OrganisationUnit> organisationUnits, Collection<DataSet> dataSets )
     {
         SqlHelper hlp = new SqlHelper();
 
@@ -245,7 +246,8 @@ public class HibernateOrganisationUnitStore
         {
             Assert.notEmpty( dataSets, "Data sets cannot be empty" );
 
-            sql += hlp.whereAnd() + " ds.datasetid in (" + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( dataSets ), "," ) + ") ";
+            sql += hlp.whereAnd() + " ds.datasetid in ("
+                + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( dataSets ), "," ) + ") ";
         }
 
         sql += "group by ou_uid";
@@ -282,7 +284,8 @@ public class HibernateOrganisationUnitStore
 
     private String doMakeEnvelopeSql( double[] box )
     {
-        // equivalent to: postgis 'ST_MakeEnvelope' (https://postgis.net/docs/ST_MakeEnvelope.html)
+        // equivalent to: postgis 'ST_MakeEnvelope'
+        // (https://postgis.net/docs/ST_MakeEnvelope.html)
         return "ST_MakeEnvelope(" + box[1] + "," + box[0] + "," + box[3] + "," + box[2] + ", 4326)";
     }
 

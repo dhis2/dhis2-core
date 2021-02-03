@@ -28,7 +28,12 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static org.junit.Assert.*;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -49,11 +54,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
 
 /**
  * @author Enrico Colasante
@@ -96,7 +97,8 @@ public class HandleRelationshipsTrackedEntityInstanceServiceTest
     private ProgramStageInstance programStageInstanceA;
 
     @Override
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
         organisationUnitA = createOrganisationUnit( 'A' );
 
@@ -117,7 +119,8 @@ public class HandleRelationshipsTrackedEntityInstanceServiceTest
         programStageA1 = createProgramStage( '1', programA );
         programStageA2 = createProgramStage( '2', programA );
 
-        programA.setProgramStages( Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
+        programA.setProgramStages(
+            Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
 
         manager.save( organisationUnitA );
         manager.save( trackedEntityInstanceA );
@@ -158,7 +161,8 @@ public class HandleRelationshipsTrackedEntityInstanceServiceTest
 
         relationshipTypeService.addRelationshipType( personToPersonRelationshipType );
 
-        Relationship relationship = createTeiToTeiRelationship( 'A', personToPersonRelationshipType, trackedEntityInstanceFrom, trackedEntityInstanceTo );
+        Relationship relationship = createTeiToTeiRelationship( 'A', personToPersonRelationshipType,
+            trackedEntityInstanceFrom, trackedEntityInstanceTo );
         trackedEntityInstanceFrom.setRelationships(
             Lists.newArrayList( relationship ) );
 
@@ -175,7 +179,7 @@ public class HandleRelationshipsTrackedEntityInstanceServiceTest
         assertEquals( ImportStatus.SUCCESS, importSummaryTo.getStatus() );
         assertEquals( ImportStatus.ERROR, importSummaryTo.getRelationships().getStatus() );
         assertEquals( "Can't update relationship '" + relationship.getRelationship() + "': TrackedEntityInstance '" +
-                trackedEntityInstanceTo.getTrackedEntityInstance() + "' is not the owner of the relationship",
+            trackedEntityInstanceTo.getTrackedEntityInstance() + "' is not the owner of the relationship",
             importSummaryTo.getRelationships().getImportSummaries().get( 0 ).getDescription() );
     }
 
@@ -192,7 +196,8 @@ public class HandleRelationshipsTrackedEntityInstanceServiceTest
 
         relationshipTypeService.addRelationshipType( personToPersonRelationshipType );
 
-        Relationship relationship = createTeiToTeiRelationship( 'A', personToPersonRelationshipType, trackedEntityInstanceFrom, trackedEntityInstanceTo );
+        Relationship relationship = createTeiToTeiRelationship( 'A', personToPersonRelationshipType,
+            trackedEntityInstanceFrom, trackedEntityInstanceTo );
         trackedEntityInstanceFrom.setRelationships(
             Lists.newArrayList( relationship ) );
 
@@ -216,13 +221,15 @@ public class HandleRelationshipsTrackedEntityInstanceServiceTest
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
             .getTrackedEntityInstance( this.trackedEntityInstanceA.getUid() );
 
-        RelationshipType malariaCaseLinkedToPersonRelationshipType = createMalariaCaseLinkedToPersonRelationshipType( 'A', programA,
+        RelationshipType malariaCaseLinkedToPersonRelationshipType = createMalariaCaseLinkedToPersonRelationshipType(
+            'A', programA,
             trackedEntityType );
 
         malariaCaseLinkedToPersonRelationshipType.setBidirectional( false );
         relationshipTypeService.addRelationshipType( malariaCaseLinkedToPersonRelationshipType );
 
-        Relationship relationship = createEventToTeiRelationship( 'A', malariaCaseLinkedToPersonRelationshipType, trackedEntityInstance,
+        Relationship relationship = createEventToTeiRelationship( 'A', malariaCaseLinkedToPersonRelationshipType,
+            trackedEntityInstance,
             programStageInstanceA );
         trackedEntityInstance.setRelationships(
             Lists.newArrayList( relationship ) );
@@ -232,7 +239,7 @@ public class HandleRelationshipsTrackedEntityInstanceServiceTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.ERROR, importSummary.getRelationships().getStatus() );
         assertEquals( "Can't update relationship '" + relationship.getRelationship() + "': TrackedEntityInstance '" +
-                trackedEntityInstance.getTrackedEntityInstance() + "' is not the owner of the relationship",
+            trackedEntityInstance.getTrackedEntityInstance() + "' is not the owner of the relationship",
             importSummary.getRelationships().getImportSummaries().get( 0 ).getDescription() );
 
     }

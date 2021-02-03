@@ -28,11 +28,11 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.i18n.I18nFormat;
-
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+
+import org.hisp.dhis.i18n.I18nFormat;
 
 /**
  * @author Kristian Nordal
@@ -104,35 +104,35 @@ public interface PeriodService
     List<Period> getAllPeriods();
 
     /**
-     * Returns all Periods with start date after or equal the specified start
-     * date and end date before or equal the specified end date.
+     * Returns all Periods with start date after or equal the specified start date
+     * and end date before or equal the specified end date.
      *
      * @param startDate the ultimate start date.
      * @param endDate the ultimate end date.
-     * @return a list of all Periods with start date after or equal the
-     *         specified start date and end date before or equal the specified
-     *         end date, or an empty list if no Periods match.
+     * @return a list of all Periods with start date after or equal the specified
+     *         start date and end date before or equal the specified end date, or an
+     *         empty list if no Periods match.
      */
     List<Period> getPeriodsBetweenDates( Date startDate, Date endDate );
 
     /**
      * Returns all Periods of the specified PeriodType with start date after or
-     * equal the specified start date and end date before or equal the specified
-     * end date.
+     * equal the specified start date and end date before or equal the specified end
+     * date.
      *
      * @param periodType the PeriodType.
      * @param startDate the ultimate start date.
      * @param endDate the ultimate end date.
-     * @return a list of all Periods with start date after or equal the
-     *         specified start date and end date before or equal the specified
-     *         end date, or an empty list if no Periods match.
+     * @return a list of all Periods with start date after or equal the specified
+     *         start date and end date before or equal the specified end date, or an
+     *         empty list if no Periods match.
      */
     List<Period> getPeriodsBetweenDates( PeriodType periodType, Date startDate, Date endDate );
 
     /**
-     * Returns all Periods with either i) start and end date between the given
-     * start and end date or ii) start date before the given start date and end
-     * date after the given end date.
+     * Returns all Periods with either i) start and end date between the given start
+     * and end date or ii) start date before the given start date and end date after
+     * the given end date.
      *
      * @param startDate the start date.
      * @param endDate the end date.
@@ -141,9 +141,9 @@ public interface PeriodService
     List<Period> getPeriodsBetweenOrSpanningDates( Date startDate, Date endDate );
 
     /**
-     * Returns all Intersecting Periods between the startDate and endDate based on PeriodType
-     * For example if the startDate is 2007-05-01 and endDate is 2007-08-01 and periodType is Quarterly
-     * then it returns the periods for Q2,Q3
+     * Returns all Intersecting Periods between the startDate and endDate based on
+     * PeriodType For example if the startDate is 2007-05-01 and endDate is
+     * 2007-08-01 and periodType is Quarterly then it returns the periods for Q2,Q3
      *
      * @param periodType is the ultimate period type
      * @param startDate is intercepting startDate
@@ -153,11 +153,13 @@ public interface PeriodService
     List<Period> getIntersectingPeriodsByPeriodType( PeriodType periodType, Date startDate, Date endDate );
 
     /**
-     * Returns Periods where at least one its days are between the given start date and end date.
+     * Returns Periods where at least one its days are between the given start date
+     * and end date.
      *
      * @param startDate the start date.
      * @param endDate the end date.
-     * @return Periods where at least one its days are between the given start date and end date.
+     * @return Periods where at least one its days are between the given start date
+     *         and end date.
      */
     List<Period> getIntersectingPeriods( Date startDate, Date endDate );
 
@@ -171,24 +173,24 @@ public interface PeriodService
     List<Period> getIntersectionPeriods( Collection<Period> periods );
 
     /**
-     * Returns all Periods from the given collection of Periods which span the border of either the
-     * start date OR end date of the given Period.
+     * Returns all Periods from the given collection of Periods which span the
+     * border of either the start date OR end date of the given Period.
      *
      * @param period the base Period.
      * @param periods the collection of Periods.
-     * @return all Periods from the given list of Periods which span the border of either the
-     *         start date or end date of the given Period.
+     * @return all Periods from the given list of Periods which span the border of
+     *         either the start date or end date of the given Period.
      */
     List<Period> getBoundaryPeriods( Period period, Collection<Period> periods );
 
     /**
-     * Returns all Periods from the given collection of Periods which are completely within the
-     * span of the of the given Period.
+     * Returns all Periods from the given collection of Periods which are completely
+     * within the span of the of the given Period.
      *
      * @param period the base Period.
      * @param periods the collection of Periods.
-     * @return all Periods from the given collection of Periods which are completely within the
-     *         span of the of the given Period.
+     * @return all Periods from the given collection of Periods which are completely
+     *         within the span of the of the given Period.
      */
     List<Period> getInclusivePeriods( Period period, Collection<Period> periods );
 
@@ -196,8 +198,8 @@ public interface PeriodService
      * Returns all Periods with a given PeriodType.
      *
      * @param periodType the PeriodType of the Periods to return.
-     * @return all Periods with the given PeriodType, or an empty list if
-     *         no Periods match.
+     * @return all Periods with the given PeriodType, or an empty list if no Periods
+     *         match.
      */
     List<Period> getPeriodsByPeriodType( PeriodType periodType );
 
@@ -211,7 +213,8 @@ public interface PeriodService
     List<Period> reloadPeriods( List<Period> periods );
 
     /**
-     * Returns historyLength number of Periods chronologically ending with lastPeriod.
+     * Returns historyLength number of Periods chronologically ending with
+     * lastPeriod.
      *
      * @param lastPeriod the last Period in the provided collection.
      * @param historyLength the number of Periods in the provided collection.
@@ -220,8 +223,8 @@ public interface PeriodService
     List<Period> getPeriods( Period lastPeriod, int historyLength );
 
     /**
-     * Populates the name property of Period with the formatted name for the
-     * Periods in the given collection.
+     * Populates the name property of Period with the formatted name for the Periods
+     * in the given collection.
      *
      * @param periods the collection of Periods.
      * @param format the I18nFormat.
@@ -242,8 +245,8 @@ public interface PeriodService
     Period reloadIsoPeriodInStatelessSession( String isoPeriod );
 
     /**
-     * Retrieves the period with the given ISO period identifier. Reloads the
-     * period in the session if found.
+     * Retrieves the period with the given ISO period identifier. Reloads the period
+     * in the session if found.
      *
      * @param isoPeriod the ISO period identifier.
      * @return a Period.
@@ -268,8 +271,9 @@ public interface PeriodService
     PeriodHierarchy getPeriodHierarchy( Collection<Period> periods );
 
     /**
-     * Returns how many days into period date is. If date is before period.startDate,
-     * returns 0. If date is after period.endDate, return last day of period.
+     * Returns how many days into period date is. If date is before
+     * period.startDate, returns 0. If date is after period.endDate, return last day
+     * of period.
      *
      * @param period the period.
      * @param date the date.
@@ -314,8 +318,8 @@ public interface PeriodService
     PeriodType getPeriodTypeByClass( Class<? extends PeriodType> periodType );
 
     /**
-     * Checks if the given periodType is associated with the current session and loads
-     * it if not. Null is returned if the period does not exist.
+     * Checks if the given periodType is associated with the current session and
+     * loads it if not. Null is returned if the period does not exist.
      *
      * @param periodType the Period to reload.
      * @return a Period.

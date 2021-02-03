@@ -28,11 +28,11 @@ package org.hisp.dhis.tracker.preheat.mappers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.BeforeMapping;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio

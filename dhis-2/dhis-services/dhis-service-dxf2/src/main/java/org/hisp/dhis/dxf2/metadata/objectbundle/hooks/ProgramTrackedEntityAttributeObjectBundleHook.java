@@ -28,6 +28,9 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -40,9 +43,6 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 public class ProgramTrackedEntityAttributeObjectBundleHook
     extends AbstractObjectBundleHook
@@ -54,7 +54,8 @@ public class ProgramTrackedEntityAttributeObjectBundleHook
         List<ErrorReport> errorReports = new ArrayList<>();
 
         /*
-         * Validate that the RenderType (if any) conforms to the constraints of ValueType or OptionSet.
+         * Validate that the RenderType (if any) conforms to the constraints of
+         * ValueType or OptionSet.
          */
         if ( object != null && object.getClass().isAssignableFrom( ProgramTrackedEntityAttribute.class ) )
         {

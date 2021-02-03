@@ -28,9 +28,9 @@ package org.hisp.dhis.parser.expression.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang3.ArrayUtils;
-
 import java.util.List;
+
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Aggregates a vector of double[] values (primative array)

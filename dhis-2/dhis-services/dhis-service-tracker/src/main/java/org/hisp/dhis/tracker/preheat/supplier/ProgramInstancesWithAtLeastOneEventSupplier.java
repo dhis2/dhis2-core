@@ -47,7 +47,7 @@ import org.springframework.stereotype.Component;
  * This supplier adds to the pre-heat object a List of all Program Instance UIDs
  * that have at least ONE Program Stage Instance that is not logically deleted
  * ('deleted = true').
- * 
+ *
  * @author Luciano Fiandesio
  */
 @Component
@@ -63,7 +63,7 @@ public class ProgramInstancesWithAtLeastOneEventSupplier extends JdbcAbstractPre
         "and programinstance.deleted = false) " +
         "and programinstanceid in (:ids)";
 
-    protected ProgramInstancesWithAtLeastOneEventSupplier(JdbcTemplate jdbcTemplate )
+    protected ProgramInstancesWithAtLeastOneEventSupplier( JdbcTemplate jdbcTemplate )
     {
         super( jdbcTemplate );
     }

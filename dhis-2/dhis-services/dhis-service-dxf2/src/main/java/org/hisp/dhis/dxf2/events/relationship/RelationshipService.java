@@ -28,6 +28,10 @@ package org.hisp.dhis.dxf2.events.relationship;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
@@ -37,10 +41,6 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 
 /**
  * @author Stian Sandvold
@@ -54,7 +54,8 @@ public interface RelationshipService
     // READ
     // -------------------------------------------------------------------------
 
-    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei, boolean skipAccessValidation );
+    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
+        boolean skipAccessValidation );
 
     List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation );
 
@@ -64,22 +65,25 @@ public interface RelationshipService
     // CREATE
     // -------------------------------------------------------------------------
 
-    ImportSummaries addRelationshipsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException;
+    ImportSummaries addRelationshipsJson( InputStream inputStream, ImportOptions importOptions )
+        throws IOException;
 
-    ImportSummaries addRelationshipsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;
+    ImportSummaries addRelationshipsXml( InputStream inputStream, ImportOptions importOptions )
+        throws IOException;
 
     ImportSummaries addRelationships( List<Relationship> relationships, ImportOptions importOptions );
 
     ImportSummary addRelationship( Relationship relationships, ImportOptions importOptions );
 
-
     // -------------------------------------------------------------------------
     // UPDATE
     // -------------------------------------------------------------------------
 
-    ImportSummary updateRelationshipXml( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException;
+    ImportSummary updateRelationshipXml( String id, InputStream inputStream, ImportOptions importOptions )
+        throws IOException;
 
-    ImportSummary updateRelationshipJson( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException;
+    ImportSummary updateRelationshipJson( String id, InputStream inputStream, ImportOptions importOptions )
+        throws IOException;
 
     ImportSummaries updateRelationships( List<Relationship> relationships, ImportOptions importOptions );
 

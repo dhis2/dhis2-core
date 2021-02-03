@@ -28,15 +28,16 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
-
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.MoreObjects;
+
 /**
- * Simple class for caching of object type. Mainly for usage in speeding up Operator type lookup.
+ * Simple class for caching of object type. Mainly for usage in speeding up
+ * Operator type lookup.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

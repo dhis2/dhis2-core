@@ -34,9 +34,9 @@ import org.springframework.core.io.Resource;
 /**
  * @author Lars Helge Overland
  */
-public class HibernateMappingDirectoryLocationsFactoryBean 
+public class HibernateMappingDirectoryLocationsFactoryBean
     implements FactoryBean<Object[]>
-{    
+{
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

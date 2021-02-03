@@ -87,13 +87,15 @@ public class ProgramNotificationJob extends AbstractJob
         {
             runInternal();
 
-            notifier.notify( jobConfiguration, NotificationLevel.INFO, "Generated and sent scheduled program notifications: " + clock.time(), true );
+            notifier.notify( jobConfiguration, NotificationLevel.INFO,
+                "Generated and sent scheduled program notifications: " + clock.time(), true );
         }
         catch ( RuntimeException ex )
         {
             notifier.notify( jobConfiguration, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
 
-            messageService.sendSystemErrorNotification( "Generating and sending scheduled program notifications failed", ex );
+            messageService.sendSystemErrorNotification( "Generating and sending scheduled program notifications failed",
+                ex );
 
             throw ex;
         }

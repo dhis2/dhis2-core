@@ -28,6 +28,11 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
+import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -35,8 +40,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
-import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
@@ -44,6 +49,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -53,13 +59,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.springframework.scheduling.annotation.Async;
-
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
-import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
 /**
  * @author Markus Bekken
@@ -79,8 +79,11 @@ public abstract class AbstractEventJdbcTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    protected final String numericClause = " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
+    protected final String numericClause = " and value " + statementBuilder.getRegexpMatch() + " '"
+        + NUMERIC_LENIENT_REGEXP + "'";
+
     protected final String dateClause = " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
+
     protected static final String GEOMETRY_INDEX_TYPE = "gist";
 
     @Override
@@ -116,7 +119,8 @@ public abstract class AbstractEventJdbcTableManager
         }
         else if ( valueType.isBoolean() )
         {
-            return "case when " + columnName + " = 'true' then 1 when " + columnName + " = 'false' then 0 else null end";
+            return "case when " + columnName + " = 'true' then 1 when " + columnName
+                + " = 'false' then 0 else null end";
         }
         else if ( valueType.isDate() )
         {
@@ -124,11 +128,12 @@ public abstract class AbstractEventJdbcTableManager
         }
         else if ( valueType.isGeo() && databaseInfo.isSpatialSupport() )
         {
-            return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (" + columnName + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
+            return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (" + columnName
+                + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
         }
         else if ( valueType.isOrganisationUnit() )
         {
-            return "ou.uid from organisationunit ou where ou.uid = (select " + columnName ;
+            return "ou.uid from organisationunit ou where ou.uid = (select " + columnName;
         }
         else
         {
@@ -139,9 +144,13 @@ public abstract class AbstractEventJdbcTableManager
     @Override
     public String validState()
     {
-        // Data values might be '{}' if there were some data values and all were later removed
+        // Data values might be '{}' if there were some data values and all were later
+        // removed
 
-        boolean hasData = jdbcTemplate.queryForRowSet( "select programstageinstanceid from programstageinstance where eventdatavalues != '{}' limit 1;" ).next();
+        boolean hasData = jdbcTemplate
+            .queryForRowSet(
+                "select programstageinstanceid from programstageinstance where eventdatavalues != '{}' limit 1;" )
+            .next();
 
         if ( !hasData )
         {
@@ -165,7 +174,8 @@ public abstract class AbstractEventJdbcTableManager
      * @param columns the list of {@link AnalyticsTableColumn}.
      * @param fromClause the SQL from clause.
      */
-    protected void populateTableInternal( AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns, String fromClause )
+    protected void populateTableInternal( AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns,
+        String fromClause )
     {
         final String tableName = partition.getTempTableName();
 
@@ -203,11 +213,14 @@ public abstract class AbstractEventJdbcTableManager
             String select = getSelectClause( attribute.getValueType(), "value" );
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
 
-            String sql = "(select " + select + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " +
-                "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" + getClosingParentheses( select ) +
+            String sql = "(select " + select
+                + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " +
+                "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" + getClosingParentheses( select )
+                +
                 " as " + quote( attribute.getUid() );
 
-            columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
+            columns.add(
+                new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
         }
 
         return columns;

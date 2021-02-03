@@ -41,15 +41,16 @@ public class MockBatchHandlerFactory
     implements BatchHandlerFactory
 {
     private Map<String, BatchHandler<?>> batchHandlers = new HashMap<>();
-    
-    public <T> BatchHandlerFactory registerBatchHandler( Class<? extends BatchHandler<T>> clazz, BatchHandler<T> batchHandler )
+
+    public <T> BatchHandlerFactory registerBatchHandler( Class<? extends BatchHandler<T>> clazz,
+        BatchHandler<T> batchHandler )
     {
         batchHandlers.put( clazz.getName(), batchHandler );
         return this;
     }
-    
+
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public <T> BatchHandler<T> createBatchHandler( Class<? extends BatchHandler<T>> clazz )
     {
         return (BatchHandler<T>) batchHandlers.get( clazz.getName() );

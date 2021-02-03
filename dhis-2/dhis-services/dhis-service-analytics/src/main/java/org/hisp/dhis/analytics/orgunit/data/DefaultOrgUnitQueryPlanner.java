@@ -57,8 +57,8 @@ public class DefaultOrgUnitQueryPlanner
 
         if ( !params.getOrgUnits().isEmpty() )
         {
-            ListMap<Integer, OrganisationUnit> levelOrgUnitMap =
-                QueryPlannerUtils.getLevelOrgUnitTypedMap( params.getOrgUnits() );
+            ListMap<Integer, OrganisationUnit> levelOrgUnitMap = QueryPlannerUtils
+                .getLevelOrgUnitTypedMap( params.getOrgUnits() );
 
             for ( Integer level : levelOrgUnitMap.keySet() )
             {

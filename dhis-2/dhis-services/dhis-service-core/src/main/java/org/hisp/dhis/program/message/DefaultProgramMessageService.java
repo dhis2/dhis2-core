@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -60,8 +62,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.concurrent.ListenableFuture;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -390,7 +390,8 @@ public class DefaultProgramMessageService
 
             if ( !isAuthorized )
             {
-                log.error( String.format( "Sending message failed. User does not have write access for %s.", object.getName() ) );
+                log.error( String.format( "Sending message failed. User does not have write access for %s.",
+                    object.getName() ) );
 
                 return false;
             }

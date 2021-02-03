@@ -41,7 +41,8 @@ public class HibernateMetadata implements SessionFactoryBuilderFactory
     private static final ThreadLocal<MetadataImplementor> metadataImplementor = new ThreadLocal<>();
 
     @Override
-    public SessionFactoryBuilder getSessionFactoryBuilder( MetadataImplementor metadataImplementor, SessionFactoryBuilderImplementor defaultBuilder )
+    public SessionFactoryBuilder getSessionFactoryBuilder( MetadataImplementor metadataImplementor,
+        SessionFactoryBuilderImplementor defaultBuilder )
     {
         HibernateMetadata.metadataImplementor.set( metadataImplementor );
         return defaultBuilder;

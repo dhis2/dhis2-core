@@ -32,10 +32,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.PostConstruct;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.sms.SmsPublisher;
 import org.springframework.stereotype.Service;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Zubair <rajazubair.asghar@gmail.com>

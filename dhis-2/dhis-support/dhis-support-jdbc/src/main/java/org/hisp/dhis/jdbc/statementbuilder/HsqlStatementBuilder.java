@@ -71,7 +71,7 @@ public class HsqlStatementBuilder
     }
 
     @Override
-    public String getRegexpWordStart() //TODO test
+    public String getRegexpWordStart() // TODO test
     {
         return "[[:<:]]";
     }

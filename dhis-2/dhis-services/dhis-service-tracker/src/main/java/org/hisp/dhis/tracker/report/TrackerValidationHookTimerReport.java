@@ -28,13 +28,14 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Builder;
 import lombok.Data;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
- * This class is used for timing (performance) reports of the individual validation hook.
+ * This class is used for timing (performance) reports of the individual
+ * validation hook.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */

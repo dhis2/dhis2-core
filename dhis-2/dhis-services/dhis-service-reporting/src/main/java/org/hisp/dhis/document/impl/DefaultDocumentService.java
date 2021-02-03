@@ -28,6 +28,8 @@ package org.hisp.dhis.document.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.document.DocumentStore;
@@ -37,8 +39,6 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -84,7 +84,8 @@ public class DefaultDocumentService
     {
         FileResource fileResource = document.getFileResource();
 
-        // Remove reference to fileResource from document to avoid db constraint exception
+        // Remove reference to fileResource from document to avoid db constraint
+        // exception
         document.setFileResource( null );
         documentStore.save( document );
 
@@ -125,6 +126,6 @@ public class DefaultDocumentService
     @Override
     public long getCountDocumentByUser( User user )
     {
-        return documentStore.getCountByUser( user ) ;
+        return documentStore.getCountByUser( user );
     }
 }

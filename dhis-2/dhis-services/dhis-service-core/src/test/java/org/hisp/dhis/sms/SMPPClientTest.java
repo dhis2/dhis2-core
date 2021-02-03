@@ -30,7 +30,6 @@ package org.hisp.dhis.sms;
 
 import static org.junit.Assert.*;
 
-import com.google.common.collect.Sets;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.config.SMPPClient;
 import org.hisp.dhis.sms.config.SMPPGatewayConfig;
@@ -41,6 +40,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import com.google.common.collect.Sets;
 
 /**
  * To run this test, make sure that the SMSC is running on:
@@ -58,10 +59,15 @@ import org.mockito.junit.MockitoRule;
 public class SMPPClientTest
 {
     private static final String SYSTEM_ID = "smppclient1";
+
     private static final String SYSTEM_TYPE = "cp";
+
     private static final String HOST = "localhost";
+
     private static final String PASSWORD = "password";
+
     private static final String RECIPIENT = "47XXXXXX";
+
     private static final String TEXT = "text through smpp";
 
     private static final int PORT = 2775;

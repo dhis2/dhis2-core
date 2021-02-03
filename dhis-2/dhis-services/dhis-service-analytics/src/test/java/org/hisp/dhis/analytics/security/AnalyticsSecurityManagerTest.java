@@ -28,8 +28,11 @@ package org.hisp.dhis.analytics.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.util.Set;
+
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -51,10 +54,8 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -81,13 +82,17 @@ public class AnalyticsSecurityManagerTest
     private IdentifiableObjectManager manager;
 
     private CategoryOption coA;
+
     private CategoryOption coB;
+
     private Category caA;
 
     private DataElement deA;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
+
     private OrganisationUnit ouC;
 
     private Set<OrganisationUnit> userOrgUnits;
@@ -183,7 +188,8 @@ public class AnalyticsSecurityManagerTest
             .withDataElements( Lists.newArrayList( deA ) )
             .withPeriods( Lists.newArrayList( createPeriod( "201801" ), createPeriod( "201802" ) ) )
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
-            .addFilter( new BaseDimensionalObject( caA.getDimension(), DimensionType.CATEGORY, Lists.newArrayList( coA ) ) )
+            .addFilter(
+                new BaseDimensionalObject( caA.getDimension(), DimensionType.CATEGORY, Lists.newArrayList( coA ) ) )
             .build();
 
         params = securityManager.withUserConstraints( params );
@@ -192,7 +198,8 @@ public class AnalyticsSecurityManagerTest
         assertNotNull( params.getFilter( caA.getDimension() ) );
         assertEquals( caA.getDimension(), params.getFilter( caA.getDimension() ).getDimension() );
         assertNotNull( params.getFilter( caA.getDimension() ).getItems().get( 0 ) );
-        assertEquals( coA.getDimensionItem(), params.getFilter( caA.getDimension() ).getItems().get( 0 ).getDimensionItem() );
+        assertEquals( coA.getDimensionItem(),
+            params.getFilter( caA.getDimension() ).getItems().get( 0 ).getDimensionItem() );
     }
 
     @Test
@@ -219,7 +226,8 @@ public class AnalyticsSecurityManagerTest
             .withStartDate( getDate( 2018, 1, 1 ) )
             .withEndDate( getDate( 2018, 4, 1 ) )
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
-            .addFilter( new BaseDimensionalObject( caA.getDimension(), DimensionType.CATEGORY, Lists.newArrayList( coA ) ) )
+            .addFilter(
+                new BaseDimensionalObject( caA.getDimension(), DimensionType.CATEGORY, Lists.newArrayList( coA ) ) )
             .build();
 
         params = securityManager.withUserConstraints( params );
@@ -228,6 +236,7 @@ public class AnalyticsSecurityManagerTest
         assertNotNull( params.getFilter( caA.getDimension() ) );
         assertEquals( caA.getDimension(), params.getFilter( caA.getDimension() ).getDimension() );
         assertNotNull( params.getFilter( caA.getDimension() ).getItems().get( 0 ) );
-        assertEquals( coA.getDimensionItem(), params.getFilter( caA.getDimension() ).getItems().get( 0 ).getDimensionItem() );
+        assertEquals( coA.getDimensionItem(),
+            params.getFilter( caA.getDimension() ).getItems().get( 0 ).getDimensionItem() );
     }
 }

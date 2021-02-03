@@ -286,7 +286,6 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
         when( metaDataCaches.getOrgUnitInHierarchyMap() ).thenReturn( orgUnitInHierarchyCache );
         when( metaDataCaches.getAttrOptComboOrgUnitMap() ).thenReturn( attrOptComboOrgUnitCache );
 
-
         when( notifier.notify( null, NotificationLevel.INFO, "Import done", true ) ).thenReturn( notifier );
 
         // call method under test

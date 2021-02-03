@@ -28,6 +28,8 @@ package org.hisp.dhis.external.location;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.io.File.separator;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -37,14 +39,12 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.external.util.LogOnceLogger;
-import org.slf4j.event.Level;
-
 import javax.annotation.PostConstruct;
 
-import static java.io.File.separator;
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.external.util.LogOnceLogger;
+import org.slf4j.event.Level;
 
 /**
  * @author Lars Helge Overland
@@ -56,6 +56,7 @@ public class DefaultLocationManager extends LogOnceLogger
     private static final String DEFAULT_DHIS2_HOME = "/opt/dhis2";
 
     private static final String DEFAULT_ENV_VAR = "DHIS2_HOME";
+
     private static final String DEFAULT_SYS_PROP = "dhis2.home";
 
     private String externalDir;
@@ -321,14 +322,15 @@ public class DefaultLocationManager extends LogOnceLogger
     /**
      * Tests whether the directory is writable by the application if the directory
      * exists. Tries to create the directory including necessary parent directories
-     * if the directory does not exists, and tests whether the directory construction
-     * was successful and not prevented by a SecurityManager in any way.
+     * if the directory does not exists, and tests whether the directory
+     * construction was successful and not prevented by a SecurityManager in any
+     * way.
      */
     private boolean directoryIsValid( File directory )
     {
         if ( directory.exists() )
         {
-            if( !directory.canWrite() )
+            if ( !directory.canWrite() )
             {
                 log( log, Level.INFO, "Directory " + directory.getAbsolutePath() + " is not writeable" );
                 return false;

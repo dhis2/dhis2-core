@@ -28,14 +28,15 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.hisp.dhis.artemis.config.ArtemisConfigData;
 import org.hisp.dhis.artemis.config.ArtemisMode;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -45,6 +46,7 @@ import javax.annotation.PreDestroy;
 public class ArtemisManager
 {
     private final EmbeddedActiveMQ embeddedActiveMQ;
+
     private final ArtemisConfigData artemisConfigData;
 
     public ArtemisManager(
@@ -56,7 +58,8 @@ public class ArtemisManager
     }
 
     @PostConstruct
-    public void startAmqp() throws Exception
+    public void startAmqp()
+        throws Exception
     {
         if ( ArtemisMode.EMBEDDED == artemisConfigData.getMode() )
         {
@@ -66,7 +69,8 @@ public class ArtemisManager
     }
 
     @PreDestroy
-    public void stopAmqp() throws Exception
+    public void stopAmqp()
+        throws Exception
     {
         if ( embeddedActiveMQ == null )
         {

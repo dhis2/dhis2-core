@@ -41,6 +41,7 @@ public class PathUtils
 
     /**
      * Converts the fully qualified class name to a UNIX path.
+     *
      * @param clazz the class, separated by '.'.
      * @return the UNIX path, separated by '/'.
      */
@@ -51,6 +52,7 @@ public class PathUtils
 
     /**
      * Converts the fully qualified class name to a UNIX path.
+     *
      * @param clazzName the class name, separated by '.'.
      * @return the UNIX path, separated by '/'.
      */
@@ -61,6 +63,7 @@ public class PathUtils
 
     /**
      * Gets the parent path of the given UNIX path.
+     *
      * @param path the path.
      * @return the parent path.
      */
@@ -78,6 +81,7 @@ public class PathUtils
 
     /**
      * Adds a child to the given UNIX path.
+     *
      * @param parent the parent path.
      * @param child the child path to add.
      * @return the path with the child appended.

@@ -28,13 +28,13 @@ package org.hisp.dhis.userkeyjsonvalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.User;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Stian Sandvold
@@ -52,7 +52,7 @@ public class DefaultUserKeyJsonValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public UserKeyJsonValue getUserKeyJsonValue( User user, String namespace, String key )
     {
         return userKeyJsonValueStore.getUserKeyJsonValue( user, namespace, key );
@@ -81,14 +81,14 @@ public class DefaultUserKeyJsonValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<String> getNamespacesByUser( User user )
     {
         return userKeyJsonValueStore.getNamespacesByUser( user );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<String> getKeysByUserAndNamespace( User user, String namespace )
     {
         return userKeyJsonValueStore.getKeysByUserAndNamespace( user, namespace );

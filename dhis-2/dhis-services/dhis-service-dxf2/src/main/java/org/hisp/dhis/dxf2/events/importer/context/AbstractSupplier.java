@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**

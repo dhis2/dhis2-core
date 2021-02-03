@@ -28,17 +28,18 @@ package org.hisp.dhis.security.oauth2;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.HashSet;
+import java.util.Set;
+
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -58,7 +59,8 @@ public class DefaultClientDetailsService implements ClientDetailsService
     }
 
     @Override
-    public ClientDetails loadClientByClientId( String clientId ) throws ClientRegistrationException
+    public ClientDetails loadClientByClientId( String clientId )
+        throws ClientRegistrationException
     {
         ClientDetails clientDetails = clientDetails( oAuth2ClientService.getOAuth2ClientByClientId( clientId ) );
 

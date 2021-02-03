@@ -45,7 +45,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository( "org.hisp.dhis.mapping.MapStore" )
 public class HibernateMapStore
-    extends HibernateIdentifiableObjectStore<Map> implements MapStore
+    extends HibernateIdentifiableObjectStore<Map>
+    implements MapStore
 {
     public HibernateMapStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
@@ -56,7 +57,8 @@ public class HibernateMapStore
     @Override
     public int countMapViewMaps( MapView mapView )
     {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from Map c where :mapView in elements(c.mapViews)" );
+        Query<Long> query = getTypedQuery(
+            "select count(distinct c) from Map c where :mapView in elements(c.mapViews)" );
         query.setParameter( "mapView", mapView );
 
         return query.getSingleResult().intValue();

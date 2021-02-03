@@ -28,15 +28,22 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.*;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -44,13 +51,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -73,6 +73,7 @@ public class PredictorServiceTest
     private OrganisationUnitLevel orgUnitLevel1;
 
     private DataElement dataElementA;
+
     private DataElement dataElementX;
 
     private CategoryOptionCombo defaultCombo;
@@ -80,7 +81,9 @@ public class PredictorServiceTest
     private CategoryOptionCombo altCombo;
 
     private CategoryOption altCategoryOption;
+
     private Category altCategory;
+
     private CategoryCombo altCategoryCombo;
 
     private Set<DataElement> dataElements;
@@ -88,7 +91,9 @@ public class PredictorServiceTest
     private Set<CategoryOptionCombo> optionCombos;
 
     private Expression expressionA;
+
     private Expression expressionB;
+
     private Expression expressionC;
 
     private Expression expressionD;
@@ -96,12 +101,15 @@ public class PredictorServiceTest
     private PeriodType periodTypeMonthly;
 
     private Predictor predictorA;
+
     private Predictor predictorB;
 
     private PredictorGroup predictorGroupA;
+
     private PredictorGroup predictorGroupB;
 
     private long predictorGroupIdA;
+
     private long predictorGroupIdB;
 
     // -------------------------------------------------------------------------
@@ -160,7 +168,8 @@ public class PredictorServiceTest
 
         expressionA = new Expression(
             "AVG(#{" + dataElementA.getUid() + "})+1.5*STDDEV(#{" + dataElementA.getUid() + "})", "descriptionA" );
-        expressionB = new Expression( "AVG(#{" + dataElementB.getUid() + "." + defaultCombo.getUid() + "})", "descriptionB" );
+        expressionB = new Expression( "AVG(#{" + dataElementB.getUid() + "." + defaultCombo.getUid() + "})",
+            "descriptionB" );
         expressionC = new Expression( "135.79", "descriptionC" );
         expressionD = new Expression( "34.98", "descriptionD" );
     }
@@ -201,7 +210,8 @@ public class PredictorServiceTest
     @Test
     public void testSaveGetPredictor()
     {
-        Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodTypeMonthly, orgUnitLevel1,
+        Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB,
+            periodTypeMonthly, orgUnitLevel1,
             6, 1, 0 );
         Set<OrganisationUnitLevel> levels = new HashSet<OrganisationUnitLevel>();
         levels.add( orgUnitLevel1 );
@@ -225,7 +235,8 @@ public class PredictorServiceTest
     @Test
     public void testSaveGetPredictorAlt()
     {
-        Predictor predictor = createPredictor( dataElementA, altCombo, "B", expressionC, null, periodTypeMonthly, orgUnitLevel1,
+        Predictor predictor = createPredictor( dataElementA, altCombo, "B", expressionC, null, periodTypeMonthly,
+            orgUnitLevel1,
             6, 1, 0 );
         Set<OrganisationUnitLevel> levels = new HashSet<OrganisationUnitLevel>();
         levels.add( orgUnitLevel1 );
@@ -249,7 +260,8 @@ public class PredictorServiceTest
     @Test
     public void testUpdatePredictor()
     {
-        Predictor predictor = createPredictor( dataElementX, altCombo, "A", expressionA, expressionB, periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictor = createPredictor( dataElementX, altCombo, "A", expressionA, expressionB, periodTypeMonthly,
+            orgUnitLevel1, 6, 1, 0 );
 
         long id = predictorService.addPredictor( predictor );
 

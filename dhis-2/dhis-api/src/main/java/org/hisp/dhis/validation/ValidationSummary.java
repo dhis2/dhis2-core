@@ -46,9 +46,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class ValidationSummary
 {
     private List<ValidationResult> validationRuleViolations = new ArrayList<>();
-    
+
     private List<DataElementOperand> commentRequiredViolations = new ArrayList<>();
-    
+
     public ValidationSummary()
     {
     }

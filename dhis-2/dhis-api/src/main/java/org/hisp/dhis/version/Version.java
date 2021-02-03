@@ -46,7 +46,7 @@ public class Version
     public Version()
     {
     }
-    
+
     public Version( String key, String value )
     {
         this.key = key;

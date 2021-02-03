@@ -28,7 +28,6 @@ package org.hisp.dhis.fileresource.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 /**
  * @Author Zubair Asghar.
  */

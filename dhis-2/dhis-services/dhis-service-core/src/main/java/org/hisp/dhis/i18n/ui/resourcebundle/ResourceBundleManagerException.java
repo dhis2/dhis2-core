@@ -30,7 +30,8 @@ package org.hisp.dhis.i18n.ui.resourcebundle;
 
 /**
  * @author Nguyen Dang Quang
- * @version $Id: ResourceBundleManagerException.java 2869 2007-02-20 14:26:09Z andegje $
+ * @version $Id: ResourceBundleManagerException.java 2869 2007-02-20 14:26:09Z
+ *          andegje $
  */
 public class ResourceBundleManagerException
     extends Exception

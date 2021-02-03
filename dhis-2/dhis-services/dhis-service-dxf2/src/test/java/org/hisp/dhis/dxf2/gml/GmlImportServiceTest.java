@@ -88,16 +88,13 @@ public class GmlImportServiceTest extends TransactionalIntegrationTest
         inputStream = new ClassPathResource( "gml/testGmlPayload.gml" ).getInputStream();
 
         /*
-         * Create orgunits present in testGmlPayload.gml and set ID properties.
-         *      Name                    - FeatureType   - ID property
-         *      Bo                      - Poly          - Name
-         *      Bonthe                  - Multi         - Code
-         *      Ole Johan Dahls Hus     - Point         - Uid
-         *      Blindern                - Point (pos)   - Name
-         *      Forskningsparken        - Poly (list)   - Name
+         * Create orgunits present in testGmlPayload.gml and set ID properties. Name -
+         * FeatureType - ID property Bo - Poly - Name Bonthe - Multi - Code Ole Johan
+         * Dahls Hus - Point - Uid Blindern - Point (pos) - Name Forskningsparken - Poly
+         * (list) - Name
          *
-         * Note: some of these are included to cover different coordinate element schemes
-         *       such as <posList>, <coordinates> and <pos>.
+         * Note: some of these are included to cover different coordinate element
+         * schemes such as <posList>, <coordinates> and <pos>.
          */
 
         userService = _userService;
@@ -155,7 +152,6 @@ public class GmlImportServiceTest extends TransactionalIntegrationTest
         assertNotNull( bliOrgUnit.getGeometry() );
 
         assertNotNull( forskOrgUnit.getGeometry() );
-
 
         // Check if data is correct
         assertEquals( 1, getCoordinates( boOrgUnit ).size() );

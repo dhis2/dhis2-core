@@ -33,6 +33,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.*;
 import java.util.Map.Entry;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -51,8 +53,6 @@ import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Lists;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -99,7 +99,8 @@ public class AnalyticsDataSetReportStore
 
         if ( filters != null )
         {
-            params.addFilters( dataQueryService.getDimensionalObjects( filters, null, null, null, false, IdScheme.UID ) );
+            params
+                .addFilters( dataQueryService.getDimensionalObjects( filters, null, null, null, false, IdScheme.UID ) );
         }
 
         Map<String, Object> map = analyticsService.getAggregatedDataValueMapping( params.build() );
@@ -116,7 +117,8 @@ public class AnalyticsDataSetReportStore
     }
 
     @Override
-    public Map<String, Object> getAggregatedSubTotals( DataSet dataSet, Period period, OrganisationUnit unit, Set<String> filters )
+    public Map<String, Object> getAggregatedSubTotals( DataSet dataSet, Period period, OrganisationUnit unit,
+        Set<String> filters )
     {
         Map<String, Object> dataMap = new HashMap<>();
 
@@ -125,7 +127,7 @@ public class AnalyticsDataSetReportStore
             List<DataElement> dataElements = new ArrayList<>( section.getDataElements() );
             Set<Category> categories = new HashSet<>();
 
-            for( CategoryCombo categoryCombo : section.getCategoryCombos() )
+            for ( CategoryCombo categoryCombo : section.getCategoryCombos() )
             {
                 categories.addAll( categoryCombo.getCategories() );
             }
@@ -146,7 +148,8 @@ public class AnalyticsDataSetReportStore
 
                 if ( !category.isDataDimension() )
                 {
-                    log.warn( "Could not get sub-total for category: " + category.getUid() + " for data set report: " + dataSet + ", not a data dimension" );
+                    log.warn( "Could not get sub-total for category: " + category.getUid() + " for data set report: "
+                        + dataSet + ", not a data dimension" );
                     continue;
                 }
 
@@ -158,7 +161,8 @@ public class AnalyticsDataSetReportStore
 
                 if ( filters != null )
                 {
-                    params.addFilters( dataQueryService.getDimensionalObjects( filters, null, null, null, false, IdScheme.UID ) );
+                    params.addFilters(
+                        dataQueryService.getDimensionalObjects( filters, null, null, null, false, IdScheme.UID ) );
                 }
 
                 Map<String, Object> map = analyticsService.getAggregatedDataValueMapping( params.build() );
@@ -175,7 +179,8 @@ public class AnalyticsDataSetReportStore
     }
 
     @Override
-    public Map<String, Object> getAggregatedTotals( DataSet dataSet, Period period, OrganisationUnit unit, Set<String> filters )
+    public Map<String, Object> getAggregatedTotals( DataSet dataSet, Period period, OrganisationUnit unit,
+        Set<String> filters )
     {
         List<DataElement> dataElements = new ArrayList<>( dataSet.getDataElements() );
 
@@ -193,7 +198,8 @@ public class AnalyticsDataSetReportStore
 
         if ( filters != null )
         {
-            params.addFilters( dataQueryService.getDimensionalObjects( filters, null, null, null, false, IdScheme.UID ) );
+            params
+                .addFilters( dataQueryService.getDimensionalObjects( filters, null, null, null, false, IdScheme.UID ) );
         }
 
         Map<String, Object> map = analyticsService.getAggregatedDataValueMapping( params.build() );
@@ -210,7 +216,8 @@ public class AnalyticsDataSetReportStore
     }
 
     @Override
-    public Map<String, Object> getAggregatedIndicatorValues( DataSet dataSet, Period period, OrganisationUnit unit, Set<String> filters )
+    public Map<String, Object> getAggregatedIndicatorValues( DataSet dataSet, Period period, OrganisationUnit unit,
+        Set<String> filters )
     {
         List<Indicator> indicators = new ArrayList<>( dataSet.getIndicators() );
 
@@ -226,7 +233,8 @@ public class AnalyticsDataSetReportStore
 
         if ( filters != null )
         {
-            params.addFilters( dataQueryService.getDimensionalObjects( filters, null, null, null, false, IdScheme.UID ) );
+            params
+                .addFilters( dataQueryService.getDimensionalObjects( filters, null, null, null, false, IdScheme.UID ) );
         }
 
         Map<String, Object> map = analyticsService.getAggregatedDataValueMapping( params.build() );

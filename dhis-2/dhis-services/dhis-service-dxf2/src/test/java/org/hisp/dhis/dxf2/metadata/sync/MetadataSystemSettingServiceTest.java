@@ -101,9 +101,10 @@ public class MetadataSystemSettingServiceTest
     @Test
     public void testShouldGetAllVersionsCreatedAfterTheGivenVersionName()
     {
-        String metadataDifferenceUrl = metadataSystemSettingService.getMetaDataDifferenceURL("Version_Name");
+        String metadataDifferenceUrl = metadataSystemSettingService.getMetaDataDifferenceURL( "Version_Name" );
 
-        assertEquals("http://localhost:9080/api/metadata/version/history?baseline=Version_Name", metadataDifferenceUrl);
+        assertEquals( "http://localhost:9080/api/metadata/version/history?baseline=Version_Name",
+            metadataDifferenceUrl );
     }
 
     @Test
@@ -111,13 +112,13 @@ public class MetadataSystemSettingServiceTest
     {
         String versionHistoryUrl = metadataSystemSettingService.getEntireVersionHistory();
 
-        assertEquals("http://localhost:9080/api/metadata/version/history", versionHistoryUrl );
+        assertEquals( "http://localhost:9080/api/metadata/version/history", versionHistoryUrl );
     }
 
     @Test
     public void testShouldGetStopMetadataSyncSettingValue()
     {
-        Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting(  );
+        Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();
 
         assertEquals( true, stopMetadataSync );
     }
@@ -126,7 +127,7 @@ public class MetadataSystemSettingServiceTest
     public void testShouldReturnFalseIfStopMetadataSyncSettingValueIsNull()
     {
         systemSettingManager.saveSystemSetting( SettingKey.STOP_METADATA_SYNC, null );
-        Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting(  );
+        Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();
 
         assertEquals( false, stopMetadataSync );
     }

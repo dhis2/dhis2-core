@@ -38,7 +38,7 @@ public enum NotificationLevel
     INFO,
     WARN,
     ERROR;
-    
+
     public boolean isOff()
     {
         return this == OFF;

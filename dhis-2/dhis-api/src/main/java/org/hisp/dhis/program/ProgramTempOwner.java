@@ -50,7 +50,7 @@ public class ProgramTempOwner implements Serializable
 {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -2030234810482111257L;
 
@@ -63,7 +63,7 @@ public class ProgramTempOwner implements Serializable
     private Date validTill;
 
     private User user;
-    
+
     private TrackedEntityInstance entityInstance;
 
     // -------------------------------------------------------------------------
@@ -179,7 +179,7 @@ public class ProgramTempOwner implements Serializable
     {
         this.user = user;
     }
-    
+
     public Date addHoursToJavaUtilDate( Date date, int hours )
     {
         Calendar calendar = Calendar.getInstance();
@@ -187,5 +187,5 @@ public class ProgramTempOwner implements Serializable
         calendar.add( Calendar.HOUR_OF_DAY, hours );
         return calendar.getTime();
     }
-    
+
 }

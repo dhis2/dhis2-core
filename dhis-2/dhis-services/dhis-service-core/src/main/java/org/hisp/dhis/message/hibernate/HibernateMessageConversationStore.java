@@ -68,7 +68,8 @@ public class HibernateMessageConversationStore
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
         StatementBuilder statementBuilder )
     {
-        super( sessionFactory, jdbcTemplate, publisher, MessageConversation.class, currentUserService, aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, MessageConversation.class, currentUserService, aclService,
+            false );
 
         checkNotNull( statementBuilder );
 

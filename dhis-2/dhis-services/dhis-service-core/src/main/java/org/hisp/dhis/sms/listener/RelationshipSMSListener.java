@@ -28,6 +28,8 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Date;
+
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -60,8 +62,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-
 @Component( "org.hisp.dhis.sms.listener.RelationshipSMSListener" )
 @Transactional
 public class RelationshipSMSListener
@@ -70,7 +70,8 @@ public class RelationshipSMSListener
 {
     private enum RelationshipDir
     {
-        FROM, TO;
+        FROM,
+        TO;
     }
 
     private final RelationshipService relationshipService;

@@ -28,8 +28,9 @@ package org.hisp.dhis.tracker.job;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.jms.JMSException;
+import javax.jms.TextMessage;
+
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.common.CodeGenerator;
@@ -41,8 +42,8 @@ import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -85,7 +86,8 @@ public class TrackerMessageManager
 
     @JmsListener( destination = Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )
     public void consume( TextMessage message )
-        throws JMSException, JsonProcessingException
+        throws JMSException,
+        JsonProcessingException
     {
         String payload = message.getText();
 
@@ -96,8 +98,7 @@ public class TrackerMessageManager
             "",
             JobType.TRACKER_IMPORT_JOB,
             trackerImportParams.getUserId(),
-            true
-        );
+            true );
 
         jobConfiguration.setUid( trackerMessage.getUid() );
         trackerImportParams.setJobConfiguration( jobConfiguration );

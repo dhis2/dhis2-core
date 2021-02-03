@@ -35,6 +35,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import lombok.Builder;
+import lombok.Getter;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
@@ -50,9 +53,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
-
-import lombok.Builder;
-import lombok.Getter;
 
 /**
  * This class acts as a cache for data required during the Event import process.
@@ -86,7 +86,8 @@ public class WorkContext
      * Holds a Map of all {@see TrackedEntityInstance} associated to the Events to
      * import.
      *
-     * Map: key -> Event UID value -> Pair<TrackedEntityInstance, canBeUpdatedByCurrentUser boolean>
+     * Map: key -> Event UID value -> Pair<TrackedEntityInstance,
+     * canBeUpdatedByCurrentUser boolean>
      */
     private final Map<String, Pair<TrackedEntityInstance, Boolean>> trackedEntityInstanceMap;
 
@@ -173,14 +174,14 @@ public class WorkContext
         }
         return null;
     }
-    
+
     public Optional<TrackedEntityInstance> getTrackedEntityInstance( String event )
     {
         final Pair<TrackedEntityInstance, Boolean> teiPair = this.trackedEntityInstanceMap.get( event );
 
         return (teiPair != null) ? Optional.of( teiPair.getKey() ) : Optional.empty();
     }
-    
+
     public Optional<ProgramStageInstance> getProgramStageInstance( String event )
     {
         return Optional.ofNullable( this.getProgramStageInstanceMap().get( event ) );

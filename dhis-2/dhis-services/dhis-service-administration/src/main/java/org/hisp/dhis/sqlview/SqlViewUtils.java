@@ -40,6 +40,7 @@ import java.util.regex.Pattern;
 public class SqlViewUtils
 {
     public static final String VARIABLE_EXPRESSION = "\\$\\{(\\w+)\\}";
+
     public static final Pattern VARIABLE_PATTERN = Pattern.compile( VARIABLE_EXPRESSION, Pattern.DOTALL );
 
     /**
@@ -89,8 +90,8 @@ public class SqlViewUtils
     }
 
     /**
-     * Substitutes the given SQL query string with the given, single variable.
-     * SQL variables are of the format ${key}.
+     * Substitutes the given SQL query string with the given, single variable. SQL
+     * variables are of the format ${key}.
      *
      * @param sql the SQL string.
      * @param name the variable name.

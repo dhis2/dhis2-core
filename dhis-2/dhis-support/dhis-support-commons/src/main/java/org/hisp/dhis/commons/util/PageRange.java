@@ -109,7 +109,7 @@ public class PageRange
             fromIndex += pageSize;
         }
 
-        toIndex = Math.min( ( fromIndex + pageSize ), values );
+        toIndex = Math.min( (fromIndex + pageSize), values );
 
         return true;
     }
@@ -124,7 +124,7 @@ public class PageRange
         int r = values / pageSize;
         int m = values % pageSize;
 
-        return m == 0 ? r : ( r + 1 );
+        return m == 0 ? r : (r + 1);
     }
 
     /**

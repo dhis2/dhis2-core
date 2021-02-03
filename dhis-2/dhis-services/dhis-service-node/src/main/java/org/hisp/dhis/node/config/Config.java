@@ -85,7 +85,8 @@ public class Config
         }
         Config config = (Config) o;
 
-        final boolean propertiesAreEqual = Arrays.deepEquals( properties.entrySet().toArray(), ((Config) o).getProperties().entrySet().toArray() );
+        final boolean propertiesAreEqual = Arrays.deepEquals( properties.entrySet().toArray(),
+            ((Config) o).getProperties().entrySet().toArray() );
 
         return Objects.equals( inclusionStrategy, config.inclusionStrategy )
             && propertiesAreEqual;

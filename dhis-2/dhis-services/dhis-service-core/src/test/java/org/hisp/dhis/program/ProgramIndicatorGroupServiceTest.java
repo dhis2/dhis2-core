@@ -28,12 +28,11 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.*;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -43,7 +42,6 @@ public class ProgramIndicatorGroupServiceTest
 {
     @Autowired
     private ProgramIndicatorService service;
-
 
     private ProgramIndicatorGroup programIndicatorGroupA;
 
@@ -81,4 +79,3 @@ public class ProgramIndicatorGroupServiceTest
     }
 
 }
-

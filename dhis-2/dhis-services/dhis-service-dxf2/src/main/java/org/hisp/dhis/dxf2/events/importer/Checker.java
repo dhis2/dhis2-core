@@ -37,21 +37,21 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
 /**
  * Interface for classes that act as Tracker Import validation components.
- * 
+ *
  * A class implementing this interface is responsible for a validation unit.
- * 
+ *
  * The smaller the validation unit, the better.
- * 
+ *
  * This interface only accepts {@see ImmutableEvent}, because a validation
  * component is not supposed to modify the object being validated.
- * 
+ *
  * @author Luciano Fiandesio
  */
 public interface Checker
 {
     /**
      * Verify that the event satisfies the validation logic
-     * 
+     *
      * @param event an {@see ImmutableEvent}
      * @param workContext the work context containing the data required for
      *        validation

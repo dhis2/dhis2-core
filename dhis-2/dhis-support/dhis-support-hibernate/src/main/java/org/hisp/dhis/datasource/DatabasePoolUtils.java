@@ -28,24 +28,27 @@ package org.hisp.dhis.datasource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
-import com.mchange.v2.c3p0.ComboPooledDataSource;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import lombok.Builder;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
-
-import javax.sql.DataSource;
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Objects;
+
+import javax.sql.DataSource;
+
+import lombok.Builder;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
+
+import com.google.common.base.MoreObjects;
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -84,7 +87,8 @@ public class DatabasePoolUtils
     }
 
     public static DataSource createDbPool( PoolConfig config )
-        throws PropertyVetoException, SQLException
+        throws PropertyVetoException,
+        SQLException
     {
         Objects.requireNonNull( config );
 
@@ -99,7 +103,8 @@ public class DatabasePoolUtils
             return createHikariDbPool( config );
         }
 
-        String msg = String.format( "Database pool type value is invalid, can not create a database pool! Value='%s'", config.dbPoolType );
+        String msg = String.format( "Database pool type value is invalid, can not create a database pool! Value='%s'",
+            config.dbPoolType );
         log.error( msg );
 
         throw new IllegalArgumentException( msg );
@@ -111,12 +116,18 @@ public class DatabasePoolUtils
         DhisConfigurationProvider dhisConfig = config.getDhisConfig();
 
         final String driverClassName = dhisConfig.getProperty( ConfigurationKey.CONNECTION_DRIVER_CLASS );
-        final String jdbcUrl = MoreObjects.firstNonNull( config.getJdbcUrl(), dhisConfig.getProperty( ConfigurationKey.CONNECTION_URL ) );
-        final String username = MoreObjects.firstNonNull( config.getUsername(), dhisConfig.getProperty( ConfigurationKey.CONNECTION_USERNAME ) );
-        final String password = MoreObjects.firstNonNull( config.getPassword(), dhisConfig.getProperty( ConfigurationKey.CONNECTION_PASSWORD ) );
-        final long connectionTimeout = Long.parseLong( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_TIMEOUT ) );
-        final long validationTimeout = Long.parseLong( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_VALIDATION_TIMEOUT ) );
-        final int maxPoolSize = Integer.parseInt( MoreObjects.firstNonNull( config.getMaxPoolSize(), dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE ) ) );
+        final String jdbcUrl = MoreObjects.firstNonNull( config.getJdbcUrl(),
+            dhisConfig.getProperty( ConfigurationKey.CONNECTION_URL ) );
+        final String username = MoreObjects.firstNonNull( config.getUsername(),
+            dhisConfig.getProperty( ConfigurationKey.CONNECTION_USERNAME ) );
+        final String password = MoreObjects.firstNonNull( config.getPassword(),
+            dhisConfig.getProperty( ConfigurationKey.CONNECTION_PASSWORD ) );
+        final long connectionTimeout = Long
+            .parseLong( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_TIMEOUT ) );
+        final long validationTimeout = Long
+            .parseLong( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_VALIDATION_TIMEOUT ) );
+        final int maxPoolSize = Integer.parseInt( MoreObjects.firstNonNull( config.getMaxPoolSize(),
+            dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE ) ) );
 
         HikariConfig hc = new HikariConfig();
         hc.setPoolName( "HikariDataSource_" + CodeGenerator.generateCode( 10 ) );
@@ -139,24 +150,36 @@ public class DatabasePoolUtils
     }
 
     public static DataSource createC3p0DbPool( PoolConfig config )
-        throws PropertyVetoException, SQLException
+        throws PropertyVetoException,
+        SQLException
     {
         DhisConfigurationProvider dhisConfig = config.getDhisConfig();
 
         final String driverClassName = dhisConfig.getProperty( ConfigurationKey.CONNECTION_DRIVER_CLASS );
-        final String jdbcUrl = MoreObjects.firstNonNull( config.getJdbcUrl(), dhisConfig.getProperty( ConfigurationKey.CONNECTION_URL ) );
-        final String username = MoreObjects.firstNonNull( config.getUsername(), dhisConfig.getProperty( ConfigurationKey.CONNECTION_USERNAME ) );
-        final String password = MoreObjects.firstNonNull( config.getPassword(), dhisConfig.getProperty( ConfigurationKey.CONNECTION_PASSWORD ) );
-        final int maxPoolSize = Integer.parseInt( MoreObjects.firstNonNull( config.getMaxPoolSize(), dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE ) ) );
-        final int acquireIncrement = Integer.parseInt( MoreObjects.firstNonNull( config.getAcquireIncrement(), dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR ) ) );
-        final int maxIdleTime = Integer.parseInt( MoreObjects.firstNonNull( config.maxIdleTime, dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME ) ) );
+        final String jdbcUrl = MoreObjects.firstNonNull( config.getJdbcUrl(),
+            dhisConfig.getProperty( ConfigurationKey.CONNECTION_URL ) );
+        final String username = MoreObjects.firstNonNull( config.getUsername(),
+            dhisConfig.getProperty( ConfigurationKey.CONNECTION_USERNAME ) );
+        final String password = MoreObjects.firstNonNull( config.getPassword(),
+            dhisConfig.getProperty( ConfigurationKey.CONNECTION_PASSWORD ) );
+        final int maxPoolSize = Integer.parseInt( MoreObjects.firstNonNull( config.getMaxPoolSize(),
+            dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE ) ) );
+        final int acquireIncrement = Integer.parseInt( MoreObjects.firstNonNull( config.getAcquireIncrement(),
+            dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR ) ) );
+        final int maxIdleTime = Integer.parseInt( MoreObjects.firstNonNull( config.maxIdleTime,
+            dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME ) ) );
 
         final int minPoolSize = Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_MIN_SIZE ) );
-        final int initialSize = Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE ) );
-        boolean testOnCheckIn = Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN ) );
-        boolean testOnCheckOut = Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT ) );
-        final int maxIdleTimeExcessConnections = Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON ) );
-        final int idleConnectionTestPeriod = Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD ) );
+        final int initialSize = Integer
+            .parseInt( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE ) );
+        boolean testOnCheckIn = Boolean
+            .parseBoolean( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN ) );
+        boolean testOnCheckOut = Boolean
+            .parseBoolean( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT ) );
+        final int maxIdleTimeExcessConnections = Integer
+            .parseInt( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON ) );
+        final int idleConnectionTestPeriod = Integer
+            .parseInt( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD ) );
 
         ComboPooledDataSource dataSource = new ComboPooledDataSource();
         dataSource.setDriverClass( driverClassName );

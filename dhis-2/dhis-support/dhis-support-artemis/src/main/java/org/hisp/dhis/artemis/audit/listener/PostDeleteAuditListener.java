@@ -28,7 +28,10 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.time.LocalDateTime;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.persister.entity.EntityPersister;
@@ -41,15 +44,14 @@ import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-
 /**
  * @author Luciano Fiandesio
  */
 @Slf4j
 @Component
 public class PostDeleteAuditListener
-    extends AbstractHibernateListener implements PostCommitDeleteEventListener
+    extends AbstractHibernateListener
+    implements PostCommitDeleteEventListener
 {
     public PostDeleteAuditListener(
         AuditManager auditManager,
@@ -69,15 +71,15 @@ public class PostDeleteAuditListener
     @Override
     public void onPostDelete( PostDeleteEvent postDeleteEvent )
     {
-        getAuditable( postDeleteEvent.getEntity(), "delete" ).ifPresent( auditable ->
-            auditManager.send( Audit.builder()
-                .auditType( getAuditType() )
-                .auditScope( auditable.scope() )
-                .createdAt( LocalDateTime.now() )
-                .createdBy( getCreatedBy() )
-                .object( postDeleteEvent.getEntity() )
-                .auditableEntity( new AuditableEntity( postDeleteEvent.getEntity().getClass(), createAuditEntry( postDeleteEvent ) ) )
-                .build() ) );
+        getAuditable( postDeleteEvent.getEntity(), "delete" ).ifPresent( auditable -> auditManager.send( Audit.builder()
+            .auditType( getAuditType() )
+            .auditScope( auditable.scope() )
+            .createdAt( LocalDateTime.now() )
+            .createdBy( getCreatedBy() )
+            .object( postDeleteEvent.getEntity() )
+            .auditableEntity(
+                new AuditableEntity( postDeleteEvent.getEntity().getClass(), createAuditEntry( postDeleteEvent ) ) )
+            .build() ) );
     }
 
     @Override

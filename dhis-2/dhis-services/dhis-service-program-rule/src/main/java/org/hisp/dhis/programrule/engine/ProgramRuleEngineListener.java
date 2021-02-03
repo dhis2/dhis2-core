@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule.engine;
  */
 
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;

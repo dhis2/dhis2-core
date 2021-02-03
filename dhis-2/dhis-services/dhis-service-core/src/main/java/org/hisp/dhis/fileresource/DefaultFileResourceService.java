@@ -211,7 +211,8 @@ public class DefaultFileResourceService
     @Override
     @Transactional( readOnly = true )
     public void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
-        throws IOException, NoSuchElementException
+        throws IOException,
+        NoSuchElementException
     {
         fileResourceContentStore.copyContent( fileResource.getStorageKey(), outputStream );
     }

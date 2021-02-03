@@ -53,7 +53,8 @@ public class HibernateAttributeStore
     implements AttributeStore
 {
     @Autowired
-    public HibernateAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher,
+    public HibernateAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher,
         CurrentUserService currentUserService, AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, publisher, Attribute.class, currentUserService, aclService, true );

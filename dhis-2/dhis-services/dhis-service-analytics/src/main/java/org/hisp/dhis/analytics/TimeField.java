@@ -44,21 +44,21 @@ public enum TimeField
     LAST_UPDATED( "lastupdated" );
 
     private String field;
-    
+
     private static final Set<String> FIELD_NAMES = Sets.newHashSet( TimeField.values() )
         .stream().map( TimeField::name )
         .collect( Collectors.toSet() );
-        
+
     TimeField( String field )
     {
         this.field = field;
     }
-    
+
     public String getField()
     {
         return field;
     }
-    
+
     public static boolean fieldIsValid( String field )
     {
         return field != null && FIELD_NAMES.contains( field );

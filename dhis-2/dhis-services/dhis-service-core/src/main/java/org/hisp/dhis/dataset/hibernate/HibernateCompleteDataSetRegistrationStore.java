@@ -28,6 +28,13 @@ package org.hisp.dhis.dataset.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Projections;
@@ -44,19 +51,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.Date;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Lars Helge Overland
  */
 @Repository( "CompleteDataSetRegistrationStore" )
 public class HibernateCompleteDataSetRegistrationStore
     extends HibernateGenericStore<CompleteDataSetRegistration>
-        implements CompleteDataSetRegistrationStore
+    implements CompleteDataSetRegistrationStore
 {
     private final PeriodStore periodStore;
 
@@ -106,7 +107,8 @@ public class HibernateCompleteDataSetRegistrationStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root, new CompleteDataSetRegistration( dataSet, storedPeriod, source, attributeOptionCombo ) ) ) );
+            .addPredicate( root -> builder.equal( root,
+                new CompleteDataSetRegistration( dataSet, storedPeriod, source, attributeOptionCombo ) ) ) );
     }
 
     @Override
@@ -126,8 +128,7 @@ public class HibernateCompleteDataSetRegistrationStore
     {
         String hql = "delete from CompleteDataSetRegistration c where c.dataSet = :dataSet";
 
-        getSession().createQuery( hql ).
-            setParameter( "dataSet", dataSet ).executeUpdate();
+        getSession().createQuery( hql ).setParameter( "dataSet", dataSet ).executeUpdate();
     }
 
     @Override
@@ -135,8 +136,7 @@ public class HibernateCompleteDataSetRegistrationStore
     {
         String hql = "delete from CompleteDataSetRegistration c where c.source = :source";
 
-        getSession().createQuery( hql ).
-            setParameter( "source", unit ).executeUpdate();
+        getSession().createQuery( hql ).setParameter( "source", unit ).executeUpdate();
     }
 
     @Override
@@ -153,7 +153,7 @@ public class HibernateCompleteDataSetRegistrationStore
 
         criteria.add( Restrictions.ge( "lastUpdated", lastUpdated ) );
 
-        Number rs = ( Number ) criteria.uniqueResult();
+        Number rs = (Number) criteria.uniqueResult();
 
         return rs != null ? rs.intValue() : 0;
     }

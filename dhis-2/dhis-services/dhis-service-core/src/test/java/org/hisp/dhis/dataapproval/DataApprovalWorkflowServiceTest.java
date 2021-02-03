@@ -29,18 +29,17 @@ package org.hisp.dhis.dataapproval;
  */
 
 import static com.google.common.collect.Sets.newHashSet;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Jim Grace
@@ -59,11 +58,15 @@ public class DataApprovalWorkflowServiceTest
     // -------------------------------------------------------------------------
 
     private DataApprovalWorkflow workflowA;
+
     private DataApprovalWorkflow workflowB;
+
     private DataApprovalWorkflow workflowC;
 
     private DataApprovalLevel level1;
+
     private DataApprovalLevel level2;
+
     private DataApprovalLevel level3;
 
     PeriodType periodType;
@@ -73,7 +76,8 @@ public class DataApprovalWorkflowServiceTest
     // -------------------------------------------------------------------------
 
     @Override
-    public void setUpTest() throws Exception
+    public void setUpTest()
+        throws Exception
     {
         // ---------------------------------------------------------------------
         // Add supporting data
@@ -89,17 +93,18 @@ public class DataApprovalWorkflowServiceTest
 
         periodType = PeriodType.getPeriodTypeByName( "Monthly" );
 
-        workflowA = new DataApprovalWorkflow("A", periodType, newHashSet( level1, level2 ) );
-        workflowB = new DataApprovalWorkflow("B", periodType, newHashSet( level2, level3 ) );
-        workflowC = new DataApprovalWorkflow("C", periodType, newHashSet( level1, level3 ) );
+        workflowA = new DataApprovalWorkflow( "A", periodType, newHashSet( level1, level2 ) );
+        workflowB = new DataApprovalWorkflow( "B", periodType, newHashSet( level2, level3 ) );
+        workflowC = new DataApprovalWorkflow( "C", periodType, newHashSet( level1, level3 ) );
     }
-    
+
     // -------------------------------------------------------------------------
     // Basic DataApprovalWorkflow
     // -------------------------------------------------------------------------
 
     @Test
-    public void testAddDataApprovalWorkflow() throws Exception
+    public void testAddDataApprovalWorkflow()
+        throws Exception
     {
         long id = dataApprovalService.addWorkflow( workflowA );
 
@@ -111,14 +116,15 @@ public class DataApprovalWorkflowServiceTest
 
         Set<DataApprovalLevel> members = workflow.getLevels();
 
-        assertEquals(2, members.size() );
+        assertEquals( 2, members.size() );
 
         assertTrue( members.contains( level1 ) );
         assertTrue( members.contains( level2 ) );
     }
 
     @Test
-    public void testUpdateDataApprovalWorkflow() throws Exception
+    public void testUpdateDataApprovalWorkflow()
+        throws Exception
     {
         long id = dataApprovalService.addWorkflow( workflowA );
 
@@ -138,14 +144,15 @@ public class DataApprovalWorkflowServiceTest
 
         Set<DataApprovalLevel> members = workflow.getLevels();
 
-        assertEquals(2, members.size() );
+        assertEquals( 2, members.size() );
 
         assertTrue( members.contains( level2 ) );
         assertTrue( members.contains( level3 ) );
     }
 
     @Test
-    public void testDeleteDataApprovalWorkflow() throws Exception
+    public void testDeleteDataApprovalWorkflow()
+        throws Exception
     {
         long id = dataApprovalService.addWorkflow( workflowA );
 
@@ -161,7 +168,8 @@ public class DataApprovalWorkflowServiceTest
     }
 
     @Test
-    public void testGetDataApprovalWorkflow() throws Exception
+    public void testGetDataApprovalWorkflow()
+        throws Exception
     {
         long idA = dataApprovalService.addWorkflow( workflowA );
         long idB = dataApprovalService.addWorkflow( workflowB );
@@ -176,7 +184,8 @@ public class DataApprovalWorkflowServiceTest
     }
 
     @Test
-    public void testGetAllDataApprovalWorkflows() throws Exception
+    public void testGetAllDataApprovalWorkflows()
+        throws Exception
     {
         List<DataApprovalWorkflow> workflows = dataApprovalService.getAllWorkflows();
         assertEquals( 0, workflows.size() );

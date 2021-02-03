@@ -28,20 +28,20 @@ package org.hisp.dhis.indicator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElement;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
-
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
 /**
  * @author Lars Helge Overland
@@ -111,7 +111,7 @@ public class IndicatorDeletionHandler
             indicatorService.updateIndicator( indicator );
         }
     }
-    
+
     @Override
     public void deleteLegendSet( LegendSet legendSet )
     {
@@ -119,7 +119,7 @@ public class IndicatorDeletionHandler
         {
             for ( LegendSet ls : indicator.getLegendSets() )
             {
-                if( legendSet.equals( ls ) )
+                if ( legendSet.equals( ls ) )
                 {
                     indicator.getLegendSets().remove( ls );
                     indicatorService.updateIndicator( indicator );
@@ -134,7 +134,8 @@ public class IndicatorDeletionHandler
     {
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            Set<DataElement> daels = expressionService.getExpressionDataElements( indicator.getNumerator(), INDICATOR_EXPRESSION );
+            Set<DataElement> daels = expressionService.getExpressionDataElements( indicator.getNumerator(),
+                INDICATOR_EXPRESSION );
 
             if ( daels != null && daels.contains( dataElement ) )
             {

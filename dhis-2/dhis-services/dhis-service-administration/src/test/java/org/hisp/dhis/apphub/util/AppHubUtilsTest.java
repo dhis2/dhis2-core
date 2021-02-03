@@ -28,14 +28,14 @@ package org.hisp.dhis.apphub.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import org.hisp.dhis.apphub.AppHubUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.junit.Test;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Lars Helge Overland

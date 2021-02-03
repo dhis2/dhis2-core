@@ -28,11 +28,9 @@ package org.hisp.dhis.trackedentityattributevalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
+import java.util.Date;
+
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
@@ -41,8 +39,11 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * TODO index on attribute and instance
@@ -74,8 +75,8 @@ public class TrackedEntityAttributeValue
     private String plainValue;
 
     /**
-     * This value is only used to store values from setValue when we don't know
-     * if attribute is set or not.
+     * This value is only used to store values from setValue when we don't know if
+     * attribute is set or not.
      */
     private String value;
 
@@ -200,7 +201,6 @@ public class TrackedEntityAttributeValue
         return true;
     }
 
-
     @Override
     public String toString()
     {
@@ -247,8 +247,8 @@ public class TrackedEntityAttributeValue
     }
 
     /**
-     * Retrieves the encrypted value if the attribute is confidential. If the
-     * value is not confidential, returns old value. Should be null unless it was
+     * Retrieves the encrypted value if the attribute is confidential. If the value
+     * is not confidential, returns old value. Should be null unless it was
      * confidential at an earlier stage.
      *
      * @return String with decrypted value or null.
@@ -271,8 +271,8 @@ public class TrackedEntityAttributeValue
     }
 
     /**
-     * Retrieves the plain-text value is the attribute isn't confidential. If
-     * the value is confidential, this value should be null, unless it was
+     * Retrieves the plain-text value is the attribute isn't confidential. If the
+     * value is confidential, this value should be null, unless it was
      * non-confidential at an earlier stage.
      *
      * @return String with plain-text value or null.
@@ -295,8 +295,8 @@ public class TrackedEntityAttributeValue
     }
 
     /**
-     * Returns the encrypted or the plain-text value based on the confidential
-     * state of the attribute.
+     * Returns the encrypted or the plain-text value based on the confidential state
+     * of the attribute.
      *
      * @return String with value, either plain-text or decrypted.
      */

@@ -28,9 +28,9 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-
 import java.util.List;
+
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

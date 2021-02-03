@@ -28,10 +28,10 @@ package org.hisp.dhis.dxf2.csv;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.metadata.Metadata;
-
 import java.io.IOException;
 import java.io.InputStream;
+
+import org.hisp.dhis.dxf2.metadata.Metadata;
 
 /**
  * @author Lars Helge Overland
