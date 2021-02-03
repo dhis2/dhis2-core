@@ -105,6 +105,7 @@ public class DefaultProgramInstanceService
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
         this.aclService = aclService;
     }
+
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------

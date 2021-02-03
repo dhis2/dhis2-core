@@ -32,7 +32,8 @@ import lombok.Getter;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.dxf2.events.importer.audit.AbstractEventAuditPostProcessor;
 
-public class EventUpdateAuditPostProcessor extends AbstractEventAuditPostProcessor
+public class EventUpdateAuditPostProcessor
+    extends AbstractEventAuditPostProcessor
 {
 
     @Getter

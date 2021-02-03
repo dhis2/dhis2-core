@@ -81,7 +81,7 @@ public class HibernateProgramRuleActionStore
     {
         return getQuery(
             "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN (:dataTypes ) AND pra.dataElement IS NULL AND pra.attribute IS NULL" )
-                .setParameter( "dataTypes", ProgramRuleActionType.getDataLinkedTypes() )
+                .setParameter( "dataTypes", ProgramRuleActionType.DATA_LINKED_TYPES )
                 .getResultList();
     }
 
@@ -90,7 +90,7 @@ public class HibernateProgramRuleActionStore
     {
         return getQuery(
             "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN ( :notificationTypes ) AND pra.templateUid IS NULL" )
-                .setParameter( "notificationTypes", ProgramRuleActionType.getNotificationLinkedTypes() )
+                .setParameter( "notificationTypes", ProgramRuleActionType.NOTIFICATION_LINKED_TYPES )
                 .getResultList();
     }
 

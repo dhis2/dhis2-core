@@ -119,9 +119,9 @@ public class DefaultProgramRuleService
 
     @Override
     @Transactional( readOnly = true )
-    public List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types )
+    public List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> actionTypes )
     {
-        return programRuleStore.getImplementableProgramRules( program, types );
+        return programRuleStore.getProgramRulesByActionTypes( program, actionTypes );
     }
 
     @Override
