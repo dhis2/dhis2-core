@@ -56,7 +56,7 @@ import static org.hamcrest.Matchers.*;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ImportSideEffectsTests
+public class RuleEngineTests
     extends ApiTest
 {
     private String trackerProgramId = "U5HE4IRrZ7S";
@@ -177,7 +177,7 @@ public class ImportSideEffectsTests
             .body( "dataValues.value", contains( "AUTO_ASSIGNED_COMMENT" ) );
     }
 
-    @Disabled("bug DHIS2-10127")
+    @Disabled( "bug DHIS2-10127" )
     @Test
     public void shouldSendNotification()
     {
@@ -190,6 +190,9 @@ public class ImportSideEffectsTests
                 .build(), new JsonObjectBuilder()
                 .addProperty( "dataElement", "z3Z4TD3oBCP" )
                 .addProperty( "value", "true" )
+                .build(), new JsonObjectBuilder()
+                .addProperty( "dataElement", "BuZ5LGNfGEU" )
+                .addProperty( "value", "40" )
                 .build() );
 
         ApiResponse response = new RestApiActions( "/messageConversations" ).get( "", new QueryParamsBuilder().add( "fields=*" ) );
