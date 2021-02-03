@@ -328,12 +328,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     {
         SqlHelper sqlHelper = new SqlHelper( true );
 
-        if ( params.isIncludeChildrenForOrganisationUnits() )
-        {
-            throw new IllegalArgumentException(
-                "getDeflatedDataValues doesn't support includChildren and selected organisation units at the same time." );
-        }
-
         boolean joinOrgUnit = params.isOrderByOrgUnitPath()
             || params.hasOrgUnitLevel()
             || params.hasOrgUnitParents()
