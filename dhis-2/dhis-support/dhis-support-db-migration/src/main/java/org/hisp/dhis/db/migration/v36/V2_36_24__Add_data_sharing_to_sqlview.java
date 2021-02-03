@@ -44,10 +44,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 /**
  * @author Jan Bernitt
  */
-public class V2_36_23__Add_data_sharing_to_sqlview extends BaseJavaMigration
+public class V2_36_24__Add_data_sharing_to_sqlview extends BaseJavaMigration
 {
 
-    private static final Logger log = LoggerFactory.getLogger( V2_36_23__Add_data_sharing_to_sqlview.class );
+    private static final Logger log = LoggerFactory.getLogger( V2_36_24__Add_data_sharing_to_sqlview.class );
 
     @Override
     public void migrate( Context context )
