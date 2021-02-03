@@ -93,11 +93,11 @@ public class HibernateProgramRuleStore
     @Override
     public List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> actionTypes )
     {
-        final String jql = "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
+        final String hql = "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
             "WHERE pr.program = :program AND pra.programRuleActionType IN ( :actionTypes ) " +
             "AND pr.programStage IS NULL";
 
-        return getQuery( jql )
+        return getQuery( hql )
             .setParameter( "program", program )
             .setParameter( "actionTypes", actionTypes )
             .getResultList();
@@ -107,16 +107,16 @@ public class HibernateProgramRuleStore
     public List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> types,
         String programStageUid )
     {
-        return getQuery(
-            "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
-                "LEFT JOIN FETCH pr.programStage ps " +
-                "WHERE pr.program = :programId " +
-                "AND pra.programRuleActionType IN ( :implementableTypes ) " +
-                "AND (pr.programStage IS NULL OR ps.uid = :programStageUid )" )
-                    .setParameter( "programId", program )
-                    .setParameter( "implementableTypes", types )
-                    .setParameter( "programStageUid", programStageUid )
-                    .getResultList();
+        final String hql = "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
+            "LEFT JOIN FETCH pr.programStage ps " +
+            "WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes ) " +
+            "AND (pr.programStage IS NULL OR ps.uid = :programStageUid )";
+
+        return getQuery( hql )
+            .setParameter( "programId", program )
+            .setParameter( "implementableTypes", types )
+            .setParameter( "programStageUid", programStageUid )
+            .getResultList();
     }
 
     @Override

@@ -87,10 +87,9 @@ public enum ProgramRuleActionType
     /**
      * Complete set of actions which require server-side execution.
      */
-    public static final ImmutableSet<ProgramRuleActionType> SERVER_SUPPORTED_TYPES = new ImmutableSet.Builder<ProgramRuleActionType>()
-        .add( SENDMESSAGE, SCHEDULEMESSAGE, SHOWERROR, SHOWWARNING,
-            ERRORONCOMPLETE, WARNINGONCOMPLETE, ASSIGN, SETMANDATORYFIELD )
-        .build();
+    public static final ImmutableSet<ProgramRuleActionType> SERVER_SUPPORTED_TYPES = ImmutableSet
+        .of( SENDMESSAGE, SCHEDULEMESSAGE, SHOWERROR, SHOWWARNING, ERRORONCOMPLETE, WARNINGONCOMPLETE, ASSIGN,
+            SETMANDATORYFIELD );
 
     ProgramRuleActionType( String value )
     {
