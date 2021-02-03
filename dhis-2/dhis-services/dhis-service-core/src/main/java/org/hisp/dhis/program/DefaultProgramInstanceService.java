@@ -70,9 +70,9 @@ public class DefaultProgramInstanceService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ProgramInstanceStore programInstanceStore;
+    private final ProgramInstanceStore programInstanceStore;
 
-    private ProgramStageInstanceStore programStageInstanceStore;
+    private final ProgramStageInstanceStore programStageInstanceStore;
 
     private CurrentUserService currentUserService;
 
