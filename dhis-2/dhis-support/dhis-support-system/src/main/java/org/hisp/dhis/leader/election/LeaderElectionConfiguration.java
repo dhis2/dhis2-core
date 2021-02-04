@@ -62,9 +62,9 @@ public class LeaderElectionConfiguration
     @Qualifier( "leaderManager" )
     @Conditional( RedisEnabledCondition.class )
     @Autowired( required = false )
-    public LeaderManager redisLeaderManager( StringRedisTemplate redisTemplate )
+    public LeaderManager redisLeaderManager( StringRedisTemplate stringRedisTemplate )
     {
-        return new RedisLeaderManager( Long.parseLong( (String) leaderTimeToLive().getObject() ), redisTemplate,
+        return new RedisLeaderManager( Long.parseLong( (String) leaderTimeToLive().getObject() ), stringRedisTemplate,
             dhisConfigurationProvider );
     }
 
