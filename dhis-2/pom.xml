@@ -2002,6 +2002,23 @@
         <version>0.2.5</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers</artifactId>
+        <version>${testcontainers.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>postgresql </artifactId>
+        <version>${testcontainers.version}</version>
+      </dependency>
+
       <!-- Monitoring -->
       <dependency>
         <groupId>io.micrometer</groupId>
@@ -2078,6 +2095,7 @@
     <jackson.version>2.11.2</jackson.version>
     <log4j.version>2.13.0</log4j.version>
     <slf4j.version>1.7.30</slf4j.version>
+    <testcontainers.version>1.15.1</testcontainers.version>
     <geotools.version>18.0</geotools.version>
     <jasperreports.version>6.3.1</jasperreports.version>
     <jacoco.version>0.8.2</jacoco.version>
