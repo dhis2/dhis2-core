@@ -43,6 +43,8 @@ public interface GatewayAdministrationService
 
     boolean removeGatewayByUid( String uid );
 
+    boolean addOrUpdateGateway( SmsGatewayConfig payLoad, Class<?> klass );
+
     Map<String, SmsGatewayConfig> getGatewayConfigurationMap();
 
     SmsGatewayConfig getDefaultGateway();
@@ -50,8 +52,6 @@ public interface GatewayAdministrationService
     boolean hasDefaultGateway();
 
     SmsGatewayConfig getByUid(String uid );
-
-    boolean addOrUpdateGateway( SmsGatewayConfig config, Class<?> klass );
 
     boolean addGateway( SmsGatewayConfig config );
 
