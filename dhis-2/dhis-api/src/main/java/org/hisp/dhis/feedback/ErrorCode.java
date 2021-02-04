@@ -161,6 +161,7 @@ public enum ErrorCode
     E4309( "Criteria values are invalid: `{0}`" ),
     E4310( "SQL query contains references to protected tables" ),
     E4311( "SQL query contains illegal keywords" ),
+    E4312( "Current user is not authorised to read data from SQL view: `{0}`" ),
 
     /* Preheat */
     E5000(

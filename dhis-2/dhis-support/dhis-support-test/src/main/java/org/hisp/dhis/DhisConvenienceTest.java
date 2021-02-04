@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis;
 
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
@@ -44,7 +46,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.xml.xpath.XPath;
@@ -180,7 +181,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
 import org.xml.sax.InputSource;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
@@ -2194,7 +2194,7 @@ public abstract class DhisConvenienceTest
         Set<OrganisationUnit> dataViewOrganisationUnits, Set<Category> catDimensionConstraints, boolean allAuth,
         String... auths )
     {
-        Assert.notNull( userService, "UserService must be injected in test" );
+        checkUserServiceWasInjected();
 
         Set<String> authorities = new HashSet<>();
 
@@ -2208,11 +2208,11 @@ public abstract class DhisConvenienceTest
             authorities.addAll( Lists.newArrayList( auths ) );
         }
 
-        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
-        userAuthorityGroup.setName( "Superuser" );
-        userAuthorityGroup.getAuthorities().addAll( authorities );
+        UserAuthorityGroup group = new UserAuthorityGroup();
+        group.setName( "Superuser" );
+        group.getAuthorities().addAll( authorities );
 
-        userService.addUserAuthorityGroup( userAuthorityGroup );
+        userService.addUserAuthorityGroup( group );
 
         User user = createUser( 'A' );
 
@@ -2231,21 +2231,19 @@ public abstract class DhisConvenienceTest
             user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
         }
 
-        user.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );
+        user.getUserCredentials().getUserAuthorityGroups().add( group );
         userService.addUser( user );
         user.getUserCredentials().setUserInfo( user );
         userService.addUserCredentials( user.getUserCredentials() );
 
-        Set<GrantedAuthority> grantedAuths = authorities.stream().map( a -> new SimpleGrantedAuthority( a ) )
-            .collect( Collectors.toSet() );
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuths );
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuths );
-        SecurityContextHolder.getContext().setAuthentication( authentication );
+        injectSecurityContext( user );
 
         return user;
+    }
+
+    private void checkUserServiceWasInjected()
+    {
+        Assert.notNull( userService, "UserService must be injected in test" );
     }
 
     protected void saveAndInjectUserSecurityContext( User user )
@@ -2253,48 +2251,29 @@ public abstract class DhisConvenienceTest
         userService.addUser( user );
         userService.addUserCredentials( user.getUserCredentials() );
 
-        List<GrantedAuthority> grantedAuthorities = user.getUserCredentials().getAllAuthorities()
-            .stream().map( SimpleGrantedAuthority::new ).collect( Collectors.toList() );
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-        SecurityContextHolder.getContext().setAuthentication( authentication );
+        injectSecurityContext( user );
     }
 
     protected User createUser( String username, String... authorities )
     {
-        Assert.notNull( userService, "UserService must be injected in test" );
+        checkUserServiceWasInjected();
 
         String password = DEFAULT_ADMIN_PASSWORD;
 
-        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
-        userAuthorityGroup.setCode( username );
-        userAuthorityGroup.setName( username );
-        userAuthorityGroup.setDescription( username );
-        userAuthorityGroup.setAuthorities( Sets.newHashSet( authorities ) );
+        UserAuthorityGroup group = createAuthorityGroup( username, authorities );
 
-        userService.addUserAuthorityGroup( userAuthorityGroup );
+        userService.addUserAuthorityGroup( group );
 
-        User user = new User();
-        user.setCode( username );
-        user.setFirstName( username );
-        user.setSurname( username );
+        User user = createUser( username );
 
         userService.addUser( user );
 
-        UserCredentials userCredentials = new UserCredentials();
-        userCredentials.setCode( username );
-        userCredentials.setCreatedBy( user );
-        userCredentials.setUserInfo( user );
-        userCredentials.setUsername( username );
-        userCredentials.getUserAuthorityGroups().add( userAuthorityGroup );
+        UserCredentials credentials = createUserCredentials( username, user, group );
 
-        userService.encodeAndSetPassword( userCredentials, password );
-        userService.addUserCredentials( userCredentials );
+        userService.encodeAndSetPassword( credentials, password );
+        userService.addUserCredentials( credentials );
 
-        user.setUserCredentials( userCredentials );
+        user.setUserCredentials( credentials );
         userService.updateUser( user );
 
         return user;
@@ -2302,83 +2281,54 @@ public abstract class DhisConvenienceTest
 
     protected User createAdminUser( String... authorities )
     {
-        Assert.notNull( userService, "UserService must be injected in test" );
+        checkUserServiceWasInjected();
 
         String username = DEFAULT_USERNAME;
         String password = DEFAULT_ADMIN_PASSWORD;
 
-        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
-        userAuthorityGroup.setUid( "yrB6vc5Ip3r" );
-        userAuthorityGroup.setCode( "Superuser" );
-        userAuthorityGroup.setName( "Superuser" );
-        userAuthorityGroup.setDescription( "Superuser" );
-        userAuthorityGroup.setAuthorities( Sets.newHashSet( authorities ) );
+        UserAuthorityGroup group = createAuthorityGroup( "Superuser", authorities );
+        group.setUid( "yrB6vc5Ip3r" );
 
-        userService.addUserAuthorityGroup( userAuthorityGroup );
+        userService.addUserAuthorityGroup( group );
 
-        User user = new User();
+        User user = createUser( username );
         user.setUid( "M5zQapPyTZI" );
-        user.setCode( username );
-        user.setFirstName( username );
-        user.setSurname( username );
 
         userService.addUser( user );
 
-        UserCredentials userCredentials = new UserCredentials();
-        userCredentials.setUid( "KvMx6c1eoYo" );
-        userCredentials.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
-        userCredentials.setCode( username );
-        userCredentials.setCreatedBy( user );
-        userCredentials.setUserInfo( user );
-        userCredentials.setUsername( username );
-        userCredentials.getUserAuthorityGroups().add( userAuthorityGroup );
+        UserCredentials credentials = createUserCredentials( username, user, group );
+        credentials.setUid( "KvMx6c1eoYo" );
+        credentials.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
 
-        userService.encodeAndSetPassword( userCredentials, password );
-        userService.addUserCredentials( userCredentials );
+        userService.encodeAndSetPassword( credentials, password );
+        userService.addUserCredentials( credentials );
 
-        user.setUserCredentials( userCredentials );
+        user.setUserCredentials( credentials );
         userService.updateUser( user );
 
         return user;
     }
 
-    protected User createAndInjectAdminUser()
+    protected final User createAndInjectAdminUser()
     {
         return createAndInjectAdminUser( "ALL" );
     }
 
-    protected User createAndInjectAdminUser( String... authorities )
+    protected final User createAndInjectAdminUser( String... authorities )
     {
         User user = createAdminUser( authorities );
-
-        List<GrantedAuthority> grantedAuthorities = user.getUserCredentials().getAllAuthorities()
-            .stream().map( SimpleGrantedAuthority::new ).collect( Collectors.toList() );
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication( authentication );
-        SecurityContextHolder.setContext( context );
-
+        injectSecurityContext( user );
         return user;
     }
 
     protected void injectSecurityContext( User user )
     {
-        List<GrantedAuthority> grantedAuthorities = user.getUserCredentials().getAllAuthorities()
-            .stream().map( SimpleGrantedAuthority::new ).collect( Collectors.toList() );
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication( authentication );
-        SecurityContextHolder.setContext( context );
+        UserCredentials credentials = user.getUserCredentials();
+        switchCurrentUserTo(
+            credentials.getUsername(),
+            credentials.getPassword(),
+            credentials.getAllAuthorities()
+                .stream().map( SimpleGrantedAuthority::new ).collect( toList() ) );
     }
 
     protected void clearSecurityContext()
@@ -2405,15 +2355,11 @@ public abstract class DhisConvenienceTest
     protected ProgramDataElementDimensionItem createProgramDataElement( char name )
     {
         Program pr = new Program();
-
         pr.setUid( "P123456789" + name );
-
         pr.setCode( "PCode" + name );
 
         DataElement de = new DataElement( "Name" + name );
-
         de.setUid( "D123456789" + name );
-
         de.setCode( "DCode" + name );
 
         return new ProgramDataElementDimensionItem( pr, de );
@@ -2430,54 +2376,56 @@ public abstract class DhisConvenienceTest
         object.getSharing().addUserAccess( userAccess );
     }
 
-    @SuppressWarnings( "all" )
     protected void preCreateInjectAdminUserWithoutPersistence()
     {
-        List<GrantedAuthority> grantedAuthorities = ImmutableList.of( new SimpleGrantedAuthority( "ALL" ) );
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            DEFAULT_USERNAME, DEFAULT_ADMIN_PASSWORD, grantedAuthorities );
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication( authentication );
-        SecurityContextHolder.setContext( context );
+        switchCurrentUserTo( DEFAULT_USERNAME, DEFAULT_ADMIN_PASSWORD,
+            singletonList( new SimpleGrantedAuthority( "ALL" ) ) );
     }
 
-    @SuppressWarnings( "all" )
     protected User preCreateInjectAdminUser()
     {
-        List<GrantedAuthority> grantedAuthorities = ImmutableList.of( new SimpleGrantedAuthority( "ALL" ) );
+        switchCurrentUserTo( DEFAULT_USERNAME, DEFAULT_ADMIN_PASSWORD,
+            singletonList( new SimpleGrantedAuthority( "ALL" ) ) );
 
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            DEFAULT_USERNAME, DEFAULT_ADMIN_PASSWORD, grantedAuthorities );
+        return createAndInjectAdminUser( "ALL" );
+    }
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-
+    protected void switchCurrentUserTo( String username, String password, List<GrantedAuthority> authorities )
+    {
+        UserDetails user = new org.springframework.security.core.userdetails.User( username, password, authorities );
+        Authentication authentication = new UsernamePasswordAuthenticationToken( user, "", authorities );
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication( authentication );
         SecurityContextHolder.setContext( context );
-
-        return createAndInjectAdminUser2( "ALL" );
     }
 
-    protected User createAndInjectAdminUser2( String... authorities )
+    private static User createUser( String username )
     {
-        User user = createAdminUser( authorities );
-
-        List<GrantedAuthority> grantedAuthorities = user.getUserCredentials().getAllAuthorities()
-            .stream().map( SimpleGrantedAuthority::new ).collect( Collectors.toList() );
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-
-        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-        securityContext.setAuthentication( authentication );
-        SecurityContextHolder.setContext( securityContext );
-
+        User user = new User();
+        user.setCode( username );
+        user.setFirstName( username );
+        user.setSurname( username );
         return user;
+    }
+
+    private static UserCredentials createUserCredentials( String username, User user, UserAuthorityGroup group )
+    {
+        UserCredentials credentials = new UserCredentials();
+        credentials.setCode( username );
+        credentials.setCreatedBy( user );
+        credentials.setUserInfo( user );
+        credentials.setUsername( username );
+        credentials.getUserAuthorityGroups().add( group );
+        return credentials;
+    }
+
+    private static UserAuthorityGroup createAuthorityGroup( String username, String... authorities )
+    {
+        UserAuthorityGroup group = new UserAuthorityGroup();
+        group.setCode( username );
+        group.setName( username );
+        group.setDescription( username );
+        group.setAuthorities( Sets.newHashSet( authorities ) );
+        return group;
     }
 }

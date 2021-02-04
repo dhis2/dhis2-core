@@ -1,6 +1,6 @@
 name: "DHIS2 CodeQL config"
 
-disable-default-queries: true
+disable-default-queries: false
 
 languages: java
 
@@ -9,5 +9,3 @@ queries:
     uses: security-extended
   - name: Security and Quality
     uses: security-and-quality
-  - name: codeql repo
-    uses: github/codeql/java/ql/src/codeql-suites/java-code-scanning.qls@v1.24.0
