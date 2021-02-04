@@ -75,6 +75,9 @@ public interface ProgramRuleStore
 
     List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> types );
 
+    List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> serverSupportedTypes,
+        String programStageUid );
+
     List<ProgramRule> getProgramRulesWithNoCondition();
 
     List<ProgramRule> getProgramRulesWithNoPriority();

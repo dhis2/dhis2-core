@@ -28,10 +28,8 @@
 package org.hisp.dhis.programrule.config;
 
 import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.engine.*;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,10 +47,7 @@ public class ProgramRuleConfig
     private ProgramRuleVariableService programRuleVariableService;
 
     @Autowired
-    private OrganisationUnitGroupService organisationUnitGroupService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
+    private SupplementaryDataProvider supplementaryDataProvider;
 
     @Autowired
     private ConstantService constantService;
@@ -63,11 +58,11 @@ public class ProgramRuleConfig
      * executed.
      */
     @Bean( "notificationRuleEngine" )
-    public ProgramRuleEngine oldRuleEngine( OldImplementableRuleService oldImplementableRuleService )
+    public ProgramRuleEngine notificationRuleEngine(
+        NotificationImplementableRuleService notificationImplementableRuleService )
     {
-        return new ProgramRuleEngine( programRuleEntityMapperService, programRuleVariableService,
-            organisationUnitGroupService, currentUserService, constantService,
-            oldImplementableRuleService );
+        return new ProgramRuleEngine( programRuleEntityMapperService, programRuleVariableService, constantService,
+            notificationImplementableRuleService, supplementaryDataProvider );
     }
 
     /**
@@ -75,10 +70,10 @@ public class ProgramRuleConfig
      * actions are executed.
      */
     @Bean( "serviceTrackerRuleEngine" )
-    public ProgramRuleEngine newRuleEngine( NewImplementableRuleService newImplementableRuleService )
+    public ProgramRuleEngine serverSideRuleEngine(
+        ServerSideImplementableRuleService serverSideImplementableRuleService )
     {
-        return new ProgramRuleEngine( programRuleEntityMapperService, programRuleVariableService,
-            organisationUnitGroupService, currentUserService, constantService,
-            newImplementableRuleService );
+        return new ProgramRuleEngine( programRuleEntityMapperService, programRuleVariableService, constantService,
+            serverSideImplementableRuleService, supplementaryDataProvider );
     }
 }

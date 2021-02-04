@@ -180,7 +180,7 @@ public class EnrollmentCriteriaMapper
     public ProgramInstanceQueryParams getFromUrl( TrackerEnrollmentCriteria trackerEnrollmentCriteria )
     {
         return getFromUrl(
-            TextUtils.splitToArray( trackerEnrollmentCriteria.getOu(), TextUtils.SEMICOLON ),
+            TextUtils.splitToArray( trackerEnrollmentCriteria.getOrgUnit(), TextUtils.SEMICOLON ),
             trackerEnrollmentCriteria.getOuMode(),
             trackerEnrollmentCriteria.getUpdatedAt(),
             trackerEnrollmentCriteria.getUpdatedWithin(),

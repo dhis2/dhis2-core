@@ -38,11 +38,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleActionEvaluationEnvironment;
-import org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.ProgramRuleStore;
+import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -97,12 +93,29 @@ public class HibernateProgramRuleStore
     @Override
     public List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> actionTypes )
     {
-        final String jql = "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
-            "WHERE pr.program = :program AND pra.programRuleActionType IN ( :actionTypes )";
+        final String hql = "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
+            "WHERE pr.program = :program AND pra.programRuleActionType IN ( :actionTypes ) " +
+            "AND pr.programStage IS NULL";
 
-        return getQuery( jql )
+        return getQuery( hql )
             .setParameter( "program", program )
             .setParameter( "actionTypes", actionTypes )
+            .getResultList();
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> types,
+        String programStageUid )
+    {
+        final String hql = "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
+            "LEFT JOIN FETCH pr.programStage ps " +
+            "WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes ) " +
+            "AND (pr.programStage IS NULL OR ps.uid = :programStageUid )";
+
+        return getQuery( hql )
+            .setParameter( "programId", program )
+            .setParameter( "implementableTypes", types )
+            .setParameter( "programStageUid", programStageUid )
             .getResultList();
     }
 

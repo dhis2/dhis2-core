@@ -27,10 +27,14 @@
  */
 package org.hisp.dhis.user.sharing;
 
+import static java.util.stream.Collectors.toMap;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -102,21 +106,13 @@ public class Sharing
 
     public void setUserAccesses( Set<UserAccess> userAccesses )
     {
-        if ( this.users != null )
-            this.users.clear();
-        else
-            this.users = new HashMap<>();
-
-        userAccesses.forEach( ua -> this.addUserAccess( ua ) );
+        this.users = clearOrInit( this.users );
+        userAccesses.forEach( this::addUserAccess );
     }
 
     public void setDtoUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )
     {
-        if ( this.users != null )
-            this.users.clear();
-        else
-            this.users = new HashMap<>();
-
+        this.users = clearOrInit( this.users );
         if ( userAccesses != null && !userAccesses.isEmpty() )
         {
             userAccesses.forEach( ua -> this.addUserAccess( new UserAccess( ua ) ) );
@@ -125,14 +121,7 @@ public class Sharing
 
     public void setDtoUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses )
     {
-        if ( this.userGroups != null )
-        {
-            this.userGroups.clear();
-        }
-
-        else
-            this.userGroups = new HashMap<>();
-
+        this.userGroups = clearOrInit( this.userGroups );
         if ( userGroupAccesses != null && !userGroupAccesses.isEmpty() )
         {
             userGroupAccesses.forEach( uga -> this.addUserGroupAccess( new UserGroupAccess( uga ) ) );
@@ -141,11 +130,8 @@ public class Sharing
 
     public void setUserGroupAccess( Set<UserGroupAccess> userGroupAccesses )
     {
-        if ( this.userGroups != null )
-            this.userGroups.clear();
-        else
-            this.userGroups = new HashMap<>();
-        userGroupAccesses.forEach( uga -> this.addUserGroupAccess( uga ) );
+        this.userGroups = clearOrInit( this.userGroups );
+        userGroupAccesses.forEach( this::addUserGroupAccess );
     }
 
     public void addUserAccess( UserAccess userAccess )
@@ -168,7 +154,7 @@ public class Sharing
 
     public void addUserGroupAccess( UserGroupAccess userGroupAccess )
     {
-        if ( userGroupAccess == null )
+        if ( userGroups == null )
         {
             userGroups = new HashMap<>();
         }
@@ -210,5 +196,79 @@ public class Sharing
             .owner( this.owner )
             .users( new HashMap<>( users ) )
             .userGroups( new HashMap<>( userGroups ) ).build();
+    }
+
+    /**
+     * Returns a new {@link Sharing} instance where all access strings have been
+     * transformed.
+     *
+     * @param accessTransformation A transformation for access strings that is
+     *        applied to all access strings of this {@link Sharing} to produce
+     *        the access strings used in the newly created {@link Sharing}
+     *        object returned.
+     * @return A new {@link Sharing} instance where the access strings of public
+     *         access, user and group access have been transformed by the
+     *         provided transformation. This {@link Sharing} is kept unchanged.
+     */
+    public Sharing withAccess( UnaryOperator<String> accessTransformation )
+    {
+        return builder()
+            .external( external )
+            .publicAccess( accessTransformation.apply( publicAccess ) )
+            .owner( owner )
+            .users( mapValues( users,
+                user -> new UserAccess( accessTransformation.apply( user.getAccess() ), user.getId() ) ) )
+            .userGroups( mapValues( userGroups,
+                group -> new UserGroupAccess( accessTransformation.apply( group.getAccess() ), group.getId() ) ) )
+            .build();
+    }
+
+    private static <K, V> Map<K, V> mapValues( Map<K, V> map, UnaryOperator<V> mapper )
+    {
+        if ( map == null )
+        {
+            return null;
+        }
+        return map.entrySet().stream()
+            .collect( toMap( Entry::getKey, e -> mapper.apply( e.getValue() ) ) );
+    }
+
+    private static <T> Map<String, T> clearOrInit( Map<String, T> map )
+    {
+        if ( map != null )
+        {
+            map.clear();
+            return map;
+        }
+        return new HashMap<>();
+    }
+
+    /**
+     * First to positions are metadata sharing, positions 3 and 4 are data
+     * sharing. This copies the positions 1 and 2 to 3 and 4:
+     *
+     * The pattern {@code rw--xxxx} becomes {@code rwrwxxxx}.
+     *
+     * For example:
+     *
+     * <pre>
+     * r------- => r-r-----
+     * rw------ => rwrw----
+     * r-rw---- => r-r-----
+     * </pre>
+     *
+     * @param access a access string which is expected to be either null or 8
+     *        characters long
+     * @return the provided access string except that position 1 and 2 are
+     *         copied to position 3 and 4.
+     */
+    public static String copyMetadataToData( String access )
+    {
+        if ( access == null )
+        {
+            return null;
+        }
+        String metadata = access.substring( 0, 2 );
+        return metadata + metadata + access.substring( 4 );
     }
 }
