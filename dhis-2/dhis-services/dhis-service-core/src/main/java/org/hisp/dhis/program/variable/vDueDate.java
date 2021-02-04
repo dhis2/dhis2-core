@@ -49,5 +49,6 @@ public class vDueDate
         return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
             null, "duedate", visitor.getReportingStartDate(),
             visitor.getReportingEndDate(), visitor.getProgramIndicator() );
+
     }
 }
