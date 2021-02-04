@@ -1,7 +1,7 @@
 package org.hisp.dhis.container;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.utility.DockerImageName;
 
 /**
  * Custom {@link PostgreSQLContainer} that provides additional fluent API to
@@ -44,7 +45,7 @@ public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>>
 {
     private Set<String> customPostgresConfigs = new HashSet<>();
 
-    public DhisPostgreSQLContainer( final String dockerImageName )
+    public DhisPostgreSQLContainer( DockerImageName dockerImageName )
     {
         super( dockerImageName );
     }
@@ -76,9 +77,8 @@ public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>>
 
     /**
      * Append custom postgres configuration to be customized when starting the
-     * container. The configAndValue should be of the form
-     * "configName=configValue". This method can be invoked multiple times to
-     * add multiple custom commands.
+     * container. The configAndValue should be of the form "configName=configValue".
+     * This method can be invoked multiple times to add multiple custom commands.
      *
      * @param configAndValue The configuration and value of the form
      *        "configName=configValue"
@@ -92,6 +92,4 @@ public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>>
         }
         return self();
     }
-
-
 }
