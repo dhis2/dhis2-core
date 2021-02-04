@@ -72,7 +72,7 @@ import com.nimbusds.jwt.JWTParser;
 public class DhisJwtAuthenticationManagerResolver implements AuthenticationManagerResolver<HttpServletRequest>
 {
     @Autowired
-    public UserService userService;
+    private UserService userService;
 
     @Autowired
     private DhisClientRegistrationRepository clientRegistrationRepository;
@@ -96,46 +96,49 @@ public class DhisJwtAuthenticationManagerResolver implements AuthenticationManag
             throw new InvalidBearerTokenException( "Invalid issuer" );
         }
 
-        final String mappingClaim = clientRegistration.getMappingClaimKey();
+        final String mappingClaimKey = clientRegistration.getMappingClaimKey();
         final String clientId = clientRegistration.getClientRegistration().getClientId();
 
-        AuthenticationManager authenticationManager = this.authenticationManagers.computeIfAbsent( issuer, ( k ) -> {
+        return getAuthenticationManager( issuer, mappingClaimKey, clientId );
+    }
+
+    private AuthenticationManager getAuthenticationManager( String issuer, String mappingClaimKey, String clientId )
+    {
+        return this.authenticationManagers.computeIfAbsent( issuer, s -> {
 
             JwtDecoder jwtDecoder = JwtDecoders.fromIssuerLocation( issuer );
 
-            Converter<Jwt, DhisJwtAuthenticationToken> converter = jwt -> {
+            Converter<Jwt, DhisJwtAuthenticationToken> converter = getConverter( mappingClaimKey, clientId );
 
-                // To support multiple clients/i.e. dynamic reg. Android devices
-                // we need indexed db lookup here,
-                // restricted on issuer/provider
-                if ( !jwt.getAudience().contains( clientId ) )
-                {
-                    throw new InvalidBearerTokenException( "Invalid audience" );
-                }
-
-                String mapping = jwt.getClaim( mappingClaim );
-
-                UserCredentials userCredentials = userService.getUserCredentialsByOpenId( mapping );
-                if ( userCredentials == null )
-                {
-                    String description = String.format(
-                        "Found no matching DHIS2 user for the mapping claim:'%s' with the value:'%s'",
-                        mappingClaim, mapping );
-
-                    throw new InvalidBearerTokenException( description );
-                }
-
-                Collection<GrantedAuthority> grantedAuthorities = new ArrayList<>();
-
-                return new DhisJwtAuthenticationToken( jwt, grantedAuthorities, mapping, userCredentials );
-            };
-
-            DhisJwtAuthenticationProvider provider = new DhisJwtAuthenticationProvider( jwtDecoder, converter );
-
-            return provider::authenticate;
+            return new DhisJwtAuthenticationProvider( jwtDecoder, converter )::authenticate;
         } );
+    }
 
-        return authenticationManager;
+    private Converter<Jwt, DhisJwtAuthenticationToken> getConverter( String mappingClaimKey, String clientId )
+    {
+        return jwt -> {
+            // To support multiple clients/i.e. dynamic reg. Android devices
+            // we need indexed db lookup here,
+            // restricted on issuer/provider
+            if ( !jwt.getAudience().contains( clientId ) )
+            {
+                throw new InvalidBearerTokenException( "Invalid audience" );
+            }
+
+            String mappingValue = jwt.getClaim( mappingClaimKey );
+
+            UserCredentials userCredentials = userService.getUserCredentialsByOpenId( mappingValue );
+            if ( userCredentials == null )
+            {
+                throw new InvalidBearerTokenException( String.format(
+                    "Found no matching DHIS2 user for the mapping claim:'%s' with the value:'%s'",
+                    mappingClaimKey, mappingValue ) );
+            }
+
+            Collection<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+
+            return new DhisJwtAuthenticationToken( jwt, grantedAuthorities, mappingValue, userCredentials );
+        };
     }
 
     private static class DhisJwtAuthenticationProvider implements AuthenticationProvider
