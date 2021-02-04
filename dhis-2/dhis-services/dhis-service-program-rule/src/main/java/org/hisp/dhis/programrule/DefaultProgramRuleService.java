@@ -126,6 +126,14 @@ public class DefaultProgramRuleService
 
     @Override
     @Transactional( readOnly = true )
+    public List<ProgramRule> getProgramRulesByActionTypes( Program program,
+        Set<ProgramRuleActionType> serverSupportedTypes, String programStageUid )
+    {
+        return programRuleStore.getProgramRulesByActionTypes( program, serverSupportedTypes, programStageUid );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public List<ProgramRule> getProgramRule( Program program )
     {
         return programRuleStore.get( program );
