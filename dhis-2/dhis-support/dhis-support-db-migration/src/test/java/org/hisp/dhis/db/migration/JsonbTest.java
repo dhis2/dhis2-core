@@ -25,44 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.db.migration;
 
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.sqlview.SqlView;
+import static org.junit.Assert.assertEquals;
 
-import com.google.common.collect.Lists;
+import java.util.function.UnaryOperator;
+
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.util.SharingUtils;
+import org.junit.Test;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Tests database migration changes connected to use of JSONB columns and
+ * changes of values in these columns.
+ *
+ * @author Jan Bernitt
  */
-public class SqlViewSchemaDescriptor implements SchemaDescriptor
+public class JsonbTest
 {
-    public static final String SINGULAR = "sqlView";
 
-    public static final String PLURAL = "sqlViews";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
+    /**
+     * Note that the update of the sharing access strings itself is tested more
+     * thorough in dedicated tests for
+     * {@link Sharing#withAccess(UnaryOperator)}. Here we only want to verify
+     * that the mapping from and to JSON happening around it also works.
+     */
+    @Test
+    public void updateSharing()
+        throws Exception
     {
-        Schema schema = new Schema( SqlView.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1010 );
-        schema.setDataShareable( true );
-
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_SQLVIEW_PUBLIC_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_SQLVIEW_PRIVATE_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_SQLVIEW_DELETE" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( "F_SQLVIEW_EXTERNAL" ) ) );
-
-        return schema;
+        String actual = SharingUtils.withAccess(
+            "{\"owner\": \"Rbh43X53NBP\", \"users\": {}, \"public\": \"rw------\", \"external\": false, \"userGroups\": {}}",
+            Sharing::copyMetadataToData );
+        assertEquals(
+            "{\"external\":false,\"owner\":\"Rbh43X53NBP\",\"public\":\"rwrw----\",\"userGroups\":{},\"users\":{}}",
+            actual );
     }
 }
