@@ -28,7 +28,7 @@
 package org.hisp.dhis.dxf2.events.importer.shared.validation;
 
 import static org.hisp.dhis.dxf2.events.importer.shared.preprocess.FilteringOutUndeclaredDataElementsProcessor.getDataElementUidsFromProgramStage;
-import static org.hisp.dhis.dxf2.events.importer.shared.preprocess.FilteringOutUndeclaredDataElementsProcessor.getFilteredEventDataValues;
+import static org.hisp.dhis.dxf2.events.importer.shared.preprocess.FilteringOutUndeclaredDataElementsProcessor.getFilteredDataValues;
 
 import java.util.Collections;
 import java.util.Objects;
@@ -66,7 +66,7 @@ public class FilteredDataValueCheck implements Checker
             StringUtils.isNotBlank( event.getProgramStage() ) )
         {
 
-            Set<String> filteredEventDataValuesUids = getFilteredEventDataValues( event,
+            Set<String> filteredEventDataValuesUids = getFilteredDataValues( event.getDataValues(),
                 getDataElementUidsFromProgramStage( event.getProgramStage(), ctx ) ).stream()
                     .map( DataValue::getDataElement )
                     .collect( Collectors.toSet() );

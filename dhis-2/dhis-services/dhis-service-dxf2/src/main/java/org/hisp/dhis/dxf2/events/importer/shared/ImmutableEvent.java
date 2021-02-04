@@ -41,7 +41,7 @@ import org.locationtech.jts.geom.Geometry;
 /**
  * @author Luciano Fiandesio
  */
-public class ImmutableEvent extends Event
+public class ImmutableEvent
 {
     private Event event;
 
@@ -50,205 +50,171 @@ public class ImmutableEvent extends Event
         this.event = event;
     }
 
-    @Override
     public String getUid()
     {
         return event.getUid();
     }
 
-    @Override
     public String getEvent()
     {
         return event.getEvent();
     }
 
-    @Override
     public EnrollmentStatus getEnrollmentStatus()
     {
         return event.getEnrollmentStatus();
     }
 
-    @Override
     public EventStatus getStatus()
     {
         return event.getStatus();
     }
 
-    @Override
     public String getProgram()
     {
         return event.getProgram();
     }
 
-    @Override
     public String getProgramStage()
     {
         return event.getProgramStage();
     }
 
-    @Override
     public String getEnrollment()
     {
         return event.getEnrollment();
     }
 
-    @Override
     public String getOrgUnit()
     {
         return event.getOrgUnit();
     }
 
-    @Override
     public String getOrgUnitName()
     {
         return event.getOrgUnitName();
     }
 
-    @Override
     public String getTrackedEntityInstance()
     {
         return event.getTrackedEntityInstance();
     }
 
-    @Override
     public String getEventDate()
     {
         return event.getEventDate();
     }
 
-    @Override
     public String getDueDate()
     {
         return event.getDueDate();
     }
 
-    @Override
     public String getStoredBy()
     {
         return event.getStoredBy();
     }
 
-    @Override
     public Set<DataValue> getDataValues()
     {
         return event.getDataValues();
     }
 
-    @Override
     public List<Note> getNotes()
     {
         return event.getNotes();
     }
 
-    @Override
     public Boolean getFollowup()
     {
         return event.getFollowup();
     }
 
-    @Override
     public String getCreated()
     {
         return event.getCreated();
     }
 
-    @Override
     public String getLastUpdated()
     {
         return event.getLastUpdated();
     }
 
-    @Override
     public String getCreatedAtClient()
     {
         return event.getCreatedAtClient();
     }
 
-    @Override
     public String getLastUpdatedAtClient()
     {
         return event.getLastUpdatedAtClient();
     }
 
-    @Override
     public String getAttributeOptionCombo()
     {
         return event.getAttributeOptionCombo();
     }
 
-    @Override
     public String getAttributeCategoryOptions()
     {
         return event.getAttributeCategoryOptions();
     }
 
-    @Override
     public String getCompletedBy()
     {
         return event.getCompletedBy();
     }
 
-    @Override
     public String getCompletedDate()
     {
         return event.getCompletedDate();
     }
 
-    @Override
     public Boolean isDeleted()
     {
         return event.isDeleted();
     }
 
-    @Override
     public int getOptionSize()
     {
         return event.getOptionSize();
     }
 
-    @Override
     public Set<Relationship> getRelationships()
     {
         return event.getRelationships();
     }
 
-    @Override
     public Geometry getGeometry()
     {
         return event.getGeometry();
     }
 
-    @Override
     public String getAssignedUser()
     {
         return event.getAssignedUser();
     }
 
-    @Override
     public String getAssignedUserUsername()
     {
         return event.getAssignedUserUsername();
     }
 
-    @Override
     public boolean equals( Object o )
     {
         return event.equals( o );
     }
 
-    @Override
     public int hashCode()
     {
         return event.hashCode();
     }
 
-    @Override
     public String toString()
     {
         return event.toString();
     }
 
-    @Override
     public String getHref()
     {
         return event.getHref();

@@ -72,9 +72,10 @@ public class FilteringOutUndeclaredDataElementsProcessor implements Processor
             .collect( Collectors.toSet() ) );
     }
 
-    public static Set<DataValue> getFilteredEventDataValues( Event event, Set<String> programStageDataElementUids )
+    public static Set<DataValue> getFilteredDataValues( Set<DataValue> dataValues,
+        Set<String> programStageDataElementUids )
     {
-        return event.getDataValues().stream()
+        return Optional.ofNullable( dataValues ).orElse( Collections.emptySet() ).stream()
             .filter( dataValue -> programStageDataElementUids.contains( dataValue.getDataElement() ) )
             .collect( Collectors.toSet() );
     }
