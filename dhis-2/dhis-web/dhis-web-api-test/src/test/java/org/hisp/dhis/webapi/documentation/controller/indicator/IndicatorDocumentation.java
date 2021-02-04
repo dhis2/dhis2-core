@@ -28,6 +28,8 @@ package org.hisp.dhis.webapi.documentation.controller.indicator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.webapi.documentation.controller.AbstractWebApiTest;
 
@@ -38,3 +40,4 @@ public class IndicatorDocumentation
     extends AbstractWebApiTest<Indicator>
 {
 }
+

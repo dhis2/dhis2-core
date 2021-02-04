@@ -46,3 +46,4 @@ public class LegendSetDocumentation
         deleteStatus = HttpStatus.SC_NO_CONTENT;
     }
 }
+

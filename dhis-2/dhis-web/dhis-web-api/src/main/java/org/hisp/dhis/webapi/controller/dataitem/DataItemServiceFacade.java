@@ -103,7 +103,7 @@ public class DataItemServiceFacade
      * This method will iterate through the list of target entities, and query each
      * one of them using the filters and params provided. The result list will bring
      * together the results of all target entities queried.
-     *
+     * 
      * @param targetEntities the list of entities to be retrieved
      * @param orderParams request ordering params
      * @param filters request filters
@@ -196,7 +196,7 @@ public class DataItemServiceFacade
 
     /**
      * This method will build a Query object based on the provided arguments.
-     *
+     * 
      * @param entity the BaseDimensionalItemObject class to be queried.
      * @param filters request filters
      * @param options request options

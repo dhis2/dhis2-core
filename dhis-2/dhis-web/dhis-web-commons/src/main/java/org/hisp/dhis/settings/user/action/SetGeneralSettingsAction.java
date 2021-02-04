@@ -28,14 +28,13 @@ package org.hisp.dhis.settings.user.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.system.util.LocaleUtils;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
-
-import com.opensymphony.xwork2.Action;
 
 /**
  * @author Dang Duy Hieu
@@ -146,8 +145,7 @@ public class SetGeneralSettingsAction
         userSettingService.saveUserSetting( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, messageEmailNotification );
         userSettingService.saveUserSetting( UserSettingKey.MESSAGE_SMS_NOTIFICATION, messageSmsNotification );
         userSettingService.saveUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY,
-            UserSettingKey.getAsRealClass( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY.getName(),
-                analysisDisplayProperty ) );
+            UserSettingKey.getAsRealClass( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY.getName(), analysisDisplayProperty ) );
 
         message = i18n.getString( "settings_updated" );
 

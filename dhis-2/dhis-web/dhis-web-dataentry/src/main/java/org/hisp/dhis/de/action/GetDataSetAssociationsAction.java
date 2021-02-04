@@ -50,7 +50,6 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.opensymphony.xwork2.Action;
-
 /**
  * @author Lars Helge Overland
  */
@@ -59,13 +58,13 @@ public class GetDataSetAssociationsAction
 {
     @Autowired
     private OrganisationUnitService organisationUnitService;
-
+    
     @Autowired
     private IdentifiableObjectManager identifiableObjectManager;
 
     @Autowired
     private CurrentUserService currentUserService;
-
+    
     // -------------------------------------------------------------------------
     // Output
     // -------------------------------------------------------------------------
@@ -95,20 +94,17 @@ public class GetDataSetAssociationsAction
 
         Integer level = organisationUnitService.getOfflineOrganisationUnitLevels();
 
-        Date lastUpdated = DateUtils.max(
-            identifiableObjectManager.getLastUpdated( DataSet.class ),
+        Date lastUpdated = DateUtils.max( 
+            identifiableObjectManager.getLastUpdated( DataSet.class ), 
             identifiableObjectManager.getLastUpdated( OrganisationUnit.class ) );
-        String tag = lastUpdated != null && user != null
-            ? (DateUtils.getLongDateString( lastUpdated ) + SEP + level + SEP + user.getUid())
-            : null;
-
+        String tag = lastUpdated != null && user != null ? ( DateUtils.getLongDateString( lastUpdated ) + SEP + level + SEP + user.getUid() ): null;
+        
         if ( ContextUtils.isNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(), tag ) )
         {
             return SUCCESS;
         }
-
-        OrganisationUnitDataSetAssociationSet organisationUnitSet = organisationUnitService
-            .getOrganisationUnitDataSetAssociationSet( level );
+        
+        OrganisationUnitDataSetAssociationSet organisationUnitSet = organisationUnitService.getOrganisationUnitDataSetAssociationSet( level );
 
         dataSetAssociationSets = organisationUnitSet.getDataSetAssociationSets();
 

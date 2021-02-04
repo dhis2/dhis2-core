@@ -28,12 +28,12 @@ package org.hisp.dhis.security.authority;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.appmanager.AppManager;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.appmanager.AppManager;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

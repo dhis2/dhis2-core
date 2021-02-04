@@ -42,8 +42,6 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -103,6 +101,8 @@ import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 
+import lombok.RequiredArgsConstructor;
+
 /**
  * The following statements are added not to cause api break. They need to be
  * remove say in 2.26 or so once users are aware of the changes.
@@ -147,18 +147,15 @@ public class TrackedEntityInstanceController
     // READ
     // -------------------------------------------------------------------------
 
-    @GetMapping( produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_XML,
-        ContextUtils.CONTENT_TYPE_CSV } )
-    public @ResponseBody RootNode getTrackedEntityInstances( TrackedEntityInstanceCriteria criteria,
-        HttpServletResponse response )
+    @GetMapping( produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_XML, ContextUtils.CONTENT_TYPE_CSV } )
+    public @ResponseBody RootNode getTrackedEntityInstances( TrackedEntityInstanceCriteria criteria, HttpServletResponse response )
     {
         List<String> fields = contextService.getFieldsFromRequestOrAll();
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances(
-            queryParams,
-            getTrackedEntityInstanceParams( fields ), false );
+        List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
+                getTrackedEntityInstanceParams( fields ), false );
 
         RootNode rootNode = NodeUtils.createMetadata();
 
@@ -172,9 +169,8 @@ public class TrackedEntityInstanceController
 
         if ( !StringUtils.isEmpty( criteria.getAttachment() ) )
         {
-            response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
-                "attachment; filename=" + criteria.getAttachment() );
-            response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+                response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + criteria.getAttachment() );
+                response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
         }
 
         rootNode.addChild( fieldFilterService.toCollectionNode( TrackedEntityInstance.class,

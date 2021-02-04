@@ -28,27 +28,6 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
-import static org.hisp.dhis.scheduling.JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -89,6 +68,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.scheduling.JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -152,14 +151,14 @@ public class CompleteDataSetRegistrationController
         @RequestParam( required = false ) Integer limit,
         IdSchemes idSchemes,
         HttpServletRequest request,
-        HttpServletResponse response )
+        HttpServletResponse response
+    )
         throws IOException
     {
         response.setContentType( CONTENT_TYPE_XML );
 
         ExportParams params = registrationExchangeService.paramsFromUrl(
-            dataSet, orgUnit, orgUnitGroup, period, startDate, endDate, includeChildren, created, createdDuration,
-            limit, idSchemes );
+            dataSet, orgUnit, orgUnitGroup, period, startDate, endDate, includeChildren, created, createdDuration, limit, idSchemes );
 
         registrationExchangeService.writeCompleteDataSetRegistrationsXml( params, response.getOutputStream() );
     }
@@ -178,14 +177,14 @@ public class CompleteDataSetRegistrationController
         @RequestParam( required = false ) Integer limit,
         IdSchemes idSchemes,
         HttpServletRequest request,
-        HttpServletResponse response )
+        HttpServletResponse response
+    )
         throws IOException
     {
         response.setContentType( CONTENT_TYPE_JSON );
 
         ExportParams params = registrationExchangeService.paramsFromUrl(
-            dataSet, orgUnit, orgUnitGroup, period, startDate, endDate, includeChildren, created, createdDuration,
-            limit, idSchemes );
+            dataSet, orgUnit, orgUnitGroup, period, startDate, endDate, includeChildren, created, createdDuration, limit, idSchemes );
 
         registrationExchangeService.writeCompleteDataSetRegistrationsJson( params, response.getOutputStream() );
     }
@@ -196,7 +195,8 @@ public class CompleteDataSetRegistrationController
 
     @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_XML )
     public void postCompleteRegistrationsXml(
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response
+    )
         throws IOException
     {
         if ( importOptions.isAsync() )
@@ -206,8 +206,7 @@ public class CompleteDataSetRegistrationController
         else
         {
             response.setContentType( CONTENT_TYPE_XML );
-            ImportSummary summary = registrationExchangeService
-                .saveCompleteDataSetRegistrationsXml( request.getInputStream(), importOptions );
+            ImportSummary summary = registrationExchangeService.saveCompleteDataSetRegistrationsXml( request.getInputStream(), importOptions );
             summary.setImportOptions( importOptions );
             renderService.toXml( response.getOutputStream(), summary );
         }
@@ -215,7 +214,8 @@ public class CompleteDataSetRegistrationController
 
     @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_JSON )
     public void postCompleteRegistrationsJson(
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response
+    )
         throws IOException
     {
         if ( importOptions.isAsync() )
@@ -225,8 +225,7 @@ public class CompleteDataSetRegistrationController
         else
         {
             response.setContentType( CONTENT_TYPE_JSON );
-            ImportSummary summary = registrationExchangeService
-                .saveCompleteDataSetRegistrationsJson( request.getInputStream(), importOptions );
+            ImportSummary summary = registrationExchangeService.saveCompleteDataSetRegistrationsJson( request.getInputStream(), importOptions );
             summary.setImportOptions( importOptions );
             renderService.toJson( response.getOutputStream(), summary );
         }
@@ -244,15 +243,13 @@ public class CompleteDataSetRegistrationController
         @RequestParam String ou,
         @RequestParam( required = false ) String cc,
         @RequestParam( required = false ) String cp,
-        @RequestParam( required = false ) boolean multiOu, HttpServletResponse response )
-        throws WebMessageException
+        @RequestParam( required = false ) boolean multiOu, HttpServletResponse response ) throws WebMessageException
     {
         Set<DataSet> dataSets = new HashSet<>( manager.getByUid( DataSet.class, ds ) );
 
         if ( dataSets.size() != ds.size() )
         {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "Illegal data set identifier in this list: " + ds ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Illegal data set identifier in this list: " + ds ) );
         }
 
         Period period = PeriodType.getPeriodFromIsoString( pe );
@@ -286,8 +283,7 @@ public class CompleteDataSetRegistrationController
 
         for ( DataSet dataSet : dataSets )
         {
-            if ( dataSetService.isLocked( user, dataSet, period, organisationUnit, attributeOptionCombo, null,
-                multiOu ) )
+            if ( dataSetService.isLocked( user, dataSet, period, organisationUnit, attributeOptionCombo, null, multiOu ) )
             {
                 lockedDataSets.add( dataSet.getUid() );
             }
@@ -295,8 +291,7 @@ public class CompleteDataSetRegistrationController
 
         if ( lockedDataSets.size() != 0 )
         {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "Locked Data set(s) : " + StringUtils.join( lockedDataSets, ", " ) ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Locked Data set(s) : " + StringUtils.join( lockedDataSets, ", " ) ) );
         }
 
         // ---------------------------------------------------------------------
@@ -318,23 +313,20 @@ public class CompleteDataSetRegistrationController
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void asyncImport( ImportOptions importOptions, String format, HttpServletRequest request,
-        HttpServletResponse response )
+    private void asyncImport( ImportOptions importOptions, String format, HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
         Pair<InputStream, Path> tmpFile = saveTmpFile( request.getInputStream() );
 
-        JobConfiguration jobId = new JobConfiguration( "inMemoryCompleteDataSetRegistrationImport",
-            COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid(), true );
+        JobConfiguration jobId = new JobConfiguration( "inMemoryCompleteDataSetRegistrationImport", COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
         schedulingManager.executeJob(
             new ImportCompleteDataSetRegistrationsTask(
-                registrationExchangeService, sessionFactory, tmpFile.getLeft(), tmpFile.getRight(), importOptions,
-                format,
-                jobId ) );
+                registrationExchangeService, sessionFactory, tmpFile.getLeft(), tmpFile.getRight(), importOptions, format,
+                jobId )
+        );
 
-        response.setHeader( "Location",
-            ContextUtils.getRootPath( request ) + "/system/tasks/" + COMPLETE_DATA_SET_REGISTRATION_IMPORT );
+        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + COMPLETE_DATA_SET_REGISTRATION_IMPORT );
         webMessageService.send( jobConfigurationReport( jobId ), response, request );
     }
 
@@ -346,7 +338,7 @@ public class CompleteDataSetRegistrationController
         File tmpFile = File.createTempFile( filename, null );
         tmpFile.deleteOnExit();
 
-        try (FileOutputStream out = new FileOutputStream( tmpFile ))
+        try ( FileOutputStream out = new FileOutputStream( tmpFile ) )
         {
             IOUtils.copy( in, out );
         }

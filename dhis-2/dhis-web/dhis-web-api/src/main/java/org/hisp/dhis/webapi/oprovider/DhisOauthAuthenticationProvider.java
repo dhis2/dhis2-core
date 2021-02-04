@@ -28,8 +28,6 @@ package org.hisp.dhis.webapi.oprovider;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.SerializationUtils;
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +40,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Henning Håkonsen

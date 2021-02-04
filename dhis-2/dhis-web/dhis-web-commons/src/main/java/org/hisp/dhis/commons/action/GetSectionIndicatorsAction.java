@@ -82,18 +82,18 @@ public class GetSectionIndicatorsAction
         {
             return SUCCESS;
         }
-
+        
         DataSet dataSet = dataSetService.getDataSet( dataSetId );
-
+        
         indicators = new ArrayList<>( dataSet.getIndicators() );
-
+        
         for ( Section section : dataSet.getSections() )
         {
             indicators.removeAll( section.getIndicators() );
         }
-
+        
         Collections.sort( indicators );
-
+        
         return SUCCESS;
     }
 }

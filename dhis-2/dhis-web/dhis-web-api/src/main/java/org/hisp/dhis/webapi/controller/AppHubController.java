@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.apphub.WebApp;
+
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -72,7 +73,7 @@ public class AppHubController
      * Deprecated as of version 2.35 and should be removed eventually.
      */
     @GetMapping( produces = "application/json" )
-    public List<WebApp> listAppHub()
+    public  List<WebApp> listAppHub()
         throws IOException
     {
         return appHubService.getAppHub();

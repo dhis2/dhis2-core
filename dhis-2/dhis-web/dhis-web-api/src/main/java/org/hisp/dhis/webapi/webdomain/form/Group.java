@@ -47,9 +47,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class Group
 {
     private String label;
-
+    
     private String description;
-
+    
     private int dataElementCount;
 
     private List<Field> fields = new ArrayList<>();
@@ -78,7 +78,7 @@ public class Group
     {
         return description;
     }
-
+    
     public void setDescription( String description )
     {
         this.description = description;
@@ -90,12 +90,12 @@ public class Group
     {
         return dataElementCount;
     }
-
+    
     public void setDataElementCount( int dataElementCount )
     {
         this.dataElementCount = dataElementCount;
     }
-
+    
     @JsonProperty( value = "fields" )
     @JacksonXmlElementWrapper( localName = "fields", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "field", namespace = DxfNamespaces.DXF_2_0 )
@@ -116,7 +116,7 @@ public class Group
     {
         return metaData;
     }
-
+    
     public void setMetaData( Map<Object, Object> metaData )
     {
         this.metaData = metaData;

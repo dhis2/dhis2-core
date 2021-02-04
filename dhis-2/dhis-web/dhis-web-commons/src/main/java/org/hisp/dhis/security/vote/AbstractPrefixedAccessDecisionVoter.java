@@ -28,15 +28,15 @@ package org.hisp.dhis.security.vote;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
 
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: AbstractPrefixedAccessDecisionVoter.java 3160 2007-03-24
- *          20:15:06Z torgeilo $
+ * @version $Id: AbstractPrefixedAccessDecisionVoter.java 3160 2007-03-24 20:15:06Z torgeilo $
  */
 @Slf4j
 public abstract class AbstractPrefixedAccessDecisionVoter

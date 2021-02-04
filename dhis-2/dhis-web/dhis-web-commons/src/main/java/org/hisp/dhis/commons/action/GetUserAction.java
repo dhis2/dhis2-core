@@ -61,7 +61,7 @@ public class GetUserAction
     {
         this.id = id;
     }
-
+    
     private String username;
 
     public void setUsername( String username )
@@ -90,7 +90,7 @@ public class GetUserAction
         else if ( username != null )
         {
             UserCredentials credentials = userService.getUserCredentialsByUsername( username );
-
+            
             user = credentials != null ? credentials.getUserInfo() : null;
         }
         return SUCCESS;

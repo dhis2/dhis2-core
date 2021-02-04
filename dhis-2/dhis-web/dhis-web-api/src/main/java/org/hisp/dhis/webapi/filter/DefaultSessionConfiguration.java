@@ -49,12 +49,13 @@ import org.springframework.web.filter.CharacterEncodingFilter;
  *
  */
 @Configuration
-@DependsOn( "dhisConfigurationProvider" )
+@DependsOn("dhisConfigurationProvider")
 @Conditional( RedisDisabledCondition.class )
 public class DefaultSessionConfiguration
 {
     /**
-     * Defines a {@link CharacterEncodingFilter} named springSessionRepositoryFilter
+     * Defines a {@link CharacterEncodingFilter} named
+     * springSessionRepositoryFilter
      *
      * @return a {@link CharacterEncodingFilter} without specifying encoding.
      */

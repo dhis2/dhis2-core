@@ -28,33 +28,17 @@ package org.hisp.dhis.webapi.controller.mapping;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_GROUP_DIM_ID;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.common.coordinate.CoordinateObject;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.coordinate.CoordinateObject;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -75,7 +59,21 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.google.common.collect.ImmutableMap;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_GROUP_DIM_ID;
 
 /**
  * @author Lars Helge Overland
@@ -89,9 +87,10 @@ public class GeoFeatureController
 
     private static final CacheControl GEOFEATURE_CACHE = CacheControl.maxAge( 2, TimeUnit.HOURS ).cachePrivate();
 
-    private static final Map<FeatureType, Integer> FEATURE_TYPE_MAP = ImmutableMap.<FeatureType, Integer> builder()
-        .put( FeatureType.POINT, GeoFeature.TYPE_POINT ).put( FeatureType.MULTI_POLYGON, GeoFeature.TYPE_POLYGON )
-        .put( FeatureType.POLYGON, GeoFeature.TYPE_POLYGON ).build();
+    private static final Map<FeatureType, Integer> FEATURE_TYPE_MAP = ImmutableMap.<FeatureType, Integer>builder().
+        put( FeatureType.POINT, GeoFeature.TYPE_POINT ).
+        put( FeatureType.MULTI_POLYGON, GeoFeature.TYPE_POLYGON ).
+        put( FeatureType.POLYGON, GeoFeature.TYPE_POLYGON ).build();
 
     private final DataQueryService dataQueryService;
 
@@ -103,7 +102,7 @@ public class GeoFeatureController
 
     public GeoFeatureController( DataQueryService dataQueryService,
         OrganisationUnitGroupService organisationUnitGroupService, CurrentUserService currentUserService,
-        RenderService renderService )
+        RenderService renderService)
     {
         this.dataQueryService = dataQueryService;
         this.organisationUnitGroupService = organisationUnitGroupService;
@@ -115,8 +114,7 @@ public class GeoFeatureController
     // Resources
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON,
-        ContextUtils.CONTENT_TYPE_HTML } )
+    @RequestMapping( method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_HTML } )
     @ResponseBody
     public ResponseEntity<List<GeoFeature>> getGeoFeaturesJson(
         @RequestParam( required = false ) String ou,
@@ -151,14 +149,12 @@ public class GeoFeatureController
         @RequestParam( defaultValue = "false", value = "includeGroupSets" ) boolean rpIncludeGroupSets,
         @RequestParam Map<String, String> parameters,
         DhisApiVersion apiVersion,
-        HttpServletRequest request, HttpServletResponse response )
-        throws IOException
+        HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         WebOptions options = new WebOptions( parameters );
         boolean includeGroupSets = "detailed".equals( options.getViewClass() ) || rpIncludeGroupSets;
 
-        List<GeoFeature> features = getGeoFeatures( ou, oug, displayProperty, relativePeriodDate, userOrgUnit, request,
-            response, includeGroupSets, apiVersion );
+        List<GeoFeature> features = getGeoFeatures( ou, oug, displayProperty, relativePeriodDate, userOrgUnit, request, response, includeGroupSets, apiVersion );
 
         if ( features == null )
         {
@@ -175,8 +171,8 @@ public class GeoFeatureController
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a list of {@link GeoFeature}. Returns null if not modified based on
-     * the request.
+     * Returns a list of {@link GeoFeature}. Returns null if not modified based on the
+     * request.
      *
      * @param ou the organisation unit parameter
      * @param oug the organisation unit group parameter
@@ -188,8 +184,7 @@ public class GeoFeatureController
      * @param includeGroupSets whether to include organisation unit group sets.
      * @return a list of geo features or null.
      */
-    private List<GeoFeature> getGeoFeatures( String ou, String oug, DisplayProperty displayProperty,
-        Date relativePeriodDate,
+    private List<GeoFeature> getGeoFeatures( String ou, String oug, DisplayProperty displayProperty, Date relativePeriodDate,
         String userOrgUnit, HttpServletRequest request, HttpServletResponse response, boolean includeGroupSets,
         DhisApiVersion apiVersion )
     {
@@ -224,8 +219,7 @@ public class GeoFeatureController
             return coordinateObject != null &&
                 coordinateObject.getFeatureType() != null &&
                 coordinateObject.hasCoordinates() &&
-                (coordinateObject.getFeatureType() != FeatureType.POINT
-                    || ValidationUtils.coordinateIsValid( coordinateObject.getCoordinates() ));
+                (coordinateObject.getFeatureType() != FeatureType.POINT || ValidationUtils.coordinateIsValid( coordinateObject.getCoordinates() ));
         } ).collect( Collectors.toList() );
 
         boolean modified = !ContextUtils.clearIfNotModified( request, response, dimensionalItemObjects );
@@ -244,8 +238,7 @@ public class GeoFeatureController
      * @param params the {@link DataQueryParams}.
      * @param dimensionalItemObjects the list of {@link DimensionalItemObject}.
      * @param includeGroupSets whether to include group sets.
-     * @param useOrgUnitGroup whether to use org unit group when retrieving
-     *        features.
+     * @param useOrgUnitGroup whether to use org unit group when retrieving features.
      * @return a list of {@link GeoFeature}.
      */
     private List<GeoFeature> getGeoFeatures( DataQueryParams params,
@@ -253,9 +246,9 @@ public class GeoFeatureController
     {
         List<GeoFeature> features = new ArrayList<>();
 
-        List<OrganisationUnitGroupSet> groupSets = includeGroupSets
-            ? organisationUnitGroupService.getAllOrganisationUnitGroupSets()
-            : new ArrayList<>();
+        List<OrganisationUnitGroupSet> groupSets = includeGroupSets ?
+            organisationUnitGroupService.getAllOrganisationUnitGroupSets() :
+            new ArrayList<>();
 
         Set<OrganisationUnit> roots = currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
 
@@ -265,9 +258,8 @@ public class GeoFeatureController
 
             CoordinateObject coordinateObject = (CoordinateObject) unit;
 
-            Integer ty = coordinateObject.getFeatureType() != null
-                ? FEATURE_TYPE_MAP.get( coordinateObject.getFeatureType() )
-                : null;
+            Integer ty = coordinateObject.getFeatureType() != null ?
+                FEATURE_TYPE_MAP.get( coordinateObject.getFeatureType() ) : null;
 
             feature.setId( unit.getUid() );
             feature.setCode( unit.getCode() );

@@ -28,15 +28,15 @@ package org.hisp.dhis.webportal.interceptor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashMap;
-import java.util.Map;
+import com.opensymphony.xwork2.ActionInvocation;
+import com.opensymphony.xwork2.interceptor.Interceptor;
 
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webportal.module.ModuleManager;
 
-import com.opensymphony.xwork2.ActionInvocation;
-import com.opensymphony.xwork2.interceptor.Interceptor;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -81,7 +81,7 @@ public class XWorkPortalModuleInterceptor
         throws Exception
     {
         String contextPath = ContextUtils.getContextPath( ServletActionContext.getRequest() );
-
+        
         Map<String, Object> handle = new HashMap<>( 2 );
 
         handle.put( KEY_MENU_MODULES, moduleManager.getAccessibleMenuModulesAndApps( contextPath ) );

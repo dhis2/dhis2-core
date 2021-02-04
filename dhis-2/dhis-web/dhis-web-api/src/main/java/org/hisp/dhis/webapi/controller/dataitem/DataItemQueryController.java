@@ -45,8 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -63,6 +61,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class is responsible for providing methods responsible for retrieving
@@ -135,7 +135,7 @@ public class DataItemQueryController
     /**
      * Based on the informed arguments, this method will read the URL and based on
      * the give params will retrieve the respective data items.
-     *
+     * 
      * @param currentUser the logged user
      * @param urlParameters the request url params
      * @param orderParams the request order params

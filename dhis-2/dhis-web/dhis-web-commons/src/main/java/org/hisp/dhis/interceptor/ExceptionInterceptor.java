@@ -28,15 +28,9 @@ package org.hisp.dhis.interceptor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.opensymphony.xwork2.ActionInvocation;
+import com.opensymphony.xwork2.interceptor.Interceptor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
@@ -44,8 +38,12 @@ import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 
-import com.opensymphony.xwork2.ActionInvocation;
-import com.opensymphony.xwork2.interceptor.Interceptor;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
 /**
  * This interceptor will intercept exceptions and redirect to appropriate
@@ -53,33 +51,24 @@ import com.opensymphony.xwork2.interceptor.Interceptor;
  * configuration.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: WebWorkExceptionInterceptor.java 6335 2008-11-20 11:11:26Z
- *          larshelg $
+ * @version $Id: WebWorkExceptionInterceptor.java 6335 2008-11-20 11:11:26Z larshelg $
  */
 @Slf4j
 public class ExceptionInterceptor
     implements Interceptor
 {
     public static final String EXCEPTION_RESULT_KEY = "onExceptionReturn";
-
     public static final String EXCEPTION_RESULT_DEFAULT = "exceptionDefault";
-
     public static final String EXCEPTION_RESULT_PLAIN_TEXT = "plainTextError";
-
     public static final String EXCEPTION_RESULT_PAGE_ACCESS_DENIED = "pageAccessDenied";
-
     public static final String EXCEPTION_RESULT_PAGE_JSON_ACCESS_DENIED = "jsonAccessDenied";
 
     public static final String EXCEPTION_RESULT_CREATE_ACCESS_DENIED = "createAccessDenied";
-
     public static final String EXCEPTION_RESULT_READ_ACCESS_DENIED = "readAccessDenied";
-
     public static final String EXCEPTION_RESULT_UPDATE_ACCESS_DENIED = "updateAccessDenied";
-
     public static final String EXCEPTION_RESULT_DELETE_ACCESS_DENIED = "deleteAccessDenied";
 
     public static final String TEMPLATE_KEY_EXCEPTION = "exception";
-
     public static final String TEMPLATE_KEY_SHOW_STACK_TRACE = "showStackTrace";
 
     // -------------------------------------------------------------------------
@@ -177,7 +166,8 @@ public class ExceptionInterceptor
 
             boolean ignore = false;
 
-            checkIgnore: do
+            checkIgnore:
+            do
             {
                 if ( ignoredExceptions.contains( t.getClass().getName() ) )
                 {

@@ -83,13 +83,12 @@ public class GetUsersAction
     public String execute()
         throws Exception
     {
-        // TODO: Allow user with F_USER_VIEW_WITHIN_MANAGED_GROUP and restrict viewing
-        // to within managed groups.
+        //TODO: Allow user with F_USER_VIEW_WITHIN_MANAGED_GROUP and restrict viewing to within managed groups.
 
         users = new ArrayList<>( userService.getAllUsers() );
 
         ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(), users );
-
+        
         if ( key != null )
         {
             filterByKey( key, true );

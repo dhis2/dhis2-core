@@ -35,10 +35,9 @@ import java.util.List;
 /**
  * Comparator for sorting modules according to a specified order. Modules not
  * listed in the given order are sorted alphabetically after the specified ones.
- *
+ * 
  * @author Torgeir Lorange Ostby
- * @version $Id: ConfigurableModuleComparator.java 2869 2007-02-20 14:26:09Z
- *          andegje $
+ * @version $Id: ConfigurableModuleComparator.java 2869 2007-02-20 14:26:09Z andegje $
  */
 public class ConfigurableModuleComparator
     implements Comparator<Module>

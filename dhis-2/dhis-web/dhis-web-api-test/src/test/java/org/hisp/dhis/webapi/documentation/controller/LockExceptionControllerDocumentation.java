@@ -28,10 +28,7 @@ package org.hisp.dhis.webapi.documentation.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.LockException;
@@ -45,7 +42,9 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
 
-import com.google.common.collect.Lists;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -60,8 +59,7 @@ public class LockExceptionControllerDocumentation
     private DataSetService dataSetService;
 
     @Test
-    public void testAddLockException()
-        throws Exception
+    public void testAddLockException() throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         PeriodType periodType = periodService.getPeriodTypeByName( "Monthly" );
@@ -85,8 +83,7 @@ public class LockExceptionControllerDocumentation
     }
 
     @Test
-    public void testDeleteLockException()
-        throws Exception
+    public void testDeleteLockException() throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         PeriodType periodType = periodService.getPeriodTypeByName( "Monthly" );
@@ -108,12 +105,12 @@ public class LockExceptionControllerDocumentation
 
         mvc.perform( delete( deleteUrl ).session( session ).accept( TestUtils.APPLICATION_JSON_UTF8 ) )
             .andExpect( status().isNoContent() )
-            .andDo( documentPrettyPrint( "lockExceptions/delete" ) );
+            .andDo( documentPrettyPrint( "lockExceptions/delete" )
+            );
     }
 
     @Test
-    public void testGetLockException()
-        throws Exception
+    public void testGetLockException() throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         PeriodType periodType = periodService.getPeriodTypeByName( "Monthly" );
@@ -131,16 +128,17 @@ public class LockExceptionControllerDocumentation
         LockException lockException = new LockException( period, orgUnit, dataSet );
         dataSetService.addLockException( lockException );
 
-        String getUrl = "/lockExceptions?filter=organisationUnit.id:eq:" + orgUnit.getUid()
-            + "&filter=period:eq:201612&filter=dataSet.id:eq:" + dataSet.getUid();
+        String getUrl = "/lockExceptions?filter=organisationUnit.id:eq:" + orgUnit.getUid() + "&filter=period:eq:201612&filter=dataSet.id:eq:" + dataSet.getUid();
 
         Lists.newArrayList(
             fieldWithPath( "period" ).description( "Property" ),
             fieldWithPath( "organisationUnit" ).description( "Property" ),
-            fieldWithPath( "dataSet" ).description( "Property" ) );
+            fieldWithPath( "dataSet" ).description( "Property" )
+        );
 
         mvc.perform( get( getUrl ).session( session ).accept( TestUtils.APPLICATION_JSON_UTF8 ) )
             .andExpect( status().is( 200 ) )
-            .andDo( documentPrettyPrint( "lockExceptions/get" ) ).andReturn();
+            .andDo( documentPrettyPrint( "lockExceptions/get" )
+            ).andReturn();
     }
 }

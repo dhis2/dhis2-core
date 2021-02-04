@@ -32,8 +32,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
@@ -41,6 +39,8 @@ import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * AccessDecisionManager which delegates to other AccessDecisionManagers in a
@@ -50,8 +50,7 @@ import org.springframework.stereotype.Component;
  * for a specific target, no other AccessDecisionManager is questioned.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: LogicalOrAccessDecisionManager.java 6335 2008-11-20 11:11:26Z
- *          larshelg $
+ * @version $Id: LogicalOrAccessDecisionManager.java 6335 2008-11-20 11:11:26Z larshelg $
  */
 @Primary
 @Component
@@ -76,8 +75,7 @@ public class LogicalOrAccessDecisionManager implements AccessDecisionManager
 
     @Override
     public void decide( Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes )
-        throws AccessDeniedException,
-        InsufficientAuthenticationException
+        throws AccessDeniedException, InsufficientAuthenticationException
     {
         AccessDeniedException ade = null;
         InsufficientAuthenticationException iae = null;

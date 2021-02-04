@@ -28,15 +28,14 @@ package org.hisp.dhis.commons.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.opensymphony.xwork2.Action;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -61,14 +60,14 @@ public class GetCategoryOptionsAction
     // -------------------------------------------------------------------------
     // Action
     // -------------------------------------------------------------------------
-
+    
     @Override
     public String execute()
     {
         categoryOptions = new ArrayList<>( categoryService.getAllCategoryOptions() );
-
+        
         Collections.sort( categoryOptions );
-
+        
         return SUCCESS;
     }
 }

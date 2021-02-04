@@ -59,13 +59,10 @@ import com.google.common.collect.Lists;
 public class PeriodTypeController
 {
     private final PeriodService periodService;
-
     private final ContextService contextService;
-
     private final FieldFilterService fieldFilterService;
 
-    public PeriodTypeController( PeriodService periodService, ContextService contextService,
-        FieldFilterService fieldFilterService )
+    public PeriodTypeController( PeriodService periodService, ContextService contextService, FieldFilterService fieldFilterService )
     {
         this.periodService = periodService;
         this.contextService = contextService;
@@ -86,14 +83,12 @@ public class PeriodTypeController
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild(
-            fieldFilterService.toCollectionNode( PeriodTypeDto.class, new FieldFilterParams( periodTypes, fields ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( PeriodTypeDto.class, new FieldFilterParams( periodTypes, fields ) ) );
 
         return rootNode;
     }
 
-    @RequestMapping( value = "/relativePeriodTypes", method = RequestMethod.GET, produces = { "application/json",
-        "application/javascript" } )
+    @RequestMapping( value = "/relativePeriodTypes", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
     public @ResponseBody RelativePeriodEnum[] getRelativePeriodTypes()
     {
         return RelativePeriodEnum.values();

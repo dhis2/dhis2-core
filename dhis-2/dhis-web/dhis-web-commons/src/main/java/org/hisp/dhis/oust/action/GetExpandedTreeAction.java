@@ -58,7 +58,7 @@ public class GetExpandedTreeAction
     public void setSelectionTreeManager( SelectionTreeManager selectionTreeManager )
     {
         this.selectionTreeManager = selectionTreeManager;
-    }
+    }  
 
     // -------------------------------------------------------------------------
     // Output
@@ -99,7 +99,7 @@ public class GetExpandedTreeAction
     @Override
     public String execute()
         throws Exception
-    {
+    {        
         roots = new ArrayList<>( selectionTreeManager.getRootOrganisationUnits() );
 
         Collections.sort( roots );
@@ -163,11 +163,11 @@ public class GetExpandedTreeAction
             while ( !roots.contains( tmp ) )
             {
                 pathNodes.add( tmp ); // Add each parent
-
+                
                 if ( tmp != null && tmp.getParent() != null )
                 {
                     tmp = tmp.getParent();
-                }
+                }                
             }
 
             pathNodes.add( tmp ); // Add the root

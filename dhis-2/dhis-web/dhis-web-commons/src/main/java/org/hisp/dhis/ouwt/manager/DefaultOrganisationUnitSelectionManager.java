@@ -116,7 +116,7 @@ public class DefaultOrganisationUnitSelectionManager
         OrganisationUnit randomRootUnit = rootUnits.iterator().next();
 
         OrganisationUnit reloadedRootUnit = reloadOrganisationUnit( randomRootUnit );
-
+       
         return reloadedRootUnit.getParent();
     }
 

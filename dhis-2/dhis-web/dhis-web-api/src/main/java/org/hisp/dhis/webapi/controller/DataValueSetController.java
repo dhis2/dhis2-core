@@ -28,22 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
-import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
-import static org.hisp.dhis.webapi.utils.ContextUtils.*;
-
-import java.io.*;
-import java.util.Date;
-import java.util.Set;
-import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
@@ -71,6 +56,19 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.util.Date;
+import java.util.Set;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
+import static org.hisp.dhis.webapi.utils.ContextUtils.*;
 
 /**
  * @author Lars Helge Overland
@@ -125,8 +123,7 @@ public class DataValueSetController
         @RequestParam( required = false ) Integer limit,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
-        IdSchemes idSchemes, HttpServletResponse response )
-        throws IOException
+        IdSchemes idSchemes, HttpServletResponse response ) throws IOException
     {
         response.setContentType( CONTENT_TYPE_XML );
         setNoStore( response );
@@ -153,9 +150,7 @@ public class DataValueSetController
         @RequestParam( required = false ) Integer limit,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
-        IdSchemes idSchemes, HttpServletResponse response )
-        throws IOException,
-        AdxException
+        IdSchemes idSchemes, HttpServletResponse response ) throws IOException, AdxException
     {
         response.setContentType( CONTENT_TYPE_XML_ADX );
         setNoStore( response );
@@ -185,8 +180,7 @@ public class DataValueSetController
         @RequestParam( required = false ) Integer limit,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
-        IdSchemes idSchemes, HttpServletResponse response )
-        throws IOException
+        IdSchemes idSchemes, HttpServletResponse response ) throws IOException
     {
         response.setContentType( CONTENT_TYPE_JSON );
         setNoStore( response );
@@ -218,8 +212,7 @@ public class DataValueSetController
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
         IdSchemes idSchemes,
-        HttpServletResponse response )
-        throws IOException
+        HttpServletResponse response ) throws IOException
     {
         response.setContentType( CONTENT_TYPE_CSV );
         setNoStore( response );
@@ -242,8 +235,7 @@ public class DataValueSetController
     @RequestMapping( method = RequestMethod.POST, consumes = "application/xml" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     public void postDxf2DataValueSet( ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response )
-        throws IOException
+        HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         if ( importOptions.isAsync() )
         {
@@ -262,8 +254,7 @@ public class DataValueSetController
     @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_XML_ADX )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     public void postAdxDataValueSet( ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response )
-        throws IOException
+        HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         if ( importOptions.isAsync() )
         {
@@ -273,8 +264,7 @@ public class DataValueSetController
         {
             try
             {
-                ImportSummary summary = adxDataService.saveDataValueSet( request.getInputStream(), importOptions,
-                    null );
+                ImportSummary summary = adxDataService.saveDataValueSet( request.getInputStream(), importOptions, null );
 
                 summary.setImportOptions( importOptions );
 
@@ -293,8 +283,7 @@ public class DataValueSetController
     @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     public void postJsonDataValueSet( ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response )
-        throws IOException
+        HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         if ( importOptions.isAsync() )
         {
@@ -313,8 +302,7 @@ public class DataValueSetController
     @RequestMapping( method = RequestMethod.POST, consumes = "application/csv" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     public void postCsvDataValueSet( ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response )
-        throws IOException
+        HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         if ( importOptions.isAsync() )
         {
@@ -333,8 +321,7 @@ public class DataValueSetController
     @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_PDF )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     public void postPdfDataValueSet( ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response )
-        throws IOException
+        HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         if ( importOptions.isAsync() )
         {
@@ -358,18 +345,16 @@ public class DataValueSetController
      * Starts an asynchronous import task.
      *
      * @param importOptions the ImportOptions.
-     * @param format the resource representation format.
-     * @param request the HttpRequest.
-     * @param response the HttpResponse.
+     * @param format        the resource representation format.
+     * @param request       the HttpRequest.
+     * @param response      the HttpResponse.
      */
-    private void startAsyncImport( ImportOptions importOptions, String format, HttpServletRequest request,
-        HttpServletResponse response )
+    private void startAsyncImport( ImportOptions importOptions, String format, HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
         InputStream inputStream = saveTmp( request.getInputStream() );
 
-        JobConfiguration jobId = new JobConfiguration( "dataValueImport", DATAVALUE_IMPORT,
-            currentUserService.getCurrentUser().getUid(), true );
+        JobConfiguration jobId = new JobConfiguration( "dataValueImport", DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid(), true );
         schedulingManager.executeJob(
             new ImportDataValueTask( dataValueSetService, adxDataService, sessionFactory, inputStream, importOptions,
                 jobId, format ) );
@@ -379,8 +364,8 @@ public class DataValueSetController
     }
 
     /**
-     * Writes the input stream to a temporary file, and returns a new input stream
-     * connected to the file.
+     * Writes the input stream to a temporary file, and returns a new input
+     * stream connected to the file.
      *
      * @param in the InputStream.
      * @return an InputStream.
@@ -392,7 +377,7 @@ public class DataValueSetController
 
         tmpFile.deleteOnExit();
 
-        try (FileOutputStream out = new FileOutputStream( tmpFile ))
+        try ( FileOutputStream out = new FileOutputStream( tmpFile ) )
         {
             IOUtils.copy( in, out );
         }
@@ -401,34 +386,30 @@ public class DataValueSetController
     }
 
     /**
-     * Returns an output stream with the appropriate compression based on the given
-     * {@link Compression} argument.
+     * Returns an output stream with the appropriate compression based on the
+     * given {@link Compression} argument.
      *
      * @param response the {@link HttpServletResponse}.
      * @param attachment the file download attachment name
      * @param compression the Compression {@link Compression}
      * @param format the file format, can be json, xml or csv.
-     * @return Compressed OutputStream if given compression is given, otherwise just
-     *         return uncompressed outputStream
+     * @return Compressed OutputStream if given compression is given, otherwise just return uncompressed outputStream
      */
-    private OutputStream compress( HttpServletResponse response, String attachment, Compression compression,
-        String format )
+    private OutputStream compress( HttpServletResponse response, String attachment, Compression compression, String format )
         throws IOException,
         HttpMessageNotWritableException
     {
         String fileName = StringUtils.isEmpty( attachment ) ? "datavalue" : attachment;
-
+        
         if ( Compression.GZIP == compression )
         {
-            response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
-                "attachment; filename=" + fileName + "." + format + ".gzip" );
+            response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + fileName + "." + format + ".gzip" );
             response.setHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             return new GZIPOutputStream( response.getOutputStream() );
         }
         else if ( Compression.ZIP == compression )
         {
-            response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
-                "attachment; filename=" + fileName + "." + format + ".zip" );
+            response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + fileName + "." + format + ".zip" );
             response.setHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
 
             ZipOutputStream outputStream = new ZipOutputStream( response.getOutputStream() );
@@ -438,8 +419,7 @@ public class DataValueSetController
         }
         else
         {
-            // file download only if attachment is explicitly specified for no-compression
-            // option.
+            // file download only if attachment is explicitly specified for  no-compression option.
             if ( !StringUtils.isEmpty( attachment ) )
             {
                 response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + attachment );

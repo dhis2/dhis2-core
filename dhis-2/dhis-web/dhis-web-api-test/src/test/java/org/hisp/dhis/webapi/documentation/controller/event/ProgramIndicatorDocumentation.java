@@ -38,3 +38,4 @@ public class ProgramIndicatorDocumentation
     extends AbstractWebApiTest<ProgramIndicator>
 {
 }
+

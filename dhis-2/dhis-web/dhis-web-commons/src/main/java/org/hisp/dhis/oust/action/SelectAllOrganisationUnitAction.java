@@ -1,12 +1,11 @@
 package org.hisp.dhis.oust.action;
 
-import java.util.Collection;
-
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
 
-import com.opensymphony.xwork2.Action;
+import java.util.Collection;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo

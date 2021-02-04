@@ -38,8 +38,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -54,11 +52,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Austin McGee <austin@dhis2.org>
  */
-@Slf4j
-@Component
+ @Slf4j
+ @Component
 public class AppOverrideFilter
     extends OncePerRequestFilter
 {
@@ -68,19 +68,15 @@ public class AppOverrideFilter
     @Autowired
     private ObjectMapper jsonMapper;
 
-    public static final String APP_PATH_PATTERN = "^/" + AppManager.BUNDLED_APP_PREFIX + "("
-        + String.join( "|", AppManager.BUNDLED_APPS ) + ")/(.*)";
-    // public static final String REDIRECT_APP_PATH_PATTERN = "^/" +
-    // AppController.RESOURCE_PATH + "-(" + String.join("|",
-    // AppManager.BUNDLED_APPS) + ")/(.*)"
+    public static final String APP_PATH_PATTERN = "^/" + AppManager.BUNDLED_APP_PREFIX + "(" + String.join("|", AppManager.BUNDLED_APPS) + ")/(.*)";
+    // public static final String REDIRECT_APP_PATH_PATTERN = "^/" + AppController.RESOURCE_PATH + "-(" + String.join("|", AppManager.BUNDLED_APPS) + ")/(.*)"
 
     // -------------------------------------------------------------------------
     // Filter implementation
     // -------------------------------------------------------------------------
 
     // From AppController.java (some duplication)
-    private void serveInstalledAppResource( App app, String resourcePath, HttpServletRequest request,
-        HttpServletResponse response )
+    private void serveInstalledAppResource( App app, String resourcePath, HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
         // Get page requested
@@ -91,8 +87,7 @@ public class AppOverrideFilter
         if ( "manifest.webapp".equals( resourcePath ) )
         {
             // If request was for manifest.webapp, check for * and replace with host
-            if ( app.getActivities() != null && app.getActivities().getDhis() != null
-                && "*".equals( app.getActivities().getDhis().getHref() ) )
+            if ( app.getActivities() != null && app.getActivities().getDhis() != null && "*".equals( app.getActivities().getDhis().getHref() ) )
             {
                 String contextPath = ContextUtils.getContextPath( request );
                 log.debug( String.format( "Manifest context path: '%s'", contextPath ) );
@@ -142,8 +137,7 @@ public class AppOverrideFilter
 
     @Override
     protected void doFilterInternal( HttpServletRequest req, HttpServletResponse res, FilterChain chain )
-        throws IOException,
-        ServletException
+        throws IOException, ServletException
     {
         String requestURI = req.getRequestURI();
 

@@ -28,9 +28,9 @@ package org.hisp.dhis.security.intercept;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.opensymphony.xwork2.ActionInvocation;
+import com.opensymphony.xwork2.config.entities.ActionConfig;
+import com.opensymphony.xwork2.interceptor.Interceptor;
 import org.hisp.dhis.security.ActionAccessResolver;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.authority.RequiredAuthoritiesProvider;
@@ -38,14 +38,12 @@ import org.springframework.security.access.SecurityMetadataSource;
 import org.springframework.security.access.intercept.AbstractSecurityInterceptor;
 import org.springframework.security.access.intercept.InterceptorStatusToken;
 
-import com.opensymphony.xwork2.ActionInvocation;
-import com.opensymphony.xwork2.config.entities.ActionConfig;
-import com.opensymphony.xwork2.interceptor.Interceptor;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: WebWorkSecurityInterceptor.java 5797 2008-10-02 15:40:29Z
- *          larshelg $
+ * @version $Id: WebWorkSecurityInterceptor.java 5797 2008-10-02 15:40:29Z larshelg $
  */
 public class XWorkSecurityInterceptor
     extends AbstractSecurityInterceptor

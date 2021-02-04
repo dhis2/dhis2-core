@@ -46,8 +46,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class ApiTypeAllExcludeV32Controller
 {
     @RequestMapping
-    public void test( HttpServletResponse response )
-        throws IOException
+    public void test( HttpServletResponse response ) throws IOException
     {
         response.getWriter().println( "TEST" );
     }

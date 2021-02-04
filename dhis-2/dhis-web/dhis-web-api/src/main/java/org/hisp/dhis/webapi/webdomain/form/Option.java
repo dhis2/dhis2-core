@@ -1,5 +1,6 @@
 package org.hisp.dhis.webapi.webdomain.form;
 
+
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -28,12 +29,6 @@ package org.hisp.dhis.webapi.webdomain.form;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.Set;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -41,6 +36,11 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+import java.util.Date;
+import java.util.Set;
 
 /**
  * @author Viet Nguyen <viet@dhis.org>
@@ -49,13 +49,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class Option
 {
     private String id;
-
     private String label;
-
     private Date startDate;
-
     private Date endDate;
-
     private Set<OrganisationUnit> organisationUnits;
 
     @JsonProperty
@@ -109,8 +105,8 @@ public class Option
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
-    @JsonIdentityInfo( generator = ObjectIdGenerators.PropertyGenerator.class, property = "id" )
-    @JsonIdentityReference( alwaysAsId = true )
+    @JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="id")
+    @JsonIdentityReference(alwaysAsId=true)
     public Set<OrganisationUnit> getOrganisationUnits()
     {
         return organisationUnits;
@@ -121,3 +117,4 @@ public class Option
         this.organisationUnits = organisationUnits;
     }
 }
+

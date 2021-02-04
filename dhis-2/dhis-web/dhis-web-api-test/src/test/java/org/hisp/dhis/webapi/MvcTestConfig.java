@@ -28,13 +28,7 @@ package org.hisp.dhis.webapi;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.springframework.http.MediaType.parseMediaType;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.DefaultNodeService;
@@ -69,7 +63,12 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.springframework.http.MediaType.parseMediaType;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -82,8 +81,8 @@ public class MvcTestConfig implements WebMvcConfigurer
     @Bean
     public CustomRequestMappingHandlerMapping requestMappingHandlerMapping()
     {
-        CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
-            mediaTypeMap );
+        CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
+            new CustomPathExtensionContentNegotiationStrategy( mediaTypeMap );
         pathExtensionNegotiationStrategy.setUseJaf( false );
 
         String[] mediaTypes = new String[] { "json", "jsonp", "xml", "png", "xls", "pdf", "csv" };

@@ -28,20 +28,20 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.webapi.filter.CustomAuthenticationFilter.PARAM_AUTH_ONLY;
 
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.mobile.device.Device;
+import org.springframework.mobile.device.DeviceResolver;
+import org.springframework.security.web.DefaultRedirectStrategy;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.mobile.device.Device;
-import org.springframework.mobile.device.DeviceResolver;
-import org.springframework.security.web.DefaultRedirectStrategy;
+import static org.hisp.dhis.webapi.filter.CustomAuthenticationFilter.PARAM_AUTH_ONLY;
 
 /**
  * @author mortenoh
@@ -98,7 +98,7 @@ public class MappedRedirectStrategy
 
         for ( String key : redirectMap.keySet() )
         {
-            if ( url.contains( key ) )
+            if ( url.contains(key) )
             {
                 url = url.replaceFirst( key, redirectMap.get( key ) );
             }

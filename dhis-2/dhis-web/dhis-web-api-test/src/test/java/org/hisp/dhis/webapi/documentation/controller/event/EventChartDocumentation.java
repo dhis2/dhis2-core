@@ -44,3 +44,4 @@ public class EventChartDocumentation
         createdStatus = HttpStatus.SC_CREATED;
     }
 }
+

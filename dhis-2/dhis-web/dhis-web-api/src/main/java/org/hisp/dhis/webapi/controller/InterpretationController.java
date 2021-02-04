@@ -28,16 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -79,7 +70,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.google.common.collect.Lists;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 /**
  * @author Lars Helge Overland
@@ -93,7 +92,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
-
+    
     @Override
     @SuppressWarnings( "unchecked" )
     protected List<Interpretation> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
@@ -104,14 +103,12 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         // filters
         List<String> mentionsFromCustomFilters = MentionUtils.removeCustomFilters( filters );
 
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ),
-            options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData(options), options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         // If custom filter (mentions:in:[username]) in filters -> Add as
         // disjunction including interpretation mentions and comments mentions
-        for ( Disjunction disjunction : (Collection<Disjunction>) getDisjunctionsFromCustomMentions(
-            mentionsFromCustomFilters, query.getSchema() ) )
+        for ( Disjunction disjunction : (Collection<Disjunction>) getDisjunctionsFromCustomMentions( mentionsFromCustomFilters, query.getSchema() ) )
         {
             query.add( disjunction );
         }
@@ -132,8 +129,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     // Interpretation create
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/reportTable/{uid}", method = RequestMethod.POST, consumes = { "text/html",
-        "text/plain" } )
+    @RequestMapping( value = "/reportTable/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
     public void writeReportTableInterpretation( @PathVariable( "uid" ) String visualizationUid,
         @RequestParam( value = "pe", required = false ) String isoPeriod,
         @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
@@ -171,14 +167,12 @@ public class InterpretationController extends AbstractCrudController<Interpretat
                 WebMessageUtils.conflict( "Chart does not exist or is not accessible: " + uid ) );
         }
 
-        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization,
-            currentUserService.getCurrentUser() );
+        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization, currentUserService.getCurrentUser() );
 
         createIntepretation( new Interpretation( visualization, orgUnit, text ), request, response );
     }
 
-    @RequestMapping( value = "/visualization/{uid}", method = RequestMethod.POST, consumes = { "text/html",
-        "text/plain" } )
+    @RequestMapping( value = "/visualization/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
     public void writeVisualizationInterpretation( @PathVariable( "uid" )
     final String uid, @RequestParam( value = "ou", required = false )
     final String orgUnitUid, @RequestBody
@@ -215,8 +209,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         createIntepretation( new Interpretation( map, text ), request, response );
     }
 
-    @RequestMapping( value = "/eventReport/{uid}", method = RequestMethod.POST, consumes = { "text/html",
-        "text/plain" } )
+    @RequestMapping( value = "/eventReport/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
     public void writeEventReportInterpretation( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
         HttpServletResponse response, HttpServletRequest request )
@@ -236,8 +229,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         createIntepretation( new Interpretation( eventReport, orgUnit, text ), request, response );
     }
 
-    @RequestMapping( value = "/eventChart/{uid}", method = RequestMethod.POST, consumes = { "text/html",
-        "text/plain" } )
+    @RequestMapping( value = "/eventChart/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
     public void writeEventChartInterpretation( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
         HttpServletResponse response, HttpServletRequest request )
@@ -257,8 +249,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         createIntepretation( new Interpretation( eventChart, orgUnit, text ), request, response );
     }
 
-    @RequestMapping( value = "/dataSetReport/{uid}", method = RequestMethod.POST, consumes = { "text/html",
-        "text/plain" } )
+    @RequestMapping( value = "/dataSetReport/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
     public void writeDataSetReportInterpretation( @PathVariable( "uid" ) String dataSetUid,
         @RequestParam( "pe" ) String isoPeriod, @RequestParam( "ou" ) String orgUnitUid, @RequestBody String text,
         HttpServletResponse response, HttpServletRequest request )
@@ -292,8 +283,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
     /**
      * Returns the organisation unit with the given identifier. If not existing,
-     * returns the user organisation unit if the analytical object specifies a user
-     * organisation unit. If not, returns null.
+     * returns the user organisation unit if the analytical object specifies a
+     * user organisation unit. If not, returns null.
      */
     private OrganisationUnit getUserOrganisationUnit( String uid, AnalyticalObject analyticalObject, User user )
         throws WebMessageException
@@ -340,8 +331,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void updateInterpretation( @PathVariable( "uid" ) String uid, @RequestBody String text,
-        HttpServletResponse response )
+    public void updateInterpretation( @PathVariable( "uid" ) String uid, @RequestBody String text, HttpServletResponse response )
         throws WebMessageException
     {
         Interpretation interpretation = interpretationService.getInterpretation( uid );
@@ -543,12 +533,10 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
     /**
      * Logic required to keep the backward compatibility with Chart and ReporTable.
-     * Otherwise it would always return VISUALIZATION type for any Chart or
-     * ReportTable.
+     * Otherwise it would always return VISUALIZATION type for any Chart or ReportTable.
      *
-     * Only needed during the transition from Chart/ReportTable APIs to
-     * Visualization API. Once the Visualization API is fully enabled this logic
-     * should be removed.
+     * Only needed during the transition from Chart/ReportTable APIs to Visualization API.
+     * Once the Visualization API is fully enabled this logic should be removed.
      *
      * @param interpretations
      * @param options
@@ -570,12 +558,10 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
     /**
      * Logic required to keep the backward compatibility with Chart and ReporTable.
-     * Otherwise it would always return VISUALIZATION type for any Chart or
-     * ReportTable.
+     * Otherwise it would always return VISUALIZATION type for any Chart or ReportTable.
      *
-     * Only needed during the transition from Chart/ReportTable APIs to
-     * Visualization API. Once the Visualization API is fully enabled this logic
-     * should be removed.
+     * Only needed during the transition from Chart/ReportTable APIs to Visualization API.
+     * Once the Visualization API is fully enabled this logic should be removed.
      *
      * @param interpretation
      * @param options

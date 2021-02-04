@@ -38,3 +38,4 @@ public class IndicatorGroupSetDocumentation
     extends AbstractWebApiTest<IndicatorGroupSet>
 {
 }
+

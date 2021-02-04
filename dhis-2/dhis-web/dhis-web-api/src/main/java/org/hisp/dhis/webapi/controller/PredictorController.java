@@ -28,17 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.expression.ParseType.*;
-
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -58,6 +48,14 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+
+import static org.hisp.dhis.expression.ParseType.*;
 
 /**
  * @author Ken Haase (ken@dhis2.org)
@@ -90,8 +88,7 @@ public class PredictorController
         @RequestParam Date startDate,
         @RequestParam Date endDate,
         TranslateParams translateParams,
-        HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+        HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         Predictor predictor = predictorService.getPredictor( uid );
 
@@ -101,17 +98,13 @@ public class PredictorController
 
             predictionService.predict( predictor, startDate, endDate, predictionSummary );
 
-            webMessageService.send(
-                WebMessageUtils.ok( "Generated " + predictionSummary.getPredictions() + " predictions" ), response,
-                request );
+            webMessageService.send( WebMessageUtils.ok( "Generated " + predictionSummary.getPredictions() + " predictions" ), response, request );
         }
         catch ( Exception ex )
         {
             log.error( "Unable to predict " + predictor.getName(), ex );
 
-            webMessageService.send(
-                WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() ), response,
-                request );
+            webMessageService.send( WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() ), response, request );
         }
     }
 
@@ -121,8 +114,7 @@ public class PredictorController
         @RequestParam Date startDate,
         @RequestParam Date endDate,
         TranslateParams translateParams,
-        HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+        HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         int count = 0;
 
@@ -142,9 +134,7 @@ public class PredictorController
             {
                 log.error( "Unable to predict " + predictor.getName(), ex );
 
-                webMessageService.send(
-                    WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() ), response,
-                    request );
+                webMessageService.send( WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() ), response, request );
 
                 return;
             }

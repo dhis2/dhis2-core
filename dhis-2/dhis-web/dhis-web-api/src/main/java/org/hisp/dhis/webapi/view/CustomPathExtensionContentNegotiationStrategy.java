@@ -28,20 +28,19 @@ package org.hisp.dhis.webapi.view;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Locale;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.web.accept.PathExtensionContentNegotiationStrategy;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.util.UrlPathHelper;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.Locale;
+import java.util.Map;
+
 /**
- * Custom PathExtensionContentNegotiationStrategy that handles multiple dots in
- * filename. Based on:
+ * Custom PathExtensionContentNegotiationStrategy that handles multiple dots in filename.
+ * Based on:
  * org.springframework.web.accept.PathExtensionContentNegotiationStrategy
  * org.springframework.util.StringUtils
  *

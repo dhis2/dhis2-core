@@ -48,7 +48,7 @@ public class GetDataApprovalOptionsAction
 {
     @Autowired
     private DataSetService dataSetService;
-
+    
     // -------------------------------------------------------------------------
     // Output
     // -------------------------------------------------------------------------
@@ -79,9 +79,9 @@ public class GetDataApprovalOptionsAction
         periodTypes = getAvailablePeriodTypes();
 
         FilterUtils.filter( dataSets, new DataSetApproveDataFilter() );
-
+        
         Collections.sort( dataSets );
-
+        
         return SUCCESS;
     }
 
@@ -92,6 +92,6 @@ public class GetDataApprovalOptionsAction
         public boolean retain( DataSet dataSet )
         {
             return dataSet != null && dataSet.isApproveData();
-        }
+        }        
     }
 }

@@ -28,17 +28,6 @@ package org.hisp.dhis.webapi.controller.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.common.ValueType.BOOLEAN;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
-import static org.mockito.junit.MockitoJUnit.rule;
-
-import java.util.Date;
-import java.util.Locale;
-import java.util.ResourceBundle;
-
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -63,6 +52,17 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
+
+import java.util.Date;
+import java.util.Locale;
+import java.util.ResourceBundle;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.common.ValueType.BOOLEAN;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
+import static org.mockito.junit.MockitoJUnit.rule;
 
 public class DataValidatorTest
 {
@@ -150,9 +150,9 @@ public class DataValidatorTest
     /**
      * Creates a date.
      *
-     * @param year the year.
+     * @param year  the year.
      * @param month the month.
-     * @param day the day of month.
+     * @param day   the day of month.
      * @return a date.
      */
     public static Date getDate( int year, int month, int day )

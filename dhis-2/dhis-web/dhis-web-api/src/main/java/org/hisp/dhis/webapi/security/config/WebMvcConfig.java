@@ -173,8 +173,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     @Override
     public ContentNegotiationManager mvcContentNegotiationManager()
     {
-        CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
-            mediaTypeMap );
+        CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
+            new CustomPathExtensionContentNegotiationStrategy( mediaTypeMap );
         pathExtensionNegotiationStrategy.setUseJaf( false );
 
         String[] mediaTypes = new String[] { "json", "jsonp", "xml", "png", "xls", "pdf", "csv" };

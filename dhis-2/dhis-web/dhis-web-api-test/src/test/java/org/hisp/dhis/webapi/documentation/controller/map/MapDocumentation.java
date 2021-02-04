@@ -45,3 +45,4 @@ public class MapDocumentation
         updateStatus = HttpStatus.SC_NO_CONTENT;
     }
 }
+

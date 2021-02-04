@@ -54,10 +54,10 @@ public class GetOrganisationUnitsByNameAction
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
-
+    
     @Autowired
     private CurrentUserService currentUserService;
-
+    
     // -------------------------------------------------------------------------
     // Input
     // -------------------------------------------------------------------------
@@ -93,17 +93,17 @@ public class GetOrganisationUnitsByNameAction
         User user = currentUserService.getCurrentUser();
 
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-
+        
         if ( user != null && user.hasOrganisationUnit() )
         {
             params.setParents( user.getOrganisationUnits() );
-        }
-
+        }        
+        
         params.setQuery( term );
         params.setMax( MAX );
-
+        
         organisationUnits = organisationUnitService.getOrganisationUnitsByQuery( params );
-
+        
         return SUCCESS;
     }
 }

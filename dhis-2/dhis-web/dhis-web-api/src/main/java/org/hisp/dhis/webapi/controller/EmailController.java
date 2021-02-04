@@ -62,12 +62,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class EmailController
 {
     public static final String RESOURCE_PATH = "/email";
-
     private static final String SMTP_ERROR = "SMTP server not configured";
 
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     // Dependencies
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
 
     @Autowired
     private EmailService emailService;
@@ -82,15 +81,13 @@ public class EmailController
     private WebMessageService webMessageService;
 
     @RequestMapping( value = "/test", method = RequestMethod.POST )
-    public void sendTestEmail( HttpServletResponse response, HttpServletRequest request )
-        throws WebMessageException
+    public void sendTestEmail( HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
         checkEmailSettings();
 
         if ( !currentUserService.getCurrentUser().hasEmail() )
         {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "Could not send test email, no email configured for current user" ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Could not send test email, no email configured for current user" ) );
         }
 
         OutboundMessageResponse emailResponse = emailService.sendTestEmail();
@@ -100,8 +97,7 @@ public class EmailController
 
     @RequestMapping( value = "/notification", method = RequestMethod.POST )
     public void sendSystemNotificationEmail( @RequestBody Email email,
-        HttpServletResponse response, HttpServletRequest request )
-        throws WebMessageException
+        HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
         checkEmailSettings();
 
@@ -109,8 +105,7 @@ public class EmailController
 
         if ( !systemNotificationEmailValid )
         {
-            throw new WebMessageException( WebMessageUtils
-                .conflict( "Could not send email, system notification email address not set or not valid" ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Could not send email, system notification email address not set or not valid" ) );
         }
 
         OutboundMessageResponse emailResponse = emailService.sendSystemEmail( email );
@@ -121,9 +116,8 @@ public class EmailController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SEND_EMAIL')" )
     @RequestMapping( value = "/notification", method = RequestMethod.POST, produces = "application/json" )
     public void sendEmailNotification( @RequestParam Set<String> recipients, @RequestParam String message,
-        @RequestParam( defaultValue = "DHIS 2" ) String subject,
-        HttpServletResponse response, HttpServletRequest request )
-        throws WebMessageException
+        @RequestParam ( defaultValue = "DHIS 2" ) String subject,
+        HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
         checkEmailSettings();
 
@@ -137,24 +131,23 @@ public class EmailController
     // ---------------------------------------------------------------------
 
     private void emailResponseHandler( OutboundMessageResponse emailResponse, HttpServletRequest request,
-        HttpServletResponse response )
+       HttpServletResponse response )
     {
         if ( emailResponse.isOk() )
         {
-            String msg = !StringUtils.isEmpty( emailResponse.getDescription() ) ? emailResponse.getDescription()
-                : EmailResponse.SENT.getResponseMessage();
+            String msg = !StringUtils.isEmpty( emailResponse.getDescription() ) ?
+                emailResponse.getDescription() : EmailResponse.SENT.getResponseMessage();
             webMessageService.send( WebMessageUtils.ok( msg ), response, request );
         }
         else
         {
-            String msg = !StringUtils.isEmpty( emailResponse.getDescription() ) ? emailResponse.getDescription()
-                : EmailResponse.FAILED.getResponseMessage();
+            String msg = !StringUtils.isEmpty( emailResponse.getDescription() ) ?
+                emailResponse.getDescription() : EmailResponse.FAILED.getResponseMessage();
             webMessageService.send( WebMessageUtils.error( msg ), response, request );
         }
     }
 
-    private void checkEmailSettings()
-        throws WebMessageException
+    private void checkEmailSettings() throws WebMessageException
     {
         if ( !emailService.emailConfigured() )
         {

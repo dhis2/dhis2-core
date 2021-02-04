@@ -42,13 +42,13 @@ public interface ModuleManager
     Module getModuleByNamespace( String namespace );
 
     boolean moduleExists( String name );
-
+    
     List<Module> getMenuModules();
-
+    
     List<Module> getAccessibleMenuModules();
-
+    
     List<Module> getAccessibleMenuModulesAndApps( String contextPath );
-
+    
     Collection<Module> getAllModules();
 
     Module getCurrentModule();

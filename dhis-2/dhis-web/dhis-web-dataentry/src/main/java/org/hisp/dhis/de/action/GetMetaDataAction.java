@@ -109,13 +109,13 @@ public class GetMetaDataAction
     {
         this.currentUserService = currentUserService;
     }
-
+    
     @Autowired
     private DataSetService dataSetService;
 
     @Autowired
     private IdentifiableObjectManager identifiableObjectManager;
-
+    
     // -------------------------------------------------------------------------
     // Output
     // -------------------------------------------------------------------------
@@ -207,22 +207,20 @@ public class GetMetaDataAction
         User user = currentUserService.getCurrentUser();
 
         Date lastUpdated = DateUtils.max( Sets.newHashSet(
-            identifiableObjectManager.getLastUpdated( DataElement.class ),
+            identifiableObjectManager.getLastUpdated( DataElement.class ), 
             identifiableObjectManager.getLastUpdated( OptionSet.class ),
             identifiableObjectManager.getLastUpdated( Indicator.class ),
             identifiableObjectManager.getLastUpdated( DataSet.class ),
             identifiableObjectManager.getLastUpdated( CategoryCombo.class ),
             identifiableObjectManager.getLastUpdated( Category.class ),
             identifiableObjectManager.getLastUpdated( CategoryOption.class ) ) );
-        String tag = lastUpdated != null && user != null
-            ? (DateUtils.getLongDateString( lastUpdated ) + SEP + user.getUid())
-            : null;
-
+        String tag = lastUpdated != null && user != null ? ( DateUtils.getLongDateString( lastUpdated ) + SEP + user.getUid() ): null;
+        
         if ( ContextUtils.isNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(), tag ) )
         {
             return SUCCESS;
         }
-
+                
         if ( user != null && user.getOrganisationUnits().isEmpty() )
         {
             emptyOrganisationUnits = true;
@@ -247,7 +245,7 @@ public class GetMetaDataAction
         expressionService.substituteIndicatorExpressions( indicators );
 
         dataSets = dataSetService.getUserDataWrite( user );
-
+        
         Set<CategoryCombo> categoryComboSet = new HashSet<>();
         Set<Category> categorySet = new HashSet<>();
 
@@ -272,8 +270,7 @@ public class GetMetaDataAction
 
         for ( Category category : categories )
         {
-            List<CategoryOption> categoryOptions = new ArrayList<>(
-                categoryService.getDataWriteCategoryOptions( category, user ) );
+            List<CategoryOption> categoryOptions = new ArrayList<>( categoryService.getDataWriteCategoryOptions( category, user ) );
             Collections.sort( categoryOptions );
             categoryOptionMap.put( category.getUid(), categoryOptions );
         }
@@ -284,12 +281,11 @@ public class GetMetaDataAction
         {
             CategoryCombo categoryCombo = dataSet.getCategoryCombo();
 
-            if ( categoryCombo != null && categoryCombo.getCategories() != null )
+            if ( categoryCombo != null && categoryCombo.getCategories() != null  )
             {
                 for ( Category category : categoryCombo.getCategories() )
                 {
-                    if ( !categoryOptionMap.containsKey( category.getUid() )
-                        || categoryOptionMap.get( category.getUid() ).isEmpty() )
+                    if ( !categoryOptionMap.containsKey( category.getUid() ) || categoryOptionMap.get( category.getUid() ).isEmpty() )
                     {
                         invalidIds.add( dataSet.getUid() );
                         break;
@@ -298,8 +294,7 @@ public class GetMetaDataAction
             }
         }
 
-        dataSets = dataSets.stream().filter( dataSet -> !invalidIds.contains( dataSet.getUid() ) )
-            .collect( Collectors.toList() );
+        dataSets = dataSets.stream().filter( dataSet -> !invalidIds.contains( dataSet.getUid() ) ).collect(  Collectors.toList() );
 
         lockExceptions = dataSetService.getAllLockExceptions();
 

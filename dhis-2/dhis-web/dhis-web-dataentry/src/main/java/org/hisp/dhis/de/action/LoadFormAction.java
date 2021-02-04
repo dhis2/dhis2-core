@@ -28,24 +28,16 @@ package org.hisp.dhis.de.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.comparator.CategoryComboSizeComparator;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.category.comparator.CategoryComboSizeComparator;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
@@ -61,7 +53,14 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.opensymphony.xwork2.Action;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -243,7 +242,7 @@ public class LoadFormAction
     {
         return dataSet;
     }
-
+    
     private Map<String, Collection<DataElement>> sectionCategoryComboDataElements = new HashMap<>();
 
     public Map<String, Collection<DataElement>> getSectionCategoryComboDataElements()
@@ -316,7 +315,7 @@ public class LoadFormAction
             numberOfTotalColumns.put( categoryCombo.getId(), optionCombos.size() );
 
             orderedCategories.put( categoryCombo.getId(), categoryCombo.getCategories() );
-
+  
             Map<Long, List<CategoryOption>> optionsMap = new HashMap<>();
 
             for ( Category category : categoryCombo.getCategories() )
@@ -443,16 +442,15 @@ public class LoadFormAction
         for ( Section section : sections )
         {
             Set<Long> categoryCombos = new HashSet<>();
-
-            for ( CategoryCombo categoryCombo : section.getCategoryCombos() )
+            
+            for( CategoryCombo categoryCombo : section.getCategoryCombos() )
             {
                 categoryCombos.add( categoryCombo.getId() );
-
-                sectionCategoryComboDataElements.put( section.getId() + "-" + categoryCombo.getId(),
-                    section.getDataElementsByCategoryCombo( categoryCombo ) );
+                
+                sectionCategoryComboDataElements.put( section.getId() + "-" + categoryCombo.getId() , section.getDataElementsByCategoryCombo( categoryCombo ) );
             }
-
-            if ( !categoryCombos.isEmpty() )
+            
+            if( !categoryCombos.isEmpty() )
             {
                 sectionCombos.put( section.getId(), categoryCombos );
             }
@@ -461,13 +459,12 @@ public class LoadFormAction
             {
                 if ( operand != null && operand.getDataElement() != null && operand.getCategoryOptionCombo() != null )
                 {
-                    greyedFields.put(
-                        operand.getDataElement().getUid() + ":" + operand.getCategoryOptionCombo().getUid(), true );
+                    greyedFields.put( operand.getDataElement().getUid() + ":" + operand.getCategoryOptionCombo().getUid(), true );
                 }
             }
         }
     }
-
+    
     private List<CategoryCombo> getCategoryCombos( List<DataElement> dataElements, DataSet dataSet )
     {
         Set<CategoryCombo> categoryCombos = new HashSet<>();
@@ -484,21 +481,21 @@ public class LoadFormAction
         return listCategoryCombos;
     }
 
-    private void addOptionAccess( User user, Map<String, Boolean> optionAccessMap,
-        List<CategoryOptionCombo> optionCombos )
+    private void addOptionAccess( User user,  Map<String, Boolean> optionAccessMap, List<CategoryOptionCombo>
+        optionCombos )
     {
         optionCombos.forEach( o -> {
 
-            List<String> err = accessManager.canWrite( user, o );
+           List<String> err = accessManager.canWrite( user, o );
 
-            if ( !err.isEmpty() )
-            {
-                optionAccessMap.put( o.getUid(), false );
-            }
-            else
-            {
-                optionAccessMap.put( o.getUid(), true );
-            }
+           if ( !err.isEmpty() )
+           {
+               optionAccessMap.put( o.getUid(), false );
+           }
+           else
+           {
+               optionAccessMap.put( o.getUid(), true );
+           }
         } );
     }
 }

@@ -28,11 +28,6 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
@@ -53,6 +48,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
+import java.util.Set;
+
 /**
  * @author Markus Bekken
  */
@@ -71,8 +70,7 @@ public class EnrollmentAnalyticsController
     @Autowired
     private ContextUtils contextUtils;
 
-    @RequestMapping( value = RESOURCE_PATH + "/query/{program}", method = RequestMethod.GET, produces = {
-        "application/json", "application/javascript" } )
+    @RequestMapping( value = RESOURCE_PATH + "/query/{program}", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
     public @ResponseBody Grid getQueryJson( // JSON, JSONP
         @PathVariable String program,
         @RequestParam( required = false ) Date startDate,
@@ -104,16 +102,14 @@ public class EnrollmentAnalyticsController
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).sortOrder( sortOrder )
             .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
             .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly )
-            .includeMetadataDetails( includeMetadataDetails )
+            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).includeMetadataDetails( includeMetadataDetails )
             .dataIdScheme( dataIdScheme ).programStatus( programStatus ).outputType( EventOutputType.ENROLLMENT )
             .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
             .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
-            CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
         return analyticsService.getEnrollments( params );
     }
 
@@ -144,22 +140,19 @@ public class EnrollmentAnalyticsController
         @RequestParam( required = false ) SortOrder sortOrder,
         DhisApiVersion apiVersion,
         Model model,
-        HttpServletResponse response )
-        throws Exception
+        HttpServletResponse response ) throws Exception
     {
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).sortOrder( sortOrder )
             .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
             .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly )
-            .includeMetadataDetails( includeMetadataDetails )
+            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).includeMetadataDetails( includeMetadataDetails )
             .dataIdScheme( dataIdScheme ).programStatus( programStatus ).outputType( EventOutputType.ENROLLMENT )
             .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
             .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING,
-            "enrollments.xml", false );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "enrollments.xml", false );
         Grid grid = analyticsService.getEnrollments( params );
         GridUtils.toXml( grid, response.getOutputStream() );
     }
@@ -191,22 +184,19 @@ public class EnrollmentAnalyticsController
         @RequestParam( required = false ) SortOrder sortOrder,
         DhisApiVersion apiVersion,
         Model model,
-        HttpServletResponse response )
-        throws Exception
+        HttpServletResponse response ) throws Exception
     {
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).sortOrder( sortOrder )
             .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
             .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly )
-            .includeMetadataDetails( includeMetadataDetails )
+            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).includeMetadataDetails( includeMetadataDetails )
             .dataIdScheme( dataIdScheme ).programStatus( programStatus ).outputType( EventOutputType.ENROLLMENT )
             .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
             .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING,
-            "enrollments.xls", true );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "enrollments.xls", true );
         Grid grid = analyticsService.getEnrollments( params );
         GridUtils.toXls( grid, response.getOutputStream() );
     }
@@ -238,22 +228,19 @@ public class EnrollmentAnalyticsController
         @RequestParam( required = false ) SortOrder sortOrder,
         DhisApiVersion apiVersion,
         Model model,
-        HttpServletResponse response )
-        throws Exception
+        HttpServletResponse response ) throws Exception
     {
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).sortOrder( sortOrder )
             .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
             .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly )
-            .includeMetadataDetails( includeMetadataDetails )
+            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).includeMetadataDetails( includeMetadataDetails )
             .dataIdScheme( dataIdScheme ).programStatus( programStatus ).outputType( EventOutputType.ENROLLMENT )
             .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
             .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING,
-            "enrollments.csv", true );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "enrollments.csv", true );
         Grid grid = analyticsService.getEnrollments( params );
         GridUtils.toCsv( grid, response.getWriter() );
     }
@@ -285,22 +272,19 @@ public class EnrollmentAnalyticsController
         @RequestParam( required = false ) SortOrder sortOrder,
         DhisApiVersion apiVersion,
         Model model,
-        HttpServletResponse response )
-        throws Exception
+        HttpServletResponse response ) throws Exception
     {
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).sortOrder( sortOrder )
             .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
             .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly )
-            .includeMetadataDetails( includeMetadataDetails )
+            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).includeMetadataDetails( includeMetadataDetails )
             .dataIdScheme( dataIdScheme ).programStatus( programStatus ).outputType( EventOutputType.ENROLLMENT )
             .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
             .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING,
-            "enrollments.html", false );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "enrollments.html", false );
         Grid grid = analyticsService.getEnrollments( params );
         GridUtils.toHtml( grid, response.getWriter() );
     }
@@ -332,22 +316,19 @@ public class EnrollmentAnalyticsController
         @RequestParam( required = false ) SortOrder sortOrder,
         DhisApiVersion apiVersion,
         Model model,
-        HttpServletResponse response )
-        throws Exception
+        HttpServletResponse response ) throws Exception
     {
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).sortOrder( sortOrder )
             .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
             .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
-            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly )
-            .includeMetadataDetails( includeMetadataDetails )
+            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).includeMetadataDetails( includeMetadataDetails )
             .dataIdScheme( dataIdScheme ).programStatus( programStatus ).outputType( EventOutputType.ENROLLMENT )
             .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
             .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING,
-            "enrollments.html", false );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "enrollments.html", false );
         Grid grid = analyticsService.getEnrollments( params );
         GridUtils.toHtmlCss( grid, response.getWriter() );
     }

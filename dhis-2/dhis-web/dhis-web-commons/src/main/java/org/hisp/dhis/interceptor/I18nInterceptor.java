@@ -32,9 +32,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import ognl.NoSuchPropertyException;
-import ognl.Ognl;
-
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -49,22 +46,22 @@ import com.opensymphony.xwork2.Action;
 import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.interceptor.Interceptor;
 
+import ognl.NoSuchPropertyException;
+import ognl.Ognl;
+
 /**
  * This was deprecated in favour of the new
  * {@link org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor}.
  *
  * @author Nguyen Dang Quang
- * @version $Id: WebWorkI18nInterceptor.java 6335 2008-11-20 11:11:26Z larshelg
- *          $
+ * @version $Id: WebWorkI18nInterceptor.java 6335 2008-11-20 11:11:26Z larshelg $
  */
 @Deprecated
 public class I18nInterceptor
     implements Interceptor
 {
     private static final String KEY_I18N = "i18n";
-
     private static final String KEY_I18N_FORMAT = "format";
-
     private static final String KEY_LOCALE = "locale";
 
     // -------------------------------------------------------------------------
@@ -98,6 +95,7 @@ public class I18nInterceptor
     {
         this.userSettingService = userSettingService;
     }
+
 
     // -------------------------------------------------------------------------
     // AroundInterceptor implementation

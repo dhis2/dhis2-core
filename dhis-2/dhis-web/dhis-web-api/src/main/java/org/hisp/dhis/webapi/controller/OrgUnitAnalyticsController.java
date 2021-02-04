@@ -30,8 +30,8 @@ package org.hisp.dhis.webapi.controller;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
+import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -66,12 +66,10 @@ public class OrgUnitAnalyticsController
         @RequestParam String ougs,
         @RequestParam( required = false ) String columns,
         DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
+        HttpServletResponse response ) throws Exception
     {
         OrgUnitQueryParams params = analyticsService.getParams( ou, ougs, columns );
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
-            CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
         return analyticsService.getOrgUnitData( params );
     }
 
@@ -81,12 +79,10 @@ public class OrgUnitAnalyticsController
         @RequestParam String ougs,
         @RequestParam( required = false ) String columns,
         DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
+        HttpServletResponse response ) throws Exception
     {
         OrgUnitQueryParams params = analyticsService.getParams( ou, ougs, columns );
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL,
-            CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING );
         Grid grid = analyticsService.getOrgUnitData( params );
         GridUtils.toXls( grid, response.getOutputStream() );
     }
@@ -97,8 +93,7 @@ public class OrgUnitAnalyticsController
         @RequestParam String ougs,
         @RequestParam( required = false ) String columns,
         DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
+        HttpServletResponse response ) throws Exception
     {
         OrgUnitQueryParams params = analyticsService.getParams( ou, ougs, columns );
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING );
@@ -112,8 +107,7 @@ public class OrgUnitAnalyticsController
         @RequestParam String ougs,
         @RequestParam( required = false ) String columns,
         DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
+        HttpServletResponse response ) throws Exception
     {
         OrgUnitQueryParams params = analyticsService.getParams( ou, ougs, columns );
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING );

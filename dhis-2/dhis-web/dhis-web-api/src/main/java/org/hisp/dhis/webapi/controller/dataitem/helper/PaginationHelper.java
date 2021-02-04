@@ -46,7 +46,7 @@ public class PaginationHelper
     /**
      * This method will slice the given list based on the given option and return
      * only the elements present in the pagination window.
-     *
+     * 
      * @param options
      * @param dimensionalItems
      * @return the list of "sliced" items

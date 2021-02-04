@@ -28,8 +28,9 @@ package org.hisp.dhis.security.intercept;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
 
+
+import lombok.extern.slf4j.Slf4j;
 import org.apache.struts2.ServletActionContext;
 
 import com.opensymphony.xwork2.ActionInvocation;
@@ -48,9 +49,9 @@ public class HttpMethodInterceptor
     private static final long serialVersionUID = -7882464040475459114L;
 
     private static final String DEFAULT_METHOD = "POST";
-
+    
     protected String allowedMethod = DEFAULT_METHOD;
-
+    
     public void setAllowedMethod( String allowedMethod )
     {
         this.allowedMethod = allowedMethod;
@@ -61,16 +62,16 @@ public class HttpMethodInterceptor
         throws Exception
     {
         String method = ServletActionContext.getRequest().getMethod();
-
+        
         log.info( "Method: " + method );
-
+        
         if ( method == null || !method.trim().toLowerCase().equals( allowedMethod.trim().toLowerCase() ) )
         {
             log.warn( "HTTP method ' " + allowedMethod + "' only allowed for this request" );
-
+            
             return null;
         }
-
+        
         return invocation.invoke();
     }
 
@@ -81,6 +82,6 @@ public class HttpMethodInterceptor
 
     @Override
     public void destroy()
-    {
+    {        
     }
 }

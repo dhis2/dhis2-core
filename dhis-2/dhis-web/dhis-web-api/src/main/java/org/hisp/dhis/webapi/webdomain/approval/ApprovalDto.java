@@ -38,9 +38,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class ApprovalDto
 {
     private String ou;
-
+    
     private String aoc;
-
+    
     public ApprovalDto()
     {
     }

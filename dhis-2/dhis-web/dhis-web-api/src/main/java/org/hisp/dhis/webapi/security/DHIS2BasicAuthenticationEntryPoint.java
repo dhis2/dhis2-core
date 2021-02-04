@@ -28,12 +28,8 @@ package org.hisp.dhis.webapi.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.google.common.base.MoreObjects;
+import com.google.common.net.HttpHeaders;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
@@ -43,8 +39,10 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.net.HttpHeaders;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -57,8 +55,8 @@ public class DHIS2BasicAuthenticationEntryPoint extends LoginUrlAuthenticationEn
 
     /**
      * @param loginFormUrl URL where the login page can be found. Should either be
-     *        relative to the web-app context path (include a leading {@code /}) or
-     *        an absolute URL.
+     *                     relative to the web-app context path (include a leading {@code /}) or an absolute
+     *                     URL.
      */
     public DHIS2BasicAuthenticationEntryPoint( String loginFormUrl )
     {
@@ -68,8 +66,7 @@ public class DHIS2BasicAuthenticationEntryPoint extends LoginUrlAuthenticationEn
     @Override
     public void commence( HttpServletRequest request, HttpServletResponse response,
         AuthenticationException authException )
-        throws IOException,
-        ServletException
+        throws IOException, ServletException
     {
         String acceptHeader = MoreObjects.firstNonNull( request.getHeader( HttpHeaders.ACCEPT ), "" );
         String requestWithHeader = MoreObjects.firstNonNull( request.getHeader( HttpHeaders.X_REQUESTED_WITH ), "" );

@@ -28,31 +28,6 @@ package org.hisp.dhis.webapi.controller.dataitem;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static java.lang.String.valueOf;
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.hamcrest.collection.IsEmptyCollection.empty;
-import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE;
-import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE_SIZE;
-import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.junit.MockitoJUnit.rule;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.hisp.dhis.cache.CacheBuilder;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
@@ -74,6 +49,31 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
 import org.springframework.core.env.Environment;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.lang.String.valueOf;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.collection.IsEmptyCollection.empty;
+import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE;
+import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE_SIZE;
+import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.junit.MockitoJUnit.rule;
 
 public class ResponseHandlerTest
 {
@@ -109,8 +109,7 @@ public class ResponseHandlerTest
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
-        final List<BaseDimensionalItemObject> anyDimensionalItems = singletonList(
-            new BaseDimensionalItemObject( "any" ) );
+        final List<BaseDimensionalItemObject> anyDimensionalItems = singletonList( new BaseDimensionalItemObject( "any" ) );
         final List<String> anyFields = singletonList( "any" );
         final CollectionNode anyCollectionNode = new CollectionNode( "any" );
 
@@ -187,7 +186,7 @@ public class ResponseHandlerTest
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
         final List<Class<? extends BaseDimensionalItemObject>> emptyTargetEntities = emptyList();
-        final List<String> anyFilters = singletonList( "any" );
+        final List<String> anyFilters = singletonList("any");
         final User anyUser = new User();
         final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
         final String[] testEnvironmentVars = { "test" };

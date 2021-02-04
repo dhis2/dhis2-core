@@ -28,7 +28,16 @@ package org.hisp.dhis.webapi.documentation.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+import org.springframework.http.MediaType;
+import org.springframework.restdocs.payload.FieldDescriptor;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -37,28 +46,16 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
-import org.springframework.http.MediaType;
-import org.springframework.restdocs.payload.FieldDescriptor;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 
 /**
  * @author Viet Nguyen <viet@dhis.org>
  */
 public class TestUtils
 {
-    public static final MediaType APPLICATION_JSON_UTF8 = new MediaType( MediaType.APPLICATION_JSON.getType(),
-        MediaType.APPLICATION_JSON.getSubtype(), Charset.forName( "utf8" ) );
+    public static final MediaType APPLICATION_JSON_UTF8 = new MediaType( MediaType.APPLICATION_JSON.getType(), MediaType.APPLICATION_JSON.getSubtype(), Charset.forName( "utf8" ) );
 
-    public static byte[] convertObjectToJsonBytes( Object object )
-        throws IOException
+    public static byte[] convertObjectToJsonBytes( Object object ) throws IOException
     {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
@@ -130,8 +127,7 @@ public class TestUtils
         return fieldDescriptors;
     }
 
-    public static String getCreatedUid( String responseJson )
-        throws IOException
+    public static String getCreatedUid( String responseJson ) throws IOException
     {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree( responseJson );

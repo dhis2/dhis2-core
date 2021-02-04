@@ -28,15 +28,14 @@ package org.hisp.dhis.webapi.mvc.messageconverter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.annotation.Nonnull;
-
+import com.google.common.collect.ImmutableList;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.NodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableList;
+import javax.annotation.Nonnull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -44,7 +43,7 @@ import com.google.common.collect.ImmutableList;
 @Component
 public class PdfMessageConverter extends AbstractRootNodeMessageConverter
 {
-    public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
+    public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
         .add( new MediaType( "application", "pdf" ) )
         .build();
 

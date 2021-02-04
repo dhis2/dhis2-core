@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
  * Small component specialized on pagination rules specific to dimension items.
  * This can be seen as a helper extension of
  * {@link DimensionController#getItems(String, Map, OrderParams)}.
- *
+ * 
  * @author maikel arabori
  */
 @Component
@@ -65,7 +65,7 @@ public class DimensionItemPageHandler
      * This method will add the pagination child node to the given root node. For
      * this to happen the pagination flag must be set to true. See
      * {@link WebOptions#hasPaging(boolean)}.
-     *
+     * 
      * @param rootNode the root node where the pagination node will be appended to.
      * @param webOptions the WebOptions settings.
      * @param dimensionUid the uid of the dimension queried in the API url. See

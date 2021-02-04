@@ -47,5 +47,5 @@ public class OutputStreamResult
     public void execute( ActionInvocation arg0 )
         throws Exception
     {
-    }
+    }    
 }

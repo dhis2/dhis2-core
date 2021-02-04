@@ -28,26 +28,24 @@ package org.hisp.dhis.webapi.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_LOG_REQUESTID_ENABLED;
-import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_LOG_REQUESTID_HASHALGO;
-import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_LOG_REQUESTID_MAXSIZE;
-
-import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.slf4j.MDC;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.slf4j.MDC;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
+import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_LOG_REQUESTID_ENABLED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_LOG_REQUESTID_HASHALGO;
+import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_LOG_REQUESTID_MAXSIZE;
 
 /**
  * This filter places an hashed version of the Session ID in the Log4j Mapped
@@ -87,8 +85,7 @@ public class RequestIdentifierFilter
 
     @Override
     protected void doFilterInternal( HttpServletRequest req, HttpServletResponse res, FilterChain chain )
-        throws ServletException,
-        IOException
+        throws ServletException, IOException
     {
         if ( enabled )
         {

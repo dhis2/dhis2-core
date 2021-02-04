@@ -41,13 +41,13 @@ public class IsSelfRegistrationAllowedAction
 {
     @Autowired
     private ConfigurationService configurationService;
-
+    
     @Override
     public String execute()
         throws Exception
     {
         boolean allowed = configurationService.getConfiguration().selfRegistrationAllowed();
-
+        
         return allowed ? SUCCESS : ERROR;
     }
 }

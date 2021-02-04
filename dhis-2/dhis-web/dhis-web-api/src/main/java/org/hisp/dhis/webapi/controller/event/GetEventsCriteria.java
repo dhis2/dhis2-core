@@ -32,13 +32,13 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
+
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Luciano Fiandesio

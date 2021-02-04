@@ -54,7 +54,7 @@ public class CacheManifestAction
 {
     @Autowired
     private SystemService systemService;
-
+    
     @Autowired
     private LocaleManager localeManager;
 
@@ -96,9 +96,9 @@ public class CacheManifestAction
         File cacheManifest = null;
         File i18nFolder = null;
         StringBuilder builder = null;
-
+        
         String locale = localeManager.getCurrentLocale().toString();
-
+        
         SystemInfo info = systemService.getSystemInfo();
         String revisionTag = "#Revision:" + info.getRevision();
 
@@ -130,7 +130,7 @@ public class CacheManifestAction
                     {
                         cacheManifest = new File( files[i].getAbsolutePath() );
                     }
-
+    
                     if ( i18nPath != null && files[i].isDirectory() && files[i].getName().equalsIgnoreCase( i18nPath ) )
                     {
                         i18nFolder = new File( files[i].getAbsolutePath() );
@@ -141,26 +141,26 @@ public class CacheManifestAction
 
         if ( cacheManifest != null )
         {
-            try (BufferedReader bufferedReader = new BufferedReader( new FileReader( cacheManifest ) ))
+            try ( BufferedReader bufferedReader = new BufferedReader( new FileReader( cacheManifest ) ) )
             {
                 builder = new StringBuilder();
                 String line;
-
+                
                 while ( (line = bufferedReader.readLine()) != null )
                 {
                     builder.append( line );
                     builder.append( "\n" );
                 }
-
+                
                 builder.append( revisionTag );
                 builder.append( "\n" );
 
                 if ( i18nFolder != null )
                 {
                     Boolean fileExists = false;
-
+                    
                     File[] files = i18nFolder.listFiles();
-
+                    
                     if ( files != null )
                     {
                         for ( int i = 0; i < files.length; i++ )

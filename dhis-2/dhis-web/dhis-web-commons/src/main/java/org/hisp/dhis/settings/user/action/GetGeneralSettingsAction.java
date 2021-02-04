@@ -28,9 +28,7 @@ package org.hisp.dhis.settings.user.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Locale;
-
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.StyleManager;
@@ -38,7 +36,8 @@ import org.hisp.dhis.setting.StyleObject;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 
-import com.opensymphony.xwork2.Action;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Chau Thu Tran
@@ -177,11 +176,9 @@ public class GetGeneralSettingsAction
 
         currentStyle = styleManager.getCurrentStyle();
 
-        analysisDisplayProperty = userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY )
-            .toString();
+        analysisDisplayProperty = userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY ).toString();
 
-        messageEmailNotification = (Boolean) userSettingService
-            .getUserSetting( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION );
+        messageEmailNotification = (Boolean) userSettingService.getUserSetting( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION );
 
         messageSmsNotification = (Boolean) userSettingService.getUserSetting( UserSettingKey.MESSAGE_SMS_NOTIFICATION );
 

@@ -28,8 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.deletedobject.DeletedObject;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
@@ -46,7 +45,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.common.collect.Lists;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -57,9 +56,7 @@ import com.google.common.collect.Lists;
 public class DeletedObjectController
 {
     private final FieldFilterService fieldFilterService;
-
     private final DeletedObjectService deletedObjectService;
-
     private final ContextService contextService;
 
     public DeletedObjectController( FieldFilterService fieldFilterService, DeletedObjectService deletedObjectService,
@@ -93,8 +90,7 @@ public class DeletedObjectController
             rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
         }
 
-        rootNode.addChild( fieldFilterService.toCollectionNode( DeletedObject.class,
-            new FieldFilterParams( deletedObjects, fields ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( DeletedObject.class, new FieldFilterParams( deletedObjects, fields ) ) );
 
         return rootNode;
     }

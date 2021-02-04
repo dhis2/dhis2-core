@@ -35,7 +35,7 @@ import org.springframework.security.access.SecurityMetadataSource;
 
 /**
  * Generic SecurityMetadataSource for one single object.
- *
+ * 
  * @author Torgeir Lorange Ostby
  */
 public class SingleSecurityMetadataSource
@@ -56,8 +56,8 @@ public class SingleSecurityMetadataSource
 
     public SingleSecurityMetadataSource( Object object, Collection<ConfigAttribute> attributes )
     {
-        this.object = object;
-        this.attributes = attributes;
+        this.object = object;   
+        this.attributes = attributes;        
     }
 
     // -------------------------------------------------------------------------

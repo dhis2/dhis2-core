@@ -41,8 +41,7 @@ import org.springframework.mock.web.MockHttpSession;
 public class ApiVersionInheritTypeTest extends DhisWebSpringTest
 {
     @Test
-    public void testGetInherited()
-        throws Exception
+    public void testGetInherited() throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/type/testInheritedFromBase";

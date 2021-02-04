@@ -28,12 +28,6 @@ package org.hisp.dhis.webapi.controller.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.mockito.hamcrest.MockitoHamcrest.argThat;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-
 import org.hamcrest.Matchers;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.feedback.Status;
@@ -51,6 +45,12 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+
+import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 /**
  * Unit tests for {@link UserController}.

@@ -28,13 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -64,7 +58,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.HttpClientErrorException;
 
-import com.google.common.collect.Lists;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -109,8 +107,7 @@ public class SchemaController
         linkService.generateSchemaLinks( schemas.getSchemas() );
 
         RootNode rootNode = NodeUtils.createRootNode( "schemas" );
-        CollectionNode collectionNode = fieldFilterService.toCollectionNode( Schema.class,
-            new FieldFilterParams( schemas.getSchemas(), fields ) );
+        CollectionNode collectionNode = fieldFilterService.toCollectionNode( Schema.class, new FieldFilterParams( schemas.getSchemas(), fields ) );
         collectionNode.setWrapping( false );
         rootNode.addChild( collectionNode );
 
@@ -141,10 +138,8 @@ public class SchemaController
         throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Type " + type + " does not exist." );
     }
 
-    @RequestMapping( value = "/{type}", method = { RequestMethod.POST, RequestMethod.PUT }, consumes = {
-        MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
-    public void validateSchema( @PathVariable String type, HttpServletRequest request, HttpServletResponse response )
-        throws IOException
+    @RequestMapping( value = "/{type}", method = { RequestMethod.POST, RequestMethod.PUT }, consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
+    public void validateSchema( @PathVariable String type, HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         Schema schema = getSchemaFromType( type );
 
@@ -175,8 +170,7 @@ public class SchemaController
             return schema.getProperty( property );
         }
 
-        throw new HttpClientErrorException( HttpStatus.NOT_FOUND,
-            "Property " + property + " does not exist on type " + type + "." );
+        throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Property " + property + " does not exist on type " + type + "." );
     }
 
     private Schema getSchemaFromType( String type )

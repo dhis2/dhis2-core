@@ -28,12 +28,11 @@ package org.hisp.dhis.webapi.webdomain;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.period.PeriodType;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.period.PeriodType;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -42,11 +41,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class PeriodTypeDto
 {
     private final String name;
-
     private final String isoDuration;
-
     private final String isoFormat;
-
     private final int frequencyOrder;
 
     public PeriodTypeDto( PeriodType periodType )

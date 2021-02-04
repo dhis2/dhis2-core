@@ -28,12 +28,6 @@ package org.hisp.dhis.webapi.controller.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.dataapproval.DataApproval.*;
-import static org.hisp.dhis.user.UserAuthorityGroup.AUTHORITY_ALL;
-
-import java.util.Comparator;
-import java.util.Set;
-
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataapproval.DataApprovalService;
@@ -50,6 +44,12 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Comparator;
+import java.util.Set;
+
+import static org.hisp.dhis.dataapproval.DataApproval.*;
+import static org.hisp.dhis.user.UserAuthorityGroup.AUTHORITY_ALL;
 
 /**
  * @author Jim Grace
@@ -71,8 +71,8 @@ public class UserControllerUtils
 
     /**
      * Gets the data approval workflows a user can see, including the workflow
-     * levels accessible to the user and the actions (if any) they can take at those
-     * levels to approve (and accept if configured) data.
+     * levels accessible to the user and the actions (if any) they can take at
+     * those levels to approve (and accept if configured) data.
      *
      * @param user the user
      * @throws Exception if an error occurs
@@ -98,8 +98,8 @@ public class UserControllerUtils
             collectionNode.addChild( workflowNode );
         }
 
-        collectionNode.getUnorderedChildren()
-            .sort( Comparator.comparing( c -> (String) ((SimpleNode) c.getUnorderedChildren().get( 0 )).getValue() ) );
+        collectionNode.getUnorderedChildren().sort( Comparator.comparing( c ->
+            (String) ( (SimpleNode) c.getUnorderedChildren().get( 0 ) ).getValue() ) );
 
         RootNode rootNode = NodeUtils.createRootNode( "dataApprovalWorkflows" );
         rootNode.addChild( collectionNode );
@@ -112,9 +112,9 @@ public class UserControllerUtils
     // -------------------------------------------------------------------------
 
     /**
-     * For a user and workflow, returns a list of levels accessible to the user user
-     * and the actions (if any) they can take at those levels to approve (and accept
-     * if configured) data.
+     * For a user and workflow, returns a list of levels accessible to the user
+     * user and the actions (if any) they can take at those levels to approve
+     * (and accept if configured) data.
      *
      * @param user the user
      * @param workflow the approval workflow for which to fetch the levels
@@ -125,12 +125,10 @@ public class UserControllerUtils
         Set<String> authorities = user.getUserCredentials().getAllAuthorities();
 
         boolean canApprove = authorities.contains( AUTHORITY_ALL ) || authorities.contains( AUTH_APPROVE );
-        boolean canApproveLowerLevels = authorities.contains( AUTHORITY_ALL )
-            || authorities.contains( AUTH_APPROVE_LOWER_LEVELS );
+        boolean canApproveLowerLevels = authorities.contains( AUTHORITY_ALL ) || authorities.contains( AUTH_APPROVE_LOWER_LEVELS );
         boolean canAccept = authorities.contains( AUTHORITY_ALL ) || authorities.contains( AUTH_ACCEPT_LOWER_LEVELS );
 
-        boolean acceptConfigured = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
+        boolean acceptConfigured = (Boolean) systemSettingManager.getSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
 
         int lowestUserOrgUnitLevel = getLowsetUserOrgUnitLevel( user );
 
@@ -150,8 +148,7 @@ public class UserControllerUtils
             levelNode.addChild( new SimpleNode( "name", level.getName() ) );
             levelNode.addChild( new SimpleNode( "id", level.getUid() ) );
             levelNode.addChild( new SimpleNode( "level", level.getLevel() ) );
-            levelNode.addChild(
-                new SimpleNode( "approve", (canApprove && highestLevelInWorkflow) || canApproveLowerLevels ) );
+            levelNode.addChild( new SimpleNode( "approve", ( canApprove && highestLevelInWorkflow ) || canApproveLowerLevels ) );
 
             if ( acceptConfigured )
             {
@@ -170,7 +167,7 @@ public class UserControllerUtils
     {
         Set<OrganisationUnit> userOrgUnits = user.getOrganisationUnits();
 
-        return userOrgUnits.isEmpty() ? 9999
-            : userOrgUnits.stream().map( OrganisationUnit::getHierarchyLevel ).min( Integer::compare ).get();
+        return userOrgUnits.isEmpty() ? 9999 :
+            userOrgUnits.stream().map( OrganisationUnit::getHierarchyLevel ).min( Integer::compare ).get();
     }
 }

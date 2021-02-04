@@ -28,7 +28,7 @@ package org.hisp.dhis.about.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+import com.opensymphony.xwork2.Action;
 
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.appmanager.App;
@@ -38,7 +38,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.opensymphony.xwork2.Action;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland

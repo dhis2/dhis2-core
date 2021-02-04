@@ -40,8 +40,7 @@ public class SharingUserGroupAccessNameComparator
     @Override
     public int compare( SharingUserGroupAccess s1, SharingUserGroupAccess s2 )
     {
-        return s1 != null && s1.getName() != null
-            ? s2 != null && s2.getName() != null ? s1.getName().compareToIgnoreCase( s2.getName() ) : -1
-            : 1;
+        return s1 != null && s1.getName() != null ? s2 != null && s2.getName() != null ? 
+            s1.getName().compareToIgnoreCase( s2.getName() ) : -1 : 1;
     }
 }

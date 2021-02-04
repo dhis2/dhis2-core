@@ -46,16 +46,14 @@ public class ApiMethodAllExcludeV32Controller
 {
     @RequestMapping( "a" )
     @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V32 )
-    public void testAllA( HttpServletResponse response )
-        throws IOException
+    public void testAllA( HttpServletResponse response ) throws IOException
     {
         response.getWriter().println( "TEST" );
     }
 
     @RequestMapping( "b" )
     @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V32 )
-    public void testAllB( HttpServletResponse response )
-        throws IOException
+    public void testAllB( HttpServletResponse response ) throws IOException
     {
         response.getWriter().println( "TEST" );
     }

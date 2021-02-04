@@ -157,6 +157,7 @@ public class TrackedEntityCriteriaMapper
         }
 
         validateAssignedUser( criteria );
+        
 
         if ( criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null )
         {
@@ -165,7 +166,7 @@ public class TrackedEntityCriteriaMapper
         Program program = validateProgram( criteria );
         params.setQuery( queryFilter )
             .setProgram( program )
-            .setProgramStage( validateProgramStage( criteria, program ) )
+            .setProgramStage( validateProgramStage( criteria, program) )
             .setProgramStatus( criteria.getProgramStatus() )
             .setFollowUp( criteria.getFollowUp() )
             .setLastUpdatedStartDate( criteria.getLastUpdatedStartDate() )
@@ -277,7 +278,7 @@ public class TrackedEntityCriteriaMapper
             }
             return null;
         };
-
+        
         final Program program = getProgram.apply( criteria.getProgram() );
         if ( isNotEmpty( criteria.getProgram() ) && program == null )
         {
@@ -286,8 +287,7 @@ public class TrackedEntityCriteriaMapper
         return program;
     }
 
-    private ProgramStage validateProgramStage( TrackedEntityInstanceCriteria criteria, Program program )
-    {
+    private ProgramStage validateProgramStage( TrackedEntityInstanceCriteria criteria, Program program ) {
 
         final String programStage = criteria.getProgramStage();
 

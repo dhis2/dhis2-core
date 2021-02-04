@@ -41,8 +41,7 @@ import org.springframework.mock.web.MockHttpSession;
 public class ApiVersionMethodTest extends DhisWebSpringTest
 {
     @Test
-    public void testMethodV31V32()
-        throws Exception
+    public void testMethodV31V32() throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/method/testV31V32";
@@ -76,8 +75,7 @@ public class ApiVersionMethodTest extends DhisWebSpringTest
     }
 
     @Test
-    public void testMethodAll()
-        throws Exception
+    public void testMethodAll() throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/method/testAll";
@@ -99,8 +97,7 @@ public class ApiVersionMethodTest extends DhisWebSpringTest
     }
 
     @Test
-    public void testMethodAllExcludeV32()
-        throws Exception
+    public void testMethodAllExcludeV32() throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/method/testAllExcludeV32";
@@ -125,8 +122,7 @@ public class ApiVersionMethodTest extends DhisWebSpringTest
     }
 
     @Test
-    public void testMethodDefault()
-        throws Exception
+    public void testMethodDefault() throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/method/testDefault";

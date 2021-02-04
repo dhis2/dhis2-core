@@ -40,7 +40,7 @@ public class StartableModuleFilter
     implements Filter<Module>
 {
     private List<String> NOT_VIABLE = Arrays.asList( "dhis-web-mapping", "dhis-web-visualizer" );
-
+    
     @Override
     public boolean retain( Module module )
     {

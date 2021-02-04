@@ -28,16 +28,6 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
-
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
@@ -60,6 +50,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 /**
  * @author Stian Sandvold
@@ -92,7 +91,8 @@ public class KeyJsonValueController
      * If no namespaces exist, an empty array is returned.
      */
     @RequestMapping( value = "", method = RequestMethod.GET, produces = "application/json" )
-    public @ResponseBody List<String> getNamespaces( HttpServletResponse response )
+    public @ResponseBody
+    List<String> getNamespaces( HttpServletResponse response )
         throws IOException
     {
         setNoStore( response );
@@ -104,11 +104,10 @@ public class KeyJsonValueController
      * Returns a list of strings representing keys in the given namespace.
      */
     @RequestMapping( value = "/{namespace}", method = RequestMethod.GET, produces = "application/json" )
-    public @ResponseBody List<String> getKeysInNamespace( @RequestParam( required = false ) Date lastUpdated,
-        @PathVariable String namespace,
+    public @ResponseBody
+    List<String> getKeysInNamespace( @RequestParam( required = false ) Date lastUpdated, @PathVariable String namespace,
         HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        throws IOException, WebMessageException
     {
         validateAccess( namespace );
 
@@ -147,14 +146,13 @@ public class KeyJsonValueController
     }
 
     /**
-     * Retrieves the value of the KeyJsonValue represented by the given key from the
-     * given namespace.
+     * Retrieves the value of the KeyJsonValue represented by the given key from
+     * the given namespace.
      */
     @RequestMapping( value = "/{namespace}/{key}", method = RequestMethod.GET, produces = "application/json" )
-    public @ResponseBody String getKeyJsonValue( @PathVariable String namespace, @PathVariable String key,
-        HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+    public @ResponseBody
+    String getKeyJsonValue( @PathVariable String namespace, @PathVariable String key, HttpServletResponse response )
+        throws IOException, WebMessageException
     {
         KeyJsonValue keyJsonValue = validateAndGetValue( namespace, key );
 
@@ -170,11 +168,11 @@ public class KeyJsonValueController
     }
 
     /**
-     * Retrieves the KeyJsonValue represented by the given key from the given
-     * namespace.
+     * Retrieves the KeyJsonValue represented by the given key from the given namespace.
      */
     @RequestMapping( value = "/{namespace}/{key}/metaData", method = RequestMethod.GET, produces = "application/json" )
-    public @ResponseBody KeyJsonValue getKeyJsonValueMetaData( @PathVariable String namespace, @PathVariable String key,
+    public @ResponseBody
+    KeyJsonValue getKeyJsonValueMetaData( @PathVariable String namespace, @PathVariable String key,
         HttpServletResponse response )
         throws Exception
     {
@@ -196,14 +194,12 @@ public class KeyJsonValueController
     }
 
     /**
-     * Creates a new KeyJsonValue Object on the given namespace with the key and
-     * value supplied.
+     * Creates a new KeyJsonValue Object on the given namespace with the key and value supplied.
      */
     @RequestMapping( value = "/{namespace}/{key}", method = RequestMethod.POST, produces = "application/json", consumes = "application/json" )
     public void addKeyJsonValue( @PathVariable String namespace, @PathVariable String key, @RequestBody String body,
         @RequestParam( defaultValue = "false" ) boolean encrypt, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        throws IOException, WebMessageException
     {
         validateAccess( namespace );
 
@@ -237,8 +233,7 @@ public class KeyJsonValueController
     @RequestMapping( value = "/{namespace}/{key}", method = RequestMethod.PUT, produces = "application/json", consumes = "application/json" )
     public void updateKeyJsonValue( @PathVariable String namespace, @PathVariable String key, @RequestBody String body,
         HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException,
-        IOException
+        throws WebMessageException, IOException
     {
         KeyJsonValue keyJsonValue = validateAndGetValue( namespace, key );
 
@@ -288,11 +283,10 @@ public class KeyJsonValueController
     }
 
     /**
-     * Validates access and looks up the value, thrown an exception if there is no
-     * such key/value pair in the given namespace
+     * Validates access and looks up the value, thrown an exception if there is no such key/value pair in the given namespace
      *
      * @param namespace Namespace to use when looking up the value
-     * @param key Key of the key/value pair
+     * @param key       Key of the key/value pair
      * @return
      * @throws WebMessageException
      */
@@ -312,8 +306,7 @@ public class KeyJsonValueController
     }
 
     /**
-     * Validates access and throws an exception if the current user does not have
-     * proper access
+     * Validates access and throws an exception if the current user does not have proper access
      *
      * @param namespace The namespace to validate
      * @throws WebMessageException

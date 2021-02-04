@@ -41,15 +41,10 @@ public class WebOptions
     extends Options
 {
     public final static String PAGING = "paging";
-
     public final static String PAGE = "page";
-
     public final static String PAGE_SIZE = "pageSize";
-
     public final static String ROOT_JUNCTION = "rootJunction";
-
     public final static String VIEW_CLASS = "viewClass";
-
     public final static String MANAGE = "manage";
 
     public WebOptions( Map<String, String> options )
@@ -57,9 +52,9 @@ public class WebOptions
         super( options );
     }
 
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     // Getters for standard web options
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
 
     public boolean hasPaging()
     {
@@ -70,7 +65,6 @@ public class WebOptions
      * This method will return a boolean flag depending on the current paging value
      * and the given default return value. The input param will be used to force the
      * return of this method in the cases where the PAGING is not set.
-     *
      * @param defaultReturnValue is the value to be returned if the paging is not
      *        set.
      * @return the boolean flag.

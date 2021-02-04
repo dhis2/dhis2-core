@@ -28,15 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
@@ -79,7 +71,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.google.common.collect.Lists;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -125,8 +123,7 @@ public class LockExceptionController
     @RequestMapping( method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody RootNode getLockExceptions( @RequestParam( required = false ) String key,
         @RequestParam Map<String, String> rpParameters, HttpServletRequest request, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        throws IOException, WebMessageException
     {
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -144,8 +141,7 @@ public class LockExceptionController
 
             if ( lockException == null )
             {
-                throw new WebMessageException(
-                    WebMessageUtils.notFound( "Cannot find LockException with key: " + key ) );
+                throw new WebMessageException( WebMessageUtils.notFound( "Cannot find LockException with key: " + key ) );
             }
 
             lockExceptions.add( lockException );
@@ -184,16 +180,14 @@ public class LockExceptionController
             lockException.getPeriod().setName( format.formatPeriod( lockException.getPeriod() ) );
         }
 
-        rootNode.addChild( fieldFilterService.toCollectionNode( LockException.class,
-            new FieldFilterParams( lockExceptions, fields ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( LockException.class, new FieldFilterParams( lockExceptions, fields ) ) );
 
         return rootNode;
     }
 
     @RequestMapping( value = "/combinations", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody RootNode getLockExceptionCombinations()
-        throws IOException,
-        WebMessageException
+        throws IOException, WebMessageException
     {
 
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -214,17 +208,14 @@ public class LockExceptionController
         Collections.sort( lockExceptions, new LockExceptionNameComparator() );
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.toCollectionNode( LockException.class,
-            new FieldFilterParams( lockExceptions, fields ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( LockException.class, new FieldFilterParams( lockExceptions, fields ) ) );
 
         return rootNode;
     }
 
     @RequestMapping( method = RequestMethod.POST )
-    public void addLockException( @RequestParam( "ou" ) String organisationUnitId,
-        @RequestParam( "pe" ) String periodId,
-        @RequestParam( "ds" ) String dataSetId, HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException
+    public void addLockException( @RequestParam( "ou" ) String organisationUnitId, @RequestParam( "pe" ) String periodId,
+        @RequestParam( "ds" ) String dataSetId, HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
         User user = userService.getCurrentUser();
 
@@ -267,8 +258,7 @@ public class LockExceptionController
 
             if ( organisationUnit == null )
             {
-                throw new WebMessageException(
-                    WebMessageUtils.conflict( "Can't find OrganisationUnit with id =" + id ) );
+                throw new WebMessageException( WebMessageUtils.conflict( "Can't find OrganisationUnit with id =" + id ) );
             }
 
             if ( organisationUnit.getDataSets().contains( dataSet ) )
@@ -285,17 +275,14 @@ public class LockExceptionController
 
         if ( created )
         {
-            webMessageService.send( WebMessageUtils.created( "LockException created successfully." ), response,
-                request );
+            webMessageService.send( WebMessageUtils.created( "LockException created successfully." ), response, request );
         }
     }
 
     @RequestMapping( method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void deleteLockException( @RequestParam( name = "ou", required = false ) String organisationUnitId,
-        @RequestParam( "pe" ) String periodId,
-        @RequestParam( "ds" ) String dataSetId, HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException
+    public void deleteLockException( @RequestParam( name = "ou", required = false ) String organisationUnitId, @RequestParam( "pe" ) String periodId,
+        @RequestParam( "ds" ) String dataSetId, HttpServletRequest request, HttpServletResponse response ) throws WebMessageException
     {
         User user = userService.getCurrentUser();
 
@@ -306,8 +293,7 @@ public class LockExceptionController
 
         if ( !ObjectUtils.allNonNull( dataSet, period ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict(
-                "Can't find LockException with combination: dataSet=" + dataSetId + ", period=" + periodId ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Can't find LockException with combination: dataSet=" + dataSetId + ", period=" + periodId ) );
         }
 
         if ( !aclService.canDelete( user, dataSet ) )

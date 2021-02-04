@@ -32,8 +32,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -51,9 +49,10 @@ import org.springframework.security.web.FilterInvocation;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
- * Allows certain type/uid combinations to be externally accessed (no login
- * required).
+ * Allows certain type/uid combinations to be externally accessed (no login required).
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -66,8 +65,7 @@ public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation
 
     static
     {
-        // TODO charts/reportTables APIs are deprecated and will be removed, clean this
-        // up when they are
+        // TODO charts/reportTables APIs are deprecated and will be removed, clean this up when they are
         externalClasses.put( "charts", Visualization.class );
         externalClasses.put( "reportTables", Visualization.class );
         externalClasses.put( "maps", org.hisp.dhis.mapping.Map.class );

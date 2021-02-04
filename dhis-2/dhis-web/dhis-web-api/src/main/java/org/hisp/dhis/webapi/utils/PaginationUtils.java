@@ -41,9 +41,9 @@ public class PaginationUtils
     /**
      * Calculates the paging first result based on pagination data from
      * {@see WebOptions} if the WebOptions have pagination information
-     *
+     * 
      * The first result is simply calculated by multiplying page -1 * page size
-     *
+     * 
      * @param options a {@see WebOptions} object
      * @return a {@see PaginationData} object either empty or containing pagination
      *         data

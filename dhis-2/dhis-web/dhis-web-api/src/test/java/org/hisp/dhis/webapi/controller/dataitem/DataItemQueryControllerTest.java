@@ -164,8 +164,8 @@ public class DataItemQueryControllerTest
         when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
         when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( invalidAcl );
 
-        final IllegalQueryException ex = assertThrows( IllegalQueryException.class,
-            () -> dataItemQueryController.getJson( anyUrlParameters, anyOrderParams, anyUser ) );
-        assertThat( ex.getMessage(), containsString( "does not have read access for object" ) );
+        final IllegalQueryException ex = assertThrows(IllegalQueryException.class,
+                () -> dataItemQueryController.getJson(anyUrlParameters, anyOrderParams, anyUser));
+        assertThat(ex.getMessage(), containsString( "does not have read access for object" ));
     }
 }

@@ -75,7 +75,7 @@ public class GetUserRolesAction
         userRoles = new ArrayList<>( userService.getAllUserAuthorityGroups() );
 
         userService.canIssueFilter( userRoles );
-
+        
         Collections.sort( userRoles );
 
         if ( usePaging )

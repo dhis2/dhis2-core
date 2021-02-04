@@ -80,7 +80,6 @@ public class MetadataExportControllerTest
     {
         ResponseEntity<RootNode> responseEntity = controller.getMetadata( false, null, true );
         Assert.assertNotNull( responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
-        Assert.assertEquals( "attachment; filename=metadata",
-            responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
+        Assert.assertEquals( "attachment; filename=metadata", responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
     }
 }

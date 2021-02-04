@@ -55,21 +55,18 @@ public class ReportTemplateController
     private ContextUtils contextUtils;
 
     @RequestMapping( value = "/reportTemplate.xml", method = RequestMethod.GET, produces = "application/xml" )
-    public void getReportDesignJrxml( HttpServletResponse response )
-        throws Exception
+    public void getReportDesignJrxml( HttpServletResponse response ) throws Exception
     {
         serveTemplate( response, ContextUtils.CONTENT_TYPE_XML, "jasper-report-template.jrxml" );
     }
 
     @RequestMapping( value = "/reportTemplate.html", method = RequestMethod.GET, produces = "application/xml" )
-    public void getReportDesignHtml( HttpServletResponse response )
-        throws Exception
+    public void getReportDesignHtml( HttpServletResponse response ) throws Exception
     {
         serveTemplate( response, ContextUtils.CONTENT_TYPE_HTML, "html-report-template.html" );
     }
 
-    private void serveTemplate( HttpServletResponse response, String contentType, String template )
-        throws IOException
+    private void serveTemplate( HttpServletResponse response, String contentType, String template ) throws IOException
     {
         contextUtils.configureResponse( response, contentType, CacheStrategy.CACHE_1_HOUR, template, true );
 

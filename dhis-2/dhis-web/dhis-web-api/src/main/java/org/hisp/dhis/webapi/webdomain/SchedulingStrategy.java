@@ -41,17 +41,17 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class SchedulingStrategy
 {
     private String resourceTableStrategy;
-
+    
     private String analyticsStrategy;
-
+    
     private String dataMartStrategy;
-
+    
     private String monitoringStrategy;
-
+    
     private String dataSynchStrategy;
 
     private String dataStatisticsStrategy;
-
+    
     public SchedulingStrategy()
     {
     }
@@ -64,7 +64,7 @@ public class SchedulingStrategy
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getResourceTableStrategy()
     {
-        return resourceTableStrategy;
+       return resourceTableStrategy;
     }
 
     public void setResourceTableStrategy( String resourceTableStrategy )

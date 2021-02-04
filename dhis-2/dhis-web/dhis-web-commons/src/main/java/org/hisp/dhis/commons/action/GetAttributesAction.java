@@ -75,10 +75,9 @@ public class GetAttributesAction
     public String execute()
     {
         attributes = new ArrayList<>( attributeService.getAllAttributes() );
-
-        ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(),
-            attributes );
-
+        
+        ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(), attributes );
+        
         Collections.sort( attributes );
 
         return SUCCESS;

@@ -40,7 +40,7 @@ public class VelocityCacheManifestResult
 
     @Override
     protected final String getContentType( String templateLocation )
-    {
+    {       
         return "text/cache-manifest";
     }
 }

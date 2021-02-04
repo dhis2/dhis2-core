@@ -94,7 +94,7 @@ public class SharingUserGroupAccess
 
     public String toString()
     {
-        return MoreObjects.toStringHelper( this ).add( "id", id ).add( "name", name ).add( "access", access )
-            .toString();
+        return MoreObjects.toStringHelper( this ).
+            add( "id", id ).add( "name", name ).add( "access", access ).toString();
     }
 }
