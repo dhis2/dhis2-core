@@ -27,23 +27,27 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import org.springframework.context.ApplicationEvent;
+import java.util.List;
 
-/**
- * @author Zubair Asghar
- */
-public class StageCompletionEvaluationEvent extends ApplicationEvent
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.springframework.stereotype.Component;
+
+@Component
+public class ServerSideImplementableRuleService
+    extends ImplementableRuleService
 {
-    private final long programStageInstance;
-
-    public StageCompletionEvaluationEvent( Object source, long programStageInstance )
+    public ServerSideImplementableRuleService( ProgramRuleService programRuleService )
     {
-        super( source );
-        this.programStageInstance = programStageInstance;
+        super( programRuleService );
     }
 
-    public long getProgramStageInstance()
+    @Override
+    public List<ProgramRule> getProgramRulesByActionTypes( Program program, String programStageUid )
     {
-        return programStageInstance;
+        return getProgramRulesByActionTypes( program, ProgramRuleActionType.SERVER_SUPPORTED_TYPES,
+            programStageUid );
     }
 }
