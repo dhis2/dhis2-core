@@ -48,9 +48,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 @Configuration
 public class LeaderElectionConfiguration
 {
-    @Autowired( required = false )
-    private StringRedisTemplate redisTemplate;
-
     @Autowired
     private DhisConfigurationProvider dhisConfigurationProvider;
 
@@ -64,7 +61,8 @@ public class LeaderElectionConfiguration
     @Bean
     @Qualifier( "leaderManager" )
     @Conditional( RedisEnabledCondition.class )
-    public LeaderManager redisLeaderManager()
+    @Autowired( required = false )
+    public LeaderManager redisLeaderManager( StringRedisTemplate redisTemplate )
     {
         return new RedisLeaderManager( Long.parseLong( (String) leaderTimeToLive().getObject() ), redisTemplate,
             dhisConfigurationProvider );
