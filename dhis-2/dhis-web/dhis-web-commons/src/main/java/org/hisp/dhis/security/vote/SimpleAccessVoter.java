@@ -30,8 +30,8 @@ package org.hisp.dhis.security.vote;
 
 import java.util.Collection;
 
-
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
@@ -40,7 +40,7 @@ import org.springframework.security.core.GrantedAuthority;
 /**
  * Simple AccessDecisionVoter which grants access if a specified required
  * authority is among the configAttributes.
- * 
+ *
  * @author Torgeir Lorange Ostby
  * @version $Id: SimpleAccessVoter.java 6352 2008-11-20 15:49:52Z larshelg $
  */

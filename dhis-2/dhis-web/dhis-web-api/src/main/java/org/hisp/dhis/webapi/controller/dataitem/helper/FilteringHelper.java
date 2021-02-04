@@ -168,7 +168,8 @@ public class FilteringHelper
         if ( entity == null )
         {
             throw new IllegalQueryException(
-                new ErrorMessage( E2016, entityType, "dimensionItemType", Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ) ) );
+                new ErrorMessage( E2016, entityType, "dimensionItemType",
+                    Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ) ) );
         }
 
         return entity;

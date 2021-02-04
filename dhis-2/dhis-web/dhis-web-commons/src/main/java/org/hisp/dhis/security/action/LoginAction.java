@@ -28,8 +28,13 @@ package org.hisp.dhis.security.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import com.opensymphony.xwork2.Action;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -40,12 +45,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mobile.device.Device;
 import org.springframework.mobile.device.DeviceResolver;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.collect.ImmutableMap;
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author mortenoh
@@ -129,8 +130,8 @@ public class LoginAction
 
     private void setOidcConfig()
     {
-        boolean isOidcEnabled = configurationProvider.
-            getProperty( ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED ).equalsIgnoreCase( "on" );
+        boolean isOidcEnabled = configurationProvider.getProperty( ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED )
+            .equalsIgnoreCase( "on" );
 
         if ( !isOidcEnabled )
         {
@@ -154,8 +155,7 @@ public class LoginAction
                 "id", registrationId,
                 "icon", clientRegistration.getLoginIcon(),
                 "iconPadding", clientRegistration.getLoginIconPadding(),
-                "loginText", clientRegistration.getLoginText()
-            ) );
+                "loginText", clientRegistration.getLoginText() ) );
         }
 
         oidcConfig.put( "providers", providers );

@@ -77,7 +77,8 @@ public class SharingControllerTest
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Test( expected = AccessDeniedException.class )
-    public void notSystemDefaultMetadataNoAccess() throws Exception
+    public void notSystemDefaultMetadataNoAccess()
+        throws Exception
     {
         final OrganisationUnit organisationUnit = new OrganisationUnit();
 
@@ -89,7 +90,8 @@ public class SharingControllerTest
     }
 
     @Test( expected = AccessDeniedException.class )
-    public void systemDefaultMetadataNoAccess() throws Exception
+    public void systemDefaultMetadataNoAccess()
+        throws Exception
     {
         final Category category = new Category();
         category.setName( Category.DEFAULT_NAME + "x" );
@@ -102,7 +104,8 @@ public class SharingControllerTest
     }
 
     @Test( expected = WebMessageException.class )
-    public void systemDefaultMetadata() throws Exception
+    public void systemDefaultMetadata()
+        throws Exception
     {
         final Category category = new Category();
         category.setName( Category.DEFAULT_NAME );
@@ -117,7 +120,8 @@ public class SharingControllerTest
         }
         catch ( WebMessageException e )
         {
-            assertThat( e.getWebMessage().getMessage(), containsString( "Sharing settings of system default metadata object" ) );
+            assertThat( e.getWebMessage().getMessage(),
+                containsString( "Sharing settings of system default metadata object" ) );
             throw e;
         }
     }

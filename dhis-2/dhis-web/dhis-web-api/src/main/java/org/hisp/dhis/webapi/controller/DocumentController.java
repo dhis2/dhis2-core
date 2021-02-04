@@ -28,7 +28,13 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.servlet.http.HttpServletResponse;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.document.Document;
@@ -46,10 +52,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -113,7 +115,7 @@ public class DocumentController
                 document.getUrl(),
                 document.getAttachment() == null ? false : document.getAttachment() );
 
-            try ( InputStream in = locationManager.getInputStream( document.getUrl(), DocumentService.DIR ) )
+            try (InputStream in = locationManager.getInputStream( document.getUrl(), DocumentService.DIR ))
             {
                 IOUtils.copy( in, response.getOutputStream() );
             }

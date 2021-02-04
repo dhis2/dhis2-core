@@ -179,7 +179,8 @@ public class GetOrganisationUnitTreeAction
 
         username = currentUserService.getCurrentUsername();
 
-        sortBy = SortProperty.fromValue( userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY ).toString() );
+        sortBy = SortProperty
+            .fromValue( userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY ).toString() );
 
         User user = currentUserService.getCurrentUser();
 
@@ -288,9 +289,9 @@ public class GetOrganisationUnitTreeAction
     }
 
     /**
-     * Returns the number of org unit levels to cache offline based on the given
-     * org unit level argument, next the org unit level from the user org unit,
-     * next the level from the configuration.
+     * Returns the number of org unit levels to cache offline based on the given org
+     * unit level argument, next the org unit level from the user org unit, next the
+     * level from the configuration.
      */
     private Integer getOfflineOrganisationUnitLevels()
     {
@@ -301,8 +302,8 @@ public class GetOrganisationUnitTreeAction
             return null;
         }
 
-        Integer level =
-            offlineLevel != null ? offlineLevel : organisationUnitService.getOfflineOrganisationUnitLevels();
+        Integer level = offlineLevel != null ? offlineLevel
+            : organisationUnitService.getOfflineOrganisationUnitLevels();
 
         return level == 1 ? 2 : level;
     }

@@ -33,24 +33,25 @@ package org.hisp.dhis.result;
  * wont allow dynamic setting of the chart height and width.
  */
 
-import com.opensymphony.xwork2.ActionInvocation;
-import com.opensymphony.xwork2.Result;
+import java.io.OutputStream;
+
+import javax.servlet.http.HttpServletResponse;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
-
-
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.util.ContextUtils;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.OutputStream;
+import com.opensymphony.xwork2.ActionInvocation;
+import com.opensymphony.xwork2.Result;
 
 /**
- * A custom Result type for chart data. Built on top of <a
- * href="http://www.jfree.org/jfreechart/" target="_blank">JFreeChart</a>. When
- * executed this Result will write the given chart as a PNG to the servlet
+ * A custom Result type for chart data. Built on top of
+ * <a href="http://www.jfree.org/jfreechart/" target="_blank">JFreeChart</a>.
+ * When executed this Result will write the given chart as a PNG to the servlet
  * output stream.
  *
  * @author Bernard Choi
@@ -61,7 +62,9 @@ public class ChartResult
     implements Result
 {
     private static final String DEFAULT_FILENAME = "chart.png";
+
     private static final int DEFAULT_WIDTH = 700;
+
     private static final int DEFAULT_HEIGHT = 500;
 
     private JFreeChart chart = null;
@@ -113,12 +116,12 @@ public class ChartResult
     }
 
     /**
-     * Executes the result. Writes the given chart as a PNG to the servlet
-     * output stream.
+     * Executes the result. Writes the given chart as a PNG to the servlet output
+     * stream.
      *
      * @param invocation an encapsulation of the action execution state.
-     * @throws Exception if an error occurs when creating or writing the chart
-     *                   to the servlet output stream.
+     * @throws Exception if an error occurs when creating or writing the chart to
+     *         the servlet output stream.
      */
     @Override
     public void execute( ActionInvocation invocation )

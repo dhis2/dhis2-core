@@ -47,7 +47,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 /**
  * This was deprecated in favour of the new {@link UserContextInterceptor}. This
  * was disabled after xml to java config refactor, on (24.08.2020).
- * 
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
@@ -79,7 +79,8 @@ public class TranslationInterceptor extends HandlerInterceptorAdapter implements
     private UserSettingService userSettingService;
 
     @Override
-    public boolean preHandle( HttpServletRequest request, HttpServletResponse response, Object handler ) throws Exception
+    public boolean preHandle( HttpServletRequest request, HttpServletResponse response, Object handler )
+        throws Exception
     {
         boolean translate = !"false".equals( request.getParameter( PARAM_TRANSLATE ) );
         String locale = request.getParameter( PARAM_LOCALE );
@@ -91,7 +92,8 @@ public class TranslationInterceptor extends HandlerInterceptorAdapter implements
     }
 
     @Override
-    public void afterCompletion( HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex )
+    public void afterCompletion( HttpServletRequest request, HttpServletResponse response, Object handler,
+        Exception ex )
     {
         UserContext.reset();
     }
@@ -105,7 +107,9 @@ public class TranslationInterceptor extends HandlerInterceptorAdapter implements
 
     private Locale getLocaleWithDefault( TranslateParams translateParams, User user )
     {
-        return translateParams.isTranslate() ?
-            translateParams.getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE, user ) ) : null;
+        return translateParams.isTranslate()
+            ? translateParams
+                .getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE, user ) )
+            : null;
     }
 }

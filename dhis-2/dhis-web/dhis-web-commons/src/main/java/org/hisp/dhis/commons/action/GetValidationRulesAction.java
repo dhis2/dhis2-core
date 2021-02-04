@@ -76,8 +76,9 @@ public class GetValidationRulesAction
     {
         validationRules = new ArrayList<>( validationRuleService.getAllValidationRules() );
 
-        ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(), validationRules );
-        
+        ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(),
+            validationRules );
+
         Collections.sort( validationRules );
 
         return SUCCESS;

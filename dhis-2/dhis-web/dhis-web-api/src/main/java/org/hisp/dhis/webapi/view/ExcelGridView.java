@@ -47,7 +47,8 @@ public class ExcelGridView extends AbstractGridView
     }
 
     @Override
-    protected void renderGrids( List<Grid> grids, HttpServletResponse response ) throws Exception
+    protected void renderGrids( List<Grid> grids, HttpServletResponse response )
+        throws Exception
     {
         GridUtils.toXls( grids, response.getOutputStream() );
     }

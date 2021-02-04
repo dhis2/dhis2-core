@@ -28,8 +28,6 @@ package org.hisp.dhis.security.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.oust.manager.DefaultSelectionTreeManager;
@@ -60,6 +58,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -111,8 +112,7 @@ public class AuthoritiesProviderConfig
             new CachingSystemAuthoritiesProvider( moduleSystemAuthoritiesProvider() ),
             new CachingSystemAuthoritiesProvider( simpleSystemAuthoritiesProvider() ),
             schemaAuthoritiesProvider,
-            appsSystemAuthoritiesProvider
-        ) );
+            appsSystemAuthoritiesProvider ) );
         return provider;
     }
 
@@ -153,8 +153,7 @@ public class AuthoritiesProviderConfig
             "dhis-web-commons-about",
             "dhis-web-apps",
             "dhis-web-api-mobile",
-            "dhis-web-portal"
-        ) );
+            "dhis-web-portal" ) );
         return provider;
     }
 

@@ -28,18 +28,9 @@ package org.hisp.dhis.webapi.service;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.collection.spi.PersistentCollection;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaService;
-import org.springframework.stereotype.Service;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
 
-import javax.annotation.Nonnull;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -49,8 +40,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.StringUtils.trimToNull;
+import javax.annotation.Nonnull;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.collection.spi.PersistentCollection;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -259,7 +261,8 @@ public class DefaultLinkService implements LinkService
                     }
                     catch ( UnsupportedEncodingException e )
                     {
-                        throw new IllegalStateException( "Encoding for URL values is not supported: " + DEFAULT_URL_ENCODING );
+                        throw new IllegalStateException(
+                            "Encoding for URL values is not supported: " + DEFAULT_URL_ENCODING );
                     }
                 } );
             }
@@ -367,7 +370,8 @@ public class DefaultLinkService implements LinkService
 
         Schema schema = schemaService.getDynamicSchema( klass );
 
-        if ( !schema.haveApiEndpoint() || schema.getProperty( "id" ) == null || schema.getProperty( "id" ).getGetterMethod() == null )
+        if ( !schema.haveApiEndpoint() || schema.getProperty( "id" ) == null
+            || schema.getProperty( "id" ).getGetterMethod() == null )
         {
             return;
         }

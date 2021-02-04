@@ -28,10 +28,11 @@ package org.hisp.dhis.interceptor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.interceptor.Interceptor;
 import com.opensymphony.xwork2.interceptor.PreResultListener;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * The intention of this class is to stop execution of the pre result listener
@@ -60,7 +61,8 @@ public abstract class AbstractPreResultListener
     }
 
     @Override
-    public final String intercept( ActionInvocation actionInvocation ) throws Exception
+    public final String intercept( ActionInvocation actionInvocation )
+        throws Exception
     {
         actionInvocation.addPreResultListener( this );
 
@@ -101,5 +103,6 @@ public abstract class AbstractPreResultListener
     // Abstract method to be implemented by subclasses
     // -------------------------------------------------------------------------
 
-    public abstract void executeBeforeResult( ActionInvocation actionInvocation, String result ) throws Exception;
+    public abstract void executeBeforeResult( ActionInvocation actionInvocation, String result )
+        throws Exception;
 }

@@ -28,12 +28,13 @@ package org.hisp.dhis.webportal.interceptor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.opensymphony.xwork2.ActionInvocation;
-import com.opensymphony.xwork2.interceptor.Interceptor;
-import org.hisp.dhis.user.CurrentUserService;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.hisp.dhis.user.CurrentUserService;
+
+import com.opensymphony.xwork2.ActionInvocation;
+import com.opensymphony.xwork2.interceptor.Interceptor;
 
 /**
  * @author Torgeir Lorange Ostby

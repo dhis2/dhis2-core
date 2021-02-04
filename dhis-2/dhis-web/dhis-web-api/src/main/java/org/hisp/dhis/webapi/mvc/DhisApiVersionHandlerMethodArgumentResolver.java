@@ -28,6 +28,11 @@ package org.hisp.dhis.webapi.mvc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
@@ -35,10 +40,6 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -55,7 +56,9 @@ public class DhisApiVersionHandlerMethodArgumentResolver implements HandlerMetho
     }
 
     @Override
-    public Object resolveArgument( MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory ) throws Exception
+    public Object resolveArgument( MethodParameter parameter, ModelAndViewContainer mavContainer,
+        NativeWebRequest webRequest, WebDataBinderFactory binderFactory )
+        throws Exception
     {
         String requestURI = ((HttpServletRequest) webRequest.getNativeRequest()).getRequestURI();
         Matcher matcher = API_VERSION_PATTERN.matcher( requestURI );

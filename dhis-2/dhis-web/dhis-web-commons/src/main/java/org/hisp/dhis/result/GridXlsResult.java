@@ -46,8 +46,9 @@ import com.opensymphony.xwork2.Result;
 
 /**
  * Creates an XLS representation of the given Grid or list of Grids and writes
- * it to the servlet outputstream. One of the grid or grids arguments must be set.
- * 
+ * it to the servlet outputstream. One of the grid or grids arguments must be
+ * set.
+ *
  * @author Lars Helge Overland
  */
 public class GridXlsResult
@@ -59,13 +60,13 @@ public class GridXlsResult
     private static final long serialVersionUID = 3030165635768899728L;
 
     private static final String DEFAULT_NAME = "Grid.xls";
-    
+
     // -------------------------------------------------------------------------
     // Input
     // -------------------------------------------------------------------------
 
     private Grid grid;
-    
+
     public void setGrid( Grid grid )
     {
         this.grid = grid;
@@ -92,13 +93,13 @@ public class GridXlsResult
         // ---------------------------------------------------------------------
 
         Grid _grid = (Grid) invocation.getStack().findValue( "grid" );
-        
-        grid = _grid != null ? _grid : grid; 
+
+        grid = _grid != null ? _grid : grid;
 
         List<Grid> _grids = (List<Grid>) invocation.getStack().findValue( "grids" );
-        
+
         grids = _grids != null ? _grids : grids;
-        
+
         // ---------------------------------------------------------------------
         // Configure response
         // ---------------------------------------------------------------------
@@ -107,10 +108,12 @@ public class GridXlsResult
 
         OutputStream out = response.getOutputStream();
 
-        String filename = filenameEncode( defaultIfEmpty( grid != null ? grid.getTitle() : grids.iterator().next().getTitle(), DEFAULT_NAME ) ) + ".xls";
-        
+        String filename = filenameEncode(
+            defaultIfEmpty( grid != null ? grid.getTitle() : grids.iterator().next().getTitle(), DEFAULT_NAME ) )
+            + ".xls";
+
         ContextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, true, filename, true );
-        
+
         // ---------------------------------------------------------------------
         // Create workbook and write to output stream
         // ---------------------------------------------------------------------

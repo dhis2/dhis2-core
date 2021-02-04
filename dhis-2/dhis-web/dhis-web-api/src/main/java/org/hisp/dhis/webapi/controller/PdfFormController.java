@@ -100,13 +100,14 @@ public class PdfFormController
     @Autowired
     private WebMessageService webMessageService;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // DataSet
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = "/dataSet/{dataSetUid}", method = RequestMethod.GET )
     public void getFormPdfDataSet( @PathVariable String dataSetUid, HttpServletRequest request,
-        HttpServletResponse response, OutputStream out ) throws Exception
+        HttpServletResponse response, OutputStream out )
+        throws Exception
     {
         Document document = new Document();
 
@@ -126,7 +127,8 @@ public class PdfFormController
         String fileName = dataSetService.getDataSet( dataSetUid ).getName() + " " +
             DateUtils.getMediumDateString() + ".pdf";
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.NO_CACHE, fileName, true );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.NO_CACHE, fileName,
+            true );
         response.setContentLength( baos.size() );
 
         baos.writeTo( out );
@@ -151,7 +153,7 @@ public class PdfFormController
         webMessageService.send( WebMessageUtils.ok( "Import successful." ), response, request );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Program Stage
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 }

@@ -39,8 +39,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class GeoFeature
 {
     public static final int TYPE_POINT = 1;
+
     public static final int TYPE_POLYGON = 2;
-    
+
     /**
      * Identifier.
      */
@@ -55,42 +56,42 @@ public class GeoFeature
      * Name.
      */
     private String na;
-    
+
     /**
      * Has coordinates down.
      */
     private boolean hcd;
-    
+
     /**
      * Has coordinates up.
      */
     private boolean hcu;
-    
+
     /**
      * Level.
      */
     private int le;
-    
+
     /**
      * Parent graph.
      */
     private String pg;
-    
+
     /**
      * Parent identifier.
      */
     private String pi;
-    
+
     /**
      * Parent name.
      */
     private String pn;
-    
+
     /**
      * Feature type.
      */
     private int ty;
-    
+
     /**
      * Coordinates.
      */
@@ -100,14 +101,14 @@ public class GeoFeature
      * Dimensions and dimension items.
      */
     private Map<String, String> dimensions = new HashMap<>();
-    
+
     public GeoFeature()
     {
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Getters and setters
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @JsonProperty
     public String getId()

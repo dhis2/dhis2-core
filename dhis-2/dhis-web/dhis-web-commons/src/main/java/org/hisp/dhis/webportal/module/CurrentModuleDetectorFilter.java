@@ -28,8 +28,6 @@ package org.hisp.dhis.webportal.module;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 
 import javax.servlet.Filter;
@@ -40,9 +38,12 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: CurrentModuleDetectorFilter.java 6216 2008-11-06 18:06:42Z eivindwa $
+ * @version $Id: CurrentModuleDetectorFilter.java 6216 2008-11-06 18:06:42Z
+ *          eivindwa $
  */
 @Slf4j
 public class CurrentModuleDetectorFilter
@@ -75,7 +76,8 @@ public class CurrentModuleDetectorFilter
 
     @Override
     public void doFilter( ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain )
-        throws IOException, ServletException
+        throws IOException,
+        ServletException
     {
         // ---------------------------------------------------------------------
         // Convert to HttpServletRequest and -Response

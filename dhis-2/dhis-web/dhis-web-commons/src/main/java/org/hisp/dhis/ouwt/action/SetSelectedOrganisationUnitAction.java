@@ -28,13 +28,14 @@ package org.hisp.dhis.ouwt.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.opensymphony.xwork2.Action;
+import java.util.Collection;
+import java.util.HashSet;
+
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager;
 
-import java.util.Collection;
-import java.util.HashSet;
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -98,10 +99,10 @@ public class SetSelectedOrganisationUnitAction
         {
             selectedUnits = new HashSet<>( 1 );
             selectedUnits.add( unit );
-    
+
             selectionManager.setSelectedOrganisationUnits( selectedUnits );
         }
-        
+
         return SUCCESS;
     }
 }

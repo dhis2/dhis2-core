@@ -28,28 +28,29 @@ package org.hisp.dhis.webapi.mvc.messageconverter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableList;
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.NodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
-import javax.annotation.Nonnull;
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class JsonMessageConverter extends AbstractRootNodeMessageConverter
 {
-    public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
+    public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
         .add( new MediaType( "application", "json" ) )
         .build();
 
-    public static final ImmutableList<MediaType> GZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
+    public static final ImmutableList<MediaType> GZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
         .add( new MediaType( "application", "json+gzip" ) )
         .build();
 
-    public static final ImmutableList<MediaType> ZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
+    public static final ImmutableList<MediaType> ZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
         .add( new MediaType( "application", "json+zip" ) )
         .build();
 
@@ -58,14 +59,14 @@ public class JsonMessageConverter extends AbstractRootNodeMessageConverter
         super( nodeService, "application/json", "json", compression );
         switch ( getCompression() )
         {
-            case NONE:
-                setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
-                break;
-            case GZIP:
-                setSupportedMediaTypes( GZIP_SUPPORTED_MEDIA_TYPES );
-                break;
-            case ZIP:
-                setSupportedMediaTypes( ZIP_SUPPORTED_MEDIA_TYPES );
+        case NONE:
+            setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
+            break;
+        case GZIP:
+            setSupportedMediaTypes( GZIP_SUPPORTED_MEDIA_TYPES );
+            break;
+        case ZIP:
+            setSupportedMediaTypes( ZIP_SUPPORTED_MEDIA_TYPES );
         }
     }
 }

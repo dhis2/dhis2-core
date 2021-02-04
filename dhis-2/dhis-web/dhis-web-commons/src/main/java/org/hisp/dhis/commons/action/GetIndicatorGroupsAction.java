@@ -32,12 +32,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.system.filter.IndicatorGroupWithoutGroupSetFilter;
-import org.hisp.dhis.commons.filter.FilterUtils;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 
 /**
  * @author mortenoh

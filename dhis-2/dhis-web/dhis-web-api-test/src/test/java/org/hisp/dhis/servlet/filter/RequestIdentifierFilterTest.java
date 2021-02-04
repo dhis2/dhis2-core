@@ -28,10 +28,10 @@ package org.hisp.dhis.servlet.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.external.conf.ConfigurationKey.*;
 import static org.junit.Assert.assertNull;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
@@ -126,8 +126,8 @@ public class RequestIdentifierFilterTest
 
     @Test
     public void testisDisabled()
-            throws ServletException,
-            IOException
+        throws ServletException,
+        IOException
     {
         init( -1, "SHA-256", false );
         doFilter();

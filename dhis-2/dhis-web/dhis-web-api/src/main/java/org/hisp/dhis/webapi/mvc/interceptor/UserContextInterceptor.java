@@ -28,22 +28,24 @@ package org.hisp.dhis.webapi.mvc.interceptor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.common.UserContext.reset;
+import static org.hisp.dhis.common.UserContext.setUser;
+import static org.hisp.dhis.common.UserContext.setUserSetting;
+import static org.hisp.dhis.user.UserSettingKey.DB_LOCALE;
+
+import java.util.Locale;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.Locale;
-
-import static org.hisp.dhis.common.UserContext.reset;
-import static org.hisp.dhis.common.UserContext.setUser;
-import static org.hisp.dhis.common.UserContext.setUserSetting;
-import static org.hisp.dhis.user.UserSettingKey.DB_LOCALE;
 
 /**
  * This interceptor is ONLY responsible for setting the current user and its
@@ -115,7 +117,7 @@ public class UserContextInterceptor extends HandlerInterceptorAdapter implements
     {
         return translateParams.isTranslate()
             ? translateParams
-            .getLocaleWithDefault( (Locale) userSettingService.getUserSetting( DB_LOCALE, user ) )
+                .getLocaleWithDefault( (Locale) userSettingService.getUserSetting( DB_LOCALE, user ) )
             : null;
     }
 }

@@ -29,12 +29,12 @@ package org.hisp.dhis.result;
  */
 
 /**
-* @author Lars Helge Overland
-*/
+ * @author Lars Helge Overland
+ */
 public class GridPdfInlineResult
     extends GridPdfResult
 {
-    @Override    
+    @Override
     protected boolean isAttachment()
     {
         return false;

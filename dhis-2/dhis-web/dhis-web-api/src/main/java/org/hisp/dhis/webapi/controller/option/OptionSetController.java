@@ -28,6 +28,8 @@ package org.hisp.dhis.webapi.controller.option;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.types.RootNode;
@@ -44,8 +46,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletResponse;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -58,7 +58,9 @@ public class OptionSetController
     private OptionService optionService;
 
     @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
-    public ResponseEntity<RootNode> getOptionSetWithDependencies( @PathVariable( "uid" ) String pvUid, HttpServletResponse response, @RequestParam( required = false, defaultValue = "false" ) boolean download ) throws WebMessageException
+    public ResponseEntity<RootNode> getOptionSetWithDependencies( @PathVariable( "uid" ) String pvUid,
+        HttpServletResponse response, @RequestParam( required = false, defaultValue = "false" ) boolean download )
+        throws WebMessageException
     {
         OptionSet optionSet = optionService.getOptionSet( pvUid );
 

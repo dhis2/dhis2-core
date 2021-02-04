@@ -47,28 +47,32 @@ public class ApiMethodV31V32Controller
 {
     @RequestMapping( "a" )
     @ApiVersion( DhisApiVersion.V31 )
-    public void testV31( HttpServletResponse response ) throws IOException
+    public void testV31( HttpServletResponse response )
+        throws IOException
     {
         response.getWriter().println( "TEST" );
     }
 
     @RequestMapping( value = "a", method = RequestMethod.POST )
     @ApiVersion( DhisApiVersion.V31 )
-    public void testPostV31( HttpServletResponse response ) throws IOException
+    public void testPostV31( HttpServletResponse response )
+        throws IOException
     {
         response.getWriter().println( "TEST" );
     }
 
     @RequestMapping( "b" )
     @ApiVersion( DhisApiVersion.V32 )
-    public void testV32( HttpServletResponse response ) throws IOException
+    public void testV32( HttpServletResponse response )
+        throws IOException
     {
         response.getWriter().println( "TEST" );
     }
 
     @RequestMapping( value = "b", method = RequestMethod.PUT )
     @ApiVersion( DhisApiVersion.V32 )
-    public void testPutV32( HttpServletResponse response ) throws IOException
+    public void testPutV32( HttpServletResponse response )
+        throws IOException
     {
         response.getWriter().println( "TEST" );
     }

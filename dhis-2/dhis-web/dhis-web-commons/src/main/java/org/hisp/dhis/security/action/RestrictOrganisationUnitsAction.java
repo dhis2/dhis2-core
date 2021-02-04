@@ -48,28 +48,28 @@ public class RestrictOrganisationUnitsAction
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-	
+
     private OrganisationUnitSelectionManager selectionManager;
 
     public void setSelectionManager( OrganisationUnitSelectionManager selectionManager )
     {
         this.selectionManager = selectionManager;
     }
-    
+
     private SelectionTreeManager selectionTreeManager;
 
     public void setSelectionTreeManager( SelectionTreeManager selectionTreeManager )
     {
         this.selectionTreeManager = selectionTreeManager;
     }
-    
+
     private CurrentUserService currentUserService;
 
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
     }
-    
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -79,7 +79,7 @@ public class RestrictOrganisationUnitsAction
         throws Exception
     {
         User user = currentUserService.getCurrentUser();
-        
+
         if ( user != null )
         {
             // -----------------------------------------------------------------
@@ -99,15 +99,15 @@ public class RestrictOrganisationUnitsAction
                 selectionManager.resetRootOrganisationUnits();
                 selectionManager.clearSelectedOrganisationUnits();
             }
-            
+
             if ( !dataViewOrgUnits.isEmpty() )
-            {                
-                selectionTreeManager.setRootOrganisationUnits( dataViewOrgUnits );                
+            {
+                selectionTreeManager.setRootOrganisationUnits( dataViewOrgUnits );
                 selectionTreeManager.setSelectedOrganisationUnits( dataViewOrgUnits );
             }
             else
-            {                
-                selectionTreeManager.resetRootOrganisationUnits();                
+            {
+                selectionTreeManager.resetRootOrganisationUnits();
                 selectionTreeManager.clearSelectedOrganisationUnits();
             }
         }

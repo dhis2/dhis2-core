@@ -38,4 +38,3 @@ public class OrganisationUnitLevelDocumentation
     extends AbstractWebApiTest<OrganisationUnitLevel>
 {
 }
-

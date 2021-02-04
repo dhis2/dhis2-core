@@ -28,8 +28,24 @@ package org.hisp.dhis.webapi.controller.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.jayway.jsonpath.JsonPath;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.commons.config.JacksonObjectMapperConfig.staticJsonMapper;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.io.UnsupportedEncodingException;
+import java.util.List;
+import java.util.Map;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.Compression;
@@ -74,23 +90,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.io.UnsupportedEncodingException;
-import java.util.List;
-import java.util.Map;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.commons.config.JacksonObjectMapperConfig.staticJsonMapper;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.google.common.collect.Lists;
+import com.jayway.jsonpath.JsonPath;
 
 /**
  * @author Luciano Fiandesio
@@ -268,7 +269,7 @@ public class DataElementOperandControllerTest
         assertThat( jsonDataElementOperands.get( 0 ).get( "id" ),
             Matchers.is( dataElementOperands.get( 50 ).getDimensionItem() ) );
         assertThat( jsonDataElementOperands.get( pageSize - 1 ).get( "id" ),
-            Matchers.is( dataElementOperands.get( 74  ).getDimensionItem() ) );
+            Matchers.is( dataElementOperands.get( 74 ).getDimensionItem() ) );
     }
 
     @SuppressWarnings( "unchecked" )

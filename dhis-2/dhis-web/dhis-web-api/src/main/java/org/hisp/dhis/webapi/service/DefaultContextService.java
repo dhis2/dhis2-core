@@ -68,7 +68,8 @@ public class DefaultContextService implements ContextService
         String xForwardedProto = request.getHeader( "X-Forwarded-Proto" );
         String xForwardedPort = request.getHeader( "X-Forwarded-Port" );
 
-        if ( xForwardedProto != null && (xForwardedProto.equalsIgnoreCase( "http" ) || xForwardedProto.equalsIgnoreCase( "https" )) )
+        if ( xForwardedProto != null
+            && (xForwardedProto.equalsIgnoreCase( "http" ) || xForwardedProto.equalsIgnoreCase( "https" )) )
         {
             builder.append( xForwardedProto );
         }
@@ -131,12 +132,13 @@ public class DefaultContextService implements ContextService
 
     private List<String> getRequestParameterValues( String paramName )
     {
-        String[] parameterValues = getRequest().getParameterValues(paramName);
+        String[] parameterValues = getRequest().getParameterValues( paramName );
 
-        if ( parameterValues != null ) {
-            return Arrays.stream(parameterValues)
-                    .distinct()
-                    .collect(Collectors.toList());
+        if ( parameterValues != null )
+        {
+            return Arrays.stream( parameterValues )
+                .distinct()
+                .collect( Collectors.toList() );
         }
 
         return Collections.emptyList();

@@ -105,17 +105,17 @@ public class GeoFeatureControllerTest
         // This ou should be filtered out since it has no Coordinates
         OrganisationUnit ouD = createOrgUnitWithoutCoordinates();
 
-        User user = beanRandomizer.randomObject(User.class);
+        User user = beanRandomizer.randomObject( User.class );
         DataQueryParams params = DataQueryParams.newBuilder().withOrganisationUnits( getList( ouA, ouB, ouC, ouD ) )
             .build();
 
         when( dataQueryService.getFromRequest( any( DataQueryRequest.class ) ) ).thenReturn( params );
         when( currentUserService.getCurrentUser() ).thenReturn( user );
 
-        mockMvc.perform( get( ENDPOINT ).accept(ContextUtils.CONTENT_TYPE_JSON)
+        mockMvc.perform( get( ENDPOINT ).accept( ContextUtils.CONTENT_TYPE_JSON )
             .param( "ou", "ou:LEVEL-2;LEVEL-3" ) )
             .andExpect( status().isOk() )
-            .andExpect( content().contentType(ContextUtils.CONTENT_TYPE_JSON) )
+            .andExpect( content().contentType( ContextUtils.CONTENT_TYPE_JSON ) )
             .andExpect( jsonPath( "$", hasSize( 3 ) ) );
     }
 

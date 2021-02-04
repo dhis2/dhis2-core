@@ -28,6 +28,9 @@ package org.hisp.dhis.webapi.controller.metadata.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
@@ -54,9 +57,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 /**
  * Controller for the automated sync of the metadata
  *
@@ -77,8 +77,12 @@ public class MetadataSyncController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
     @GetMapping
-    public ResponseEntity<? extends WebMessageResponse> metadataSync(HttpServletRequest request, HttpServletResponse response)
-        throws MetadataSyncException, BadRequestException, MetadataImportConflictException, OperationNotAllowedException
+    public ResponseEntity<? extends WebMessageResponse> metadataSync( HttpServletRequest request,
+        HttpServletResponse response )
+        throws MetadataSyncException,
+        BadRequestException,
+        MetadataImportConflictException,
+        OperationNotAllowedException
     {
         MetadataSyncParams syncParams;
         MetadataSyncSummary metadataSyncSummary = null;
@@ -96,35 +100,40 @@ public class MetadataSyncController
             }
             catch ( MetadataSyncServiceException serviceException )
             {
-                throw new BadRequestException( "Error in parsing inputParams " + serviceException.getMessage(), serviceException );
+                throw new BadRequestException( "Error in parsing inputParams " + serviceException.getMessage(),
+                    serviceException );
             }
 
             try
             {
-                boolean isSyncRequired = metadataSyncService.isSyncRequired(syncParams);
+                boolean isSyncRequired = metadataSyncService.isSyncRequired( syncParams );
 
                 if ( isSyncRequired )
                 {
                     metadataSyncSummary = metadataSyncService.doMetadataSync( syncParams );
-                    validateSyncSummaryResponse(metadataSyncSummary);
+                    validateSyncSummaryResponse( metadataSyncSummary );
                 }
                 else
                 {
-                    throw new MetadataImportConflictException( "Version already exists in system and hence not starting the sync." );
+                    throw new MetadataImportConflictException(
+                        "Version already exists in system and hence not starting the sync." );
                 }
             }
 
             catch ( MetadataSyncImportException importerException )
             {
-                throw new MetadataSyncException( "Runtime exception occurred while doing import: " + importerException.getMessage() );
+                throw new MetadataSyncException(
+                    "Runtime exception occurred while doing import: " + importerException.getMessage() );
             }
             catch ( MetadataSyncServiceException serviceException )
             {
-                throw new MetadataSyncException( "Exception occurred while doing metadata sync: " + serviceException.getMessage() );
+                throw new MetadataSyncException(
+                    "Exception occurred while doing metadata sync: " + serviceException.getMessage() );
             }
             catch ( DhisVersionMismatchException versionMismatchException )
             {
-                throw new OperationNotAllowedException( "Exception occurred while doing metadata sync: " + versionMismatchException.getMessage() );
+                throw new OperationNotAllowedException(
+                    "Exception occurred while doing metadata sync: " + versionMismatchException.getMessage() );
             }
         }
 

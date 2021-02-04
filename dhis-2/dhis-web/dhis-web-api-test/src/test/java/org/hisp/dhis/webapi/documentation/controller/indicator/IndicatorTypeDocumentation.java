@@ -38,4 +38,3 @@ public class IndicatorTypeDocumentation
     extends AbstractWebApiTest<IndicatorType>
 {
 }
-

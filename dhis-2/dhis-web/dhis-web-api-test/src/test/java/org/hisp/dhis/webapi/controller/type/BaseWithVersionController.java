@@ -45,7 +45,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public abstract class BaseWithVersionController
 {
     @RequestMapping( value = "/{id}", method = RequestMethod.POST )
-    public void testWithId( @PathVariable String id, HttpServletResponse response ) throws IOException
+    public void testWithId( @PathVariable String id, HttpServletResponse response )
+        throws IOException
     {
         response.getWriter().println( id );
     }

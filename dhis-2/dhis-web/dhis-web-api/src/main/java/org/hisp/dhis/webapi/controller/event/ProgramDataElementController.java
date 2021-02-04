@@ -71,9 +71,13 @@ import com.google.common.collect.Lists;
 public class ProgramDataElementController
 {
     private final QueryService queryService;
+
     private final FieldFilterService fieldFilterService;
+
     private final ContextService contextService;
+
     private final SchemaService schemaService;
+
     private final ProgramService programService;
 
     public ProgramDataElementController( QueryService queryService, FieldFilterService fieldFilterService,
@@ -88,7 +92,8 @@ public class ProgramDataElementController
 
     @GetMapping
     @SuppressWarnings( "unchecked" )
-    public @ResponseBody RootNode getObjectList( @RequestParam Map<String, String> rpParameters, OrderParams orderParams )
+    public @ResponseBody RootNode getObjectList( @RequestParam Map<String, String> rpParameters,
+        OrderParams orderParams )
         throws QueryParserException
     {
         Schema schema = schemaService.getDynamicSchema( ProgramDataElementDimensionItem.class );

@@ -28,6 +28,13 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.springframework.beans.BeanUtils.copyProperties;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.dashboard.Dashboard;
@@ -53,13 +60,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.springframework.beans.BeanUtils.copyProperties;
 
 /**
  * @author Lars Helge Overland
@@ -98,7 +98,8 @@ public class DashboardController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
-    public ResponseEntity<RootNode> getDataSetWithDependencies( @PathVariable( "uid" ) String dashboardId, @RequestParam( required = false, defaultValue = "false" ) boolean download )
+    public ResponseEntity<RootNode> getDataSetWithDependencies( @PathVariable( "uid" ) String dashboardId,
+        @RequestParam( required = false, defaultValue = "false" ) boolean download )
         throws WebMessageException
     {
         Dashboard dashboard = dashboardService.getDashboard( dashboardId );
@@ -113,10 +114,12 @@ public class DashboardController
 
     /**
      * Logic required to keep the backward compatibility with Chart and ReporTable.
-     * Otherwise it would always return VISUALIZATION type for any Chart or ReportTable.
+     * Otherwise it would always return VISUALIZATION type for any Chart or
+     * ReportTable.
      * <p>
-     * Only needed during the transition from Chart/ReportTable APIs to Visualization API.
-     * Once the Visualization API is fully enabled this logic should be removed.
+     * Only needed during the transition from Chart/ReportTable APIs to
+     * Visualization API. Once the Visualization API is fully enabled this logic
+     * should be removed.
      *
      * @param dashboards
      * @param options
@@ -138,10 +141,12 @@ public class DashboardController
 
     /**
      * Logic required to keep the backward compatibility with Chart and ReportTable.
-     * Otherwise it would always return VISUALIZATION type for any Chart or ReportTable.
+     * Otherwise it would always return VISUALIZATION type for any Chart or
+     * ReportTable.
      * <p>
-     * Only needed during the transition from Chart/ReportTable APIs to Visualization API.
-     * Once the Visualization API is fully enabled this logic should be removed.
+     * Only needed during the transition from Chart/ReportTable APIs to
+     * Visualization API. Once the Visualization API is fully enabled this logic
+     * should be removed.
      *
      * @param dashboard
      * @param options
@@ -169,25 +174,25 @@ public class DashboardController
 
                     switch ( type )
                     {
-                        case PIVOT_TABLE:
-                            dashboardItem.setReportTable( convertToReportTable( dashboardItem.getVisualization() ) );
-                            break;
-                        case AREA:
-                        case BAR:
-                        case COLUMN:
-                        case GAUGE:
-                        case LINE:
-                        case PIE:
-                        case RADAR:
-                        case SINGLE_VALUE:
-                        case STACKED_BAR:
-                        case STACKED_COLUMN:
-                        case YEAR_OVER_YEAR_COLUMN:
-                        case YEAR_OVER_YEAR_LINE:
-                        case SCATTER:
-                        case BUBBLE:
-                            dashboardItem.setChart( convertToChart( dashboardItem.getVisualization() ) );
-                            break;
+                    case PIVOT_TABLE:
+                        dashboardItem.setReportTable( convertToReportTable( dashboardItem.getVisualization() ) );
+                        break;
+                    case AREA:
+                    case BAR:
+                    case COLUMN:
+                    case GAUGE:
+                    case LINE:
+                    case PIE:
+                    case RADAR:
+                    case SINGLE_VALUE:
+                    case STACKED_BAR:
+                    case STACKED_COLUMN:
+                    case YEAR_OVER_YEAR_COLUMN:
+                    case YEAR_OVER_YEAR_LINE:
+                    case SCATTER:
+                    case BUBBLE:
+                        dashboardItem.setChart( convertToChart( dashboardItem.getVisualization() ) );
+                        break;
                     }
                 }
             }

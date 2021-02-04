@@ -35,5 +35,6 @@ import org.springframework.security.web.context.AbstractSecurityWebApplicationIn
  */
 public class SecurityWebApplicationInitializer extends AbstractSecurityWebApplicationInitializer
 {
-    // This is needed for triggering the setup of the SpringSecurityFilterChain and ContextLoaderListener
+    // This is needed for triggering the setup of the SpringSecurityFilterChain and
+    // ContextLoaderListener
 }

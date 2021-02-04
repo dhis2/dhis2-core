@@ -28,10 +28,15 @@ package org.hisp.dhis.webapi.security.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.spring.web.servlet.DefaultWebMvcTagsProvider;
-import io.micrometer.spring.web.servlet.WebMvcMetricsFilter;
-import io.micrometer.spring.web.servlet.WebMvcTagsProvider;
+import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_API_ENABLED;
+
+import java.io.IOException;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.monitoring.metrics.MetricsEnabler;
@@ -43,13 +48,10 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
-import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_API_ENABLED;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.spring.web.servlet.DefaultWebMvcTagsProvider;
+import io.micrometer.spring.web.servlet.WebMvcMetricsFilter;
+import io.micrometer.spring.web.servlet.WebMvcTagsProvider;
 
 /**
  * @author Luciano Fiandesio
@@ -83,7 +85,8 @@ public class WebMvcMetricsConfig
         }
     }
 
-    // If API metrics are disabled, system still expects a filter named 'webMetricsFilter' to be available
+    // If API metrics are disabled, system still expects a filter named
+    // 'webMetricsFilter' to be available
 
     static class PassThroughWebMvcMetricsFilter
         extends OncePerRequestFilter
@@ -99,7 +102,7 @@ public class WebMvcMetricsConfig
     }
 
     static class WebMvcMetricsEnabledCondition
-            extends MetricsEnabler
+        extends MetricsEnabler
     {
         @Override
         protected ConfigurationKey getConfigKey()

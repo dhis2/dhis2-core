@@ -64,7 +64,7 @@ public class EventFilterController extends AbstractCrudController<ProgramStageIn
     }
 
     @Override
-    public void preUpdateEntity( ProgramStageInstanceFilter oldEventFilter , ProgramStageInstanceFilter newEventFilter )
+    public void preUpdateEntity( ProgramStageInstanceFilter oldEventFilter, ProgramStageInstanceFilter newEventFilter )
     {
         List<String> errors = psiFilterService.validate( newEventFilter );
         if ( !errors.isEmpty() )

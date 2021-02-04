@@ -31,8 +31,8 @@ package org.hisp.dhis.security.intercept;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.struts2.ServletActionContext;
 
 import com.opensymphony.xwork2.Action;
@@ -41,7 +41,7 @@ import com.opensymphony.xwork2.interceptor.Interceptor;
 
 /**
  * Interceptor that will run a list of actions when the user first logins.
- * 
+ *
  * @author mortenoh
  */
 @Slf4j

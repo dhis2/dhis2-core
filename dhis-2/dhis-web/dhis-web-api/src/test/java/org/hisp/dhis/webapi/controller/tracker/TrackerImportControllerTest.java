@@ -149,9 +149,12 @@ public class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
-        try  {
+        try
+        {
             renderService.fromJson( contentAsString, TrackerImportReport.class );
-        } catch (Exception e) {
+        }
+        catch ( Exception e )
+        {
             fail( "response content : " + contentAsString + "\n" + " is not of TrackerImportReport type" );
         }
     }

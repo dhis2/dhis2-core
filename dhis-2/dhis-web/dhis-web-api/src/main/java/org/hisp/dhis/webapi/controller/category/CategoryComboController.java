@@ -28,6 +28,8 @@ package org.hisp.dhis.webapi.controller.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -44,8 +46,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.io.IOException;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -58,8 +58,10 @@ public class CategoryComboController
     private CategoryService categoryService;
 
     @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
-    public ResponseEntity<RootNode> getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid, @RequestParam( required = false, defaultValue = "false" ) boolean download )
-        throws WebMessageException, IOException
+    public ResponseEntity<RootNode> getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid,
+        @RequestParam( required = false, defaultValue = "false" ) boolean download )
+        throws WebMessageException,
+        IOException
     {
         CategoryCombo categoryCombo = categoryService.getCategoryCombo( pvUid );
 
@@ -68,7 +70,8 @@ public class CategoryComboController
             throw new WebMessageException( WebMessageUtils.notFound( "CategoryCombo not found for uid: " + pvUid ) );
         }
 
-        return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, categoryCombo, download );
+        return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, categoryCombo,
+            download );
     }
 
     @Override

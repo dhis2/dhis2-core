@@ -28,7 +28,13 @@ package org.hisp.dhis.webapi.controller.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.category.CategoryService;
@@ -67,12 +73,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -83,15 +84,24 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DataElementOperandController
 {
     private final IdentifiableObjectManager manager;
+
     private final QueryService queryService;
+
     private final FieldFilterService fieldFilterService;
+
     private final LinkService linkService;
+
     private final ContextService contextService;
+
     private final SchemaService schemaService;
+
     private final CategoryService dataElementCategoryService;
+
     private final CurrentUserService currentUserService;
 
-    private Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>() {}
+    private Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>()
+    {
+    }
         .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
 
@@ -121,8 +131,9 @@ public class DataElementOperandController
 
     @GetMapping
     @SuppressWarnings( "unchecked" )
-    public @ResponseBody RootNode getObjectList( @RequestParam Map<String, String> rpParameters, OrderParams orderParams )
-            throws QueryParserException
+    public @ResponseBody RootNode getObjectList( @RequestParam Map<String, String> rpParameters,
+        OrderParams orderParams )
+        throws QueryParserException
     {
         Schema schema = schemaService.getDynamicSchema( DataElementOperand.class );
 

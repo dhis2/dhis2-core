@@ -37,7 +37,8 @@ import org.hisp.dhis.webportal.module.ModuleManager;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: ModuleSystemAuthoritiesProvider.java 3160 2007-03-24 20:15:06Z torgeilo $
+ * @version $Id: ModuleSystemAuthoritiesProvider.java 3160 2007-03-24 20:15:06Z
+ *          torgeilo $
  */
 public class ModuleSystemAuthoritiesProvider
     implements SystemAuthoritiesProvider

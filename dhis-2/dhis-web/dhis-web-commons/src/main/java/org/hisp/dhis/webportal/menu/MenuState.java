@@ -34,5 +34,7 @@ package org.hisp.dhis.webportal.menu;
  */
 public enum MenuState
 {
-    HIDDEN, VISIBLE, EXTENDED
+    HIDDEN,
+    VISIBLE,
+    EXTENDED
 }

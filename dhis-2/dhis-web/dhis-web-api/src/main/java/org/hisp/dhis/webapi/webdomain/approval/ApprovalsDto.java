@@ -45,7 +45,7 @@ public class ApprovalsDto
     private List<String> ds = new ArrayList<>();
 
     private List<String> pe = new ArrayList<>();
-    
+
     private List<ApprovalDto> approvals = new ArrayList<>();
 
     public ApprovalsDto()

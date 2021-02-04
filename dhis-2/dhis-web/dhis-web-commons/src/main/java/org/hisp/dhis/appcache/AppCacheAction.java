@@ -28,11 +28,12 @@ package org.hisp.dhis.appcache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -70,7 +71,8 @@ public class AppCacheAction implements Action
     }
 
     @Override
-    public String execute() throws Exception
+    public String execute()
+        throws Exception
     {
         username = currentUserService.getCurrentUsername();
 

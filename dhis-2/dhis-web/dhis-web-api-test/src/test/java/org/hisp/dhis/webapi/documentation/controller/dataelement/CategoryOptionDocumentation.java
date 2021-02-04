@@ -1,6 +1,5 @@
 package org.hisp.dhis.webapi.documentation.controller.dataelement;
 
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.

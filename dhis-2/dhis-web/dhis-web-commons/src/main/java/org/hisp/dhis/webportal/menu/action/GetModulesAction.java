@@ -29,7 +29,6 @@ package org.hisp.dhis.webportal.menu.action;
  */
 
 import java.util.ArrayList;
-
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -55,9 +54,9 @@ public class GetModulesAction
 
     @Autowired
     private CurrentUserService currentUserService;
-    
+
     private List<Module> modules;
-    
+
     public List<Module> getModules()
     {
         return modules;
@@ -68,15 +67,15 @@ public class GetModulesAction
         throws Exception
     {
         String contextPath = ContextUtils.getContextPath( ServletActionContext.getRequest() );
-        
+
         modules = manager.getAccessibleMenuModulesAndApps( contextPath );
 
         User user = currentUserService.getCurrentUser();
-        
+
         if ( user != null && user.getApps() != null && !user.getApps().isEmpty() )
         {
             final List<String> userApps = new ArrayList<>( user.getApps() );
-            
+
             Collections.sort( modules, new Comparator<Module>()
             {
                 @Override
@@ -87,12 +86,12 @@ public class GetModulesAction
 
                     i1 = i1 == -1 ? 9999 : i1;
                     i2 = i2 == -1 ? 9999 : i2;
-                    
+
                     return Integer.valueOf( i1 ).compareTo( Integer.valueOf( i2 ) );
                 }
             } );
         }
-        
+
         return SUCCESS;
     }
 }

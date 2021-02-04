@@ -41,5 +41,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping( value = CategoryOptionSchemaDescriptor.API_ENDPOINT )
 public class CategoryOptionController extends AbstractCrudController<CategoryOption>
 {
-    
+
 }

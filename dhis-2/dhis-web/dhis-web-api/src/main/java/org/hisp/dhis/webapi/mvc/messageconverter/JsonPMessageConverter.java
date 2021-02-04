@@ -28,8 +28,11 @@ package org.hisp.dhis.webapi.mvc.messageconverter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.util.List;
+
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.serializers.Jackson2JsonNodeSerializer;
@@ -40,9 +43,8 @@ import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
-import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.util.List;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -51,7 +53,7 @@ public class JsonPMessageConverter extends AbstractRootNodeMessageConverter
 {
     public static final String DEFAULT_CALLBACK_PARAMETER = "callback";
 
-    public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
+    public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
         .add( new MediaType( "application", "javascript" ) )
         .add( new MediaType( "application", "x-javascript" ) )
         .add( new MediaType( "text", "javascript" ) )
@@ -59,7 +61,8 @@ public class JsonPMessageConverter extends AbstractRootNodeMessageConverter
 
     private ContextService contextService;
 
-    public JsonPMessageConverter( @Autowired @Nonnull NodeService nodeService, @Autowired @Nonnull ContextService contextService )
+    public JsonPMessageConverter( @Autowired @Nonnull NodeService nodeService,
+        @Autowired @Nonnull ContextService contextService )
     {
         super( nodeService, "application/json", "jsonp", Compression.NONE );
         this.contextService = contextService;
@@ -67,7 +70,9 @@ public class JsonPMessageConverter extends AbstractRootNodeMessageConverter
     }
 
     @Override
-    protected void writeInternal( RootNode rootNode, HttpOutputMessage outputMessage ) throws IOException, HttpMessageNotWritableException
+    protected void writeInternal( RootNode rootNode, HttpOutputMessage outputMessage )
+        throws IOException,
+        HttpMessageNotWritableException
     {
         List<String> callbacks = Lists.newArrayList( contextService.getParameterValues( DEFAULT_CALLBACK_PARAMETER ) );
 

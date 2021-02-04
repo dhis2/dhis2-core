@@ -33,8 +33,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.util.ContextUtils;
 
 import com.opensymphony.xwork2.ActionInvocation;
@@ -58,7 +58,7 @@ public class GridCsvResult
     // -------------------------------------------------------------------------
 
     private Grid grid;
-    
+
     public void setGrid( Grid grid )
     {
         this.grid = grid;
@@ -77,8 +77,8 @@ public class GridCsvResult
         // ---------------------------------------------------------------------
 
         Grid _grid = (Grid) invocation.getStack().findValue( "grid" );
-        
-        grid = _grid != null ? _grid : grid; 
+
+        grid = _grid != null ? _grid : grid;
 
         // ---------------------------------------------------------------------
         // Configure response
@@ -86,8 +86,9 @@ public class GridCsvResult
 
         HttpServletResponse response = ServletActionContext.getResponse();
 
-        String filename = CodecUtils.filenameEncode( StringUtils.defaultIfEmpty( grid.getTitle(), DEFAULT_FILENAME ) ) + ".csv";
-        
+        String filename = CodecUtils.filenameEncode( StringUtils.defaultIfEmpty( grid.getTitle(), DEFAULT_FILENAME ) )
+            + ".csv";
+
         ContextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, true, filename, true );
 
         // ---------------------------------------------------------------------

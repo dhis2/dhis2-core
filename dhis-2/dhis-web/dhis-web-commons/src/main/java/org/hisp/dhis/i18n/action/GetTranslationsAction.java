@@ -28,21 +28,22 @@ package org.hisp.dhis.i18n.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.opensymphony.xwork2.ActionSupport;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.CLASS_ALIAS;
+
+import java.util.Locale;
+import java.util.Map;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.util.LocaleUtils;
 import org.hisp.dhis.util.TranslationUtils;
 
-import java.util.Locale;
-import java.util.Map;
-
-import static org.hisp.dhis.common.IdentifiableObjectUtils.CLASS_ALIAS;
+import com.opensymphony.xwork2.ActionSupport;
 
 /**
  * @author Oyvind Brucker
  */
-public class GetTranslationsAction 
+public class GetTranslationsAction
     extends ActionSupport
 {
     private String className;
@@ -95,15 +96,15 @@ public class GetTranslationsAction
     public String execute()
         throws Exception
     {
-        className = className != null && CLASS_ALIAS.containsKey( className ) ? CLASS_ALIAS.get( className ) : className;
-        
+        className = className != null && CLASS_ALIAS.containsKey( className ) ? CLASS_ALIAS.get( className )
+            : className;
+
         Locale locale = LocaleUtils.getLocale( loc );
 
-        IdentifiableObject object = identifiableObjectManager.getObject( objectUid , className );
+        IdentifiableObject object = identifiableObjectManager.getObject( objectUid, className );
 
         translations = TranslationUtils.convertTranslations( object.getTranslations(), locale );
 
         return SUCCESS;
     }
 }
-

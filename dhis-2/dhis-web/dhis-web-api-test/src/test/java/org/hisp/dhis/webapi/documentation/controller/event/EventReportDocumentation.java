@@ -44,4 +44,3 @@ public class EventReportDocumentation
         createdStatus = HttpStatus.SC_CREATED;
     }
 }
-

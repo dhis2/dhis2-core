@@ -114,8 +114,8 @@ public class StaticContentControllerTest
             get( URL + LOGO_BANNER )
                 .accept( TEXT_HTML_VALUE )
                 .session( session ) )
-                    .andExpect( redirectedUrlPattern( "**/dhis-web-commons/css/light_blue/logo_banner.png" ) )
-                    .andExpect( status().is( SC_MOVED_TEMPORARILY ) );
+            .andExpect( redirectedUrlPattern( "**/dhis-web-commons/css/light_blue/logo_banner.png" ) )
+            .andExpect( status().is( SC_MOVED_TEMPORARILY ) );
     }
 
     @Test
@@ -132,14 +132,14 @@ public class StaticContentControllerTest
             get( URL + LOGO_BANNER )
                 .accept( TEXT_HTML_VALUE )
                 .session( session ) )
-                    .andExpect( content().contentType( MIME_PNG ) )
-                    .andExpect( content().bytes( mockMultipartFile.getBytes() ) )
-                    .andExpect( status().is( SC_OK ) );
+            .andExpect( content().contentType( MIME_PNG ) )
+            .andExpect( content().bytes( mockMultipartFile.getBytes() ) )
+            .andExpect( status().is( SC_OK ) );
     }
 
     @Test
     public void testGetStaticImagesCustomKey()
-            throws Exception
+        throws Exception
     {
         // Given
         final String theExpectedType = "png";
@@ -147,16 +147,16 @@ public class StaticContentControllerTest
 
         // a mock file in the content store used during the fetch
         fileResourceContentStore.saveFileResourceContent( build( LOGO_BANNER,
-                mockMultipartFile, DOCUMENT ), "image".getBytes() );
+            mockMultipartFile, DOCUMENT ), "image".getBytes() );
 
         // a positive flag indicating the usage of a custom logo
         systemSettingManager.saveSystemSetting( USE_CUSTOM_LOGO_BANNER, TRUE );
 
         // When
         final ResultActions result = mvc.perform(
-                get( URL + LOGO_BANNER )
-                    .accept( APPLICATION_JSON )
-                    .session( session ) );
+            get( URL + LOGO_BANNER )
+                .accept( APPLICATION_JSON )
+                .session( session ) );
 
         // Then
         result
@@ -168,7 +168,7 @@ public class StaticContentControllerTest
 
     @Test
     public void testGetStaticImagesUsingNonExistingKey()
-            throws Exception
+        throws Exception
     {
         // Given
         final String theExpectedStatusMessage = "Not Found";
@@ -179,18 +179,18 @@ public class StaticContentControllerTest
 
         // a mock file in the content store used during the fetch
         fileResourceContentStore.saveFileResourceContent( build( LOGO_BANNER,
-                mockMultipartFile, DOCUMENT ), "image".getBytes() );
+            mockMultipartFile, DOCUMENT ), "image".getBytes() );
 
         // When
         final ResultActions result = mvc.perform(
-                get( URL + aNonExistingLogoBanner )
-                    .accept( APPLICATION_JSON )
-                    .session( session ) );
+            get( URL + aNonExistingLogoBanner )
+                .accept( APPLICATION_JSON )
+                .session( session ) );
 
         // Then
         result
             .andExpect( content().contentType( APPLICATION_JSON ) )
-            .andExpect( content().string( not ( containsString( "png" ) ) ) )
+            .andExpect( content().string( not( containsString( "png" ) ) ) )
             .andExpect( content().string( containsString( theExpectedStatusMessage ) ) )
             .andExpect( content().string( containsString( theExpectedStatus ) ) )
             .andExpect( content().string( containsString( theExpectedMessage ) ) )
@@ -200,7 +200,7 @@ public class StaticContentControllerTest
 
     @Test
     public void testGetStaticImagesUsingNonExistingLogo()
-            throws Exception
+        throws Exception
     {
         // Given
         final String theExpectedStatusMessage = "Not Found";
@@ -213,19 +213,19 @@ public class StaticContentControllerTest
 
         // When
         final ResultActions result = mvc.perform(
-                get( URL + LOGO_BANNER )
-                        .accept( APPLICATION_JSON )
-                        .session( session ) );
+            get( URL + LOGO_BANNER )
+                .accept( APPLICATION_JSON )
+                .session( session ) );
 
         // Then
         result
-                .andExpect( content().contentType( APPLICATION_JSON ) )
-                .andExpect( content().string( not ( containsString( "png" ) ) ) )
-                .andExpect( content().string( containsString( theExpectedStatusMessage ) ) )
-                .andExpect( content().string( containsString( theExpectedStatus ) ) )
-                .andExpect( content().string( containsString( theExpectedMessage ) ) )
-                .andExpect( content().string( containsString( theExpectedStatusCode ) ) )
-                .andExpect( status().isNotFound() );
+            .andExpect( content().contentType( APPLICATION_JSON ) )
+            .andExpect( content().string( not( containsString( "png" ) ) ) )
+            .andExpect( content().string( containsString( theExpectedStatusMessage ) ) )
+            .andExpect( content().string( containsString( theExpectedStatus ) ) )
+            .andExpect( content().string( containsString( theExpectedMessage ) ) )
+            .andExpect( content().string( containsString( theExpectedStatusCode ) ) )
+            .andExpect( status().isNotFound() );
     }
 
     @Test
@@ -233,7 +233,7 @@ public class StaticContentControllerTest
         throws Exception
     {
         mvc.perform(
-             multipart( URL + LOGO_BANNER ).file( mockMultipartFile ).session( session ) )
+            multipart( URL + LOGO_BANNER ).file( mockMultipartFile ).session( session ) )
             .andExpect( status().is( SC_NO_CONTENT ) );
     }
 

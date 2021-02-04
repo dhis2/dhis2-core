@@ -88,8 +88,8 @@ public class OrganisationUnitTreeInterceptor
         Collection<OrganisationUnit> selectedUnits;
         List<OrganisationUnit> rootUnits;
 
-        selectedUnits = selectionManager.getSelectedOrganisationUnits();   
-        
+        selectedUnits = selectionManager.getSelectedOrganisationUnits();
+
         rootUnits = new ArrayList<>( selectionManager.getRootOrganisationUnits() );
 
         if ( selectedUnits == null )

@@ -28,6 +28,12 @@ package org.hisp.dhis.webapi.service;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.Schema;
@@ -41,12 +47,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.mock.web.MockHttpServletRequest;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Unit tests for {@link DefaultLinkService}.
@@ -72,11 +72,12 @@ public class DefaultLinkServiceTest
     @Test
     public void noLinks()
     {
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) ).thenAnswer( invocation -> {
-            Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
-            schema.setApiEndpoint( "/organizationUnits" );
-            return schema;
-        } );
+        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
+            .thenAnswer( invocation -> {
+                Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
+                schema.setApiEndpoint( "/organizationUnits" );
+                return schema;
+            } );
 
         request.setRequestURI( "/organizationUnits" );
         Mockito.when( contextService.getRequest() ).thenReturn( request );
@@ -90,11 +91,12 @@ public class DefaultLinkServiceTest
     @Test
     public void nextLinkDefaultParameters()
     {
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) ).thenAnswer( invocation -> {
-            Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
-            schema.setRelativeApiEndpoint( "/organizationUnits" );
-            return schema;
-        } );
+        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
+            .thenAnswer( invocation -> {
+                Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
+                schema.setRelativeApiEndpoint( "/organizationUnits" );
+                return schema;
+            } );
 
         request.setRequestURI( "/organizationUnits" );
         Mockito.when( contextService.getRequest() ).thenReturn( request );
@@ -117,11 +119,12 @@ public class DefaultLinkServiceTest
     @Test
     public void nextLinkParameters()
     {
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) ).thenAnswer( invocation -> {
-            Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
-            schema.setRelativeApiEndpoint( "/organizationUnits" );
-            return schema;
-        } );
+        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
+            .thenAnswer( invocation -> {
+                Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
+                schema.setRelativeApiEndpoint( "/organizationUnits" );
+                return schema;
+            } );
 
         request.setRequestURI( "/organizationUnits.json" );
         Mockito.when( contextService.getRequest() ).thenReturn( request );
@@ -140,17 +143,20 @@ public class DefaultLinkServiceTest
         final Pager pager = new Pager( 1, 1000 );
         service.generatePagerLinks( pager, OrganisationUnit.class );
         Assert.assertNull( pager.getPrevPage() );
-        Assert.assertEquals( "/demo/api/456/organizationUnits.json?page=2&fields=id%2Cname%2Cvalue%5Bid%2Ctext%5D&value%5Bx%5D=test1&value%5Bx%5D=test2%C3%98", pager.getNextPage() );
+        Assert.assertEquals(
+            "/demo/api/456/organizationUnits.json?page=2&fields=id%2Cname%2Cvalue%5Bid%2Ctext%5D&value%5Bx%5D=test1&value%5Bx%5D=test2%C3%98",
+            pager.getNextPage() );
     }
 
     @Test
     public void prevLinkDefaultParameters()
     {
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) ).thenAnswer( invocation -> {
-            Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
-            schema.setRelativeApiEndpoint( "/organizationUnits" );
-            return schema;
-        } );
+        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
+            .thenAnswer( invocation -> {
+                Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
+                schema.setRelativeApiEndpoint( "/organizationUnits" );
+                return schema;
+            } );
 
         request.setRequestURI( "/organizationUnits.xml" );
         Mockito.when( contextService.getRequest() ).thenReturn( request );
@@ -173,11 +179,12 @@ public class DefaultLinkServiceTest
     @Test
     public void nextLink()
     {
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) ).thenAnswer( invocation -> {
-            Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
-            schema.setRelativeApiEndpoint( "/organizationUnits" );
-            return schema;
-        } );
+        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
+            .thenAnswer( invocation -> {
+                Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
+                schema.setRelativeApiEndpoint( "/organizationUnits" );
+                return schema;
+            } );
 
         request.setRequestURI( "/organizationUnits.xml.gz" );
         Mockito.when( contextService.getRequest() ).thenReturn( request );
@@ -200,11 +207,12 @@ public class DefaultLinkServiceTest
     @Test
     public void nextLinkWithDotsInPath()
     {
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) ).thenAnswer( invocation -> {
-            Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
-            schema.setRelativeApiEndpoint( "/organizationUnits" );
-            return schema;
-        } );
+        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
+            .thenAnswer( invocation -> {
+                Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
+                schema.setRelativeApiEndpoint( "/organizationUnits" );
+                return schema;
+            } );
 
         request.setRequestURI( "https://play.dhis2.org/2.30/api/30/organizationUnits.xml.gz" );
         Mockito.when( contextService.getRequest() ).thenReturn( request );
@@ -227,11 +235,12 @@ public class DefaultLinkServiceTest
     @Test
     public void prevLinkParameters()
     {
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) ).thenAnswer( invocation -> {
-            Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
-            schema.setRelativeApiEndpoint( "/organizationUnits" );
-            return schema;
-        } );
+        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
+            .thenAnswer( invocation -> {
+                Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
+                schema.setRelativeApiEndpoint( "/organizationUnits" );
+                return schema;
+            } );
 
         Mockito.when( contextService.getRequest() ).thenReturn( request );
 
@@ -249,17 +258,20 @@ public class DefaultLinkServiceTest
         final Pager pager = new Pager( 3, 110 );
         service.generatePagerLinks( pager, OrganisationUnit.class );
         Assert.assertNull( pager.getNextPage() );
-        Assert.assertEquals( "/demo/api/456/organizationUnits?page=2&fields=id%2Cname%2Cvalue%5Bid%2Ctext%5D&value%5Bx%5D=test1&value%5Bx%5D=test2%C3%98", pager.getPrevPage() );
+        Assert.assertEquals(
+            "/demo/api/456/organizationUnits?page=2&fields=id%2Cname%2Cvalue%5Bid%2Ctext%5D&value%5Bx%5D=test1&value%5Bx%5D=test2%C3%98",
+            pager.getPrevPage() );
     }
 
     @Test
     public void prevLinkParametersPage1()
     {
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) ).thenAnswer( invocation -> {
-            Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
-            schema.setRelativeApiEndpoint( "/organizationUnits" );
-            return schema;
-        } );
+        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
+            .thenAnswer( invocation -> {
+                Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
+                schema.setRelativeApiEndpoint( "/organizationUnits" );
+                return schema;
+            } );
 
         Mockito.when( contextService.getRequest() ).thenReturn( request );
 
@@ -277,6 +289,8 @@ public class DefaultLinkServiceTest
         final Pager pager = new Pager( 2, 90 );
         service.generatePagerLinks( pager, OrganisationUnit.class );
         Assert.assertNull( pager.getNextPage() );
-        Assert.assertEquals( "/demo/api/456/organizationUnits?fields=id%2Cname%2Cvalue%5Bid%2Ctext%5D&value%5Bx%5D=test1&value%5Bx%5D=test2%C3%98", pager.getPrevPage() );
+        Assert.assertEquals(
+            "/demo/api/456/organizationUnits?fields=id%2Cname%2Cvalue%5Bid%2Ctext%5D&value%5Bx%5D=test1&value%5Bx%5D=test2%C3%98",
+            pager.getPrevPage() );
     }
 }

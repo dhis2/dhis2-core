@@ -28,23 +28,24 @@ package org.hisp.dhis.commons.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.hisp.dhis.appmanager.App;
-import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.paging.ActionPagingSupport;
-import org.hisp.dhis.security.authority.SystemAuthoritiesProvider;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import static java.util.Arrays.asList;
 import static org.hisp.dhis.schema.descriptors.ChartSchemaDescriptor.F_CHART_EXTERNAL;
 import static org.hisp.dhis.schema.descriptors.ChartSchemaDescriptor.F_CHART_PUBLIC_ADD;
 import static org.hisp.dhis.schema.descriptors.ReportTableSchemaDescriptor.F_REPORTTABLE_EXTERNAL;
 import static org.hisp.dhis.schema.descriptors.ReportTableSchemaDescriptor.F_REPORTTABLE_PUBLIC_ADD;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.paging.ActionPagingSupport;
+import org.hisp.dhis.security.authority.SystemAuthoritiesProvider;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author mortenoh
@@ -98,7 +99,7 @@ public class GetSystemAuthoritiesAction
         ObjectNode root = mapper.createObjectNode();
         ArrayNode authNodes = mapper.createArrayNode();
 
-        List<String> listAuthorities =  new ArrayList<>( authoritiesProvider.getSystemAuthorities() );
+        List<String> listAuthorities = new ArrayList<>( authoritiesProvider.getSystemAuthorities() );
         Collections.sort( listAuthorities );
 
         if ( usePaging )
@@ -138,8 +139,9 @@ public class GetSystemAuthoritiesAction
     }
 
     /**
-     * This checking is required in order to "temporally" remove the deprecated schemas.
-     * Created and used during the transition from Chart/ReportTable to Visualization.
+     * This checking is required in order to "temporally" remove the deprecated
+     * schemas. Created and used during the transition from Chart/ReportTable to
+     * Visualization.
      *
      * @param authId to be filtered out if the same is deprecated.
      * @return true if the authId is NOT deprecated, false otherwise.

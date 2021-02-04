@@ -131,7 +131,8 @@ public class FileResourceUtils
         {
             if ( fileResource.isHasMultipleStorageFiles() )
             {
-                fileResource.setStorageKey( StringUtils.join( fileResource.getStorageKey(), dimension.getDimension() ) );
+                fileResource
+                    .setStorageKey( StringUtils.join( fileResource.getStorageKey(), dimension.getDimension() ) );
             }
         }
     }
@@ -186,9 +187,9 @@ public class FileResourceUtils
 
         File tmpFile = toTempFile( file );
 
-       fileResourceService.saveFileResource( fileResource, tmpFile );
+        fileResourceService.saveFileResource( fileResource, tmpFile );
 
-       return fileResource;
+        return fileResource;
     }
 
     // -------------------------------------------------------------------------

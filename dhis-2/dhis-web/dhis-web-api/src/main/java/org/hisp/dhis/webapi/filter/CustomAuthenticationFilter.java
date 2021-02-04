@@ -72,7 +72,8 @@ public class CustomAuthenticationFilter implements InitializingBean, Filter
 
     @Override
     public void doFilter( ServletRequest request, ServletResponse response, FilterChain filterChain )
-        throws IOException, ServletException
+        throws IOException,
+        ServletException
     {
         String mobileVersion = request.getParameter( PARAM_MOBILE_VERSION );
         String authOnly = request.getParameter( PARAM_AUTH_ONLY );
@@ -95,4 +96,3 @@ public class CustomAuthenticationFilter implements InitializingBean, Filter
     {
     }
 }
-

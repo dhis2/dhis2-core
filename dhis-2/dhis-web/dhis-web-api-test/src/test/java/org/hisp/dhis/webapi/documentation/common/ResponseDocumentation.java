@@ -28,12 +28,13 @@ package org.hisp.dhis.webapi.documentation.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.springframework.restdocs.payload.FieldDescriptor;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 
 import java.util.List;
 
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import org.springframework.restdocs.payload.FieldDescriptor;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -55,8 +56,7 @@ public final class ResponseDocumentation
             fieldWithPath( "access" ).description( "Property" ),
             fieldWithPath( "userGroupAccesses" ).description( "Property" ),
             fieldWithPath( "attributeValues" ).description( "Property" ),
-            fieldWithPath( "translations" ).description( "Property" )
-        );
+            fieldWithPath( "translations" ).description( "Property" ) );
     }
 
     public static List<FieldDescriptor> nameableObject()
@@ -65,8 +65,7 @@ public final class ResponseDocumentation
             fieldWithPath( "shortName" ).description( "Property" ),
             fieldWithPath( "displayShortName" ).description( "Property" ),
             fieldWithPath( "description" ).description( "Property" ),
-            fieldWithPath( "displayDescription" ).description( "Property" )
-        );
+            fieldWithPath( "displayDescription" ).description( "Property" ) );
     }
 
     public static List<FieldDescriptor> pager()
@@ -75,7 +74,6 @@ public final class ResponseDocumentation
             fieldWithPath( "pager.page" ).description( "Property" ),
             fieldWithPath( "pager.pageCount" ).description( "Property" ),
             fieldWithPath( "pager.total" ).description( "Property" ),
-            fieldWithPath( "pager.pageSize" ).description( "Property" )
-        );
+            fieldWithPath( "pager.pageSize" ).description( "Property" ) );
     }
 }

@@ -28,14 +28,13 @@ package org.hisp.dhis.de.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
-import com.opensymphony.xwork2.Action;
+import java.util.*;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.dataanalysis.DataAnalysisService;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataanalysis.DataAnalysisService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -52,7 +51,8 @@ import org.hisp.dhis.validation.ValidationService;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import com.google.common.collect.Sets;
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author Margrethe Store
@@ -233,8 +233,9 @@ public class ValidationAction
 
         for ( OrganisationUnit organisationUnit : organisationUnits )
         {
-            List<DeflatedDataValue> values = new ArrayList<>( minMaxOutlierAnalysisService.analyse( Sets.newHashSet( organisationUnit ),
-                dataSet.getDataElements(), Sets.newHashSet( period ), null, from ) );
+            List<DeflatedDataValue> values = new ArrayList<>(
+                minMaxOutlierAnalysisService.analyse( Sets.newHashSet( organisationUnit ),
+                    dataSet.getDataElements(), Sets.newHashSet( period ), null, from ) );
 
             if ( !values.isEmpty() )
             {
@@ -252,10 +253,13 @@ public class ValidationAction
                 validationResults.put( organisationUnit.getUid(), results );
             }
 
-            List<DataElementOperand> violations = validationService.validateRequiredComments( dataSet, period, organisationUnit, attributeOptionCombo );
+            List<DataElementOperand> violations = validationService.validateRequiredComments( dataSet, period,
+                organisationUnit, attributeOptionCombo );
 
-            log.info( "Validation done for data set: '{}', period: '{}', org unit: '{}', validation rule count: {}, violations found: {}",
-                dataSet.getUid(), period.getIsoDate(), organisationUnit.getUid(), params.getValidationRules().size(), violations.size() );
+            log.info(
+                "Validation done for data set: '{}', period: '{}', org unit: '{}', validation rule count: {}, violations found: {}",
+                dataSet.getUid(), period.getIsoDate(), organisationUnit.getUid(), params.getValidationRules().size(),
+                violations.size() );
 
             if ( !violations.isEmpty() )
             {

@@ -28,6 +28,11 @@ package org.hisp.dhis.webapi.mvc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -36,11 +41,6 @@ import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
 import org.springframework.web.servlet.mvc.condition.RequestMethodsRequestCondition;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -82,8 +82,7 @@ public class CustomRequestMappingHandlerMapping
         {
             versions.stream()
                 .filter( version -> !version.isIgnore() )
-                .forEach( version ->
-                {
+                .forEach( version -> {
                     if ( !pattern.startsWith( version.getVersionString() ) )
                     {
                         if ( pattern.startsWith( "/" ) )
@@ -108,8 +107,7 @@ public class CustomRequestMappingHandlerMapping
         return new RequestMappingInfo(
             null, patternsRequestCondition, methodsCondition, info.getParamsCondition(), info.getHeadersCondition(),
             info.getConsumesCondition(),
-            info.getProducesCondition(), info.getCustomCondition()
-        );
+            info.getProducesCondition(), info.getCustomCondition() );
     }
 
     private Set<DhisApiVersion> getVersions( ApiVersion typeApiVersion, ApiVersion methodApiVersion )

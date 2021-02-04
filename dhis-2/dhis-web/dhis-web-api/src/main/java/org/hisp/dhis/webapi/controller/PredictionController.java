@@ -28,6 +28,15 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.scheduling.JobType.PREDICTOR;
+
+import java.util.Date;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
@@ -45,14 +54,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.Date;
-import java.util.List;
-
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
-import static org.hisp.dhis.scheduling.JobType.PREDICTOR;
 
 /**
  * @author Jim Grace
@@ -88,13 +89,16 @@ public class PredictionController
         @RequestParam( value = "predictor", required = false ) List<String> predictors,
         @RequestParam( value = "predictorGroup", required = false ) List<String> predictorGroups,
         @RequestParam( defaultValue = "false", required = false ) boolean async,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         if ( async )
         {
-            JobConfiguration jobId = new JobConfiguration( "inMemoryPrediction", PREDICTOR, currentUserService.getCurrentUser().getUid(), true );
+            JobConfiguration jobId = new JobConfiguration( "inMemoryPrediction", PREDICTOR,
+                currentUserService.getCurrentUser().getUid(), true );
 
-            schedulingManager.executeJob( new PredictionTask( startDate, endDate, predictors, predictorGroups, predictionService, jobId ) );
+            schedulingManager.executeJob(
+                new PredictionTask( startDate, endDate, predictors, predictorGroups, predictionService, jobId ) );
 
             response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + PREDICTOR );
 
@@ -102,7 +106,8 @@ public class PredictionController
         }
         else
         {
-            PredictionSummary predictionSummary = predictionService.predictTask( startDate, endDate, predictors, predictorGroups, null );
+            PredictionSummary predictionSummary = predictionService.predictTask( startDate, endDate, predictors,
+                predictorGroups, null );
 
             renderService.toJson( response.getOutputStream(), predictionSummary );
         }

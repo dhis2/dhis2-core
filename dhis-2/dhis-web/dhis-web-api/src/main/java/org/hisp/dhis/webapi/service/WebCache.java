@@ -39,14 +39,14 @@ import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
 import static org.springframework.http.CacheControl.maxAge;
 import static org.springframework.http.CacheControl.noCache;
 
+import java.util.Date;
+
 import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.http.CacheControl;
 import org.springframework.stereotype.Component;
-
-import java.util.Date;
 
 /**
  * This component encapsulates the caching settings and object definitions
@@ -73,7 +73,7 @@ public class WebCache
      * Defines and return a CacheControl object with the correct expiration time and
      * cacheability based on the internal system settings defined by the user. The
      * expiration time is defined through the Enum {@link CacheStrategy}
-     * 
+     *
      * @param cacheStrategy
      *
      * @return a CacheControl object configured based on current system settings.
@@ -137,16 +137,17 @@ public class WebCache
      *
      * @return true if progressive caching is enabled, false otherwise
      */
-    public boolean isProgressiveCachingEnabled() {
+    public boolean isProgressiveCachingEnabled()
+    {
         return analyticsCacheSettings.isProgressiveCachingEnabled();
     }
 
     /**
      * Sets the cacheability (defined as system setting) into the given
      * CacheControl.
-     * 
+     *
      * @see org.hisp.dhis.setting.SettingKey#CACHEABILITY
-     * 
+     *
      * @param cacheControl where cacheability will be set.
      */
     private void setCacheabilityFor( final CacheControl cacheControl )

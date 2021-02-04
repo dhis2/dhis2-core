@@ -34,6 +34,7 @@ import java.util.Set;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -147,7 +148,8 @@ public class TrackedEntityInstanceCriteria
     private String assignedUser;
 
     /**
-     * Program Stage UID, used for filtering TEIs based on the selected Program Stage
+     * Program Stage UID, used for filtering TEIs based on the selected Program
+     * Stage
      */
     private String programStage;
 
@@ -211,7 +213,7 @@ public class TrackedEntityInstanceCriteria
      * TEI order params
      */
     private String order;
-    
+
     /**
      * The file name in case of exporting as file
      */

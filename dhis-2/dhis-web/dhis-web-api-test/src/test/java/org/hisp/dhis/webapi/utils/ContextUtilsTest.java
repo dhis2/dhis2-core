@@ -141,7 +141,8 @@ public class ContextUtilsTest
         assertEquals( "max-age=" + CACHE_6AM_TOMORROW.toSeconds() + ", public", response.getHeader( "Cache-Control" ) );
 
         response.reset();
-        systemSettingManager.saveSystemSetting( CACHE_STRATEGY, getAsRealClass( CACHE_STRATEGY.getName(), CACHE_1_HOUR.toString() ) );
+        systemSettingManager.saveSystemSetting( CACHE_STRATEGY,
+            getAsRealClass( CACHE_STRATEGY.getName(), CACHE_1_HOUR.toString() ) );
         contextUtils.configureResponse( response, null, RESPECT_SYSTEM_SETTING, null, false );
         assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
     }
@@ -195,7 +196,8 @@ public class ContextUtilsTest
         systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR, 10 );
 
         response.reset();
-        contextUtils.configureAnalyticsResponse( response, null, overriddenCacheStrategy, null, false, params.getLatestEndDate() );
+        contextUtils.configureAnalyticsResponse( response, null, overriddenCacheStrategy, null, false,
+            params.getLatestEndDate() );
         assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
     }
 
@@ -221,8 +223,9 @@ public class ContextUtilsTest
         systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR, ttlFactor );
 
         response.reset();
-        contextUtils.configureAnalyticsResponse( response, null, respectSystemSetting, null, false, params.getLatestEndDate() );
-        assertEquals( "max-age=" + timeToLive +", public", response.getHeader( "Cache-Control" ) );
+        contextUtils.configureAnalyticsResponse( response, null, respectSystemSetting, null, false,
+            params.getLatestEndDate() );
+        assertEquals( "max-age=" + timeToLive + ", public", response.getHeader( "Cache-Control" ) );
     }
 
     @Test

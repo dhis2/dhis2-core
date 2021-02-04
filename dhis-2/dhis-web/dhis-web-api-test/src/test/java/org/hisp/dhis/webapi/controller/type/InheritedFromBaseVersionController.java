@@ -46,7 +46,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class InheritedFromBaseVersionController extends BaseWithVersionController
 {
     @RequestMapping
-    public void test( HttpServletResponse response ) throws IOException
+    public void test( HttpServletResponse response )
+        throws IOException
     {
         response.getWriter().println();
     }

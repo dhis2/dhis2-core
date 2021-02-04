@@ -28,17 +28,19 @@ package org.hisp.dhis.ouwt.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.opensymphony.xwork2.Action;
+import java.util.Collection;
+import java.util.List;
+
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager;
 
-import java.util.Collection;
-import java.util.List;
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: AddSelectedOrganisationUnitAction.java 2869 2007-02-20 14:26:09Z andegje $
+ * @version $Id: AddSelectedOrganisationUnitAction.java 2869 2007-02-20
+ *          14:26:09Z andegje $
  */
 public class AddSelectedOrganisationUnitAction
     implements Action
@@ -94,12 +96,12 @@ public class AddSelectedOrganisationUnitAction
             for ( String currentId : id )
             {
                 OrganisationUnit unit = organisationUnitService.getOrganisationUnit( currentId );
-    
+
                 if ( unit == null )
                 {
                     throw new RuntimeException( "OrganisationUnit with id " + id + " doesn't exist" );
                 }
-    
+
                 selectedUnits.add( unit );
             }
         }

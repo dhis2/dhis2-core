@@ -28,9 +28,11 @@ package org.hisp.dhis.security.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import static org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig.setHttpHeaders;
+
+import java.util.Arrays;
+import java.util.List;
+
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
@@ -73,10 +75,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig.setHttpHeaders;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -88,7 +89,8 @@ import static org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig.s
 public class DhisWebCommonsWebSecurityConfig
 {
     /**
-     * This configuration class is responsible for setting up the session management.
+     * This configuration class is responsible for setting up the session
+     * management.
      */
     @Configuration
     @Order( 3300 )
@@ -116,7 +118,8 @@ public class DhisWebCommonsWebSecurityConfig
     }
 
     /**
-     * This configuration class is responsible for setting up the form login and everything related to the web pages.
+     * This configuration class is responsible for setting up the form login and
+     * everything related to the web pages.
      */
     @Configuration
     @Order( 2200 )
@@ -207,7 +210,8 @@ public class DhisWebCommonsWebSecurityConfig
                 .antMatchers( "/dhis-web-messaging/**" ).hasAnyAuthority( "ALL", "M_dhis-web-messaging" )
                 .antMatchers( "/dhis-web-datastore/**" ).hasAnyAuthority( "ALL", "M_dhis-web-datastore" )
                 .antMatchers( "/dhis-web-scheduler/**" ).hasAnyAuthority( "ALL", "M_dhis-web-scheduler" )
-                .antMatchers( "/dhis-web-sms-configuration/**" ).hasAnyAuthority( "ALL", "M_dhis-web-sms-configuration" )
+                .antMatchers( "/dhis-web-sms-configuration/**" )
+                .hasAnyAuthority( "ALL", "M_dhis-web-sms-configuration" )
                 .antMatchers( "/dhis-web-user/**" ).hasAnyAuthority( "ALL", "M_dhis-web-user" )
 
                 .antMatchers( "/**" ).authenticated()
@@ -248,7 +252,8 @@ public class DhisWebCommonsWebSecurityConfig
         @Bean
         public Http401LoginUrlAuthenticationEntryPoint entryPoint()
         {
-            // Converts to a HTTP basic login if  "XMLHttpRequest".equals( request.getHeader( "X-Requested-With" ) )
+            // Converts to a HTTP basic login if "XMLHttpRequest".equals( request.getHeader(
+            // "X-Requested-With" ) )
             return new Http401LoginUrlAuthenticationEntryPoint( "/dhis-web-commons/security/login.action" );
         }
 
@@ -279,10 +284,11 @@ public class DhisWebCommonsWebSecurityConfig
         @Bean
         public CustomExceptionMappingAuthenticationFailureHandler authenticationFailureHandler()
         {
-            CustomExceptionMappingAuthenticationFailureHandler handler =
-                new CustomExceptionMappingAuthenticationFailureHandler( i18nManager );
+            CustomExceptionMappingAuthenticationFailureHandler handler = new CustomExceptionMappingAuthenticationFailureHandler(
+                i18nManager );
 
-            // Handles the special case when a user failed to login because it has expired...
+            // Handles the special case when a user failed to login because it has
+            // expired...
             handler.setExceptionMappings(
                 ImmutableMap.of(
                     "org.springframework.security.authentication.CredentialsExpiredException",
@@ -329,8 +335,7 @@ public class DhisWebCommonsWebSecurityConfig
                 "dhis-web-apps",
                 "dhis-web-api-mobile",
                 "dhis-web-portal",
-                "dhis-web-uaa"
-            ) );
+                "dhis-web-uaa" ) );
             return voter;
         }
 
@@ -362,8 +367,7 @@ public class DhisWebCommonsWebSecurityConfig
                 new UnanimousBased( ImmutableList.of( actionAccessVoter(), moduleAccessVoter() ) ),
                 new UnanimousBased( ImmutableList.of( webExpressionVoter() ) ),
                 new UnanimousBased( ImmutableList.of( externalAccessVoter ) ),
-                new UnanimousBased( ImmutableList.of( new AuthenticatedVoter() ) )
-            );
+                new UnanimousBased( ImmutableList.of( new AuthenticatedVoter() ) ) );
             return new LogicalOrAccessDecisionManager( decisionVoters );
         }
     }

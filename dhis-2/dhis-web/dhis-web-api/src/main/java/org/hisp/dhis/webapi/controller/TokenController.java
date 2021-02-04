@@ -88,11 +88,13 @@ public class TokenController
 
     @RequestMapping( value = "/google", method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody GoogleAccessToken getEarthEngineToken( HttpServletResponse response )
-        throws WebMessageException, ExecutionException
+        throws WebMessageException,
+        ExecutionException
     {
         setNoStore( response );
 
-        Optional<GoogleAccessToken> tokenOptional = TOKEN_CACHE.get( TOKEN_CACHE_KEY, c -> config.getGoogleAccessToken().get() );
+        Optional<GoogleAccessToken> tokenOptional = TOKEN_CACHE.get( TOKEN_CACHE_KEY,
+            c -> config.getGoogleAccessToken().get() );
 
         if ( !tokenOptional.isPresent() )
         {

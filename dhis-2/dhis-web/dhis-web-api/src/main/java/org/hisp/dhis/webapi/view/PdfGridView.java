@@ -47,7 +47,8 @@ public class PdfGridView extends AbstractGridView
     }
 
     @Override
-    protected void renderGrids( List<Grid> grids, HttpServletResponse response ) throws Exception
+    protected void renderGrids( List<Grid> grids, HttpServletResponse response )
+        throws Exception
     {
         GridUtils.toPdf( grids, response.getOutputStream() );
     }

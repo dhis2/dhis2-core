@@ -116,38 +116,37 @@ public class DashboardControllerTest
 
     @Test
     public void verifyEndpointWithSearchQueryWithNoArgs()
-            throws Exception
+        throws Exception
     {
         mockMvc.perform( get( ENDPOINT + "/alfa" ) ).andExpect( status().isOk() );
 
-        verify( dashboardService ).search( "alfa" , null, null, null );
+        verify( dashboardService ).search( "alfa", null, null, null );
     }
 
     @Test
     public void verifyEndpointWithSearchQueryWithMaxArg()
-            throws Exception
+        throws Exception
     {
         mockMvc.perform(
             get( ENDPOINT + "/alfa" )
                 .param( "max", "CHART" ) )
             .andExpect( status().isOk() );
 
-        verify( dashboardService ).search( "alfa" , Sets.newHashSet( DashboardItemType.CHART ), null, null );
+        verify( dashboardService ).search( "alfa", Sets.newHashSet( DashboardItemType.CHART ), null, null );
     }
 
     @Test
     public void verifyEndpointWithSearchQueryWithAllArg()
-            throws Exception
+        throws Exception
     {
         mockMvc.perform(
-            get( ENDPOINT + "/alfa"  )
+            get( ENDPOINT + "/alfa" )
                 .param( "max", "CHART" )
                 .param( "count", "10" )
                 .param( "maxCount", "20" ) )
             .andExpect( status().isOk() );
 
-        verify( dashboardService ).search( "alfa" , Sets.newHashSet( DashboardItemType.CHART ), 10, 20 );
+        verify( dashboardService ).search( "alfa", Sets.newHashSet( DashboardItemType.CHART ), 10, 20 );
     }
-
 
 }

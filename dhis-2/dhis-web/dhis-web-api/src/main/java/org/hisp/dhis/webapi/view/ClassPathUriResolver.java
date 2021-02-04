@@ -28,13 +28,14 @@ package org.hisp.dhis.webapi.view;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.core.io.ClassPathResource;
+import java.io.IOException;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.URIResolver;
 import javax.xml.transform.stream.StreamSource;
-import java.io.IOException;
+
+import org.springframework.core.io.ClassPathResource;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -63,7 +64,8 @@ public class ClassPathUriResolver implements URIResolver
     }
 
     @Override
-    public Source resolve( String href, String base ) throws TransformerException
+    public Source resolve( String href, String base )
+        throws TransformerException
     {
         String url = getTemplatePath() + href;
         ClassPathResource classPathResource = new ClassPathResource( url );

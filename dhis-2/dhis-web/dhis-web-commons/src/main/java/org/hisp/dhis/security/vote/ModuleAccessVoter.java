@@ -28,16 +28,17 @@ package org.hisp.dhis.security.vote;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.opensymphony.xwork2.config.entities.ActionConfig;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+
+import com.opensymphony.xwork2.config.entities.ActionConfig;
 
 /**
  * AccessDecisionVoter which grants access if one of the granted authorities
@@ -72,8 +73,8 @@ public class ModuleAccessVoter
 
     /**
      * Returns true if the class equals
-     * <code>com.opensymphony.xwork.config.entities.ActionConfig</code>.
-     * False otherwise.
+     * <code>com.opensymphony.xwork.config.entities.ActionConfig</code>. False
+     * otherwise.
      */
     @Override
     public boolean supports( Class<?> clazz )
@@ -87,9 +88,9 @@ public class ModuleAccessVoter
 
     /**
      * Votes. Votes ACCESS_ABSTAIN if the object class is not supported. Votes
-     * ACCESS_GRANTED if there is a granted authority which equals attribute
-     * prefix + module name, or the module name is in the always accessible set.
-     * Otherwise votes ACCESS_DENIED.
+     * ACCESS_GRANTED if there is a granted authority which equals attribute prefix
+     * + module name, or the module name is in the always accessible set. Otherwise
+     * votes ACCESS_DENIED.
      */
     @Override
     public int vote( Authentication authentication, Object object, Collection<ConfigAttribute> attributes )

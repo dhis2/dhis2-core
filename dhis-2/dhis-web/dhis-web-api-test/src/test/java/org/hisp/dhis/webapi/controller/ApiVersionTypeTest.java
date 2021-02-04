@@ -41,7 +41,8 @@ import org.springframework.mock.web.MockHttpSession;
 public class ApiVersionTypeTest extends DhisWebSpringTest
 {
     @Test
-    public void testTypeAnnotationDefault() throws Exception
+    public void testTypeAnnotationDefault()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/type/testDefault";
@@ -57,7 +58,8 @@ public class ApiVersionTypeTest extends DhisWebSpringTest
     }
 
     @Test
-    public void testTypeAnnotationDefaultV31() throws Exception
+    public void testTypeAnnotationDefaultV31()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/type/testDefaultV31";
@@ -73,7 +75,8 @@ public class ApiVersionTypeTest extends DhisWebSpringTest
     }
 
     @Test
-    public void testTypeAnnotationV31V32() throws Exception
+    public void testTypeAnnotationV31V32()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/type/testV31V32";
@@ -89,7 +92,8 @@ public class ApiVersionTypeTest extends DhisWebSpringTest
     }
 
     @Test
-    public void testTypeAnnotationAll() throws Exception
+    public void testTypeAnnotationAll()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/type/testAll";
@@ -105,7 +109,8 @@ public class ApiVersionTypeTest extends DhisWebSpringTest
     }
 
     @Test
-    public void testTypeAnnotationAllExcludeV32() throws Exception
+    public void testTypeAnnotationAllExcludeV32()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/type/testAllExcludeV32";
@@ -121,7 +126,8 @@ public class ApiVersionTypeTest extends DhisWebSpringTest
     }
 
     @Test
-    public void testTypeAnnotationDefaultAll() throws Exception
+    public void testTypeAnnotationDefaultAll()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/type/testDefaultAll";

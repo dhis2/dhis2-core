@@ -28,14 +28,15 @@ package org.hisp.dhis.servlet;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
-import org.springframework.core.annotation.Order;
-import org.springframework.web.WebApplicationInitializer;
+import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
-import java.util.EnumSet;
+
+import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
+import org.springframework.core.annotation.Order;
+import org.springframework.web.WebApplicationInitializer;
 
 @Order( 12 )
 public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer

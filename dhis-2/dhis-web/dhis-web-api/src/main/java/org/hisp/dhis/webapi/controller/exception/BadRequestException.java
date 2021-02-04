@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller.exception;
  */
 
 /**
- * @author  anilkumk.
+ * @author anilkumk.
  */
 public class BadRequestException extends Exception
 {

@@ -31,6 +31,9 @@ package org.hisp.dhis.webapi.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
@@ -51,9 +54,6 @@ import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Joiner;
-
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 
 @Service
 @RequiredArgsConstructor

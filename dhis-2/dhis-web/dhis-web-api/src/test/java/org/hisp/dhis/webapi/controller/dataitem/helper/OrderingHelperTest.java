@@ -99,7 +99,7 @@ public class OrderingHelperTest
     public void sortWhenOrderParamsIsDesc()
     {
         // Given
-        final Set<String> orderings = new HashSet<>( singletonList( "name:desc" ));
+        final Set<String> orderings = new HashSet<>( singletonList( "name:desc" ) );
         final OrderParams orderParams = new OrderParams( orderings );
         final List<BaseDimensionalItemObject> anyDimensionalItems = mockDimensionalItems( 2 );
         final List<BaseDimensionalItemObject> ascList = mockDimensionalItems( 2 );
@@ -119,7 +119,6 @@ public class OrderingHelperTest
         final Set<String> orderingWithNoValue = new HashSet<>( singletonList( "name:" ) );
         final OrderParams orderParams = new OrderParams( orderingWithNoValue );
         final List<BaseDimensionalItemObject> anyDimensionalItems = mockDimensionalItems( 2 );
-
 
         // When
         assertThrows( "Unable to parse order param: `" + "name:" + "`", IllegalQueryException.class,

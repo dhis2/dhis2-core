@@ -28,12 +28,12 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpSession;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -41,7 +41,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class PrePostSecurityAnnotationsTest extends DhisWebSpringTest
 {
     @Test
-    public void authorityAllCanAccessApps() throws Exception
+    public void authorityAllCanAccessApps()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
 
@@ -50,7 +51,8 @@ public class PrePostSecurityAnnotationsTest extends DhisWebSpringTest
     }
 
     @Test
-    public void authorityNoAuthorityCantAccessApps() throws Exception
+    public void authorityNoAuthorityCantAccessApps()
+        throws Exception
     {
         MockHttpSession session = getSession( "NO_AUTHORITY" );
 

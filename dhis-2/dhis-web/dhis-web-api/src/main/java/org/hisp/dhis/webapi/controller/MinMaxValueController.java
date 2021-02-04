@@ -28,6 +28,10 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataanalysis.MinMaxDataAnalysisService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -53,10 +57,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
 
 /**
  * min max value endpoint to to generate and remove min max values
@@ -113,8 +113,7 @@ public class MinMaxValueController
             dataElements.addAll( dataSet.getDataElements() );
         }
 
-        Double factor = (Double) this.systemSettingManager.
-            getSystemSetting( SettingKey.FACTOR_OF_DEVIATION );
+        Double factor = (Double) this.systemSettingManager.getSystemSetting( SettingKey.FACTOR_OF_DEVIATION );
 
         this.minMaxDataAnalysisService.generateMinMaxValues( organisationUnit, dataElements, factor );
 

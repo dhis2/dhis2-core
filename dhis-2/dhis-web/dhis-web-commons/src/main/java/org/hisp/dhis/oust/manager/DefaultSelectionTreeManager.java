@@ -46,8 +46,9 @@ public class DefaultSelectionTreeManager
     implements SelectionTreeManager
 {
     private static final String SESSION_KEY_SELECTED_ORG_UNITS = "dhis-oust-selected-org-units";
+
     private static final String SESSION_KEY_ROOT_ORG_UNITS = "dhis-oust-root-org-units";
-    
+
     private static final int LIMIT_SELECT_ALL_ORG_UNITS = 200;
 
     // -------------------------------------------------------------------------
@@ -212,7 +213,7 @@ public class DefaultSelectionTreeManager
     // Session methods
     // -------------------------------------------------------------------------
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     private final Collection<OrganisationUnit> getCollectionFromSession( String key )
     {
         return (Collection<OrganisationUnit>) SessionUtils.getSessionVar( key );
@@ -235,13 +236,13 @@ public class DefaultSelectionTreeManager
         {
             Set<OrganisationUnit> orgUnits = Sets.newHashSet( organisationUnitService.getAllOrganisationUnits() );
             orgUnits.retainAll( Sets.newHashSet( units ) );
-            
+
             return orgUnits;
         }
         else // Select one by one
         {
             Set<OrganisationUnit> reloadedUnits = new HashSet<>();
-            
+
             for ( OrganisationUnit unit : units )
             {
                 OrganisationUnit reloadedUnit = reloadOrganisationUnit( unit );
@@ -251,16 +252,17 @@ public class DefaultSelectionTreeManager
                     reloadedUnits.add( reloadedUnit );
                 }
             }
-            
+
             return reloadedUnits;
-        }        
+        }
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Collection<OrganisationUnit> getUnitsInTree( Collection<OrganisationUnit> rootUnits, Collection<OrganisationUnit> selectedUnits )
+    private Collection<OrganisationUnit> getUnitsInTree( Collection<OrganisationUnit> rootUnits,
+        Collection<OrganisationUnit> selectedUnits )
     {
         Collection<OrganisationUnit> unitsInTree = new ArrayList<>();
 

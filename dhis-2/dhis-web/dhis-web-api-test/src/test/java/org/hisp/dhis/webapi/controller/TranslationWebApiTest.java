@@ -28,9 +28,15 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.junit.Assert.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.Locale;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.http.HttpStatus;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -47,12 +53,8 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.Locale;
-
-import static org.junit.Assert.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -85,7 +87,8 @@ public class TranslationWebApiTest extends DhisWebSpringTest
             identifiableObjectManager.save( categoryCombo );
             identifiableObjectManager.save( dataElementA );
 
-            dataElementA.getTranslations().add( new Translation( locale.getLanguage(), TranslationProperty.NAME, valueToCheck ) );
+            dataElementA.getTranslations()
+                .add( new Translation( locale.getLanguage(), TranslationProperty.NAME, valueToCheck ) );
 
             try
             {
@@ -104,8 +107,10 @@ public class TranslationWebApiTest extends DhisWebSpringTest
             return null;
         } );
 
-        MvcResult result = mvc.perform( get( "/dataElements/" + dataElementA.getUid() + "?locale=" + locale.getLanguage() ).session( session )
-            .contentType( TestUtils.APPLICATION_JSON_UTF8 ) ).andReturn();
+        MvcResult result = mvc.perform(
+            get( "/dataElements/" + dataElementA.getUid() + "?locale=" + locale.getLanguage() ).session( session )
+                .contentType( TestUtils.APPLICATION_JSON_UTF8 ) )
+            .andReturn();
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree( result.getResponse().getContentAsString() );

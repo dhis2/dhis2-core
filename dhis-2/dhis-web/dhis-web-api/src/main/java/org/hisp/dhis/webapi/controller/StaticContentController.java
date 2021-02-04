@@ -62,6 +62,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
@@ -93,7 +94,7 @@ import com.google.common.collect.ImmutableMap;
  * @author Stian Sandvold
  */
 @RestController
-@RequestMapping(RESOURCE_PATH)
+@RequestMapping( RESOURCE_PATH )
 @Slf4j
 @ApiVersion( { DEFAULT, ALL } )
 public class StaticContentController
@@ -113,15 +114,14 @@ public class StaticContentController
     private static final FileResourceDomain DEFAULT_RESOURCE_DOMAIN = DOCUMENT;
 
     private static final Map<String, SettingKey> KEY_WHITELIST_MAP = ImmutableMap.of(
-            LOGO_BANNER, USE_CUSTOM_LOGO_BANNER,
-            LOGO_FRONT, USE_CUSTOM_LOGO_FRONT );
+        LOGO_BANNER, USE_CUSTOM_LOGO_BANNER,
+        LOGO_FRONT, USE_CUSTOM_LOGO_FRONT );
 
     @Autowired
     public StaticContentController(
         SystemSettingManager systemSettingManager,
         StyleManager styleManager,
-        JCloudsFileResourceContentStore contentStore
-    )
+        JCloudsFileResourceContentStore contentStore )
     {
         checkNotNull( systemSettingManager );
         checkNotNull( styleManager );
@@ -184,8 +184,7 @@ public class StaticContentController
     @RequestMapping( value = "/{key}", method = GET )
     public void getStaticContent(
         @PathVariable( "key" ) String key, HttpServletRequest request,
-        HttpServletResponse response
-    )
+        HttpServletResponse response )
         throws WebMessageException
     {
         if ( !KEY_WHITELIST_MAP.containsKey( key ) )
@@ -229,7 +228,7 @@ public class StaticContentController
     /**
      * Uploads PNG images based on a key. Only accepts PNG and white listed keys.
      *
-     * @param key  the key.
+     * @param key the key.
      * @param file the image file.
      */
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
@@ -283,7 +282,8 @@ public class StaticContentController
     /**
      * Returns the relative URL of the default logo for a given key.
      *
-     * @param key the key associated with the logo or null if the key does not exist.
+     * @param key the key associated with the logo or null if the key does not
+     *        exist.
      * @return the relative URL of the logo.
      */
     private String getDefaultLogoUrl( HttpServletRequest request, String key )

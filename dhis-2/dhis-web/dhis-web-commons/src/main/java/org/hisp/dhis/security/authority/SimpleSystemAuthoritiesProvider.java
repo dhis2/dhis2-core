@@ -34,10 +34,11 @@ import java.util.Set;
 
 /**
  * Simple SystemAuthoritiesProvider where the system authorities are simply set
- * using a setter method. 
- * 
+ * using a setter method.
+ *
  * @author Torgeir Lorange Ostby
- * @version $Id: SimpleSystemAuthoritiesProvider.java 3516 2007-08-05 11:45:54Z torgeilo $
+ * @version $Id: SimpleSystemAuthoritiesProvider.java 3516 2007-08-05 11:45:54Z
+ *          torgeilo $
  */
 public class SimpleSystemAuthoritiesProvider
     implements SystemAuthoritiesProvider

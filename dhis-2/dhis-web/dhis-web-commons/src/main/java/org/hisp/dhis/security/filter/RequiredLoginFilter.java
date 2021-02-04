@@ -82,7 +82,8 @@ public class RequiredLoginFilter
 
     @Override
     public void doFilter( ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain )
-        throws IOException, ServletException
+        throws IOException,
+        ServletException
     {
         // ---------------------------------------------------------------------
         // Convert to HttpServletRequest and -Response
