@@ -65,7 +65,8 @@ public class ClusterController
     {
         LeaderNodeInfo leaderInfo = new LeaderNodeInfo();
 
-        leaderInfo.setLeaderNodeId( leaderManager.getLeaderNodeUuid() );
+        leaderInfo.setLeaderNodeId( leaderManager.getLeaderNodeId() );
+        leaderInfo.setLeaderNodeUuid( leaderManager.getLeaderNodeUuid() );
         leaderInfo.setLeader( leaderManager.isLeader() );
         leaderInfo.setCurrentNodeUuid( leaderManager.getCurrentNodeUuid() );
         leaderInfo.setCurrentNodeId( dhisConfigurationProvider.getProperty( ConfigurationKey.NODE_ID ) );

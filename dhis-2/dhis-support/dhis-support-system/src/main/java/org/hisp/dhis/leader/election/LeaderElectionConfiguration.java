@@ -51,25 +51,23 @@ public class LeaderElectionConfiguration
     @Autowired
     private DhisConfigurationProvider dhisConfigurationProvider;
 
-    @Bean
-    @Qualifier( "leaderTimeToLive" )
+    @Bean( name = "leaderTimeToLive" )
     public ConfigurationPropertyFactoryBean leaderTimeToLive()
     {
         return new ConfigurationPropertyFactoryBean( ConfigurationKey.LEADER_TIME_TO_LIVE );
     }
 
-    @Bean
-    @Qualifier( "leaderManager" )
+    @Bean( name = "leaderManager" )
     @Conditional( RedisEnabledCondition.class )
     @Autowired( required = false )
+    @Qualifier( "stringRedisTemplate" )
     public LeaderManager redisLeaderManager( StringRedisTemplate stringRedisTemplate )
     {
         return new RedisLeaderManager( Long.parseLong( (String) leaderTimeToLive().getObject() ), stringRedisTemplate,
             dhisConfigurationProvider );
     }
 
-    @Bean
-    @Qualifier( "leaderManager" )
+    @Bean( name = "leaderManager" )
     @Conditional( RedisDisabledCondition.class )
     public LeaderManager noOpLeaderManager()
     {
