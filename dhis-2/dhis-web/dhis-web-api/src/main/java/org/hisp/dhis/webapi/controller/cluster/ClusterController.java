@@ -25,53 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.leader.election;
+package org.hisp.dhis.webapi.controller.cluster;
 
-import org.hisp.dhis.condition.RedisDisabledCondition;
-import org.hisp.dhis.condition.RedisEnabledCondition;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.leader.election.LeaderManager;
+import org.hisp.dhis.leader.election.LeaderNodeInfo;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Configures leaderManager that takes care of node leader elections.
- *
  * @author Ameen Mohamed
- *
  */
-@Configuration
-public class LeaderElectionConfiguration
+@RestController
+@RequestMapping( "/cluster" )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class ClusterController
 {
+
+    @Autowired
+    private LeaderManager leaderManager;
+
     @Autowired
     private DhisConfigurationProvider dhisConfigurationProvider;
 
-    @Bean( name = "leaderTimeToLive" )
-    public ConfigurationPropertyFactoryBean leaderTimeToLive()
-    {
-        return new ConfigurationPropertyFactoryBean( ConfigurationKey.LEADER_TIME_TO_LIVE );
-    }
+    // -------------------------------------------------------------------------
+    // Resources
+    // -------------------------------------------------------------------------
 
-    @Bean( name = "leaderManager" )
-    @Conditional( RedisEnabledCondition.class )
-    @Autowired( required = false )
-    @Qualifier( "stringRedisTemplate" )
-    public LeaderManager redisLeaderManager( StringRedisTemplate stringRedisTemplate )
+    @GetMapping( value = "/leader" )
+    public @ResponseBody LeaderNodeInfo getLeaderInfo()
+        throws WebMessageException
     {
-        return new RedisLeaderManager( Long.parseLong( (String) leaderTimeToLive().getObject() ), stringRedisTemplate,
-            dhisConfigurationProvider );
-    }
+        LeaderNodeInfo leaderInfo = new LeaderNodeInfo();
 
-    @Bean( name = "leaderManager" )
-    @Conditional( RedisDisabledCondition.class )
-    public LeaderManager noOpLeaderManager()
-    {
-        return new NoOpLeaderManager( dhisConfigurationProvider );
-    }
+        leaderInfo.setLeaderNodeId( leaderManager.getLeaderNodeId() );
+        leaderInfo.setLeaderNodeUuid( leaderManager.getLeaderNodeUuid() );
+        leaderInfo.setLeader( leaderManager.isLeader() );
+        leaderInfo.setCurrentNodeUuid( leaderManager.getCurrentNodeUuid() );
+        leaderInfo.setCurrentNodeId( dhisConfigurationProvider.getProperty( ConfigurationKey.NODE_ID ) );
 
+        return leaderInfo;
+    }
 }
