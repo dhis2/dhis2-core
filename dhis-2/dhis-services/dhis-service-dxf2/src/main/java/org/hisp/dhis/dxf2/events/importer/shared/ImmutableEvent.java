@@ -200,16 +200,19 @@ public class ImmutableEvent
         return event.getAssignedUserUsername();
     }
 
+    @Override
     public boolean equals( Object o )
     {
         return event.equals( o );
     }
 
+    @Override
     public int hashCode()
     {
         return event.hashCode();
     }
 
+    @Override
     public String toString()
     {
         return event.toString();
