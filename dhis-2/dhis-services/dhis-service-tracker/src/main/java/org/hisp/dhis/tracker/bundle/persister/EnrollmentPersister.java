@@ -95,8 +95,6 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
         {
             for ( TrackedEntityComment comment : programInstance.getComments() )
             {
-                // this.trackedEntityCommentService.addTrackedEntityComment(
-                // comment );
                 if ( Objects.isNull( preheat.getNote( comment.getUid() ) ) )
                 {
                     this.trackedEntityCommentService.addTrackedEntityComment( comment );
