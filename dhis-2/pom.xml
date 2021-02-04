@@ -1526,5 +1526,6 @@
     <sonar.jacoco.reportPath>${rootDir}/../target/jacoco.exec</sonar.jacoco.reportPath>
     <sonar.organization>dhis2</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+    <sonar.scanner.force-deprecated-java-version>true</sonar.scanner.force-deprecated-java-version>
   </properties>
 </project>
